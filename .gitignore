@@ -1,0 +1,71 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# egg info
+pointer2.egg-info
+
+# Pycharm
+**/.idea/
+
+# view_model
+partition_tree_n2.html
+
+# SNOPT
+SNOPT_print.out
+SNOPT_summary.out
+
+# OS X
+.DS_Store
+
+# Sphinx build directory
+pointer/docs/build/
+
+# Build dir
+build
+
+# nosetests coverage
+.coverage
+
+# ipython notebook
+.ipynb_checkpoints
+
+# cProfile
+*.profile
+
+# Latex
+*.aux
+*.glo
+*.idx
+*.log
+*.toc
+*.ist
+*.acn
+*.acr
+*.alg
+*.bbl
+*.blg
+*.tui
+*.top
+*.tmp
+*.mp
+*.dvi
+*.glg
+*.gls
+*.nlo
+*.ilg
+*.ind
+*.lof
+*.lot
+*.maf
+*.mtc
+*.mtc1
+*.out
+*.synctex.gz
+
+# fortran
+fort.6
+
+# openmdao
+**/visualization
