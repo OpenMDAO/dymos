@@ -7,8 +7,8 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from openmdoc.phases.components.time_comp import TimeComp
-from openmdoc.phases.components.control_rate_comp import ControlRateComp
+from openmdoc.phases.components import TimeComp
+from openmdoc.phases.components import ControlRateComp
 from openmdoc.phases.grid_data import GridData
 
 

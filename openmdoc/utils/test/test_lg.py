@@ -4,7 +4,7 @@ import unittest
 
 from numpy.testing import assert_almost_equal
 
-from pointer.utils.lg import lg
+from openmdoc.utils.lg import lg
 
 # Known solutions
 x_i = {2: [-0.57735, 0.57735],
