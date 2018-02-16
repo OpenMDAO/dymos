@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 # egg info
-pointer2.egg-info
+*.egg-info
 
 # Pycharm
 **/.idea/
