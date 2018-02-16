@@ -14,7 +14,9 @@ class ODEFunction(object):
     Define an ODE of the form y' = f(t, x, y).
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, system_class=None, system_init_kwargs=None,
+                 time_options=None, state_options=None, parameter_options=None,
+                 **kwargs):
         """
         Initialize class attributes.
 
@@ -23,17 +25,25 @@ class ODEFunction(object):
         kwargs : dict
             Keyword arguments that will be passed to the initialize method.
         """
-        self._system_class = kwargs.get('system_class', None)
-        self._system_init_kwargs = kwargs.get('system_init_kwargs', {})
+        self._system_class = system_class
+        self._system_init_kwargs = system_init_kwargs if system_init_kwargs else {}
 
-        time_options = OptionsDictionary()
-        time_options.declare('targets', default=[], types=Iterable)
-        time_options.declare('units', default=None, types=string_types, allow_none=True)
+        self._time_options = OptionsDictionary()
+        self._time_options.declare('targets', default=[], types=Iterable)
+        self._time_options.declare('units', default=None, types=(string_types,), allow_none=True)
 
-        self._time_options = time_options
         self._states = {}
         self._static_parameters = {}
         self._dynamic_parameters = {}
+
+        if time_options:
+            self.declare_time(**time_options)
+        if state_options:
+            for state_name in state_options:
+                self.declare_state(state_name, **state_options[state_name])
+        if parameter_options:
+            for param_name in parameter_options:
+                self.declare_parameter(param_name, **parameter_options[param_name])
 
         self.initialize(**kwargs)
 
