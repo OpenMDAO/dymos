@@ -12,9 +12,8 @@ from ...models.eom import FlightPathEOM2D
 
 class MinTimeClimbODE(ODEFunction):
 
-    def __init__(self, mbi_thrust=True):
-        super(MinTimeClimbODE, self).__init__(system_class=BrysonMinTimeClimbSystem,
-                                              system_init_kwargs={'mbi_thrust': mbi_thrust})
+    def __init__(self):
+        super(MinTimeClimbODE, self).__init__(system_class=BrysonMinTimeClimbSystem)
 
         self.declare_time(units='s')
 
@@ -35,7 +34,6 @@ class BrysonMinTimeClimbSystem(Group):
 
     def initialize(self):
         self.metadata.declare('num_nodes', types=int)
-        self.metadata.declare('mbi_thrust', types=bool)
 
     def setup(self):
         nn = self.metadata['num_nodes']

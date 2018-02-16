@@ -2,12 +2,6 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 from openmdao.api import ExplicitComponent, MetaModelStructured
 
-try:
-    import MBI
-except ImportError:
-    print("MBI is not available")
-    MBI = None
-
 _FT2M = 0.3048
 
 _LBF2N = 4.4482216

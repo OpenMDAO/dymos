@@ -10,8 +10,7 @@ from openmdoc.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
 def min_time_climb_problem(optimizer='SLSQP', num_seg=3, transcription_order=5,
                            transcription='gauss-lobatto', alpha_guess=False,
-                           top_level_densejacobian=True, simul_derivs=False,
-                           mbi_thrust=False):
+                           top_level_densejacobian=True, simul_derivs=False):
 
     p = Problem(model=Group())
 
@@ -29,7 +28,7 @@ def min_time_climb_problem(optimizer='SLSQP', num_seg=3, transcription_order=5,
         p.driver.opt_settings['Major step limit'] = 0.5
 
     phase = Phase(transcription,
-                  ode_function=MinTimeClimbODE(mbi_thrust=mbi_thrust),
+                  ode_function=MinTimeClimbODE(),
                   num_segments=num_seg, transcription_order=transcription_order,
                   compressed=False)
 

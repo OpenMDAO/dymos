@@ -3,8 +3,6 @@ from __future__ import absolute_import
 from openmdao.api import Group
 
 from .mdot_comp import MassFlowRateComp
-from .bryson_max_thrust_comp import BrysonMaxThrustComp
-from .mbi_max_thrust_comp import MBIMaxThrustComp
 from .max_thrust_comp import MaxThrustComp
 from .thrust_comp import ThrustComp
 
@@ -36,18 +34,11 @@ class PropGroup(Group):
     def initialize(self):
         self.metadata.declare('num_nodes', types=int,
                               desc='Number of nodes to be evaluated in the RHS')
-        self.metadata.declare('thrust_model', values=['bryson', 'mbi', 'metamodel'],
-                              default='metamodel', desc='Type of thrust model to be used')
 
     def setup(self):
         nn = self.metadata['num_nodes']
 
-        if self.metadata['thrust_model'] == 'bryson':
-            max_thrust_comp = BrysonMaxThrustComp(num_nodes=nn)
-        elif self.metadata['thrust_model'] == 'mbi':
-            max_thrust_comp = MBIMaxThrustComp(num_nodes=nn)
-        else:
-            max_thrust_comp = MaxThrustComp(num_nodes=nn, extrapolate=True, method='cubic')
+        max_thrust_comp = MaxThrustComp(num_nodes=nn, extrapolate=True, method='cubic')
 
         self.add_subsystem(name='max_thrust_comp',
                            subsys=max_thrust_comp,
