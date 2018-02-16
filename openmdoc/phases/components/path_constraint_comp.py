@@ -64,14 +64,13 @@ class PathConstraintComp(ExplicitComponent):
             disc_row_starts = grid_data.subset_node_indices['disc'] * var_size
             disc_rows = []
             for i in disc_row_starts:
-                disc_rows.extend(range(i, i+var_size))
-            disc_rows=np.asarray(disc_rows, dtype=int)
+                disc_rows.extend(range(i, i + var_size))
+            disc_rows = np.asarray(disc_rows, dtype=int)
 
             self.declare_partials(
                 of=output_name,
                 wrt=disc_input_name,
                 dependent=True,
-                #rows=grid_data.subset_node_indices['disc'],
                 rows=disc_rows,
                 cols=np.arange(disc_size),
                 val=1.0)
@@ -81,14 +80,13 @@ class PathConstraintComp(ExplicitComponent):
                 col_row_starts = grid_data.subset_node_indices['col'] * var_size
                 col_rows = []
                 for i in col_row_starts:
-                    col_rows.extend(range(i, i+var_size))
-                col_rows=np.asarray(col_rows, dtype=int)
-            
+                    col_rows.extend(range(i, i + var_size))
+                col_rows = np.asarray(col_rows, dtype=int)
+
                 self.declare_partials(
                     of=output_name,
                     wrt=col_input_name,
                     dependent=True,
-                    #rows=grid_data.subset_node_indices['col'],
                     rows=col_rows,
                     cols=np.arange(col_size),
                     val=1.0)

@@ -1,6 +1,5 @@
 from __future__ import print_function, division, absolute_import
 
-from collections import Iterable
 from six import string_types
 import numpy as np
 from openmdao.api import ExplicitComponent, OptionsDictionary
@@ -11,6 +10,9 @@ class PhaseLinkageComp(ExplicitComponent):
     Provides a 'linkage' capability between two phases to provide
     continuity in states, time, and other variables between two
     phases.
+
+    Conceptually, each linkage can be thought of as a set of compatibility constraints involving
+    one or more variables.
     """
     def initialize(self):
         self.metadata.declare('linkages', default=[])
@@ -63,8 +65,8 @@ class PhaseLinkageComp(ExplicitComponent):
         vars : str or iterable
             The name of one or more linked variables to be added.
         shape : tuple
-            The shape of the constraint being formed.  Must be compliant with the shapes
-            of the two conditions specified.
+            The shape of the constraint being formed.  Must be compliant with the shape
+            of the variable.
         units : str, dict, or None
             The units of the linkage constraint.  If given as a string, the units will
             apply to each variable in vars.  If given as a dict, it should be keyed

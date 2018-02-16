@@ -18,12 +18,11 @@ class TestPathConstraintCompGL(unittest.TestCase):
 
         transcription = 'gauss-lobatto'
 
-        gd = GridData(num_segments=2,
-                      transcription_order=3,
-                      segment_ends=[0.0, 3.0, 10.0],
-                      transcription=transcription)
+        self.gd = gd = GridData(num_segments=2,
+                                transcription_order=3,
+                                segment_ends=[0.0, 3.0, 10.0],
+                                transcription=transcription)
 
-        nn = gd.subset_num_nodes['all']
         ndn = gd.subset_num_nodes['disc']
         ncn = gd.subset_num_nodes['col']
 
@@ -65,16 +64,43 @@ class TestPathConstraintCompGL(unittest.TestCase):
         self.p.model.connect('c_disc', 'path_constraints.disc_values:c')
         self.p.model.connect('c_col', 'path_constraints.col_values:c')
 
-        self.p.setup()
+        self.p.setup(mode='fwd')
+
+        self.p['a_disc'] = np.random.rand(*self.p['a_disc'].shape)
+        self.p['a_col'] = np.random.rand(*self.p['a_col'].shape)
+
+        self.p['b_disc'] = np.random.rand(*self.p['b_disc'].shape)
+        self.p['b_col'] = np.random.rand(*self.p['b_col'].shape)
+
+        self.p['c_disc'] = np.random.rand(*self.p['c_disc'].shape)
+        self.p['c_col'] = np.random.rand(*self.p['c_col'].shape)
 
         self.p.run_model()
 
     def test_results(self):
-        pass
+        p = self.p
+        gd = self.gd
+        assert_almost_equal(p['a_disc'],
+                            p['path_constraints.path:a'][gd.subset_node_indices['disc'], ...])
+
+        assert_almost_equal(p['a_col'],
+                            p['path_constraints.path:a'][gd.subset_node_indices['col'], ...])
+
+        assert_almost_equal(p['b_disc'],
+                            p['path_constraints.path:b'][gd.subset_node_indices['disc'], ...])
+
+        assert_almost_equal(p['b_col'],
+                            p['path_constraints.path:b'][gd.subset_node_indices['col'], ...])
+
+        assert_almost_equal(p['c_disc'],
+                            p['path_constraints.path:c'][gd.subset_node_indices['disc'], ...])
+
+        assert_almost_equal(p['c_col'],
+                            p['path_constraints.path:c'][gd.subset_node_indices['col'], ...])
 
     def test_partials(self):
         np.set_printoptions(linewidth=1024, edgeitems=1000)
-        cpd = self.p.check_partials()
+        cpd = self.p.check_partials(suppress_output=True)
         assert_check_partials(cpd)
 
 
@@ -84,14 +110,12 @@ class TestPathConstraintCompRadau(unittest.TestCase):
 
         transcription = 'radau-ps'
 
-        gd = GridData(num_segments=2,
-                      transcription_order=3,
-                      segment_ends=[0.0, 3.0, 10.0],
-                      transcription=transcription)
+        self.gd = gd = GridData(num_segments=2,
+                                transcription_order=3,
+                                segment_ends=[0.0, 3.0, 10.0],
+                                transcription=transcription)
 
-        nn = gd.subset_num_nodes['all']
         ndn = gd.subset_num_nodes['disc']
-        ncn = gd.subset_num_nodes['col']
 
         self.p = Problem(model=Group())
 
@@ -123,16 +147,25 @@ class TestPathConstraintCompRadau(unittest.TestCase):
         self.p.model.connect('b_disc', 'path_constraints.disc_values:b')
         self.p.model.connect('c_disc', 'path_constraints.disc_values:c')
 
-        self.p.setup()
+        self.p.setup(mode='fwd')
 
         self.p.run_model()
 
     def test_results(self):
-        pass
+        p = self.p
+        gd = self.gd
+        assert_almost_equal(p['a_disc'],
+                            p['path_constraints.path:a'][gd.subset_node_indices['disc'], ...])
+
+        assert_almost_equal(p['b_disc'],
+                            p['path_constraints.path:b'][gd.subset_node_indices['disc'], ...])
+
+        assert_almost_equal(p['c_disc'],
+                            p['path_constraints.path:c'][gd.subset_node_indices['disc'], ...])
 
     def test_partials(self):
         np.set_printoptions(linewidth=1024, edgeitems=1000)
-        cpd = self.p.check_partials()
+        cpd = self.p.check_partials(suppress_output=True)
         assert_check_partials(cpd)
 
 
