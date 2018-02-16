@@ -23,8 +23,8 @@ class ODEFunction(object):
         kwargs : dict
             Keyword arguments that will be passed to the initialize method.
         """
-        self._system_class = None
-        self._system_init_kwargs = {}
+        self._system_class = kwargs.get('system_class', None)
+        self._system_init_kwargs = kwargs.get('system_init_kwargs', {})
 
         time_options = OptionsDictionary()
         time_options.declare('targets', default=[], types=Iterable)

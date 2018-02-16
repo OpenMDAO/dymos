@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from pointer.utils.lgr import lgr
+from openmdoc.utils.lgr import lgr
 
 # Known solutions
 x_i = {2: [-1.0, 1/3.0],

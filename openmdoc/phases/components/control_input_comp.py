@@ -45,7 +45,7 @@ class ControlInputComp(ExplicitComponent):
             size = np.prod(shape)
 
             if 'val' in options:
-                val = np.asarray(options['val'])
+                val = np.atleast_1d(np.asarray(options['val']))
 
                 if len(val) == 1:
                     default_val = val * np.ones(shape)
