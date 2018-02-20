@@ -8,6 +8,8 @@ import numpy as np
 from scipy import interpolate
 
 from openmdao.api import Group, IndepVarComp
+from openmdao.core.system import System
+
 from openmdao.utils.logger_utils import get_logger
 from openmdoc.phases.components import BoundaryConstraintComp
 from openmdoc.phases.components import ControlInputComp
@@ -38,26 +40,27 @@ class PhaseBase(Group):
         self.grid_data = None
         self._time_extents = []
 
-        ode = self.metadata['ode_function']
+        self.ode_options = self.metadata['ode_class'].ode_options
 
         # Copy default value for options from the ODEFunction
-        for state_name in ode._states:
+        for state_name, options in iteritems(self.ode_options._states):
             self.state_options[state_name] = StateOptionsDictionary()
-            self.state_options[state_name]['shape'] = ode._states[state_name]['shape']
-            self.state_options[state_name]['units'] = ode._states[state_name]['units']
-            self.state_options[state_name]['targets'] = ode._states[state_name]['targets']
-            self.state_options[state_name]['rate_source'] = ode._states[state_name]['rate_source']
+            self.state_options[state_name]['shape'] = options['shape']
+            self.state_options[state_name]['units'] = options['units']
+            self.state_options[state_name]['targets'] = options['targets']
+            self.state_options[state_name]['rate_source'] = options['rate_source']
 
         # Integration variable options default to values from the RHS
-        self.time_options['units'] = ode._time_options['units']
-        self.time_options['targets'] = ode._time_options['targets']
+        self.time_options['units'] = self.ode_options._time_options['units']
+        self.time_options['targets'] = self.ode_options._time_options['targets']
 
     def initialize(self):
         # Required metadata
         self.metadata.declare('num_segments', types=int, desc='Number of segments')
-        self.metadata.declare('ode_function',
-                              is_valid=lambda ode: isinstance(ode, ODEFunction),
-                              desc='ODEFunction containing dynamics')
+        self.metadata.declare('ode_class',
+                              desc='System defining the ODE')
+        self.metadata.declare('ode_init_kwargs', types=dict, default={},
+                              desc='Keyword arguments provided when initializing the ODE System')
         self.metadata.declare('transcription', values=['gauss-lobatto', 'radau-ps'],
                               desc='Transcription technique of the optimal control problem.')
 
@@ -175,31 +178,29 @@ class PhaseBase(Group):
         The user may override these defaults by specifying them as True or False.
 
         """
-        ode = self.metadata['ode_function']
-
         if name in self.control_options:
             raise ValueError('{0} has already been added as a control.'.format(name))
 
         self.control_options[name] = ControlOptionsDictionary()
 
-        if name in ode._dynamic_parameters:
-            ode_param_info = ode._dynamic_parameters[name]
+        if name in self.ode_options._dynamic_parameters:
+            ode_param_info = self.ode_options._dynamic_parameters[name]
             self.control_options[name]['units'] = ode_param_info['units']
             self.control_options[name]['shape'] = ode_param_info['shape']
         else:
-            rate_used = rate_param is not None and rate_param in ode._dynamic_parameters
-            rate2_used = rate2_param is not None and rate2_param in ode._dynamic_parameters
+            rate_used = rate_param is not None and rate_param in self.ode_options._dynamic_parameters
+            rate2_used = rate2_param is not None and rate2_param in self.ode_options._dynamic_parameters
             if not rate_used and not rate2_used:
                 err_msg = 'Control {0} has no valid connect to a controllable parameter through' \
                           ' its value, rate, or second derivative.'.format(name)
                 raise ValueError(err_msg)
 
         if rate_param is not None:
-            ode_rate_param_info = ode._dynamic_parameters[rate_param]
+            ode_rate_param_info = self.ode_options._dynamic_parameters[rate_param]
             self.control_options[name]['rate_param'] = rate_param
             self.control_options[name]['shape'] = ode_rate_param_info['shape']
         if rate2_param is not None:
-            ode_rate2_param_info = ode._dynamic_parameters[rate2_param]
+            ode_rate2_param_info = self.ode_options._dynamic_parameters[rate2_param]
             self.control_options[name]['rate2_param'] = rate2_param
             self.control_options[name]['shape'] = ode_rate2_param_info['shape']
 
@@ -1131,8 +1132,10 @@ class PhaseBase(Group):
     def _check_unprovided_controls(self):
         logger = get_logger('check_config', use_format=True)
         unconnected = []
-        ode_parameters = self.metadata['ode_function']._dynamic_parameters.copy()
-        ode_parameters.update(self.metadata['ode_function']._static_parameters)
+        ode_options = self.metadata['ode_class'](num_nodes=1,
+                                                 **self.metadata['ode_init_kwargs']).ode_options
+        ode_parameters = ode_options._dynamic_parameters.copy()
+        ode_parameters.update(ode_options._static_parameters)
 
         for p in ode_parameters:
             p_is_connected = False

@@ -50,7 +50,6 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         return comps
 
     def _setup_controls(self):
-        ode = self.metadata['ode_function']
         num_dynamic = super(GaussLobattoPhase, self)._setup_controls()
         grid_data = self.grid_data
 
@@ -68,8 +67,8 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             else:
                 control_src_name = 'controls:{0}_out'.format(name)
 
-            if name in ode._dynamic_parameters:
-                targets = ode._dynamic_parameters[name]['targets']
+            if name in self.ode_options._dynamic_parameters:
+                targets = self.ode_options._dynamic_parameters[name]['targets']
                 self.connect(control_src_name,
                              ['rhs_disc.{0}'.format(t) for t in targets],
                              src_indices=map_indices_to_disc)
@@ -79,7 +78,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                              src_indices=map_indices_to_col)
 
             if options['rate_param']:
-                targets = ode._dynamic_parameters[options['rate_param']]['targets']
+                targets = self.ode_options._dynamic_parameters[options['rate_param']]['targets']
 
                 self.connect('control_rates:{0}_rate'.format(name),
                              ['rhs_disc.{0}'.format(t) for t in targets],
@@ -90,7 +89,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                              src_indices=map_indices_to_col)
 
             if options['rate2_param']:
-                targets = ode._dynamic_parameters[options['rate2_param']]['targets']
+                targets = self.ode_options._dynamic_parameters[options['rate2_param']]['targets']
 
                 self.connect('control_rates:{0}_rate2'.format(name),
                              ['rhs_disc.{0}'.format(t) for t in targets],
@@ -106,12 +105,12 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         super(GaussLobattoPhase, self)._setup_rhs()
 
         grid_data = self.grid_data
-        ode = self.metadata['ode_function']
+        ODEClass = self.metadata['ode_class']
         num_input_nodes = self.grid_data.num_state_input_nodes
 
-        kwargs = ode._system_init_kwargs
-        rhs_disc = ode._system_class(num_nodes=grid_data.subset_num_nodes['disc'], **kwargs)
-        rhs_col = ode._system_class(num_nodes=grid_data.subset_num_nodes['col'], **kwargs)
+        kwargs = self.metadata['ode_init_kwargs']
+        rhs_disc = ODEClass(num_nodes=grid_data.subset_num_nodes['disc'], **kwargs)
+        rhs_col = ODEClass(num_nodes=grid_data.subset_num_nodes['col'], **kwargs)
 
         map_input_indices_to_disc = self.grid_data.input_maps['state_to_disc']
 

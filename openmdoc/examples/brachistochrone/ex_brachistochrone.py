@@ -1,7 +1,8 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-from openmdao.api import Problem, Group, pyOptSparseDriver
+from openmdao.api import Problem, Group, pyOptSparseDriver, DenseJacobian, CSCJacobian, \
+    CSRJacobian, DirectSolver
 
 from openmdoc import Phase
 from openmdoc.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -10,7 +11,7 @@ OPTIMIZER = 'SLSQP'
 SHOW_PLOTS = True
 
 
-def brachistochrone_min_time(transcription='gauss-lobatto'):
+def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='csc'):
     p = Problem(model=Group())
 
     p.driver = pyOptSparseDriver()
@@ -21,7 +22,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto'):
         p.driver.opt_settings['Verify level'] = 3
 
     phase = Phase(transcription,
-                  ode_function=BrachistochroneODE(),
+                  ode_class=BrachistochroneODE,
                   num_segments=8,
                   transcription_order=3)
 
@@ -40,6 +41,17 @@ def brachistochrone_min_time(transcription='gauss-lobatto'):
 
     # Minimize time at the end of the phase
     phase.set_objective('time', loc='final', scaler=10)
+
+    if top_level_jacobian.lower() == 'csc':
+        p.model.jacobian = CSCJacobian()
+    elif top_level_jacobian.lower() == 'dense':
+        p.model.jacobian = DenseJacobian()
+    elif top_level_jacobian.lower() == 'csr':
+        p.model.jacobian = CSRJacobian()
+
+    p.model.linear_solver = DirectSolver()
+
+    p.setup(mode='fwd', check=True)
 
     p.setup()
 
