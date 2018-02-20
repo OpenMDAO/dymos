@@ -1,5 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
+import numpy as np
+
 from openmdao.api import Problem, Group, pyOptSparseDriver, DenseJacobian, DirectSolver, \
     CSCJacobian, CSRJacobian
 
@@ -7,16 +9,18 @@ from openmdoc import Phase
 
 from openmdoc.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
+SHOW_PLOTS = True
 
-def min_time_climb_problem(optimizer='SLSQP', num_seg=3, transcription_order=5,
-                           transcription='gauss-lobatto', alpha_guess=False,
-                           top_level_densejacobian=True, simul_derivs=False):
+
+def min_time_climb(optimizer='SLSQP', num_seg=3, transcription_order=5,
+                   transcription='gauss-lobatto',
+                   top_level_jacobian='csc'):
 
     p = Problem(model=Group())
 
     p.driver = pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    # p.driver.options['simul_derivs'] = simul_derivs
+
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 1000
         p.driver.opt_settings['iSumm'] = 6
@@ -69,9 +73,14 @@ def min_time_climb_problem(optimizer='SLSQP', num_seg=3, transcription_order=5,
     # Minimize time at the end of the phase
     phase.set_objective('time', loc='final', ref=100.0)
 
-    if top_level_densejacobian:
+    if top_level_jacobian.lower() == 'csc':
         p.model.jacobian = CSCJacobian()
-        p.model.linear_solver = DirectSolver()
+    elif top_level_jacobian.lower() == 'dense':
+        p.model.jacobian = DenseJacobian()
+    elif top_level_jacobian.lower() == 'csr':
+        p.model.jacobian = CSRJacobian()
+
+    p.model.linear_solver = DirectSolver()
 
     p.setup(mode='fwd', check=True)
 
@@ -84,23 +93,29 @@ def min_time_climb_problem(optimizer='SLSQP', num_seg=3, transcription_order=5,
     p['phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='disc')
     p['phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='all')
 
-    if alpha_guess:
-        interp_times = [0.0, 9.949, 19.9, 29.85, 39.8, 49.74, 59.69, 69.64, 79.59, 89.54, 99.49,
-                        109.4, 119.4, 129.3, 139.3, 149.2, 159.2, 169.1, 179.1, 189.0, 199.0,
-                        208.9, 218.9, 228.8, 238.8, 248.7, 258.7, 268.6, 278.6, 288.5, 298.5]
+    p.run_driver()
+    exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 100))
 
-        interp_alphas = [0.07423, 0.03379, 0.01555, 0.01441, 0.02529, 0.0349, 0.02994, 0.02161,
-                         0.02112, 0.02553, 0.0319, 0.03622, 0.03443, 0.03006, 0.0266, 0.0244,
-                         0.02384, 0.02399, 0.02397, 0.02309, 0.0207, 0.01948, 0.0221, 0.02929,
-                         0.04176, 0.05589, 0.06805, 0.06952, 0.05159, -0.002399, -0.1091]
+    if SHOW_PLOTS:
 
-        p['phase0.controls:alpha'] = phase.interpolate(xs=interp_times,
-                                                       ys=interp_alphas, nodes='all')
+        import matplotlib.pyplot as plt
+        plt.plot(phase.get_values('time'), phase.get_values('h'), 'ro')
+        plt.plot(exp_out.get_values('time'), exp_out.get_values('h'), 'b-')
+        plt.xlabel('time (s)')
+        plt.ylabel('altitude (m)')
+
+        plt.figure()
+        plt.plot(phase.get_values('v'), phase.get_values('h'), 'ro')
+        plt.plot(exp_out.get_values('v'), exp_out.get_values('h'), 'b-')
+        plt.xlabel('airspeed (m/s)')
+        plt.ylabel('altitude (m)')
+
+        plt.show()
 
     return p
 
 
 if __name__ == '__main__':
-    p = min_time_climb_problem(optimizer='SNOPT', num_seg=10, transcription_order=3)
+    p = min_time_climb(optimizer='SNOPT', num_seg=10, transcription_order=3)
     p.run_model()
     p.run_driver()

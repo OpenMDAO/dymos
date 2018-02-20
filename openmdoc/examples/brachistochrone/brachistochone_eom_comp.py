@@ -5,28 +5,7 @@ from openmdao.api import ExplicitComponent
 
 
 class BrachistochroneEOM(ExplicitComponent):
-    """ The equations of motion for the Brachistochrone optimal control problem.
 
-    Assume that a frictionless particle on a track or guide-wire, subject to
-    a rectilinear gravity field, accelerates as a function of gravity and the
-    angle of the slope of the guide-wire at the current location.  The equations
-    of motion are thus
-
-    ..math::
-
-        \frac{dv}{dt} = g \cdot \cos \theta
-        \frac{dx}{dt} = v \cdot \sin \theta
-        \frac{dy}{dt} = -v \cdot \cos \theta
-
-    The solution to the optimal control is that
-
-    ..math::
-
-        \frac{v}{\sin \theta} = K
-
-    where K is some constant dependent upon the constraints of the problem.
-
-    """
     def initialize(self):
         self.metadata.declare('num_nodes', types=int)
 
