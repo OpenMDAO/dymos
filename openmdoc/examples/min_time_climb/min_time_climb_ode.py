@@ -38,18 +38,6 @@ class BrysonMinTimeClimbSystem(Group):
     def setup(self):
         nn = self.metadata['num_nodes']
 
-        # # We'll use an IndepVarComp in the phase to provide Isp and reference area.
-        # ivc = IndepVarComp()
-        # ivc.add_output(name='Isp', val=1600*np.ones(nn), units='s')
-        # ivc.add_output(name='S', val=49.2386*np.ones(nn), units='m**2')
-        #
-        # self.connect('S', 'aero.S')
-        # self.connect('Isp', 'prop.Isp')
-        #
-        # self.add_subsystem(name='ivc',
-        #                    subsys=ivc,
-        #                    promotes_outputs=['*'])
-
         self.add_subsystem(name='atmos',
                            subsys=StandardAtmosphereGroup(num_nodes=nn),
                            promotes_inputs=['h'])
