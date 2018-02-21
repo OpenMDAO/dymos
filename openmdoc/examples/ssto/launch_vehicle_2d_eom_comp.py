@@ -16,9 +16,6 @@ class LaunchVehicle2DEOM(ExplicitComponent):
         self.metadata.declare('central_body', values=['earth', 'moon'], default='earth',
                               desc='The central graviational body for the launch vehicle.')
 
-        self.metadata.declare('Isp', types=float, default=265.2,
-                              desc='specific impulse (s)')
-
         self.metadata.declare('CD', types=float, default=0.5,
                               desc='coefficient of drag')
 
@@ -58,6 +55,11 @@ class LaunchVehicle2DEOM(ExplicitComponent):
                        val=2100000 * np.ones(nn),
                        desc='thrust',
                        units='N')
+
+        self.add_input('Isp',
+                       val=265.2 * np.ones(nn),
+                       desc='specific impulse',
+                       units='s')
 
         # Outputs
         self.add_output('xdot',
@@ -104,6 +106,7 @@ class LaunchVehicle2DEOM(ExplicitComponent):
         self.declare_partials(of='vydot', wrt='thrust', rows=ar, cols=ar)
 
         self.declare_partials(of='mdot', wrt='thrust', rows=ar, cols=ar)
+        self.declare_partials(of='mdot', wrt='Isp', rows=ar, cols=ar)
 
     def compute(self, inputs, outputs):
         theta = inputs['theta']
@@ -114,10 +117,10 @@ class LaunchVehicle2DEOM(ExplicitComponent):
         m = inputs['m']
         rho = inputs['rho']
         F_T = inputs['thrust']
+        Isp = inputs['Isp']
 
         g = _g[self.metadata['central_body']]
         CDA = self.metadata['CD'] * self.metadata['S']
-        Isp = self.metadata['Isp']
 
         outputs['xdot'] = vx
         outputs['ydot'] = vy
@@ -134,10 +137,10 @@ class LaunchVehicle2DEOM(ExplicitComponent):
         vy = inputs['vy']
         rho = inputs['rho']
         F_T = inputs['thrust']
+        Isp = inputs['Isp']
 
         g = _g[self.metadata['central_body']]
         CDA = self.metadata['CD'] * self.metadata['S']
-        Isp = self.metadata['Isp']
 
         jacobian['vxdot', 'vx'] = -CDA * rho * vx / m
         jacobian['vxdot', 'rho'] = -0.5 * CDA * vx**2 / m
@@ -152,3 +155,4 @@ class LaunchVehicle2DEOM(ExplicitComponent):
         jacobian['vydot', 'thrust'] = sin_theta / m
 
         jacobian['mdot', 'thrust'] = -1.0 / (g * Isp)
+        jacobian['mdot', 'Isp'] = F_T / (g * Isp**2)

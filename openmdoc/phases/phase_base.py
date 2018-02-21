@@ -14,7 +14,6 @@ from openmdao.utils.logger_utils import get_logger
 from openmdoc.phases.components import BoundaryConstraintComp
 from openmdoc.phases.components import ControlInputComp
 from openmdoc.phases.components import PathConstraintComp
-from openmdoc.ode_function import ODEFunction
 from openmdoc.phases.components import TimeComp
 from openmdoc.phases.components import EndpointConditionsComp
 from openmdoc.phases.options import ControlOptionsDictionary, \
@@ -42,7 +41,7 @@ class PhaseBase(Group):
 
         self.ode_options = self.metadata['ode_class'].ode_options
 
-        # Copy default value for options from the ODEFunction
+        # Copy default value for options from the ODEOptions
         for state_name, options in iteritems(self.ode_options._states):
             self.state_options[state_name] = StateOptionsDictionary()
             self.state_options[state_name]['shape'] = options['shape']
@@ -120,18 +119,18 @@ class PhaseBase(Group):
                     rate_continuity=None, rate2_continuity=None,
                     rate_param=None, rate2_param=None):
         """
-        Declares that a parameter of the ODEFunction is to be used as an optimal control.
+        Declares that a parameter of the ODE is to potentially be used as an optimal control.
 
         Parameters
         ----------
         name : str
-            Name of the controllable parameter in the ODEFunction.
+            Name of the controllable parameter in the ODE.
         val : float or ndarray
             Default value of the control at all nodes.  If val scalar and the control
             is dynamic it will be broadcast.
         units : str or None or 0
             Units in which the control variable is defined.  If 0, use the units declared
-            for the parameter in the ODEFunction.
+            for the parameter in the ODE.
         dynamic : bool
             If True (default) this is a dynamic control, the values provided correspond to
             the number of nodes in the phase.  If False, this is a static control, sized (1,),
@@ -188,11 +187,13 @@ class PhaseBase(Group):
             self.control_options[name]['units'] = ode_param_info['units']
             self.control_options[name]['shape'] = ode_param_info['shape']
         else:
-            rate_used = rate_param is not None and rate_param in self.ode_options._dynamic_parameters
-            rate2_used = rate2_param is not None and rate2_param in self.ode_options._dynamic_parameters
+            rate_used = rate_param is not None and \
+                rate_param in self.ode_options._dynamic_parameters
+            rate2_used = rate2_param is not None and \
+                rate2_param in self.ode_options._dynamic_parameters
             if not rate_used and not rate2_used:
-                err_msg = 'Control {0} has no valid connect to a controllable parameter through' \
-                          ' its value, rate, or second derivative.'.format(name)
+                err_msg = 'Control {0} has no valid connection to a controllable parameter ' \
+                          'through its value, rate, or second derivative.'.format(name)
                 raise ValueError(err_msg)
 
         if rate_param is not None:
@@ -480,7 +481,7 @@ class PhaseBase(Group):
         This method searches for it as a time variable, state variable,
         control variable, or parameter.  If it is not found to be one
         of those variables, it is assumed to be the path to a variable
-        relative to the top of the ODEFunction for the phase.
+        relative to the top of the ODE system for the phase.
 
         Parameters
         ----------
@@ -1149,7 +1150,7 @@ class PhaseBase(Group):
             if not p_is_connected:
                 unconnected.append(p)
         if unconnected:
-            logger.warning('The following ODEFunction parameters are not provided'
+            logger.warning('The following ODE parameters are not provided'
                            ' by phase {0} as controls, control rates nor'
                            ' parameters: {1}'.format(self.name, unconnected))
 
@@ -1163,7 +1164,7 @@ class PhaseBase(Group):
         var : str
             The variable whose values are to be returned.  This may be
             the name 'time', the name of a state, control, or parameter,
-            or the path to a variable in the ODEFunction of the phase.
+            or the path to a variable in the ODE system of the phase.
         nodes : str
             The name of a node subset, one of 'disc', 'col', or 'all'.
             The default is 'all'.

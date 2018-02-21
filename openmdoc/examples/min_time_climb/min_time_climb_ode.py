@@ -10,37 +10,17 @@ from .prop import PropGroup
 from ...models.eom import FlightPathEOM2D
 
 
-# class MinTimeClimbODE(ODEFunction):
-#
-#     def __init__(self):
-#         super(MinTimeClimbODE, self).__init__(system_class=BrysonMinTimeClimbSystem)
-#
-#         self.declare_time(units='s')
-#
-#         self.declare_state('r', units='m', rate_source='flight_dynamics.r_dot')
-#         self.declare_state('h', units='m', rate_source='flight_dynamics.h_dot', targets=['h'])
-#         self.declare_state('v', units='m/s', rate_source='flight_dynamics.v_dot', targets=['v'])
-#         self.declare_state('gam', units='rad', rate_source='flight_dynamics.gam_dot',
-#                            targets=['gam'])
-#         self.declare_state('m', units='kg', rate_source='prop.m_dot', targets=['m'])
-#
-#         self.declare_parameter('alpha', targets=['alpha'], units='rad')
-#         self.declare_parameter('Isp', targets=['Isp'], units='s')
-#         self.declare_parameter('S', targets=['S'], units='m**2')
-#         self.declare_parameter('throttle', targets=['throttle'], units=None)
-
-
 class MinTimeClimbODE(Group):
 
     ode_options = ODEOptions()
-    
+
     ode_options.declare_time(units='s')
 
     ode_options.declare_state('r', units='m', rate_source='flight_dynamics.r_dot')
     ode_options.declare_state('h', units='m', rate_source='flight_dynamics.h_dot', targets=['h'])
     ode_options.declare_state('v', units='m/s', rate_source='flight_dynamics.v_dot', targets=['v'])
     ode_options.declare_state('gam', units='rad', rate_source='flight_dynamics.gam_dot',
-                       targets=['gam'])
+                              targets=['gam'])
     ode_options.declare_state('m', units='kg', rate_source='prop.m_dot', targets=['m'])
 
     ode_options.declare_parameter('alpha', targets=['alpha'], units='rad')

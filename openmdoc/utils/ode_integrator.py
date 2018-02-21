@@ -293,8 +293,8 @@ class ODEIntegrator(object):
 
     Parameters
     ----------
-    ode : ODEFunction
-        The ODEFunction whose system is to be numerically integrated.
+    ode_class : OpenMDAO system with ode_options attribute
+        The ODE system to be numerically integrated.
 
     """
     def __init__(self, ode_class, time_options, state_options, control_options,
@@ -356,7 +356,8 @@ class ODEIntegrator(object):
                                       promotes_outputs=['*'])
 
         # The Control interpolation comp
-        self._interp_comp = ControlInterpolationComp(time_units=self.ode_options._time_options['units'],
+        time_units = self.ode_options._time_options['units']
+        self._interp_comp = ControlInterpolationComp(time_units=time_units,
                                                      control_options=control_options)
 
         # The state rate collector comp
@@ -392,13 +393,15 @@ class ODEIntegrator(object):
                     model.connect('controls:{0}'.format(name),
                                   ['f_rhs.{0}'.format(tgt) for tgt in targets])
                 if options['rate_param']:
-                    targets = self.ode_options._dynamic_parameters[options['rate_param']]['targets']
+                    rate_param = options['rate_param']
+                    rate_targets = self.ode_options._dynamic_parameters[rate_param]['targets']
                     model.connect('control_rates:{0}_rate'.format(name),
-                                  ['f_rhs.{0}'.format(tgt) for tgt in targets])
+                                  ['f_rhs.{0}'.format(tgt) for tgt in rate_targets])
                 if options['rate2_param']:
-                    targets = self.ode_options._dynamic_parameters[options['rate2_param']]['targets']
+                    rate2_param = options['rate2_param']
+                    rate2_targets = self.ode_options._dynamic_parameters[rate2_param]['targets']
                     model.connect('control_rates:{0}_rate2'.format(name),
-                                  ['f_rhs.{0}'.format(tgt) for tgt in targets])
+                                  ['f_rhs.{0}'.format(tgt) for tgt in rate2_targets])
         else:
             model.set_order(['time_input', 'indep_states', 'f_rhs', 'state_rate_collector'])
 

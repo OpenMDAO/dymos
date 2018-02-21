@@ -164,7 +164,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         var : str
             The variable whose values are to be returned.  This may be
             the name 'time', the name of a state, control, or parameter,
-            or the path to a variable in the ODEFunction of the phase.
+            or the path to a variable in the ODE system of the phase.
         nodes : str
             The name of a node subset, one of 'disc', 'col', or 'all'.
             The default is 'all'.

@@ -78,7 +78,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
     def _setup_rhs(self):
         super(RadauPseudospectralPhase, self)._setup_rhs()
 
-        ode = self.metadata['ode_function']
+        ODEClass = self.metadata['ode_class']
         grid_data = self.grid_data
         num_input_nodes = self.grid_data.num_state_input_nodes
 
@@ -86,8 +86,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
         kwargs = self.metadata['ode_init_kwargs']
         self.add_subsystem('rhs_all',
-                           subsys=ode._system_class(num_nodes=grid_data.subset_num_nodes['disc'],
-                                                    **kwargs))
+                           subsys=ODEClass(num_nodes=grid_data.subset_num_nodes['disc'],
+                                           **kwargs))
 
         for name, options in iteritems(self.state_options):
             size = np.prod(options['shape'])
@@ -131,7 +131,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         var : str
             The variable whose values are to be returned.  This may be
             the name 'time', the name of a state, control, or parameter,
-            or the path to a variable in the ODEFunction of the phase.
+            or the path to a variable in the ODE system of the phase.
         nodes : str
             The name of a node subset, one of 'disc', 'col', or 'all'.
             The default is 'all'.

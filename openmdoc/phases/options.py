@@ -16,7 +16,7 @@ class ControlOptionsDictionary(OptionsDictionary):
         super(ControlOptionsDictionary, self).__init__(read_only)
 
         self.declare(name='name', types=string_types,
-                     desc='The name of ODEFunction parameter to be controlled.')
+                     desc='The name of ODE system parameter to be controlled.')
 
         self.declare(name='units', types=string_types, default=None,
                      allow_none=True, desc='The units in which the control variable is defined.')

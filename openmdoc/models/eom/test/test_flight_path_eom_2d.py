@@ -8,11 +8,26 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from openmdoc import Phase, ODEFunction
+from openmdoc import Phase, ODEOptions
 from openmdoc.models.eom import FlightPathEOM2D
 
 OPTIMIZER = 'SLSQP'
 SHOW_PLOTS = False
+
+
+class _CannonballODE(FlightPathEOM2D):
+
+    ode_options = ODEOptions()
+
+    ode_options.declare_time(units='s')
+
+    ode_options.declare_state(name='r', rate_source='r_dot', units='m')
+    ode_options.declare_state(name='h', rate_source='h_dot', units='m')
+    ode_options.declare_state(name='gam', rate_source='gam_dot', targets='gam', units='rad')
+    ode_options.declare_state(name='v', rate_source='v_dot', targets='v', units='m/s')
+
+    def __init__(self, **kwargs):
+        super(_CannonballODE, self).__init__(**kwargs)
 
 
 class TestFlightPathEOM2D(unittest.TestCase):
@@ -27,25 +42,8 @@ class TestFlightPathEOM2D(unittest.TestCase):
             self.p.driver.opt_settings['iSumm'] = 6
             self.p.driver.opt_settings['Verify level'] = 3
 
-        time_options = {'units': 's'}
-
-        state_options = {'r': {'rate_source': 'r_dot',
-                               'units': 'm'},
-                         'h': {'rate_source': 'h_dot',
-                               'units': 'm'},
-                         'gam': {'rate_source': 'gam_dot',
-                                 'targets': ['gam'],
-                                 'units': 'rad'},
-                         'v': {'rate_source': 'v_dot',
-                               'targets': ['v'],
-                               'units': 'm/s'}}
-
-        cball_ode = ODEFunction(system_class=FlightPathEOM2D,
-                                time_options=time_options,
-                                state_options=state_options)
-
         phase = Phase(transcription='gauss-lobatto',
-                      ode_function=cball_ode,
+                      ode_class=_CannonballODE,
                       num_segments=15,
                       transcription_order=3,
                       compressed=False)
@@ -125,11 +123,10 @@ class TestFlightPathEOM2D(unittest.TestCase):
         assert_rel_error(self, exp_out.get_values('v')[-1], v0, tolerance=0.001)
 
     def test_partials(self):
-        self.p.setup()
+        self.p.setup(force_alloc_complex=True)
 
         v0 = 100.0
         gam0 = np.radians(30.0)
-        g = 9.80665
         t_duration = 10.0
 
         phase = self.p.model.phase0
@@ -145,7 +142,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         self.p.run_model()
 
-        cpd = self.p.check_partials(compact_print=True, form='forward')
+        cpd = self.p.check_partials(compact_print=True, method='cs')
 
         for comp in cpd:
             for (var, wrt) in cpd[comp]:
@@ -153,37 +150,6 @@ class TestFlightPathEOM2D(unittest.TestCase):
                                     err_msg='error in partial of'
                                             ' {0} wrt {1} in {2}'.format(var, wrt, comp))
 
-    def test_max_range_approx_totals(self):
-        self.skipTest('known failure')
-
-        self.p.model.approx_totals(method='fd')
-
-        self.p.setup()
-
-        v0 = 100.0
-        gam0 = np.radians(30.0)
-        g = 9.80665
-        t_duration = 10.0
-
-        phase = self.p.model.phase0
-
-        self.p['phase0.t_initial'] = 0.0
-        self.p['phase0.t_duration'] = t_duration
-
-        self.p['phase0.states:r'] = phase.interpolate(ys=[0, v0*np.cos(gam0)*t_duration],
-                                                      nodes='disc')
-        self.p['phase0.states:h'] = phase.interpolate(ys=[0, 0], nodes='disc')
-        self.p['phase0.states:v'] = phase.interpolate(ys=[v0, v0], nodes='disc')
-        self.p['phase0.states:gam'] = phase.interpolate(ys=[gam0, -gam0], nodes='disc')
-
-        self.p.run_driver()
-
-        exp_out = phase.simulate(times='all')
-
-        assert_rel_error(self, exp_out.get_values('h')[-1], 0.0, tolerance=0.001)
-        assert_rel_error(self, exp_out.get_values('r')[-1], v0**2/g, tolerance=0.001)
-        assert_rel_error(self, exp_out.get_values('gam')[-1], -np.radians(45), tolerance=0.001)
-        assert_rel_error(self, exp_out.get_values('v')[-1], v0, tolerance=0.001)
 
 if __name__ == '__main__':
     unittest.main()

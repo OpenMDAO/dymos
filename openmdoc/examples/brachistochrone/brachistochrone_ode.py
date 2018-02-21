@@ -24,7 +24,6 @@ class BrachistochroneODE(ExplicitComponent):
     def initialize(self):
         self.metadata.declare('num_nodes', types=int)
 
-
     def setup(self):
         nn = self.metadata['num_nodes']
 

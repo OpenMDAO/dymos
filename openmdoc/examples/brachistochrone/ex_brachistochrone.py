@@ -1,6 +1,9 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
+
+import matplotlib.pyplot as plt
+
 from openmdao.api import Problem, Group, pyOptSparseDriver, DenseJacobian, CSCJacobian, \
     CSRJacobian, DirectSolver
 
@@ -67,43 +70,42 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
 
     exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'], p['phase0.t_duration'], 50))
 
+    # Plot results
+    fig, ax = plt.subplots()
+    fig.suptitle('Brachistochrone Solution')
+
+    x_imp = phase.get_values('x', nodes='all')
+    y_imp = phase.get_values('y', nodes='all')
+
+    x_exp = exp_out.get_values('x')
+    y_exp = exp_out.get_values('y')
+
+    ax.plot(x_imp, y_imp, 'ro', label='implicit')
+    ax.plot(x_exp, y_exp, 'b-', label='explicit')
+
+    ax.set_xlabel('x (m)')
+    ax.set_ylabel('y (m)')
+    ax.grid(True)
+    ax.legend(loc='upper right')
+
+    fig, ax = plt.subplots()
+    fig.suptitle('Brachistochrone Solution')
+
+    x_imp = phase.get_values('time', nodes='all')
+    y_imp = phase.get_values('theta_rate2', nodes='all')
+
+    x_exp = exp_out.get_values('time')
+    y_exp = exp_out.get_values('theta_rate2')
+
+    ax.plot(x_imp, y_imp, 'ro', label='implicit')
+    ax.plot(x_exp, y_exp, 'b-', label='explicit')
+
+    ax.set_xlabel('time (s)')
+    ax.set_ylabel('theta rate2 (rad/s**2)')
+    ax.grid(True)
+    ax.legend(loc='lower right')
+
     if SHOW_PLOTS:
-        import matplotlib.pyplot as plt
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = phase.get_values('x', nodes='all')
-        y_imp = phase.get_values('y', nodes='all')
-
-        x_exp = exp_out.get_values('x')
-        y_exp = exp_out.get_values('y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='implicit')
-        ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = phase.get_values('time', nodes='all')
-        y_imp = phase.get_values('theta_rate2', nodes='all')
-
-        x_exp = exp_out.get_values('time')
-        y_exp = exp_out.get_values('theta_rate2')
-
-        ax.plot(x_imp, y_imp, 'ro', label='implicit')
-        ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel('theta rate2 (rad/s**2)')
-        ax.grid(True)
-        ax.legend(loc='lower right')
-
         plt.show()
 
     return p

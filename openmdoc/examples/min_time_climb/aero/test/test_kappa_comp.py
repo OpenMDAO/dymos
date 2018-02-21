@@ -16,7 +16,7 @@ SHOW_PLOTS = False
 
 class TestCLaComp(unittest.TestCase):
     @unittest.skipIf(not SHOW_PLOTS, 'this test is for visual confirmation, requires plotting')
-    def test_other_values(self):
+    def test_visual_inspection(self):
         n = 500
 
         p = Problem(model=Group())

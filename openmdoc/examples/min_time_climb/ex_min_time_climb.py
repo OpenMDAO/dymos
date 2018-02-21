@@ -116,5 +116,5 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription_order=5,
 
 
 if __name__ == '__main__':
-    p = min_time_climb(optimizer='SNOPT', num_seg=10, transcription_order=3)
-
+    p = min_time_climb(transcription='radau-ps', optimizer='SNOPT',
+                       num_seg=10, transcription_order=3)
