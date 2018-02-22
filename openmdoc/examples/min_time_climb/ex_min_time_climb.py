@@ -32,7 +32,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription_order=5,
         p.driver.opt_settings['Major step limit'] = 0.5
 
     phase = Phase(transcription,
-                  ode_function=MinTimeClimbODE(),
+                  ode_class=MinTimeClimbODE,
                   num_segments=num_seg, transcription_order=transcription_order,
                   compressed=False)
 
@@ -116,6 +116,5 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription_order=5,
 
 
 if __name__ == '__main__':
-    p = min_time_climb(optimizer='SNOPT', num_seg=10, transcription_order=3)
-    p.run_model()
-    p.run_driver()
+    p = min_time_climb(transcription='radau-ps', optimizer='SNOPT',
+                       num_seg=10, transcription_order=3)

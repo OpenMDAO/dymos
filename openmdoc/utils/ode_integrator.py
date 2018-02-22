@@ -293,19 +293,20 @@ class ODEIntegrator(object):
 
     Parameters
     ----------
-    ode : ODEFunction
-        The ODEFunction whose system is to be numerically integrated.
+    ode_class : OpenMDAO system with ode_options attribute
+        The ODE system to be numerically integrated.
 
     """
-    def __init__(self, ode, time_options, state_options, control_options):
+    def __init__(self, ode_class, time_options, state_options, control_options,
+                 ode_init_kwargs=None):
         self.prob = Problem(model=Group())
 
         self.ode = ode
 
         # The RHS Group
-        self.prob.model.add_subsystem('f_rhs',
-                                      subsys=ode._system_class(num_nodes=1,
-                                                               **ode._system_init_kwargs))
+        ode_model = self.prob.model.add_subsystem('f_rhs',
+                                                  subsys=ode_class(num_nodes=1, **ode_init_kwargs))
+        self.ode_options = ode_class.ode_options
 
         # Get the state vector.  This isn't necessarily ordered
         # so just pick the default ordering and go with it.
@@ -315,13 +316,13 @@ class ODEIntegrator(object):
 
         pos = 0
 
-        for state in self.ode._states:
-            self.state_options[state] = {'rate_source': state_options[state]['rate_source'],
+        for state, options in iteritems(self.ode_options._states):
+            self.state_options[state] = {'rate_source': options['rate_source'],
                                          'pos': pos,
-                                         'shape': state_options[state]['shape'],
-                                         'size': np.prod(state_options[state]['shape']),
-                                         'units': state_options[state]['units'],
-                                         'targets': state_options[state]['targets']}
+                                         'shape': options['shape'],
+                                         'size': np.prod(options['shape']),
+                                         'units': options['units'],
+                                         'targets': options['targets']}
             pos += self.state_options[state]['size']
 
         self._state_vec = np.zeros(pos, dtype=float)
@@ -331,13 +332,13 @@ class ODEIntegrator(object):
         self.prob.model.add_subsystem('time_input',
                                       IndepVarComp('time',
                                                    val=0.0,
-                                                   units=self.ode._time_options['units']),
+                                                   units=self.ode_options._time_options['units']),
                                       promotes_outputs=['time'])
 
-        if self.ode._time_options['targets'] is not None:
+        if self.ode_options._time_options['targets'] is not None:
             self.prob.model.connect('time',
                                     ['f_rhs.{0}'.format(tgt) for tgt in
-                                     self.ode._time_options['targets']])
+                                     self.ode_options._time_options['targets']])
 
         # The States Comp
         indep = IndepVarComp()
@@ -355,7 +356,8 @@ class ODEIntegrator(object):
                                       promotes_outputs=['*'])
 
         # The Control interpolation comp
-        self._interp_comp = ControlInterpolationComp(time_units=self.ode._time_options['units'],
+        time_units = self.ode_options._time_options['units']
+        self._interp_comp = ControlInterpolationComp(time_units=time_units,
                                                      control_options=control_options)
 
         # The state rate collector comp
@@ -386,18 +388,20 @@ class ODEIntegrator(object):
             model.connect('time', ['indep_controls.time'])
 
             for name, options in iteritems(self.control_options):
-                if name in self.ode._dynamic_parameters:
-                    targets = self.ode._dynamic_parameters[name]['targets']
+                if name in self.ode_options._dynamic_parameters:
+                    targets = self.ode_options._dynamic_parameters[name]['targets']
                     model.connect('controls:{0}'.format(name),
                                   ['f_rhs.{0}'.format(tgt) for tgt in targets])
                 if options['rate_param']:
-                    targets = self.ode._dynamic_parameters[options['rate_param']]['targets']
+                    rate_param = options['rate_param']
+                    rate_targets = self.ode_options._dynamic_parameters[rate_param]['targets']
                     model.connect('control_rates:{0}_rate'.format(name),
-                                  ['f_rhs.{0}'.format(tgt) for tgt in targets])
+                                  ['f_rhs.{0}'.format(tgt) for tgt in rate_targets])
                 if options['rate2_param']:
-                    targets = self.ode._dynamic_parameters[options['rate2_param']]['targets']
+                    rate2_param = options['rate2_param']
+                    rate2_targets = self.ode_options._dynamic_parameters[rate2_param]['targets']
                     model.connect('control_rates:{0}_rate2'.format(name),
-                                  ['f_rhs.{0}'.format(tgt) for tgt in targets])
+                                  ['f_rhs.{0}'.format(tgt) for tgt in rate2_targets])
         else:
             model.set_order(['time_input', 'indep_states', 'f_rhs', 'state_rate_collector'])
 

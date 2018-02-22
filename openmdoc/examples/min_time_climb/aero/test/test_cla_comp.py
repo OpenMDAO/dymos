@@ -17,7 +17,7 @@ SHOW_PLOTS = False
 class TestCLaComp(unittest.TestCase):
 
     @unittest.skipIf(not SHOW_PLOTS, 'this test is for visual confirmation, requires plotting')
-    def test_other_values(self):
+    def test_visual_inspection(self):
         n = 500
 
         p = Problem(model=Group())
@@ -62,9 +62,7 @@ class TestCLaComp(unittest.TestCase):
         p.setup()
 
         p['mach'] = np.linspace(0, 1.8, n)
-        print(np.linspace(0, 1.8, n))
 
-        print(p['mach'])
         p.run_model()
         np.set_printoptions(linewidth=1024)
         cpd = p.check_partials(compact_print=False)

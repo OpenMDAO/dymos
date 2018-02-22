@@ -7,16 +7,12 @@ import numpy as np
 from openmdao.utils.options_dictionary import OptionsDictionary
 
 
-class ODEFunction(object):
+class ODEOptions(object):
     """
-    Base class for required user-defined ode function.
-
-    Define an ODE of the form y' = f(t, x, y).
+    A container for options which allow a System to be used as an ODE Function.
     """
 
-    def __init__(self, system_class=None, system_init_kwargs=None,
-                 time_options=None, state_options=None, parameter_options=None,
-                 **kwargs):
+    def __init__(self, time_options=None, state_options=None, parameter_options=None, **kwargs):
         """
         Initialize class attributes.
 
@@ -25,9 +21,6 @@ class ODEFunction(object):
         kwargs : dict
             Keyword arguments that will be passed to the initialize method.
         """
-        self._system_class = system_class
-        self._system_init_kwargs = system_init_kwargs if system_init_kwargs else {}
-
         self._time_options = OptionsDictionary()
         self._time_options.declare('targets', default=[], types=Iterable)
         self._time_options.declare('units', default=None, types=(string_types,), allow_none=True)
@@ -38,9 +31,11 @@ class ODEFunction(object):
 
         if time_options:
             self.declare_time(**time_options)
+
         if state_options:
             for state_name in state_options:
                 self.declare_state(state_name, **state_options[state_name])
+
         if parameter_options:
             for param_name in parameter_options:
                 self.declare_parameter(param_name, **parameter_options[param_name])
@@ -58,20 +53,33 @@ class ODEFunction(object):
         """
         pass
 
-    def set_system(self, system_class, system_init_kwargs=None):
+    def _check_targets(self, name, targets):
         """
-        Set the OpenMDAO System that computes the ODE function.
+        Check that the targets used for this variable have not already been
+        used by another variable.
 
         Parameters
         ----------
-        system_class : System
-            OpenMDAO Group or Component class defining our ODE.
-        system_init_kwargs : dict or None
-            Dictionary of kwargs that should be passed in when instantiating system_class.
+        name : str
+            The name of the state, parameter, or 'time'
+        targets : Iterable
+            The targets to which the state, parameter, or 'time' are connected.
+
+        Raises
+        ------
+        ValueError
+            If thet one or more of the targets for the variable have already been
+            used by another variable.
         """
-        self._system_class = system_class
-        if system_init_kwargs is not None:
-            self._system_init_kwargs = system_init_kwargs
+        if targets is None:
+            return
+        for var in targets:
+            if var in self._target_paths:
+                raise ValueError('{0} has a path "{1}" that has already been '
+                                 'used as the target path of another '
+                                 'variable.'.format(name, var))
+        # If no issues have been found, extend the existing list of targets
+        self._target_paths.extend(targets)
 
     def declare_time(self, targets=None, units=None):
         """
@@ -192,7 +200,7 @@ class ODEFunction(object):
         options.declare('name', types=string_types)
         options.declare('targets', default=[], types=Iterable)
         options.declare('shape', default=(1,), types=tuple)
-        options.declare('units', default=None, types=string_types, allow_none=True)
+        options.declare('units', default=None, types=string_types)
 
         options['name'] = name
         if isinstance(targets, string_types):
@@ -254,33 +262,3 @@ class ODEFunction(object):
             options['units'] = units
 
         self._dynamic_parameters[name] = options
-
-    def get_test_parameters(self):
-        """
-        Optional method to provide default parameters; used for testing.
-
-        Returns
-        -------
-        dict
-            Dictionary of initial conditions keyed by state name.
-        float
-            Integration start time.
-        float
-            Integration end time.
-        """
-        pass
-
-    def get_exact_solution(self, initial_conditions, t0, t):
-        """
-        Optional method to compute the exact solution at time t given initial conditions at t0.
-
-        Parameters
-        ----------
-        initial_conditions : dict
-            Dictionary of initial conditions keyed by state name.
-        t0 : float
-            Integration start time.
-        t : float
-            Time at which the exact solution is desired.
-        """
-        pass

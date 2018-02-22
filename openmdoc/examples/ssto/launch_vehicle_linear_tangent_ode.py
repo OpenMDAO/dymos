@@ -1,20 +1,19 @@
 from __future__ import print_function, division, absolute_import
 
-import numpy as np
-
 from openmdao.api import Group
 
 from openmdoc import ODEOptions
 
 from .log_atmosphere_comp import LogAtmosphereComp
 from .launch_vehicle_2d_eom_comp import LaunchVehicle2DEOM
+from .linear_tangent_guidance_comp import LinearTangentGuidanceComp
 
 
-class LaunchVehicleODE(Group):
+class LaunchVehicleLinearTangentODE(Group):
 
     ode_options = ODEOptions()
 
-    ode_options.declare_time(units='s')
+    ode_options.declare_time(units='s', targets=['guidance.time'])
 
     ode_options.declare_state('x', rate_source='eom.xdot', units='m')
     ode_options.declare_state('y', rate_source='eom.ydot', targets=['atmos.y'], units='m')
@@ -23,7 +22,8 @@ class LaunchVehicleODE(Group):
     ode_options.declare_state('m', rate_source='eom.mdot', targets=['eom.m'], units='kg')
 
     ode_options.declare_parameter('thrust', targets=['eom.thrust'], units='N')
-    ode_options.declare_parameter('theta', targets=['eom.theta'], units='rad')
+    ode_options.declare_parameter('a_ctrl', targets=['guidance.a_ctrl'], units='1/s')
+    ode_options.declare_parameter('b_ctrl', targets=['guidance.b_ctrl'], units=None)
     ode_options.declare_parameter('Isp', targets=['eom.Isp'], units='s')
 
     def initialize(self):
@@ -49,6 +49,9 @@ class LaunchVehicleODE(Group):
         self.add_subsystem('atmos',
                            LogAtmosphereComp(num_nodes=nn, rho_ref=rho_ref, h_scale=h_scale))
 
+        self.add_subsystem('guidance', LinearTangentGuidanceComp(num_nodes=nn))
+
         self.add_subsystem('eom', LaunchVehicle2DEOM(num_nodes=nn, central_body=cb))
 
         self.connect('atmos.rho', 'eom.rho')
+        self.connect('guidance.theta', 'eom.theta')

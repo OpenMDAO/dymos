@@ -88,7 +88,8 @@ class OptimizerBasedPhaseBase(PhaseBase):
                   ' before simulating the phase.'
             raise RuntimeError(msg)
 
-        rhs_integrator = ODEIntegrator(ode=self.metadata['ode_function'],
+        rhs_integrator = ODEIntegrator(ode_class=self.metadata['ode_class'],
+                                       ode_init_kwargs=self.metadata['ode_init_kwargs'],
                                        time_options=self.time_options,
                                        state_options=self.state_options,
                                        control_options=self.control_options)
@@ -327,7 +328,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
         """
         Setup the Collocation and Continuity components as necessary.
         """
-        rhs = self.metadata['ode_function']
         grid_data = self.grid_data
         compressed = self.metadata['compressed']
 
