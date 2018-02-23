@@ -19,6 +19,7 @@ class _ODETimeOptionsDictionary(OptionsDictionary):
         self.declare('units', default=None, types=string_types, allow_none=True,
                      desc='Units for time.')
 
+
 class _ODEStateOptionsDictionary(OptionsDictionary):
     """
     OptionsDictionary for States at the ODE level.  Note this does not include things that affect
@@ -37,6 +38,7 @@ class _ODEStateOptionsDictionary(OptionsDictionary):
                           'the first axis).')
         self.declare('units', default=None, types=string_types, allow_none=True,
                      desc='The units of the parameter.')
+
 
 class _ODEParameterOptionsDictionary(OptionsDictionary):
     """
@@ -314,15 +316,7 @@ class ODEOptions(object):
         if name in self._static_parameters:
             raise ValueError('static parameter {0} has already been declared.'.format(name))
 
-        options = OptionsDictionary()
-        options.declare('name', types=string_types, desc='The name of the state variable.')
-        options.declare('targets', types=Iterable,
-                        desc='Target paths for the state, relative to the top-level system.')
-        options.declare('shape', default=(1,), types=tuple,
-                        desc='The shape of the variable (ignoring the time-dimension along'
-                             ' the first axis).')
-        options.declare('units', default=None, types=string_types, allow_none=True,
-                        desc='The units of the parameter.')
+        options = _ODEParameterOptionsDictionary()
 
         options['name'] = name
         if isinstance(targets, string_types):
