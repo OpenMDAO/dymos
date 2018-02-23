@@ -952,18 +952,15 @@ class PhaseBase(Group):
             # a single state variable has two sources which must be connected to
             # the path component.
             var_type = self._classify_var(var)
+            src_all = var_type in ['time', 'indep_control', 'input_control', 'control_rate',
+                                   'control_rate2']
 
             if var_type == 'time':
                 options['shape'] = (1,)
                 options['units'] = self.time_options['units'] if con_units is None else con_units
                 options['linear'] = True
                 self.connect(src_name='time',
-                             tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                             src_indices=gd.subset_node_indices['disc'])
-                if transcription == 'gauss-lobatto':
-                    self.connect('time',
-                                 tgt_name='path_constraints.con_values:{0}'.format(con_name),
-                                 src_indices=gd.subset_node_indices['col'])
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
             elif var_type == 'state':
                 state_shape = self.state_options[var]['shape']
                 state_units = self.state_options[var]['units']
@@ -986,20 +983,17 @@ class PhaseBase(Group):
                 constraint_path = 'controls:{0}'.format(var)
 
                 if self.control_options[var]['dynamic']:
-                    ctrl_src_idxs_all = gd.input_maps['dynamic_control_to_all']
-                    ctrl_src_indices_disc = ctrl_src_idxs_all[gd.subset_node_indices['disc']]
-                    ctrl_src_indices_col = ctrl_src_idxs_all[gd.subset_node_indices['col']]
+                    ctrl_src_indices_all = gd.input_maps['dynamic_control_to_all']
+                    # ctrl_src_indices_disc = ctrl_src_idxs_all[gd.subset_node_indices['disc']]
+                    # ctrl_src_indices_col = ctrl_src_idxs_all[gd.subset_node_indices['col']]
                 else:
-                    ctrl_src_indices_disc = np.zeros(gd.subset_num_nodes['disc'], dtype=int)
-                    ctrl_src_indices_col = np.zeros(gd.subset_num_nodes['col'], dtype=int)
+                    ctrl_src_indices_all = np.zeros(gd.subset_num_nodes['all'], dtype=int)
+                    # ctrl_src_indices_disc = np.zeros(gd.subset_num_nodes['disc'], dtype=int)
+                    # ctrl_src_indices_col = np.zeros(gd.subset_num_nodes['col'], dtype=int)
 
                 self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                             src_indices=ctrl_src_indices_disc)
-                if transcription == 'gauss-lobatto':
-                    self.connect(src_name=constraint_path,
-                                 tgt_name='path_constraints.col_values:{0}'.format(con_name),
-                                 src_indices=ctrl_src_indices_col)
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                             src_indices=ctrl_src_indices_all)
 
             elif var_type == 'input_control':
                 control_shape = self.control_options[var]['shape']
@@ -1010,20 +1004,13 @@ class PhaseBase(Group):
                 constraint_path = 'input_controls:{0}_out'.format(var)
 
                 if self.control_options[var]['dynamic']:
-                    ctrl_src_idxs_all = gd.input_maps['dynamic_control_to_all']
-                    ctrl_src_indices_disc = ctrl_src_idxs_all[gd.subset_node_indices['disc']]
-                    ctrl_src_indices_col = ctrl_src_idxs_all[gd.subset_node_indices['col']]
+                    ctrl_src_indices_all = gd.input_maps['dynamic_control_to_all']
                 else:
-                    ctrl_src_indices_disc = np.zeros(gd.subset_num_nodes['disc'], dtype=int)
-                    ctrl_src_indices_col = np.zeros(gd.subset_num_nodes['col'], dtype=int)
+                    ctrl_src_indices_all = np.zeros(gd.subset_num_nodes['all'], dtype=int)
 
                 self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                             src_indices=ctrl_src_indices_disc)
-                if transcription == 'gauss-lobatto':
-                    self.connect(src_name=constraint_path,
-                                 tgt_name='path_constraints.col_values:{0}'.format(con_name),
-                                 src_indices=ctrl_src_indices_col)
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                             src_indices=ctrl_src_indices_all)
 
             elif var_type == 'control_rate':
                 control_name = var[:-5]
@@ -1033,12 +1020,7 @@ class PhaseBase(Group):
                 options['units'] = control_units if con_units is None else con_units
                 constraint_path = 'control_rates:{0}_rate'.format(control_name)
                 self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                             src_indices=gd.subset_node_indices['disc'])
-                if transcription == 'gauss-lobatto':
-                    self.connect(src_name=constraint_path,
-                                 tgt_name='path_constraints.col_values:{0}'.format(con_name),
-                                 src_indices=gd.subset_node_indices['col'])
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'control_rate2':
                 control_name = var[:-6]
@@ -1048,12 +1030,7 @@ class PhaseBase(Group):
                 options['units'] = control_units if con_units is None else con_units
                 constraint_path = 'control_rates:{0}_rate2'.format(control_name)
                 self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                             src_indices=gd.subset_node_indices['disc'])
-                if transcription == 'gauss-lobatto':
-                    self.connect(src_name=constraint_path,
-                                 tgt_name='path_constraints.col_values:{0}'.format(con_name),
-                                 src_indices=gd.subset_node_indices['col'])
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             else:
                 # Failed to find variable, assume it is in the RHS
@@ -1080,7 +1057,7 @@ class PhaseBase(Group):
                                                  self.time_options['units'],
                                                  deriv=2)
             kwargs.pop('constraint_name', None)
-            path_comp._add_path_constraint(con_name, **kwargs)
+            path_comp._add_path_constraint(con_name, var_type, **kwargs)
 
     def _setup_objective(self):
         """

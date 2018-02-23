@@ -1,7 +1,7 @@
-The Brachistochrone Problem
-===========================
+A simple optimal control example
+================================
 
-We illustrate how to use |project| to solve an optimal control problem - the Brachistochrone problem.
+We illustrate how to use ozone to solve an optimal control problem - the Brachistochrone problem.
 We seek to find the curve along which a ball rolls from one point to another in the shortest amount of time.
 We minimize the final time, :math:`t_f`, by varying the dynamic control, :math:`\theta`, subject to the dynamics,
 
@@ -10,19 +10,20 @@ We minimize the final time, :math:`t_f`, by varying the dynamic control, :math:`
   \frac{\partial y}{\partial t} &= v \cos(\theta) \\
   \frac{\partial v}{\partial t} &= g \cos(\theta). \\
 
-The initial conditions are:
+The initial conditions are
 
 .. math ::
   x(0) &= 0 \\
-  y(0) &= 10 \\
+  y(0) &= 0 \\
   v(0) &= 0, \\
 
-The final conditions are:
+and the transversality constraints are
 
 .. math ::
-  x(t_f) &= 10 \\
-  y(t_f) &= 5 \\
+  x(t_f) &= 2.0 \\
+  y(t_f) &= -2.0 \\
 
+Here, we use the 6th order Gauss--Legendre collocation method with 20 time steps.
 
 1. Defining the system
 ----------------------

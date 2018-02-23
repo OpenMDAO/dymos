@@ -11,7 +11,7 @@ from openmdoc import Phase
 from openmdoc.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 OPTIMIZER = 'SLSQP'
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 
 def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='csc'):
@@ -112,4 +112,20 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
 
 
 if __name__ == '__main__':
-    brachistochrone_min_time()
+    from six import iteritems
+    prob = brachistochrone_min_time()
+
+    phase = prob.model.phase0
+
+    subsystems_ordered = phase._subsystems_allprocs
+    print([sys.name for sys in subsystems_ordered])
+
+    input_srcs = phase._conn_global_abs_in2out
+
+    connections = {
+        tgt: src for tgt, src in iteritems(input_srcs) if src is not None
+    }
+
+    print(connections)
+
+
