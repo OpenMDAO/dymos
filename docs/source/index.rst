@@ -22,6 +22,7 @@ Presently, |project| supports optimal control through three different methods, w
     :titlesonly:
 
     user_guide/user_guide
+    reference_manual/reference_manual
     examples/examples
     api_docs
 

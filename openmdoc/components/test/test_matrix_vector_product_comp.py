@@ -123,11 +123,11 @@ class TestForDocs(unittest.TestCase):
         ivc.add_output(name='x', shape=(nn, 3))
 
         p.model.add_subsystem(name='ivc',
-                               subsys=ivc,
-                               promotes_outputs=['A', 'x'])
+                              subsys=ivc,
+                              promotes_outputs=['A', 'x'])
 
         p.model.add_subsystem(name='mat_vec_product_comp',
-                               subsys=MatrixVectorProductComp(A_name='M', num_nodes=nn))
+                              subsys=MatrixVectorProductComp(A_name='M', num_nodes=nn))
 
         p.model.connect('A', 'mat_vec_product_comp.M')
         p.model.connect('x', 'mat_vec_product_comp.x')

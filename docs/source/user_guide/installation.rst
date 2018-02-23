@@ -1,15 +1,32 @@
 Installation
 ============
 
-To install |project|, follow these two steps:
+Install Using pip
+-----------------
 
-1. Download the |project| source code using one of these two options:
+To install |project| into site-packages of your local python installation, simply run
 
-  - Go to `GitHub <https://github.com/OpenMDAO/|project|>`_,
-    download the repository and unzip in any directory.
-  - In terminal, navigate to the directory in which you want to download the source code
-    and use the command :code:`git clone https://github.com/OpenMDAO/|project|2.git` to download.
+.. code-block:: console
+
+    pip install git+https://github.com/OpenMDAO/OpenMDOC.git
+
+Developer Mode
+--------------
+
+To install |project| in developer mode, which will allow the package to be modified,
+follow these two steps:
+
+1. In terminal, clone the repository using `git`.
 
 2. Go into the |project| directory and use the command :code:`pip install -e .` to install ozone.
 
-If you want to uninstall |project|, use the command :code:`pip uninstall |project|`.
+.. code-block:: console
+
+    git clone https://github.com/OpenMDAO/OpenMDOC.git ./OpenMDOC.git
+    cd OpenMDOC.git
+    pip install -e .
+
+Uninstalling
+------------
+
+If you want to uninstall |project|, use the command :code:`pip uninstall openmdoc`.

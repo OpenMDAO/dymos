@@ -35,7 +35,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
     phase.set_state_options('x', fix_initial=True)
     phase.set_state_options('v', fix_initial=True, fix_final=True)
 
-    phase.add_control('u', units='m/s**2', continuity=True, rate_continuity=False,
+    phase.add_control('u', units='m/s**2', scaler=0.01, continuity=True, rate_continuity=False,
                       rate2_continuity=False, lower=-1.0, upper=1.0)
 
     # Minimize time at the end of the phase
@@ -67,7 +67,6 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
     # Plot results
     fig, axes = plt.subplots(3, 1)
     fig.suptitle('Double Integrator Direct Collocation Solution')
-
 
     t_imp = phase.get_values('time', nodes='all')
     x_imp = phase.get_values('x', nodes='all')
@@ -110,6 +109,5 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
 
 
 if __name__ == '__main__':
-    prob = double_integrator_direct_collocation(transcription='gauss-lobatto', optimizer='SNOPT',
+    prob = double_integrator_direct_collocation(transcription='gauss-lobatto', optimizer='SLSQP',
                                                 show_plots=True, compressed=False)
-

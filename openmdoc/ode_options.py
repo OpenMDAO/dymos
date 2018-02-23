@@ -7,6 +7,61 @@ import numpy as np
 from openmdao.utils.options_dictionary import OptionsDictionary
 
 
+class _ODETimeOptionsDictionary(OptionsDictionary):
+    """
+    OptionsDictionary for Time at the ODE level.  Note this does not include things that affect
+    design variables or defect constraints.  Those options are set at the Phase level.
+    """
+    def __init__(self, read_only=False):
+        super(_ODETimeOptionsDictionary, self).__init__(read_only)
+        self.declare('targets', default=[], types=Iterable,
+                     desc='Target path(s) for the time variable, relative to the top-level system.')
+        self.declare('units', default=None, types=string_types, allow_none=True,
+                     desc='Units for time.')
+
+class _ODEStateOptionsDictionary(OptionsDictionary):
+    """
+    OptionsDictionary for States at the ODE level.  Note this does not include things that affect
+    design variables or defect constraints.  Those options are set at the Phase level.
+    """
+    def __init__(self, read_only=False):
+        super(_ODEStateOptionsDictionary, self).__init__(read_only)
+        self.declare('name', types=string_types, desc='The name of the state variable.')
+        self.declare('rate_source', types=string_types,
+                     desc='The path to the output in the system which is the time-derivative '
+                          'of the state.')
+        self.declare('targets', default=[], types=Iterable,
+                     desc='Target paths for the state, relative to the top-level system.')
+        self.declare('shape', default=(1,), types=tuple,
+                     desc='The shape of the variable (ignoring the time-dimension along '
+                          'the first axis).')
+        self.declare('units', default=None, types=string_types, allow_none=True,
+                     desc='The units of the parameter.')
+
+class _ODEParameterOptionsDictionary(OptionsDictionary):
+    """
+    OptionsDictionary for States at the ODE level.  Note this does not include things that affect
+    design variables or defect constraints.  Those options are set at the Phase level.
+    """
+    def __init__(self, read_only=False):
+        super(_ODEParameterOptionsDictionary, self).__init__(read_only)
+        self.declare('name', types=string_types, desc='The name of the parameter.')
+        self.declare('targets', types=Iterable,
+                     desc='Target paths for the parameter, relative to the top-level system.')
+        self.declare('shape', default=(1,), types=tuple,
+                     desc='The shape of the variable (ignoring the time-dimension along '
+                          'the first axis).')
+        self.declare('dynamic', default=True, types=bool,
+                     desc='If True, the value of the shape of the parameter will '
+                          'be (num_nodes, ...), allowing the variable to be used as either a '
+                          'static or dynamic control.  This impacts the shape of the partial '
+                          'derivatives matrix.  Unless a parameter is large and broadcasting a '
+                          'value to each individual node would be inefficient, users should stick '
+                          'to the default value of True.')
+        self.declare('units', default=None, types=string_types, allow_none=True,
+                     desc='The units of the parameter.')
+
+
 class declare_time(object):
     """
     Class Decorator used to attach ODE time metadata to an OpenMDAO system.
@@ -87,16 +142,12 @@ class ODEOptions(object):
         kwargs : dict
             Keyword arguments that will be passed to the initialize method.
         """
-        self._time_options = OptionsDictionary()
-        self._time_options.declare('targets', default=[], types=Iterable,
-                                   desc='Target path(s) for the time variable, relative to '
-                                        'the top-level system.')
-        self._time_options.declare('units', default=None, types=string_types, allow_none=True,
-                                   desc='Units for time.')
+        self._time_options = _ODETimeOptionsDictionary()
 
         self._states = {}
         self._static_parameters = {}
         self._dynamic_parameters = {}
+        self._target_paths = []
 
         if time_options:
             self.declare_time(**time_options)
@@ -171,6 +222,8 @@ class ODEOptions(object):
         if units is not None:
             self._time_options['units'] = units
 
+        self._check_targets('time', self._time_options['targets'])
+
     def declare_state(self, name, rate_source, targets=None, shape=None, units=None):
         """
         Add an ODE state variable.
@@ -194,19 +247,7 @@ class ODEOptions(object):
         if name in self._states:
             raise ValueError('State {0} has already been declared.'.format(name))
 
-        options = OptionsDictionary()
-
-        options.declare('name', types=string_types, desc='The name of the state variable.')
-        options.declare('rate_source', types=string_types, desc='The path to the output in the '
-                                                                'system which is the '
-                                                                'time-derivative of the state.')
-        options.declare('targets', default=[], types=Iterable,
-                        desc='Target paths for the state, relative to the top-level system.')
-        options.declare('shape', default=(1,), types=tuple,
-                        desc='The shape of the variable (ignoring the time-dimension along'
-                             ' the first axis).')
-        options.declare('units', default=None, types=string_types, allow_none=True,
-                        desc='The units of the parameter.')
+        options = _ODEStateOptionsDictionary()
 
         options['name'] = name
         options['rate_source'] = rate_source
@@ -225,6 +266,7 @@ class ODEOptions(object):
         if units is not None:
             options['units'] = units
 
+        self._check_targets(name, options['targets'])
         self._states[name] = options
 
     def declare_parameter(self, name, targets, shape=None, units=None, dynamic=True):
@@ -297,7 +339,9 @@ class ODEOptions(object):
             raise ValueError('shape must be of type int or Iterable or None')
         if units is not None:
             options['units'] = units
+        options['dynamic'] = False
 
+        self._check_targets(name, options['targets'])
         self._static_parameters[name] = options
 
     def _declare_dynamic_parameter(self, name, targets, shape=None, units=None):
@@ -319,15 +363,7 @@ class ODEOptions(object):
         if name in self._dynamic_parameters:
             raise ValueError('Dynamic parameter {0} has already been declared.'.format(name))
 
-        options = OptionsDictionary()
-        options.declare('name', types=string_types, desc='The name of the parameter.')
-        options.declare('targets', types=Iterable,
-                        desc='Target paths for the parameter, relative to the top-level system.')
-        options.declare('shape', default=(1,), types=tuple,
-                        desc='The shape of the variable (ignoring the time-dimension along'
-                             ' the first axis).')
-        options.declare('units', default=None, types=string_types, allow_none=True,
-                        desc='The units of the parameter.')
+        options = _ODEParameterOptionsDictionary()
 
         options['name'] = name
         if isinstance(targets, string_types):
@@ -344,7 +380,9 @@ class ODEOptions(object):
             raise ValueError('shape must be of type int or Iterable or None')
         if units is not None:
             options['units'] = units
+        options['dynamic'] = True
 
+        self._check_targets(name, options['targets'])
         self._dynamic_parameters[name] = options
 
     def __str__(self):
@@ -389,28 +427,6 @@ class _ForDocs(object):  # pragma: no cover
     """
 
     def __init__(self):
-        self.time_options = OptionsDictionary()
-        self.time_options.declare('targets', default=[], types=Iterable,
-                                  desc='Target path(s) for the time variable, relative to '
-                                        'the top-level system.')
-        self.time_options.declare('units', default=None, types=string_types, allow_none=True,
-                                  desc='Units for time.')
-
-        self.state_options = OptionsDictionary()
-        self.state_options.declare('name', types=string_types)
-        self.state_options.declare('rate_source', types=string_types)
-        self.state_options.declare('targets', default=[], types=Iterable)
-        self.state_options.declare('shape', default=(1,), types=tuple)
-        self.state_options.declare('units', default=None, types=string_types, allow_none=True)
-
-        self.parameter_options = OptionsDictionary()
-        self.parameter_options.declare('name', types=string_types,
-                                       desc='The name of the parameter.')
-        self.parameter_options.declare('targets', types=Iterable,
-                                       desc='Target paths for the parameter, relative to the '
-                                            'top-level system.')
-        self.parameter_options.declare('shape', default=(1,), types=tuple,
-                                       desc='The shape of the variable (ignoring the '
-                                            'time-dimension along the first axis).')
-        self.parameter_options.declare('units', default=None, types=string_types, allow_none=True,
-                                       desc='The units of the parameter.')
+        self.time_options = _ODETimeOptionsDictionary()
+        self.state_options = _ODEStateOptionsDictionary()
+        self.parameter_options = _ODEParameterOptionsDictionary()

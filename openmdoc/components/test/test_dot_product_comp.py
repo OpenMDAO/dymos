@@ -113,28 +113,28 @@ class TestDotProductCompForDocs(unittest.TestCase):
         from pointer.components import DotProductComp
 
         nn = 100
-    
+
         p = Problem(model=Group())
-    
+
         ivc = IndepVarComp()
         ivc.add_output(name='a', shape=(nn, 4))
         ivc.add_output(name='b', shape=(nn, 4))
-    
+
         p.model.add_subsystem(name='ivc',
                               subsys=ivc,
                               promotes_outputs=['a', 'b'])
-    
+
         p.model.add_subsystem(name='dot_prod_comp',
                               subsys=DotProductComp(num_nodes=nn, vec_size=4))
-    
+
         p.model.connect('a', 'dot_prod_comp.a')
         p.model.connect('b', 'dot_prod_comp.b')
-    
+
         p.setup()
-    
+
         p['a'] = np.random.rand(nn, 4)
         p['b'] = np.random.rand(nn, 4)
-    
+
         p.run_model()
 
         expected = np.zeros((nn,))

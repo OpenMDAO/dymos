@@ -110,5 +110,5 @@ def ssto_moon(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
 
 
 if __name__ == '__main__':
-    ssto_moon(transcription='gauss-lobatto', optimizer='SNOPT',
+    ssto_moon(transcription='gauss-lobatto', optimizer='SLSQP',
               top_level_jacobian='csc', derivative_mode='rev')

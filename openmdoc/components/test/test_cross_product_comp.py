@@ -82,11 +82,11 @@ class TestForDocs(unittest.TestCase):
         ivc.add_output(name='b', shape=(nn, 3))
 
         p.model.add_subsystem(name='ivc',
-                               subsys=ivc,
-                               promotes_outputs=['a', 'b'])
+                              subsys=ivc,
+                              promotes_outputs=['a', 'b'])
 
         p.model.add_subsystem(name='cross_prod_comp',
-                               subsys=CrossProductComp(num_nodes=nn))
+                              subsys=CrossProductComp(num_nodes=nn))
 
         p.model.connect('a', 'cross_prod_comp.a')
         p.model.connect('b', 'cross_prod_comp.b')

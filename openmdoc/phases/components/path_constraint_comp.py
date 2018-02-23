@@ -6,149 +6,12 @@ from openmdao.api import ExplicitComponent
 from openmdoc.phases.grid_data import GridData
 
 
-class PathConstraintComp(ExplicitComponent):
+class PathConstraintCompBase(ExplicitComponent):
 
     def initialize(self):
         self._path_constraints = []
         self._vars = []
-
-        self.metadata.declare('transcription', values=['gauss-lobatto', 'radau-ps'],
-                              desc='Transcription technique of the optimal control problem.')
-
-        self.metadata.declare('grid_data', types=GridData,
-                              desc='Container object for grid info')
-
-    def setup(self):
-        """
-        Define the independent variables as output variables.
-        """
-        grid_data = self.metadata['grid_data']
-        transcription = self.metadata['transcription']
-
-        num_nodes = grid_data.num_nodes
-        num_disc_nodes = grid_data.subset_num_nodes['disc']
-        num_col_nodes = grid_data.subset_num_nodes['col']
-        for (name, kwargs) in self._path_constraints:
-            input_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
-            if kwargs['src_all']:
-                all_input_name = 'all_values:{0}'.format(name)
-                disc_input_name = col_input_name = ''
-                self.add_input(all_input_name,
-                               shape=(num_nodes,) + kwargs['shape'],
-                               **input_kwargs)
-            else:
-                all_input_name = ''
-                disc_input_name = 'disc_values:{0}'.format(name)
-                col_input_name = 'col_values:{0}'.format(name)
-
-                self.add_input(disc_input_name,
-                               shape=(num_disc_nodes,) + kwargs['shape'],
-                               **input_kwargs)
-
-                if self.metadata['transcription'] == 'gauss-lobatto':
-                    self.add_input(col_input_name,
-                                   shape=(num_col_nodes,) + kwargs['shape'],
-                                   **input_kwargs)
-
-            output_name = 'path:{0}'.format(name)
-            output_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
-            output_kwargs['shape'] = (num_nodes,) + kwargs['shape']
-            constraint_kwargs = {k: kwargs.get(k, None)
-                                 for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
-                                           'scaler', 'indices', 'linear')}
-
-            self.add_output(output_name, **output_kwargs)
-
-            self._vars.append((disc_input_name, col_input_name, all_input_name,
-                               kwargs['src_all'], output_name, kwargs['shape']))
-
-            self.add_constraint(output_name, **constraint_kwargs)
-
-        # Setup partials
-        for (disc_input_name, col_input_name,
-             all_input_name, src_all, output_name, shape) in self._vars:
-
-            if src_all:
-                all_shape = (num_nodes,) + shape
-                var_size = np.prod(shape)
-                all_size = np.prod(all_shape)
-
-                all_row_starts = grid_data.subset_node_indices['all'] * var_size
-                all_rows = []
-                for i in all_row_starts:
-                    all_rows.extend(range(i, i + var_size))
-                all_rows = np.asarray(all_rows, dtype=int)
-
-                self.declare_partials(
-                    of=output_name,
-                    wrt=all_input_name,
-                    dependent=True,
-                    rows=all_rows,
-                    cols=np.arange(all_size),
-                    val=1.0)
-            else:
-                disc_shape = (num_disc_nodes,) + shape
-                col_shape = (num_col_nodes,) + shape
-
-                var_size = np.prod(shape)
-                disc_size = np.prod(disc_shape)
-                col_size = np.prod(col_shape)
-
-                disc_row_starts = grid_data.subset_node_indices['disc'] * var_size
-                disc_rows = []
-                for i in disc_row_starts:
-                    disc_rows.extend(range(i, i + var_size))
-                disc_rows = np.asarray(disc_rows, dtype=int)
-
-                self.declare_partials(
-                    of=output_name,
-                    wrt=disc_input_name,
-                    dependent=True,
-                    rows=disc_rows,
-                    cols=np.arange(disc_size),
-                    val=1.0)
-
-                if transcription == 'gauss-lobatto':
-
-                    col_row_starts = grid_data.subset_node_indices['col'] * var_size
-                    col_rows = []
-                    for i in col_row_starts:
-                        col_rows.extend(range(i, i + var_size))
-                    col_rows = np.asarray(col_rows, dtype=int)
-
-                    self.declare_partials(
-                        of=output_name,
-                        wrt=col_input_name,
-                        dependent=True,
-                        rows=col_rows,
-                        cols=np.arange(col_size),
-                        val=1.0)
-
-    def _compute_radau(self, inputs, outputs):
-        for (disc_input_name, col_input_name, all_inp_name, src_all, output_name, _) in self._vars:
-            if src_all:
-                outputs[output_name] = inputs[all_inp_name]
-            else:
-                outputs[output_name] = inputs[disc_input_name]
-
-    def _compute_gauss_lobatto(self, inputs, outputs):
-        disc_indices = self.metadata['grid_data'].subset_node_indices['disc']
-        col_indices = self.metadata['grid_data'].subset_node_indices['col']
-        for (disc_input_name, col_input_name, all_inp_name, src_all, output_name, _) in self._vars:
-            if src_all:
-                outputs[output_name] = inputs[all_inp_name]
-            else:
-                outputs[output_name][disc_indices] = inputs[disc_input_name]
-                outputs[output_name][col_indices] = inputs[col_input_name]
-
-    def compute(self, inputs, outputs):
-        transcription = self.metadata['transcription']
-        if transcription == 'gauss-lobatto':
-            self._compute_gauss_lobatto(inputs, outputs)
-        elif transcription == 'radau-ps':
-            self._compute_radau(inputs, outputs)
-        else:
-            raise ValueError('invalid transcription: {0}'.format(transcription))
+        self.metadata.declare('grid_data', types=GridData, desc='Container object for grid info')
 
     def _add_path_constraint(self, name, var_class, shape=(1,), units=None, res_units=None, desc='',
                              lower=None, upper=None, equals=None, scaler=None, adder=None,
@@ -212,3 +75,168 @@ class PathConstraintComp(ExplicitComponent):
                   'adder': adder, 'ref': ref, 'ref0': ref0, 'linear': linear, 'src_all': src_all,
                   'res_ref': res_ref, 'var_set': var_set, 'distributed': distributed}
         self._path_constraints.append((name, kwargs))
+
+
+class GaussLobattoPathConstraintComp(PathConstraintCompBase):
+
+    def setup(self):
+        """
+        Define the independent variables as output variables.
+        """
+        grid_data = self.metadata['grid_data']
+
+        num_nodes = grid_data.num_nodes
+        num_disc_nodes = grid_data.subset_num_nodes['disc']
+        num_col_nodes = grid_data.subset_num_nodes['col']
+        for (name, kwargs) in self._path_constraints:
+            input_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
+            shape = kwargs['shape']
+            if kwargs['src_all']:
+                all_input_name = 'all_values:{0}'.format(name)
+                disc_input_name = col_input_name = ''
+                self.add_input(all_input_name,
+                               shape=(num_nodes,) + shape,
+                               **input_kwargs)
+            else:
+                all_input_name = ''
+                disc_input_name = 'disc_values:{0}'.format(name)
+                col_input_name = 'col_values:{0}'.format(name)
+
+                self.add_input(disc_input_name,
+                               shape=(num_disc_nodes,) + shape,
+                               **input_kwargs)
+
+                self.add_input(col_input_name,
+                               shape=(num_col_nodes,) + shape,
+                               **input_kwargs)
+
+            output_name = 'path:{0}'.format(name)
+            output_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
+            output_kwargs['shape'] = (num_nodes,) + shape
+            self.add_output(output_name, **output_kwargs)
+
+            self._vars.append((disc_input_name, col_input_name, all_input_name,
+                               kwargs['src_all'], output_name, shape))
+
+            constraint_kwargs = {k: kwargs.get(k, None)
+                                 for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
+                                           'scaler', 'indices', 'linear')}
+            self.add_constraint(output_name, **constraint_kwargs)
+
+            # Setup partials
+            if kwargs['src_all']:
+                all_shape = (num_nodes,) + shape
+                var_size = np.prod(shape)
+                all_size = np.prod(all_shape)
+
+                all_row_starts = grid_data.subset_node_indices['all'] * var_size
+                all_rows = []
+                for i in all_row_starts:
+                    all_rows.extend(range(i, i + var_size))
+                all_rows = np.asarray(all_rows, dtype=int)
+
+                self.declare_partials(
+                    of=output_name,
+                    wrt=all_input_name,
+                    dependent=True,
+                    rows=all_rows,
+                    cols=np.arange(all_size),
+                    val=1.0)
+            else:
+                disc_shape = (num_disc_nodes,) + shape
+                col_shape = (num_col_nodes,) + shape
+
+                var_size = np.prod(shape)
+                disc_size = np.prod(disc_shape)
+                col_size = np.prod(col_shape)
+
+                disc_row_starts = grid_data.subset_node_indices['disc'] * var_size
+                disc_rows = []
+                for i in disc_row_starts:
+                    disc_rows.extend(range(i, i + var_size))
+                disc_rows = np.asarray(disc_rows, dtype=int)
+
+                self.declare_partials(
+                    of=output_name,
+                    wrt=disc_input_name,
+                    dependent=True,
+                    rows=disc_rows,
+                    cols=np.arange(disc_size),
+                    val=1.0)
+
+                col_row_starts = grid_data.subset_node_indices['col'] * var_size
+                col_rows = []
+                for i in col_row_starts:
+                    col_rows.extend(range(i, i + var_size))
+                col_rows = np.asarray(col_rows, dtype=int)
+
+                self.declare_partials(
+                    of=output_name,
+                    wrt=col_input_name,
+                    dependent=True,
+                    rows=col_rows,
+                    cols=np.arange(col_size),
+                    val=1.0)
+
+    def compute(self, inputs, outputs):
+        disc_indices = self.metadata['grid_data'].subset_node_indices['disc']
+        col_indices = self.metadata['grid_data'].subset_node_indices['col']
+        for (disc_input_name, col_input_name, all_inp_name, src_all, output_name, _) in self._vars:
+            if src_all:
+                outputs[output_name] = inputs[all_inp_name]
+            else:
+                outputs[output_name][disc_indices] = inputs[disc_input_name]
+                outputs[output_name][col_indices] = inputs[col_input_name]
+
+
+class RadauPathConstraintComp(PathConstraintCompBase):
+
+    def setup(self):
+        """
+        Define the independent variables as output variables.
+        """
+        grid_data = self.metadata['grid_data']
+        num_nodes = grid_data.num_nodes
+
+        for (name, kwargs) in self._path_constraints:
+
+            input_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
+            input_name = 'all_values:{0}'.format(name)
+            self.add_input(input_name,
+                           shape=(num_nodes,) + kwargs['shape'],
+                           **input_kwargs)
+
+            output_name = 'path:{0}'.format(name)
+            output_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
+            output_kwargs['shape'] = (num_nodes,) + kwargs['shape']
+            self.add_output(output_name, **output_kwargs)
+
+            constraint_kwargs = {k: kwargs.get(k, None)
+                                 for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
+                                           'scaler', 'indices', 'linear')}
+            self.add_constraint(output_name, **constraint_kwargs)
+
+            self._vars.append((input_name, output_name, kwargs['shape']))
+            # Setup partials
+
+            all_shape = (num_nodes,) + kwargs['shape']
+            var_size = np.prod(kwargs['shape'])
+            all_size = np.prod(all_shape)
+
+            all_row_starts = grid_data.subset_node_indices['all'] * var_size
+            all_rows = []
+            for i in all_row_starts:
+                all_rows.extend(range(i, i + var_size))
+            all_rows = np.asarray(all_rows, dtype=int)
+
+            self.declare_partials(
+                of=output_name,
+                wrt=input_name,
+                dependent=True,
+                rows=all_rows,
+                cols=np.arange(all_size),
+                val=1.0)
+
+    def compute(self, inputs, outputs):
+        for (input_name, output_name, _) in self._vars:
+            outputs[output_name] = inputs[input_name]

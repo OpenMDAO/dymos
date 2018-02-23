@@ -105,5 +105,5 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
 
 
 if __name__ == '__main__':
-    ssto_moon_linear_tangent(transcription='gauss-lobatto', optimizer='SNOPT',
+    ssto_moon_linear_tangent(transcription='gauss-lobatto', optimizer='SLSQP',
                              top_level_jacobian='csc', derivative_mode='rev')

@@ -1,7 +1,7 @@
 
-====================================
+=====================================
 openmdoc.utils.matrix_partials_wizard
-====================================
+=====================================
 
 Using the matrix and vector-compatible components described in this section can reduce the
 number of components needed in the ODE system, but defining partial derivatives when populating

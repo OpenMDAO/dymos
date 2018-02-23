@@ -11,6 +11,7 @@ problems.
     :maxdepth: 2
     :titlesonly:
 
+    installation
     optimal_control
     equations_of_motion
     phases/phases

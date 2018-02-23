@@ -63,14 +63,17 @@ solving the optization problem.
 The Objective
 -------------
 
-|project| exist to provide *optimization* of dynamical systems, not just simulation.  As such, we
-need to define a scalar quantity to be minimized or maximized at some point in the trajectory.  This
-quantity is referred to as the *objective*.
+|project| man be used to both simulate and optimize dynamical systems. The phase construct is
+generally used in optimization contexts.  Within each phase, the user can set the objective:
 
 .. math::
   \begin{align*}
   \mathrm{J} = f_{obj}(\bar{x},t,\bar{u},\bar{d})
   \end{align*}
+
+As with constraints, the objective may be any output within the Phase.  Phases can also be
+incorporated into larger models wherein the objective is defined in some subsystem outside of the
+phase.  In this case, the standard OpenMDAO method `add_objective` can be used.
 
 The Overall Optimization Problem
 --------------------------------

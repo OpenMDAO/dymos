@@ -81,4 +81,3 @@ class TestODEOptions(unittest.TestCase):
         self.assertEqual(B.ode_options._dynamic_parameters['theta']['units'], 'rad')
         self.assertEqual(B.ode_options._static_parameters['g']['targets'], ['g'])
         self.assertEqual(B.ode_options._static_parameters['g']['units'], 'm/s**2')
-
