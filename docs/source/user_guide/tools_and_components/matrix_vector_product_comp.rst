@@ -10,5 +10,5 @@ openmdoc.components.MatrixVectorProductComp
     _for_docs
     metadata
 
-.. embed-test::
+.. embed-code::
     openmdoc.components.test.test_matrix_vector_product_comp.TestForDocs.test

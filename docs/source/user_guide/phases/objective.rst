@@ -25,7 +25,7 @@ First, since the path to a variable within the phase might depend on the transcr
 .. note::
 
     Many optimizers do not support multiple objective functions.  When constructing a composite
-    objective you man need to form the objective as an output of a component in your ODE system.
+    objective you may need to form the objective as an output of a component in your ODE system.
 
 Second, unlike typical OpenMDAO problems where the `index` can be used to effectively specify
 the first or last value of a variable, optimal control problems have two competing notions of index:

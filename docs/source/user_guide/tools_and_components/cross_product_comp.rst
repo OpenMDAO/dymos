@@ -10,5 +10,5 @@ openmdoc.components.CrossProductComp
     _for_docs
     metadata
 
-.. embed-test::
+.. embed-code::
     openmdoc.components.test.test_cross_product_comp.TestForDocs.test

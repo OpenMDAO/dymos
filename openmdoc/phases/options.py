@@ -268,49 +268,6 @@ class TimeOptionsDictionary(OptionsDictionary):
                      desc='targets in the ODE to which the integration variable is connected')
 
 
-class ObjectiveOptionsDictionary(OptionsDictionary):
-    """
-    An OptionsDictionary for objective options
-    """
-
-    def __init__(self, read_only=False):
-        super(ObjectiveOptionsDictionary, self).__init__(read_only)
-
-        self.declare(name='name', types=string_types,
-                     desc='The name of the state, control, time, or ODE output variable to be used'
-                          'as an objective')
-
-        self.declare(name='loc',
-                     default='final',
-                     values=('initial', 'final'),
-                     desc='Specifies whether the objective is evaluated at the \'initial\' or'
-                          '\'final\' time of the phase')
-
-        self.declare(name='index', types=int, default=None,
-                     allow_none=True, desc='Alternative way to specify the location of'
-                                           'the objective.  If not None, this overrides \'loc\'.')
-
-        self.declare(name='scaler',
-                     types=(Iterable, Number), default=1.0,
-                     allow_none=True,
-                     desc='scaler of the state variable at the discretization nodes')
-
-        self.declare(name='adder',
-                     types=(Iterable, Number), default=0.0,
-                     allow_none=True,
-                     desc='adder of the state variable at the discretization nodes')
-
-        self.declare(name='ref0',
-                     types=(Iterable, Number), default=None,
-                     allow_none=True,
-                     desc='zero-reference value of the state variable at the discretization nodes')
-
-        self.declare(name='ref',
-                     types=(Iterable, Number), default=None,
-                     allow_none=True,
-                     desc='unit-reference value of the state variable at the discretization nodes')
-
-
 class _ForDocs(object):  # pragma: no cover
     """
     This class is provided as a way to automatically display options dictionaries in the docs,

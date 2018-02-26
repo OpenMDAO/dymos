@@ -45,7 +45,6 @@ extensions = ['sphinx.ext.autodoc',
               'matplotlib.sphinxext.plot_directive',
               'embed_code',
               'embed_options',
-              'embed_test',
               'embed_compare',
               'embed_shell_cmd',
               'embed_bibtex']

@@ -39,7 +39,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
                       rate2_continuity=False, lower=-1.0, upper=1.0)
 
     # Minimize time at the end of the phase
-    phase.set_objective('x', loc='final', scaler=-1)
+    phase.add_objective('x', loc='final', scaler=-1)
 
     if top_level_jacobian.lower() == 'csc':
         p.model.jacobian = CSCJacobian()

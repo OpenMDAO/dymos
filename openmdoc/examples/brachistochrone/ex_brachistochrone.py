@@ -43,7 +43,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
     phase.add_control('g', units='m/s**2', dynamic=False, opt=False, val=9.80665)
 
     # Minimize time at the end of the phase
-    phase.set_objective('time', loc='final', scaler=10)
+    phase.add_objective('time', loc='final', scaler=10)
 
     if top_level_jacobian.lower() == 'csc':
         p.model.jacobian = CSCJacobian()
@@ -122,8 +122,38 @@ if __name__ == '__main__':
 
     input_srcs = phase._conn_global_abs_in2out
 
-    connections = {
-        tgt: src for tgt, src in iteritems(input_srcs) if src is not None
-    }
+    connections = {}
+
+    for tgt, src in iteritems(input_srcs):
+        if src is None:
+            continue
+        src_rel = src.replace('phase0.', '')
+        if src_rel in connections:
+            connections[src_rel].append(tgt.replace('phase0.', ''))
+        else:
+            connections[src_rel] = [tgt.replace('phase0.', '')]
+
+    # connections = {
+    #     tgt: src for tgt, src in iteritems(input_srcs) if src is not None
+    # }
 
     print(connections)
+
+    from pyxdsm.XDSM import XDSM
+
+    opt = 'Optimization'
+    solver = 'MDA'
+    comp = 'Analysis'
+    group = 'Metamodel'
+    func = 'Function'
+
+    x = XDSM()
+
+    for system in subsystems_ordered:
+        x.add_system(system.name, comp, r'{0}'.format(system.name.replace('_', ' ')))
+
+    for src, tgts in iteritems(connections):
+        for tgt in tgts:
+            x.connect(src.split('.')[0], tgt.split('.')[0], 'x')
+
+    x.write('brach_xdsm', build=True)

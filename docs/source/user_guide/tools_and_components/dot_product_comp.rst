@@ -10,5 +10,5 @@ openmdoc.components.DotProductComp
     _for_docs
     metadata
 
-.. embed-test::
+.. embed-code::
     openmdoc.components.test.test_dot_product_comp.TestDotProductCompForDocs.test

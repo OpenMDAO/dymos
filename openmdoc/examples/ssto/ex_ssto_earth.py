@@ -46,7 +46,7 @@ def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
     phase.add_control('theta', units='rad', dynamic=True, lower=-1.57, upper=1.57)
     phase.add_control('thrust', units='N', dynamic=False, opt=False, val=2100000.0)
 
-    phase.add_objective('time', index=-1, scaler=0.01)
+    phase.add_objective('time', loc='final', scaler=0.01)
 
     if top_level_jacobian.lower() == 'csc':
         p.model.jacobian = CSCJacobian()
