@@ -76,4 +76,4 @@ or more commonly just *defects* (:math:`\Delta`).
     variables
     constraints
     objective
-    transcriptions
+    transcriptions/transcriptions

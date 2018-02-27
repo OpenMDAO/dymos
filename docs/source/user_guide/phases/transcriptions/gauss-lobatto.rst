@@ -1,20 +1,3 @@
-==============
-Transcriptions
-==============
-
-|project| implements several different *transcriptions* which are used to convert a continuous
-optimal control problem into an analogous nonlinear programming (NLP) problem.
-
-|project| implements multi-phase trajectory optimization.  That is to say, in each phase
-the state and control time histories are continuous.  At the beginning or end of each phase,
-a discrete jump in the value of a state variable is permitted.  This comes in useful when
-modelling things like stage or store (mass) jettisons or impulsive maneuvers (:math:`\Delta`Vs).
-By linking phases together with continuity constraints, a trajectory or series of trajectories
-can be assembled.
-
-Different transcription methods are supported via different Phase types in |project|.  Currently,
-the software supports the following techniques:
-
 High-Order Gauss-Lobatto Collocation
 ------------------------------------
 
@@ -27,7 +10,7 @@ Each phase is divided into polynomial segments.  The span and polynomial order o
 define the "grid" within each segment.  The grid can be specified by the user or set by an
 automatic grid refinement algorithm, depending on the accuracy required.
 
-.. image:: figures/01_segments.png
+.. image:: figures/gauss-lobatto/01_segments.png
    :scale: 100 %
    :alt: A phase divided into four equal segments
    :align: center
@@ -35,10 +18,10 @@ automatic grid refinement algorithm, depending on the accuracy required.
 
 **Step 2:  Discretization**
 
-Each segment is discretized by applying the Legendre-Gauss-Lobatto nodes to normalized
+Each segment is discretized by applying the Legendre-Gauss-Lobatto (LGL) nodes to normalized
 segment space (:math:`\tau_{s}`)
 
-.. image:: figures/02_nodes.png
+.. image:: figures/gauss-lobatto/02_nodes.png
    :scale: 100 %
    :alt: The Legendre Gauss Lobatto nodes in each segment.
    :align: center
@@ -56,7 +39,7 @@ The value of each dynamic control is given at every node in the segment.
 The user typically provides an initial guess for these values.  During optimization these
 are design variables.
 
-.. image:: figures/03_inputs.png
+.. image:: figures/gauss-lobatto/03_inputs.png
    :scale: 100 %
    :alt: The discretized state and control values
    :align: center
@@ -85,7 +68,7 @@ controls are automatically computed.
    second derivative of a control at segment bounds is not advisable when using High Order
    Gauss Lobatto with low-order segments.
 
-.. image:: figures/04_control_rate_interpolation.png
+.. image:: figures/gauss-lobatto/04_control_rate_interpolation.png
    :scale: 100 %
    :alt: Control rates are interpolated.
    :align: center
@@ -98,7 +81,7 @@ segment with three nodes, the two endpoints are the state discretization nodes. 
 is evaluated here (remember, thus far we know the values of the states at the discretization
 nodes and the values of time and the controls at all nodes).
 
-.. image:: figures/05_ode_eval_disc.png
+.. image:: figures/gauss-lobatto/05_ode_eval_disc.png
    :scale: 100 %
    :alt: The slope of the state-time history at the discretization nodes has been evaluated.
    :align: center
@@ -108,7 +91,7 @@ nodes and the values of time and the controls at all nodes).
 Using the state and state rates at the discretization nodes, form a Hermite interpolating
 polynomial, giving the approximate state values and rates ath the collocation nodes.
 
-.. image:: figures/06_interpolation.png
+.. image:: figures/gauss-lobatto/06_interpolation.png
    :scale: 100 %
    :alt: The state time histories are interpolated.
    :align: center
@@ -118,7 +101,7 @@ polynomial, giving the approximate state values and rates ath the collocation no
 The given ODE is evaluated a second time, this time at the collocation nodes
 (the odd-index LGL nodes), giving the computed state rates.
 
-.. image:: figures/07_ode_eval_col.png
+.. image:: figures/gauss-lobatto/07_ode_eval_col.png
    :scale: 100 %
    :alt: The time-derivative of the states is evaluated at the collocation nodes.
    :align: center
@@ -162,58 +145,6 @@ Disdvantages of High-Order Gauss-Lobatto Collocation
   step may interpolate a state value beyond the limits imposed on the design values provided at
   the state discretization nodes.
 
-
-
-Radau Pseudospectral Method
----------------------------
-
-The Radau-Pseudospectral method performs collocation of an optimal control problem by collocating
-the dynamics at the Legendre Gauss Radau nodes [Garg2010]_.  The general procedure
-for this method is as follows:
-
-#. The phase is divided into polynomial segments on which the dynamics are assumed to be continuous.
-#. The states and controls are provided by the optimizer at the LGR nodes *plus the endpoint* of each segment.
-#. Given the state values, form a Lagrange polynomial on each segment and take its derivative to compute the approximate state rates at the collocation nodes.
-#. The dynamics are evaluated at the collocation nodes (the LGR nodes not including the endpoint), giving the computed state rates.
-#. The difference between the approximated state rates and computed state rates are given to the optimizer as constraints.
-#. The optimizer iterates on the state and control values until the optimality conditions are satisfied.
-
-Advantages
-- No interpolation of states or controls is necessary, since the collocation nodes are a subset of the state discretization nodes.
-- This method can evaluate the dynamics at all nodes in a phase in a single pass, while the Gauss-Lobatto method requires two passes (evaluate, interpolate, evaluate).  This removes a bottleneck when using parallelization to evaluate the dynamics.
-
-Disadvantages
-- One point in a phase is not subject to collocation (either the initial point or the end point).  As a result,
-the control values at that node have less (or zero) impact on the collation defect constraints and are meaningless.  Various methods
-exist for working around this deficiency, such as constraining the control value or derivatives at the endpoint, or by running the
-optimization with both in LGR and reversed LGR (rLGR) modes and then taking the valid control from each.
-
-General Linear Methods
-----------------------
-
-The general linear methods is a generalization that encapsulates both linear multistep integration methods (such as Adams Bashforth)
-and the Runge-Kutta methods [Butcher2006]_.  These methods have been implemented in a way that allows them to be used in both
-implicit and explicit forms, and allowing the implicit form to be optionally converged by a solver or the optimizer [HwangMunster2018]_.
-
-In the Gauss-Lobatto and Radau Pseudospectral methods, the accuracy of the dynamics is enforced as a constraint on the optimizer.  Until
-the collocation defect constraints are satisfied, the trajectory is non-physical.  By using time-marching or solver-based GLM methods,
-the optimizer effectively sees a phyically valid trajectory at each iteration (until it nears convergence, however, it is unlikely to satisfy design constraints
-posed in the form of boundary and path constraints).  These methods, then, are analogous to direct shooting techniques:
-
-#. The optimizer guesses initial state values, time, and control time histories
-#. The trajectory is integrated across the phase.
-#. The optimizer iterates on the state and control values until the optimality conditions are satisfied.
-
-When implicit GLMs are used and the convergence is managed by the optimizer via constraints, these
-techniques are similar to the Gauss-Lobatto and Radau Pseudospectral methods.
-
-[TODO: Expand upon this]
-
-
-
 References
-----------
-.. [Butcher2006] Butcher, J. C., “General linear methods,” Acta Numerica, Vol. 15, 2006, pp. 157–256.
-.. [Garg2010] Garg, Divya et al. “A Unified Framework for the Numerical Solution of Optimal Control Problems Using Pseudospectral Methods.” Automatica 46.11 (2010): 1843–1851.
+^^^^^^^^^^
 .. [HermanConway1996] Herman, Albert L, and Bruce A Conway. “Direct Optimization Using Collocation Based on High-Order Gauss-Lobatto Quadrature Rules.” Journal of Guidance, Control, and Dynamics 19.3 (1996): 592–599.
-.. [HwangMunster2018] Hwang, John T, and Drayton Munster. “Solution of Ordinary Differential Equations in Gradient-Based Multidisciplinary Design Optimization.” 2018 AIAA/ASCE/AHS/ASC Structures, Structural Dynamics, and Materials Conference. American Institute of Aeronautics and Astronautics, 2018. Web. AIAA SciTech Forum.
