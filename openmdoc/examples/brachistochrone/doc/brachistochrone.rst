@@ -1,33 +1,70 @@
 The Brachistochrone Problem
 ===========================
 
-Suppose a bead is allowed to slide without friction along a rigid wire between
-two points, accelerated only by gravity.
+We illustrate how to use |project| to solve an optimal control problem - the Brachistochrone problem.
+We seek to find the curve along which a ball rolls from one point to another in the shortest amount of time.
+We minimize the final time, :math:`t_f`, by varying the dynamic control, :math:`\theta`, subject to the dynamics,
 
-Given the location of the two endpoints, find the shape of the rigid wire that
-minimizes the time to travel along the wire.
+.. math ::
+  \frac{\partial x}{\partial t} &= v \sin(\theta) \\
+  \frac{\partial y}{\partial t} &= v \cos(\theta) \\
+  \frac{\partial v}{\partial t} &= g \cos(\theta). \\
 
-In this example, we pose the problem by letting our states be the horizontal position component,
-vertical position component, and speed of the bead as a function of time.  The equations of
-motion can then be written as:
+The initial conditions are:
 
-.. math::
+.. math ::
+  x(0) &= 0 \\
+  y(0) &= 10 \\
+  v(0) &= 0, \\
 
-    \dot{x}(t) = v \cdot \sin \theta
+The final conditions are:
 
-    \dot{y}(t) = v \cdot \cos \theta
+.. math ::
+  x(t_f) &= 10 \\
+  y(t_f) &= 5 \\
 
-    \dot{v}(t) = -g \cdot \cos \theta
 
-Variable :math:`\theta` represents the angle of the wire, where an angle of :math:`\theta=0`
-means the bead is traveling straight down.
+1. Defining the system
+----------------------
 
-With some knowledge of classical optimal control theory, one can show that the solution
-to the optimal control is such that:
+Here, our ODE function is defined by a single OpenMDAO system, an :code:`ExplicitComponent`.
 
-..math::
+---
 
-    \frac{v}{\sin \theta} = K
 
-where K is some constant dependent upon the constraints of the problem. Our model outputs this
-parameter as a check of the validity of the result.
+2. Defining the ODE function class
+----------------------------------
+
+Here, we define the :code:`ODEFunction`, where we declare the 3 states and the control variable,
+which is called a parameter in :code:`ODEFunction`.
+
+---
+
+
+3. Building and running the problem
+-----------------------------------
+
+Here, we pass call :code:`ODEIntegrator` to build our integration model and run it.
+The run script and resulting plot are shown below.  In the code we follow these
+general steps:
+
+* Instantiate a problem and set up the driver.
+
+* Create a Phase (here we use GaussLobattoPhase), give it our ODE function, and add it to the problem.
+
+* Set the time options (bounds on initial time and duration, scaling, etc).
+
+* Set the state options (bounds, scaling, etc).  In this case we use :code:`fix_initial` and :code:`fix_final` to specify whether the initial/final values are included as design variables.
+
+* Add controls to the problem.  Recall that :code:`ODEFunction` can include parameters which impact the results.  We can add static or dynamic controls and tie them (or their derivatives) to these parameters.
+
+* Set the objective.  Here we seek to minimize the final time.
+
+* Call setup and then set the initial values of our variables.  We use interpolation routines to allow us to specify all values of states and controls at the discretization nodes.
+
+* Run the driver.
+
+* Simulate the control time history using scipy.ode.  This serves as a check that our optimization resulted in a valid solution.
+
+
+

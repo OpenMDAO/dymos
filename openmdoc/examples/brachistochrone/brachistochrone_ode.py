@@ -2,24 +2,16 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 from openmdao.api import ExplicitComponent
-from openmdoc import ODEOptions
+from openmdoc import declare_time, declare_state, declare_parameter
 
 
+@declare_time(units='s')
+@declare_state('x', rate_source='xdot', units='m')
+@declare_state('y', rate_source='ydot', units='m')
+@declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
+@declare_parameter('theta', targets=['theta'], units='rad')
+@declare_parameter('g', units='m/s**2', targets=['g'])
 class BrachistochroneODE(ExplicitComponent):
-
-    # Instantiate a class-attribute named `ode_options` which contains the state, time, and
-    # parameter options.  These are class-attributes so they may be obtained without instantiating
-    # the ODE class.
-    ode_options = ODEOptions()
-
-    ode_options.declare_time(units='s')
-
-    ode_options.declare_state('x', rate_source='xdot', units='m')
-    ode_options.declare_state('y', rate_source='ydot', units='m')
-    ode_options.declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
-
-    ode_options.declare_parameter('theta', targets=['theta'], units='rad')
-    ode_options.declare_parameter('g', units='m/s**2', targets=['g'])
 
     def initialize(self):
         self.metadata.declare('num_nodes', types=int)

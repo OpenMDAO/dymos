@@ -4,6 +4,8 @@ from six import iteritems
 import numpy as np
 
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
+from ..components import RadauPathConstraintComp
+from ...utils.misc import get_rate_units
 
 
 class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
@@ -75,6 +77,117 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                              ['rhs_all.{0}'.format(t) for t in targets],
                              src_indices=map_indices_to_all)
 
+    def _setup_path_constraints(self):
+        """
+        Add a path constraint component if necessary and issue appropriate connections as
+        part of the setup stack.
+        """
+        path_comp = None
+        gd = self.grid_data
+
+        if self._path_constaints:
+            path_comp = RadauPathConstraintComp(grid_data=gd)
+            self.add_subsystem('path_constraints', subsys=path_comp)
+
+        for var, options in iteritems(self._path_constaints):
+            con_units = options.get('units', None)
+            con_name = options['constraint_name']
+
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = self._classify_var(var)
+
+            if var_type == 'time':
+                options['shape'] = (1,)
+                options['units'] = self.time_options['units'] if con_units is None else con_units
+                options['linear'] = True
+                self.connect(src_name='time',
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+            elif var_type == 'state':
+                state_shape = self.state_options[var]['shape']
+                state_units = self.state_options[var]['units']
+                options['shape'] = state_shape
+                options['units'] = state_units if con_units is None else con_units
+                options['linear'] = False
+                self.connect(src_name='states:{0}'.format(var),
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                             src_indices=gd.input_maps['state_to_disc'])
+
+            elif var_type == 'indep_control':
+                control_shape = self.control_options[var]['shape']
+                control_units = self.control_options[var]['units']
+                options['shape'] = control_shape
+                options['units'] = control_units if con_units is None else con_units
+                options['linear'] = True
+                constraint_path = 'controls:{0}'.format(var)
+
+                if self.control_options[var]['dynamic']:
+                    ctrl_src_indices_all = gd.input_maps['dynamic_control_to_all']
+                else:
+                    ctrl_src_indices_all = np.zeros(gd.subset_num_nodes['all'], dtype=int)
+
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                             src_indices=ctrl_src_indices_all)
+
+            elif var_type == 'input_control':
+                control_shape = self.control_options[var]['shape']
+                control_units = self.control_options[var]['units']
+                options['shape'] = control_shape
+                options['units'] = control_units if con_units is None else con_units
+                options['linear'] = True
+                constraint_path = 'input_controls:{0}_out'.format(var)
+
+                if self.control_options[var]['dynamic']:
+                    ctrl_src_indices_all = gd.input_maps['dynamic_control_to_all']
+                else:
+                    ctrl_src_indices_all = np.zeros(gd.subset_num_nodes['all'], dtype=int)
+
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                             src_indices=ctrl_src_indices_all)
+
+            elif var_type == 'control_rate':
+                control_name = var[:-5]
+                control_shape = self.control_options[control_name]['shape']
+                control_units = self.control_options[control_name]['units']
+                options['shape'] = control_shape
+                options['units'] = control_units if con_units is None else con_units
+                constraint_path = 'control_rates:{0}_rate'.format(control_name)
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'control_rate2':
+                control_name = var[:-6]
+                control_shape = self.control_options[control_name]['shape']
+                control_units = self.control_options[control_name]['units']
+                options['shape'] = control_shape
+                options['units'] = control_units if con_units is None else con_units
+                constraint_path = 'control_rates:{0}_rate2'.format(control_name)
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            else:
+                # Failed to find variable, assume it is in the RHS
+                options['linear'] = False
+                self.connect(src_name='rhs_all.{0}'.format(var),
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                             src_indices=gd.subset_node_indices['disc'])
+
+            kwargs = options.copy()
+            if var_type == 'control_rate':
+                kwargs['units'] = get_rate_units(options['units'],
+                                                 self.time_options['units'],
+                                                 deriv=1)
+            elif var_type == 'control_rate2':
+                kwargs['units'] = get_rate_units(options['units'],
+                                                 self.time_options['units'],
+                                                 deriv=2)
+            kwargs.pop('constraint_name', None)
+            path_comp._add_path_constraint(con_name, var_type, **kwargs)
+
     def _setup_rhs(self):
         super(RadauPseudospectralPhase, self)._setup_rhs()
 
@@ -120,6 +233,67 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             self.connect('rhs_all.{0}'.format(options['rate_source']),
                          'collocation_constraint.f_computed:{0}'.format(name),
                          src_indices=grid_data.subset_node_indices['col'])
+
+    def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
+                      adder=None, scaler=None, parallel_deriv_color=None,
+                      vectorize_derivs=False, simul_coloring=None, simul_map=None):
+        """
+        Allows the user to add an objective in the phase.  If name is not a state,
+        control, control rate, or 'time', then this is assumed to be the path of the variable
+        to be constrained in the RHS.
+
+        Parameters
+        ----------
+        name : str
+            Name of the objective variable.  This should be one of 'time', a state or control
+            variable, or the path to an output from the top level of the RHS.
+        loc : str
+            Where in the phase the objective is to be evaluated.  Valid
+            options are 'initial' and 'final'.  The default is 'final'.
+        index : int, optional
+            If variable is an array at each point in time, this indicates which index is to be
+            used as the objective, assuming C-ordered flattening.
+        shape : int, optional
+            The shape of the objective variable, at a point in time
+        ref : float or ndarray, optional
+            Value of response variable that scales to 1.0 in the driver.
+        ref0 : float or ndarray, optional
+            Value of response variable that scales to 0.0 in the driver.
+        adder : float or ndarray, optional
+            Value to add to the model value to get the scaled value. Adder
+            is first in precedence.
+        scaler : float or ndarray, optional
+            value to multiply the model value to get the scaled value. Scaler
+            is second in precedence.
+
+        """
+        var_type = self._classify_var(name)
+
+        # Determine the path to the variable
+        if var_type == 'time':
+            obj_path = 'time'
+        elif var_type == 'state':
+            obj_path = 'states:{0}'.format(name)
+        elif var_type == 'indep_control':
+            obj_path = 'controls:{0}'.format(name)
+        elif var_type == 'input_control':
+            obj_path = 'controls:{0}'.format(name)
+        elif var_type == 'control_rate':
+            control_name = name[:-5]
+            obj_path = 'control_rates:{0}_rate'.format(control_name)
+        elif var_type == 'control_rate2':
+            control_name = name[:-6]
+            obj_path = 'control_rates:{0}_rate2'.format(control_name)
+        else:
+            # Failed to find variable, assume it is in the RHS
+            obj_path = 'rhs_all.{0}'.format(name)
+
+        super(RadauPseudospectralPhase, self)._add_objective(obj_path, loc=loc, index=index,
+                                                             shape=shape, ref=ref, ref0=ref0,
+                                                             adder=adder, scaler=scaler,
+                                                             parallel_deriv_color=None,
+                                                             vectorize_derivs=False,
+                                                             simul_coloring=None, simul_map=None)
 
     def get_values(self, var, nodes='all'):
         """

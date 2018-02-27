@@ -8,16 +8,16 @@ import numpy as np
 from scipy import interpolate
 
 from openmdao.api import Group, IndepVarComp
+from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
 from openmdao.utils.logger_utils import get_logger
 from openmdoc.phases.components import BoundaryConstraintComp
 from openmdoc.phases.components import ControlInputComp
-from openmdoc.phases.components import PathConstraintComp
 from openmdoc.phases.components import TimeComp
 from openmdoc.phases.components import EndpointConditionsComp
 from openmdoc.phases.options import ControlOptionsDictionary, \
-    StateOptionsDictionary, TimeOptionsDictionary, ObjectiveOptionsDictionary
+    StateOptionsDictionary, TimeOptionsDictionary
 from openmdoc.phases.components import ControlRateComp
 from openmdoc.phases.grid_data import GridData
 from openmdoc.utils.misc import get_rate_units
@@ -34,7 +34,7 @@ class PhaseBase(Group):
         self.time_options = TimeOptionsDictionary()
         self._boundary_constraints = {}
         self._path_constaints = {}
-        self._objective = None
+        self._objectives = []
         self._ode_controls = {}
         self.grid_data = None
         self._time_extents = []
@@ -358,8 +358,9 @@ class PhaseBase(Group):
 
         self._path_constaints[name].update(kwargs)
 
-    def set_objective(self, name, loc='final', ref=None, ref0=None, index=None,
-                      adder=None, scaler=None):
+    def set_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
+                      adder=None, scaler=None, parallel_deriv_color=None,
+                      vectorize_derivs=False, simul_coloring=None, simul_map=None):
         """
         Allows the user to set an objective in the phase.  If name is not a state,
         control, or 'time', then this is assumed to be the path of the variable
@@ -392,14 +393,98 @@ class PhaseBase(Group):
             is second in precedence.
 
         """
-        self._objective = ObjectiveOptionsDictionary()
-        self._objective['name'] = name
-        self._objective['loc'] = loc
-        self._objective['ref'] = ref
-        self._objective['ref0'] = ref0
-        self._objective['index'] = index
-        self._objective['adder'] = adder
-        self._objective['scaler'] = scaler
+        warn_deprecation('set_objective has been replaced with add_objective')
+        self.add_objective(name, loc=loc, index=index, shape=shape, ref=ref, ref0=ref0,
+                           adder=adder, scaler=scaler, parallel_deriv_color=parallel_deriv_color,
+                           vectorize_derivs=vectorize_derivs, simul_coloring=simul_coloring,
+                           simul_map=simul_map)
+
+    def _add_objective(self, obj_path, loc='final', index=None, shape=(1,), ref=None, ref0=None,
+                       adder=None, scaler=None, parallel_deriv_color=None,
+                       vectorize_derivs=False, simul_coloring=None, simul_map=None):
+        """
+        Called by add_objective in classes that derive from PhaseBase.  Each subclass is responsible
+        for determining the objective paht in the system.  This method then figures out the correct
+        index based on the given loc and index attributes, and calls the standard add_objective
+        method.
+
+        Parameters
+        ----------
+        name : str
+            Name of the objective variable.  This should be one of 'time', a state or control
+            variable, or the path to an output from the top level of the RHS.
+        loc : str
+            Where in the phase the objective is to be evaluated.  Valid
+            options are 'initial' and 'final'.  The default is 'final'.
+        index : int, optional
+            If variable is an array at each point in time, this indicates which index is to be
+            used as the objective, assuming C-ordered flattening.
+        shape : int, optional
+
+
+        Parameters
+        ----------
+        obj_path : str
+            The name of the variable in the phase to be used as an objective.
+        loc : str
+            One of 'initial' or 'final', depending on where in the phase the objective should be
+            measured.
+        index : int or None
+            The index into the flattened shape giving the index at an instance in time to be used
+            as the objective.  This index assumes row-major (C) ordering when flattening.
+        shape : tuple
+            The shape of the objective variable, at a point in time
+        ref : float or ndarray, optional
+            Value of response variable that scales to 1.0 in the driver.
+        ref0 : float or ndarray, optional
+            Value of response variable that scales to 0.0 in the driver.
+        adder : float or ndarray, optional
+            Value to add to the model value to get the scaled value. Adder
+            is first in precedence.
+        scaler : float or ndarray, optional
+            value to multiply the model value to get the scaled value. Scaler
+            is second in precedence.
+        parallel_deriv_color : string
+            If specified, this design var will be grouped for parallel derivative
+            calculations with other variables sharing the same parallel_deriv_color.
+        vectorize_derivs : bool
+            If True, vectorize derivative calculations.
+        simul_coloring : ndarray or list of int
+            An array or list of integer color values.  Must match the size of the
+            objective variable.
+        simul_map : dict
+            Mapping of this response to each design variable where simultaneous derivs will
+            be used.  Each design variable entry is another dict keyed on color, and the values
+            in the color dict are tuples of the form (resp_idxs, color_idxs).
+        """
+        size = np.prod(shape)
+
+        if size > 1 and index is None:
+            raise ValueError('Objective variable is non-scaler {0} but no index specified '
+                             'for objective'.format(shape))
+
+        idx = 0 if index is None else index
+        if idx < 0:
+            idx = size + idx
+
+        if index >= size:
+            raise ValueError('Objective index={0}, but the shape of the objective '
+                             'variable is {1}'.format(index, shape))
+
+        if loc == 'final':
+            obj_index = -size + idx
+        elif loc == 'initial':
+            obj_index = idx
+        else:
+            raise ValueError('Invalid value for objective loc: {0}. Must be '
+                             'one of \'initial\' or \'final\'.')
+
+        super(PhaseBase, self).add_objective(obj_path, ref=ref, ref0=ref0, index=obj_index,
+                                             adder=adder, scaler=scaler,
+                                             parallel_deriv_color=parallel_deriv_color,
+                                             vectorize_derivs=vectorize_derivs,
+                                             simul_coloring=simul_coloring,
+                                             simul_map=simul_map)
 
     def set_time_options(self, **kwargs):
         """
@@ -557,7 +642,6 @@ class PhaseBase(Group):
         self._setup_endpoint_conditions()
         self._setup_boundary_constraints()
         self._setup_path_constraints()
-        self._setup_objective()
 
         self._check_unprovided_controls()
 
@@ -925,210 +1009,6 @@ class PhaseBase(Group):
             self.connect(constraint_path,
                          'boundary_constraints.boundary_values:{0}'.format(con_name),
                          src_indices=src_idxs, flat_src_indices=True)
-
-    def _setup_path_constraints(self):
-        """
-        Add a path constraint component if necessary and issue appropriate connections as
-        part of the setup stack.
-
-        Unlike most of the setup stack methods, we do the transcription-specific stuff here
-        since it would require a lot of code in the derived class methods.
-        """
-        transcription = self.metadata['transcription']
-        path_comp = None
-        gd = self.grid_data
-
-        if self._path_constaints:
-            path_comp = PathConstraintComp(grid_data=gd,
-                                           transcription=transcription)
-            self.add_subsystem('path_constraints', subsys=path_comp)
-
-        for var, options in iteritems(self._path_constaints):
-            con_units = options.get('units', None)
-            con_name = options['constraint_name']
-
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = self._classify_var(var)
-
-            if var_type == 'time':
-                options['shape'] = (1,)
-                options['units'] = self.time_options['units'] if con_units is None else con_units
-                options['linear'] = True
-                self.connect(src_name='time',
-                             tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                             src_indices=gd.subset_node_indices['disc'])
-                if transcription == 'gauss-lobatto':
-                    self.connect('time',
-                                 tgt_name='path_constraints.con_values:{0}'.format(con_name),
-                                 src_indices=gd.subset_node_indices['col'])
-            elif var_type == 'state':
-                state_shape = self.state_options[var]['shape']
-                state_units = self.state_options[var]['units']
-                options['shape'] = state_shape
-                options['units'] = state_units if con_units is None else con_units
-                options['linear'] = False
-                self.connect(src_name='states:{0}'.format(var),
-                             tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                             src_indices=gd.input_maps['state_to_disc'])
-                if transcription == 'gauss-lobatto':
-                    self.connect(src_name='state_interp.state_col:{0}'.format(var),
-                                 tgt_name='path_constraints.col_values:{0}'.format(con_name))
-
-            elif var_type == 'indep_control':
-                control_shape = self.control_options[var]['shape']
-                control_units = self.control_options[var]['units']
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
-                constraint_path = 'controls:{0}'.format(var)
-
-                if self.control_options[var]['dynamic']:
-                    ctrl_src_idxs_all = gd.input_maps['dynamic_control_to_all']
-                    ctrl_src_indices_disc = ctrl_src_idxs_all[gd.subset_node_indices['disc']]
-                    ctrl_src_indices_col = ctrl_src_idxs_all[gd.subset_node_indices['col']]
-                else:
-                    ctrl_src_indices_disc = np.zeros(gd.subset_num_nodes['disc'], dtype=int)
-                    ctrl_src_indices_col = np.zeros(gd.subset_num_nodes['col'], dtype=int)
-
-                self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                             src_indices=ctrl_src_indices_disc)
-                if transcription == 'gauss-lobatto':
-                    self.connect(src_name=constraint_path,
-                                 tgt_name='path_constraints.col_values:{0}'.format(con_name),
-                                 src_indices=ctrl_src_indices_col)
-
-            elif var_type == 'input_control':
-                control_shape = self.control_options[var]['shape']
-                control_units = self.control_options[var]['units']
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
-                constraint_path = 'input_controls:{0}_out'.format(var)
-
-                if self.control_options[var]['dynamic']:
-                    ctrl_src_idxs_all = gd.input_maps['dynamic_control_to_all']
-                    ctrl_src_indices_disc = ctrl_src_idxs_all[gd.subset_node_indices['disc']]
-                    ctrl_src_indices_col = ctrl_src_idxs_all[gd.subset_node_indices['col']]
-                else:
-                    ctrl_src_indices_disc = np.zeros(gd.subset_num_nodes['disc'], dtype=int)
-                    ctrl_src_indices_col = np.zeros(gd.subset_num_nodes['col'], dtype=int)
-
-                self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                             src_indices=ctrl_src_indices_disc)
-                if transcription == 'gauss-lobatto':
-                    self.connect(src_name=constraint_path,
-                                 tgt_name='path_constraints.col_values:{0}'.format(con_name),
-                                 src_indices=ctrl_src_indices_col)
-
-            elif var_type == 'control_rate':
-                control_name = var[:-5]
-                control_shape = self.control_options[control_name]['shape']
-                control_units = self.control_options[control_name]['units']
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                constraint_path = 'control_rates:{0}_rate'.format(control_name)
-                self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                             src_indices=gd.subset_node_indices['disc'])
-                if transcription == 'gauss-lobatto':
-                    self.connect(src_name=constraint_path,
-                                 tgt_name='path_constraints.col_values:{0}'.format(con_name),
-                                 src_indices=gd.subset_node_indices['col'])
-
-            elif var_type == 'control_rate2':
-                control_name = var[:-6]
-                control_shape = self.control_options[control_name]['shape']
-                control_units = self.control_options[control_name]['units']
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                constraint_path = 'control_rates:{0}_rate2'.format(control_name)
-                self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                             src_indices=gd.subset_node_indices['disc'])
-                if transcription == 'gauss-lobatto':
-                    self.connect(src_name=constraint_path,
-                                 tgt_name='path_constraints.col_values:{0}'.format(con_name),
-                                 src_indices=gd.subset_node_indices['col'])
-
-            else:
-                # Failed to find variable, assume it is in the RHS
-                options['linear'] = False
-                if transcription == 'radau-ps':
-                    self.connect(src_name='rhs_all.{0}'.format(var),
-                                 tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                                 src_indices=gd.subset_node_indices['disc'])
-                elif transcription == 'gauss-lobatto':
-                    self.connect(src_name='rhs_disc.{0}'.format(var),
-                                 tgt_name='path_constraints.disc_values:{0}'.format(con_name))
-                    self.connect(src_name='rhs_col.{0}'.format(var),
-                                 tgt_name='path_constraints.col_values:{0}'.format(con_name))
-                else:
-                    raise ValueError('Invalid transcription')
-
-            kwargs = options.copy()
-            if var_type == 'control_rate':
-                kwargs['units'] = get_rate_units(options['units'],
-                                                 self.time_options['units'],
-                                                 deriv=1)
-            elif var_type == 'control_rate2':
-                kwargs['units'] = get_rate_units(options['units'],
-                                                 self.time_options['units'],
-                                                 deriv=2)
-            kwargs.pop('constraint_name', None)
-            path_comp._add_path_constraint(con_name, **kwargs)
-
-    def _setup_objective(self):
-        """
-        Adds the objective during the setup stack, assuming the user used the phase set_objective
-        method.
-        """
-        if self._objective is None:
-            # User has not added an objective using set_objective.  Assume
-            # they did so using the OpenMDAO add_objective method.
-            return
-
-        name = self._objective['name']
-
-        var_type = self._classify_var(name)
-
-        # Determine the path to the variable
-        if var_type == 'time':
-            obj_path = 'time'
-        elif var_type == 'state':
-            obj_path = 'states:{0}'.format(name)
-        elif var_type == 'indep_control':
-            obj_path = 'controls:{0}'.format(name)
-        elif var_type == 'input_control':
-            obj_path = 'controls:{0}'.format(name)
-        elif var_type == 'control_rate':
-            control_name = name[:-5]
-            obj_path = 'control_rates:{0}_rate'.format(control_name)
-        elif var_type == 'control_rate2':
-            control_name = name[:-6]
-            obj_path = 'control_rates:{0}_rate2'.format(control_name)
-        else:
-            # Failed to find variable, assume it is in the RHS
-            obj_path = 'rhs_all.{0}'.format(name)
-
-        if self._objective['loc'] is not None:
-            if self._objective['loc'] == 'final':
-                index = -1
-            elif self._objective['loc'] == 'initial':
-                index = 0
-            else:
-                raise ValueError('Invalid value for objective loc: {0}. Must be '
-                                 'one of \'initial\' or \'final\'.')
-        else:
-            index = self._objective['index']
-
-        self.add_objective(obj_path, ref=self._objective['ref'], ref0=self._objective['ref0'],
-                           index=index, adder=self._objective['adder'],
-                           scaler=self._objective['scaler'])
 
     def _check_unprovided_controls(self):
         logger = get_logger('check_config', use_format=True)

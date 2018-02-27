@@ -69,9 +69,10 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription_order=5,
 
     phase.add_path_constraint(name='h', lower=100.0, upper=20000, ref=20000)
     phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.8)
+    phase.add_path_constraint(name='alpha', lower=-8, upper=8)
 
     # Minimize time at the end of the phase
-    phase.set_objective('time', loc='final', ref=100.0)
+    phase.add_objective('time', loc='final', ref=100.0)
 
     if top_level_jacobian.lower() == 'csc':
         p.model.jacobian = CSCJacobian()
@@ -116,5 +117,5 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription_order=5,
 
 
 if __name__ == '__main__':
-    p = min_time_climb(transcription='radau-ps', optimizer='SNOPT',
+    p = min_time_climb(transcription='radau-ps', optimizer='SLSQP',
                        num_seg=10, transcription_order=3)
