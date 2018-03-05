@@ -65,7 +65,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
                                 scaler=1.0, defect_scaler=1.0)
 
         # Maximize final range by varying initial flight path angle
-        phase.set_objective('r', loc='final', scaler=-0.01)
+        phase.add_objective('r', loc='final', scaler=-0.01)
 
     def test_cannonball_simulate(self):
         self.p.setup()
@@ -89,7 +89,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         exp_out = phase.simulate(times='all')
 
-        assert_rel_error(self, exp_out.get_values('h')[-1], 0.0, tolerance=0.001)
+        assert_rel_error(self, exp_out.get_values('h', units='km')[-1], 0.0, tolerance=0.001)
         assert_rel_error(self, exp_out.get_values('r')[-1], v0**2/g, tolerance=0.001)
         assert_rel_error(self, exp_out.get_values('gam')[-1], -gam0, tolerance=0.001)
         assert_rel_error(self, exp_out.get_values('v')[-1], v0, tolerance=0.001)
