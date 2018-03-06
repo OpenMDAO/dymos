@@ -1057,7 +1057,7 @@ class PhaseBase(Group):
         """
         raise NotImplementedError('get_values has not been implemented for this class.')
 
-    def interpolate(self, xs=None, ys=None, nodes=None):
+    def interpolate(self, xs=None, ys=None, nodes=None, kind='linear'):
         """
         Return an array of values on [a,b] linearly interpolated to the
         input nodes of the phase.
@@ -1070,6 +1070,13 @@ class PhaseBase(Group):
             Array of control/state/parameter values.
         nodes :  str
             Node type ('disc', 'col' or 'all').
+        kind : str
+            Specifies the kind of interpolation, as per the scipy.interpolate package.
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
+            Default is 'linear'.
 
         Returns
         -------
@@ -1081,10 +1088,11 @@ class PhaseBase(Group):
         if nodes not in ('col', 'disc', 'all'):
             raise ValueError("nodes must be one of 'col', 'disc', or 'all'")
         if xs is None:
-            if len(ys) == 2:
-                xs = [-1, 1]
-            else:
+            if len(ys) != 2:
                 raise ValueError('xs may only be unspecified when len(ys)=2')
+            if kind != 'linear':
+                raise ValueError('kind must be linear when xs is unspecified.')
+            xs = [-1, 1]
         node_locations = self.grid_data.node_ptau[self.grid_data.subset_node_indices[nodes]]
         if self.metadata['compressed']:
             node_locations = np.array(sorted(list(set(node_locations))))
@@ -1093,5 +1101,5 @@ class PhaseBase(Group):
         m = 2.0/(_xs[-1] - _xs[0])
         b = 1.0-(m*_xs[-1])
         taus = m*_xs + b
-        interpfunc = interpolate.interp1d(taus, ys)
+        interpfunc = interpolate.interp1d(taus, ys, kind=kind)
         return np.atleast_2d(interpfunc(node_locations)).T
