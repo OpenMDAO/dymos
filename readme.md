@@ -1,8 +1,8 @@
-OpenMDOC:  **Open** Source **M**ultidisciplinary **D**ynamics & **O**ptimal **C**ontrol
-=======================================================================================
+Dymos:  Open Source Optimization of Dynamic Multidiscplinary Systems
+====================================================================
 
-OpenMDOC is a framework for the simulation and optimization of dynamical systems within the OpenMDAO Multidisciplinary Analysis and Optimization environment.
-OpenMDOC leverages implicit and explicit simulation techniques to simulate generic dynamic systems of arbitary complexity.  
+Dymos is a framework for the simulation and optimization of dynamical systems within the OpenMDAO Multidisciplinary Analysis and Optimization environment.
+Dymos leverages implicit and explicit simulation techniques to simulate generic dynamic systems of arbitary complexity.  
 
 The software has two primary objectives:
 - Provide a generic ODE integration interface that allows for the analysis of dynamical systems.
@@ -12,20 +12,33 @@ Installation
 ------------
 
 ```
-pip install git+https://github.com/OpenMDAO/OpenMDOC.git
+pip install git+https://github.com/OpenMDAO/dymos.git
 ```
 
 Defining Ordinary Differential Equations
 ----------------------------------------
 
-The first step in simulating or optimizing a dynamical system is to define the ordinary differential equations to be integrated.
-This is accomplished through `openmdoc.ODEFunction`.
-The user first builds an OpenMDAO model which has outputs that provide the rates of the state variables.
-This model can be an OpenMDAO model of arbitrary complexity, including nested groups and components, layers of nonlinear solvers, etc.
+The first step in simulating or optimizing a dynamical system is to define the ordinary
+differential equations to be integrated.  The user first builds an OpenMDAO model which has outputs
+that provide the rates of the state variables.  This model can be an OpenMDAO model of arbitrary
+complexity, including nested groups and components, layers of nonlinear solvers, etc.
+
+Next we wrap our system with decorators that provide information regarding the states to be
+integrated, which sources in the model provide their rates, and where any externally provided
+parameters should be connected.  When used in an optimal control context, these external parameters
+may serve as controls.
 
     import numpy as np
     from openmdao.api import ExplicitComponent
     
+    from dymos import declare_time, declare_state, declare_parameter
+    
+    @declare_time(units='s')
+    @declare_state('x', rate_source='xdot', units='m')
+    @declare_state('y', rate_source='ydot', units='m')
+    @declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
+    @declare_parameter('theta', targets=['theta'])
+    @declare_parameter('g', units='m/s**2', targets=['g'])
     class BrachistochroneEOM(ExplicitComponent):
     
         def initialize(self):
@@ -115,41 +128,18 @@ This model can be an OpenMDAO model of arbitrary complexity, including nested gr
     
             jacobian['check', 'v'] = 1/sin_theta
             jacobian['check', 'theta'] = -v*cos_theta/sin_theta**2
-
-
-Next an OpenMDOC ODEFunction is "wrapped" around our system.
-The ODEFunction provides information regarding the states to be integrated, which sources in the model provide their rates, and where any externally provided parameters should be connected.
-When used in an optimal control context, these external parameters may serve as controls.
-
-    from openmdoc.api import ODEFunction
-    
-    class BrachistochroneODE(ODEFunction):
-    
-        def __init__(self):
-            super(BrachistochroneODE, self).__init__(system_class=BrachistochroneEOM)
-    
-            self.declare_time(units='s')
-    
-            self.declare_state('x', rate_source='xdot', units='m')
-            self.declare_state('y', rate_source='ydot', units='m')
-            self.declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
-    
-            self.declare_parameter('theta', targets=['theta'])
-            self.declare_parameter('g', units='m/s**2', targets=['g'])
-
-
-  
+ 
 
 Integrating Ordinary Differential Equations
 -------------------------------------------
 
-OpenMDOC uses *Generalized Linear Methods* (GLM) to enable a variety of integration schemes to be applied to dynamical systems.
-OpenMDOC's `ODEIntegrator` provides an OpenMDAO group which simulates the ODEFunction it is given.
+dymos uses *Generalized Linear Methods* (GLM) to enable a variety of integration schemes to be applied to dynamical systems.
+dymos's `ODEIntegrator` provides an OpenMDAO group which simulates the ODE system it is given.
 
 Solving Optimal Control Problems
 --------------------------------
 
-OpenMDOC uses the concept of *phases* to support optimal control of dynamical systems.
+dymos uses the concept of *phases* to support optimal control of dynamical systems.
 Users connect one or more phases to construct trajectories.
 Each phase can have its own:
 
@@ -157,7 +147,8 @@ Each phase can have its own:
 - Equations of motion
 - Boundary and path constraints
 
-As with `ODEIntegrator`, each OpenMDOC `Phase` is ultimately just an OpenMDAO Group that can exist in a problem along with numerous other groups.
+As with `ODEIntegrator`, each dymos `Phase` is ultimately just an OpenMDAO Group that can exist in
+a problem along with numerous other groups.
 
 License
 -------
