@@ -8,6 +8,7 @@ import numpy as np
 from scipy.integrate import ode
 
 from openmdao.api import Problem, Group, IndepVarComp, ExplicitComponent
+from openmdao.utils.units import convert_units, valid_units
 
 from ..utils.misc import get_rate_units
 
@@ -123,7 +124,7 @@ class SimulationResults(object):
 
         Parameters
         ----------
-        phase : openmdoc.Phase object
+        phase : pointer.Phase object
             The phase being simulated.  Phase is passed on initialization of
             SimulationResults so that it can gather knowledge of time units,
             state options, control options, and ODE outputs.
@@ -131,30 +132,38 @@ class SimulationResults(object):
         self.state_options = state_options
         self.control_options = control_options
         self.outputs = {}
+        self.units = {}
 
-    def get_values(self, var):
+    def get_values(self, var, units=None):
+
+        if units is not None and not valid_units(units):
+            raise ValueError('{0} is not a valid set of units.'.format(units))
 
         if var == 'time':
-            output = self.outputs['time']
+            output_path = 'time'
 
         elif var in self.state_options:
-            output = self.outputs['states:{0}'.format(var)]
+            output_path = 'states:{0}'.format(var)
 
         elif var in self.control_options and self.control_options[var]['opt']:
-            output = self.outputs['controls:{0}'.format(var)]
+            output_path = 'controls:{0}'.format(var)
 
         elif var in self.control_options and not self.control_options[var]['opt']:
             # TODO: make a test for this, haven't experimented with this yet.
-            output = self.outputs['controls:{0}'.format(var)]
+            output_path = 'controls:{0}'.format(var)
 
         elif var.endswith('_rate') and var[:-5] in self.control_options:
-            output = self.outputs['control_rates:{0}'.format(var)]
+            output_path = 'control_rates:{0}'.format(var)
 
         elif var.endswith('_rate2') and var[:-6] in self.control_options:
-            output = self.outputs['control_rates:{0}'.format(var)]
+            output_path = 'control_rates:{0}'.format(var)
 
         else:
-            output = self.outputs['f_rhs.{0}'.format(var)]
+            output_path = 'f_rhs.{0}'.format(var)
+
+        output = convert_units(self.outputs[output_path]['value'],
+                               self.outputs[output_path]['units'],
+                               units)
 
         return output
 
@@ -171,7 +180,7 @@ class SimulationResults(object):
         f = h5py.File(filename, 'w')
         grp_outputs = f.create_group('outputs')
         for prom_name, value in iteritems(self.outputs):
-            grp_outputs.create_dataset(prom_name, data=value)
+            grp_outputs.create_dataset(prom_name, data=value['value'])
         f.close()
 
     def save_mat(self, filename):
@@ -566,7 +575,9 @@ class ODEIntegrator(object):
 
         for output_name, options in model_outputs:
             prom_name = self.prob.model._var_abs2prom['output'][output_name]
-            results.outputs[prom_name] = np.atleast_2d(self.prob[prom_name]).copy()
+            results.outputs[prom_name] = {}
+            results.outputs[prom_name]['value'] = np.atleast_2d(self.prob[prom_name]).copy()
+            results.outputs[prom_name]['units'] = options['units']
 
         if _observer:
             _observer(solver.t, solver.y, self.prob)
@@ -577,9 +588,9 @@ class ODEIntegrator(object):
             self._f_ode(solver.t, solver.y)
 
             for var in results.outputs:
-                results.outputs[var] = np.concatenate((results.outputs[var],
-                                                       np.atleast_2d(self.prob[var])),
-                                                      axis=0)
+                results.outputs[var]['value'] = np.concatenate((results.outputs[var]['value'],
+                                                                np.atleast_2d(self.prob[var])),
+                                                               axis=0)
             if _observer:
                 _observer(solver.t, solver.y, self.prob)
 

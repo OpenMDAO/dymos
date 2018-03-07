@@ -4,6 +4,8 @@ from six import iteritems
 
 import numpy as np
 
+from openmdao.utils.units import convert_units, valid_units
+
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
 from ..components import GaussLobattoPathConstraintComp
 from ...utils.misc import get_rate_units
@@ -330,7 +332,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                                                       vectorize_derivs=False, simul_coloring=None,
                                                       simul_map=None)
 
-    def get_values(self, var, nodes='all'):
+    def get_values(self, var, nodes='all', units=None):
         """
         Retrieve the values of the given variable at the given
         subset of nodes.
@@ -340,10 +342,13 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         var : str
             The variable whose values are to be returned.  This may be
             the name 'time', the name of a state, control, or parameter,
-            or the path to a variable in the ODE system of the phase.
+            or the path to a variable in the ODEFunction of the phase.
         nodes : str
             The name of a node subset, one of 'disc', 'col', or 'all'.
             The default is 'all'.
+        units : str
+            The units in which the values should be expressed.  Must be compatible
+            with the corresponding units inside the phase.
 
         Returns
         -------
@@ -357,63 +362,55 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
         var_type = self._classify_var(var)
 
-        if var_type == 'time':
-            output = np.zeros((self.grid_data.num_nodes, 1))
-            time_comp = self.time
-            output[:, 0] = time_comp._outputs[var]
+        op = dict(self.list_outputs(explicit=True, values=True, units=True, shape=True,
+                                    out_stream=None))
 
-        elif var_type == 'state':
-            output = np.zeros((gd.num_nodes,) + self.state_options[var]['shape'])
-            state_comp = self.indep_states
-            state_interp_comp = self.state_interp
-            state_disc_vals = state_comp._outputs['states:{0}'.format(var)]
-            output[disc_node_idxs] = state_disc_vals[gd.input_maps['state_to_disc']]
-            output[col_node_idxs] = state_interp_comp._outputs['state_col:{0}'.format(var)]
+        if units is not None:
+            if not valid_units(units):
+                raise ValueError('Units {0} is not a valid units identifier'.format(units))
 
-        elif var_type == 'indep_control':
-            control_comp = self.indep_controls
-            if self.control_options[var]['dynamic']:
-                output = control_comp._outputs['controls:{0}'.format(var)]
-            else:
-                val = control_comp._outputs['controls:{0}'.format(var)]
-                output = np.repeat(val, gd.num_nodes, axis=0)
+        var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
 
-        elif var_type == 'input_control':
-            parameter_comp = self.input_controls
-            if self.control_options[var]['dynamic']:
-                output = parameter_comp._outputs['controls:{0}_out'.format(var)]
-            else:
-                val = parameter_comp._outputs['controls:{0}_out'.format(var)]
-                output = np.repeat(val, gd.num_nodes, axis=0)
+        path_map = {'time': 'time.{0}',
+                    'state': ('indep_states.states:{0}', 'state_interp.state_col:{0}'),
+                    'indep_control': 'indep_controls.controls:{0}',
+                    'input_control': 'input_controls.controls:{0}_out',
+                    'control_rate': 'control_rate_comp.control_rates:{0}',
+                    'control_rate2': 'control_rate_comp.control_rates:{0}',
+                    'rhs': ('rhs_disc.{0}', 'rhs_col.{0}')}
 
-        elif var_type == 'control_rate':
-            control_rate_comp = self.control_rate_comp
-            output = control_rate_comp._outputs['control_rates:{0}'.format(var)]
+        if var_type in ('state', 'rhs'):
+            # State and RHS values need to be interleaved since disc and col values are not
+            # available from the same output
+            disc_path_fmt, col_path_fmt = path_map[var_type]
+            disc_path = var_prefix + disc_path_fmt.format(var)
+            col_path = var_prefix + col_path_fmt.format(var)
 
-        elif var_type == 'control_rate2':
-            control_rate_comp = self.control_rate_comp
-            output = control_rate_comp._outputs['control_rates:{0}'.format(var)]
+            state_shape = op[disc_path]['shape'][1:]
+            disc_units = op[disc_path]['units']
+            disc_vals = op[disc_path]['value']
+            col_units = op[col_path]['units']
+            col_vals = op[col_path]['value']
 
-        elif var_type == 'rhs':
-            rhs_disc = self.rhs_disc
-            rhs_col = self.rhs_col
+            # If units is none, use the units from the IndepVarComp
+            if units is None:
+                units = disc_units
 
-            rhs_disc_outputs = rhs_disc.list_outputs(out_stream=None)
-            rhs_col_outputs = rhs_col.list_outputs(out_stream=None)
+            output_value = np.zeros((gd.num_nodes,) + state_shape)
+            output_value[disc_node_idxs, ...] = \
+                convert_units(disc_vals[gd.input_maps['state_to_disc'], ...], disc_units, units)
+            output_value[col_node_idxs, ...] = convert_units(col_vals, col_units, units)
+        else:
+            var_path = var_prefix + path_map[var_type].format(var)
+            output_units = op[var_path]['units']
+            output_value = convert_units(op[var_path]['value'], output_units, units)
 
-            prom2abs_disc = rhs_disc._var_allprocs_prom2abs_list
-            prom2abs_col = rhs_col._var_allprocs_prom2abs_list
+            if var_type in ('indep_control', 'input_control') and \
+                    not self.control_options[var]['dynamic']:
+                output_value = np.repeat(output_value, gd.num_nodes, axis=0)
 
-            # Is var in prom2abs_disc['output']?
-            abs_path_disc = prom2abs_disc['output'][var][0]
-            abs_path_col = prom2abs_col['output'][var][0]
+        # Always return a column vector
+        if len(output_value.shape) == 1:
+            output_value = np.reshape(output_value, (gd.num_nodes, 1))
 
-            disc_vals = dict(rhs_disc_outputs)[abs_path_disc]['value']
-            col_vals = dict(rhs_col_outputs)[abs_path_col]['value']
-
-            output = np.zeros((gd.num_nodes,) + disc_vals.shape[1:])
-
-            output[gd.subset_node_indices['disc']] = disc_vals
-            output[gd.subset_node_indices['col']] = col_vals
-
-        return output[gd.subset_node_indices[nodes]]
+        return output_value[gd.subset_node_indices[nodes], ...]

@@ -37,7 +37,7 @@ segment space (:math:`\tau_{s}`)
 **Step 3:  Input**
 
 The time of the phase is specified using the initial time (:math:`t_{initial}`) and duration
-(:math:`t_duration`) of the phase.  This sets the value of time at each *node* within the phase.
+(:math:`t_{duration}`) of the phase.  This sets the value of time at each *node* within the phase.
 
 The value of each state is given at each state discretization node (the even-index LGL nodes of
 each segment).  The user typically provides an initial guess for these values.  During optimization
