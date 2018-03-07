@@ -2,7 +2,7 @@ from distutils.core import setup
 from setuptools import find_packages
 
 
-setup(name='Dymos',
+setup(name='dymos',
     version='0.1',
     description='Open-Source Optimization of Dynamic Multidiscplinary Systems',
     url='https://github.com/OpenMDAO/dymos',
@@ -27,7 +27,9 @@ setup(name='Dymos',
         'numpy',
         'scipy',
         'pep8',
-        'parameterized'
+        'parameterized',
+        'sphinx',
+        'redbaron'
     ],
     zip_safe=False,
 )

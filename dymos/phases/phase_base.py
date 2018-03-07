@@ -457,7 +457,7 @@ class PhaseBase(Group):
             be used.  Each design variable entry is another dict keyed on color, and the values
             in the color dict are tuples of the form (resp_idxs, color_idxs).
         """
-        size = np.prod(shape)
+        size = int(np.prod(shape))
 
         if size > 1 and index is None:
             raise ValueError('Objective variable is non-scaler {0} but no index specified '
@@ -467,7 +467,7 @@ class PhaseBase(Group):
         if idx < 0:
             idx = size + idx
 
-        if index >= size:
+        if idx >= size or idx < -size:
             raise ValueError('Objective index={0}, but the shape of the objective '
                              'variable is {1}'.format(index, shape))
 
