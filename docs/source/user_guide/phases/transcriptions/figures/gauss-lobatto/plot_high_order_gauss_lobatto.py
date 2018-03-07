@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group
-from openmdoc import Phase
-from openmdoc.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+from dymos import Phase
+from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 p = Problem(model=Group())
 phase = Phase('gauss-lobatto', ode_class=BrachistochroneODE, num_segments=4, transcription_order=[3, 5, 3, 5])

@@ -31,7 +31,7 @@ be used as controls or connected to external sources (`theta` and `g`).
 .. code-block:: python
 
     from openmdao.api import ExplicitComponent
-    from openmdoc import declare_time, declare_state, declare_parameter
+    from dymos import declare_time, declare_state, declare_parameter
 
     @declare_time(units='s')
     @declare_state('x', rate_source='xdot', units='m')
@@ -46,21 +46,21 @@ be used as controls or connected to external sources (`theta` and `g`).
 The options for `declare_time` are as follows:
 
 .. embed-options::
-    openmdoc.ode_options
+    dymos.ode_options
     _ForDocs
     time_options
 
 For `declare_state`, the following options are available:
 
 .. embed-options::
-    openmdoc.ode_options
+    dymos.ode_options
     _ForDocs
     state_options
 
 And finally, the following options exist for parameters:
 
 .. embed-options::
-    openmdoc.ode_options
+    dymos.ode_options
     _ForDocs
     parameter_options
 

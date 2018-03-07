@@ -20,7 +20,7 @@ In |project|, time is characterized by two variables:
 The bounds, scaling, and units of these variables may be set using `set_time_options`.
 
 .. embed-options::
-    openmdoc.phases.options
+    dymos.phases.options
     _ForDocs
     time_options
 
@@ -44,7 +44,7 @@ Users can specify bounds, scaling, and units of the state variables with the
 phase method `set_state_options`.  The following options are valid:
 
 .. embed-options::
-    openmdoc.phases.options
+    dymos.phases.options
     _ForDocs
     state_options
 
@@ -71,7 +71,7 @@ parameters to the ODE.  Therefore, the method name to add a control to a phase i
 Valid options for controls are as follows:
 
 .. embed-options::
-    openmdoc.phases.options
+    dymos.phases.options
     _ForDocs
     control_options
 

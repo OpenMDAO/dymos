@@ -1,6 +1,6 @@
 
 =====================================
-openmdoc.utils.matrix_partials_wizard
+dymos.utils.matrix_partials_wizard
 =====================================
 
 Using the matrix and vector-compatible components described in this section can reduce the

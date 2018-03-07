@@ -8,7 +8,7 @@ To install |project| into site-packages of your local python installation, simpl
 
 .. code-block:: console
 
-    pip install git+https://github.com/OpenMDAO/OpenMDOC.git
+    pip install git+https://github.com/OpenMDAO/dymos.git
 
 Developer Mode
 --------------
@@ -22,11 +22,11 @@ follow these two steps:
 
 .. code-block:: console
 
-    git clone https://github.com/OpenMDAO/OpenMDOC.git ./OpenMDOC.git
-    cd OpenMDOC.git
+    git clone https://github.com/OpenMDAO/dymos.git ./dymos.git
+    cd dymos.git
     pip install -e .
 
 Uninstalling
 ------------
 
-If you want to uninstall |project|, use the command :code:`pip uninstall openmdoc`.
+If you want to uninstall |project|, use the command :code:`pip uninstall dymos`.

@@ -2,10 +2,10 @@ from distutils.core import setup
 from setuptools import find_packages
 
 
-setup(name='OpenMDOC',
+setup(name='Dymos',
     version='0.1',
-    description='Open-source Multidisciplinary Dynamics and Optimal Control',
-    url='https://github.com/OpenMDAO/OpenMDOC',
+    description='Open-Source Optimization of Dynamic Multidiscplinary Systems',
+    url='https://github.com/OpenMDAO/dymos',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Science/Research',

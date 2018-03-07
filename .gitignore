@@ -20,7 +20,7 @@ SNOPT_summary.out
 .DS_Store
 
 # Sphinx build directory
-pointer/docs/build/
+dymos/docs/build/
 
 # Build dir
 build

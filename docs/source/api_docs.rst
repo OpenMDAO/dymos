@@ -3,7 +3,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-.. automodule:: openmdoc
+.. automodule:: dymos
 
 
 Indices and tables
