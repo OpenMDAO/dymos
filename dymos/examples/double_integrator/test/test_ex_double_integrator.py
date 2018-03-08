@@ -26,4 +26,3 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         assert_almost_equal(v0, 0.0)
         assert_almost_equal(vf, 0.0)
-
