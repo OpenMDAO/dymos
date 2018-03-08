@@ -1,8 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-from numpy.testing import assert_almost_equal
-from openmdao.api import Problem, Group, pyOptSparseDriver, DenseJacobian, \
+from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DenseJacobian, \
     CSCJacobian, CSRJacobian, DirectSolver
 
 from dymos import Phase
@@ -16,12 +15,14 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
 
     p = Problem(model=Group())
 
-    p.driver = pyOptSparseDriver()
-    p.driver.options['optimizer'] = optimizer
     if optimizer == 'SNOPT':
+        p.driver = pyOptSparseDriver()
+        p.driver.options['optimizer'] = optimizer
         p.driver.opt_settings['Major iterations limit'] = 100
         p.driver.opt_settings['iSumm'] = 6
         p.driver.opt_settings['Verify level'] = 3
+    else:
+        p.driver = ScipyOptimizeDriver()
 
     phase = Phase(transcription,
                   ode_class=LaunchVehicleLinearTangentODE,

@@ -4,8 +4,8 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, DenseJacobian, CSCJacobian, \
-    CSRJacobian, DirectSolver
+from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DenseJacobian,\
+    CSCJacobian, CSRJacobian, DirectSolver
 
 from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -17,12 +17,14 @@ SHOW_PLOTS = False
 def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='csc'):
     p = Problem(model=Group())
 
-    p.driver = pyOptSparseDriver()
-    p.driver.options['optimizer'] = OPTIMIZER
     if OPTIMIZER == 'SNOPT':
+        p.driver = pyOptSparseDriver()
+        p.driver.options['optimizer'] = OPTIMIZER
         p.driver.opt_settings['Major iterations limit'] = 100
         p.driver.opt_settings['iSumm'] = 6
         p.driver.opt_settings['Verify level'] = 3
+    else:
+        p.driver = ScipyOptimizeDriver()
 
     phase = Phase(transcription,
                   ode_class=BrachistochroneODE,
