@@ -15,7 +15,7 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['csc', 'dense'],  # jacobian
+                          ['csc'],  # jacobian
                           ['rev'],  # derivative_mode
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
                                                                           p.args[0],

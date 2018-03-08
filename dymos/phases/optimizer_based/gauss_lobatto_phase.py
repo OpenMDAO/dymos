@@ -392,7 +392,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                     'control_rate2': 'control_rate_comp.control_rates:{0}',
                     'rhs': ('rhs_disc.{0}', 'rhs_col.{0}')}
 
-        if var_type in ('state', 'rhs'):
+        if var_type == 'state':
             # State and RHS values need to be interleaved since disc and col values are not
             # available from the same output
             disc_path_fmt, col_path_fmt = path_map[var_type]
@@ -413,6 +413,32 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             output_value[disc_node_idxs, ...] = \
                 convert_units(disc_vals[gd.input_maps['state_to_disc'], ...], disc_units, units)
             output_value[col_node_idxs, ...] = convert_units(col_vals, col_units, units)
+
+        elif var_type == 'rhs':
+            rhs_disc_outputs = dict(self.rhs_disc.list_outputs(out_stream=None, values=True, shape=True,
+                                                          units=True))
+            rhs_col_outputs = dict(self.rhs_col.list_outputs(out_stream=None, values=True, shape=True,
+                                                          units=True))
+
+            prom2abs_disc = self.rhs_disc._var_allprocs_prom2abs_list
+            prom2abs_col = self.rhs_col._var_allprocs_prom2abs_list
+
+            # Is var in prom2abs_disc['output']?
+            abs_path_disc = prom2abs_disc['output'][var][0]
+            abs_path_col = prom2abs_col['output'][var][0]
+
+            shape = rhs_disc_outputs[abs_path_disc]['shape'][1:]
+            disc_units = rhs_disc_outputs[abs_path_disc]['units']
+            col_units = rhs_col_outputs[abs_path_col]['units']
+
+            output_value = np.zeros((gd.num_nodes,) + shape)
+
+            disc_vals = rhs_disc_outputs[abs_path_disc]['value']
+            col_vals = rhs_col_outputs[abs_path_col]['value']
+
+            output_value[disc_node_idxs, ...] = convert_units(disc_vals, disc_units, units)
+            output_value[col_node_idxs, ...] = convert_units(col_vals, col_units, units)
+
         else:
             var_path = var_prefix + path_map[var_type].format(var)
             output_units = op[var_path]['units']

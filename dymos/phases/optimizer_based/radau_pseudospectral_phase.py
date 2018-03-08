@@ -355,13 +355,22 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                     'control_rate2': 'control_rate_comp.control_rates:{0}',
                     'rhs': 'rhs_all.{0}'}
 
-        var_path = var_prefix + path_map[var_type].format(var)
-        output_units = op[var_path]['units']
-        output_value = convert_units(op[var_path]['value'], output_units, units)
+        if var_type == 'rhs':
+            rhs_all_outputs = dict(self.rhs_all.list_outputs(out_stream=None, values=True,
+                                                             shape=True, units=True))
+            prom2abs_all = self.rhs_all._var_allprocs_prom2abs_list
+            abs_path_all = prom2abs_all['output'][var][0]
+            output_value = rhs_all_outputs[abs_path_all]['value']
+            output_units = rhs_all_outputs[abs_path_all]['units']
+            output_value = convert_units(output_value, output_units, units)
+        else:
+            var_path = var_prefix + path_map[var_type].format(var)
+            output_units = op[var_path]['units']
+            output_value = convert_units(op[var_path]['value'], output_units, units)
 
-        if var_type in ('indep_control', 'input_control') and \
-                not self.control_options[var]['dynamic']:
-            output_value = np.repeat(output_value, gd.num_nodes, axis=0)
+            if var_type in ('indep_control', 'input_control') and \
+                    not self.control_options[var]['dynamic']:
+                output_value = np.repeat(output_value, gd.num_nodes, axis=0)
 
         # Always return a column vector
         if len(output_value.shape) == 1:
