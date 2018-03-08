@@ -40,7 +40,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
     phase.add_control('u', units='m/s**2', scaler=0.01, continuity=True, rate_continuity=False,
                       rate2_continuity=False, lower=-1.0, upper=1.0)
 
-    # Minimize time at the end of the phase
+    # Maximize distance travelled in one second.
     phase.add_objective('x', loc='final', scaler=-1)
 
     if top_level_jacobian.lower() == 'csc':
