@@ -415,10 +415,10 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             output_value[col_node_idxs, ...] = convert_units(col_vals, col_units, units)
 
         elif var_type == 'rhs':
-            rhs_disc_outputs = dict(self.rhs_disc.list_outputs(out_stream=None, values=True, shape=True,
-                                                          units=True))
-            rhs_col_outputs = dict(self.rhs_col.list_outputs(out_stream=None, values=True, shape=True,
-                                                          units=True))
+            rhs_disc_outputs = dict(self.rhs_disc.list_outputs(out_stream=None, values=True,
+                                                               shape=True, units=True))
+            rhs_col_outputs = dict(self.rhs_col.list_outputs(out_stream=None, values=True,
+                                                             shape=True, units=True))
 
             prom2abs_disc = self.rhs_disc._var_allprocs_prom2abs_list
             prom2abs_col = self.rhs_col._var_allprocs_prom2abs_list

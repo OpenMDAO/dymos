@@ -302,10 +302,11 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             # Failed to find variable, assume it is in the RHS
             obj_path = 'rhs_all.{0}'.format(name)
 
+        pdc = parallel_deriv_color
         super(RadauPseudospectralPhase, self)._add_objective(obj_path, loc=loc, index=index,
                                                              shape=shape, ref=ref, ref0=ref0,
                                                              adder=adder, scaler=scaler,
-                                                             parallel_deriv_color=parallel_deriv_color,
+                                                             parallel_deriv_color=pdc,
                                                              vectorize_derivs=vectorize_derivs,
                                                              simul_coloring=simul_coloring,
                                                              simul_map=simul_map)
