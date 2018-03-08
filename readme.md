@@ -1,6 +1,8 @@
 Dymos:  Open Source Optimization of Dynamic Multidiscplinary Systems
 ====================================================================
 
+[![Build Status](https://travis-ci.com/OpenMDAO/dymos.svg?token=tUBGTjUY1qBbh4Htx3Sr&branch=master)](https://travis-ci.com/OpenMDAO/dymos)
+
 Dymos is a framework for the simulation and optimization of dynamical systems within the OpenMDAO Multidisciplinary Analysis and Optimization environment.
 Dymos leverages implicit and explicit simulation techniques to simulate generic dynamic systems of arbitary complexity.  
 

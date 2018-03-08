@@ -1,0 +1,78 @@
+branches:
+  only:
+    - master
+
+sudo: false
+
+os:
+  - linux
+
+language: generic
+
+env:
+  - PY=2.7
+  - PY=3.6
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gfortran
+    - libblas-dev
+    - liblapack-dev
+    - libopenmpi-dev
+    - openmpi-bin
+
+before_install:
+- wget "https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh" -O miniconda.sh
+- chmod +x miniconda.sh
+- ./miniconda.sh -b  -p /home/travis/miniconda;
+- PATHPREFIX="/home/travis/miniconda/bin";
+- export PATH=$PATHPREFIX:$PATH
+- export CWD=$(pwd)
+- conda create --yes -n test_env python=$PY swig
+- source activate test_env
+- pip install --upgrade pip
+- pip install numpy==1.14
+- pip install scipy==0.19.1
+- pip install matplotlib
+- pip install nose
+- pip install mock
+- pip install pip
+- pip install jupyter
+- pip install plotly
+- pip install networkx
+- pip install testflo
+- pip install pyyaml
+
+install:
+# install pyoptsparse
+- git clone https://github.com/mdolab/pyoptsparse.git;
+- cd pyoptsparse;
+# get SNOPT source, securely, if SNOPT_LOCATION is set.
+#- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+#    cd pyoptsparse/pySNOPT/source;
+#    scp -r "$SNOPT_LOCATION" .;
+#    cd ../../..;
+#  fi
+# return to building pyoptsparse
+- python setup.py build install;
+- cd ..;
+
+# install MBI
+- git clone https://github.com/OpenMDAO/MBI.git;
+- cd MBI;
+- python setup.py build install;
+- cd ..;
+
+- pip install git+https://github.com/OpenMDAO/OpenMDAO.git
+- pip install git+https://github.com/SMTorg/smt.git
+- pip install coveralls
+- pip install -e .
+
+script:
+- testflo -n 1 pointer --pre_announce --coverage --coverpkg dymos
+
+after_success:
+- coveralls
