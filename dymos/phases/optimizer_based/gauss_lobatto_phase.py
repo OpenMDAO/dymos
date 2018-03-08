@@ -339,9 +339,11 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
         super(GaussLobattoPhase, self)._add_objective(obj_path, loc=loc, index=index, shape=shape,
                                                       ref=ref, ref0=ref0, adder=adder,
-                                                      scaler=scaler, parallel_deriv_color=None,
-                                                      vectorize_derivs=False, simul_coloring=None,
-                                                      simul_map=None)
+                                                      scaler=scaler,
+                                                      parallel_deriv_color=parallel_deriv_color,
+                                                      vectorize_derivs=vectorize_derivs,
+                                                      simul_coloring=simul_coloring,
+                                                      simul_map=simul_map)
 
     def get_values(self, var, nodes='all', units=None):
         """
