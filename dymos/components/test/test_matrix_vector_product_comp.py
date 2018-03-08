@@ -30,7 +30,7 @@ class TestMatrixVectorProductComp3x3(unittest.TestCase):
         self.p.model.connect('A', 'mat_vec_product_comp.A')
         self.p.model.connect('x', 'mat_vec_product_comp.x')
 
-        self.p.setup()
+        self.p.setup(force_alloc_complex=True)
 
         self.p['A'] = np.random.rand(self.nn, 3, 3)
         self.p['x'] = np.random.rand(self.nn, 3)
@@ -49,7 +49,7 @@ class TestMatrixVectorProductComp3x3(unittest.TestCase):
 
     def test_partials(self):
         np.set_printoptions(linewidth=1024)
-        cpd = self.p.check_partials()
+        cpd = self.p.check_partials(out_stream=None, method='cs')
 
         for comp in cpd:
             for (var, wrt) in cpd[comp]:
@@ -80,7 +80,7 @@ class TestMatrixVectorProductComp6x4(unittest.TestCase):
         self.p.model.connect('A', 'mat_vec_product_comp.A')
         self.p.model.connect('x', 'mat_vec_product_comp.x')
 
-        self.p.setup()
+        self.p.setup(force_alloc_complex=True)
 
         self.p['A'] = np.random.rand(self.nn, 6, 4)
         self.p['x'] = np.random.rand(self.nn, 4)
@@ -98,7 +98,7 @@ class TestMatrixVectorProductComp6x4(unittest.TestCase):
             np.testing.assert_almost_equal(b_i, expected_i)
 
     def test_partials(self):
-        cpd = self.p.check_partials(compact_print=True)
+        cpd = self.p.check_partials(out_stream=None, method='cs')
 
         for comp in cpd:
             for (var, wrt) in cpd[comp]:
@@ -139,12 +139,10 @@ class TestForDocs(unittest.TestCase):
 
         p.run_model()
 
-        expected = np.zeros_like(p['x'])
-
         for i in range(nn):
             A_i = p['A'][i, :, :]
             x_i = p['x'][i, :]
+            b_i = p['mat_vec_product_comp.b'][i, :]
 
-            expected[i, :] = np.dot(A_i, x_i)
-
-        self.assertAlmostEqual(np.max(p['mat_vec_product_comp.b'] - expected).flatten(), 0)
+            expected_i = np.dot(A_i, x_i)
+            np.testing.assert_almost_equal(b_i, expected_i)
