@@ -303,7 +303,18 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         scaler : float or ndarray, optional
             value to multiply the model value to get the scaled value. Scaler
             is second in precedence.
-
+        parallel_deriv_color : string
+            If specified, this design var will be grouped for parallel derivative
+            calculations with other variables sharing the same parallel_deriv_color.
+        vectorize_derivs : bool
+            If True, vectorize derivative calculations.
+        simul_coloring : ndarray or list of int
+            An array or list of integer color values.  Must match the size of the
+            objective variable.
+        simul_map : dict
+            Mapping of this response to each design variable where simultaneous derivs will
+            be used.  Each design variable entry is another dict keyed on color, and the values
+            in the color dict are tuples of the form (resp_idxs, color_idxs).
         """
         var_type = self._classify_var(name)
 
@@ -328,9 +339,11 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
         super(GaussLobattoPhase, self)._add_objective(obj_path, loc=loc, index=index, shape=shape,
                                                       ref=ref, ref0=ref0, adder=adder,
-                                                      scaler=scaler, parallel_deriv_color=None,
-                                                      vectorize_derivs=False, simul_coloring=None,
-                                                      simul_map=None)
+                                                      scaler=scaler,
+                                                      parallel_deriv_color=parallel_deriv_color,
+                                                      vectorize_derivs=vectorize_derivs,
+                                                      simul_coloring=simul_coloring,
+                                                      simul_map=simul_map)
 
     def get_values(self, var, nodes='all', units=None):
         """
@@ -379,7 +392,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                     'control_rate2': 'control_rate_comp.control_rates:{0}',
                     'rhs': ('rhs_disc.{0}', 'rhs_col.{0}')}
 
-        if var_type in ('state', 'rhs'):
+        if var_type == 'state':
             # State and RHS values need to be interleaved since disc and col values are not
             # available from the same output
             disc_path_fmt, col_path_fmt = path_map[var_type]
@@ -400,6 +413,32 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             output_value[disc_node_idxs, ...] = \
                 convert_units(disc_vals[gd.input_maps['state_to_disc'], ...], disc_units, units)
             output_value[col_node_idxs, ...] = convert_units(col_vals, col_units, units)
+
+        elif var_type == 'rhs':
+            rhs_disc_outputs = dict(self.rhs_disc.list_outputs(out_stream=None, values=True,
+                                                               shape=True, units=True))
+            rhs_col_outputs = dict(self.rhs_col.list_outputs(out_stream=None, values=True,
+                                                             shape=True, units=True))
+
+            prom2abs_disc = self.rhs_disc._var_allprocs_prom2abs_list
+            prom2abs_col = self.rhs_col._var_allprocs_prom2abs_list
+
+            # Is var in prom2abs_disc['output']?
+            abs_path_disc = prom2abs_disc['output'][var][0]
+            abs_path_col = prom2abs_col['output'][var][0]
+
+            shape = rhs_disc_outputs[abs_path_disc]['shape'][1:]
+            disc_units = rhs_disc_outputs[abs_path_disc]['units']
+            col_units = rhs_col_outputs[abs_path_col]['units']
+
+            output_value = np.zeros((gd.num_nodes,) + shape)
+
+            disc_vals = rhs_disc_outputs[abs_path_disc]['value']
+            col_vals = rhs_col_outputs[abs_path_col]['value']
+
+            output_value[disc_node_idxs, ...] = convert_units(disc_vals, disc_units, units)
+            output_value[col_node_idxs, ...] = convert_units(col_vals, col_units, units)
+
         else:
             var_path = var_prefix + path_map[var_type].format(var)
             output_units = op[var_path]['units']

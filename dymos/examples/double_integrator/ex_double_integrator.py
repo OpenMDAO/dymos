@@ -4,8 +4,8 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, DenseJacobian, CSCJacobian, \
-    CSRJacobian, DirectSolver
+from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DenseJacobian,\
+    CSCJacobian, CSRJacobian, DirectSolver
 
 from dymos import Phase
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
@@ -15,12 +15,14 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
                                          optimizer='SLSQP', show_plots=False, compressed=False):
     p = Problem(model=Group())
 
-    p.driver = pyOptSparseDriver()
-    p.driver.options['optimizer'] = optimizer
     if optimizer == 'SNOPT':
+        p.driver = pyOptSparseDriver()
+        p.driver.options['optimizer'] = optimizer
         p.driver.opt_settings['Major iterations limit'] = 100
         p.driver.opt_settings['iSumm'] = 6
         p.driver.opt_settings['Verify level'] = 3
+    else:
+        p.driver = ScipyOptimizeDriver()
 
     phase = Phase(transcription,
                   ode_class=DoubleIntegratorODE,
@@ -38,7 +40,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
     phase.add_control('u', units='m/s**2', scaler=0.01, continuity=True, rate_continuity=False,
                       rate2_continuity=False, lower=-1.0, upper=1.0)
 
-    # Minimize time at the end of the phase
+    # Maximize distance travelled in one second.
     phase.add_objective('x', loc='final', scaler=-1)
 
     if top_level_jacobian.lower() == 'csc':
@@ -64,45 +66,45 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
 
     exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'], p['phase0.t_duration'], 100))
 
-    # Plot results
-    fig, axes = plt.subplots(3, 1)
-    fig.suptitle('Double Integrator Direct Collocation Solution')
-
-    t_imp = phase.get_values('time', nodes='all')
-    x_imp = phase.get_values('x', nodes='all')
-    v_imp = phase.get_values('v', nodes='all')
-    u_imp = phase.get_values('u', nodes='all')
-
-    t_exp = exp_out.get_values('time')
-    x_exp = exp_out.get_values('x')
-    v_exp = exp_out.get_values('v')
-    u_exp = exp_out.get_values('u')
-
-    axes[0].plot(t_imp, x_imp, 'ro', label='implicit')
-    axes[0].plot(t_exp, x_exp, 'b-', label='explicit')
-
-    axes[0].set_xlabel('time (s)')
-    axes[0].set_ylabel('x (m)')
-    axes[0].grid(True)
-    axes[0].legend(loc='best')
-
-    axes[1].plot(t_imp, v_imp, 'ro', label='implicit')
-    axes[1].plot(t_exp, v_exp, 'b-', label='explicit')
-
-    axes[1].set_xlabel('time (s)')
-    axes[1].set_ylabel('v (m/s)')
-    axes[1].grid(True)
-    axes[1].legend(loc='best')
-
-    axes[2].plot(t_imp, u_imp, 'ro', label='implicit')
-    axes[2].plot(t_exp, u_exp, 'b-', label='explicit')
-
-    axes[2].set_xlabel('time (s)')
-    axes[2].set_ylabel('u (m/s**2)')
-    axes[2].grid(True)
-    axes[2].legend(loc='best')
-
     if show_plots:
+        # Plot results
+        fig, axes = plt.subplots(3, 1)
+        fig.suptitle('Double Integrator Direct Collocation Solution')
+
+        t_imp = phase.get_values('time', nodes='all')
+        x_imp = phase.get_values('x', nodes='all')
+        v_imp = phase.get_values('v', nodes='all')
+        u_imp = phase.get_values('u', nodes='all')
+
+        t_exp = exp_out.get_values('time')
+        x_exp = exp_out.get_values('x')
+        v_exp = exp_out.get_values('v')
+        u_exp = exp_out.get_values('u')
+
+        axes[0].plot(t_imp, x_imp, 'ro', label='implicit')
+        axes[0].plot(t_exp, x_exp, 'b-', label='explicit')
+
+        axes[0].set_xlabel('time (s)')
+        axes[0].set_ylabel('x (m)')
+        axes[0].grid(True)
+        axes[0].legend(loc='best')
+
+        axes[1].plot(t_imp, v_imp, 'ro', label='implicit')
+        axes[1].plot(t_exp, v_exp, 'b-', label='explicit')
+
+        axes[1].set_xlabel('time (s)')
+        axes[1].set_ylabel('v (m/s)')
+        axes[1].grid(True)
+        axes[1].legend(loc='best')
+
+        axes[2].plot(t_imp, u_imp, 'ro', label='implicit')
+        axes[2].plot(t_exp, u_exp, 'b-', label='explicit')
+
+        axes[2].set_xlabel('time (s)')
+        axes[2].set_ylabel('u (m/s**2)')
+        axes[2].grid(True)
+        axes[2].legend(loc='best')
+
         plt.show()
 
     return p

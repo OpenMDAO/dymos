@@ -20,7 +20,6 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription_order=5,
 
     p.driver = pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 1000
         p.driver.opt_settings['iSumm'] = 6
@@ -118,4 +117,4 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription_order=5,
 
 if __name__ == '__main__':
     p = min_time_climb(transcription='radau-ps', optimizer='SLSQP',
-                       num_seg=10, transcription_order=3)
+                       num_seg=10, transcription_order=3, top_level_jacobian='dense')

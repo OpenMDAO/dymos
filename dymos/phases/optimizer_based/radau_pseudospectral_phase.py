@@ -268,7 +268,18 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         scaler : float or ndarray, optional
             value to multiply the model value to get the scaled value. Scaler
             is second in precedence.
-
+        parallel_deriv_color : string
+            If specified, this design var will be grouped for parallel derivative
+            calculations with other variables sharing the same parallel_deriv_color.
+        vectorize_derivs : bool
+            If True, vectorize derivative calculations.
+        simul_coloring : ndarray or list of int
+            An array or list of integer color values.  Must match the size of the
+            objective variable.
+        simul_map : dict
+            Mapping of this response to each design variable where simultaneous derivs will
+            be used.  Each design variable entry is another dict keyed on color, and the values
+            in the color dict are tuples of the form (resp_idxs, color_idxs).
         """
         var_type = self._classify_var(name)
 
@@ -291,12 +302,14 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             # Failed to find variable, assume it is in the RHS
             obj_path = 'rhs_all.{0}'.format(name)
 
+        pdc = parallel_deriv_color
         super(RadauPseudospectralPhase, self)._add_objective(obj_path, loc=loc, index=index,
                                                              shape=shape, ref=ref, ref0=ref0,
                                                              adder=adder, scaler=scaler,
-                                                             parallel_deriv_color=None,
-                                                             vectorize_derivs=False,
-                                                             simul_coloring=None, simul_map=None)
+                                                             parallel_deriv_color=pdc,
+                                                             vectorize_derivs=vectorize_derivs,
+                                                             simul_coloring=simul_coloring,
+                                                             simul_map=simul_map)
 
     def get_values(self, var, nodes='all', units=None):
         """
@@ -343,13 +356,22 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                     'control_rate2': 'control_rate_comp.control_rates:{0}',
                     'rhs': 'rhs_all.{0}'}
 
-        var_path = var_prefix + path_map[var_type].format(var)
-        output_units = op[var_path]['units']
-        output_value = convert_units(op[var_path]['value'], output_units, units)
+        if var_type == 'rhs':
+            rhs_all_outputs = dict(self.rhs_all.list_outputs(out_stream=None, values=True,
+                                                             shape=True, units=True))
+            prom2abs_all = self.rhs_all._var_allprocs_prom2abs_list
+            abs_path_all = prom2abs_all['output'][var][0]
+            output_value = rhs_all_outputs[abs_path_all]['value']
+            output_units = rhs_all_outputs[abs_path_all]['units']
+            output_value = convert_units(output_value, output_units, units)
+        else:
+            var_path = var_prefix + path_map[var_type].format(var)
+            output_units = op[var_path]['units']
+            output_value = convert_units(op[var_path]['value'], output_units, units)
 
-        if var_type in ('indep_control', 'input_control') and \
-                not self.control_options[var]['dynamic']:
-            output_value = np.repeat(output_value, gd.num_nodes, axis=0)
+            if var_type in ('indep_control', 'input_control') and \
+                    not self.control_options[var]['dynamic']:
+                output_value = np.repeat(output_value, gd.num_nodes, axis=0)
 
         # Always return a column vector
         if len(output_value.shape) == 1:
