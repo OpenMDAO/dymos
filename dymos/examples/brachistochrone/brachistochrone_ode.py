@@ -58,17 +58,17 @@ class BrachistochroneODE(ExplicitComponent):
         # Setup partials
         arange = np.arange(self.metadata['num_nodes'])
 
-        self.declare_partials(of='vdot', wrt='g', rows=arange, cols=arange, val=1.0)
-        self.declare_partials(of='vdot', wrt='theta', rows=arange, cols=arange, val=1.0)
+        self.declare_partials(of='vdot', wrt='g', rows=arange, cols=arange)
+        self.declare_partials(of='vdot', wrt='theta', rows=arange, cols=arange)
 
-        self.declare_partials(of='xdot', wrt='v', rows=arange, cols=arange, val=1.0)
-        self.declare_partials(of='xdot', wrt='theta', rows=arange, cols=arange, val=1.0)
+        self.declare_partials(of='xdot', wrt='v', rows=arange, cols=arange)
+        self.declare_partials(of='xdot', wrt='theta', rows=arange, cols=arange)
 
-        self.declare_partials(of='ydot', wrt='v', rows=arange, cols=arange, val=1.0)
-        self.declare_partials(of='ydot', wrt='theta', rows=arange, cols=arange, val=1.0)
+        self.declare_partials(of='ydot', wrt='v', rows=arange, cols=arange)
+        self.declare_partials(of='ydot', wrt='theta', rows=arange, cols=arange)
 
-        self.declare_partials(of='check', wrt='v', rows=arange, cols=arange, val=1.0)
-        self.declare_partials(of='check', wrt='theta', rows=arange, cols=arange, val=1.0)
+        self.declare_partials(of='check', wrt='v', rows=arange, cols=arange)
+        self.declare_partials(of='check', wrt='theta', rows=arange, cols=arange)
 
     def compute(self, inputs, outputs):
         theta = inputs['theta']
