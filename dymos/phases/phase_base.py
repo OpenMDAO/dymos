@@ -60,7 +60,7 @@ class PhaseBase(Group):
                               desc='System defining the ODE')
         self.metadata.declare('ode_init_kwargs', types=dict, default={},
                               desc='Keyword arguments provided when initializing the ODE System')
-        self.metadata.declare('transcription', values=['gauss-lobatto', 'radau-ps'],
+        self.metadata.declare('transcription', values=['gauss-lobatto', 'radau-ps', 'glm'],
                               desc='Transcription technique of the optimal control problem.')
 
         # Optional metadata
@@ -1016,7 +1016,6 @@ class PhaseBase(Group):
         ode_options = self.metadata['ode_class'](num_nodes=1,
                                                  **self.metadata['ode_init_kwargs']).ode_options
         ode_parameters = ode_options._dynamic_parameters.copy()
-        ode_parameters.update(ode_options._static_parameters)
 
         for p in ode_parameters:
             p_is_connected = False

@@ -197,6 +197,11 @@ class GridData(object):
 
             def get_points(n):
                 return lgr(n, include_endpoint=True)
+        elif transcription.lower() == 'glm':
+            # This is copied from the 'gauss-lobatto' transcription code just to make it run.
+            # GridData is not actually used for the GLMPhase
+            get_subsets = gauss_lobatto_subsets
+            get_points = lgl
         else:
             raise ValueError('Unknown transcription: {0}'.format(transcription))
 
