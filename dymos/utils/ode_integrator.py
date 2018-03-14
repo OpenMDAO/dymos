@@ -7,7 +7,7 @@ from six import iteritems, string_types
 import numpy as np
 from scipy.integrate import ode
 
-from openmdao.api import Problem, Group, IndepVarComp, ExplicitComponent
+from openmdao.api import Problem, Group, IndepVarComp, ExplicitComponent, AnalysisError
 from openmdao.utils.units import convert_units, valid_units
 
 from ..utils.misc import get_rate_units
@@ -552,10 +552,14 @@ class ODEIntegrator(object):
         if _observer:
             _observer(solver.t, solver.y, self.prob)
 
+        terminate = False
         for dt in delta_times:
-            solver.integrate(solver.t+dt)
 
-            self._f_ode(solver.t, solver.y)
+            try:
+                solver.integrate(solver.t+dt)
+                self._f_ode(solver.t, solver.y)
+            except AnalysisError:
+                terminate = True
 
             for var in results.outputs:
                 results.outputs[var]['value'] = np.concatenate((results.outputs[var]['value'],
@@ -563,5 +567,8 @@ class ODEIntegrator(object):
                                                                axis=0)
             if _observer:
                 _observer(solver.t, solver.y, self.prob)
+
+            if terminate:
+                break
 
         return results

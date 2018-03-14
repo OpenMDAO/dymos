@@ -240,7 +240,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 p['states:{0}'.format(name)] = exp_out.get_values(name)
 
             # Assign controls
-            for name in self.control_options:
+            for name, options in iteritems(self.control_options):
                 p['controls:{0}'.format(name)] = exp_out.get_values(name)
                 if options['rate_param']:
                     p['control_rates:{0}_rate'.format(name)] = \
