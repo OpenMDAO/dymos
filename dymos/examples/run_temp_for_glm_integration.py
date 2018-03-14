@@ -10,7 +10,7 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver,
 from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-OPTIMIZER = 'SLSQP'
+OPTIMIZER = 'SNOPT'
 SHOW_PLOTS = False
 
 
@@ -27,18 +27,34 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
         p.driver = ScipyOptimizeDriver()
 
     transcription = 'glm'
+    formulation = 'optimizer-based'
+    formulation = 'solver-based'
+    # formulation = 'time-marching'
     phase = Phase(transcription,
                   ode_class=BrachistochroneODE,
-                  num_segments=8,
-                  transcription_order=3)
+                  num_segments=10, #8,
+                  formulation=formulation)
 
     p.model.add_subsystem('phase0', phase)
 
     phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-    phase.set_state_options('x', fix_initial=True, fix_final=True)
-    phase.set_state_options('y', fix_initial=True, fix_final=True)
-    phase.set_state_options('v', fix_initial=True)
+    if 0:
+        phase.set_state_options('x', fix_initial=True, fix_final=True)
+        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('v', fix_initial=True)
+    elif 1:
+        phase.add_boundary_constraint('x', loc='initial', equals=0.)
+        phase.add_boundary_constraint('x', loc='final', equals=10.)
+        phase.add_boundary_constraint('y', loc='initial', equals=10.)
+        phase.add_boundary_constraint('y', loc='final', equals=5.)
+        phase.add_boundary_constraint('v', loc='initial', equals=0.)
+    else:
+        phase.add_boundary_constraint('x', loc='initial', equals=0.)
+        phase.add_boundary_constraint('x', loc='final', equals=2.)
+        phase.add_boundary_constraint('y', loc='initial', equals=0.)
+        phase.add_boundary_constraint('y', loc='final', equals=-2.)
+        phase.add_boundary_constraint('v', loc='initial', equals=0.)
 
     phase.add_control('theta', units='deg', dynamic=True,
                       rate_continuity=True, lower=0.01, upper=179.9)
@@ -48,28 +64,56 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', scaler=10)
 
-    if top_level_jacobian.lower() == 'csc':
-        p.model.jacobian = CSCJacobian()
-    elif top_level_jacobian.lower() == 'dense':
-        p.model.jacobian = DenseJacobian()
-    elif top_level_jacobian.lower() == 'csr':
-        p.model.jacobian = CSRJacobian()
-
-    p.model.linear_solver = DirectSolver()
+    # top_level_jacobian = 'dense'
+    # # top_level_jacobian = 'csc'
+    # top_level_jacobian = 'default'
+    # if top_level_jacobian.lower() == 'csc':
+    #     p.model.jacobian = CSCJacobian()
+    # elif top_level_jacobian.lower() == 'dense':
+    #     p.model.jacobian = DenseJacobian()
+    # elif top_level_jacobian.lower() == 'csr':
+    #     p.model.jacobian = CSRJacobian()
+    # else:
+    #     pass
+    #
+    # p.model.linear_solver = DirectSolver()
 
     p.setup(mode='fwd', check=True)
 
-    p.setup()
+    p.setup(check=True)
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 2.0
 
-    p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='disc')
-    p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='disc')
-    p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='disc')
+    if 1:
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='all')
+        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='all')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='all')
+    else:
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 2], nodes='all')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, -2], nodes='all')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 2], nodes='all')
+
     p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='all')
 
+    p.run_model()
+
     p.run_driver()
+
+    import matplotlib.pyplot as plt
+    plt.subplot(2, 1, 1)
+    plt.plot(p['phase0.out_states:x'], p['phase0.out_states:y'])
+    plt.subplot(2, 1, 2)
+    plt.plot(p['phase0.controls:theta'])
+    plt.show()
+
+    print(p['phase0.states:x'])
+    print(p['phase0.states:y'])
+    print(p['phase0.states:v'])
+    print(p['phase0.ozone.times'])
+    exit()
+
+    # ----------------------------------------------------------------------------------------
 
     exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'], p['phase0.t_duration'], 50))
 

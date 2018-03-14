@@ -6,6 +6,7 @@ from openmdao.core.system import System
 from six import iteritems
 
 import ozone.methods.method as methods
+from dymos.glm.ozone.components.initial_conditions_comp import InitialConditionsComp
 from dymos.glm.ozone.components.time_comp import TimeComp
 from dymos.glm.ozone.components.starting_comp import StartingComp
 from dymos.glm.ozone.components.dynamic_parameter_comp import DynamicParameterComp
@@ -20,7 +21,6 @@ class Integrator(Group):
     """
 
     def initialize(self):
-        #self.metadata.declare('ode_function', types=ODEFunction)
         self.metadata.declare('ode_class')
         self.metadata.declare('ode_init_kwargs', types=dict, allow_none=True, default={})
         self.metadata.declare('method', types=GLMMethod)
@@ -76,20 +76,27 @@ class Integrator(Group):
 
         # ------------------------------------------------------------------------------------
         # inputs
-        if initial_conditions is not None \
-                or given_dynamic_parameters is not None \
-                or initial_time is not None or final_time is not None:
-            comp = IndepVarComp()
-            promotes = []
+        comp = IndepVarComp()
+        promotes = []
 
-        # Initial conditions
-        if initial_conditions is not None:
-            for state_name, value in iteritems(initial_conditions):
-                name = get_name('initial_condition', state_name)
-                state = self._ode_options._states[state_name]
+        # Dummy state history to pull out initial conditions to conform to pointer's api
+        for state_name, state in iteritems(states):
+            name = 'IC_state:%s' % state_name
+            state = self._ode_options._states[state_name]
 
-                comp.add_output(name, val=value, units=state['units'])
-                promotes.append(name)
+            comp.add_output(name,
+                shape=(len(normalized_times),) + state['shape'], units=state['units']
+            )
+            promotes.append(name)
+
+        # # Initial conditions
+        # if initial_conditions is not None:
+        #     for state_name, value in iteritems(initial_conditions):
+        #         name = get_name('initial_condition', state_name)
+        #         state = self._ode_options._states[state_name]
+        #
+        #         comp.add_output(name, val=value, units=state['units'])
+        #         promotes.append(name)
 
         # Given dynamic_parameters
         if given_dynamic_parameters is not None:
@@ -110,10 +117,19 @@ class Integrator(Group):
             comp.add_output('final_time', val=final_time, units=time_units)
             promotes.append('final_time')
 
-        if initial_conditions is not None \
-                or given_dynamic_parameters is not None \
-                or initial_time is not None or final_time is not None:
-            self.add_subsystem('inputs', comp, promotes_outputs=promotes)
+        self.add_subsystem('inputs', comp, promotes_outputs=promotes)
+
+        # ------------------------------------------------------------------------------------
+        # Initial conditions comp
+        comp = InitialConditionsComp(states=states)
+        self.add_subsystem('initial_conditions_comp', comp,
+            promotes_outputs=
+                [('out:%s' % state_name, get_name('initial_condition', state_name))
+                for state_name in states])
+        for state_name in states:
+            size = np.prod(state['shape'])
+            self.connect('IC_state:%s' % state_name, 'initial_conditions_comp.in:%s' % state_name,
+                src_indices=np.arange(size), flat_src_indices=True)
 
         # ------------------------------------------------------------------------------------
         # Time comp

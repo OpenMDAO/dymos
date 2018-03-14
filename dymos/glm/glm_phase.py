@@ -5,6 +5,7 @@ import numpy as np
 
 from dymos.phases.phase_base import PhaseBase
 from dymos.phases.components.continuity_comp import ContinuityComp
+from dymos.phases.components import BoundaryConstraintComp
 from dymos.ode_options import ODEOptions
 from dymos.glm.dynamic_interp_comp import DynamicInterpComp
 from dymos.glm.equality_constraint_comp import EqualityConstraintComp
@@ -86,6 +87,8 @@ class GLMPhase(PhaseBase):
 
         order.append('endpoint_conditions')
         order.append('continuity_constraint')
+        if len(self._boundary_constraints) > 0:
+            order.append('boundary_constraints')
 
         self.set_order(order)
 
@@ -110,6 +113,9 @@ class GLMPhase(PhaseBase):
 
             for name, options in iteritems(self.control_options):
                 if options['opt'] and options['dynamic']:
+                    self.connect('controls:{0}'.format(name),
+                        'continuity_constraint.controls:{}'.format(name),
+                        src_indices=grid_data.subset_node_indices['disc'])
                     if options['rate_continuity']:
                         continuity = True
                         self.connect('control_rates:{0}_rate'.format(name),
@@ -153,9 +159,13 @@ class GLMPhase(PhaseBase):
             i_new = i
             segment_times.append([i_old, i_new])
 
-        self._norm_times = np.array(normalized_times)
-        self._node_indices = node_indices
-        self._segment_times = segment_times
+        self._norm_times = np.zeros(2 * self.metadata['num_segments'])
+        self._norm_times[0::2] = grid_data.segment_ends[:-1]
+        self._norm_times[1::2] = grid_data.segment_ends[1:]
+
+        self._segment_times = segment_times = []
+        for iseg1, iseg2 in grid_data.segment_indices:
+            segment_times.append([iseg1, iseg2])
 
         self.connect('time', 'ozone.initial_time', src_indices=[0])
         self.connect('time', 'ozone.final_time', src_indices=[-1])
@@ -184,60 +194,65 @@ class GLMPhase(PhaseBase):
         )
 
         self.add_subsystem('ozone', ode_int,
-                           promotes_outputs=[('state:{0}'.format(state), 'states:{0}'.format(state))
-                                             for state in self.state_options],
-                           promotes_inputs=['initial_condition:{0}'.format(state)
-                                            for state in self.state_options]
-                           )
+            promotes_outputs=
+                [('IC_state:{0}'.format(state), 'states:{0}'.format(state))
+                for state in self.state_options] +
+                [('state:{0}'.format(state), 'out_states:{0}'.format(state))
+                for state in self.state_options] +
+                [],
+            promotes_inputs=
+                ['initial_condition:{0}'.format(state)
+                for state in self.state_options],
+        )
 
-        fixed_states = IndepVarComp()
-        final_comp = EqualityConstraintComp()
-        any_initial = False
-        any_final = False
-        for state, opts in iteritems(self.state_options):
-            if opts['opt']:
-                any_initial = True
-                fixed_states.add_output('initial_condition:{0}'.format(state),
-                                        shape=opts['shape'],
-                                        units=opts['units'])
-                if not opts['fix_initial']:
-                    lb, ub = np.finfo(float).min, np.finfo(float).max
-                    if opts['lower'] is not None:
-                        lb = opts['lower']
-                    if opts['upper'] is not None:
-                        ub = opts['upper']
-
-                    if opts['initial_bounds'] is not None:
-                        lb, ub = opts['initial_bounds']
-
-                    self.add_design_var(name='initial_condition:{0}'.format(state),
-                                        lower=lb,
-                                        upper=ub,
-                                        scaler=opts['scaler'],
-                                        adder=opts['adder'],
-                                        ref0=opts['ref0'],
-                                        ref=opts['ref']
-                                        )
-                if opts['fix_final']:
-                    any_final = True
-                    final_comp.add_balance('{0}'.format(state),
-                                           eq_units=opts['units'])
-                    fixed_states.add_output('final_condition:{0}'.format(state),
-                                            shape=opts['shape'],
-                                            units=opts['units'])
-                    self.connect('final_condition:{0}'.format(state),
-                                 'final_balance.lhs:{0}'.format(state))
-                    self.connect('states:{0}'.format(state),
-                                 'final_balance.rhs:{0}'.format(state),
-                                 src_indices=list(-1-np.arange(np.prod(opts['shape']))))
-        if any_initial:
-            self.add_subsystem('fixed_states', fixed_states,
-                               promotes=['*'])
-            self._fixed_states.add('initial')
-
-        if any_final:
-            self.add_subsystem('final_balance', final_comp)
-            self._fixed_states.add('final')
+        # fixed_states = IndepVarComp()
+        # final_comp = EqualityConstraintComp()
+        # any_initial = False
+        # any_final = False
+        # for state, opts in iteritems(self.state_options):
+        #     if opts['opt']:
+        #         any_initial = True
+        #         fixed_states.add_output('initial_condition:{0}'.format(state),
+        #                                 shape=opts['shape'],
+        #                                 units=opts['units'])
+        #         if not opts['fix_initial']:
+        #             lb, ub = np.finfo(float).min, np.finfo(float).max
+        #             if opts['lower'] is not None:
+        #                 lb = opts['lower']
+        #             if opts['upper'] is not None:
+        #                 ub = opts['upper']
+        #
+        #             if opts['initial_bounds'] is not None:
+        #                 lb, ub = opts['initial_bounds']
+        #
+        #             self.add_design_var(name='initial_condition:{0}'.format(state),
+        #                                 lower=lb,
+        #                                 upper=ub,
+        #                                 scaler=opts['scaler'],
+        #                                 adder=opts['adder'],
+        #                                 ref0=opts['ref0'],
+        #                                 ref=opts['ref']
+        #                                 )
+        #         if opts['fix_final']:
+        #             any_final = True
+        #             final_comp.add_balance('{0}'.format(state),
+        #                                    eq_units=opts['units'])
+        #             fixed_states.add_output('final_condition:{0}'.format(state),
+        #                                     shape=opts['shape'],
+        #                                     units=opts['units'])
+        #             self.connect('final_condition:{0}'.format(state),
+        #                          'final_balance.lhs:{0}'.format(state))
+        #             self.connect('states:{0}'.format(state),
+        #                          'final_balance.rhs:{0}'.format(state),
+        #                          src_indices=list(-1-np.arange(np.prod(opts['shape']))))
+        # if any_initial:
+        #     self.add_subsystem('fixed_states', fixed_states,
+        #                        promotes=['*'])
+        #     self._fixed_states.add('initial')
+        #
+        # if any_final:
+        #     self.add_subsystem('final_balance', final_comp)
+        #     self._fixed_states.add('final')
 
     def _setup_mdf(self):
         ode_int = ODEIntegrator(
@@ -248,46 +263,51 @@ class GLMPhase(PhaseBase):
         )
 
         self.add_subsystem('ozone', ode_int,
-                           promotes_outputs=[('state:{0}'.format(state), 'states:{0}'.format(state))
-                                             for state in self.state_options],
-                           promotes_inputs=['initial_condition:{0}'.format(state)
-                                            for state in self.state_options])
+            promotes_outputs=
+                [('IC_state:{0}'.format(state), 'states:{0}'.format(state))
+                for state in self.state_options] +
+                [('state:{0}'.format(state), 'out_states:{0}'.format(state))
+                for state in self.state_options] +
+                [],
+            promotes_inputs=
+                ['initial_condition:{0}'.format(state)
+                for state in self.state_options])
 
         self.nonlinear_solver = NonlinearBlockGS(iprint=2, maxiter=40, atol=1e-14, rtol=1e-12)
         # self.linear_solver = LinearBlockGS(iprint=2, maxiter=40, atol=1e-14, rtol=1e-12)
 
-        fixed_states = IndepVarComp()
-        final_comp = EqualityConstraintComp()
-        any_initial = False
-        any_final = False
-        for state, opts in iteritems(self.state_options):
-            if opts['opt']:
-                any_initial = True
-                fixed_states.add_output('initial_condition:{0}'.format(state),
-                                        shape=opts['shape'],
-                                        units=opts['units'])
-
-                if opts['fix_final']:
-                    any_final = True
-                    fixed_states.add_output('final_condition:{0}'.format(state),
-                                            shape=opts['shape'],
-                                            units=opts['units'])
-                    final_comp.add_balance('{0}'.format(state),
-                                           eq_units=opts['units'])
-                    self.connect('final_condition:{0}'.format(state),
-                                 'final_balance.lhs:{0}'.format(state))
-                    self.connect('states:{0}'.format(state),
-                                 'final_balance.rhs:{0}'.format(state),
-                                 src_indices=list(-1-np.arange(np.prod(opts['shape']))))
-
-        if any_initial:
-            self.add_subsystem('fixed_states', fixed_states,
-                               promotes=['*'])
-            self._fixed_states.add('initial')
-
-        if any_final:
-            self.add_subsystem('final_balance', final_comp)
-            self._fixed_states.add('final')
+        # fixed_states = IndepVarComp()
+        # final_comp = EqualityConstraintComp()
+        # any_initial = False
+        # any_final = False
+        # for state, opts in iteritems(self.state_options):
+        #     if opts['opt']:
+        #         any_initial = True
+        #         fixed_states.add_output('initial_condition:{0}'.format(state),
+        #                                 shape=opts['shape'],
+        #                                 units=opts['units'])
+        #
+        #         if opts['fix_final']:
+        #             any_final = True
+        #             fixed_states.add_output('final_condition:{0}'.format(state),
+        #                                     shape=opts['shape'],
+        #                                     units=opts['units'])
+        #             final_comp.add_balance('{0}'.format(state),
+        #                                    eq_units=opts['units'])
+        #             self.connect('final_condition:{0}'.format(state),
+        #                          'final_balance.lhs:{0}'.format(state))
+        #             self.connect('states:{0}'.format(state),
+        #                          'final_balance.rhs:{0}'.format(state),
+        #                          src_indices=list(-1-np.arange(np.prod(opts['shape']))))
+        #
+        # if any_initial:
+        #     self.add_subsystem('fixed_states', fixed_states,
+        #                        promotes=['*'])
+        #     self._fixed_states.add('initial')
+        #
+        # if any_final:
+        #     self.add_subsystem('final_balance', final_comp)
+        #     self._fixed_states.add('final')
 
     def _setup_states(self):
         formulation = self.metadata['formulation']
@@ -298,7 +318,7 @@ class GLMPhase(PhaseBase):
         else:
             raise ValueError('Unknown formulation: {}'.format(formulation))
 
-    def get_values(self, var, nodes='all'):
+    def get_values0(self, var, nodes='all'):
         """
         Retrieve the values of the given variable at the given
         subset of nodes.
@@ -393,6 +413,101 @@ class GLMPhase(PhaseBase):
     def _setup_path_constraints(self):
         pass
 
+    def _setup_boundary_constraints(self):
+        """
+        Adds BoundaryConstraintComp if necessary and issues appropriate connections.
+        """
+        transcription = self.metadata['transcription']
+        bc_comp = None
+
+        if self._boundary_constraints:
+            bc_comp = self.add_subsystem('boundary_constraints', subsys=BoundaryConstraintComp())
+
+        for var, options in iteritems(self._boundary_constraints):
+            con_name = options['constraint_name']
+            con_units = options.get('units', None)
+            con_shape = options.get('shape', (1,))
+
+            # Determine the path to the variable which we will be constraining
+            var_type = self._classify_var(var)
+
+            if var_type == 'time':
+                options['shape'] = (1,)
+                options['units'] = self.time_options['units'] if con_units is None else con_units
+                options['linear'] = True
+                constraint_path = 'time'
+            elif var_type == 'state':
+                state_shape = self.state_options[var]['shape']
+                state_units = self.state_options[var]['units']
+                options['shape'] = state_shape if con_shape is None else con_shape
+                options['units'] = state_units if con_units is None else con_units
+                options['linear'] = True
+                constraint_path = 'out_states:{0}'.format(var)
+            elif var_type == 'indep_control':
+                control_shape = self.control_options[var]['shape']
+                control_units = self.control_options[var]['units']
+                options['shape'] = control_shape if con_shape is None else con_shape
+                options['units'] = control_units if con_units is None else con_units
+                options['linear'] = True
+                constraint_path = 'controls:{0}'.format(var)
+            elif var_type == 'input_control':
+                control_shape = self.control_options[var]['shape']
+                control_units = self.control_options[var]['units']
+                options['shape'] = control_shape if con_shape is None else con_shape
+                options['units'] = control_units if con_units is None else con_units
+                options['linear'] = True
+                constraint_path = 'controls:{0}_out'.format(var)
+            elif var_type == 'control_rate':
+                control_var = var[:-5]
+                control_shape = self.control_options[control_var]['shape']
+                control_units = self.control_options[control_var]['units']
+                control_rate_units = get_rate_units(control_units,
+                                                    self.time_options['units'],
+                                                    deriv=1)
+                options['shape'] = control_shape if con_shape is None else con_shape
+                options['units'] = control_rate_units if con_units is None else con_units
+                constraint_path = 'control_rates:{0}'.format(var)
+            elif var_type == 'control_rate2':
+                control_var = var[:-6]
+                control_shape = self.control_options[control_var]['shape']
+                control_units = self.control_options[control_var]['units']
+                control_rate_units = get_rate_units(control_units,
+                                                    self.time_options['units'],
+                                                    deriv=2)
+                options['shape'] = control_shape if con_shape is None else con_shape
+                options['units'] = control_rate_units if con_units is None else con_units
+                constraint_path = 'control_rates:{0}'.format(var)
+            else:
+                # Failed to find variable, assume it is in the RHS
+                if transcription == 'gauss-lobatto':
+                    constraint_path = 'rhs_disc.{0}'.format(var)
+                elif transcription == 'radau-ps':
+                    constraint_path = 'rhs_all.{0}'.format(var)
+                else:
+                    raise ValueError('Invalid transcription')
+
+                options['shape'] = con_shape
+                options['units'] = con_units
+
+            if 'initial' in options:
+                options['initial']['units'] = options['units']
+                bc_comp._add_initial_constraint(con_name,
+                                                **options['initial'])
+            if 'final' in options:
+                options['final']['units'] = options['units']
+                bc_comp._add_final_constraint(con_name,
+                                              **options['final'])
+
+            # Build the correct src_indices regardless of shape
+            size = np.prod(options['shape'])
+            src_idxs_initial = np.arange(size, dtype=int).reshape(options['shape'])
+            src_idxs_final = np.arange(-size, 0, dtype=int).reshape(options['shape'])
+            src_idxs = np.stack((src_idxs_initial, src_idxs_final))
+
+            self.connect(constraint_path,
+                         'boundary_constraints.boundary_values:{0}'.format(con_name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
                       vectorize_derivs=False, simul_coloring=None, simul_map=None):
@@ -441,13 +556,13 @@ class GLMPhase(PhaseBase):
 
         # Determine the path to the variable
         if var_type == 'time':
-            obj_path = 'times'
+            obj_path = 'ozone.times'
         elif var_type == 'state':
-            obj_path = 'state:{0}'.format(name)
+            obj_path = 'ozone.state:{0}'.format(name)
         elif var_type == 'indep_control':
-            obj_path = 'dynamic_parameter:{0}'.format(name)
+            obj_path = 'ozone.dynamic_parameter:{0}'.format(name)
         elif var_type == 'input_control':
-            obj_path = 'dynamic_parameter:{0}'.format(name)
+            obj_path = 'ozone.dynamic_parameter:{0}'.format(name)
         elif var_type == 'control_rate':
             raise NotImplementedError()
             # control_name = name[:-5]

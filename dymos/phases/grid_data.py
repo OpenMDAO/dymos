@@ -10,6 +10,7 @@ from scipy.linalg import block_diag
 from dymos.utils.lg import lg
 from dymos.utils.lgl import lgl
 from dymos.utils.lgr import lgr
+from dymos.utils.glm import glm
 from dymos.utils.hermite import hermite_matrices
 from dymos.utils.lagrange import lagrange_matrices
 
@@ -66,6 +67,34 @@ def radau_pseudospectral_subsets(n):
         'all': np.arange(n),
     }
     return node_indices
+
+
+def glm_subsets(n):
+    """
+    Returns the subset dictionary corresponding to the GLM phase.
+
+    Parameters
+    ----------
+    n : int
+        The total number of nodes in the segment. This is ignored for GLM phases.
+        It is only here for compatibility with the other types of phases.
+
+    Returns
+    -------
+    subsets : A dictionary with the following keys:
+        'disc' gives the indices of the discretization nodes
+        'col' gives the indices of the collocation nodes
+        'all' gives all node indices
+    """
+    n = 2
+
+    subsets = {
+        'disc': np.arange(n),
+        'col': np.arange(n-1),
+        'all': np.arange(n),
+    }
+
+    return subsets
 
 
 class GridData(object):
@@ -200,8 +229,8 @@ class GridData(object):
         elif transcription.lower() == 'glm':
             # This is copied from the 'gauss-lobatto' transcription code just to make it run.
             # GridData is not actually used for the GLMPhase
-            get_subsets = gauss_lobatto_subsets
-            get_points = lgl
+            get_subsets = glm_subsets
+            get_points = glm
         else:
             raise ValueError('Unknown transcription: {0}'.format(transcription))
 
