@@ -26,7 +26,7 @@ class TestExampleMinTimeClimb(unittest.TestCase):
         ex_min_time_climb.SHOW_PLOTS = False
         p = ex_min_time_climb.min_time_climb(optimizer='SLSQP',
                                              num_seg=10,
-                                             transcription_order=[5, 3, 5, 3, 5, 3, 5, 3, 5, 3],
+                                             transcription_order=3,
                                              transcription=transcription,
                                              top_level_jacobian=jacobian)
 
