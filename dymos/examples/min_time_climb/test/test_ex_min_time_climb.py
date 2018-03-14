@@ -13,12 +13,11 @@ import dymos.examples.min_time_climb.ex_min_time_climb as ex_min_time_climb
 SHOW_PLOTS = False
 
 
-@unittest.skip(reason='Skipped until pyoptsparse driver issue is resolved')
 class TestExampleMinTimeClimb(unittest.TestCase):
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['csc', 'dense'],  # jacobian
+                          ['csc'],  # jacobian
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
                                                                           p.args[0],
                                                                           p.args[1]])

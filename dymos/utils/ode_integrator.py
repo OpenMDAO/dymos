@@ -167,36 +167,6 @@ class SimulationResults(object):
 
         return output
 
-    def save_hdf5(self, filename):
-        """
-        Save the data from the explicit simulation to an HDF5 file.
-
-        Parameters
-        ----------
-        filename : str
-            The name of the file in which the data is to be saved.
-        """
-        import h5py
-        f = h5py.File(filename, 'w')
-        grp_outputs = f.create_group('outputs')
-        for prom_name, value in iteritems(self.outputs):
-            grp_outputs.create_dataset(prom_name, data=value['value'])
-        f.close()
-
-    def save_mat(self, filename):
-        """
-        Save the data from the explicit simulation to a matlab-compatible file.
-
-        Parameters
-        ----------
-        filename : str
-            The name of the file in which data is to be saved.
-        """
-        if not self.outputs:
-            raise IOError('SimulationResults contains no data.  No file will be saved.')
-        from scipy.io import savemat
-        savemat(filename, self.outputs)
-
 
 class ControlInterpolationComp(ExplicitComponent):
     """

@@ -10,7 +10,7 @@ import dymos.examples.brachistochrone.ex_brachistochrone as ex_brachistochrone
 
 class TestBrachistochroneExample(unittest.TestCase):
 
-    @parameterized.expand(['gauss-lobatto', 'radau-ps'])
+    # @parameterized.expand(['gauss-lobatto', 'radau-ps'])
     def test_ex_brachistochrone(self, transcription='radau-ps'):
         ex_brachistochrone.SHOW_PLOTS = False
         p = ex_brachistochrone.brachistochrone_min_time(transcription)

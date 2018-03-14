@@ -70,7 +70,13 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
 
     p.run_driver()
 
-    exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'], p['phase0.t_duration'], 50))
+    exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'],
+                                               p['phase0.t_initial']+p['phase0.t_duration'], 50))
+
+    from openmdao.api import CaseReader
+    cr = CaseReader('phase0_sim.db')
+    last_case = cr.system_cases.get_case(-1)
+    print(last_case.outputs['time'])
 
     # Plot results
     if SHOW_PLOTS:
