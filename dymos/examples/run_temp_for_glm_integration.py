@@ -30,10 +30,14 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
     formulation = 'optimizer-based'
     formulation = 'solver-based'
     # formulation = 'time-marching'
+    method_name = 'GaussLegendre6'
+    method_name = 'ImplicitMidpoint'
+    method_name = 'Lobatto4'
     phase = Phase(transcription,
                   ode_class=BrachistochroneODE,
                   num_segments=10, #8,
-                  formulation=formulation)
+                  formulation=formulation,
+                  method_name=method_name)
 
     p.model.add_subsystem('phase0', phase)
 
