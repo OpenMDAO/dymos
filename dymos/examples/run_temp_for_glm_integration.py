@@ -28,7 +28,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
 
     transcription = 'glm'
     formulation = 'optimizer-based'
-    formulation = 'solver-based'
+    # formulation = 'solver-based'
     # formulation = 'time-marching'
     method_name = 'GaussLegendre6'
     method_name = 'ImplicitMidpoint'
@@ -81,8 +81,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
     #     pass
     #
     # p.model.linear_solver = DirectSolver()
-
-    p.setup(mode='fwd', check=True)
 
     p.setup(check=True)
 
