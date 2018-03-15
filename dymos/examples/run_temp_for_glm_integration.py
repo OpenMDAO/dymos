@@ -105,16 +105,23 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
     p.run_driver()
 
     import matplotlib.pyplot as plt
-    plt.subplot(2, 1, 1)
+    plt.subplot(2, 2, 1)
     plt.plot(p['phase0.out_states:x'], p['phase0.out_states:y'])
-    plt.subplot(2, 1, 2)
+    plt.subplot(2, 2, 2)
     plt.plot(p['phase0.controls:theta'])
+    plt.subplot(2, 2, 3)
+    plt.plot(phase.get_values('x'), phase.get_values('y'))
+    plt.subplot(2, 2, 4)
+    plt.plot(phase.get_values('time'), phase.get_values('theta'))
     plt.show()
 
     print(p['phase0.states:x'])
     print(p['phase0.states:y'])
     print(p['phase0.states:v'])
     print(p['phase0.ozone.times'])
+    # print(phase.get_values('time'))
+    # print(phase.get_values('v'))
+    print(phase.get_values('theta'))
     exit()
 
     # ----------------------------------------------------------------------------------------

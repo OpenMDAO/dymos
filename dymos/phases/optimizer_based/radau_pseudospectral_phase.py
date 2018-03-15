@@ -311,7 +311,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                              simul_coloring=simul_coloring,
                                                              simul_map=simul_map)
 
-    def get_values(self, var, nodes='all', units=None):
+    def get_values(self, var, nodes=None, units=None):
         """
         Retrieve the values of the given variable at the given
         subset of nodes.
@@ -323,8 +323,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             the name 'time', the name of a state, control, or parameter,
             or the path to a variable in the ODEFunction of the phase.
         nodes : str
-            The name of a node subset, one of 'disc', 'col', or 'all'.
-            The default is 'all'.
+            The name of the node subset, one of 'disc', 'col', 'None'.
+            This option does not apply to GLMPhase. The default is 'None'.
         units : str
             The units in which the values should be expressed.  Must be compatible
             with the corresponding units inside the phase.

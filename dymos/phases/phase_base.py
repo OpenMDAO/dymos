@@ -1033,7 +1033,7 @@ class PhaseBase(Group):
                            ' by phase {0} as controls, control rates nor'
                            ' parameters: {1}'.format(self.name, unconnected))
 
-    def get_values(self, var, nodes='all'):
+    def get_values(self, var, nodes=None):
         """
         Retrieve the values of the given variable at the given
         subset of nodes.
@@ -1045,8 +1045,8 @@ class PhaseBase(Group):
             the name 'time', the name of a state, control, or parameter,
             or the path to a variable in the ODE system of the phase.
         nodes : str
-            The name of a node subset, one of 'disc', 'col', or 'all'.
-            The default is 'all'.
+            The name of the node subset, one of 'disc', 'col', 'None'.
+            This option does not apply to GLMPhase. The default is 'None'.
 
         Returns
         -------

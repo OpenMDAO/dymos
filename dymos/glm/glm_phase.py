@@ -328,7 +328,7 @@ class GLMPhase(PhaseBase):
         else:
             raise ValueError('Unknown formulation: {}'.format(formulation))
 
-    def get_values0(self, var, nodes='all'):
+    def get_values(self, var, nodes=None):
         """
         Retrieve the values of the given variable at the given
         subset of nodes.
@@ -340,8 +340,8 @@ class GLMPhase(PhaseBase):
             the name 'time', the name of a state, control, or parameter,
             or the path to a variable in the ODEFunction of the phase.
         nodes : str
-            The name of a node subset, one of 'disc', 'col', 'all'.
-            The default is 'all'.
+            The name of the node subset, one of 'disc', 'col', 'None'.
+            This option does not apply to GLMPhase. The default is 'None'.
 
         Returns
         -------
@@ -352,46 +352,57 @@ class GLMPhase(PhaseBase):
         gd = self.grid_data
 
         var_type = self._classify_var(var)
+        print('---', var_type)
+
+        num_segments = self.metadata['num_segments']
 
         if var_type == 'time':
-            output = np.zeros((self.grid_data.num_nodes, 1))
+            output = np.zeros((num_segments + 1, 1))
             time_comp = self.time
-            output[:, 0] = time_comp._outputs[var]
+            output[:-1, 0] = time_comp._outputs[var][::2]
+            output[-1, 0] = time_comp._outputs[var][-1]
 
         elif var_type == 'state':
-            output = np.zeros((gd.num_nodes,) + self.state_options[var]['shape'])
-            state_vals = self._outputs['states:{0}'.format(var)]
+            output = np.zeros((num_segments + 1,) + self.state_options[var]['shape'])
+            state_vals = self._outputs['out_states:{0}'.format(var)]
 
-            output[:, ...] = state_vals[self._node_indices, ...]
+            output[:-1, ...] = state_vals[::2, ...]
+            output[-1, ...] = state_vals[-1, ...]
 
         elif var_type == 'indep_control':
             control_comp = self.indep_controls
             if self.control_options[var]['dynamic']:
-                output = control_comp._outputs['controls:{0}'.format(var)]
+                output = np.zeros((num_segments + 1,) + self.control_options[var]['shape'])
+                output[:-1, ...] = control_comp._outputs['controls:{0}'.format(var)][::2, ...]
+                output[-1, ...] = control_comp._outputs['controls:{0}'.format(var)][-1, ...]
             else:
-                val = control_comp._outputs[var]
-                output = np.repeat(val, gd.num_nodes, axis=0)
+                raise NotImplementedError()
 
         elif var_type == 'input_control':
             parameter_comp = self.input_controls
             if self.control_options[var]['dynamic']:
-                output = parameter_comp._outputs['controls:{0}_out'.format(var)]
+                output = np.zeros((num_segments + 1,) + self.control_options[var]['shape'])
+                output[:-1, ...] = control_comp._outputs['controls:{0}'.format(var)][::2, ...]
+                output[-1, ...] = control_comp._outputs['controls:{0}'.format(var)][-1, ...]
             else:
-                val = parameter_comp._outputs['controls:{0}_out'.format(var)]
-                output = np.repeat(val, gd.num_nodes, axis=0)
+                raise NotImplementedError()
 
         elif var_type == 'control_rate':
             control_rate_comp = self.control_rate_comp
-            output = control_rate_comp._outputs['control_rates:{0}_rate'.format(var)]
+            output = np.zeros((num_segments + 1,) + self.control_options[var]['shape'])
+            output[:-1, ...] = control_rate_comp._outputs['control_rates:{0}_rate'.format(var)][::2, ...]
+            output[-1, ...] = control_rate_comp._outputs['control_rates:{0}_rate'.format(var)][-1, ...]
 
         elif var_type == 'parameter_rate':
             control_rate_comp = self.control_rate_comp
-            output = control_rate_comp._outputs['parameter_rates:{0}_rate'.format(var)]
+            output = np.zeros((num_segments + 1,) + self.control_options[var]['shape'])
+            output[:-1, ...] = control_rate_comp._outputs['parameter_rates:{0}_rate'.format(var)][::2, ...]
+            output[-1, ...] = control_rate_comp._outputs['parameter_rates:{0}_rate'.format(var)][-1, ...]
 
         elif var_type == 'rhs':
             raise NotImplementedError()
 
-        return output[gd.subset_node_indices[nodes]]
+        return output
 
     def _to_ozone_ode(self, ode_options):
         """
