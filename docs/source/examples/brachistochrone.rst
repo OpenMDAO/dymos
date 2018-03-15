@@ -30,8 +30,6 @@ Here, we use the 6th order Gauss--Legendre collocation method with 20 time steps
 
 Here, our ODE function is defined by a single OpenMDAO system, an :code:`ExplicitComponent`.
 
----
-
 
 2. Defining the ODE function class
 ----------------------------------

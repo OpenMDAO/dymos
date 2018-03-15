@@ -7,7 +7,7 @@ from six import iteritems, string_types
 import numpy as np
 from scipy.integrate import ode
 
-from openmdao.api import Problem, Group, IndepVarComp, ExplicitComponent
+from openmdao.api import Problem, Group, IndepVarComp, ExplicitComponent, AnalysisError
 from openmdao.utils.units import convert_units, valid_units
 
 from ..utils.misc import get_rate_units
@@ -159,43 +159,13 @@ class SimulationResults(object):
             output_path = 'control_rates:{0}'.format(var)
 
         else:
-            output_path = 'f_rhs.{0}'.format(var)
+            output_path = 'ode.{0}'.format(var)
 
         output = convert_units(self.outputs[output_path]['value'],
                                self.outputs[output_path]['units'],
                                units)
 
         return output
-
-    def save_hdf5(self, filename):
-        """
-        Save the data from the explicit simulation to an HDF5 file.
-
-        Parameters
-        ----------
-        filename : str
-            The name of the file in which the data is to be saved.
-        """
-        import h5py
-        f = h5py.File(filename, 'w')
-        grp_outputs = f.create_group('outputs')
-        for prom_name, value in iteritems(self.outputs):
-            grp_outputs.create_dataset(prom_name, data=value['value'])
-        f.close()
-
-    def save_mat(self, filename):
-        """
-        Save the data from the explicit simulation to a matlab-compatible file.
-
-        Parameters
-        ----------
-        filename : str
-            The name of the file in which data is to be saved.
-        """
-        if not self.outputs:
-            raise IOError('SimulationResults contains no data.  No file will be saved.')
-        from scipy.io import savemat
-        savemat(filename, self.outputs)
 
 
 class ControlInterpolationComp(ExplicitComponent):
@@ -312,9 +282,8 @@ class ODEIntegrator(object):
 
         self.ode = ode
 
-        # The RHS Group
-        ode_model = self.prob.model.add_subsystem('f_rhs',
-                                                  subsys=ode_class(num_nodes=1, **ode_init_kwargs))
+        # The ODE System
+        self.prob.model.add_subsystem('ode', subsys=ode_class(num_nodes=1, **ode_init_kwargs))
         self.ode_options = ode_class.ode_options
 
         # Get the state vector.  This isn't necessarily ordered
@@ -346,7 +315,7 @@ class ODEIntegrator(object):
 
         if self.ode_options._time_options['targets'] is not None:
             self.prob.model.connect('time',
-                                    ['f_rhs.{0}'.format(tgt) for tgt in
+                                    ['ode.{0}'.format(tgt) for tgt in
                                      self.ode_options._time_options['targets']])
 
         # The States Comp
@@ -357,8 +326,8 @@ class ODEIntegrator(object):
                              units=options['units'])
             if options['targets'] is not None:
                 self.prob.model.connect('states:{0}'.format(name),
-                                        ['f_rhs.{0}'.format(tgt) for tgt in options['targets']])
-            self.prob.model.connect('f_rhs.{0}'.format(options['rate_source']),
+                                        ['ode.{0}'.format(tgt) for tgt in options['targets']])
+            self.prob.model.connect('ode.{0}'.format(options['rate_source']),
                                     'state_rate_collector.state_rates_in:{0}_rate'.format(name))
 
         self.prob.model.add_subsystem('indep_states', subsys=indep,
@@ -392,7 +361,7 @@ class ODEIntegrator(object):
         if self.control_options:
             model.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])
 
-            model.set_order(['time_input', 'indep_states', 'indep_controls', 'f_rhs',
+            model.set_order(['time_input', 'indep_states', 'indep_controls', 'ode',
                              'state_rate_collector'])
             model.connect('time', ['indep_controls.time'])
 
@@ -400,19 +369,19 @@ class ODEIntegrator(object):
                 if name in self.ode_options._dynamic_parameters:
                     targets = self.ode_options._dynamic_parameters[name]['targets']
                     model.connect('controls:{0}'.format(name),
-                                  ['f_rhs.{0}'.format(tgt) for tgt in targets])
+                                  ['ode.{0}'.format(tgt) for tgt in targets])
                 if options['rate_param']:
                     rate_param = options['rate_param']
                     rate_targets = self.ode_options._dynamic_parameters[rate_param]['targets']
                     model.connect('control_rates:{0}_rate'.format(name),
-                                  ['f_rhs.{0}'.format(tgt) for tgt in rate_targets])
+                                  ['ode.{0}'.format(tgt) for tgt in rate_targets])
                 if options['rate2_param']:
                     rate2_param = options['rate2_param']
                     rate2_targets = self.ode_options._dynamic_parameters[rate2_param]['targets']
                     model.connect('control_rates:{0}_rate2'.format(name),
-                                  ['f_rhs.{0}'.format(tgt) for tgt in rate2_targets])
+                                  ['ode.{0}'.format(tgt) for tgt in rate2_targets])
         else:
-            model.set_order(['time_input', 'indep_states', 'f_rhs', 'state_rate_collector'])
+            model.set_order(['time_input', 'indep_states', 'ode', 'state_rate_collector'])
 
         self.prob.setup(check=check, mode=mode)
 
@@ -582,10 +551,14 @@ class ODEIntegrator(object):
         if _observer:
             _observer(solver.t, solver.y, self.prob)
 
+        terminate = False
         for dt in delta_times:
-            solver.integrate(solver.t+dt)
 
-            self._f_ode(solver.t, solver.y)
+            try:
+                solver.integrate(solver.t+dt)
+                self._f_ode(solver.t, solver.y)
+            except AnalysisError:
+                terminate = True
 
             for var in results.outputs:
                 results.outputs[var]['value'] = np.concatenate((results.outputs[var]['value'],
@@ -593,5 +566,8 @@ class ODEIntegrator(object):
                                                                axis=0)
             if _observer:
                 _observer(solver.t, solver.y, self.prob)
+
+            if terminate:
+                break
 
         return results
