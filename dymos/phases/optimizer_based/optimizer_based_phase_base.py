@@ -36,7 +36,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
         A dictionary of the default options for controllable inputs of the Phase RHS
 
     """
-
     def simulate(self, times='all', integrator='vode', integrator_params=None,
                  observer=None, direction='forward', record_file=None, record=True):
         """
@@ -201,35 +200,45 @@ class OptimizerBasedPhaseBase(PhaseBase):
             p.model.add_subsystem('ode', subsys=ode_sys)
 
             # Connect times
-            ivc.add_output('time', val=np.zeros(nn))
-            self.connect('time', ['ode.{0}'.format(t) for t in self.time_options['targets']])
+            ivc.add_output('time', val=np.zeros(nn), units=self.time_options['units'])
+            p.model.connect('time', ['ode.{0}'.format(t) for t in self.time_options['targets']])
 
             # Connect states
             for name, options in iteritems(self.state_options):
                 ivc.add_output('states:{0}'.format(name),
                                val=np.zeros((nn,)+options['shape']), units=options['units'])
-                self.connect(name, ['ode.{0}'.format(t) for t in options['targets']])
+                p.model.connect('states:{0}'.format(name),
+                                ['ode.{0}'.format(t) for t in options['targets']])
 
             # Connect controls
-            sys_dynamic_parameter_options = ode_sys.ode_options._dynamic_parameters
+            sys_param_options = ode_sys.ode_options._dynamic_parameters
             for name, options in iteritems(self.control_options):
+                units = options['units']
                 ivc.add_output('controls:{0}'.format(name),
-                               val=np.zeros((nn,)+options['shape']), units=options['units'])
-                self.connect(name, ['ode.{0}'.format(t) for t in options['targets']])
+                               val=np.zeros((nn,)+options['shape']), units=units)
+                p.model.connect('controls:{0}'.format(name),
+                                ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
+                                src_indices=np.arange(nn, dtype=int))
                 if options['rate_param']:
-                    rate_targets = sys_dynamic_parameter_options[options['rate_param']]['targets']
+                    rate_targets = sys_param_options[options['rate_param']]['targets']
+                    rate_units = get_rate_units(units, self.time_options['units'], deriv=1)
                     ivc.add_output('control_rates:{0}_rate'.format(name),
                                    val=np.zeros((nn,)+options['shape']),
-                                   units=options['units'])
-                    self.connect(name, ['ode.{0}'.format(t) for t in rate_targets])
+                                   units=rate_units)
+                    p.model.connect('control_rates:{0}_rate'.format(name),
+                                    ['ode.{0}'.format(t) for t in rate_targets],
+                                    src_indices=np.arange(nn, dtype=int))
                 if options['rate2_param']:
-                    rate2_targets = sys_dynamic_parameter_options[options['rate2_param']]['targets']
+                    rate2_targets = sys_param_options[options['rate2_param']]['targets']
+                    rate2_units = get_rate_units(units, self.time_options['units'], deriv=2)
                     ivc.add_output('control_rates:{0}_rate2'.format(name),
                                    val=np.zeros((nn,)+options['shape']),
-                                   units=options['units'])
-                    self.connect(name, ['ode.{0}'.format(t) for t in rate2_targets])
+                                   units=rate2_units)
+                    p.model.connect('control_rates:{0}_rate2'.format(name),
+                                    ['ode.{0}'.format(t) for t in rate2_targets],
+                                    src_indices=np.arange(nn, dtype=int))
 
-            p.setup()
+            p.setup(check=True)
 
             p.model.add_recorder(SqliteRecorder(_record_file))
 
@@ -242,21 +251,22 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
             # Assign controls
             for name, options in iteritems(self.control_options):
-                p['controls:{0}'.format(name)] = exp_out.get_values(name)
+                values = exp_out.get_values(name)
+                shape = p['controls:{0}'.format(name)].shape
+                print(name, shape)
+                p['controls:{0}'.format(name)] = np.reshape(exp_out.get_values(name), shape)
                 if options['rate_param']:
                     p['control_rates:{0}_rate'.format(name)] = \
-                        exp_out.get_values('{0}_rate'.format(name))
+                        np.reshape(exp_out.get_values('{0}_rate'.format(name)), shape)
                 if options['rate2_param']:
                     p['control_rates:{0}_rate2'.format(name)] = \
-                        exp_out.get_values('{0}_rate2'.format(name))
+                        np.reshape(exp_out.get_values('{0}_rate2'.format(name)), shape)
 
             # Populate outputs of ODE
-            for out_var in exp_out.outputs:
-                if out_var.startswith('ode.'):
-                    rel_path = out_var[4:]
-                    var_shape = p[out_var].shape
-                    p[out_var] = np.reshape(exp_out.get_values(rel_path), var_shape)
-
+            # prom2abs_ode_outputs = p.model.ode._var_allprocs_prom2abs_list['output']
+            # for prom_name, abs_name in iteritems(prom2abs_ode_outputs):
+            #     print(abs_name[0], p[abs_name[0]].shape)
+            #     p[abs_name[0]] = np.reshape(exp_out.get_values(prom_name), p[abs_name[0]].shape)
             p.run_model()
 
         return exp_out
