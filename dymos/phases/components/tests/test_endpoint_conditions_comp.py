@@ -201,5 +201,5 @@ class TestEndpointConditionComp(unittest.TestCase):
             for (var, wrt) in cpd[comp]:
                 assert_almost_equal(cpd[comp][var, wrt]['abs error'], 0.0, decimal=7)
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     unittest.main()

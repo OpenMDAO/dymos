@@ -83,5 +83,5 @@ class TestODEOptions(unittest.TestCase):
         self.assertEqual(B.ode_options._static_parameters['g']['units'], 'm/s**2')
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     unittest.main()

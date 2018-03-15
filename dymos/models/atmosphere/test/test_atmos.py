@@ -68,5 +68,5 @@ class TestAtmosphere(unittest.TestCase):
         assert_rel_error(self, p['atmos.rho'], reference[:, 3], tolerance=1.0E-2)
         assert_rel_error(self, p['atmos.sos'], reference[:, 4], tolerance=1.0E-2)
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     unittest.main()

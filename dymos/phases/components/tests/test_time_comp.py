@@ -130,5 +130,5 @@ class TestTimeComp(unittest.TestCase):
         assert_almost_equal(p['time.dt_dstau'], dt_dstau_per_node)
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     unittest.main()

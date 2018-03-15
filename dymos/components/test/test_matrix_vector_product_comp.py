@@ -149,5 +149,5 @@ class TestForDocs(unittest.TestCase):
             # np.testing.assert_almost_equal(b_i, expected_i)
             assert_rel_error(self, b_i, expected_i, 1e-5)
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     unittest.main()

@@ -51,5 +51,5 @@ class TestPep8(unittest.TestCase):
         self.assertEqual(report.total_errors, 0, msg='Found pep8 errors')
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     unittest.main()
