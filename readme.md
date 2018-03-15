@@ -1,5 +1,5 @@
-Dymos:  Open Source Optimization of Dynamic Multidiscplinary Systems
-====================================================================
+Dymos:  Open Source Optimization of Dynamic Multidisciplinary Systems
+=====================================================================
 
 [![Build Status](https://travis-ci.com/OpenMDAO/dymos.svg?token=tUBGTjUY1qBbh4Htx3Sr&branch=master)](https://travis-ci.com/OpenMDAO/dymos)
 

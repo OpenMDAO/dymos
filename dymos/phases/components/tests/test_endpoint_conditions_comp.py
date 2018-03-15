@@ -122,7 +122,6 @@ class TestEndpointConditionComp(unittest.TestCase):
             for (var, wrt) in cpd[comp]:
                 assert_almost_equal(cpd[comp][var, wrt]['abs error'], 0.0, decimal=7)
 
-    # @unittest.skip('Known failure until bug in derivs is fixed')
     def test_vector_state(self):
         n = 101
 

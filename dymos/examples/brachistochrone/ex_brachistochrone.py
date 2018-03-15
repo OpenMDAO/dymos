@@ -70,7 +70,13 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
 
     p.run_driver()
 
-    exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'], p['phase0.t_duration'], 50))
+    exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'],
+                                               p['phase0.t_initial']+p['phase0.t_duration'], 50))
+
+    from openmdao.api import CaseReader
+    cr = CaseReader('phase0_sim.db')
+    last_case = cr.system_cases.get_case(-1)
+    print(last_case.outputs['time'])
 
     # Plot results
     if SHOW_PLOTS:
@@ -111,51 +117,3 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
         plt.show()
 
     return p
-
-
-if __name__ == '__main__':
-    from six import iteritems
-    prob = brachistochrone_min_time()
-
-    phase = prob.model.phase0
-
-    subsystems_ordered = phase._subsystems_allprocs
-    print([sys.name for sys in subsystems_ordered])
-
-    input_srcs = phase._conn_global_abs_in2out
-
-    connections = {}
-
-    for tgt, src in iteritems(input_srcs):
-        if src is None:
-            continue
-        src_rel = src.replace('phase0.', '')
-        if src_rel in connections:
-            connections[src_rel].append(tgt.replace('phase0.', ''))
-        else:
-            connections[src_rel] = [tgt.replace('phase0.', '')]
-
-    # connections = {
-    #     tgt: src for tgt, src in iteritems(input_srcs) if src is not None
-    # }
-
-    print(connections)
-
-    from pyxdsm.XDSM import XDSM
-
-    opt = 'Optimization'
-    solver = 'MDA'
-    comp = 'Analysis'
-    group = 'Metamodel'
-    func = 'Function'
-
-    x = XDSM()
-
-    for system in subsystems_ordered:
-        x.add_system(system.name, comp, r'{0}'.format(system.name.replace('_', ' ')))
-
-    for src, tgts in iteritems(connections):
-        for tgt in tgts:
-            x.connect(src.split('.')[0], tgt.split('.')[0], 'x')
-
-    x.write('brach_xdsm', build=True)

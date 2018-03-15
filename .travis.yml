@@ -35,7 +35,7 @@ before_install:
 - source activate test_env
 - pip install --upgrade pip
 - pip install numpy==1.14.1
-- pip install scipy==0.19.0
+- pip install scipy==1.0.0
 - pip install matplotlib
 - pip install nose
 - pip install mock
