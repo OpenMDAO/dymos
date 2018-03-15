@@ -159,7 +159,7 @@ class SimulationResults(object):
             output_path = 'control_rates:{0}'.format(var)
 
         else:
-            output_path = 'f_rhs.{0}'.format(var)
+            output_path = 'ode.{0}'.format(var)
 
         output = convert_units(self.outputs[output_path]['value'],
                                self.outputs[output_path]['units'],
@@ -282,9 +282,8 @@ class ODEIntegrator(object):
 
         self.ode = ode
 
-        # The RHS Group
-        ode_model = self.prob.model.add_subsystem('f_rhs',
-                                                  subsys=ode_class(num_nodes=1, **ode_init_kwargs))
+        # The ODE System
+        self.prob.model.add_subsystem('ode', subsys=ode_class(num_nodes=1, **ode_init_kwargs))
         self.ode_options = ode_class.ode_options
 
         # Get the state vector.  This isn't necessarily ordered
@@ -316,7 +315,7 @@ class ODEIntegrator(object):
 
         if self.ode_options._time_options['targets'] is not None:
             self.prob.model.connect('time',
-                                    ['f_rhs.{0}'.format(tgt) for tgt in
+                                    ['ode.{0}'.format(tgt) for tgt in
                                      self.ode_options._time_options['targets']])
 
         # The States Comp
@@ -327,8 +326,8 @@ class ODEIntegrator(object):
                              units=options['units'])
             if options['targets'] is not None:
                 self.prob.model.connect('states:{0}'.format(name),
-                                        ['f_rhs.{0}'.format(tgt) for tgt in options['targets']])
-            self.prob.model.connect('f_rhs.{0}'.format(options['rate_source']),
+                                        ['ode.{0}'.format(tgt) for tgt in options['targets']])
+            self.prob.model.connect('ode.{0}'.format(options['rate_source']),
                                     'state_rate_collector.state_rates_in:{0}_rate'.format(name))
 
         self.prob.model.add_subsystem('indep_states', subsys=indep,
@@ -362,7 +361,7 @@ class ODEIntegrator(object):
         if self.control_options:
             model.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])
 
-            model.set_order(['time_input', 'indep_states', 'indep_controls', 'f_rhs',
+            model.set_order(['time_input', 'indep_states', 'indep_controls', 'ode',
                              'state_rate_collector'])
             model.connect('time', ['indep_controls.time'])
 
@@ -370,19 +369,19 @@ class ODEIntegrator(object):
                 if name in self.ode_options._dynamic_parameters:
                     targets = self.ode_options._dynamic_parameters[name]['targets']
                     model.connect('controls:{0}'.format(name),
-                                  ['f_rhs.{0}'.format(tgt) for tgt in targets])
+                                  ['ode.{0}'.format(tgt) for tgt in targets])
                 if options['rate_param']:
                     rate_param = options['rate_param']
                     rate_targets = self.ode_options._dynamic_parameters[rate_param]['targets']
                     model.connect('control_rates:{0}_rate'.format(name),
-                                  ['f_rhs.{0}'.format(tgt) for tgt in rate_targets])
+                                  ['ode.{0}'.format(tgt) for tgt in rate_targets])
                 if options['rate2_param']:
                     rate2_param = options['rate2_param']
                     rate2_targets = self.ode_options._dynamic_parameters[rate2_param]['targets']
                     model.connect('control_rates:{0}_rate2'.format(name),
-                                  ['f_rhs.{0}'.format(tgt) for tgt in rate2_targets])
+                                  ['ode.{0}'.format(tgt) for tgt in rate2_targets])
         else:
-            model.set_order(['time_input', 'indep_states', 'f_rhs', 'state_rate_collector'])
+            model.set_order(['time_input', 'indep_states', 'ode', 'state_rate_collector'])
 
         self.prob.setup(check=check, mode=mode)
 

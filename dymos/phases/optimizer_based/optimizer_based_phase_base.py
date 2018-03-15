@@ -211,18 +211,19 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 self.connect(name, ['ode.{0}'.format(t) for t in options['targets']])
 
             # Connect controls
+            sys_dynamic_parameter_options = ode_sys.ode_options._dynamic_parameters
             for name, options in iteritems(self.control_options):
                 ivc.add_output('controls:{0}'.format(name),
                                val=np.zeros((nn,)+options['shape']), units=options['units'])
                 self.connect(name, ['ode.{0}'.format(t) for t in options['targets']])
                 if options['rate_param']:
-                    rate_targets = ode_sys.ode_options._dynamic_parameters[options['rate_param']]
+                    rate_targets = sys_dynamic_parameter_options[options['rate_param']]['targets']
                     ivc.add_output('control_rates:{0}_rate'.format(name),
                                    val=np.zeros((nn,)+options['shape']),
                                    units=options['units'])
                     self.connect(name, ['ode.{0}'.format(t) for t in rate_targets])
                 if options['rate2_param']:
-                    rate2_targets = ode_sys.ode_options._dynamic_parameters[options['rate2_param']]
+                    rate2_targets = sys_dynamic_parameter_options[options['rate2_param']]['targets']
                     ivc.add_output('control_rates:{0}_rate2'.format(name),
                                    val=np.zeros((nn,)+options['shape']),
                                    units=options['units'])
@@ -248,6 +249,13 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 if options['rate2_param']:
                     p['control_rates:{0}_rate2'.format(name)] = \
                         exp_out.get_values('{0}_rate2'.format(name))
+
+            # Populate outputs of ODE
+            for out_var in exp_out.outputs:
+                if out_var.startswith('ode.'):
+                    rel_path = out_var[4:]
+                    var_shape = p[out_var].shape
+                    p[out_var] = np.reshape(exp_out.get_values(rel_path), var_shape)
 
             p.run_model()
 
