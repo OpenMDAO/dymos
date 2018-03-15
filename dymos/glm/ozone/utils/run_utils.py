@@ -3,7 +3,7 @@ import time
 
 from openmdao.api import Problem, ScipyOptimizeDriver, IndepVarComp
 
-from dymos.glm.ozone.api import ODEIntegrator
+from dymos.glm.ozone.ode_integrator import ODEIntegrator
 from dymos.glm.ozone.utils.suppress_printing import nostdout
 from dymos.glm.ozone.methods_list import get_method
 

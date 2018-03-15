@@ -26,7 +26,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
     else:
         p.driver = ScipyOptimizeDriver()
 
-    transcription = 'glm'
     phase = Phase(transcription,
                   ode_class=BrachistochroneODE,
                   num_segments=8,
@@ -141,7 +140,6 @@ if __name__ == '__main__':
     # }
 
     print(connections)
-    exit()
 
     from pyxdsm.XDSM import XDSM
 

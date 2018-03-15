@@ -5,7 +5,7 @@ from six import iteritems
 import matplotlib
 matplotlib.use('Agg')
 
-from dymos.glm.ozone.api import ODEIntegrator
+from dymos.glm.ozone.ode_integrator import ODEIntegrator
 from dymos.glm.ozone.utils.run_utils import run_integration
 
 
