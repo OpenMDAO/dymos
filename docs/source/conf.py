@@ -42,7 +42,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.viewcode',
               'sphinx.ext.githubpages', #,
               #'numpydoc',
-              #'embed_code',
+              'embed_code',
               'embed_options']
               #'embed_compare',
               #'embed_shell_cmd',

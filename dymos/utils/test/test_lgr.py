@@ -56,3 +56,7 @@ class TestLGR(unittest.TestCase):
         x_5, w_5 = lgr(5, include_endpoint=True)
         assert_almost_equal(x_5, x_i[5] + [1], decimal=6)
         assert_almost_equal(w_5, w_i[5] + [0], decimal=6)
+
+
+if __name__ == "__main__": 
+    unittest.main()

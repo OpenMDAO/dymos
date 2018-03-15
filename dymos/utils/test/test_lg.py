@@ -39,3 +39,7 @@ class TestLG(unittest.TestCase):
         x_5, w_5 = lg(5)
         assert_almost_equal(x_5, x_i[5], decimal=6)
         assert_almost_equal(w_5, w_i[5], decimal=6)
+
+
+if __name__ == "__main__": 
+    unittest.main()
