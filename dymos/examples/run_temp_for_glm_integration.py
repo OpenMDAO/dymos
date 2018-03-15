@@ -22,7 +22,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
         p.driver.options['optimizer'] = OPTIMIZER
         p.driver.opt_settings['Major iterations limit'] = 100
         p.driver.opt_settings['iSumm'] = 6
-        p.driver.opt_settings['Verify level'] = 3
+        # p.driver.opt_settings['Verify level'] = 3
     else:
         p.driver = ScipyOptimizeDriver()
 
@@ -83,6 +83,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
     # p.model.linear_solver = DirectSolver()
 
     p.setup(check=True)
+
+    p.set_solver_print(level=-1)
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 2.0

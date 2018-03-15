@@ -30,7 +30,8 @@ class GLMPhase(PhaseBase):
         # Optional metadata
 
         self.metadata.declare(
-            'formulation', default='solver-based', values=['optimizer-based', 'solver-based', 'time-marching'],
+            'formulation', default='solver-based',
+            values=['optimizer-based', 'solver-based', 'time-marching'],
             desc='Formulation for solving the ODE.')
 
         self.metadata.declare(
@@ -163,6 +164,8 @@ class GLMPhase(PhaseBase):
         self._norm_times = np.zeros(2 * self.metadata['num_segments'])
         self._norm_times[0::2] = grid_data.segment_ends[:-1]
         self._norm_times[1::2] = grid_data.segment_ends[1:]
+        self._norm_times = (self._norm_times - self._norm_times[0]) \
+            / (self._norm_times[-1] - self._norm_times[0])
 
         self._segment_times = segment_times = []
         for iseg1, iseg2 in grid_data.segment_indices:
@@ -196,15 +199,17 @@ class GLMPhase(PhaseBase):
 
         self.add_subsystem(
             'ozone', ode_int,
-            promotes_outputs=\
-                [('IC_state:{0}'.format(state), 'states:{0}'.format(state))
-                for state in self.state_options] +
-                [('state:{0}'.format(state), 'out_states:{0}'.format(state))
-                for state in self.state_options] +
-                [],
-            promotes_inputs=\
-                ['initial_condition:{0}'.format(state)
-                for state in self.state_options],
+            promotes_outputs=[
+                ('IC_state:{0}'.format(state), 'states:{0}'.format(state))
+                for state in self.state_options
+            ] + [
+                ('state:{0}'.format(state), 'out_states:{0}'.format(state))
+                for state in self.state_options
+            ],
+            promotes_inputs=[
+                'initial_condition:{0}'.format(state)
+                for state in self.state_options
+            ],
         )
 
         # fixed_states = IndepVarComp()
@@ -266,15 +271,17 @@ class GLMPhase(PhaseBase):
 
         self.add_subsystem(
             'ozone', ode_int,
-            promotes_outputs=\
-                [('IC_state:{0}'.format(state), 'states:{0}'.format(state))
-                for state in self.state_options] +
-                [('state:{0}'.format(state), 'out_states:{0}'.format(state))
-                for state in self.state_options] +
-                [],
-            promotes_inputs=\
-                ['initial_condition:{0}'.format(state)
-                for state in self.state_options])
+            promotes_outputs=[
+                ('IC_state:{0}'.format(state), 'states:{0}'.format(state))
+                for state in self.state_options
+            ] + [
+                ('state:{0}'.format(state), 'out_states:{0}'.format(state))
+                for state in self.state_options
+            ],
+            promotes_inputs=[
+                'initial_condition:{0}'.format(state)
+                for state in self.state_options
+            ])
 
         self.nonlinear_solver = NonlinearBlockGS(iprint=2, maxiter=40, atol=1e-14, rtol=1e-12)
         # self.linear_solver = LinearBlockGS(iprint=2, maxiter=40, atol=1e-14, rtol=1e-12)
