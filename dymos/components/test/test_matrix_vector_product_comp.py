@@ -5,6 +5,7 @@ import unittest
 import numpy as np
 
 from openmdao.api import Problem, Group, IndepVarComp
+from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos.components import MatrixVectorProductComp
 
@@ -145,4 +146,8 @@ class TestForDocs(unittest.TestCase):
             b_i = p['mat_vec_product_comp.b'][i, :]
 
             expected_i = np.dot(A_i, x_i)
-            np.testing.assert_almost_equal(b_i, expected_i)
+            # np.testing.assert_almost_equal(b_i, expected_i)
+            assert_rel_error(self, b_i, expected_i, 1e-5)
+
+if __name__ == "__main__":
+    unittest.main()
