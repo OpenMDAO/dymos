@@ -251,9 +251,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
             # Assign controls
             for name, options in iteritems(self.control_options):
-                values = exp_out.get_values(name)
                 shape = p['controls:{0}'.format(name)].shape
-                print(name, shape)
                 p['controls:{0}'.format(name)] = np.reshape(exp_out.get_values(name), shape)
                 if options['rate_param']:
                     p['control_rates:{0}_rate'.format(name)] = \
@@ -263,10 +261,9 @@ class OptimizerBasedPhaseBase(PhaseBase):
                         np.reshape(exp_out.get_values('{0}_rate2'.format(name)), shape)
 
             # Populate outputs of ODE
-            # prom2abs_ode_outputs = p.model.ode._var_allprocs_prom2abs_list['output']
-            # for prom_name, abs_name in iteritems(prom2abs_ode_outputs):
-            #     print(abs_name[0], p[abs_name[0]].shape)
-            #     p[abs_name[0]] = np.reshape(exp_out.get_values(prom_name), p[abs_name[0]].shape)
+            prom2abs_ode_outputs = p.model.ode._var_allprocs_prom2abs_list['output']
+            for prom_name, abs_name in iteritems(prom2abs_ode_outputs):
+                p[abs_name[0]] = np.reshape(exp_out.get_values(prom_name), p[abs_name[0]].shape)
             p.run_model()
 
         return exp_out
