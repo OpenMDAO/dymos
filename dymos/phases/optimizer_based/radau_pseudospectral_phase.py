@@ -335,6 +335,9 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             An array of the values at the requested node subset.  The
             node index is the first dimension of the ndarray.
         """
+        if nodes is None:
+            nodes = 'all'
+
         gd = self.grid_data
 
         var_type = self._classify_var(var)

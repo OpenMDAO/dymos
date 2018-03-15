@@ -1082,6 +1082,12 @@ class PhaseBase(Group):
         np.array
             The values of y interpolated at nodes of the specified type.
         """
+        if self.metadata['transcription'] == 'glm' and nodes is not None:
+            raise ValueError('With GLMPhase, nodes=None is the only valid option.')
+
+        if nodes is None:
+            nodes = 'all'
+
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
         if nodes not in ('col', 'disc', 'all'):

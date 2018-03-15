@@ -47,17 +47,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
         phase.set_state_options('x', fix_initial=True, fix_final=True)
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True)
-    elif 1:
+    else:
         phase.add_boundary_constraint('x', loc='initial', equals=0.)
         phase.add_boundary_constraint('x', loc='final', equals=10.)
         phase.add_boundary_constraint('y', loc='initial', equals=10.)
         phase.add_boundary_constraint('y', loc='final', equals=5.)
-        phase.add_boundary_constraint('v', loc='initial', equals=0.)
-    else:
-        phase.add_boundary_constraint('x', loc='initial', equals=0.)
-        phase.add_boundary_constraint('x', loc='final', equals=2.)
-        phase.add_boundary_constraint('y', loc='initial', equals=0.)
-        phase.add_boundary_constraint('y', loc='final', equals=-2.)
         phase.add_boundary_constraint('v', loc='initial', equals=0.)
 
     phase.add_control('theta', units='deg', dynamic=True,
@@ -68,20 +62,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', scaler=10)
 
-    # top_level_jacobian = 'dense'
-    # # top_level_jacobian = 'csc'
-    # top_level_jacobian = 'default'
-    # if top_level_jacobian.lower() == 'csc':
-    #     p.model.jacobian = CSCJacobian()
-    # elif top_level_jacobian.lower() == 'dense':
-    #     p.model.jacobian = DenseJacobian()
-    # elif top_level_jacobian.lower() == 'csr':
-    #     p.model.jacobian = CSRJacobian()
-    # else:
-    #     pass
-    #
-    # p.model.linear_solver = DirectSolver()
-
     p.setup(check=True)
 
     p.set_solver_print(level=-1)
@@ -89,16 +69,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 2.0
 
-    if 1:
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='all')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='all')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='all')
-    else:
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 2], nodes='all')
-        p['phase0.states:y'] = phase.interpolate(ys=[0, -2], nodes='all')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 2], nodes='all')
+    p['phase0.states:x'] = phase.interpolate(ys=[0, 10])
+    p['phase0.states:y'] = phase.interpolate(ys=[10, 5])
+    p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9])
 
-    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='all')
+    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5])
 
     p.run_model()
 

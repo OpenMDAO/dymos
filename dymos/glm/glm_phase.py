@@ -349,6 +349,9 @@ class GLMPhase(PhaseBase):
             An array of the values at the requested node subset.  The
             node index is the first dimension of the ndarray.
         """
+        if nodes is not None:
+            raise ValueError('With GLMPhase, nodes=None is the only valid option.')
+
         gd = self.grid_data
 
         var_type = self._classify_var(var)

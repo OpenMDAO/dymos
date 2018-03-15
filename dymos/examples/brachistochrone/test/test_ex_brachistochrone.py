@@ -4,17 +4,14 @@ import unittest
 from numpy.testing import assert_almost_equal
 
 from parameterized import parameterized
+from itertools import product
 
 import dymos.examples.brachistochrone.ex_brachistochrone as ex_brachistochrone
 
 
 class TestBrachistochroneExample(unittest.TestCase):
 
-    # @parameterized.expand(['gauss-lobatto', 'radau-ps'])
-    def test_ex_brachistochrone(self, transcription='radau-ps'):
-        ex_brachistochrone.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription)
-
+    def run_asserts(self, p, transcription):
         t_initial = p.model.phase0.get_values('time')[0]
         tf = p.model.phase0.get_values('time')[-1]
 
@@ -40,4 +37,24 @@ class TestBrachistochroneExample(unittest.TestCase):
         assert_almost_equal(vf, 9.902, decimal=3)
 
         if transcription != 'radau-ps':
-            assert_almost_equal(thetaf, 100.12, decimal=1)
+            assert_almost_equal(thetaf, 100.12, decimal=0)
+
+    @parameterized.expand(['gauss-lobatto', 'radau-ps'])
+    def test_ex_brachistochrone(self, transcription='radau-ps'):
+        ex_brachistochrone.SHOW_PLOTS = False
+        p = ex_brachistochrone.brachistochrone_min_time(transcription=transcription)
+        self.run_asserts(p, transcription)
+
+    @parameterized.expand(product(
+        ['optimizer-based', 'solver-based', 'time-marching'],
+        ['RK4'],
+    ))
+    def test_ex_brachistochrone_glm(self, glm_formulation='solver-based', glm_integrator='RK4'):
+        transcription = 'glm'
+        ex_brachistochrone.OPTIMIZER = 'SNOPT'
+        ex_brachistochrone.SHOW_PLOTS = False
+        p = ex_brachistochrone.brachistochrone_min_time(
+            transcription='glm',
+            glm_formulation=glm_formulation, glm_integrator=glm_integrator,
+        )
+        self.run_asserts(p, transcription)

@@ -14,7 +14,10 @@ OPTIMIZER = 'SLSQP'
 SHOW_PLOTS = False
 
 
-def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='csc'):
+def brachistochrone_min_time(
+        transcription='gauss-lobatto',
+        top_level_jacobian='csc',
+        glm_formulation='solver-based', glm_integrator='GaussLegendre4'):
     p = Problem(model=Group())
 
     if OPTIMIZER == 'SNOPT':
@@ -26,18 +29,32 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
     else:
         p.driver = ScipyOptimizeDriver()
 
+    kwargs = {}
+    if transcription == 'gauss-lobatto' or transcription == 'radau-ps':
+        kwargs['transcription_order'] = 3
+    else:
+        kwargs['formulation'] = glm_formulation
+        kwargs['method_name'] = glm_integrator
+
     phase = Phase(transcription,
                   ode_class=BrachistochroneODE,
                   num_segments=8,
-                  transcription_order=3)
+                  **kwargs)
 
     p.model.add_subsystem('phase0', phase)
 
     phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-    phase.set_state_options('x', fix_initial=True, fix_final=True)
-    phase.set_state_options('y', fix_initial=True, fix_final=True)
-    phase.set_state_options('v', fix_initial=True)
+    if transcription != 'glm':
+        phase.set_state_options('x', fix_initial=True, fix_final=True)
+        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('v', fix_initial=True)
+    else:
+        phase.add_boundary_constraint('x', loc='initial', equals=0.)
+        phase.add_boundary_constraint('x', loc='final', equals=10.)
+        phase.add_boundary_constraint('y', loc='initial', equals=10.)
+        phase.add_boundary_constraint('y', loc='final', equals=5.)
+        phase.add_boundary_constraint('v', loc='initial', equals=0.)
 
     phase.add_control('theta', units='deg', dynamic=True,
                       rate_continuity=True, lower=0.01, upper=179.9)
@@ -47,39 +64,43 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', scaler=10)
 
-    if top_level_jacobian.lower() == 'csc':
-        p.model.jacobian = CSCJacobian()
-    elif top_level_jacobian.lower() == 'dense':
-        p.model.jacobian = DenseJacobian()
-    elif top_level_jacobian.lower() == 'csr':
-        p.model.jacobian = CSRJacobian()
+    if transcription != 'glm':
+        if top_level_jacobian.lower() == 'csc':
+            p.model.jacobian = CSCJacobian()
+        elif top_level_jacobian.lower() == 'dense':
+            p.model.jacobian = DenseJacobian()
+        elif top_level_jacobian.lower() == 'csr':
+            p.model.jacobian = CSRJacobian()
 
-    p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = DirectSolver()
 
-    p.setup(mode='fwd', check=True)
-
-    p.setup()
+        p.setup(mode='fwd', check=True)
+    else:
+        p.setup()
+        p.set_solver_print(level=-1)
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 2.0
 
-    p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='disc')
-    p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='disc')
-    p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='disc')
-    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='all')
+    if transcription != 'glm':
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='disc')
+        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='disc')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='disc')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='all')
+    else:
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 10])
+        p['phase0.states:y'] = phase.interpolate(ys=[10, 5])
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9])
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5])
 
+    p.run_model()
     p.run_driver()
-
-    exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'],
-                                               p['phase0.t_initial']+p['phase0.t_duration'], 50))
-
-    from openmdao.api import CaseReader
-    cr = CaseReader('phase0_sim.db')
-    last_case = cr.system_cases.get_case(-1)
-    print(last_case.outputs['time'])
 
     # Plot results
     if SHOW_PLOTS:
+        exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'],
+                                                   p['phase0.t_initial']+p['phase0.t_duration'], 50))
+
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
