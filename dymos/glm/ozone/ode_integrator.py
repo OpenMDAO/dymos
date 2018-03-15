@@ -5,7 +5,8 @@ from dymos.glm.ozone.utils.misc import _get_class
 from dymos.glm.ozone.methods_list import get_method
 
 
-def ODEIntegrator(ode_class, formulation, method_name,
+def ODEIntegrator(
+        ode_class, formulation, method_name,
         initial_conditions=None, dynamic_parameters=None,
         initial_time=None, final_time=None, normalized_times=None, times=None,
         ode_init_kwargs=None, **kwargs):
@@ -105,7 +106,8 @@ def ODEIntegrator(ode_class, formulation, method_name,
     if formulation == 'optimizer-based' or formulation == 'solver-based':
         kwargs['formulation'] = formulation
 
-    integrator = integrator_class(ode_class=ode_class, method=method,
+    integrator = integrator_class(
+        ode_class=ode_class, method=method,
         initial_conditions=initial_conditions, dynamic_parameters=dynamic_parameters,
         initial_time=initial_time, final_time=final_time, normalized_times=normalized_times,
         all_norm_times=normalized_times, ode_init_kwargs=ode_init_kwargs,

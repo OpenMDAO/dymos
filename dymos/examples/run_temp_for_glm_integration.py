@@ -35,7 +35,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', top_level_jacobian='
     method_name = 'Lobatto4'
     phase = Phase(transcription,
                   ode_class=BrachistochroneODE,
-                  num_segments=10, #8,
+                  num_segments=10,
                   formulation=formulation,
                   method_name=method_name)
 

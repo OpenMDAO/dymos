@@ -113,7 +113,8 @@ class GLMPhase(PhaseBase):
 
             for name, options in iteritems(self.control_options):
                 if options['opt'] and options['dynamic']:
-                    self.connect('controls:{0}'.format(name),
+                    self.connect(
+                        'controls:{0}'.format(name),
                         'continuity_constraint.controls:{}'.format(name),
                         src_indices=grid_data.subset_node_indices['disc'])
                     if options['rate_continuity']:
@@ -193,14 +194,15 @@ class GLMPhase(PhaseBase):
             normalized_times=self._norm_times
         )
 
-        self.add_subsystem('ozone', ode_int,
-            promotes_outputs=
+        self.add_subsystem(
+            'ozone', ode_int,
+            promotes_outputs=\
                 [('IC_state:{0}'.format(state), 'states:{0}'.format(state))
                 for state in self.state_options] +
                 [('state:{0}'.format(state), 'out_states:{0}'.format(state))
                 for state in self.state_options] +
                 [],
-            promotes_inputs=
+            promotes_inputs=\
                 ['initial_condition:{0}'.format(state)
                 for state in self.state_options],
         )
@@ -262,14 +264,15 @@ class GLMPhase(PhaseBase):
             normalized_times=self._norm_times
         )
 
-        self.add_subsystem('ozone', ode_int,
-            promotes_outputs=
+        self.add_subsystem(
+            'ozone', ode_int,
+            promotes_outputs=\
                 [('IC_state:{0}'.format(state), 'states:{0}'.format(state))
                 for state in self.state_options] +
                 [('state:{0}'.format(state), 'out_states:{0}'.format(state))
                 for state in self.state_options] +
                 [],
-            promotes_inputs=
+            promotes_inputs=\
                 ['initial_condition:{0}'.format(state)
                 for state in self.state_options])
 
