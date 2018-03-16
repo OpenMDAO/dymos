@@ -2,263 +2,22 @@ from __future__ import print_function, division, absolute_import
 
 import sys
 from collections import OrderedDict
-from six import iteritems, string_types
 
 import numpy as np
+from dymos.utils.simulation.components.control_interpolation_comp import ControlInterpolationComp
+from dymos.utils.simulation.components.state_rate_collector_comp import StateRateCollectorComp
+from dymos.utils.simulation.progress_bar_observer import ProgressBarObserver
+from dymos.utils.simulation.simulation_results import SimulationResults
+from dymos.utils.simulation.std_out_observer import StdOutObserver
+from openmdao.core.analysis_error import AnalysisError
+from openmdao.core.group import Group
+from openmdao.core.indepvarcomp import IndepVarComp
+from openmdao.core.problem import Problem
 from scipy.integrate import ode
-
-from openmdao.api import Problem, Group, IndepVarComp, ExplicitComponent, AnalysisError
-from openmdao.utils.units import convert_units, valid_units
-
-from ..utils.misc import get_rate_units
+from six import iteritems
 
 
-class ProgressBarObserver(object):
-    """
-    A simple observer that outputs a progress bar based on the current and
-    final simulation time.
-
-    Parameters
-    ----------
-    ode_integrator : ODEIntegrator
-        The ODEIntegrator instance that will be calling this observer.
-    out_stream : file-like
-        The stream to which output will be written.
-    """
-    def __init__(self, ode_integrator, t0, tf, out_stream=sys.stdout):
-        self._prob = ode_integrator.prob
-        self.t0 = t0
-        self.tf = tf
-        self.out_stream = out_stream
-
-    def __call__(self, t, y, prob):
-        t0 = self.t0
-        tf = self.tf
-        print('Simulation time: {0:6.3f} of {1:6.3f} ({2:6.3f}%)'.format(t, tf, 100*(t-t0)/(tf-t0)),
-              file=self.out_stream)
-
-
-class StdOutObserver(object):
-    """
-    The default observer callable for use by RHSIntegrator.integrate_times.
-
-    This observer provides column output of the model variables when called.
-
-    Parameters
-    ----------
-    ode_integrator : ODEIntegrator
-        The ODEIntegrator instance that will be calling this observer.
-    out_stream : file-like
-        The stream to which column-output will be written.
-    """
-
-    def __init__(self, ode_integrator, out_stream=sys.stdout):
-        self._prob = ode_integrator.prob
-        self.out_stream = out_stream
-        self.fmt = ''
-        self._first = True
-        self._output_order = None
-
-    def __call__(self, t, y, prob):
-        out_stream = sys.stdout
-        outputs = dict(self._prob.model.list_outputs(units=True, shape=True, out_stream=None))
-
-        if self._first:
-
-            for output_name in outputs:
-                outputs[output_name]['prom_name'] = self._prob.model._var_abs2prom['output'][
-                    output_name]
-
-            output_order = list(outputs.keys())
-            insert_at = 0
-
-            # Move time to front of list
-            output_order.insert(insert_at, output_order.pop(output_order.index('time_input.time')))
-            insert_at += 1
-
-            # Move states after time
-            states = sorted([s for s in output_order if s.startswith('indep_states.states:')])
-            for i, name in enumerate(states):
-                output_order.insert(insert_at, output_order.pop(output_order.index(name)))
-                insert_at += 1
-
-            # Move controls and control rates after states
-            controls = sorted([s for s in output_order if s.startswith('indep_controls.controls:')])
-            for j, name in enumerate(controls):
-                output_order.insert(insert_at, output_order.pop(output_order.index(name)))
-                insert_at += 1
-
-            control_rates = sorted(
-                [s for s in output_order if s.startswith('indep_controls.control_rates:')])
-            for k, name in enumerate(control_rates):
-                output_order.insert(insert_at, output_order.pop(output_order.index(name)))
-                insert_at += 1
-
-            # Remove state_rate_collector since it is redundant
-            output_order = [o for o in output_order if not o.startswith('state_rate_collector.')]
-
-            self._output_order = output_order
-
-            header_names = [outputs[o]['prom_name'] for o in output_order]
-            header_units = [outputs[o]['units'] for o in output_order]
-
-            max_width = max([len(outputs[o]['prom_name']) for o in outputs]) + 4
-            header_fmt = ('{:>' + str(max_width) + 's}') * len(header_names)
-            self.fmt = ('{:' + str(max_width) + '.6f}') * len(output_order)
-            print(header_fmt.format(*header_names), file=out_stream)
-            print(header_fmt.format(*header_units), file=out_stream)
-            self._first = False
-        vals = [np.ravel(self._prob[var])[0] for var in self._output_order]
-        print(self.fmt.format(*vals), file=out_stream)
-
-
-class SimulationResults(object):
-    """
-    SimulationResults is returned by phase.simulate.  It's primary
-    purpose is to hold the dictionary of results from the integration
-    and to provide a `get_values` interface that is equivalent to that
-    in Phase (except that it has no knowledge of nodes).
-    """
-    def __init__(self, state_options, control_options):
-        """
-
-        Parameters
-        ----------
-        phase : dymos.Phase object
-            The phase being simulated.  Phase is passed on initialization of
-            SimulationResults so that it can gather knowledge of time units,
-            state options, control options, and ODE outputs.
-        """
-        self.state_options = state_options
-        self.control_options = control_options
-        self.outputs = {}
-        self.units = {}
-
-    def get_values(self, var, units=None):
-
-        if units is not None and not valid_units(units):
-            raise ValueError('{0} is not a valid set of units.'.format(units))
-
-        if var == 'time':
-            output_path = 'time'
-
-        elif var in self.state_options:
-            output_path = 'states:{0}'.format(var)
-
-        elif var in self.control_options and self.control_options[var]['opt']:
-            output_path = 'controls:{0}'.format(var)
-
-        elif var in self.control_options and not self.control_options[var]['opt']:
-            # TODO: make a test for this, haven't experimented with this yet.
-            output_path = 'controls:{0}'.format(var)
-
-        elif var.endswith('_rate') and var[:-5] in self.control_options:
-            output_path = 'control_rates:{0}'.format(var)
-
-        elif var.endswith('_rate2') and var[:-6] in self.control_options:
-            output_path = 'control_rates:{0}'.format(var)
-
-        else:
-            output_path = 'ode.{0}'.format(var)
-
-        output = convert_units(self.outputs[output_path]['value'],
-                               self.outputs[output_path]['units'],
-                               units)
-
-        return output
-
-
-class ControlInterpolationComp(ExplicitComponent):
-    """
-    Provides the interpolated value and rate of a control variable during explicit integration.
-
-    For each control handled by ControlInterpolationComp, the user must provide an object
-    with methods `eval(t)` and `eval_deriv(t)` which return the interpolated value and
-    derivative of the control at time `t`, respectively.
-    """
-    def initialize(self):
-        self.metadata.declare('time_units', default='s', allow_none=True, types=string_types,
-                              desc='Units of time')
-        self.metadata.declare('control_options', types=dict,
-                              desc='Dictionary of options for the dynamic controls')
-        self.interpolants = {}
-
-    def setup(self):
-        time_units = self.metadata['time_units']
-
-        self.add_input('time', val=1.0, units=time_units)
-
-        for control_name, options in iteritems(self.metadata['control_options']):
-            shape = options['shape']
-            units = options['units']
-            rate_units = get_rate_units(units, time_units, deriv=1)
-            rate2_units = get_rate_units(units, time_units, deriv=2)
-
-            self.add_output('controls:{0}'.format(control_name), shape=shape, units=units)
-
-            self.add_output('control_rates:{0}_rate'.format(control_name), shape=shape,
-                            units=rate_units)
-
-            self.add_output('control_rates:{0}_rate2'.format(control_name), shape=shape,
-                            units=rate2_units)
-
-    def compute(self, inputs, outputs):
-        time = inputs['time']
-
-        for name in self.metadata['control_options']:
-            if name not in self.interpolants:
-                raise(ValueError('No interpolant has been specified for {0}'.format(name)))
-
-            outputs['controls:{0}'.format(name)] = self.interpolants[name].eval(time)
-
-            outputs['control_rates:{0}_rate'.format(name)] = \
-                self.interpolants[name].eval_deriv(time)
-
-            outputs['control_rates:{0}_rate2'.format(name)] = \
-                self.interpolants[name].eval_deriv(time, der=2)
-
-
-class StateRateCollectorComp(ExplicitComponent):
-    """
-    Collects the state rates and outputs them in the units specified in the state options.
-    For explicit integration this is necessary when the output providing the state rate has
-    different units than those defined in the state_options/time_options.
-    """
-    def initialize(self):
-        self.metadata.declare(
-            'state_options', types=dict,
-            desc='Dictionary of options for the ODE state variables.')
-        self.metadata.declare(
-            'time_units', default=None, allow_none=True, types=string_types,
-            desc='Units of time')
-
-        # Save the names of the dynamic controls/parameters
-        self._input_names = {}
-        self._output_names = {}
-
-    def setup(self):
-        state_options = self.metadata['state_options']
-        time_units = self.metadata['time_units']
-
-        for name, options in iteritems(state_options):
-            self._input_names[name] = 'state_rates_in:{0}_rate'.format(name)
-            self._output_names[name] = 'state_rates:{0}_rate'.format(name)
-            shape = options['shape']
-            units = options['units']
-
-            rate_units = get_rate_units(units, time_units)
-
-            self.add_input(self._input_names[name], val=np.ones(shape), units=rate_units)
-            self.add_output(self._output_names[name], shape=shape, units=rate_units)
-
-    def compute(self, inputs, outputs):
-        state_options = self.metadata['state_options']
-
-        for name, options in iteritems(state_options):
-            outputs[self._output_names[name]] = inputs[self._input_names[name]]
-
-
-class ODEIntegrator(object):
+class ScipyODEIntegrator(object):
     """
     Given a system class, create a callable object with the same signature as that required
     by scipy.integrate.ode::
@@ -348,7 +107,7 @@ class ODEIntegrator(object):
 
     def setup(self, check=False, mode='fwd'):
         """
-        Call setup on the ODEIntegrator's problem instance.
+        Call setup on the ScipyODEIntegrator's problem instance.
 
         Parameters
         ----------

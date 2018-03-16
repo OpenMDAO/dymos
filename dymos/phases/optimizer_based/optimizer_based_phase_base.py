@@ -1,20 +1,20 @@
 from __future__ import division, print_function, absolute_import
 
 from collections import Iterable
-from six import string_types, iteritems
 
 import numpy as np
-
-from openmdao.api import Problem, Group, SqliteRecorder, IndepVarComp
-
+from dymos.phases.components import ContinuityComp
 from dymos.phases.optimizer_based.components import CollocationComp
 from dymos.phases.optimizer_based.components import StateInterpComp
-from dymos.phases.components import ContinuityComp
 from dymos.phases.phase_base import PhaseBase
 from dymos.utils.interpolate import LagrangeBarycentricInterpolant, StaticInterpolant
 from dymos.utils.misc import CoerceDesvar, get_rate_units
-from dymos.utils.ode_integrator import ODEIntegrator, StdOutObserver, SimulationResults, \
-    ProgressBarObserver
+from dymos.utils.simulation.scipy_ode_integrator import ScipyODEIntegrator
+from dymos.utils.simulation.simulation_results import SimulationResults
+from dymos.utils.simulation.std_out_observer import StdOutObserver
+from dymos.utils.simulation.progress_bar_observer import ProgressBarObserver
+from openmdao.api import Problem, Group, SqliteRecorder, IndepVarComp
+from six import string_types, iteritems
 
 
 class OptimizerBasedPhaseBase(PhaseBase):
@@ -93,11 +93,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
                   ' before simulating the phase.'
             raise RuntimeError(msg)
 
-        rhs_integrator = ODEIntegrator(ode_class=self.metadata['ode_class'],
-                                       ode_init_kwargs=self.metadata['ode_init_kwargs'],
-                                       time_options=self.time_options,
-                                       state_options=self.state_options,
-                                       control_options=self.control_options)
+        rhs_integrator = ScipyODEIntegrator(ode_class=self.metadata['ode_class'],
+                                            ode_init_kwargs=self.metadata['ode_init_kwargs'],
+                                            time_options=self.time_options,
+                                            state_options=self.state_options,
+                                            control_options=self.control_options)
 
         if observer == 'default':
             observer = StdOutObserver(rhs_integrator)
