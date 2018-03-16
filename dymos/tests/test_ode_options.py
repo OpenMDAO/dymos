@@ -77,3 +77,7 @@ class TestODEOptions(unittest.TestCase):
         self.assertEqual(B.ode_options._states['v']['targets'], ['v'])
         self.assertEqual(B.ode_options._dynamic_parameters['theta']['targets'], ['theta'])
         self.assertEqual(B.ode_options._dynamic_parameters['theta']['units'], 'rad')
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -115,3 +115,7 @@ class TestForDocs(unittest.TestCase):
             expected[i, :] = np.cross(a_i, b_i)
 
         self.assertTrue(np.all(np.abs(p['cross_prod_comp.c'] - expected) < 1.0E-12))
+
+
+if __name__ == "__main__":
+    unittest.main()

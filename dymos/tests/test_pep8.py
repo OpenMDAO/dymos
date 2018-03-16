@@ -49,3 +49,7 @@ class TestPep8(unittest.TestCase):
         report = style.check_files(pyfiles)
 
         self.assertEqual(report.total_errors, 0, msg='Found pep8 errors')
+
+
+if __name__ == "__main__":
+    unittest.main()
