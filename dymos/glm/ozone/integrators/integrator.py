@@ -5,7 +5,7 @@ from openmdao.api import Group, IndepVarComp
 from openmdao.core.system import System
 from six import iteritems
 
-import ozone.methods.method as methods
+import dymos.glm.ozone.methods.method as methods
 from dymos.glm.ozone.components.initial_conditions_comp import InitialConditionsComp
 from dymos.glm.ozone.components.time_comp import TimeComp
 from dymos.glm.ozone.components.starting_comp import StartingComp
