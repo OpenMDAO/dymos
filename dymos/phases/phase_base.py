@@ -111,6 +111,15 @@ class PhaseBase(Group):
         continuity : bool or dict
 
         """
+        if self.metadata['transcription'] == 'glm':
+            if not fix_initial:
+                raise NotImplementedError(
+                    'GLMPhase does not yet support optimizing the initial state value.')
+            if fix_final:
+                raise NotImplementedError(
+                    'GLMPhase does not yet support fixing the final state value in this way. ' +
+                    'Equivalent, you can add a boundary constraint on the final state value: ' +
+                    "phase.add_boundary_constraint('x', loc='final', equals=0.)")
         self.state_options[name].update(kwargs)
 
     def add_control(self, name, val=0.0, units=0, dynamic=True, opt=True, lower=None, upper=None,
