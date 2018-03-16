@@ -17,15 +17,22 @@ class SimulationResults(object):
     and to provide a `get_values` interface that is equivalent to that
     in Phase (except that it has no knowledge of nodes).
     """
-    def __init__(self, time_options, state_options, control_options):
+    def __init__(self, filepath=None, time_options=None, state_options=None, control_options=None):
         """
 
         Parameters
         ----------
-        phase : dymos.Phase object
-            The phase being simulated.  Phase is passed on initialization of
-            SimulationResults so that it can gather knowledge of time units,
-            state options, control options, and ODE outputs.
+        filepath : str or None
+            A filepath from which SimulationResults are to be loaded.
+        time_options : dymos.TimeOptionsDictionary or None
+            The options dictionary for the phase tied to this instance of simulation results.  If
+            being loaded from a file, this is not needed at instantiation.
+        state_options : dymos.StateOptionsDictionary or None
+            The options dictionary for the phase tied to this instance of simulation results.  If
+            being loaded from a file, this is not needed at instantiation.
+        control_options : dymos.ControlOptionsDictionary or None
+            The options dictionary for the phase tied to this instance of simulation results.  If
+            being loaded from a file, this is not needed at instantiation.
         """
         self.time_options = time_options
         self.state_options = state_options
@@ -33,12 +40,34 @@ class SimulationResults(object):
         self.outputs = {}
         self.units = {}
 
-    def record_results(self, filename, ode_class, ode_init_kwargs,
-                       time_options, state_options, control_options):
+    def record_results(self, filename, ode_class, ode_init_kwargs=None):
+        """
+        Record the outputs to the given filename.  This is done by instantiating a new
+        problem with an IndepVarComp for the time, states, controls, and control rates, as
+        well as an instance of the given ODE class (instantiated with the number of nodes equal
+        to the number of times in the outputs).
+
+        The system is populated with data from outputs, has a recorder attached, and is executed
+        via problem.run_model.  This data can then be retrieved from the `system_cases` attribute
+        of CaseReader.
+
+        Parameters
+        ----------
+        filename : str
+            The filename to which the recording should be saved.
+        ode_class : openmdao.System
+            A system class with the appropriate ODE metadata attached via the dymos declare_time,
+            declare_state, and declare_parameter decorators.
+        ode_init_kwargs : dict or None
+            A dictionary of keyword arguments with which ode_class should be instantiated.
+
+        """
+        init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
+
         p = Problem(model=Group())
         time = self.get_values('time')
         nn = len(time)
-        ode_sys = ode_class(num_nodes=nn, **ode_init_kwargs)
+        ode_sys = ode_class(num_nodes=nn, **init_kwargs)
         ivc = p.model.add_subsystem('inputs', subsys=IndepVarComp(), promotes_outputs=['*'])
         p.model.add_subsystem('ode', subsys=ode_sys)
 
