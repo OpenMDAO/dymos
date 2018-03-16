@@ -21,7 +21,7 @@ class TestSimulateRecording(unittest.TestCase):
 
     def tearDown(self):
 
-        for filename in ['phase0_sim.db']:
+        for filename in ['phase0_sim.db', 'brachistochrone_sim.db']:
             if os.path.exists(filename):
                 os.remove(filename)
 

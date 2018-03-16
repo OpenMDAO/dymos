@@ -296,7 +296,8 @@ class ScipyODEIntegrator(object):
         self._f_ode(solver.t, solver.y)
 
         # Prepare the output dictionary
-        results = SimulationResults(state_options=self.state_options,
+        results = SimulationResults(time_options=self.time_options,
+                                    state_options=self.state_options,
                                     control_options=self.control_options)
 
         model_outputs = self.prob.model.list_outputs(units=True, shape=True, out_stream=None)

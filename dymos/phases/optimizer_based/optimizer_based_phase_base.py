@@ -9,10 +9,8 @@ from dymos.phases.optimizer_based.components import StateInterpComp
 from dymos.phases.phase_base import PhaseBase
 from dymos.utils.interpolate import LagrangeBarycentricInterpolant, StaticInterpolant
 from dymos.utils.misc import CoerceDesvar, get_rate_units
-from dymos.utils.simulation.scipy_ode_integrator import ScipyODEIntegrator
-from dymos.utils.simulation.simulation_results import SimulationResults
-from dymos.utils.simulation.std_out_observer import StdOutObserver
-from dymos.utils.simulation.progress_bar_observer import ProgressBarObserver
+from dymos.utils.simulation import ScipyODEIntegrator, SimulationResults, \
+    StdOutObserver, ProgressBarObserver
 from openmdao.api import Problem, Group, SqliteRecorder, IndepVarComp
 from six import string_types, iteritems
 
@@ -116,7 +114,8 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         rhs_integrator.setup()
 
-        exp_out = SimulationResults(state_options=self.state_options,
+        exp_out = SimulationResults(time_options=self.time_options,
+                                    state_options=self.state_options,
                                     control_options=self.control_options)
 
         seg_sequence = range(gd.num_segments)
@@ -190,82 +189,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
         # Save
         if record:
             phase_name = self.pathname.split('.')[0]
-            _record_file = record_file if record_file else '{0}_sim.db'.format(phase_name)
+            filepath = record_file if record_file else '{0}_sim.db'.format(phase_name)
 
-            p = Problem(model=Group())
-            time = exp_out.get_values('time')
-            nn = len(time)
-            ode_sys = self.metadata['ode_class'](num_nodes=nn, **self.metadata['ode_init_kwargs'])
-            ivc = p.model.add_subsystem('inputs', subsys=IndepVarComp(), promotes_outputs=['*'])
-            p.model.add_subsystem('ode', subsys=ode_sys)
-
-            # Connect times
-            ivc.add_output('time', val=np.zeros(nn), units=self.time_options['units'])
-            p.model.connect('time', ['ode.{0}'.format(t) for t in self.time_options['targets']])
-
-            # Connect states
-            for name, options in iteritems(self.state_options):
-                ivc.add_output('states:{0}'.format(name),
-                               val=np.zeros((nn,)+options['shape']), units=options['units'])
-                p.model.connect('states:{0}'.format(name),
-                                ['ode.{0}'.format(t) for t in options['targets']])
-
-            # Connect controls
-            sys_param_options = ode_sys.ode_options._dynamic_parameters
-            for name, options in iteritems(self.control_options):
-                units = options['units']
-                ivc.add_output('controls:{0}'.format(name),
-                               val=np.zeros((nn,)+options['shape']), units=units)
-                p.model.connect('controls:{0}'.format(name),
-                                ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
-                                src_indices=np.arange(nn, dtype=int))
-                if options['rate_param']:
-                    rate_targets = sys_param_options[options['rate_param']]['targets']
-                    rate_units = get_rate_units(units, self.time_options['units'], deriv=1)
-                    ivc.add_output('control_rates:{0}_rate'.format(name),
-                                   val=np.zeros((nn,)+options['shape']),
-                                   units=rate_units)
-                    p.model.connect('control_rates:{0}_rate'.format(name),
-                                    ['ode.{0}'.format(t) for t in rate_targets],
-                                    src_indices=np.arange(nn, dtype=int))
-                if options['rate2_param']:
-                    rate2_targets = sys_param_options[options['rate2_param']]['targets']
-                    rate2_units = get_rate_units(units, self.time_options['units'], deriv=2)
-                    ivc.add_output('control_rates:{0}_rate2'.format(name),
-                                   val=np.zeros((nn,)+options['shape']),
-                                   units=rate2_units)
-                    p.model.connect('control_rates:{0}_rate2'.format(name),
-                                    ['ode.{0}'.format(t) for t in rate2_targets],
-                                    src_indices=np.arange(nn, dtype=int))
-
-            p.setup(check=True)
-
-            p.model.add_recorder(SqliteRecorder(_record_file))
-
-            # Assign times
-            p['time'] = time[:, 0]
-
-            # Assign states
-            for name in self.state_options:
-                p['states:{0}'.format(name)] = exp_out.get_values(name)
-
-            # Assign controls
-            for name, options in iteritems(self.control_options):
-                shape = p['controls:{0}'.format(name)].shape
-                p['controls:{0}'.format(name)] = np.reshape(exp_out.get_values(name), shape)
-                if options['rate_param']:
-                    p['control_rates:{0}_rate'.format(name)] = \
-                        np.reshape(exp_out.get_values('{0}_rate'.format(name)), shape)
-                if options['rate2_param']:
-                    p['control_rates:{0}_rate2'.format(name)] = \
-                        np.reshape(exp_out.get_values('{0}_rate2'.format(name)), shape)
-
-            # Populate outputs of ODE
-            prom2abs_ode_outputs = p.model.ode._var_allprocs_prom2abs_list['output']
-            for prom_name, abs_name in iteritems(prom2abs_ode_outputs):
-                p[abs_name[0]] = np.reshape(exp_out.get_values(prom_name), p[abs_name[0]].shape)
-            p.run_model()
-
+            exp_out.record_results(filepath, self.metadata['ode_class'],
+                                   self.metadata['ode_init_kwargs'], self.time_options,
+                                   self.state_options, self.control_options)
         return exp_out
 
     def setup(self):

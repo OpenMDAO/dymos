@@ -18,7 +18,7 @@ unsatisfied here it is an indication that the phase has an insufficient grid (th
 segments is too low or the transcription order of the segments is too low).  The ability to start
 from numerically propagated solutions is particularly useful for the high-order Gauss-Lobatto
 method, where invalid dynamics at the discretization nodes can lead to wildly inaccurate state
-values at the collocation nodes.
+values at the collocation nodes due to the interpolation step.
 
 Finally, the accuracy of implicit integration schemes is a function of the collocation grid (the
 number of segments and the polynomial order on each segment).  In this regard, using simulate

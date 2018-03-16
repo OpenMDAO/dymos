@@ -25,7 +25,7 @@ setup(name='dymos',
     install_requires=[
         'openmdao',
         'numpy>=1.14.1',
-        'scipy>=1.0.0',
+        'scipy>=0.19.1',
         'pep8',
         'parameterized',
         'sphinx',
