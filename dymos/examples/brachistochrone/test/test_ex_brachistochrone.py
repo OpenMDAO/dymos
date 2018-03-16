@@ -8,6 +8,8 @@ from itertools import product
 
 import dymos.examples.brachistochrone.ex_brachistochrone as ex_brachistochrone
 
+from pyoptsparse.pySNOPT import pySNOPT
+
 
 class TestBrachistochroneExample(unittest.TestCase):
 
@@ -49,12 +51,13 @@ class TestBrachistochroneExample(unittest.TestCase):
         ['optimizer-based', 'solver-based', 'time-marching'],
         ['RK4'],
     ))
+    @unittest.skipIf(pySNOPT is None, 'SNOPT is not available on this system')
     def test_ex_brachistochrone_glm(self, glm_formulation='solver-based', glm_integrator='RK4'):
         transcription = 'glm'
         ex_brachistochrone.OPTIMIZER = 'SNOPT'
         ex_brachistochrone.SHOW_PLOTS = False
         p = ex_brachistochrone.brachistochrone_min_time(
-            transcription='glm',
+            transcription=transcription,
             glm_formulation=glm_formulation, glm_integrator=glm_integrator,
         )
         self.run_asserts(p, transcription)

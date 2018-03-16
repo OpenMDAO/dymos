@@ -87,7 +87,14 @@ class GLMPhase(PhaseBase):
                 order.append('final_balance')
 
         order.append('endpoint_conditions')
-        order.append('continuity_constraint')
+
+        continuity_comp_exists = False
+        for control_name, options in iteritems(self.control_options):
+            if options['dynamic'] and options['continuity']:
+                continuity_comp_exists = True
+        if continuity_comp_exists:
+            order.append('continuity_constraint')
+
         if len(self._boundary_constraints) > 0:
             order.append('boundary_constraints')
 
@@ -118,6 +125,7 @@ class GLMPhase(PhaseBase):
                         'controls:{0}'.format(name),
                         'continuity_constraint.controls:{}'.format(name),
                         src_indices=grid_data.subset_node_indices['disc'])
+                    continuity = True
                     if options['rate_continuity']:
                         continuity = True
                         self.connect('control_rates:{0}_rate'.format(name),
