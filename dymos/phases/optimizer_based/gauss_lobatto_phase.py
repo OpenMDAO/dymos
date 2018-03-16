@@ -371,7 +371,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         """
         if nodes is None:
             nodes = 'all'
-            
+
         gd = self.grid_data
         disc_node_idxs = gd.subset_node_indices['disc']
         col_node_idxs = gd.subset_node_indices['col']

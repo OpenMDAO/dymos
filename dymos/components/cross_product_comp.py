@@ -54,7 +54,7 @@ class CrossProductComp(ExplicitComponent):
                         val=np.zeros(shape=(nn, 3)),
                         units=meta['c_units'])
 
-        row_idxs = np.repeat(np.arange(nn*3, dtype=int), 2)
+        row_idxs = np.repeat(np.arange(nn * 3, dtype=int), 2)
         col_idxs = np.empty((0,), dtype=int)
         M = np.array([1, 2, 0, 2, 0, 1], dtype=int)
         for i in range(nn):
@@ -78,7 +78,7 @@ class CrossProductComp(ExplicitComponent):
         b = inputs[meta['b_name']]
 
         # Use the following for sparse partials
-        partials[meta['c_name'], meta['a_name']] = np.einsum('nj,ji->ni', b, self._k*-1).ravel()
+        partials[meta['c_name'], meta['a_name']] = np.einsum('nj,ji->ni', b, self._k * -1).ravel()
         partials[meta['c_name'], meta['b_name']] = np.einsum('nj,ji->ni', a, self._k).ravel()
 
 

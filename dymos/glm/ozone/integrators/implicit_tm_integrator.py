@@ -57,7 +57,8 @@ class ImplicitTMIntegrator(Integrator):
             comp = self._create_ode(num_stages)
             group.add_subsystem('ode_comp', comp)
             if ode_class.ode_options._time_options['targets']:
-                self.connect('time_comp.stage_times',
+                self.connect(
+                    'time_comp.stage_times',
                     ['.'.join((group_new_name + '.ode_comp', t)) for t in
                      ode_class.ode_options._time_options['targets']],
                     src_indices=i_step * (num_stages) + np.arange(num_stages))
@@ -120,11 +121,13 @@ class ImplicitTMIntegrator(Integrator):
                 )
             else:
                 self._connect_multiple(
-                    self._get_state_names(group_old_name + '.step_comp', 'y_new', i_step=i_step - 1),
+                    self._get_state_names(
+                        group_old_name + '.step_comp', 'y_new', i_step=i_step - 1),
                     self._get_state_names(group_new_name + '.step_comp', 'y_old', i_step=i_step),
                 )
                 self._connect_multiple(
-                    self._get_state_names(group_old_name + '.step_comp', 'y_new', i_step=i_step - 1),
+                    self._get_state_names(
+                        group_old_name + '.step_comp', 'y_new', i_step=i_step - 1),
                     self._get_state_names(group_new_name + '.stage_comp', 'y_old', i_step=i_step),
                 )
 
@@ -156,6 +159,8 @@ class ImplicitTMIntegrator(Integrator):
                 )
             else:
                 self._connect_multiple(
-                    self._get_state_names('integration_group.step_%i' % (i_step - 1) + '.step_comp', 'y_new', i_step=i_step - 1),
+                    self._get_state_names(
+                        'integration_group.step_%i' % (i_step - 1) + '.step_comp',
+                        'y_new', i_step=i_step - 1),
                     self._get_state_names('output_comp', 'y', i_step=i_step),
                 )

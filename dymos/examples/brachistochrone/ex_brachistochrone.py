@@ -98,8 +98,8 @@ def brachistochrone_min_time(
 
     # Plot results
     if SHOW_PLOTS:
-        exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'],
-                                                   p['phase0.t_initial']+p['phase0.t_duration'], 50))
+        exp_out = phase.simulate(times=np.linspace(
+            p['phase0.t_initial'], p['phase0.t_initial'] + p['phase0.t_duration'], 50))
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')

@@ -70,19 +70,23 @@ class VectorizedStageStepComp(ExplicitComponent):
 
             # --------------------------------------------------------------------------------
 
-            self.add_input(y0_name,
+            self.add_input(
+                y0_name,
                 shape=(num_step_vars,) + shape,
                 units=state['units'])
 
-            self.add_input(F_name,
+            self.add_input(
+                F_name,
                 shape=(num_times - 1, num_stages,) + shape,
                 units=get_rate_units(state['units'], time_units))
 
-            self.add_input(Y_in_name, val=0.,
+            self.add_input(
+                Y_in_name, val=0.,
                 shape=(num_times - 1, num_stages,) + shape,
                 units=state['units'])
 
-            self.add_output(Y_out_name,
+            self.add_output(
+                Y_out_name,
                 shape=(num_times - 1, num_stages,) + shape,
                 units=state['units'])
 
@@ -109,33 +113,28 @@ class VectorizedStageStepComp(ExplicitComponent):
             # --------------------------------------------------------------------------------
             # mtx_A: (num_times - 1) x num_stages x num_stages x ...
 
-            data = np.einsum('jk,i...->ijk...',
-                glm_A, np.ones((num_times - 1,) + shape)).flatten()
-            rows = np.einsum('ij...,k->ijk...',
-                Y_arange, np.ones(num_stages, int)).flatten()
-            cols = np.einsum('ik...,j->ijk...',
-                F_arange, np.ones(num_stages, int)).flatten()
+            data = np.einsum('jk,i...->ijk...', glm_A, np.ones((num_times - 1,) + shape)).flatten()
+            rows = np.einsum('ij...,k->ijk...', Y_arange, np.ones(num_stages, int)).flatten()
+            cols = np.einsum('ik...,j->ijk...', F_arange, np.ones(num_stages, int)).flatten()
             mtx_A = scipy.sparse.csc_matrix((data, (rows, cols)), shape=(num_Y, num_F)).toarray()
 
             # --------------------------------------------------------------------------------
             # mtx_B: (num_times - 1) x num_step_vars x num_stages x ...
 
-            data = np.einsum('jk,i...->ijk...',
-                glm_B, np.ones((num_times - 1,) + shape)).flatten()
-            rows = np.einsum('ij...,k->ijk...',
+            data = np.einsum('jk,i...->ijk...', glm_B, np.ones((num_times - 1,) + shape)).flatten()
+            rows = np.einsum(
+                'ij...,k->ijk...',
                 y_arange[1:, :, :], np.ones(num_stages, int)).flatten()
-            cols = np.einsum('ik...,j->ijk...',
-                F_arange, np.ones(num_step_vars, int)).flatten()
+            cols = np.einsum('ik...,j->ijk...', F_arange, np.ones(num_step_vars, int)).flatten()
             mtx_B = scipy.sparse.csc_matrix((data, (rows, cols)), shape=(num_y, num_F)).toarray()
 
             # --------------------------------------------------------------------------------
             # mtx_U: (num_times - 1) x num_stages x num_step_vars x ...
 
-            data = np.einsum('jk,i...->ijk...',
-                glm_U, np.ones((num_times - 1,) + shape)).flatten()
-            rows = np.einsum('ij...,k->ijk...',
-                Y_arange, np.ones(num_step_vars, int)).flatten()
-            cols = np.einsum('ik...,j->ijk...',
+            data = np.einsum('jk,i...->ijk...', glm_U, np.ones((num_times - 1,) + shape)).flatten()
+            rows = np.einsum('ij...,k->ijk...', Y_arange, np.ones(num_step_vars, int)).flatten()
+            cols = np.einsum(
+                'ik...,j->ijk...',
                 y_arange[:-1, :, :], np.ones(num_stages, int)).flatten()
             mtx_U = scipy.sparse.csc_matrix((data, (rows, cols)), shape=(num_Y, num_y)).toarray()
 
@@ -150,16 +149,23 @@ class VectorizedStageStepComp(ExplicitComponent):
             data = np.ones(num_y)
             rows = np.arange(num_y)
             cols = np.arange(num_y)
-            data_list.append(data); rows_list.append(rows); cols_list.append(cols)
+            data_list.append(data)
+            rows_list.append(rows)
+            cols_list.append(cols)
 
             # (num_times - 1) x num_step_var x num_step_var x ...
-            data = np.einsum('jk,i...->ijk...',
+            data = np.einsum(
+                'jk,i...->ijk...',
                 -glm_V, np.ones((num_times - 1,) + shape)).flatten()
-            rows = np.einsum('ij...,k->ijk...',
+            rows = np.einsum(
+                'ij...,k->ijk...',
                 y_arange[1:, :, :], np.ones(num_step_vars, int)).flatten()
-            cols = np.einsum('ik...,j->ijk...',
+            cols = np.einsum(
+                'ik...,j->ijk...',
                 y_arange[:-1, :, :], np.ones(num_step_vars, int)).flatten()
-            data_list.append(data); rows_list.append(rows); cols_list.append(cols)
+            data_list.append(data)
+            rows_list.append(rows)
+            cols_list.append(cols)
 
             # concatenate
             data = np.concatenate(data_list)
@@ -174,7 +180,8 @@ class VectorizedStageStepComp(ExplicitComponent):
 
             data = np.ones(num_F)
             rows = np.arange(num_F)
-            cols = np.einsum('i,j...->ij...',
+            cols = np.einsum(
+                'i,j...->ij...',
                 h_arange, np.ones((num_stages,) + shape, int)).flatten()
             mtx_h = scipy.sparse.csc_matrix((data, (rows, cols)), shape=(num_F, num_h)).toarray()
 
@@ -225,6 +232,7 @@ class VectorizedStageStepComp(ExplicitComponent):
             mtx = self.mtx_dict[state_name]
             mtx_h = self.mtx_h_dict[state_name]
 
-            partials[Y_out_name, 'h_vec'][:, :] = mtx.dot(np.diag(inputs[F_name].flatten())).dot(mtx_h)
+            partials[Y_out_name, 'h_vec'][:, :] = \
+                mtx.dot(np.diag(inputs[F_name].flatten())).dot(mtx_h)
             partials[Y_out_name, F_name][:, :] = mtx.dot(np.diag(mtx_h.dot(inputs['h_vec'])))
             partials[Y_out_name, y0_name][:, :] = mtx_y0

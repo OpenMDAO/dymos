@@ -55,14 +55,14 @@ def lg(n, tol=1.0E-15):
     n1 = n + 1
     n2 = n + 2
 
-    x0 = 2.0*np.ones(n1)
+    x0 = 2.0 * np.ones(n1)
     xu = np.linspace(-1, 1, n1)
 
     L = np.zeros((n1, n2))
 
     # Chebyshev nodes as a guess
     x = np.cos(np.pi * (2.0 * np.linspace(1, n1, n1) - 1.0) / (2.0 * n1))
-    x += (0.27/n1) * np.sin(np.pi*xu*n/n2)
+    x += (0.27 / n1) * np.sin(np.pi * xu * n / n2)
 
     L[:, 0] = 1.0
 
@@ -70,17 +70,17 @@ def lg(n, tol=1.0E-15):
         L[:, 1] = x
 
         for k in range(2, n2):
-            L[:, k] = ((2*k-1) * x * L[:, k-1] - (k-1) * L[:, k-2]) / k
+            L[:, k] = ((2 * k - 1) * x * L[:, k - 1] - (k - 1) * L[:, k - 2]) / k
 
-        Lp = n2*(L[:, n] - x*L[:, n1]) / (1-x**2)
+        Lp = n2 * (L[:, n] - x * L[:, n1]) / (1 - x**2)
 
         x0 = x
-        x = x0 - L[:, n1]/Lp
+        x = x0 - L[:, n1] / Lp
 
     # Put the nodes in ascending order
     x = -x
 
     # Compute the weights
-    w = 2.0 / ((1.0 - x**2) * Lp**2) * (n2/n1)**2
+    w = 2.0 / ((1.0 - x**2) * Lp**2) * (n2 / n1)**2
 
     return x, w

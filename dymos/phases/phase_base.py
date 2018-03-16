@@ -855,7 +855,7 @@ class PhaseBase(Group):
 
             self.connect('states:{0}'.format(state_name),
                          'endpoint_conditions.final_value:{0}'.format(state_name),
-                         src_indices=-ar[::-1]-1, flat_src_indices=True)
+                         src_indices=-ar[::-1] - 1, flat_src_indices=True)
 
             self.connect('initial_jump:{0}'.format(state_name),
                          'endpoint_conditions.initial_jump:{0}'.format(state_name),
@@ -897,7 +897,7 @@ class PhaseBase(Group):
 
             self.connect('controls:{0}{1}'.format(control_name, suffix),
                          'endpoint_conditions.final_value:{0}'.format(control_name),
-                         src_indices=-ar[::-1]-1, flat_src_indices=True)
+                         src_indices=-ar[::-1] - 1, flat_src_indices=True)
 
             self.connect('initial_jump:{0}'.format(control_name),
                          'endpoint_conditions.initial_jump:{0}'.format(control_name),
@@ -1103,8 +1103,8 @@ class PhaseBase(Group):
             node_locations = np.array(sorted(list(set(node_locations))))
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs)
-        m = 2.0/(_xs[-1] - _xs[0])
-        b = 1.0-(m*_xs[-1])
-        taus = m*_xs + b
+        m = 2.0 / (_xs[-1] - _xs[0])
+        b = 1.0 - (m * _xs[-1])
+        taus = m * _xs + b
         interpfunc = interpolate.interp1d(taus, ys, kind=kind)
         return np.atleast_2d(interpfunc(node_locations)).T

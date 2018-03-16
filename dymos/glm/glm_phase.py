@@ -393,14 +393,18 @@ class GLMPhase(PhaseBase):
         elif var_type == 'control_rate':
             control_rate_comp = self.control_rate_comp
             output = np.zeros((num_segments + 1,) + self.control_options[var]['shape'])
-            output[:-1, ...] = control_rate_comp._outputs['control_rates:{0}_rate'.format(var)][::2, ...]
-            output[-1, ...] = control_rate_comp._outputs['control_rates:{0}_rate'.format(var)][-1, ...]
+            output[:-1, ...] = \
+                control_rate_comp._outputs['control_rates:{0}_rate'.format(var)][::2, ...]
+            output[-1, ...] = \
+                control_rate_comp._outputs['control_rates:{0}_rate'.format(var)][-1, ...]
 
         elif var_type == 'parameter_rate':
             control_rate_comp = self.control_rate_comp
             output = np.zeros((num_segments + 1,) + self.control_options[var]['shape'])
-            output[:-1, ...] = control_rate_comp._outputs['parameter_rates:{0}_rate'.format(var)][::2, ...]
-            output[-1, ...] = control_rate_comp._outputs['parameter_rates:{0}_rate'.format(var)][-1, ...]
+            output[:-1, ...] = \
+                control_rate_comp._outputs['parameter_rates:{0}_rate'.format(var)][::2, ...]
+            output[-1, ...] = \
+                control_rate_comp._outputs['parameter_rates:{0}_rate'.format(var)][-1, ...]
 
         elif var_type == 'rhs':
             raise NotImplementedError()

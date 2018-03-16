@@ -51,15 +51,18 @@ class VectorizedStepComp(ImplicitComponent):
             F_arange = np.arange((num_times - 1) * num_stages * size).reshape(
                 (num_times - 1, num_stages,) + shape)
 
-            self.add_input(F_name,
+            self.add_input(
+                F_name,
                 shape=(num_times - 1, num_stages,) + shape,
                 units=get_rate_units(state['units'], time_units))
 
-            self.add_input(y0_name,
+            self.add_input(
+                y0_name,
                 shape=(num_step_vars,) + shape,
                 units=state['units'])
 
-            self.add_output(y_name,
+            self.add_output(
+                y_name,
                 shape=(num_times, num_step_vars,) + shape,
                 units=state['units'])
 
@@ -71,12 +74,12 @@ class VectorizedStepComp(ImplicitComponent):
             cols1 = np.arange(num_times * num_step_vars * size)
 
             # (num_times - 1, num_step_vars, num_step_vars,) + shape
-            data2 = np.einsum('i...,jk->ijk...',
-                np.ones((num_times - 1,) + shape), -glm_V).flatten()
-            rows2 = np.einsum('ij...,k->ijk...',
-                y_arange[1:, :, :], np.ones(num_step_vars)).flatten()
-            cols2 = np.einsum('ik...,j->ijk...',
-                y_arange[:-1, :, :], np.ones(num_step_vars)).flatten()
+            data2 = np.einsum(
+                'i...,jk->ijk...', np.ones((num_times - 1,) + shape), -glm_V).flatten()
+            rows2 = np.einsum(
+                'ij...,k->ijk...', y_arange[1:, :, :], np.ones(num_step_vars)).flatten()
+            cols2 = np.einsum(
+                'ik...,j->ijk...', y_arange[:-1, :, :], np.ones(num_step_vars)).flatten()
 
             data = np.concatenate([data1, data2])
             rows = np.concatenate([rows1, rows2])
@@ -106,7 +109,8 @@ class VectorizedStepComp(ImplicitComponent):
             # (num_times - 1, num_step_vars, num_stages,) + shape
             rows = np.einsum('ij...,k->ijk...', y_arange[1:, :, :], np.ones(num_stages)).flatten()
 
-            cols = np.einsum('jk...,i->ijk...',
+            cols = np.einsum(
+                'jk...,i->ijk...',
                 np.ones((num_step_vars, num_stages,) + shape), h_arange).flatten()
             self.declare_partials(y_name, 'h_vec', rows=rows, cols=cols)
 
@@ -133,10 +137,10 @@ class VectorizedStepComp(ImplicitComponent):
             out_vec = dy_dy[state_name].dot(in_vec).reshape(
                 (num_times, num_step_vars,) + shape)
 
-            residuals[y_name] = out_vec # y term
-            residuals[y_name][0, :, :] -= inputs[y0_name] # y0 term
-            residuals[y_name][1:, :, :] -= np.einsum('jl,i,il...->ij...',
-                glm_B, inputs['h_vec'], inputs[F_name]) # hF term
+            residuals[y_name] = out_vec  # y term
+            residuals[y_name][0, :, :] -= inputs[y0_name]  # y0 term
+            residuals[y_name][1:, :, :] -= np.einsum(
+                'jl,i,il...->ij...', glm_B, inputs['h_vec'], inputs[F_name])  # hF term
 
     def solve_nonlinear(self, inputs, outputs):
         num_times = self.metadata['num_times']
@@ -154,9 +158,9 @@ class VectorizedStepComp(ImplicitComponent):
             y_name = get_name('y', state_name)
 
             vec = np.zeros((num_times, num_step_vars,) + shape)
-            vec[0, :, :] += inputs[y0_name] # y0 term
-            vec[1:, :, :] += np.einsum('jl,i,il...->ij...',
-                glm_B, inputs['h_vec'], inputs[F_name]) # hF term
+            vec[0, :, :] += inputs[y0_name]  # y0 term
+            vec[1:, :, :] += np.einsum(
+                'jl,i,il...->ij...', glm_B, inputs['h_vec'], inputs[F_name])  # hF term
 
             outputs[y_name] = dy_dy_inv[state_name].solve(vec.flatten(), 'N').reshape(
                 (num_times, num_step_vars,) + shape)

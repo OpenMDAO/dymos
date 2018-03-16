@@ -42,7 +42,8 @@ class OzoneODETestCase(unittest.TestCase):
         method_name = 'ImplicitMidpoint'
         formulation = 'solver-based'
 
-        integrator = ODEIntegrator(ode_class, formulation, method_name,
+        integrator = ODEIntegrator(
+            ode_class, formulation, method_name,
             times=times, initial_conditions=initial_conditions,
         )
 

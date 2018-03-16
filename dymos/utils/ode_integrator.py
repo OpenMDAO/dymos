@@ -34,8 +34,8 @@ class ProgressBarObserver(object):
     def __call__(self, t, y, prob):
         t0 = self.t0
         tf = self.tf
-        print('Simulation time: {0:6.3f} of {1:6.3f} ({2:6.3f}%)'.format(t, tf, 100*(t-t0)/(tf-t0)),
-              file=self.out_stream)
+        print('Simulation time: {0:6.3f} of {1:6.3f} ({2:6.3f}%)'.format(
+            t, tf, 100 * (t - t0) / (tf - t0)), file=self.out_stream)
 
 
 class StdOutObserver(object):
@@ -419,7 +419,7 @@ class ODEIntegrator(object):
         for state_name, state_options in self.state_options.items():
             pos = state_options['pos']
             size = state_options['size']
-            self.prob['states:{0}'.format(state_name)][0, ...] = x[pos:pos+size]
+            self.prob['states:{0}'.format(state_name)][0, ...] = x[pos:pos + size]
 
     def _pack_state_rate_vec(self):
         """
@@ -434,7 +434,7 @@ class ODEIntegrator(object):
         for state_name, state_options in self.state_options.items():
             pos = state_options['pos']
             size = state_options['size']
-            self._state_rate_vec[pos:pos+size] = \
+            self._state_rate_vec[pos:pos + size] = \
                 np.ravel(self.prob['state_rate_collector.'
                                    'state_rates:{0}_rate'.format(state_name)])
         return self._state_rate_vec
@@ -453,7 +453,7 @@ class ODEIntegrator(object):
         for state_name, state_options in self.state_options.items():
             pos = state_options['pos']
             size = state_options['size']
-            self._state_vec[pos:pos+size] = np.ravel(x_dict[state_name])
+            self._state_vec[pos:pos + size] = np.ravel(x_dict[state_name])
         return self._state_vec
 
     def _f_ode(self, t, x, *args):
@@ -555,7 +555,7 @@ class ODEIntegrator(object):
         for dt in delta_times:
 
             try:
-                solver.integrate(solver.t+dt)
+                solver.integrate(solver.t + dt)
                 self._f_ode(solver.t, solver.y)
             except AnalysisError:
                 terminate = True

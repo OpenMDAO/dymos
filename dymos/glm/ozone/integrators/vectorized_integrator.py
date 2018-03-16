@@ -1,7 +1,7 @@
 import numpy as np
 from six import iteritems
 
-from openmdao.api import Group, IndepVarComp, NewtonSolver, DirectSolver, DenseJacobian, ScipyIterativeSolver, LinearBlockGS, NonlinearBlockGS, PetscKSP
+from openmdao.api import Group, IndepVarComp, LinearBlockGS, NonlinearBlockGS
 
 from dymos.glm.ozone.integrators.integrator import Integrator
 from dymos.glm.ozone.components.vectorized_step_comp import VectorizedStepComp
@@ -18,7 +18,8 @@ class VectorizedIntegrator(Integrator):
     def initialize(self):
         super(VectorizedIntegrator, self).initialize()
 
-        self.metadata.declare('formulation', default='solver-based', values=['solver-based', 'optimizer-based'])
+        self.metadata.declare(
+            'formulation', default='solver-based', values=['solver-based', 'optimizer-based'])
 
     def setup(self):
         super(VectorizedIntegrator, self).setup()
@@ -50,7 +51,8 @@ class VectorizedIntegrator(Integrator):
         if formulation == 'optimizer-based':
             comp = IndepVarComp()
             for state_name, state in iteritems(states):
-                comp.add_output('Y:%s' % state_name,
+                comp.add_output(
+                    'Y:%s' % state_name,
                     shape=(num_times - 1, num_stages,) + state['shape'],
                     units=state['units'])
                 comp.add_design_var('Y:%s' % state_name)
@@ -58,7 +60,8 @@ class VectorizedIntegrator(Integrator):
         elif formulation == 'solver-based':
             comp = IndepVarComp()
             for state_name, state in iteritems(states):
-                comp.add_output('Y:%s' % state_name, val=0.,
+                comp.add_output(
+                    'Y:%s' % state_name, val=0.,
                     shape=(num_times - 1, num_stages,) + state['shape'],
                     units=state['units'])
             integration_group.add_subsystem('dummy_comp', comp)
@@ -68,7 +71,10 @@ class VectorizedIntegrator(Integrator):
         if ode_options._time_options['targets']:
             self.connect(
                 'time_comp.stage_times',
-                ['.'.join(('integration_group.ode_comp', t)) for t in ode_options._time_options['targets']],
+                [
+                    '.'.join(('integration_group.ode_comp', t))
+                    for t in ode_options._time_options['targets']
+                ],
             )
         if len(dynamic_parameters) > 0:
             self._connect_multiple(
@@ -76,14 +82,16 @@ class VectorizedIntegrator(Integrator):
                 self._get_dynamic_parameter_names('integration_group.ode_comp', 'targets'),
             )
 
-        comp = VectorizedStageStepComp(states=states, time_units=time_units,
+        comp = VectorizedStageStepComp(
+            states=states, time_units=time_units,
             num_times=num_times, num_stages=num_stages, num_step_vars=num_step_vars,
             glm_A=glm_A, glm_U=glm_U, glm_B=glm_B, glm_V=glm_V,
         )
         integration_group.add_subsystem('vectorized_stagestep_comp', comp)
         self.connect('time_comp.h_vec', 'integration_group.vectorized_stagestep_comp.h_vec')
 
-        comp = VectorizedStepComp(states=states, time_units=time_units,
+        comp = VectorizedStepComp(
+            states=states, time_units=time_units,
             num_times=num_times, num_stages=num_stages, num_step_vars=num_step_vars,
             glm_B=glm_B, glm_V=glm_V,
         )
@@ -98,7 +106,8 @@ class VectorizedIntegrator(Integrator):
             self._get_state_names('vectorized_step_comp', 'y0'),
         )
 
-        comp = VectorizedOutputComp(states=states,
+        comp = VectorizedOutputComp(
+            states=states,
             num_starting_times=len(starting_norm_times), num_my_times=len(my_norm_times),
             num_step_vars=num_step_vars, starting_coeffs=starting_coeffs,
         )
@@ -168,7 +177,8 @@ class VectorizedIntegrator(Integrator):
                 self._get_state_names('integration_group.vectorized_stagestep_comp', 'Y_in'),
             )
             for state_name, state in iteritems(states):
-                integration_group.add_constraint('vectorized_stagestep_comp.Y_out:%s' % state_name,
+                integration_group.add_constraint(
+                    'vectorized_stagestep_comp.Y_out:%s' % state_name,
                     equals=0., vectorize_derivs=True,
                 )
 
@@ -176,13 +186,8 @@ class VectorizedIntegrator(Integrator):
             self.starting_system.metadata['formulation'] = self.metadata['formulation']
 
         if formulation == 'solver-based':
-            if 1:
-                integration_group.nonlinear_solver = NonlinearBlockGS(iprint=2, maxiter=40, atol=1e-14, rtol=1e-12)
-            else:
-                integration_group.nonlinear_solver = NewtonSolver(iprint=2, maxiter=100)
+            integration_group.nonlinear_solver = NonlinearBlockGS(
+                iprint=2, maxiter=40, atol=1e-14, rtol=1e-12)
 
-            if 1:
-                integration_group.linear_solver = LinearBlockGS(iprint=1, maxiter=40, atol=1e-14, rtol=1e-12)
-            else:
-                integration_group.linear_solver = DirectSolver(iprint=1)
-                integration_group.jacobian = DenseJacobian()
+            integration_group.linear_solver = LinearBlockGS(
+                iprint=1, maxiter=40, atol=1e-14, rtol=1e-12)

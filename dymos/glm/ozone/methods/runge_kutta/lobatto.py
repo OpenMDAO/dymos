@@ -19,6 +19,7 @@ _lobatto_coeffs = {
     )
 }
 
+
 class LobattoIIIA(RungeKutta):
 
     def __init__(self, order=4):

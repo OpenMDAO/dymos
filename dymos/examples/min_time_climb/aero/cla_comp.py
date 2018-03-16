@@ -29,11 +29,11 @@ class CLaComp(ExplicitComponent):
         idx_low = np.where(M < 1.15)[0]
         idx_high = np.where(M >= 1.15)[0]
 
-        c2_low = 1.0 / np.cosh((M[idx_low] - 1.0)/0.06)**2
-        c2_high = 1.0 / np.cosh(0.15/0.06)**2
+        c2_low = 1.0 / np.cosh((M[idx_low] - 1.0) / 0.06)**2
+        c2_high = 1.0 / np.cosh(0.15 / 0.06)**2
 
         outputs['CLa'][idx_low] = 3.44 + c2_low
-        outputs['CLa'][idx_high] = 3.44 + c2_high - 0.96/0.63 * (M[idx_high] - 1.15)
+        outputs['CLa'][idx_high] = 3.44 + c2_high - 0.96 / 0.63 * (M[idx_high] - 1.15)
 
     def compute_partials(self, inputs, partials):
         M = inputs['mach']
@@ -41,7 +41,7 @@ class CLaComp(ExplicitComponent):
         idx_low = np.where(M < 1.15)[0]
         idx_high = np.where(M >= 1.15)[0]
 
-        k = 50.0/3.0
+        k = 50.0 / 3.0
         tanh = np.tanh(k * (M[idx_low] - 1.0))
         sech2 = 1.0 - tanh**2
 

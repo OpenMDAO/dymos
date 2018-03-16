@@ -156,7 +156,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
             if not isinstance(times, string_types) and isinstance(times, Iterable):
                 idxs_times_in_seg = np.where(np.logical_and(times > seg_times[0],
                                                             times < seg_times[-1]))[0]
-                t_out = np.zeros(len(idxs_times_in_seg)+2, dtype=float)
+                t_out = np.zeros(len(idxs_times_in_seg) + 2, dtype=float)
                 t_out[1:-1] = times[idxs_times_in_seg]
                 t_out[0] = seg_times[0]
                 t_out[-1] = seg_times[-1]
@@ -206,7 +206,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
             # Connect states
             for name, options in iteritems(self.state_options):
                 ivc.add_output('states:{0}'.format(name),
-                               val=np.zeros((nn,)+options['shape']), units=options['units'])
+                               val=np.zeros((nn,) + options['shape']), units=options['units'])
                 p.model.connect('states:{0}'.format(name),
                                 ['ode.{0}'.format(t) for t in options['targets']])
 
@@ -215,7 +215,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
             for name, options in iteritems(self.control_options):
                 units = options['units']
                 ivc.add_output('controls:{0}'.format(name),
-                               val=np.zeros((nn,)+options['shape']), units=units)
+                               val=np.zeros((nn,) + options['shape']), units=units)
                 p.model.connect('controls:{0}'.format(name),
                                 ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
                                 src_indices=np.arange(nn, dtype=int))
@@ -223,7 +223,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                     rate_targets = sys_param_options[options['rate_param']]['targets']
                     rate_units = get_rate_units(units, self.time_options['units'], deriv=1)
                     ivc.add_output('control_rates:{0}_rate'.format(name),
-                                   val=np.zeros((nn,)+options['shape']),
+                                   val=np.zeros((nn,) + options['shape']),
                                    units=rate_units)
                     p.model.connect('control_rates:{0}_rate'.format(name),
                                     ['ode.{0}'.format(t) for t in rate_targets],
@@ -232,7 +232,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                     rate2_targets = sys_param_options[options['rate2_param']]['targets']
                     rate2_units = get_rate_units(units, self.time_options['units'], deriv=2)
                     ivc.add_output('control_rates:{0}_rate2'.format(name),
-                                   val=np.zeros((nn,)+options['shape']),
+                                   val=np.zeros((nn,) + options['shape']),
                                    units=rate2_units)
                     p.model.connect('control_rates:{0}_rate2'.format(name),
                                     ['ode.{0}'.format(t) for t in rate2_targets],
@@ -376,7 +376,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                     if isinstance(options['fix_final'], Iterable):
                         idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
                         for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[-size+idx_to_fix]
+                            del desvar_indices[-size + idx_to_fix]
                     else:
                         del desvar_indices[-size:]
 

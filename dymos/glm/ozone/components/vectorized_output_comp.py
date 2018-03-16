@@ -41,21 +41,25 @@ class VectorizedOutputComp(ExplicitComponent):
             out_state_name = get_name('state', state_name)
             starting_name = get_name('starting', state_name)
 
-            self.add_input(y_name,
+            self.add_input(
+                y_name,
                 shape=(num_my_times, num_step_vars,) + shape,
                 units=state['units'])
 
             if has_starting_method:
-                self.add_input(starting_state_name,
+                self.add_input(
+                    starting_state_name,
                     shape=(num_starting_times,) + shape,
                     units=state['units'])
 
-            self.add_output(out_state_name,
+            self.add_output(
+                out_state_name,
                 shape=(num_times,) + shape,
                 units=state['units'])
 
             if is_starting_method:
-                self.add_output(starting_name,
+                self.add_output(
+                    starting_name,
                     shape=(num_starting,) + shape,
                     units=state['units'])
 
@@ -80,7 +84,8 @@ class VectorizedOutputComp(ExplicitComponent):
                 rows = out_state_arange[:num_starting_times - 1, :].flatten()
                 cols = starting_state_arange[:-1, :].flatten()
 
-                self.declare_partials(out_state_name, starting_state_name,
+                self.declare_partials(
+                    out_state_name, starting_state_name,
                     val=data, rows=rows, cols=cols)
 
             if is_starting_method:
@@ -90,9 +95,11 @@ class VectorizedOutputComp(ExplicitComponent):
 
                 # (num_starting, num_times, num_step_vars,) + shape
                 data = np.einsum('ijk,...->ijk...', starting_coeffs, np.ones(shape)).flatten()
-                rows = np.einsum('jk,i...->ijk...',
+                rows = np.einsum(
+                    'jk,i...->ijk...',
                     np.ones((num_times, num_step_vars), int), starting_arange).flatten()
-                cols = np.einsum('i,jk...->ijk...',
+                cols = np.einsum(
+                    'i,jk...->ijk...',
                     np.ones(num_starting, int), y_arange).flatten()
 
                 self.declare_partials(starting_name, y_name, val=data, rows=rows, cols=cols)
@@ -120,5 +127,5 @@ class VectorizedOutputComp(ExplicitComponent):
 
             if is_starting_method:
 
-                outputs[starting_name] = np.einsum('ijk,jk...->i...',
-                    starting_coeffs, inputs[y_name])
+                outputs[starting_name] = np.einsum(
+                    'ijk,jk...->i...', starting_coeffs, inputs[y_name])

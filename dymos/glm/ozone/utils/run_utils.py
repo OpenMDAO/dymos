@@ -8,11 +8,13 @@ from dymos.glm.ozone.utils.suppress_printing import nostdout
 from dymos.glm.ozone.methods_list import get_method
 
 
-def run_integration(num_times, t0, t1, initial_conditions, ode_system_class, formulation, method_name):
+def run_integration(
+        num_times, t0, t1, initial_conditions, ode_system_class, formulation, method_name):
     try:
         exact_solution = ode_system_class().get_exact_solution(initial_conditions, t0, t1)
     except AttributeError:
-        raise NotImplementedError('{0} does not implement get_exact_solution'.format(ode_system_class))
+        raise NotImplementedError(
+            '{0} does not implement get_exact_solution'.format(ode_system_class))
 
     times = np.linspace(t0, t1, num_times)
 
@@ -43,8 +45,8 @@ def run_integration(num_times, t0, t1, initial_conditions, ode_system_class, for
     return runtime, errors
 
 
-def compute_runtimes(num_times_vector, t0, t1,
-        ode_function, formulation, method_name, initial_conditions):
+def compute_runtimes(
+        num_times_vector, t0, t1, ode_function, formulation, method_name, initial_conditions):
     num = len(num_times_vector)
 
     step_sizes_vector = np.zeros(num)
@@ -107,7 +109,7 @@ def compute_convergence_order(num_times_vector, t0, t1, state_name,
     step_sizes0 = step_sizes_vector[:-1]
     step_sizes1 = step_sizes_vector[1:]
 
-    orders_vector = np.log( errors1 / errors0 ) / np.log( step_sizes1 / step_sizes0 )
+    orders_vector = np.log(errors1 / errors0) / np.log(step_sizes1 / step_sizes0)
 
     ideal_order = get_method(method_name).order
 
@@ -122,7 +124,7 @@ def compute_ideal_error(step_sizes_vector, errors_vector, ideal_order):
 
     ideal_errors_vector = np.array([
         errors_vector[0],
-        errors_vector[0] * ( step_sizes_vector[-1] / step_sizes_vector[0] ) ** ideal_order,
+        errors_vector[0] * (step_sizes_vector[-1] / step_sizes_vector[0]) ** ideal_order,
     ])
 
     return ideal_step_sizes_vector, ideal_errors_vector

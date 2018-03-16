@@ -39,13 +39,16 @@ class ImplicitTMStepComp(ExplicitComponent):
             y_old_name = get_name('y_old', state_name, i_step=i_step)
             y_new_name = get_name('y_new', state_name, i_step=i_step)
 
-            self.add_input(F_name, shape=(num_stages,) + shape,
+            self.add_input(
+                F_name, shape=(num_stages,) + shape,
                 units=get_rate_units(state['units'], time_units))
 
-            self.add_input(y_old_name, shape=(num_step_vars,) + shape,
+            self.add_input(
+                y_old_name, shape=(num_step_vars,) + shape,
                 units=state['units'])
 
-            self.add_output(y_new_name, shape=(num_step_vars,) + shape,
+            self.add_output(
+                y_new_name, shape=(num_step_vars,) + shape,
                 units=state['units'])
 
             F_arange = np.arange(num_stages * size).reshape(
@@ -68,8 +71,7 @@ class ImplicitTMStepComp(ExplicitComponent):
             # -----------------
 
             # (num_step_vars, num_step_vars,) + shape
-            data = np.einsum('ij,...->ij...',
-                glm_V, np.ones(shape)).flatten()
+            data = np.einsum('ij,...->ij...', glm_V, np.ones(shape)).flatten()
             rows = np.einsum('i...,j->ij...', y_arange, np.ones(num_step_vars)).flatten()
             cols = np.einsum('j...,i->ij...', y_arange, np.ones(num_step_vars)).flatten()
 

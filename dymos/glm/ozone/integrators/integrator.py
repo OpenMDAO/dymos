@@ -67,12 +67,13 @@ class Integrator(Group):
             assert len(starting_coeffs.shape) == 3, \
                 'starting_coeffs must be a rank-3 array, but its rank is %i' \
                 % len(starting_coeffs.shape)
-            assert starting_coeffs.shape[1:] == (len(my_norm_times), method.num_values), \
-                'starting_coeffs must have shape (num_starting, num_times, num_step_vars,).' \
-                + 'It has shape %i x %i x %i, but it should have shape (? x %i x %i)' % (
+            assert starting_coeffs.shape[1:] == (len(my_norm_times), method.num_values), (
+                'starting_coeffs must have shape (num_starting, num_times, num_step_vars,).' +
+                'It has shape %i x %i x %i, but it should have shape (? x %i x %i)' % (
                     starting_coeffs.shape[0], starting_coeffs.shape[1], starting_coeffs.shape[2],
                     len(my_norm_times), method.num_values
                 )
+            )
 
         # ------------------------------------------------------------------------------------
         # inputs
@@ -84,7 +85,8 @@ class Integrator(Group):
             name = 'IC_state:%s' % state_name
             state = self._ode_options._states[state_name]
 
-            comp.add_output(name,
+            comp.add_output(
+                name,
                 shape=(len(normalized_times),) + state['shape'], units=state['units']
             )
             promotes.append(name)
@@ -122,21 +124,24 @@ class Integrator(Group):
         # ------------------------------------------------------------------------------------
         # Initial conditions comp
         comp = InitialConditionsComp(states=states)
-        self.add_subsystem('initial_conditions_comp', comp,
-            promotes_outputs=
-                [('out:%s' % state_name, get_name('initial_condition', state_name))
-                for state_name in states])
+        self.add_subsystem(
+            'initial_conditions_comp', comp, promotes_outputs=[
+                ('out:%s' % state_name, get_name('initial_condition', state_name))
+                for state_name in states
+            ])
         for state_name in states:
             size = np.prod(state['shape'])
-            self.connect('IC_state:%s' % state_name, 'initial_conditions_comp.in:%s' % state_name,
+            self.connect(
+                'IC_state:%s' % state_name, 'initial_conditions_comp.in:%s' % state_name,
                 src_indices=np.arange(size), flat_src_indices=True)
 
         # ------------------------------------------------------------------------------------
         # Time comp
-        comp = TimeComp(time_units=time_units,
-            my_norm_times=my_norm_times, stage_norm_times=stage_norm_times,
+        comp = TimeComp(
+            time_units=time_units, my_norm_times=my_norm_times, stage_norm_times=stage_norm_times,
             normalized_times=normalized_times)
-        self.add_subsystem('time_comp', comp,
+        self.add_subsystem(
+            'time_comp', comp,
             promotes_inputs=['initial_time', 'final_time'],
             promotes_outputs=['times'])
 
@@ -146,8 +151,10 @@ class Integrator(Group):
             promotes = [
                 (get_name('in', parameter_name), get_name('dynamic_parameter', parameter_name))
                 for parameter_name in dynamic_parameters]
-            self.add_subsystem('dynamic_parameter_comp',
-                DynamicParameterComp(dynamic_parameters=dynamic_parameters,
+            self.add_subsystem(
+                'dynamic_parameter_comp',
+                DynamicParameterComp(
+                    dynamic_parameters=dynamic_parameters,
                     normalized_times=all_norm_times, stage_norm_times=stage_norm_times),
                 promotes_inputs=promotes)
 
@@ -162,7 +169,8 @@ class Integrator(Group):
             starting_method_name, starting_coeffs, starting_times = method.starting_method
             method = get_method(starting_method_name)
 
-            starting_system = self.__class__(ode_class=ode_class, method=method,
+            starting_system = self.__class__(
+                ode_class=ode_class, method=method,
                 normalized_times=starting_norm_times, all_norm_times=all_norm_times,
                 starting_coeffs=starting_coeffs,
             )
@@ -173,16 +181,15 @@ class Integrator(Group):
             promotes.append('initial_time')
             promotes.append('final_time')
 
-        self.add_subsystem('starting_system', starting_system,
-            promotes_inputs=promotes)
+        self.add_subsystem('starting_system', starting_system, promotes_inputs=promotes)
 
     def _get_state_names(self, comp, type_, i_step=None, i_stage=None, j_stage=None):
-        return self._get_names('states',
-            comp, type_, i_step=i_step, i_stage=i_stage, j_stage=j_stage)
+        return self._get_names(
+            'states', comp, type_, i_step=i_step, i_stage=i_stage, j_stage=j_stage)
 
     def _get_dynamic_parameter_names(self, comp, type_, i_step=None, i_stage=None, j_stage=None):
-        return self._get_names('dynamic_parameters',
-            comp, type_, i_step=i_step, i_stage=i_stage, j_stage=j_stage)
+        return self._get_names(
+            'dynamic_parameters', comp, type_, i_step=i_step, i_stage=i_stage, j_stage=j_stage)
 
     def _get_names(self, variable_type, comp, type_, i_step=None, i_stage=None, j_stage=None):
         if variable_type == 'states':
@@ -230,7 +237,7 @@ class Integrator(Group):
         else:
             start_time_index = 0
 
-        return normalized_times[:start_time_index+1], normalized_times[start_time_index:]
+        return normalized_times[:start_time_index + 1], normalized_times[start_time_index:]
 
     def _get_method(self):
         method = self.metadata['method']

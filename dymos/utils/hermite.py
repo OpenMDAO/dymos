@@ -91,10 +91,10 @@ def heriwi(tau, taus):
         sum1 = 0.0
         for i in range(n):
             if i != j:
-                prod *= ((tau-taus[i])/(taus[j]-taus[i]))**2
-                sum1 += 1.0/(taus[j]-taus[i])
-        u[j] = prod*((taus[j]-tau)*2.0*sum1+1.0)
-        v[j] = prod*(tau-taus[j])
+                prod *= ((tau - taus[i]) / (taus[j] - taus[i]))**2
+                sum1 += 1. / (taus[j] - taus[i])
+        u[j] = prod * ((taus[j] - tau) * 2.0 * sum1 + 1.0)
+        v[j] = prod * (tau - taus[j])
 
     return u, v
 
@@ -130,14 +130,14 @@ def heriwd(tau, taus):
         sum1 = 0.0
         for i in range(n):
             if i != j:
-                xmxi = tau-taus[i]
-                xjmxi = taus[j]-taus[i]
-                dprod = dprod * (xmxi/xjmxi)**2 + 2.0 * prod * xmxi / xjmxi**2
-                prod = prod * (xmxi/xjmxi)**2
-                sum1 = sum1 + 1.0/xjmxi
+                xmxi = tau - taus[i]
+                xjmxi = taus[j] - taus[i]
+                dprod = dprod * (xmxi / xjmxi)**2 + 2.0 * prod * xmxi / xjmxi**2
+                prod = prod * (xmxi / xjmxi)**2
+                sum1 = sum1 + 1.0 / xjmxi
         xmxj = tau - taus[j]
         xjmx = taus[j] - tau
-        u[j] = dprod*(xjmx*2.0*sum1+1.0) - prod*(2.0*sum1)
-        v[j] = dprod*xmxj+prod
+        u[j] = dprod * (xjmx * 2.0 * sum1 + 1.0) - prod * (2.0 * sum1)
+        v[j] = dprod * xmxj + prod
 
     return u, v

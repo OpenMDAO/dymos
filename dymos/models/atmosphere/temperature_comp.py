@@ -18,7 +18,7 @@ class TemperatureComp(ExplicitComponent):
                        units='m')
 
         self.add_output(name='temp',
-                        val=288.15*np.ones(n),
+                        val=288.15 * np.ones(n),
                         desc='Temperature',
                         units='K')
 

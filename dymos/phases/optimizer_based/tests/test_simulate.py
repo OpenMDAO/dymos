@@ -83,7 +83,7 @@ class TestSimulateRecording(unittest.TestCase):
         p.run_driver()
 
         exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'],
-                                                   p['phase0.t_initial']+p['phase0.t_duration'],
+                                                   p['phase0.t_initial'] + p['phase0.t_duration'],
                                                    50))
 
         cr = CaseReader('phase0_sim.db')
@@ -154,7 +154,7 @@ class TestSimulateRecording(unittest.TestCase):
         p.run_driver()
 
         exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'],
-                                                   p['phase0.t_initial']+p['phase0.t_duration'],
+                                                   p['phase0.t_initial'] + p['phase0.t_duration'],
                                                    50),
                                  record_file='brachistochrone_sim.db')
 

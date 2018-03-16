@@ -18,7 +18,7 @@ class ImplicitMidpoint(RungeKutta):
     def __init__(self):
         self.order = 2
 
-        super(ImplicitMidpoint, self).__init__(A=1/2, B=1.)
+        super(ImplicitMidpoint, self).__init__(A=1. / 2., B=1.)
 
 
 class TrapezoidalRule(RungeKutta):

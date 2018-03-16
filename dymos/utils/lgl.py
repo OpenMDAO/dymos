@@ -73,16 +73,16 @@ def _lgl(n, tol=np.finfo(float).eps):
         P[:, 1] = x
 
         for k in range(2, n1):
-            P[:, k] = ((2*k-1)*x*P[:, k-1]-(k-1)*P[:, k-2])/k
+            P[:, k] = ((2 * k - 1) * x * P[:, k - 1] - (k - 1) * P[:, k - 2]) / k
 
-        x = xold - (x*P[:, n]-P[:, n-1])/(n1*P[:, n])
+        x = xold - (x * P[:, n] - P[:, n - 1]) / (n1 * P[:, n])
     else:
         raise RuntimeError('Failed to converge LGL nodes '
                            'for order {0}'.format(n))
 
     x.sort()
 
-    w = 2 / (n*n1*P[:, n]**2)
+    w = 2 / (n * n1 * P[:, n]**2)
 
     return x, w
 

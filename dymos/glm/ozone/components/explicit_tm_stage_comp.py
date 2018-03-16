@@ -42,13 +42,16 @@ class ExplicitTMStageComp(ExplicitComponent):
             for j_stage in range(i_stage):
                 F_name = get_name('F', state_name, i_step=i_step, i_stage=i_stage, j_stage=j_stage)
 
-                self.add_input(F_name, shape=(1,) + state['shape'],
+                self.add_input(
+                    F_name, shape=(1,) + state['shape'],
                     units=get_rate_units(state['units'], time_units))
 
-            self.add_input(y_old_name, shape=(num_step_vars,) + state['shape'],
+            self.add_input(
+                y_old_name, shape=(num_step_vars,) + state['shape'],
                 units=state['units'])
 
-            self.add_output(Y_name, shape=(1,) + state['shape'],
+            self.add_output(
+                Y_name, shape=(1,) + state['shape'],
                 units=state['units'])
 
             vals = np.zeros((num_step_vars, size))

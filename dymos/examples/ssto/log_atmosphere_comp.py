@@ -28,10 +28,10 @@ class LogAtmosphereComp(ExplicitComponent):
         rho_ref = self.metadata['rho_ref']
         h_scale = self.metadata['h_scale']
         y = inputs['y']
-        outputs['rho'] = rho_ref * np.exp(-y/h_scale)
+        outputs['rho'] = rho_ref * np.exp(-y / h_scale)
 
     def compute_partials(self, inputs, jacobian):
         rho_ref = self.metadata['rho_ref']
         h_scale = self.metadata['h_scale']
         y = inputs['y']
-        jacobian['rho', 'y'] = -(rho_ref/h_scale) * np.exp(-y/h_scale)
+        jacobian['rho', 'y'] = -(rho_ref / h_scale) * np.exp(-y / h_scale)

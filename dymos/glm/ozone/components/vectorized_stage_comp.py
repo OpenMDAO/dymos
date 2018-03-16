@@ -50,19 +50,23 @@ class VectorizedStageComp(ExplicitComponent):
             y_arange = np.arange(num_times * num_step_vars * size).reshape(
                 (num_times, num_step_vars,) + shape)
 
-            self.add_input(F_name,
+            self.add_input(
+                F_name,
                 shape=(num_times - 1, num_stages,) + shape,
                 units=get_rate_units(state['units'], time_units))
 
-            self.add_input(y_name,
+            self.add_input(
+                y_name,
                 shape=(num_times, num_step_vars,) + shape,
                 units=state['units'])
 
-            self.add_input(Y_in_name, val=0.,
+            self.add_input(
+                Y_in_name, val=0.,
                 shape=(num_times - 1, num_stages,) + shape,
                 units=state['units'])
 
-            self.add_output(Y_out_name,
+            self.add_output(
+                Y_out_name,
                 shape=(num_times - 1, num_stages,) + shape,
                 units=state['units'])
 
@@ -77,7 +81,8 @@ class VectorizedStageComp(ExplicitComponent):
             # (num_times - 1, num_stages, num_stages,) + shape
             rows = np.einsum('ij...,k->ijk...', Y_arange, np.ones(num_stages, int)).flatten()
 
-            cols = np.einsum('jk...,i->ijk...',
+            cols = np.einsum(
+                'jk...,i->ijk...',
                 np.ones((num_stages, num_stages,) + shape, int), h_arange).flatten()
             self.declare_partials(Y_out_name, 'h_vec', rows=rows, cols=cols)
 
@@ -87,8 +92,8 @@ class VectorizedStageComp(ExplicitComponent):
             # -----------------
 
             # (num_times - 1, num_stages, num_step_vars,) + shape
-            data = np.einsum('jk,i...->ijk...',
-                glm_U, np.ones((num_times - 1,) + shape)).flatten()
+            data = np.einsum(
+                'jk,i...->ijk...', glm_U, np.ones((num_times - 1,) + shape)).flatten()
             rows = np.einsum('ij...,k->ijk...', Y_arange, np.ones(num_step_vars)).flatten()
             cols = np.einsum('ik...,j->ijk...', y_arange[:-1, :, :], np.ones(num_stages)).flatten()
 

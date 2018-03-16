@@ -42,13 +42,16 @@ class ExplicitTMStepComp(ExplicitComponent):
             for j_stage in range(num_stages):
                 F_name = get_name('F', state_name, i_step=i_step, j_stage=j_stage)
 
-                self.add_input(F_name, shape=(1,) + state['shape'],
+                self.add_input(
+                    F_name, shape=(1,) + state['shape'],
                     units=get_rate_units(state['units'], time_units))
 
-            self.add_input(y_old_name, shape=(num_step_vars,) + state['shape'],
+            self.add_input(
+                y_old_name, shape=(num_step_vars,) + state['shape'],
                 units=state['units'])
 
-            self.add_output(y_new_name, shape=(num_step_vars,) + state['shape'],
+            self.add_output(
+                y_new_name, shape=(num_step_vars,) + state['shape'],
                 units=state['units'])
 
             self.declare_partials(y_new_name, 'h', dependent=True)
@@ -97,11 +100,11 @@ class ExplicitTMStepComp(ExplicitComponent):
             for j_stage in range(num_stages):
                 F_name = get_name('F', state_name, i_step=i_step, j_stage=j_stage)
 
-                #y_new:step x shape
+                # y_new:step x shape
                 # GLM step x stage
                 # F: 1 x shape
-                outputs[y_new_name] += inputs['h'] * np.einsum('i,...->i...',
-                    glm_B[:, j_stage], inputs[F_name][0, :])
+                outputs[y_new_name] += inputs['h'] * np.einsum(
+                    'i,...->i...', glm_B[:, j_stage], inputs[F_name][0, :])
 
     def compute_partials(self, inputs, partials):
         num_stages = self.metadata['num_stages']
@@ -129,5 +132,5 @@ class ExplicitTMStepComp(ExplicitComponent):
                 # partials[y_new_name, 'h'][:, 0] += glm_B[ii_step, j_stage] \
                 #     * inputs[F_name].flatten()
 
-                partials[y_new_name, 'h'][:, 0] += np.einsum('i,...->i...',
-                    glm_B[:, j_stage], inputs[F_name][0, :]).flatten()
+                partials[y_new_name, 'h'][:, 0] += np.einsum(
+                    'i,...->i...', glm_B[:, j_stage], inputs[F_name][0, :]).flatten()

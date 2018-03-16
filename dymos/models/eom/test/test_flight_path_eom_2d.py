@@ -90,7 +90,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
         exp_out = phase.simulate(times='all')
 
         assert_rel_error(self, exp_out.get_values('h', units='km')[-1], 0.0, tolerance=0.001)
-        assert_rel_error(self, exp_out.get_values('r')[-1], v0**2/g, tolerance=0.001)
+        assert_rel_error(self, exp_out.get_values('r')[-1], v0**2 / g, tolerance=0.001)
         assert_rel_error(self, exp_out.get_values('gam')[-1], -gam0, tolerance=0.001)
         assert_rel_error(self, exp_out.get_values('v')[-1], v0, tolerance=0.001)
 
@@ -107,7 +107,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
         self.p['phase0.t_initial'] = 0.0
         self.p['phase0.t_duration'] = t_duration
 
-        self.p['phase0.states:r'] = phase.interpolate(ys=[0, v0*np.cos(gam0)*t_duration],
+        self.p['phase0.states:r'] = phase.interpolate(ys=[0, v0 * np.cos(gam0) * t_duration],
                                                       nodes='disc')
         self.p['phase0.states:h'] = phase.interpolate(ys=[0, 0], nodes='disc')
         self.p['phase0.states:v'] = phase.interpolate(ys=[v0, v0], nodes='disc')
@@ -118,7 +118,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
         exp_out = phase.simulate(times='all')
 
         assert_rel_error(self, exp_out.get_values('h')[-1], 0.0, tolerance=0.001)
-        assert_rel_error(self, exp_out.get_values('r')[-1], v0**2/g, tolerance=0.001)
+        assert_rel_error(self, exp_out.get_values('r')[-1], v0**2 / g, tolerance=0.001)
         assert_rel_error(self, exp_out.get_values('gam')[-1], -np.radians(45), tolerance=0.001)
         assert_rel_error(self, exp_out.get_values('v')[-1], v0, tolerance=0.001)
 

@@ -63,7 +63,7 @@ def radau_pseudospectral_subsets(n):
     """
     node_indices = {
         'disc': np.arange(n),
-        'col': np.arange(n-1),
+        'col': np.arange(n - 1),
         'all': np.arange(n),
     }
     return node_indices
@@ -90,7 +90,7 @@ def glm_subsets(n):
 
     subsets = {
         'disc': np.arange(n),
-        'col': np.arange(n-1),
+        'col': np.arange(n - 1),
         'all': np.arange(n),
     }
 
@@ -171,10 +171,10 @@ class GridData(object):
 
         """
         if segment_ends is None:
-            segment_ends = np.linspace(-1, 1, num_segments+1)
+            segment_ends = np.linspace(-1, 1, num_segments + 1)
         else:
-            if len(segment_ends) != num_segments+1:
-                raise ValueError('segment_ends must be of length (num_segments+1)')
+            if len(segment_ends) != num_segments + 1:
+                raise ValueError('segment_ends must be of length (num_segments + 1)')
             # Assert monotonic increasing
             if not np.all(np.diff(segment_ends) > 0):
                 raise ValueError('segment_ends must be monotonically increasing')

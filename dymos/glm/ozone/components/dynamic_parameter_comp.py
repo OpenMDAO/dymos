@@ -26,8 +26,8 @@ class DynamicParameterComp(ExplicitComponent):
         data0, rows0, cols0 = get_sparse_linear_spline(normalized_times, stage_norm_times)
         nnz = len(data0)
 
-        self.mtx = scipy.sparse.csc_matrix((data0, (rows0, cols0)),
-            shape=(num_stage_times, num_times))
+        self.mtx = scipy.sparse.csc_matrix(
+            (data0, (rows0, cols0)), shape=(num_stage_times, num_times))
 
         for parameter_name, parameter in iteritems(self.metadata['dynamic_parameters']):
             size = np.prod(parameter['shape'])
@@ -36,23 +36,25 @@ class DynamicParameterComp(ExplicitComponent):
             in_name = get_name('in', parameter_name)
             out_name = get_name('out', parameter_name)
 
-            self.add_input(in_name,
+            self.add_input(
+                in_name,
                 shape=(num_times,) + shape,
                 units=parameter['units'])
 
-            self.add_output(out_name,
+            self.add_output(
+                out_name,
                 shape=(num_stage_times,) + shape,
                 units=parameter['units'])
 
             # (num_stage_times, num_out,) + shape
             data = np.einsum('i,...->i...', data0, np.ones(shape)).flatten()
             rows = (
-                np.einsum('i,...->i...', rows0, size * np.ones(shape, int))
-                + np.einsum('i,...->i...', np.ones(nnz, int), np.arange(size).reshape(shape))
+                np.einsum('i,...->i...', rows0, size * np.ones(shape, int)) +
+                np.einsum('i,...->i...', np.ones(nnz, int), np.arange(size).reshape(shape))
             ).flatten()
             cols = (
-                np.einsum('i,...->i...', cols0, size * np.ones(shape, int))
-                + np.einsum('i,...->i...', np.ones(nnz, int), np.arange(size).reshape(shape))
+                np.einsum('i,...->i...', cols0, size * np.ones(shape, int)) +
+                np.einsum('i,...->i...', np.ones(nnz, int), np.arange(size).reshape(shape))
             ).flatten()
 
             self.declare_partials(out_name, in_name, val=data, rows=rows, cols=cols)

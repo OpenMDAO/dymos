@@ -38,10 +38,10 @@ class LiftDragForceComp(ExplicitComponent):
         CL = inputs['CL']
         CD = inputs['CD']
 
-        qS = q*S
+        qS = q * S
 
-        outputs['f_lift'] = qS*CL
-        outputs['f_drag'] = qS*CD
+        outputs['f_lift'] = qS * CL
+        outputs['f_drag'] = qS * CD
 
     def compute_partials(self, inputs, partials):
         q = inputs['q']
@@ -49,12 +49,12 @@ class LiftDragForceComp(ExplicitComponent):
         CL = inputs['CL']
         CD = inputs['CD']
 
-        qS = q*S
+        qS = q * S
 
-        partials['f_lift', 'q'] = S*CL
-        partials['f_lift', 'S'] = q*CL
+        partials['f_lift', 'q'] = S * CL
+        partials['f_lift', 'S'] = q * CL
         partials['f_lift', 'CL'] = qS
 
-        partials['f_drag', 'q'] = S*CD
-        partials['f_drag', 'S'] = q*CD
+        partials['f_drag', 'q'] = S * CD
+        partials['f_drag', 'S'] = q * CD
         partials['f_drag', 'CD'] = qS

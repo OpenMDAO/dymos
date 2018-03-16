@@ -101,7 +101,7 @@ class DynamicInterpComp(ExplicitComponent):
                     jac = np.zeros((num_timesteps, m, num_nodes, m))
                     for i in range(m):
                         jac[:, i, :, i] = self.matrices[key]
-                    jac = jac.reshape((num_timesteps*m, num_nodes*m), order='C')
+                    jac = jac.reshape((num_timesteps * m, num_nodes * m), order='C')
                     self.jacs[key][dynamic_name] = jac
 
                 self.declare_partials(

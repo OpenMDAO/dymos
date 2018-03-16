@@ -14,10 +14,10 @@ _segends = np.array([0.0, 3.0, 10.0, 20])
 
 # LGL node locations per http://mathworld.wolfram.com/LobattoQuadrature.html
 _lgl_nodes = {3: np.array([-1.0, 0.0, 1.0]),
-              5: np.array([-1.0, -np.sqrt(21)/7.0, 0.0, np.sqrt(21)/7.0, 1.0])}
+              5: np.array([-1.0, -np.sqrt(21) / 7.0, 0.0, np.sqrt(21) / 7.0, 1.0])}
 
 # LGR node locations per http://mathworld.wolfram.com/RadauQuadrature.html with endpoint added
-_lgr_nodes = {3: np.array([-1.0, (1 - np.sqrt(6))/5.0, (1 + np.sqrt(6))/5.0, 1.0]),
+_lgr_nodes = {3: np.array([-1.0, (1 - np.sqrt(6)) / 5.0, (1 + np.sqrt(6)) / 5.0, 1.0]),
               5: np.array([-1.0, -0.72048, -0.167181, 0.446314, 0.885792, 1.0])}
 
 
@@ -54,7 +54,7 @@ class TestTimeComp(unittest.TestCase):
         dt_dstau_per_node = []
 
         for i in range(gd.num_segments):
-            a, b = gd.segment_ends[i], gd.segment_ends[i+1]  # segment ends in phase tau space
+            a, b = gd.segment_ends[i], gd.segment_ends[i + 1]  # segment ends in phase tau space
 
             # ratio of phase tau to segment tau within the segment
             dptau_dstau = (b - a) / 2.0
@@ -107,7 +107,7 @@ class TestTimeComp(unittest.TestCase):
         dt_dstau_per_node = []
 
         for i in range(gd.num_segments):
-            a, b = gd.segment_ends[i], gd.segment_ends[i+1]  # segment ends in phase tau space
+            a, b = gd.segment_ends[i], gd.segment_ends[i + 1]  # segment ends in phase tau space
 
             # ratio of phase tau to segment tau within the segment
             dptau_dstau = (b - a) / 2.0

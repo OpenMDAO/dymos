@@ -131,7 +131,7 @@ class StateInterpComp(ExplicitComponent):
                 jac = np.zeros((num_col_nodes, size, num_disc_nodes, size))
                 for i in range(size):
                     jac[:, i, :, i] = self.matrices[key]
-                jac = jac.reshape((num_col_nodes*size, num_disc_nodes*size), order='C')
+                jac = jac.reshape((num_col_nodes * size, num_disc_nodes * size), order='C')
                 self.jacs[key][name] = jac
 
             self.sizes[name] = size
@@ -148,7 +148,7 @@ class StateInterpComp(ExplicitComponent):
 
             r0 = 0
             for i in range(size):
-                rs_dtdstau[r0:r0+num_col_nodes] = r_band + i
+                rs_dtdstau[r0:r0 + num_col_nodes] = r_band + i
                 r0 += num_col_nodes
 
             self.declare_partials(of=self.xdotc_str[name], wrt='dt_dstau',
