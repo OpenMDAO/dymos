@@ -4,7 +4,7 @@ from six import iteritems
 
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder
+from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder, CaseReader
 from openmdao.utils.units import valid_units, convert_units
 
 from dymos.utils.misc import get_rate_units
@@ -16,29 +16,30 @@ class SimulationResults(object):
     purpose is to hold the dictionary of results from the integration
     and to provide a `get_values` interface that is equivalent to that
     in Phase (except that it has no knowledge of nodes).
+
+    Parameters
+    ----------
+    filepath : str or None
+        A filepath from which SimulationResults are to be loaded.
+    time_options : dymos.TimeOptionsDictionary or None
+        The options dictionary for the phase tied to this instance of simulation results.  If
+        being loaded from a file, this is not needed at instantiation.
+    state_options : dymos.StateOptionsDictionary or None
+        The options dictionary for the phase tied to this instance of simulation results.  If
+        being loaded from a file, this is not needed at instantiation.
+    control_options : dymos.ControlOptionsDictionary or None
+        The options dictionary for the phase tied to this instance of simulation results.  If
+        being loaded from a file, this is not needed at instantiation.
     """
     def __init__(self, filepath=None, time_options=None, state_options=None, control_options=None):
-        """
-
-        Parameters
-        ----------
-        filepath : str or None
-            A filepath from which SimulationResults are to be loaded.
-        time_options : dymos.TimeOptionsDictionary or None
-            The options dictionary for the phase tied to this instance of simulation results.  If
-            being loaded from a file, this is not needed at instantiation.
-        state_options : dymos.StateOptionsDictionary or None
-            The options dictionary for the phase tied to this instance of simulation results.  If
-            being loaded from a file, this is not needed at instantiation.
-        control_options : dymos.ControlOptionsDictionary or None
-            The options dictionary for the phase tied to this instance of simulation results.  If
-            being loaded from a file, this is not needed at instantiation.
-        """
         self.time_options = time_options
         self.state_options = state_options
         self.control_options = control_options
         self.outputs = {}
         self.units = {}
+
+        if isinstance(filepath, str):
+            self._load_results(filepath)
 
     def record_results(self, filename, ode_class, ode_init_kwargs=None):
         """
@@ -60,7 +61,6 @@ class SimulationResults(object):
             declare_state, and declare_parameter decorators.
         ode_init_kwargs : dict or None
             A dictionary of keyword arguments with which ode_class should be instantiated.
-
         """
         init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
 
@@ -113,6 +113,8 @@ class SimulationResults(object):
         p.setup(check=True)
 
         p.model.add_recorder(SqliteRecorder(filename))
+        p.model.recording_options['record_metadata'] = True
+        p.model.recording_options['record_outputs'] = True
 
         # Assign times
         p['time'] = time[:, 0]
@@ -138,12 +140,38 @@ class SimulationResults(object):
             p[abs_name[0]] = np.reshape(self.get_values(prom_name), p[abs_name[0]].shape)
 
         # Run model to record file
-        p.run_model()
+        p.run_driver()
+
+    def _load_results(self, filename):
+        """
+        Load SimulationResults from the given file.
+
+        Parameters
+        ----------
+        filename : str
+            The path of the file from which to load the simulation results.
+        """
+        cr = CaseReader(filename)
+        case = cr.system_cases.get_case(-1)
+
+        loaded_outputs = case.outputs._prom2abs['output']
+        for name in loaded_outputs:
+            self.outputs[name] = {}
+            self.outputs[name]['value'] = case.outputs[name]
+            self.outputs[name]['units'] = None
+            self.outputs[name]['shape'] = case.outputs[name].shape[1:]
+
+        states = [s.split(':')[-1] for s in loaded_outputs if s.startswith('states:')]
+        controls = [s.split(':')[-1] for s in loaded_outputs if s.startswith('controls:')]
 
     def get_values(self, var, units=None, nodes=None):
 
         if units is not None and not valid_units(units):
             raise ValueError('{0} is not a valid set of units.'.format(units))
+
+        if nodes is not None:
+            raise RuntimeWarning('Argument nodes has no meaning for SimulationResults.get_values '
+                                 'and is included for compatibility with Phase.get_values')
 
         if var == 'time':
             output_path = 'time'

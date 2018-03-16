@@ -8,10 +8,10 @@ from dymos.phases.optimizer_based.components import CollocationComp
 from dymos.phases.optimizer_based.components import StateInterpComp
 from dymos.phases.phase_base import PhaseBase
 from dymos.utils.interpolate import LagrangeBarycentricInterpolant, StaticInterpolant
-from dymos.utils.misc import CoerceDesvar, get_rate_units
+from dymos.utils.misc import CoerceDesvar
 from dymos.utils.simulation import ScipyODEIntegrator, SimulationResults, \
     StdOutObserver, ProgressBarObserver
-from openmdao.api import Problem, Group, SqliteRecorder, IndepVarComp
+from openmdao.api import IndepVarComp
 from six import string_types, iteritems
 
 
@@ -192,8 +192,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
             filepath = record_file if record_file else '{0}_sim.db'.format(phase_name)
 
             exp_out.record_results(filepath, self.metadata['ode_class'],
-                                   self.metadata['ode_init_kwargs'], self.time_options,
-                                   self.state_options, self.control_options)
+                                   self.metadata['ode_init_kwargs'])
         return exp_out
 
     def setup(self):

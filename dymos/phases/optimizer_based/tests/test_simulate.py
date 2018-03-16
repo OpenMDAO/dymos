@@ -11,6 +11,7 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver,
     CSCJacobian, CSRJacobian, DirectSolver, CaseReader
 
 from dymos import Phase
+from dymos.utils.simulation import SimulationResults
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 OPTIMIZER = 'SLSQP'
@@ -20,7 +21,6 @@ SHOW_PLOTS = False
 class TestSimulateRecording(unittest.TestCase):
 
     def tearDown(self):
-
         for filename in ['phase0_sim.db', 'brachistochrone_sim.db']:
             if os.path.exists(filename):
                 os.remove(filename)
@@ -95,6 +95,12 @@ class TestSimulateRecording(unittest.TestCase):
             else:
                 _var = var
             assert_almost_equal(last_case.outputs[var].ravel(), exp_out.get_values(_var).ravel())
+
+        # loaded_exp_out = SimulationResults('phase0_sim.db')
+        #
+        # for var in ['time', 'x', 'y', 'v', 'theta']:
+        #     assert_almost_equal(exp_out.get_values(var).ravel(),
+        #                         loaded_exp_out.get_values(var).ravel())
 
     def test_record_specified_file(self, transcription='gauss-lobatto',
                                    top_level_jacobian='csc', optimizer='slsqp'):

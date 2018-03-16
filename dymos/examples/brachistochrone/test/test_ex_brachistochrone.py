@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division
 
+import os
 import unittest
 from numpy.testing import assert_almost_equal
 
@@ -10,7 +11,12 @@ import dymos.examples.brachistochrone.ex_brachistochrone as ex_brachistochrone
 
 class TestBrachistochroneExample(unittest.TestCase):
 
-    # @parameterized.expand(['gauss-lobatto', 'radau-ps'])
+    def tearDown(self):
+        for filename in ['phase0_sim.db', 'brachistochrone_sim.db']:
+            if os.path.exists(filename):
+                os.remove(filename)
+
+    @parameterized.expand(['gauss-lobatto', 'radau-ps'])
     def test_ex_brachistochrone(self, transcription='radau-ps'):
         ex_brachistochrone.SHOW_PLOTS = False
         p = ex_brachistochrone.brachistochrone_min_time(transcription)
