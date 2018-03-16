@@ -52,7 +52,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         ['optimizer-based', 'solver-based', 'time-marching'],
         ['RK4'],
     ))
-    @unittest.skipIf(OPTIMIZER is None, 'SNOPT is not available on this system')
+    @unittest.skip('GLM only works with SNOPT at the moment')
     def test_ex_brachistochrone_glm(self, glm_formulation='solver-based', glm_integrator='RK4'):
         transcription = 'glm'
         ex_brachistochrone.OPTIMIZER = 'SNOPT'
