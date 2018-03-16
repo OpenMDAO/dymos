@@ -8,7 +8,8 @@ from itertools import product
 
 import dymos.examples.brachistochrone.ex_brachistochrone as ex_brachistochrone
 
-from pyoptsparse.pySNOPT import pySNOPT
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 
 class TestBrachistochroneExample(unittest.TestCase):
@@ -51,7 +52,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         ['optimizer-based', 'solver-based', 'time-marching'],
         ['RK4'],
     ))
-    @unittest.skipIf(pySNOPT is None, 'SNOPT is not available on this system')
+    @unittest.skipIf(OPTIMIZER is None, 'SNOPT is not available on this system')
     def test_ex_brachistochrone_glm(self, glm_formulation='solver-based', glm_integrator='RK4'):
         transcription = 'glm'
         ex_brachistochrone.OPTIMIZER = 'SNOPT'
