@@ -13,6 +13,6 @@ problems.
 
     installation
     optimal_control
-    equations_of_motion
+    defining_odes
     phases/phases
     tools_and_components/tools_and_components
