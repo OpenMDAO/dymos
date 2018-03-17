@@ -38,19 +38,38 @@ or simply fail to match at certain points, it's an indication that grid refineme
     to converge slowly or, worse, not converge at all.  Using analytic derivatives typically
     allows convergence in fewer iterations.
 
-Example:  Jump-starting an Optimization with an Explicitly Simulated Guess
---------------------------------------------------------------------------
+Example:  Using `simulate` to check the solution
+------------------------------------------------
 
-Let's consider single-stage-to-orbit (SSTO) example.  In the following code, we initialize the
-problem, provide a guess at the time-history of alpha, and use simulate to create an explicitly
-simulated time history.
+Consider the single-stage-to-orbit (SSTO) example.  In the following code, we solve the problem.
+We then call simulate and capture the returned `SimulationOutput` object as `exp_out`.
 
-A few things to note about this case:
+The SimulationObject supports the same `get_values` interface as the Phase class, so visually
+comparing the results is easy.
 
- * We only need to provide the initial values of the states.  We can assign the states to a scalar
-   here since all subsequent values are meaningless.
+.. code-block:: python
 
- * The interpolate method used to guess the initial values of the controls will assume a linear
-   interpolation by default.
+    t0 = p['phase0.t_initial']
+    tf = t0 + p['phase0.t_duration']
+    exp_out = phase.simulate(times=np.linspace(t0, tf, 100))
+    print(exp_out.get_values('vy'))
 
+By default, the filename of the simulation is `<phase_name>_sim.db` where `phase_name` is the
+name assigned to the phase object when it was added to the problem (`phase0` in the example above).
+The user can override this filename by explicitly providing one via the `record_file` to the
+simulate method.
 
+.. code-block:: python
+
+    t0 = p['phase0.t_initial']
+    tf = t0 + p['phase0.t_duration']
+    phase.simulate(times=np.linspace(t0, tf, 50), record_file='my_simulation.db')
+
+Note that the simulate method also saves an OpenMDAO recording file of the explicitly integrated
+solution.  We can load data from a previous explicit simulation by instantiating the
+SimulationResults with the filename as its only argument.
+
+.. code-block:: python
+
+    exp_out = SimulationResults('my_simulation.db')
+    print(exp_out.get_values('x'))

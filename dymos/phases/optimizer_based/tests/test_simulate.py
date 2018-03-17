@@ -20,7 +20,7 @@ SHOW_PLOTS = False
 
 class TestSimulateRecording(unittest.TestCase):
 
-    def tearDown(self):
+    def tearDownClass(cls):
         for filename in ['phase0_sim.db', 'brachistochrone_sim.db']:
             if os.path.exists(filename):
                 os.remove(filename)
@@ -96,11 +96,11 @@ class TestSimulateRecording(unittest.TestCase):
                 _var = var
             assert_almost_equal(last_case.outputs[var].ravel(), exp_out.get_values(_var).ravel())
 
-        # loaded_exp_out = SimulationResults('phase0_sim.db')
-        #
-        # for var in ['time', 'x', 'y', 'v', 'theta']:
-        #     assert_almost_equal(exp_out.get_values(var).ravel(),
-        #                         loaded_exp_out.get_values(var).ravel())
+        loaded_exp_out = SimulationResults('phase0_sim.db')
+
+        for var in ['time', 'x', 'y', 'v', 'theta']:
+            assert_almost_equal(exp_out.get_values(var).ravel(),
+                                loaded_exp_out.get_values(var).ravel())
 
     def test_record_specified_file(self, transcription='gauss-lobatto',
                                    top_level_jacobian='csc', optimizer='slsqp'):
@@ -164,15 +164,11 @@ class TestSimulateRecording(unittest.TestCase):
                                                    50),
                                  record_file='brachistochrone_sim.db')
 
-        cr = CaseReader('brachistochrone_sim.db')
-        last_case = cr.system_cases.get_case(-1)
+        loaded_exp_out = SimulationResults('brachistochrone_sim.db')
 
-        for var in ['time', 'states:x', 'states:y', 'states:v', 'controls:theta']:
-            if ':' in var:
-                _var = var.split(':')[-1]
-            else:
-                _var = var
-            assert_almost_equal(last_case.outputs[var].ravel(), exp_out.get_values(_var).ravel())
+        for var in ['time', 'x', 'y', 'v', 'theta']:
+            assert_almost_equal(exp_out.get_values(var).ravel(),
+                                loaded_exp_out.get_values(var).ravel())
 
 
 if __name__ == '__main__':

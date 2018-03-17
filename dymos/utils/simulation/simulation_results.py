@@ -8,6 +8,8 @@ from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder, CaseReade
 from openmdao.utils.units import valid_units, convert_units
 
 from dymos.utils.misc import get_rate_units
+from dymos.phases.options import TimeOptionsDictionary, StateOptionsDictionary, \
+    ControlOptionsDictionary
 
 
 class SimulationResults(object):
@@ -161,8 +163,19 @@ class SimulationResults(object):
             self.outputs[name]['units'] = None
             self.outputs[name]['shape'] = case.outputs[name].shape[1:]
 
+        # TODO: Get time, state, and control options from the case metadata
+        self.time_options = TimeOptionsDictionary()
+        self.state_options = {}
+        self.control_options = {}
+
         states = [s.split(':')[-1] for s in loaded_outputs if s.startswith('states:')]
         controls = [s.split(':')[-1] for s in loaded_outputs if s.startswith('controls:')]
+
+        for s in states:
+            self.state_options[s] = StateOptionsDictionary()
+
+        for c in controls:
+            self.control_options[c] = ControlOptionsDictionary()
 
     def get_values(self, var, units=None, nodes=None):
 
