@@ -1057,7 +1057,7 @@ class PhaseBase(Group):
         """
         raise NotImplementedError('get_values has not been implemented for this class.')
 
-    def interpolate(self, xs=None, ys=None, nodes=None, kind='linear'):
+    def interpolate(self, xs=None, ys=None, nodes=None, kind='linear', axis=0):
         """
         Return an array of values on [a,b] linearly interpolated to the
         input nodes of the phase.
@@ -1077,6 +1077,9 @@ class PhaseBase(Group):
             interpolation of zeroth, first, second or third order) or as an
             integer specifying the order of the spline interpolator to use.
             Default is 'linear'.
+        axis : int
+            Specifies the axis along which interpolation should be performed.  Default is
+            the first axis (0).
 
         Returns
         -------
@@ -1093,13 +1096,19 @@ class PhaseBase(Group):
             if kind != 'linear':
                 raise ValueError('kind must be linear when xs is unspecified.')
             xs = [-1, 1]
+        elif len(xs) != np.prod(np.asarray(xs).shape):
+            raise ValueError('xs must be viewable as a 1D array')
+
         node_locations = self.grid_data.node_ptau[self.grid_data.subset_node_indices[nodes]]
         if self.metadata['compressed']:
             node_locations = np.array(sorted(list(set(node_locations))))
         # Affine transform xs into tau space [-1, 1]
-        _xs = np.asarray(xs)
+        _xs = np.asarray(xs).ravel()
         m = 2.0/(_xs[-1] - _xs[0])
         b = 1.0-(m*_xs[-1])
         taus = m*_xs + b
-        interpfunc = interpolate.interp1d(taus, ys, kind=kind)
-        return np.atleast_2d(interpfunc(node_locations)).T
+        interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind)
+        res = np.atleast_2d(interpfunc(node_locations))
+        if res.shape[0] == 1:
+            res = res.T
+        return res

@@ -44,7 +44,7 @@ which is called a parameter in :code:`ODEFunction`.
 3. Building and running the problem
 -----------------------------------
 
-Here, we pass call :code:`ODEIntegrator` to build our integration model and run it.
+Here, we pass call :code:`ScipyODEIntegrator` to build our integration model and run it.
 The run script and resulting plot are shown below.  In the code we follow these
 general steps:
 

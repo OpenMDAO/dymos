@@ -64,7 +64,8 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
 
     p.run_driver()
 
-    exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'], p['phase0.t_duration'], 100))
+    exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'], p['phase0.t_duration'], 100),
+                             record=False)
 
     if show_plots:
         # Plot results
