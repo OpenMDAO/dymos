@@ -77,3 +77,4 @@ or more commonly just *defects* (:math:`\Delta`).
     constraints
     objective
     transcriptions/transcriptions
+    simulate/simulate

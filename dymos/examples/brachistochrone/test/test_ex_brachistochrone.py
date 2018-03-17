@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division
 
+import os
 import unittest
 from numpy.testing import assert_almost_equal
 
@@ -13,6 +14,11 @@ OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 
 class TestBrachistochroneExample(unittest.TestCase):
+
+    def tearDown(self):
+        for filename in ['phase0_sim.db', 'brachistochrone_sim.db']:
+            if os.path.exists(filename):
+                os.remove(filename)
 
     def run_asserts(self, p, transcription):
         t_initial = p.model.phase0.get_values('time')[0]

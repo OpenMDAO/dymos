@@ -1,7 +1,8 @@
 Dymos:  Open Source Optimization of Dynamic Multidisciplinary Systems
 =====================================================================
 
-[![Build Status](https://travis-ci.com/OpenMDAO/dymos.svg?token=tUBGTjUY1qBbh4Htx3Sr&branch=master)](https://travis-ci.com/OpenMDAO/dymos)
+[![Build Status](https://travis-ci.com/OpenMDAO/dymos.svg?token=tUBGTjUY1qBbh4Htx3Sr&branch=master)](https://travis-ci.com/OpenMDAO/dymos) [![Coverage Status](https://coveralls.io/repos/github/OpenMDAO/dymos/badge.svg?branch=master&t=dJxu2Q)](https://coveralls.io/github/OpenMDAO/dymos?branch=master)
+
 
 Dymos is a framework for the simulation and optimization of dynamical systems within the OpenMDAO Multidisciplinary Analysis and Optimization environment.
 Dymos leverages implicit and explicit simulation techniques to simulate generic dynamic systems of arbitary complexity.  
@@ -136,7 +137,7 @@ Integrating Ordinary Differential Equations
 -------------------------------------------
 
 dymos uses *Generalized Linear Methods* (GLM) to enable a variety of integration schemes to be applied to dynamical systems.
-dymos's `ODEIntegrator` provides an OpenMDAO group which simulates the ODE system it is given.
+dymos's `ScipyODEIntegrator` provides an OpenMDAO group which simulates the ODE system it is given.
 
 Solving Optimal Control Problems
 --------------------------------
@@ -149,7 +150,7 @@ Each phase can have its own:
 - Equations of motion
 - Boundary and path constraints
 
-As with `ODEIntegrator`, each dymos `Phase` is ultimately just an OpenMDAO Group that can exist in
+As with `ScipyODEIntegrator`, each dymos `Phase` is ultimately just an OpenMDAO Group that can exist in
 a problem along with numerous other groups.
 
 License

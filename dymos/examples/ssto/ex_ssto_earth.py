@@ -1,6 +1,9 @@
 from __future__ import print_function, division, absolute_import
 
+import os
+
 import numpy as np
+
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DenseJacobian, \
     CSCJacobian, CSRJacobian, DirectSolver
 
@@ -73,11 +76,15 @@ def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
     p.run_driver()
 
     if SHOW_PLOTS:  # pragma: no cover
+        exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 100))
+
         import matplotlib.pyplot as plt
         plt.figure(facecolor='white')
-        plt.plot(phase.get_values('x'), phase.get_values('y'), 'bo')
+        plt.plot(phase.get_values('x'), phase.get_values('y'), 'bo', label='solution')
+        plt.plot(exp_out.get_values('x'), exp_out.get_values('y'), 'r-', label='simulated')
         plt.xlabel('x, m')
         plt.ylabel('y, m')
+        plt.legend()
         plt.grid()
 
         fig = plt.figure(facecolor='white')
@@ -85,24 +92,34 @@ def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
 
         axarr = fig.add_subplot(2, 1, 1)
         axarr.plot(phase.get_values('time'),
-                   np.degrees(phase.get_values('theta')), 'bo')
+                   phase.get_values('theta', units='deg'), 'bo', label='solution')
+        axarr.plot(exp_out.get_values('time'),
+                   exp_out.get_values('theta', units='deg'), 'b-', label='simulated')
         axarr.set_ylabel(r'$\theta$, deg')
         axarr.axes.get_xaxis().set_visible(False)
 
         axarr = fig.add_subplot(2, 1, 2)
 
         axarr.plot(phase.get_values('time'),
-                   np.degrees(phase.get_values('vx')), 'bo', label='$v_x$')
+                   phase.get_values('vx'), 'bo', label='$v_x$ solution')
+        axarr.plot(exp_out.get_values('time'),
+                   exp_out.get_values('vx'), 'b-', label='$v_x$ simulated')
+
         axarr.plot(phase.get_values('time'),
-                   np.degrees(phase.get_values('vy')), 'ro', label='$v_y$')
+                   phase.get_values('vy'), 'ro', label='$v_y$ solution')
+        axarr.plot(exp_out.get_values('time'),
+                   exp_out.get_values('vy'), 'r-', label='$v_y$ simulated')
+
         axarr.set_xlabel('time, s')
         axarr.set_ylabel('velocity, m/s')
         axarr.legend(loc='best')
         plt.show()
+
+        os.remove('phase0_sim.db')
 
     return p
 
 
 if __name__ == '__main__':
     ssto_earth(transcription='gauss-lobatto', top_level_jacobian='csc',
-               derivative_mode='rev')
+               derivative_mode='fwd')
