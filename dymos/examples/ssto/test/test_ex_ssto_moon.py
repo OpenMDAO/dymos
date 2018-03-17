@@ -52,16 +52,16 @@ class TestExampleSSTOMoon(unittest.TestCase):
                                    top_level_jacobian=jacobian, derivative_mode=derivative_mode)
         self.run_asserts(p, transcription)
 
-    @parameterized.expand(product(
-        # ['optimizer-based', 'solver-based', 'time-marching'],
-        ['solver-based'],
-        ['RK4'],
-    ))
-    def test_results_glm(self, glm_formulation='solver-based', glm_integrator='RK4'):
-        transcription = 'glm'
-        ex_ssto_moon.SHOW_PLOTS = False
-        p = ex_ssto_moon.ssto_moon(
-            transcription=transcription, num_seg=10, optimizer='SNOPT',
-            glm_formulation=glm_formulation, glm_integrator=glm_integrator,
-        )
-        self.run_asserts(p, transcription)
+    # @parameterized.expand(product(
+    #     # ['optimizer-based', 'solver-based', 'time-marching'],
+    #     ['solver-based'],
+    #     ['RK4'],
+    # ))
+    # def test_results_glm(self, glm_formulation='solver-based', glm_integrator='RK4'):
+    #     transcription = 'glm'
+    #     ex_ssto_moon.SHOW_PLOTS = False
+    #     p = ex_ssto_moon.ssto_moon(
+    #         transcription=transcription, num_seg=10, optimizer='SNOPT',
+    #         glm_formulation=glm_formulation, glm_integrator=glm_integrator,
+    #     )
+    #     self.run_asserts(p, transcription)

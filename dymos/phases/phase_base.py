@@ -1118,9 +1118,9 @@ class PhaseBase(Group):
             node_locations = np.array(sorted(list(set(node_locations))))
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()
-        m = 2.0/(_xs[-1] - _xs[0])
-        b = 1.0-(m*_xs[-1])
-        taus = m*_xs + b
+        m = 2.0 / (_xs[-1] - _xs[0])
+        b = 1.0 - (m * _xs[-1])
+        taus = m * _xs + b
         interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind)
         res = np.atleast_2d(interpfunc(node_locations))
         if res.shape[0] == 1:
