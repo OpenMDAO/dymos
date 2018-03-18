@@ -60,7 +60,7 @@ class TestBrachistochroneExample(unittest.TestCase):
 
         p.run_model()
 
-    def test_show_plots(self):
-        transcription = 'radau-ps'
-        ex_brachistochrone.SHOW_PLOTS = True
-        p = ex_brachistochrone.brachistochrone_min_time(transcription=transcription)
+    # def test_show_plots(self):
+    #     transcription = 'radau-ps'
+    #     ex_brachistochrone.SHOW_PLOTS = True
+    #     p = ex_brachistochrone.brachistochrone_min_time(transcription=transcription)
