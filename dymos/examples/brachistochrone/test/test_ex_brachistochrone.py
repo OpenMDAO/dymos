@@ -53,6 +53,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         ex_brachistochrone.SHOW_PLOTS = False
         p = ex_brachistochrone.brachistochrone_min_time(transcription=transcription)
         self.run_asserts(p, transcription)
+        self.tearDown()
 
     @parameterized.expand(product(
         ['optimizer-based', 'solver-based'],
@@ -60,10 +61,10 @@ class TestBrachistochroneExample(unittest.TestCase):
     ))
     def test_ex_brachistochrone_glm(self, glm_formulation='solver-based', glm_integrator='RK4'):
         transcription = 'glm'
-        ex_brachistochrone.OPTIMIZER = 'SNOPT'
         ex_brachistochrone.SHOW_PLOTS = False
         p = ex_brachistochrone.brachistochrone_min_time(
             transcription=transcription, run_driver=False,
             glm_formulation=glm_formulation, glm_integrator=glm_integrator,
         )
         # self.run_asserts(p, transcription)
+        self.tearDown()
