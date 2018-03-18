@@ -15,9 +15,9 @@ SHOW_PLOTS = False
 
 
 def brachistochrone_min_time(
-        transcription='gauss-lobatto',
+        transcription='gauss-lobatto', num_segments=8,
         top_level_jacobian='csc',
-        glm_formulation='solver-based', glm_integrator='GaussLegendre4'):
+        glm_formulation='solver-based', glm_integrator='GaussLegendre4', force_alloc_complex=False):
     p = Problem(model=Group())
 
     if OPTIMIZER == 'SNOPT':
@@ -38,7 +38,7 @@ def brachistochrone_min_time(
 
     phase = Phase(transcription,
                   ode_class=BrachistochroneODE,
-                  num_segments=8,
+                  num_segments=num_segments,
                   **kwargs)
 
     p.model.add_subsystem('phase0', phase)
@@ -76,7 +76,7 @@ def brachistochrone_min_time(
 
         p.setup(mode='fwd', check=True)
     else:
-        p.setup()
+        p.setup(force_alloc_complex=force_alloc_complex)
         p.set_solver_print(level=-1)
 
     p['phase0.t_initial'] = 0.0
