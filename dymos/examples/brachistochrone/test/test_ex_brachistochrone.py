@@ -56,7 +56,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         self.tearDown()
 
     @parameterized.expand(product(
-        ['optimizer-based', 'solver-based'],
+        ['optimizer-based'],
         ['RK4'],
     ))
     def test_ex_brachistochrone_glm(self, glm_formulation='solver-based', glm_integrator='RK4'):
