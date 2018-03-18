@@ -219,55 +219,6 @@ class GLMPhase(PhaseBase):
             ],
         )
 
-        # fixed_states = IndepVarComp()
-        # final_comp = EqualityConstraintComp()
-        # any_initial = False
-        # any_final = False
-        # for state, opts in iteritems(self.state_options):
-        #     if opts['opt']:
-        #         any_initial = True
-        #         fixed_states.add_output('initial_condition:{0}'.format(state),
-        #                                 shape=opts['shape'],
-        #                                 units=opts['units'])
-        #         if not opts['fix_initial']:
-        #             lb, ub = np.finfo(float).min, np.finfo(float).max
-        #             if opts['lower'] is not None:
-        #                 lb = opts['lower']
-        #             if opts['upper'] is not None:
-        #                 ub = opts['upper']
-        #
-        #             if opts['initial_bounds'] is not None:
-        #                 lb, ub = opts['initial_bounds']
-        #
-        #             self.add_design_var(name='initial_condition:{0}'.format(state),
-        #                                 lower=lb,
-        #                                 upper=ub,
-        #                                 scaler=opts['scaler'],
-        #                                 adder=opts['adder'],
-        #                                 ref0=opts['ref0'],
-        #                                 ref=opts['ref']
-        #                                 )
-        #         if opts['fix_final']:
-        #             any_final = True
-        #             final_comp.add_balance('{0}'.format(state),
-        #                                    eq_units=opts['units'])
-        #             fixed_states.add_output('final_condition:{0}'.format(state),
-        #                                     shape=opts['shape'],
-        #                                     units=opts['units'])
-        #             self.connect('final_condition:{0}'.format(state),
-        #                          'final_balance.lhs:{0}'.format(state))
-        #             self.connect('states:{0}'.format(state),
-        #                          'final_balance.rhs:{0}'.format(state),
-        #                          src_indices=list(-1-np.arange(np.prod(opts['shape']))))
-        # if any_initial:
-        #     self.add_subsystem('fixed_states', fixed_states,
-        #                        promotes=['*'])
-        #     self._fixed_states.add('initial')
-        #
-        # if any_final:
-        #     self.add_subsystem('final_balance', final_comp)
-        #     self._fixed_states.add('final')
-
     def _setup_mdf(self):
         ode_int = ODEIntegrator(
             self.metadata['ode_class'],
@@ -292,39 +243,6 @@ class GLMPhase(PhaseBase):
 
         self.nonlinear_solver = NonlinearBlockGS(iprint=2, maxiter=40, atol=1e-14, rtol=1e-12)
         # self.linear_solver = LinearBlockGS(iprint=2, maxiter=40, atol=1e-14, rtol=1e-12)
-
-        # fixed_states = IndepVarComp()
-        # final_comp = EqualityConstraintComp()
-        # any_initial = False
-        # any_final = False
-        # for state, opts in iteritems(self.state_options):
-        #     if opts['opt']:
-        #         any_initial = True
-        #         fixed_states.add_output('initial_condition:{0}'.format(state),
-        #                                 shape=opts['shape'],
-        #                                 units=opts['units'])
-        #
-        #         if opts['fix_final']:
-        #             any_final = True
-        #             fixed_states.add_output('final_condition:{0}'.format(state),
-        #                                     shape=opts['shape'],
-        #                                     units=opts['units'])
-        #             final_comp.add_balance('{0}'.format(state),
-        #                                    eq_units=opts['units'])
-        #             self.connect('final_condition:{0}'.format(state),
-        #                          'final_balance.lhs:{0}'.format(state))
-        #             self.connect('states:{0}'.format(state),
-        #                          'final_balance.rhs:{0}'.format(state),
-        #                          src_indices=list(-1-np.arange(np.prod(opts['shape']))))
-        #
-        # if any_initial:
-        #     self.add_subsystem('fixed_states', fixed_states,
-        #                        promotes=['*'])
-        #     self._fixed_states.add('initial')
-        #
-        # if any_final:
-        #     self.add_subsystem('final_balance', final_comp)
-        #     self._fixed_states.add('final')
 
     def _setup_states(self):
         formulation = self.metadata['formulation']

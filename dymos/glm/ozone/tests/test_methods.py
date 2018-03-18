@@ -9,7 +9,6 @@ from parameterized import parameterized
 from itertools import product
 
 from dymos.glm.ozone.ode_integrator import ODEIntegrator
-from dymos.glm.ozone.utils.run_utils import run_integration
 from dymos.glm.ozone.methods_list import method_classes
 
 from dymos import Phase, declare_state, declare_time

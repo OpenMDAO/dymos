@@ -26,23 +26,3 @@ def get_sparse_linear_spline(in_vec, out_vec):
     cols[:, 1] = iright
 
     return data.flatten(), rows.flatten(), cols.flatten()
-
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    import scipy.sparse
-
-    num_in = 3
-    num_out = 1000
-    in_x = np.linspace(0, 10, num_in)
-    in_y = in_x ** 2
-    out_x = np.linspace(0, 10, num_out)
-    out_y = None
-
-    data, rows, cols = get_sparse_linear_spline(in_x, out_x)
-    mtx = scipy.sparse.csc_matrix((data, (rows, cols)))
-    out_y = mtx.dot(in_y)
-
-    plt.plot(in_x, in_y, 'o')
-    plt.plot(out_x, out_y)
-    plt.show()

@@ -9,7 +9,6 @@ from parameterized import parameterized
 from itertools import product
 
 from dymos.glm.ozone.ode_integrator import ODEIntegrator
-from dymos.glm.ozone.utils.run_utils import run_integration
 
 from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
