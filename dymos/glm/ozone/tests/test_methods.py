@@ -54,13 +54,16 @@ class SimpleODE(ExplicitComponent):
 
 class OzoneODETestCase(unittest.TestCase):
 
-    @parameterized.expand(method_classes.keys())
-    def test(self, glm_integrator):
+    @parameterized.expand(product(
+        ['solver-based', 'time-marching'],
+        method_classes.keys(),
+    ))
+    def test(self, glm_formulation, glm_integrator):
         p = Problem(model=Group())
         phase = Phase('glm',
                       ode_class=SimpleODE,
                       num_segments=10,
-                      formulation='solver-based',
+                      formulation=glm_formulation,
                       method_name=glm_integrator)
         p.model.add_subsystem('phase0', phase)
 
