@@ -75,4 +75,5 @@ class OzoneODETestCase(unittest.TestCase):
         p.run_model()
 
         np.testing.assert_almost_equal(p['phase0.out_states:y'][-1], np.exp(tf), decimal=5)
+        np.testing.assert_almost_equal(phase.get_values('time')[-1, 0], tf, decimal=5)
         np.testing.assert_almost_equal(phase.get_values('y')[-1, 0], np.exp(tf), decimal=5)

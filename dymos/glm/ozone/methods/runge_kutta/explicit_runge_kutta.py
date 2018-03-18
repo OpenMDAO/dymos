@@ -2,7 +2,7 @@ from __future__ import division
 
 import numpy as np
 
-from dymos.glm.ozone.methods.runge_kutta.runge_kutta import RungeKutta, RungeKuttaST
+from dymos.glm.ozone.methods.runge_kutta.runge_kutta import RungeKutta
 
 
 class ForwardEuler(RungeKutta):
@@ -37,24 +37,6 @@ class ExplicitMidpoint(RungeKutta):
         B = np.array(ExplicitMidpoint_B)
 
         super(ExplicitMidpoint, self).__init__(A=A, B=B)
-
-
-class ExplicitMidpointST(RungeKuttaST):
-
-    def __init__(self):
-        self.order = 2
-
-        ExplicitMidpoint_A, ExplicitMidpoint_B = get_ExplicitMidpoint()
-
-        A = np.zeros((3, 3))
-        B = np.zeros((2, 3))
-
-        A[:2, :2] = ExplicitMidpoint_A
-        A[2, :2] = ExplicitMidpoint_B
-        B[0, :2] = ExplicitMidpoint_B
-        B[1, 2] = 1.
-
-        super(ExplicitMidpointST, self).__init__(A=A, B=B)
 
 
 class HeunsMethod(RungeKutta):
@@ -116,24 +98,6 @@ class KuttaThirdOrder(RungeKutta):
         super(KuttaThirdOrder, self).__init__(A=A, B=B)
 
 
-class KuttaThirdOrderST(RungeKuttaST):
-
-    def __init__(self):
-        self.order = 3
-
-        KuttaThirdOrder_A, KuttaThirdOrder_B = get_KuttaThirdOrder()
-
-        A = np.zeros((4, 4))
-        B = np.zeros((2, 4))
-
-        A[:3, :3] = KuttaThirdOrder_A
-        A[3, :3] = KuttaThirdOrder_B
-        B[0, :3] = KuttaThirdOrder_B
-        B[1, 3] = 1.
-
-        super(KuttaThirdOrderST, self).__init__(A=A, B=B)
-
-
 def get_RK4():
     RK4_A = np.array([
         [0., 0., 0., 0.],
@@ -160,24 +124,6 @@ class RK4(RungeKutta):
         B = np.array(RK4_B)
 
         super(RK4, self).__init__(A=A, B=B)
-
-
-class RK4ST(RungeKuttaST):
-
-    def __init__(self):
-        self.order = 4
-
-        RK4_A, RK4_B = get_RK4()
-
-        A = np.zeros((5, 5))
-        B = np.zeros((2, 5))
-
-        A[:4, :4] = RK4_A
-        A[4, :4] = RK4_B
-        B[0, :4] = RK4_B
-        B[1, 4] = 1.
-
-        super(RK4ST, self).__init__(A=A, B=B)
 
 
 def get_RK6(s):
@@ -212,21 +158,3 @@ class RK6(RungeKutta):
         B = np.array(RK6_B)
 
         super(RK6, self).__init__(A=A, B=B)
-
-
-class RK6ST(RungeKuttaST):
-
-    def __init__(self, s=1.):
-        self.order = 6
-
-        RK6_A, RK6_B = get_RK6(s)
-
-        A = np.zeros((8, 8))
-        B = np.zeros((2, 8))
-
-        A[:7, :7] = RK6_A
-        A[7, :7] = RK6_B
-        B[0, :7] = RK6_B
-        B[1, 7] = 1.
-
-        super(RK6ST, self).__init__(A=A, B=B)
