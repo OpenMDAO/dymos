@@ -98,7 +98,7 @@ def brachistochrone_min_time(
         p.run_driver()
 
     # Plot results
-    if SHOW_PLOTS:
+    if transcription != 'glm':
         exp_out = phase.simulate(times=np.linspace(
             p['phase0.t_initial'], p['phase0.t_initial'] + p['phase0.t_duration'], 50))
 
@@ -136,6 +136,7 @@ def brachistochrone_min_time(
         ax.grid(True)
         ax.legend(loc='lower right')
 
+    if SHOW_PLOTS:
         plt.show()
 
     return p
