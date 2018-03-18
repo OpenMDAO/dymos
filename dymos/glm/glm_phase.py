@@ -8,7 +8,6 @@ from dymos.phases.components.continuity_comp import ContinuityComp
 from dymos.phases.components import BoundaryConstraintComp
 from dymos.ode_options import ODEOptions
 from dymos.glm.dynamic_interp_comp import DynamicInterpComp
-from dymos.glm.equality_constraint_comp import EqualityConstraintComp
 from dymos.glm.ozone.ode_integrator import ODEIntegrator
 from dymos.glm.ozone.methods_list import method_classes
 from openmdao.api import IndepVarComp, NonlinearBlockGS
