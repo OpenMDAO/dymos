@@ -7,6 +7,7 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver,
 from dymos import Phase
 from dymos.examples.ssto.launch_vehicle_linear_tangent_ode import LaunchVehicleLinearTangentODE
 
+
 def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
                              top_level_jacobian='csc', optimizer='SLSQP'):
 
@@ -66,7 +67,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     p = ssto_moon_linear_tangent(transcription='gauss-lobatto', optimizer='SLSQP',
-                             top_level_jacobian='csc', )
+                                 top_level_jacobian='csc', )
 
     p.setup()
 

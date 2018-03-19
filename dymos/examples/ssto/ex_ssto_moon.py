@@ -7,10 +7,10 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver,
 from dymos import Phase
 from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
-def ssto_moon(
-        transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP',
-        top_level_jacobian='csc', transcription_order=5,
-        glm_formulation='solver-based', glm_integrator='GaussLegendre4'):
+
+def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP',
+              top_level_jacobian='csc', transcription_order=5,
+              glm_formulation='solver-based', glm_integrator='GaussLegendre4'):
 
     p = Problem(model=Group())
 
@@ -134,4 +134,3 @@ if __name__ == "__main__":
     axarr.set_ylabel('velocity, m/s')
     axarr.legend(loc='best')
     plt.show()
-

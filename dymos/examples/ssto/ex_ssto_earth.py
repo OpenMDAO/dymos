@@ -65,7 +65,7 @@ if __name__ == "__main__":
     from matplotlib import pyplot as plt
 
     p = ssto_earth('gauss-lobatto', num_seg=10, transcription_order=5,
-                  top_level_jacobian='csc')
+                   top_level_jacobian='csc')
     p.setup()
 
     p['phase0.t_initial'] = 0.0

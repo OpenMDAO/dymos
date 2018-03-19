@@ -43,7 +43,7 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
 
         p.run_driver()
 
-          # Ensure defects are zero
+        # Ensure defects are zero
         for state in ['x', 'y', 'vx', 'vy', 'm']:
             assert_almost_equal(p['phase0.collocation_constraint.defects:{0}'.format(state)],
                                 0.0, decimal=5)

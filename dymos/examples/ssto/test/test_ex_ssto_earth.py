@@ -66,7 +66,6 @@ class TestExampleSSTOEarth(unittest.TestCase):
         # Ensure time found is the known solution
         assert_almost_equal(p['phase0.t_duration'], 143, decimal=0)
 
-
     # note: some code duplicated here on purpose.
     #       This test is embedded into the docs, so it needs to be self contained.
     def test_simulate_plot(self):
