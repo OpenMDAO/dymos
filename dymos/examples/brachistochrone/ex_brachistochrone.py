@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 
 import os
-if os.environ.get('DISPLAY','') == '':
+if os.environ.get('DISPLAY', '') == '':
     import matplotlib
     print('no display found. Using non-interactive Agg backend')
     matplotlib.use('Agg')

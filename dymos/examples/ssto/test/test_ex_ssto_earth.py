@@ -19,12 +19,6 @@ import dymos.examples.ssto.ex_ssto_earth as ex_ssto_earth
 
 class TestExampleSSTOEarth(unittest.TestCase):
 
-    def setUp(self):
-        if os.environ.get('DISPLAY','') == '':
-            import matplotlib
-            print('no display found. Using non-interactive Agg backend')
-            matplotlib.use('Agg')
-
     def tearDown(self):
         cwd = os.getcwd()
         if os.path.exists(os.path.join(cwd, 'phase0_sim.db')):
