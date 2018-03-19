@@ -4,10 +4,6 @@ import os
 
 import numpy as np
 
-import matplotlib
-matplotlib.use('Agg')
-from matplotlib import pyplot as plt
-
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DenseJacobian, \
     CSCJacobian, CSRJacobian, DirectSolver
 

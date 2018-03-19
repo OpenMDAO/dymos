@@ -1,6 +1,12 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
+
+if os.environ.get('DISPLAY','') == '':
+    import matplotlib
+    print('no display found. Using non-interactive Agg backend')
+    matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group
