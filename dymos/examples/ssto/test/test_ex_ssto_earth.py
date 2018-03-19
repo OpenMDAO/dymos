@@ -5,6 +5,9 @@ import os
 import itertools
 import unittest
 
+import matplotlib
+matplotlib.use('Agg')
+
 import numpy as np
 from numpy.testing import assert_almost_equal
 from openmdao.utils.assert_utils import assert_rel_error
@@ -13,8 +16,8 @@ from parameterized import parameterized
 
 import dymos.examples.ssto.ex_ssto_earth as ex_ssto_earth
 
-class TestExampleSSTOEarth(unittest.TestCase):
 
+class TestExampleSSTOEarth(unittest.TestCase):
 
     def tearDown(self):
         cwd = os.getcwd()
@@ -35,9 +38,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
         p = ex_ssto_earth.ssto_earth(transcription, num_seg=10, transcription_order=5,
                                      top_level_jacobian=jacobian, derivative_mode=derivative_mode)
 
-
         p.setup(mode=derivative_mode, check=True)
-
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 150.0
@@ -76,7 +77,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
 
         p.setup(mode='rev')
 
-        phase =  p.model.phase0
+        phase = p.model.phase0
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 150.0
         p['phase0.states:x'] = phase.interpolate(ys=[0, 1.15E5], nodes='disc')
@@ -102,7 +103,6 @@ class TestExampleSSTOEarth(unittest.TestCase):
         assert_rel_error(self, exp_out.get_values('vx')[-1], 7796.6961, 1e-2)
         # there is a small amount of discretization error here
         assert_rel_error(self, exp_out.get_values('vy')[-1], 8.55707245, 1e-2)
-
 
         ########################
         # plot the results
@@ -141,8 +141,8 @@ class TestExampleSSTOEarth(unittest.TestCase):
         axarr.set_xlabel('time, s')
         axarr.set_ylabel('velocity, m/s')
         axarr.legend(loc='best')
+
         plt.show()
 
 if __name__ == "__main__":
-
     unittest.main()
