@@ -4,8 +4,7 @@ from six import iteritems
 import numpy as np
 
 from dymos.phases.phase_base import PhaseBase
-from dymos.phases.components.continuity_comp import ContinuityComp
-from dymos.phases.components import BoundaryConstraintComp
+from dymos.phases.components import BoundaryConstraintComp, EndpointConditionsComp, ContinuityComp
 from dymos.ode_options import ODEOptions
 from dymos.glm.dynamic_interp_comp import DynamicInterpComp
 from dymos.glm.ozone.ode_integrator import ODEIntegrator
@@ -460,6 +459,103 @@ class GLMPhase(PhaseBase):
             self.connect(constraint_path,
                          'boundary_constraints.boundary_values:{0}'.format(con_name),
                          src_indices=src_idxs, flat_src_indices=True)
+
+    def _setup_endpoint_conditions(self):
+
+        jump_comp = self.add_subsystem('indep_jumps', subsys=IndepVarComp(),
+                                       promotes_outputs=['*'])
+
+        jump_comp.add_output('initial_jump:time', val=0.0, units=self.time_options['units'],
+                             desc='discontinuity in time at the start of the phase')
+
+        jump_comp.add_output('final_jump:time', val=0.0, units=self.time_options['units'],
+                             desc='discontinuity in time at the end of the phase')
+
+        endpoint_comp = EndpointConditionsComp(time_options=self.time_options,
+                                               state_options=self.state_options,
+                                               control_options=self.control_options)
+
+        self.connect('time', 'endpoint_conditions.values:time')
+
+        self.connect('initial_jump:time',
+                     'endpoint_conditions.initial_jump:time')
+
+        self.connect('final_jump:time',
+                     'endpoint_conditions.final_jump:time')
+
+        promoted_list = ['time--', 'time-+', 'time+-', 'time++']
+
+        for state_name, options in iteritems(self.state_options):
+            size = np.prod(options['shape'])
+            ar = np.arange(size)
+
+            jump_comp.add_output('initial_jump:{0}'.format(state_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'start of the phase'.format(state_name))
+
+            jump_comp.add_output('final_jump:{0}'.format(state_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'end of the phase'.format(state_name))
+
+            self.connect('out_states:{0}'.format(state_name),
+                         'endpoint_conditions.values:{0}'.format(state_name))
+
+            self.connect('initial_jump:{0}'.format(state_name),
+                         'endpoint_conditions.initial_jump:{0}'.format(state_name),
+                         src_indices=ar, flat_src_indices=True)
+
+            self.connect('final_jump:{0}'.format(state_name),
+                         'endpoint_conditions.final_jump:{0}'.format(state_name),
+                         src_indices=ar, flat_src_indices=True)
+
+            promoted_list += ['states:{0}--'.format(state_name),
+                              'states:{0}-+'.format(state_name),
+                              'states:{0}+-'.format(state_name),
+                              'states:{0}++'.format(state_name)]
+
+        for control_name, options in iteritems(self.control_options):
+            size = np.prod(options['shape'])
+            ar = np.arange(size)
+
+            if options['opt']:
+                suffix = ''
+            else:
+                suffix = '_out'
+
+            jump_comp.add_output('initial_jump:{0}'.format(control_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'start of the phase'.format(control_name))
+
+            jump_comp.add_output('final_jump:{0}'.format(control_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'end of the phase'.format(control_name))
+
+            self.connect('controls:{0}{1}'.format(control_name, suffix),
+                         'endpoint_conditions.values:{0}'.format(control_name))
+
+            self.connect('initial_jump:{0}'.format(control_name),
+                         'endpoint_conditions.initial_jump:{0}'.format(control_name),
+                         src_indices=ar, flat_src_indices=True)
+
+            self.connect('final_jump:{0}'.format(control_name),
+                         'endpoint_conditions.final_jump:{0}'.format(control_name),
+                         src_indices=ar, flat_src_indices=True)
+
+            promoted_list += ['controls:{0}--'.format(control_name),
+                              'controls:{0}-+'.format(control_name),
+                              'controls:{0}+-'.format(control_name),
+                              'controls:{0}++'.format(control_name)]
+
+        self.add_subsystem(name='endpoint_conditions', subsys=endpoint_comp,
+                           promotes_outputs=promoted_list)
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,

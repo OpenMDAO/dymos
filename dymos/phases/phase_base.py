@@ -15,7 +15,6 @@ from openmdao.utils.logger_utils import get_logger
 from dymos.phases.components import BoundaryConstraintComp
 from dymos.phases.components import ControlInputComp
 from dymos.phases.components import TimeComp
-from dymos.phases.components import EndpointConditionsComp
 from dymos.phases.options import ControlOptionsDictionary, \
     StateOptionsDictionary, TimeOptionsDictionary
 from dymos.phases.components import ControlRateComp
@@ -201,8 +200,8 @@ class PhaseBase(Group):
             rate2_used = rate2_param is not None and \
                 rate2_param in self.ode_options._dynamic_parameters
             if not rate_used and not rate2_used:
-                err_msg = 'Control {0} has no valid connection to a controllable parameter ' \
-                          'through its value, rate, or second derivative.'.format(name)
+                err_msg = '{0} is not a controllable parameter in the ODE system, nor is it ' \
+                          'connected to one through its rate or second derivative.'.format(name)
                 raise ValueError(err_msg)
 
         if rate_param is not None:
@@ -912,8 +911,7 @@ class PhaseBase(Group):
     def _check_unprovided_controls(self):
         logger = get_logger('check_config', use_format=True)
         unconnected = []
-        ode_options = self.metadata['ode_class'](num_nodes=1,
-                                                 **self.metadata['ode_init_kwargs']).ode_options
+        ode_options = self.metadata['ode_class'].ode_options
         ode_parameters = ode_options._dynamic_parameters.copy()
 
         for p in ode_parameters:
