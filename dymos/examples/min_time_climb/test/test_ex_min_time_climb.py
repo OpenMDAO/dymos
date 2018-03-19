@@ -33,7 +33,7 @@ class TestExampleMinTimeClimb(unittest.TestCase):
         phase = p.model.phase0
 
         # Check that time matches to within 1% of an externally verified solution.
-        assert_almost_equal((phase.get_values('time')[-1]-321.0)/321.0, 0.0, decimal=2)
+        assert_almost_equal((phase.get_values('time')[-1] - 321.0) / 321.0, 0.0, decimal=2)
 
 if __name__ == '__main__':
     unittest.main()

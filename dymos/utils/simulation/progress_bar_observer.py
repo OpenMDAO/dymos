@@ -24,5 +24,5 @@ class ProgressBarObserver(object):
     def __call__(self, t, y, prob):
         t0 = self.t0
         tf = self.tf
-        print('Simulation time: {0:6.3f} of {1:6.3f} ({2:6.3f}%)'.format(t, tf, 100*(t-t0)/(tf-t0)),
-              file=self.out_stream)
+        print('Simulation time: {0:6.3f} of {1:6.3f} ({2:6.3f}%)'.format(
+            t, tf, 100 * (t - t0) / (tf - t0)), file=self.out_stream)

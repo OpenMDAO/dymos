@@ -31,8 +31,8 @@ class TestHermiteMatrices(unittest.TestCase):
         ydot_i = (1.0 / dt_dtau) * np.dot(Ad, y_given) + np.dot(Bd, ydot_given)
 
         # Compute our function as a point of comparison.
-        y_computed = (tau_eval*dt_dtau)**2
-        ydot_computed = 2.0 * (tau_eval*dt_dtau)
+        y_computed = (tau_eval * dt_dtau)**2
+        ydot_computed = 2.0 * (tau_eval * dt_dtau)
 
         # Check results
         assert_almost_equal(y_i, y_computed)
@@ -59,8 +59,8 @@ class TestHermiteMatrices(unittest.TestCase):
         ydot_i = (1.0 / dt_dtau) * np.dot(Ad, y_given) + np.dot(Bd, ydot_given)
 
         # Compute our function as a point of comparison.
-        y_computed = (tau_eval*dt_dtau)**3
-        ydot_computed = 3.0 * (tau_eval*dt_dtau)**2
+        y_computed = (tau_eval * dt_dtau)**3
+        ydot_computed = 3.0 * (tau_eval * dt_dtau)**2
 
         # Check results
         assert_almost_equal(y_i, y_computed)

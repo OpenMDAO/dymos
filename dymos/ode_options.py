@@ -147,7 +147,6 @@ class ODEOptions(object):
         self._time_options = _ODETimeOptionsDictionary()
 
         self._states = {}
-        self._static_parameters = {}
         self._dynamic_parameters = {}
         self._target_paths = []
 
@@ -294,49 +293,6 @@ class ODEOptions(object):
         """
         if dynamic:
             self._declare_dynamic_parameter(name, targets, shape=shape, units=units)
-        else:
-            self._declare_static_parameter(name, targets, shape=shape, units=units)
-
-    def _declare_static_parameter(self, name, targets, shape=None, units=None):
-        """
-        Declare an input to the ODE.
-
-        Parameters
-        ----------
-        name : str
-            The name of the static parameter.
-        targets : string_types or Iterable or None
-            Paths to inputs in the ODE to which the incoming value of the static parameter
-            needs to be connected.
-        shape : int or tuple or None
-            Shape of the parameter.
-        units : str or None
-            Units of the parameter.
-        """
-        if name in self._static_parameters:
-            raise ValueError('static parameter {0} has already been declared.'.format(name))
-
-        options = _ODEParameterOptionsDictionary()
-
-        options['name'] = name
-        if isinstance(targets, string_types):
-            options['targets'] = [targets]
-        elif isinstance(targets, Iterable):
-            options['targets'] = targets
-        elif targets is not None:
-            raise ValueError('targets must be of type string_types or Iterable or None')
-        if np.isscalar(shape):
-            options['shape'] = (shape,)
-        elif isinstance(shape, Iterable):
-            options['shape'] = tuple(shape)
-        elif shape is not None:
-            raise ValueError('shape must be of type int or Iterable or None')
-        if units is not None:
-            options['units'] = units
-        options['dynamic'] = False
-
-        self._check_targets(name, options['targets'])
-        self._static_parameters[name] = options
 
     def _declare_dynamic_parameter(self, name, targets, shape=None, units=None):
         """
@@ -393,7 +349,7 @@ class ODEOptions(object):
                  '\n        units: {units}'.format(name=state, rate_source=options['rate_source'],
                                                    targets=options['targets'],
                                                    shape=options['shape'], units=options['units'])
-        if self._dynamic_parameters or self._static_parameters:
+        if self._dynamic_parameters:
             s += '\nParameter Options:'
 
         for param, options in iteritems(self._dynamic_parameters):
@@ -403,15 +359,6 @@ class ODEOptions(object):
                  '\n        dynamic: True' \
                  '\n        units: {units}'.format(name=param, targets=options['targets'],
                                                    shape=options['shape'], units=options['units'])
-
-        for param, options in iteritems(self._static_parameters):
-            s += '\n    {name}' \
-                 '\n        targets: {targets}' \
-                 '\n        shape: {shape}' \
-                 '\n        dynamic: True' \
-                 '\n        units: {units}'.format(name=param, targets=options['targets'],
-                                                   shape=options['shape'], units=options['units'])
-        return s
 
 
 class _ForDocs(object):  # pragma: no cover

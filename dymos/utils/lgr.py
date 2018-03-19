@@ -69,13 +69,13 @@ def lgr(n, include_endpoint=False, tol=1.0E-15):
 
     """
     n1 = n
-    n = n-1
+    n = n - 1
 
     # The Chebyshev-Gauss-Radau nodes serve as the initial guess.
-    x = -np.cos(2.0*np.pi*np.arange(0, n1) / (2*n+1))
+    x = -np.cos(2.0 * np.pi * np.arange(0, n1) / (2 * n + 1))
 
     # The Legendre vandermonde Matrix
-    P = np.zeros((n1, n1+1))
+    P = np.zeros((n1, n1 + 1))
 
     # Compute P_(N) using the recursion relation
     # Copute its first and second derivatives and
@@ -91,15 +91,18 @@ def lgr(n, include_endpoint=False, tol=1.0E-15):
 
         xold[:] = x
 
-        P[0, :] = np.power(-1.0, np.arange(0, n1+1))
+        P[0, :] = np.power(-1.0, np.arange(0, n1 + 1))
         P[free, 0] = 1.0
         P[free, 1] = x[free]
 
         for k in range(1, n1):
-            P[free, k+1] = ((2*(k+1)-1)*x[free] * P[free, k]-((k+1)-1)*P[free, k-1])/(k+1)
+            P[free, k + 1] = (
+                (2 * (k + 1) - 1) * x[free] * P[free, k] -
+                ((k + 1) - 1) * P[free, k - 1]
+            ) / (k + 1)
 
-        f = ((1.0-xold[free])/n1) * (P[free, n]+P[free, n1])
-        fprime = (P[free, n]-P[free, n1])
+        f = ((1.0 - xold[free]) / n1) * (P[free, n] + P[free, n1])
+        fprime = (P[free, n] - P[free, n1])
 
         x[free] = xold[free] - f / fprime
 

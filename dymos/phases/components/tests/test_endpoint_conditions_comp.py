@@ -34,7 +34,7 @@ class TestEndpointConditionComp(unittest.TestCase):
 
         ivc = IndepVarComp()
         ivc.add_output(name='phase:time', val=np.zeros(n), units='s')
-        ivc.add_output(name='phase:initial_jump:time', val=100.0*np.ones(1), units='s')
+        ivc.add_output(name='phase:initial_jump:time', val=100.0 * np.ones(1), units='s')
 
         ivc.add_output(name='phase:x',
                        val=np.zeros(n),
@@ -74,10 +74,11 @@ class TestEndpointConditionComp(unittest.TestCase):
         ar = np.arange(size)
 
         p.model.connect('phase:x', 'end_conditions.initial_value:x', src_indices=ar)
-        p.model.connect('phase:x', 'end_conditions.final_value:x', src_indices=-ar[::-1]-1)
+        p.model.connect('phase:x', 'end_conditions.final_value:x', src_indices=-ar[::-1] - 1)
 
         p.model.connect('phase:theta', 'end_conditions.initial_value:theta', src_indices=ar)
-        p.model.connect('phase:theta', 'end_conditions.final_value:theta', src_indices=-ar[::-1]-1)
+        p.model.connect(
+            'phase:theta', 'end_conditions.final_value:theta', src_indices=-ar[::-1] - 1)
 
         p.model.connect('phase:initial_jump:x', 'end_conditions.initial_jump:x')
         p.model.connect('phase:final_jump:x', 'end_conditions.final_jump:x')
@@ -139,7 +140,7 @@ class TestEndpointConditionComp(unittest.TestCase):
 
         ivc = IndepVarComp()
         ivc.add_output(name='phase:time', val=np.zeros(n), units='s')
-        ivc.add_output(name='phase:initial_jump:time', val=100.0*np.ones(1), units='s')
+        ivc.add_output(name='phase:initial_jump:time', val=100.0 * np.ones(1), units='s')
 
         ivc.add_output(name='phase:pos',
                        val=np.zeros((n, 3)),
@@ -167,7 +168,7 @@ class TestEndpointConditionComp(unittest.TestCase):
         ar = np.arange(size)
 
         p.model.connect('phase:pos', 'end_conditions.initial_value:pos', src_indices=ar)
-        p.model.connect('phase:pos', 'end_conditions.final_value:pos', src_indices=-ar[::-1]-1)
+        p.model.connect('phase:pos', 'end_conditions.final_value:pos', src_indices=-ar[::-1] - 1)
 
         p.model.connect('phase:initial_jump:pos', 'end_conditions.initial_jump:pos')
         p.model.connect('phase:final_jump:pos', 'end_conditions.final_jump:pos')
@@ -185,7 +186,7 @@ class TestEndpointConditionComp(unittest.TestCase):
         p['phase:pos'][:, 2] = np.linspace(0, 30, n)
 
         p['phase:initial_jump:pos'] = np.array([7, 8, 9])
-        p['phase:final_jump:pos'] = np.array([4, 5,  6])
+        p['phase:final_jump:pos'] = np.array([4, 5, 6])
 
         p.run_model()
 

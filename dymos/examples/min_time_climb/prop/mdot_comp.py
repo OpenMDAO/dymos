@@ -27,9 +27,9 @@ class MassFlowRateComp(ExplicitComponent):
         self.declare_partials(of='m_dot', wrt='Isp', rows=ar, cols=ar)
 
     def compute(self, inputs, outputs):
-        outputs['m_dot'] = -inputs['thrust']/(9.80665*inputs['Isp'])
+        outputs['m_dot'] = -inputs['thrust'] / (9.80665 * inputs['Isp'])
 
     def compute_partials(self, inputs, partials):
-        mdot = inputs['thrust']/(9.80665*inputs['Isp'])
-        partials['m_dot', 'thrust'] = -1.0/(9.80665*inputs['Isp'])
-        partials['m_dot', 'Isp'] = mdot/inputs['Isp']
+        mdot = inputs['thrust'] / (9.80665 * inputs['Isp'])
+        partials['m_dot', 'thrust'] = -1.0 / (9.80665 * inputs['Isp'])
+        partials['m_dot', 'Isp'] = mdot / inputs['Isp']

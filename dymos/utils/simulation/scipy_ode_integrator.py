@@ -178,7 +178,7 @@ class ScipyODEIntegrator(object):
         for state_name, state_options in self.state_options.items():
             pos = state_options['pos']
             size = state_options['size']
-            self.prob['states:{0}'.format(state_name)][0, ...] = x[pos:pos+size]
+            self.prob['states:{0}'.format(state_name)][0, ...] = x[pos:pos + size]
 
     def _pack_state_rate_vec(self):
         """
@@ -193,7 +193,7 @@ class ScipyODEIntegrator(object):
         for state_name, state_options in self.state_options.items():
             pos = state_options['pos']
             size = state_options['size']
-            self._state_rate_vec[pos:pos+size] = \
+            self._state_rate_vec[pos:pos + size] = \
                 np.ravel(self.prob['state_rate_collector.'
                                    'state_rates:{0}_rate'.format(state_name)])
         return self._state_rate_vec
@@ -212,7 +212,7 @@ class ScipyODEIntegrator(object):
         for state_name, state_options in self.state_options.items():
             pos = state_options['pos']
             size = state_options['size']
-            self._state_vec[pos:pos+size] = np.ravel(x_dict[state_name])
+            self._state_vec[pos:pos + size] = np.ravel(x_dict[state_name])
         return self._state_vec
 
     def _f_ode(self, t, x, *args):
@@ -315,7 +315,7 @@ class ScipyODEIntegrator(object):
         for dt in delta_times:
 
             try:
-                solver.integrate(solver.t+dt)
+                solver.integrate(solver.t + dt)
                 self._f_ode(solver.t, solver.y)
             except AnalysisError:
                 terminate = True

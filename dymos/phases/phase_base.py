@@ -60,7 +60,7 @@ class PhaseBase(Group):
                               desc='System defining the ODE')
         self.metadata.declare('ode_init_kwargs', types=dict, default={},
                               desc='Keyword arguments provided when initializing the ODE System')
-        self.metadata.declare('transcription', values=['gauss-lobatto', 'radau-ps'],
+        self.metadata.declare('transcription', values=['gauss-lobatto', 'radau-ps', 'glm'],
                               desc='Transcription technique of the optimal control problem.')
 
         # Optional metadata
@@ -111,6 +111,15 @@ class PhaseBase(Group):
         continuity : bool or dict
 
         """
+        if self.metadata['transcription'] == 'glm':
+            if 'fix_initial' in kwargs and not kwargs['fix_initial']:
+                raise NotImplementedError(
+                    'GLMPhase does not yet support optimizing the initial state value.')
+            if 'fix_final' in kwargs and kwargs['fix_final']:
+                raise NotImplementedError(
+                    'GLMPhase does not yet support fixing the final state value in this way. ' +
+                    'Equivalent, you can add a boundary constraint on the final state value: ' +
+                    "phase.add_boundary_constraint('x', loc='final', equals=0.)")
         self.state_options[name].update(kwargs)
 
     def add_control(self, name, val=0.0, units=0, dynamic=True, opt=True, lower=None, upper=None,
@@ -855,7 +864,7 @@ class PhaseBase(Group):
 
             self.connect('states:{0}'.format(state_name),
                          'endpoint_conditions.final_value:{0}'.format(state_name),
-                         src_indices=-ar[::-1]-1, flat_src_indices=True)
+                         src_indices=-ar[::-1] - 1, flat_src_indices=True)
 
             self.connect('initial_jump:{0}'.format(state_name),
                          'endpoint_conditions.initial_jump:{0}'.format(state_name),
@@ -897,7 +906,7 @@ class PhaseBase(Group):
 
             self.connect('controls:{0}{1}'.format(control_name, suffix),
                          'endpoint_conditions.final_value:{0}'.format(control_name),
-                         src_indices=-ar[::-1]-1, flat_src_indices=True)
+                         src_indices=-ar[::-1] - 1, flat_src_indices=True)
 
             self.connect('initial_jump:{0}'.format(control_name),
                          'endpoint_conditions.initial_jump:{0}'.format(control_name),
@@ -1016,7 +1025,6 @@ class PhaseBase(Group):
         ode_options = self.metadata['ode_class'](num_nodes=1,
                                                  **self.metadata['ode_init_kwargs']).ode_options
         ode_parameters = ode_options._dynamic_parameters.copy()
-        ode_parameters.update(ode_options._static_parameters)
 
         for p in ode_parameters:
             p_is_connected = False
@@ -1034,7 +1042,7 @@ class PhaseBase(Group):
                            ' by phase {0} as controls, control rates nor'
                            ' parameters: {1}'.format(self.name, unconnected))
 
-    def get_values(self, var, nodes='all'):
+    def get_values(self, var, nodes=None):
         """
         Retrieve the values of the given variable at the given
         subset of nodes.
@@ -1046,8 +1054,8 @@ class PhaseBase(Group):
             the name 'time', the name of a state, control, or parameter,
             or the path to a variable in the ODE system of the phase.
         nodes : str
-            The name of a node subset, one of 'disc', 'col', or 'all'.
-            The default is 'all'.
+            The name of the node subset, one of 'disc', 'col', 'None'.
+            This option does not apply to GLMPhase. The default is 'None'.
 
         Returns
         -------
@@ -1086,6 +1094,12 @@ class PhaseBase(Group):
         np.array
             The values of y interpolated at nodes of the specified type.
         """
+        if self.metadata['transcription'] == 'glm' and nodes is not None:
+            raise ValueError('With GLMPhase, nodes=None is the only valid option.')
+
+        if nodes is None:
+            nodes = 'all'
+
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
         if nodes not in ('col', 'disc', 'all'):
@@ -1104,9 +1118,9 @@ class PhaseBase(Group):
             node_locations = np.array(sorted(list(set(node_locations))))
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()
-        m = 2.0/(_xs[-1] - _xs[0])
-        b = 1.0-(m*_xs[-1])
-        taus = m*_xs + b
+        m = 2.0 / (_xs[-1] - _xs[0])
+        b = 1.0 - (m * _xs[-1])
+        taus = m * _xs + b
         interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind)
         res = np.atleast_2d(interpfunc(node_locations))
         if res.shape[0] == 1:

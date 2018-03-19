@@ -137,7 +137,7 @@ class LagrangeBarycentricInterpolant(object):
         self.f_j[:] = f_j
         self.x0 = x0
         self.xf = xf
-        self.dx_dtau = 0.5*(xf-x0)
+        self.dx_dtau = 0.5 * (xf - x0)
         self.wbfj[:] = self.w_b * self.f_j
         self._is_setup = True
 

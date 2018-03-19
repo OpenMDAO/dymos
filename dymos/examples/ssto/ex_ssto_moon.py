@@ -10,8 +10,10 @@ from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 SHOW_PLOTS = True
 
 
-def ssto_moon(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
-              top_level_jacobian='csc', optimizer='SLSQP', derivative_mode='rev'):
+def ssto_moon(
+        transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP',
+        top_level_jacobian='csc', transcription_order=5, derivative_mode='rev',
+        glm_formulation='solver-based', glm_integrator='GaussLegendre4'):
 
     p = Problem(model=Group())
 
@@ -24,21 +26,41 @@ def ssto_moon(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
     else:
         p.driver = ScipyOptimizeDriver()
 
+    kwargs = {}
+    if transcription == 'gauss-lobatto' or transcription == 'radau-ps':
+        kwargs['transcription_order'] = 3
+    else:
+        kwargs['formulation'] = glm_formulation
+        kwargs['method_name'] = glm_integrator
+
     phase = Phase(transcription,
                   ode_class=LaunchVehicleODE,
                   ode_init_kwargs={'central_body': 'moon'},
                   num_segments=num_seg,
-                  transcription_order=transcription_order)
+                  **kwargs)
 
     p.model.add_subsystem('phase0', phase)
 
     phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 1000))
 
-    phase.set_state_options('x', fix_initial=True, scaler=1.0E-5, lower=0)
-    phase.set_state_options('y', fix_initial=True, scaler=1.0E-5, lower=0)
-    phase.set_state_options('vx', fix_initial=True, scaler=1.0E-3, lower=0)
-    phase.set_state_options('vy', fix_initial=True, scaler=1.0E-3)
-    phase.set_state_options('m', fix_initial=True, scaler=1.0E-3)
+    if transcription != 'glm':
+        phase.set_state_options('x', fix_initial=True, scaler=1.0E-5, lower=0)
+        phase.set_state_options('y', fix_initial=True, scaler=1.0E-5, lower=0)
+        phase.set_state_options('vx', fix_initial=True, scaler=1.0E-3, lower=0)
+        phase.set_state_options('vy', fix_initial=True, scaler=1.0E-3)
+        phase.set_state_options('m', fix_initial=True, scaler=1.0E-3)
+    else:
+        phase.set_state_options('x', fix_initial=True, fix_final=False, scaler=1.0E-5, lower=0)
+        phase.set_state_options('y', fix_initial=True, fix_final=False, scaler=1.0E-5, lower=0)
+        phase.set_state_options('vx', fix_initial=True, fix_final=False, scaler=1.0E-3, lower=0)
+        phase.set_state_options('vy', fix_initial=True, fix_final=False, scaler=1.0E-3)
+        phase.set_state_options('m', fix_initial=True, fix_final=False, scaler=1.0E-3)
+
+        phase.add_boundary_constraint('x', loc='initial', equals=0.)
+        phase.add_boundary_constraint('y', loc='initial', equals=0.)
+        phase.add_boundary_constraint('vx', loc='initial', equals=0.)
+        phase.add_boundary_constraint('vy', loc='initial', equals=1.0E-6)
+        phase.add_boundary_constraint('m', loc='initial', equals=50000.)
 
     phase.add_boundary_constraint('y', loc='final', equals=1.85E5, linear=True)
     phase.add_boundary_constraint('vx', loc='final', equals=1627.0)
@@ -55,25 +77,38 @@ def ssto_moon(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
 
     phase.add_objective('time', index=-1, scaler=0.01)
 
-    if top_level_jacobian.lower() == 'csc':
-        p.model.jacobian = CSCJacobian()
-    elif top_level_jacobian.lower() == 'dense':
-        p.model.jacobian = DenseJacobian()
-    elif top_level_jacobian.lower() == 'csr':
-        p.model.jacobian = CSRJacobian()
+    if transcription != 'glm':
+        if top_level_jacobian.lower() == 'csc':
+            p.model.jacobian = CSCJacobian()
+        elif top_level_jacobian.lower() == 'dense':
+            p.model.jacobian = DenseJacobian()
+        elif top_level_jacobian.lower() == 'csr':
+            p.model.jacobian = CSRJacobian()
 
-    p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = DirectSolver()
 
-    p.setup(mode=derivative_mode, check=True)
+        p.setup(mode=derivative_mode, check=True)
+    else:
+        p.setup()
+        # p.set_solver_print(level=-1)
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 500.0
-    p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='disc')
-    p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='disc')
-    p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='disc')
-    p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='disc')
-    p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='disc')
-    p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='all')
+
+    if transcription != 'glm':
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='disc')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='disc')
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='disc')
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='disc')
+        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='disc')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='all')
+    else:
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0])
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0])
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0])
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0])
+        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000])
+        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76])
 
     p.run_model()
 
@@ -111,5 +146,9 @@ def ssto_moon(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
 
 
 if __name__ == '__main__':
-    ssto_moon(transcription='gauss-lobatto', optimizer='SLSQP',
-              top_level_jacobian='csc', derivative_mode='rev')
+    # ssto_moon(transcription='gauss-lobatto', optimizer='SLSQP',
+    #           top_level_jacobian='csc', derivative_mode='rev')
+    ssto_moon(
+        transcription='glm', num_seg=10, optimizer='SNOPT',
+        glm_formulation='optimizer-based', glm_integrator='GaussLegendre6',
+    )

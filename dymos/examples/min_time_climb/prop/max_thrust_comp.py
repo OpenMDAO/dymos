@@ -32,15 +32,14 @@ THR_DATA = {'mach': np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
                                 10200.0, 10700.0, 11200.0, 12300.0, 14100.0,
                                 16800.0, 20100.0, 24200.0, 28100.0, 31100.0,
                                 #  alt=40000
-                                5700.0, 6500.0, 7300.0,   8100.0,  9400.0,
+                                5700.0,   6500.0,  7300.0,  8100.0,  9400.0,
                                 11200.0, 13400.0, 16200.0, 19300.0, 21700.0,
                                 #  alt=50000
-                                3400.0, 3900.0, 4400.0,   4900.0,  5600.0,
-                                6800.0, 8300.0, 10000.0, 11900.0, 13300.0,
+                                3400.0,   3900.0,  4400.0,  4900.0,  5600.0,
+                                6800.0,   8300.0, 10000.0, 11900.0, 13300.0,
                                 #  alt=70000
-                                100.0,  200.0,  400.0,    800.0,  1100.0,
-                                1400.0, 1700.0,  2200.0,  2900.0,  3100.0]).reshape((10,
-                                                                                     10))}
+                                100.0,     200.0,   400.0,   800.0,  1100.0,
+                                1400.0,   1700.0,  2200.0,  2900.0,  3100.0]).reshape((10, 10))}
 
 
 class MaxThrustComp(MetaModelStructured):
@@ -49,6 +48,6 @@ class MaxThrustComp(MetaModelStructured):
     def setup(self):
         nn = self.metadata['num_nodes']
         self.add_input(name='h', val=0.0 * np.ones(nn), units='ft', training_data=THR_DATA['h'])
-        self.add_input(name='mach', val=0.2*np.ones(nn), training_data=THR_DATA['mach'])
+        self.add_input(name='mach', val=0.2 * np.ones(nn), training_data=THR_DATA['mach'])
         self.add_output(name='max_thrust', val=np.zeros(nn), units='lbf',
                         training_data=THR_DATA['thrust'])

@@ -11,6 +11,7 @@ __pycache__/
 
 # view_model
 partition_tree_n2.html
+*n2.html
 
 # SNOPT
 SNOPT_print.out

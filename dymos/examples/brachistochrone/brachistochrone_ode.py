@@ -26,7 +26,7 @@ class BrachistochroneODE(ExplicitComponent):
                        units='m/s')
 
         self.add_input('g',
-                       val=9.80665*np.ones(nn),
+                       val=9.80665 * np.ones(nn),
                        desc='gravitational acceleration',
                        units='m/s/s')
 
@@ -77,10 +77,10 @@ class BrachistochroneODE(ExplicitComponent):
         g = inputs['g']
         v = inputs['v']
 
-        outputs['vdot'] = g*cos_theta
-        outputs['xdot'] = v*sin_theta
-        outputs['ydot'] = -v*cos_theta
-        outputs['check'] = v/sin_theta
+        outputs['vdot'] = g * cos_theta
+        outputs['xdot'] = v * sin_theta
+        outputs['ydot'] = -v * cos_theta
+        outputs['check'] = v / sin_theta
 
     def compute_partials(self, inputs, jacobian):
         theta = inputs['theta']
@@ -90,13 +90,13 @@ class BrachistochroneODE(ExplicitComponent):
         v = inputs['v']
 
         jacobian['vdot', 'g'] = cos_theta
-        jacobian['vdot', 'theta'] = -g*sin_theta
+        jacobian['vdot', 'theta'] = -g * sin_theta
 
         jacobian['xdot', 'v'] = sin_theta
-        jacobian['xdot', 'theta'] = v*cos_theta
+        jacobian['xdot', 'theta'] = v * cos_theta
 
         jacobian['ydot', 'v'] = -cos_theta
-        jacobian['ydot', 'theta'] = v*sin_theta
+        jacobian['ydot', 'theta'] = v * sin_theta
 
-        jacobian['check', 'v'] = 1/sin_theta
-        jacobian['check', 'theta'] = -v*cos_theta/sin_theta**2
+        jacobian['check', 'v'] = 1 / sin_theta
+        jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2

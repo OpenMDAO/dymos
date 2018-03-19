@@ -411,7 +411,7 @@ class TestControlRateComp(unittest.TestCase):
         p.model.connect('controls:b', 'control_rate_comp.controls:b')
         p.model.connect('dt_dstau', 'control_rate_comp.dt_dstau')
 
-        p.setup()
+        p.setup(force_alloc_complex=True)
 
         p['t_initial'] = 0.0
         p['t_duration'] = 3.0

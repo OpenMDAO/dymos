@@ -46,16 +46,16 @@ class LinearTangentGuidanceComp(ExplicitComponent):
         a = inputs['a_ctrl']
         b = inputs['b_ctrl']
         t = inputs['time']
-        outputs['theta'] = np.arctan(a*t+b)
+        outputs['theta'] = np.arctan(a * t + b)
 
     def compute_partials(self, inputs, jacobian):
         a = inputs['a_ctrl']
         b = inputs['b_ctrl']
         t = inputs['time']
 
-        x = a*t+b
+        x = a * t + b
         denom = x**2 + 1.0
 
-        jacobian['theta', 'a_ctrl'] = t/denom
-        jacobian['theta', 'b_ctrl'] = 1.0/denom
-        jacobian['theta', 'time'] = a/denom
+        jacobian['theta', 'a_ctrl'] = t / denom
+        jacobian['theta', 'b_ctrl'] = 1.0 / denom
+        jacobian['theta', 'time'] = a / denom
