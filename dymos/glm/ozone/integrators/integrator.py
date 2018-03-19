@@ -48,9 +48,6 @@ class Integrator(Group):
 
         num_step_vars = method.num_values
 
-        has_starting_method = method.starting_method is not None
-        is_starting_method = starting_coeffs is not None
-
         states = self._ode_options._states
         dynamic_parameters = self._ode_options._dynamic_parameters
         time_units = self._ode_options._time_options['units']
@@ -59,21 +56,6 @@ class Integrator(Group):
         stage_norm_times = self._get_stage_norm_times()
         all_norm_times = self.metadata['all_norm_times']
         normalized_times = self.metadata['normalized_times']
-
-        # ------------------------------------------------------------------------------------
-        # Check starting_coeffs
-        if is_starting_method:
-            # (num_starting, num_times, num_step_vars,)
-            assert len(starting_coeffs.shape) == 3, \
-                'starting_coeffs must be a rank-3 array, but its rank is %i' \
-                % len(starting_coeffs.shape)
-            assert starting_coeffs.shape[1:] == (len(my_norm_times), method.num_values), (
-                'starting_coeffs must have shape (num_starting, num_times, num_step_vars,).' +
-                'It has shape %i x %i x %i, but it should have shape (? x %i x %i)' % (
-                    starting_coeffs.shape[0], starting_coeffs.shape[1], starting_coeffs.shape[2],
-                    len(my_norm_times), method.num_values
-                )
-            )
 
         # ------------------------------------------------------------------------------------
         # inputs
@@ -163,23 +145,7 @@ class Integrator(Group):
         promotes = []
         promotes.extend([get_name('initial_condition', state_name) for state_name in states])
 
-        if not has_starting_method:
-            starting_system = StartingComp(states=states, num_step_vars=num_step_vars)
-        else:
-            starting_method_name, starting_coeffs, starting_times = method.starting_method
-            method = get_method(starting_method_name)
-
-            starting_system = self.__class__(
-                ode_class=ode_class, method=method,
-                normalized_times=starting_norm_times, all_norm_times=all_norm_times,
-                starting_coeffs=starting_coeffs,
-            )
-
-            promotes.extend([
-                get_name('dynamic_parameter', parameter_name)
-                for parameter_name in dynamic_parameters])
-            promotes.append('initial_time')
-            promotes.append('final_time')
+        starting_system = StartingComp(states=states, num_step_vars=num_step_vars)
 
         self.add_subsystem('starting_system', starting_system, promotes_inputs=promotes)
 
@@ -230,12 +196,7 @@ class Integrator(Group):
         method = self.metadata['method']
         normalized_times = self.metadata['normalized_times']
 
-        has_starting_method = method.starting_method is not None
-
-        if has_starting_method:
-            start_time_index = method.starting_method[2]
-        else:
-            start_time_index = 0
+        start_time_index = 0
 
         return normalized_times[:start_time_index + 1], normalized_times[start_time_index:]
 
