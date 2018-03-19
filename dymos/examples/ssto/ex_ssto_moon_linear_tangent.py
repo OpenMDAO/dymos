@@ -7,11 +7,8 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver,
 from dymos import Phase
 from dymos.examples.ssto.launch_vehicle_linear_tangent_ode import LaunchVehicleLinearTangentODE
 
-SHOW_PLOTS = True
-
-
 def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
-                             top_level_jacobian='csc', optimizer='SLSQP', derivative_mode='rev'):
+                             top_level_jacobian='csc', optimizer='SLSQP'):
 
     p = Problem(model=Group())
 
@@ -60,8 +57,20 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
 
     p.model.linear_solver = DirectSolver()
 
-    p.setup(mode=derivative_mode, check=True)
+    return p
 
+
+if __name__ == '__main__':
+
+    # pragma: no cover
+    import matplotlib.pyplot as plt
+
+    p = ssto_moon_linear_tangent(transcription='gauss-lobatto', optimizer='SLSQP',
+                             top_level_jacobian='csc', )
+
+    p.setup()
+
+    phase = p.model.phase0
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 500.0
     p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='disc')
@@ -74,37 +83,28 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
 
     p.run_driver()
 
-    if SHOW_PLOTS:  # pragma: no cover
-        import matplotlib.pyplot as plt
-        plt.figure(facecolor='white')
-        plt.plot(phase.get_values('x'), phase.get_values('y'), 'bo')
-        plt.xlabel('x, m')
-        plt.ylabel('y, m')
-        plt.grid()
+    plt.figure(facecolor='white')
+    plt.plot(phase.get_values('x'), phase.get_values('y'), 'bo')
+    plt.xlabel('x, m')
+    plt.ylabel('y, m')
+    plt.grid()
 
-        fig = plt.figure(facecolor='white')
-        fig.suptitle('results for flat_earth_without_aero')
+    fig = plt.figure(facecolor='white')
+    fig.suptitle('results for flat_earth_without_aero')
 
-        axarr = fig.add_subplot(2, 1, 1)
-        axarr.plot(phase.get_values('time'),
-                   np.degrees(phase.get_values('guidance.theta')), 'bo')
-        axarr.set_ylabel(r'$\theta$, deg')
-        axarr.axes.get_xaxis().set_visible(False)
+    axarr = fig.add_subplot(2, 1, 1)
+    axarr.plot(phase.get_values('time'),
+               np.degrees(phase.get_values('guidance.theta')), 'bo')
+    axarr.set_ylabel(r'$\theta$, deg')
+    axarr.axes.get_xaxis().set_visible(False)
 
-        axarr = fig.add_subplot(2, 1, 2)
+    axarr = fig.add_subplot(2, 1, 2)
 
-        axarr.plot(phase.get_values('time'),
-                   np.degrees(phase.get_values('vx')), 'bo', label='$v_x$')
-        axarr.plot(phase.get_values('time'),
-                   np.degrees(phase.get_values('vy')), 'ro', label='$v_y$')
-        axarr.set_xlabel('time, s')
-        axarr.set_ylabel('velocity, m/s')
-        axarr.legend(loc='best')
-        plt.show()
-
-    return p
-
-
-if __name__ == '__main__':
-    ssto_moon_linear_tangent(transcription='gauss-lobatto', optimizer='SLSQP',
-                             top_level_jacobian='csc', derivative_mode='rev')
+    axarr.plot(phase.get_values('time'),
+               np.degrees(phase.get_values('vx')), 'bo', label='$v_x$')
+    axarr.plot(phase.get_values('time'),
+               np.degrees(phase.get_values('vy')), 'ro', label='$v_y$')
+    axarr.set_xlabel('time, s')
+    axarr.set_ylabel('velocity, m/s')
+    axarr.legend(loc='best')
+    plt.show()

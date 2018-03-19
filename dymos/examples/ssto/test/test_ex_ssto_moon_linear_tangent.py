@@ -26,10 +26,24 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
         ex_ssto_moon_lintan.SHOW_PLOTS = False
         p = ex_ssto_moon_lintan.ssto_moon_linear_tangent(transcription, num_seg=10,
                                                          transcription_order=5,
-                                                         top_level_jacobian=jacobian,
-                                                         derivative_mode=derivative_mode)
+                                                         top_level_jacobian=jacobian)
 
-        # Ensure defects are zero
+        p.setup(mode=derivative_mode, check=True)
+
+        phase = p.model.phase0
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 500.0
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='disc')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='disc')
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='disc')
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='disc')
+        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='disc')
+        p['phase0.controls:a_ctrl'] = -0.01
+        p['phase0.controls:b_ctrl'] = 3.0
+
+        p.run_driver()
+
+          # Ensure defects are zero
         for state in ['x', 'y', 'vx', 'vy', 'm']:
             assert_almost_equal(p['phase0.collocation_constraint.defects:{0}'.format(state)],
                                 0.0, decimal=5)
@@ -45,3 +59,7 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
         # Does this case find the same answer as using theta as a dynamic control?
         assert_almost_equal(p['phase0.controls:a_ctrl'], -0.0082805, decimal=4)
         assert_almost_equal(p['phase0.controls:b_ctrl'], 2.74740137, decimal=4)
+
+
+if __name__ == "__main__":
+    unittest.main()

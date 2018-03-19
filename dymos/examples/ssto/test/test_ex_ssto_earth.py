@@ -36,7 +36,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
     def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='rev'):
 
         p = ex_ssto_earth.ssto_earth(transcription, num_seg=10, transcription_order=5,
-                                     top_level_jacobian=jacobian, derivative_mode=derivative_mode)
+                                     top_level_jacobian=jacobian)
 
         p.setup(mode=derivative_mode, check=True)
 
@@ -66,6 +66,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
         # Ensure time found is the known solution
         assert_almost_equal(p['phase0.t_duration'], 143, decimal=0)
 
+
     # note: some code duplicated here on purpose.
     #       This test is embedded into the docs, so it needs to be self contained.
     def test_simulate_plot(self):
@@ -74,9 +75,9 @@ class TestExampleSSTOEarth(unittest.TestCase):
         from matplotlib import pyplot as plt
 
         p = ex_ssto_earth.ssto_earth('gauss-lobatto', num_seg=20, transcription_order=5,
-                                     top_level_jacobian='csc', derivative_mode='rev')
+                                     top_level_jacobian='csc')
 
-        p.setup(mode='rev')
+        p.setup()
 
         phase = p.model.phase0
         p['phase0.t_initial'] = 0.0

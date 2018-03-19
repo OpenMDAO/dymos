@@ -9,6 +9,7 @@ from numpy.testing import assert_almost_equal
 from parameterized import parameterized
 from itertools import product
 
+from openmdao.api import DenseJacobian, CSCJacobian
 import dymos.examples.ssto.ex_ssto_moon as ex_ssto_moon
 
 
@@ -39,7 +40,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['csc'],  # jacobian
+                          ['dense', 'csc'],  # jacobian
                           ['rev'],  # derivative_mode
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
                                                                           p.args[0],
@@ -47,9 +48,32 @@ class TestExampleSSTOMoon(unittest.TestCase):
                                                                           p.args[2]])
     )
     def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='rev'):
-        ex_ssto_moon.SHOW_PLOTS = False
         p = ex_ssto_moon.ssto_moon(transcription, num_seg=10, transcription_order=5,
-                                   top_level_jacobian=jacobian, derivative_mode=derivative_mode)
+                                   top_level_jacobian=jacobian)
+
+        p.setup(mode=derivative_mode, check=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 500.0
+
+        phase = p.model.phase0
+        if transcription != 'glm':
+            p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='disc')
+            p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='disc')
+            p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='disc')
+            p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='disc')
+            p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='disc')
+            p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='all')
+        else:
+            p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0])
+            p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0])
+            p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0])
+            p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0])
+            p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000])
+            p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76])
+
+        p.run_driver()
+
         self.run_asserts(p, transcription)
 
     # @parameterized.expand(product(
@@ -65,3 +89,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
     #         glm_formulation=glm_formulation, glm_integrator=glm_integrator,
     #     )
     #     self.run_asserts(p, transcription)
+
+
+if __name__ == "__main__":
+    unittest.main()
