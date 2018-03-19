@@ -73,3 +73,10 @@ SimulationResults with the filename as its only argument.
 
     exp_out = SimulationResults('my_simulation.db')
     print(exp_out.get_values('x'))
+
+In the following example, we minimize the time required for a single stage vehicle to reach orbit.
+Since it is a constant thrust/mass flow case, this is also the minimum propellant solution.
+
+.. embed-code::
+    dymos.examples.ssto.ex_ssto_earth
+    :layout: interleave
