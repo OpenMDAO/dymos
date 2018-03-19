@@ -155,7 +155,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
             if not isinstance(times, string_types) and isinstance(times, Iterable):
                 idxs_times_in_seg = np.where(np.logical_and(times > seg_times[0],
                                                             times < seg_times[-1]))[0]
-                t_out = np.zeros(len(idxs_times_in_seg)+2, dtype=float)
+                t_out = np.zeros(len(idxs_times_in_seg) + 2, dtype=float)
                 t_out[1:-1] = times[idxs_times_in_seg]
                 t_out[0] = seg_times[0]
                 t_out[-1] = seg_times[-1]
@@ -303,7 +303,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                     if isinstance(options['fix_final'], Iterable):
                         idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
                         for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[-size+idx_to_fix]
+                            del desvar_indices[-size + idx_to_fix]
                     else:
                         del desvar_indices[-size:]
 

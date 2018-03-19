@@ -54,7 +54,7 @@ class DotProductComp(ExplicitComponent):
                         units=meta['c_units'])
 
         row_idxs = np.repeat(np.arange(nn), m)
-        col_idxs = np.arange(nn*m)
+        col_idxs = np.arange(nn * m)
         self.declare_partials(of=meta['c_name'], wrt=meta['a_name'], rows=row_idxs, cols=col_idxs)
         self.declare_partials(of=meta['c_name'], wrt=meta['b_name'], rows=row_idxs, cols=col_idxs)
 

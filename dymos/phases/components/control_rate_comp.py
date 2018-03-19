@@ -74,9 +74,9 @@ class ControlRateComp(ExplicitComponent):
                 for i in range(size):
                     self.jacs[name][:, i, :, i] = self.D
                     self.jacs2[name][:, i, :, i] = self.D2
-                self.jacs[name] = self.jacs[name].reshape((num_nodes*size, num_nodes*size),
+                self.jacs[name] = self.jacs[name].reshape((num_nodes * size, num_nodes * size),
                                                           order='C')
-                self.jacs2[name] = self.jacs2[name].reshape((num_nodes*size, num_nodes*size),
+                self.jacs2[name] = self.jacs2[name].reshape((num_nodes * size, num_nodes * size),
                                                             order='C')
 
                 self.jac_rows[name], self.jac_cols[name] = np.where(self.jacs[name] != 0)
@@ -85,7 +85,7 @@ class ControlRateComp(ExplicitComponent):
                 self.sizes[name] = size
 
                 cs = np.tile(np.arange(num_nodes, dtype=int), reps=size)
-                rs = np.concatenate([np.arange(0, num_nodes*size, size, dtype=int)+i
+                rs = np.concatenate([np.arange(0, num_nodes * size, size, dtype=int) + i
                                      for i in range(size)])
 
                 self.declare_partials(of=self._output_rate_names[name],
@@ -132,6 +132,8 @@ class ControlRateComp(ExplicitComponent):
         self.D2 = np.dot(self.D, self.D)
 
         self._setup_controls()
+
+        self.set_check_partial_options('*', method='cs')
 
     def compute(self, inputs, outputs):
         control_options = self.metadata['control_options']

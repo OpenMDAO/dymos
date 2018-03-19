@@ -16,18 +16,18 @@ class DensityComp(ExplicitComponent):
 
         # Inputs
         self.add_input('pres',
-                       val=101325.*np.ones(n),
+                       val=101325. * np.ones(n),
                        desc='Pressure',
                        units='Pa')
 
         self.add_input('temp',
-                       val=288.15*np.ones(n),
+                       val=288.15 * np.ones(n),
                        desc='Temperature',
                        units='K')
 
         # Outputs
         self.add_output(name='rho',
-                        val=1.225*np.ones(n),
+                        val=1.225 * np.ones(n),
                         desc='Density',
                         units='kg/m**3')
 

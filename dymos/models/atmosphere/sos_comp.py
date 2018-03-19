@@ -21,7 +21,7 @@ class SpeedOfSoundComp(ExplicitComponent):
         # Product of the gas constant times the ratio of specific heats
         gamma = 1.4    # Ratio of specific heads
         gas_c = 287.0  # Gas constant
-        self.K = gamma*gas_c
+        self.K = gamma * gas_c
 
         # Jacobian
         ar = np.arange(nn)

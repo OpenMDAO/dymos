@@ -77,13 +77,13 @@ class TestPhaseLinkageComp(unittest.TestCase):
 
     def test_results(self):
 
-        assert_almost_equal(self.p['phase1:x'][0, ...]-self.p['phase0:x'][-1, ...],
+        assert_almost_equal(self.p['phase1:x'][0, ...] - self.p['phase0:x'][-1, ...],
                             self.p['linkage_comp.L01a_x'])
 
-        assert_almost_equal(self.p['phase1:u'][0, ...]-self.p['phase0:u'][-1, ...],
+        assert_almost_equal(self.p['phase1:u'][0, ...] - self.p['phase0:u'][-1, ...],
                             self.p['linkage_comp.L01b_u'])
 
-        assert_almost_equal(self.p['phase1:v'][0, ...]-self.p['phase0:v'][-1, ...],
+        assert_almost_equal(self.p['phase1:v'][0, ...] - self.p['phase0:v'][-1, ...],
                             self.p['linkage_comp.L01c_v'])
 
     def test_partials(self):

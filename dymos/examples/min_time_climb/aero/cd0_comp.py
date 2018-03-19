@@ -28,9 +28,9 @@ class CD0Comp(ExplicitComponent):
         idx_low = np.where(M < 1.15)[0]
         idx_high = np.where(M >= 1.15)[0]
 
-        outputs['CD0'][idx_low] = 0.013 + 0.0144 * (1.0 + np.tanh((M[idx_low] - 0.98)/0.06))
+        outputs['CD0'][idx_low] = 0.013 + 0.0144 * (1.0 + np.tanh((M[idx_low] - 0.98) / 0.06))
         outputs['CD0'][idx_high] = 0.013 + \
-            0.0144 * (1.0 + np.tanh(0.17/0.06)) - 0.011 * (M[idx_high] - 1.15)
+            0.0144 * (1.0 + np.tanh(0.17 / 0.06)) - 0.011 * (M[idx_high] - 1.15)
 
     def compute_partials(self, inputs, partials):
         M = inputs['mach']
@@ -38,7 +38,7 @@ class CD0Comp(ExplicitComponent):
         idx_low = np.where(M < 1.15)[0]
         idx_high = np.where(M >= 1.15)[0]
 
-        k = 50.0/3.0
+        k = 50.0 / 3.0
 
         partials['CD0', 'mach'][idx_low] = 0.24 / (np.cosh(k * (M[idx_low] - 0.98))**2)
         partials['CD0', 'mach'][idx_high] = -0.011

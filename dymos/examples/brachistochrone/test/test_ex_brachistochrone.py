@@ -5,8 +5,12 @@ import unittest
 from numpy.testing import assert_almost_equal
 
 from parameterized import parameterized
+from itertools import product
 
 import dymos.examples.brachistochrone.ex_brachistochrone as ex_brachistochrone
+
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 
 class TestBrachistochroneExample(unittest.TestCase):
@@ -16,11 +20,7 @@ class TestBrachistochroneExample(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @parameterized.expand(['gauss-lobatto', 'radau-ps'])
-    def test_ex_brachistochrone(self, transcription='radau-ps'):
-        ex_brachistochrone.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription)
-
+    def run_asserts(self, p, transcription):
         t_initial = p.model.phase0.get_values('time')[0]
         tf = p.model.phase0.get_values('time')[-1]
 
@@ -46,4 +46,25 @@ class TestBrachistochroneExample(unittest.TestCase):
         assert_almost_equal(vf, 9.902, decimal=3)
 
         if transcription != 'radau-ps':
-            assert_almost_equal(thetaf, 100.12, decimal=1)
+            assert_almost_equal(thetaf, 100.12, decimal=0)
+
+    @parameterized.expand(['gauss-lobatto', 'radau-ps'])
+    def test_ex_brachistochrone(self, transcription='radau-ps'):
+        ex_brachistochrone.SHOW_PLOTS = False
+        p = ex_brachistochrone.brachistochrone_min_time(transcription=transcription)
+        self.run_asserts(p, transcription)
+        self.tearDown()
+
+    @parameterized.expand(product(
+        ['optimizer-based'],
+        ['RK4'],
+    ))
+    def test_ex_brachistochrone_glm(self, glm_formulation='solver-based', glm_integrator='RK4'):
+        transcription = 'glm'
+        ex_brachistochrone.SHOW_PLOTS = False
+        p = ex_brachistochrone.brachistochrone_min_time(
+            transcription=transcription, run_driver=False,
+            glm_formulation=glm_formulation, glm_integrator=glm_integrator,
+        )
+        # self.run_asserts(p, transcription)
+        self.tearDown()
