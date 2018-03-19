@@ -15,7 +15,7 @@ SHOW_PLOTS = False
 
 
 def brachistochrone_min_time(
-        transcription='gauss-lobatto', num_segments=8,
+        transcription='gauss-lobatto', num_segments=8, run_driver=True,
         top_level_jacobian='csc',
         glm_formulation='solver-based', glm_integrator='GaussLegendre4', force_alloc_complex=False):
     p = Problem(model=Group())
@@ -94,7 +94,8 @@ def brachistochrone_min_time(
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5])
 
     p.run_model()
-    p.run_driver()
+    if run_driver:
+        p.run_driver()
 
     # Plot results
     if SHOW_PLOTS:
