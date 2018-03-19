@@ -70,6 +70,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
     #       This test is embedded into the docs, so it needs to be self contained.
     def test_simulate_plot(self):
         import dymos.examples.ssto.ex_ssto_earth as ex_ssto_earth
+
         from matplotlib import pyplot as plt
 
         p = ex_ssto_earth.ssto_earth('gauss-lobatto', num_seg=20, transcription_order=5,
