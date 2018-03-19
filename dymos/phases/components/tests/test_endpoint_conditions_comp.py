@@ -136,7 +136,6 @@ class TestEndpointConditionComp(unittest.TestCase):
 
         assert_check_partials(cpd)
 
-
     def test_vector_state_and_control(self):
         n = 101
 
