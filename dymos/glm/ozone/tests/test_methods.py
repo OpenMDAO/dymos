@@ -54,13 +54,16 @@ class SimpleODE(ExplicitComponent):
 
 class OzoneODETestCase(unittest.TestCase):
 
-    @parameterized.expand(method_classes.keys())
-    def test(self, glm_integrator):
+    @parameterized.expand(product(
+        ['solver-based', 'time-marching'],
+        method_classes.keys(),
+    ))
+    def test(self, glm_formulation, glm_integrator):
         p = Problem(model=Group())
         phase = Phase('glm',
                       ode_class=SimpleODE,
                       num_segments=10,
-                      formulation='solver-based',
+                      formulation=glm_formulation,
                       method_name=glm_integrator)
         p.model.add_subsystem('phase0', phase)
 
@@ -75,4 +78,5 @@ class OzoneODETestCase(unittest.TestCase):
         p.run_model()
 
         np.testing.assert_almost_equal(p['phase0.out_states:y'][-1], np.exp(tf), decimal=5)
+        np.testing.assert_almost_equal(phase.get_values('time')[-1, 0], tf, decimal=5)
         np.testing.assert_almost_equal(phase.get_values('y')[-1, 0], np.exp(tf), decimal=5)

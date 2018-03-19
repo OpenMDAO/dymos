@@ -21,7 +21,7 @@ class OzoneODETestCase(unittest.TestCase):
 
     @parameterized.expand(product(
         ['optimizer-based', 'solver-based', 'time-marching'],
-        ['ForwardEuler', 'BackwardEuler'],
+        ['ExplicitMidpoint', 'ImplicitMidpoint'],
     ))
     def test_partials(self, glm_formulation, glm_integrator):
         p = Problem(model=Group())

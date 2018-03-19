@@ -43,7 +43,7 @@ class TestPep8(unittest.TestCase):
         dymos_path = os.path.split(dymos.__file__)[0]
         pyfiles = _discover_python_files(dymos_path)
 
-        style = pep8.StyleGuide(ignore=['E201', 'E241', 'E402'])
+        style = pep8.StyleGuide(ignore=['E201', 'E226', 'E241', 'E402'])
         style.options.max_line_length = 100
 
         report = style.check_files(pyfiles)
