@@ -6,6 +6,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 from openmdao.api import Problem, Group, IndepVarComp, DenseJacobian, CSCJacobian
+from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.phases.options import TimeOptionsDictionary, StateOptionsDictionary, \
     ControlOptionsDictionary
@@ -35,6 +36,7 @@ class TestEndpointConditionComp(unittest.TestCase):
         ivc = IndepVarComp()
         ivc.add_output(name='phase:time', val=np.zeros(n), units='s')
         ivc.add_output(name='phase:initial_jump:time', val=100.0 * np.ones(1), units='s')
+        ivc.add_output(name='phase:final_jump:time', val=1.0 * np.ones(1), units='s')
 
         ivc.add_output(name='phase:x',
                        val=np.zeros(n),
@@ -67,18 +69,16 @@ class TestEndpointConditionComp(unittest.TestCase):
                                                             state_options=state_options,
                                                             control_options=control_options))
 
-        p.model.connect('phase:time', 'end_conditions.initial_value:time', src_indices=[0])
-        p.model.connect('phase:time', 'end_conditions.final_value:time', src_indices=[-1])
+        p.model.connect('phase:time', 'end_conditions.values:time')
 
         size = np.prod(state_options['x']['shape'])
-        ar = np.arange(size)
 
-        p.model.connect('phase:x', 'end_conditions.initial_value:x', src_indices=ar)
-        p.model.connect('phase:x', 'end_conditions.final_value:x', src_indices=-ar[::-1] - 1)
+        p.model.connect('phase:x', 'end_conditions.values:x')
 
-        p.model.connect('phase:theta', 'end_conditions.initial_value:theta', src_indices=ar)
-        p.model.connect(
-            'phase:theta', 'end_conditions.final_value:theta', src_indices=-ar[::-1] - 1)
+        p.model.connect('phase:theta', 'end_conditions.values:theta')
+
+        p.model.connect('phase:initial_jump:time', 'end_conditions.initial_jump:time')
+        p.model.connect('phase:final_jump:time', 'end_conditions.final_jump:time')
 
         p.model.connect('phase:initial_jump:x', 'end_conditions.initial_jump:x')
         p.model.connect('phase:final_jump:x', 'end_conditions.final_jump:x')
@@ -90,12 +90,15 @@ class TestEndpointConditionComp(unittest.TestCase):
         p.model.jacobian = DenseJacobian()  # Works
         # p.model.jacobian = CSCJacobian()  # Fails
 
-        p.setup(mode='fwd')
+        p.setup(mode='fwd', force_alloc_complex=True)
 
         p['phase:time'] = np.linspace(0, 500, n)
         p['phase:time'] = np.linspace(0, 500, n)
         p['phase:x'] = np.linspace(0, 10, n)
         p['phase:theta'] = np.linspace(-1, 1, n)
+
+        p['phase:initial_jump:time'] = 50.0
+        p['phase:final_jump:time'] = 75.0
 
         p['phase:initial_jump:x'] = 100.0
         p['phase:final_jump:x'] = 200.0
@@ -104,6 +107,18 @@ class TestEndpointConditionComp(unittest.TestCase):
         p['phase:final_jump:theta'] = -1.0
 
         p.run_model()
+
+        assert_almost_equal(p['end_conditions.time--'],
+                            p['phase:time'][0] - p['phase:initial_jump:time'])
+
+        assert_almost_equal(p['end_conditions.time-+'],
+                            p['phase:time'][0])
+
+        assert_almost_equal(p['end_conditions.time++'],
+                            p['phase:time'][-1] + p['phase:final_jump:time'])
+
+        assert_almost_equal(p['end_conditions.time+-'],
+                            p['phase:time'][-1])
 
         assert_almost_equal(p['end_conditions.states:x--'],
                             p['phase:x'][0] - p['phase:initial_jump:x'])
@@ -117,13 +132,12 @@ class TestEndpointConditionComp(unittest.TestCase):
         assert_almost_equal(p['end_conditions.controls:theta++'],
                             p['phase:theta'][-1] + p['phase:final_jump:theta'])
 
-        cpd = p.check_partials(compact_print=True)
+        cpd = p.check_partials(compact_print=True, method='cs')
 
-        for comp in cpd:
-            for (var, wrt) in cpd[comp]:
-                assert_almost_equal(cpd[comp][var, wrt]['abs error'], 0.0, decimal=7)
+        assert_check_partials(cpd)
 
-    def test_vector_state(self):
+
+    def test_vector_state_and_control(self):
         n = 101
 
         p = Problem(model=Group())
@@ -137,6 +151,9 @@ class TestEndpointConditionComp(unittest.TestCase):
         state_options['pos']['shape'] = (3,)
 
         control_options = {}
+        control_options['cmd'] = ControlOptionsDictionary()
+        control_options['cmd']['units'] = 'rad'
+        control_options['cmd']['shape'] = (3,)
 
         ivc = IndepVarComp()
         ivc.add_output(name='phase:time', val=np.zeros(n), units='s')
@@ -154,6 +171,18 @@ class TestEndpointConditionComp(unittest.TestCase):
                        val=np.zeros(state_options['pos']['shape']),
                        units='m')
 
+        ivc.add_output(name='phase:cmd',
+                       val=np.zeros((n, 3)),
+                       units='rad')
+
+        ivc.add_output(name='phase:initial_jump:cmd',
+                       val=np.zeros(control_options['cmd']['shape']),
+                       units='rad')
+
+        ivc.add_output(name='phase:final_jump:cmd',
+                       val=np.zeros(control_options['cmd']['shape']),
+                       units='rad')
+
         p.model.add_subsystem('ivc', subsys=ivc, promotes_outputs=['*'])
 
         p.model.add_subsystem('end_conditions',
@@ -161,25 +190,24 @@ class TestEndpointConditionComp(unittest.TestCase):
                                                             state_options=state_options,
                                                             control_options=control_options))
 
-        p.model.connect('phase:time', 'end_conditions.initial_value:time', src_indices=[0])
-        p.model.connect('phase:time', 'end_conditions.final_value:time', src_indices=[-1])
+        p.model.connect('phase:time', 'end_conditions.values:time')
 
-        size = np.prod(state_options['pos']['shape'])
-        ar = np.arange(size)
-
-        p.model.connect('phase:pos', 'end_conditions.initial_value:pos', src_indices=ar)
-        p.model.connect('phase:pos', 'end_conditions.final_value:pos', src_indices=-ar[::-1] - 1)
+        p.model.connect('phase:pos', 'end_conditions.values:pos')
 
         p.model.connect('phase:initial_jump:pos', 'end_conditions.initial_jump:pos')
         p.model.connect('phase:final_jump:pos', 'end_conditions.final_jump:pos')
+
+        p.model.connect('phase:cmd', 'end_conditions.values:cmd')
+
+        p.model.connect('phase:initial_jump:cmd', 'end_conditions.initial_jump:cmd')
+        p.model.connect('phase:final_jump:cmd', 'end_conditions.final_jump:cmd')
 
         # p.model.jacobian = DictionaryJacobian()  # Works
         # p.model.jacobian = DenseJacobian()  # Fails
         p.model.jacobian = CSCJacobian()  # Fails
 
-        p.setup(mode='fwd')
+        p.setup(mode='fwd', force_alloc_complex=True)
 
-        p['phase:time'] = np.linspace(0, 500, n)
         p['phase:time'] = np.linspace(0, 500, n)
         p['phase:pos'][:, 0] = np.linspace(0, 10, n)
         p['phase:pos'][:, 1] = np.linspace(0, 20, n)
@@ -187,6 +215,13 @@ class TestEndpointConditionComp(unittest.TestCase):
 
         p['phase:initial_jump:pos'] = np.array([7, 8, 9])
         p['phase:final_jump:pos'] = np.array([4, 5, 6])
+
+        p['phase:cmd'][:, 0] = np.linspace(0, 5, n)
+        p['phase:cmd'][:, 1] = np.linspace(0, 6, n)
+        p['phase:cmd'][:, 2] = np.linspace(0, 7, n)
+
+        p['phase:initial_jump:cmd'] = np.array([1, 2, 3])
+        p['phase:final_jump:cmd'] = np.array([10, 11, 12])
 
         p.run_model()
 
@@ -196,11 +231,15 @@ class TestEndpointConditionComp(unittest.TestCase):
         assert_almost_equal(p['end_conditions.states:pos++'],
                             p['phase:pos'][-1, :] + p['phase:final_jump:pos'])
 
-        cpd = p.check_partials(compact_print=True)
+        assert_almost_equal(p['end_conditions.controls:cmd--'],
+                            p['phase:cmd'][0, :] - p['phase:initial_jump:cmd'])
 
-        for comp in cpd:
-            for (var, wrt) in cpd[comp]:
-                assert_almost_equal(cpd[comp][var, wrt]['abs error'], 0.0, decimal=7)
+        assert_almost_equal(p['end_conditions.controls:cmd++'],
+                            p['phase:cmd'][-1, :] + p['phase:final_jump:cmd'])
+
+        cpd = p.check_partials(compact_print=True, method='cs')
+
+        assert_check_partials(cpd)
 
 if __name__ == "__main__":
     unittest.main()
