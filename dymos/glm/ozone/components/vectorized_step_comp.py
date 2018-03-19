@@ -183,3 +183,58 @@ class VectorizedStepComp(ImplicitComponent):
 
             partials[y_name, 'h_vec'] = -np.einsum(
                 'jk,ik...->ijk...', glm_B, inputs[F_name]).flatten()
+
+    def solve_linear(self, d_outputs, d_residuals, mode):
+        num_times = self.metadata['num_times']
+        num_step_vars = self.metadata['num_step_vars']
+
+        dy_dy_inv = self.dy_dy_inv
+
+        for state_name, state in iteritems(self.metadata['states']):
+            size = np.prod(state['shape'])
+            shape = state['shape']
+
+            y_name = get_name('y', state_name)
+
+            if mode == 'fwd':
+                rhs_vec = d_residuals[y_name].flatten()
+                solve_mode = 'N'
+            elif mode == 'rev':
+                rhs_vec = d_outputs[y_name].flatten()
+                solve_mode = 'T'
+
+            sol_vec = dy_dy_inv[state_name].solve(rhs_vec, solve_mode)
+
+            if mode == 'fwd':
+                d_outputs[y_name] = sol_vec.reshape((num_times, num_step_vars,) + shape)
+            elif mode == 'rev':
+                d_residuals[y_name] = sol_vec.reshape((num_times, num_step_vars,) + shape)
+
+    def solve_multi_linear(self, d_outputs, d_residuals, mode):
+        num_times = self.metadata['num_times']
+        num_step_vars = self.metadata['num_step_vars']
+
+        dy_dy_inv = self.dy_dy_inv
+
+        for state_name, state in iteritems(self.metadata['states']):
+            size = np.prod(state['shape'])
+            shape = state['shape']
+
+            y_name = get_name('y', state_name)
+
+            nrow = num_times * num_step_vars * size
+            ncol = d_outputs[y_name].shape[-1]
+
+            if mode == 'fwd':
+                rhs_array = d_residuals[y_name].reshape((nrow, ncol))
+                sol_array = d_outputs[y_name].reshape((nrow, ncol))
+                solve_mode = 'N'
+            elif mode == 'rev':
+                rhs_array = d_outputs[y_name].reshape((nrow, ncol))
+                sol_array = d_residuals[y_name].reshape((nrow, ncol))
+                solve_mode = 'T'
+
+            for icol in range(ncol):
+                rhs = rhs_array[:, icol]
+                sol = dy_dy_inv[state_name].solve(rhs, solve_mode)
+                sol_array[:, icol] = sol
