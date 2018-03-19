@@ -1,6 +1,6 @@
 from dymos.glm.ozone.methods.runge_kutta.explicit_runge_kutta import \
-    ForwardEuler, ExplicitMidpoint, ExplicitMidpointST, HeunsMethod, RalstonsMethod, \
-    KuttaThirdOrder, KuttaThirdOrderST, RK4, RK4ST, RK6, RK6ST
+    ForwardEuler, ExplicitMidpoint, HeunsMethod, RalstonsMethod, \
+    KuttaThirdOrder, RK4, RK6
 from dymos.glm.ozone.methods.runge_kutta.implicit_runge_kutta import \
     BackwardEuler, ImplicitMidpoint, TrapezoidalRule
 from dymos.glm.ozone.methods.runge_kutta.gauss_legendre import GaussLegendre
