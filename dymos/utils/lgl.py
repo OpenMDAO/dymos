@@ -94,5 +94,4 @@ def lgl(n):
     """
     if n not in _lgl_cache:
         _lgl_cache[n] = _lgl(n)
-    print('*****', _lgl_cache[n])
     return _lgl_cache[n]

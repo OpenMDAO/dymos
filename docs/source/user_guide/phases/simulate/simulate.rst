@@ -6,8 +6,8 @@ Simulating ODEs with Scipy
 methods available in `scipy.integrate`.  This has a variety of useful applications.
 
 First, propagating the ODE as an initial value problem with a given control time-history can be
-useful in demonstrating that the various components in the ODE have been coded correctly.  A system
-that does not properly propagate the dynamics of the system as an IVP has virtually no chance of
+useful in demonstrating that the various components in the ODE have been coded correctly.  An ODE system
+that can not properly propagate its dynamics, when formulated as an IVP, has virtually no chance of
 successfully solving an optimal control problem.
 
 Secondly, the implicit integration techniques employed in |project| often benefit from a reasonable
@@ -38,34 +38,34 @@ or simply fail to match at certain points, it's an indication that grid refineme
     to converge slowly or, worse, not converge at all.  Using analytic derivatives typically
     allows convergence in fewer iterations.
 
+
+--------------------------
+`simulate` call signature
+--------------------------
+.. automethod:: dymos.phases.optimizer_based.optimizer_based_phase_base.OptimizerBasedPhaseBase.simulate
+    :noindex:
+
+
+------------------------------------------------
 Example:  Using `simulate` to check the solution
 ------------------------------------------------
 
 Consider the single-stage-to-orbit (SSTO) example.  In the following code, we solve the problem.
 We then call simulate and capture the returned `SimulationOutput` object as `exp_out`.
 
-The SimulationObject supports the same `get_values` interface as the Phase class, so visually
-comparing the results is easy.
+The SimulationObject supports the same `get_values` interface as the Phase class, so plotting
+the collocation and explicit simulation results for comparison is easy.
 
-.. code-block:: python
+.. embed-code::
+    dymos.examples.ssto.test.test_ex_ssto_earth.TestExampleSSTOEarth.test_simulate_plot
+    :layout: code, output, plot
 
-    t0 = p['phase0.t_initial']
-    tf = t0 + p['phase0.t_duration']
-    exp_out = phase.simulate(times=np.linspace(t0, tf, 100))
-    print(exp_out.get_values('vy'))
 
-By default, the filename of the simulation is `<phase_name>_sim.db` where `phase_name` is the
-name assigned to the phase object when it was added to the problem (`phase0` in the example above).
-The user can override this filename by explicitly providing one via the `record_file` to the
-simulate method.
+--------------------------------------------------------
+Example:  Loading simulation results from recorded data
+--------------------------------------------------------
 
-.. code-block:: python
-
-    t0 = p['phase0.t_initial']
-    tf = t0 + p['phase0.t_duration']
-    phase.simulate(times=np.linspace(t0, tf, 50), record_file='my_simulation.db')
-
-Note that the simulate method also saves an OpenMDAO recording file of the explicitly integrated
+Note that the simulate method can also save an OpenMDAO recording file of the explicitly integrated
 solution.  We can load data from a previous explicit simulation by instantiating the
 SimulationResults with the filename as its only argument.
 
@@ -74,9 +74,4 @@ SimulationResults with the filename as its only argument.
     exp_out = SimulationResults('my_simulation.db')
     print(exp_out.get_values('x'))
 
-In the following example, we minimize the time required for a single stage vehicle to reach orbit.
-Since it is a constant thrust/mass flow case, this is also the minimum propellant solution.
 
-.. embed-code::
-    dymos.examples.ssto.ex_ssto_earth
-    :layout: interleave
