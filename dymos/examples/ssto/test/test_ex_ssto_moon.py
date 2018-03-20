@@ -140,7 +140,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
         axarr.set_xlabel('time, s')
         axarr.set_ylabel('velocity, m/s')
         axarr.legend(loc='best')
-        if 'spinx' in sys.modules:
+        if 'sphinx' in sys.modules:
             plt.show()
 
 
