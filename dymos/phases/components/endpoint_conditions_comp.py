@@ -20,18 +20,19 @@ class EndpointConditionsComp(ExplicitComponent):
         for name, options in iteritems(self.metadata['state_options']):
             shape = options['shape']
             units = options['units']
+            size = np.prod(shape)
 
+            src_idxs_start = np.arange(0, size, 1, dtype=int)
+            src_idxs_end = np.arange(-size, 0, 1, dtype=int)
+            src_idxs = np.reshape(np.concatenate((src_idxs_start, src_idxs_end)),
+                                  newshape=(2,) + shape)
             self.add_input(
-                name='initial_value:{0}'.format(name),
-                val=np.zeros(shape),
-                desc='The initial value of state {0}'.format(name),
-                units=units)
-
-            self.add_input(
-                name='final_value:{0}'.format(name),
-                val=np.zeros(shape),
-                desc='The final value of state {0}'.format(name),
-                units=units)
+                name='values:{0}'.format(name),
+                val=np.zeros_like(src_idxs),
+                desc='values of state {0} at the endpoints of the phase'.format(name),
+                units=units,
+                src_indices=src_idxs,
+                flat_src_indices=True)
 
             self.add_input(
                 name='initial_jump:{0}'.format(name),
@@ -69,11 +70,10 @@ class EndpointConditionsComp(ExplicitComponent):
                 desc='The value of state {0} before the final jump'.format(name),
                 units=units)
 
-            size = np.prod(shape)
             ar = np.arange(size)
 
             self.declare_partials(of='states:{0}--'.format(name),
-                                  wrt='initial_value:{0}'.format(name), rows=ar, cols=ar,
+                                  wrt='values:{0}'.format(name), rows=ar, cols=ar,
                                   val=1.0)
 
             self.declare_partials(of='states:{0}--'.format(name),
@@ -81,15 +81,15 @@ class EndpointConditionsComp(ExplicitComponent):
                                   cols=ar, val=-1.0)
 
             self.declare_partials(of='states:{0}-+'.format(name),
-                                  wrt='initial_value:{0}'.format(name), rows=ar, cols=ar,
+                                  wrt='values:{0}'.format(name), rows=ar, cols=ar,
                                   val=1.0)
 
             self.declare_partials(of='states:{0}+-'.format(name),
-                                  wrt='final_value:{0}'.format(name), rows=ar, cols=ar,
+                                  wrt='values:{0}'.format(name), rows=ar, cols=size + ar,
                                   val=1.0)
 
             self.declare_partials(of='states:{0}++'.format(name),
-                                  wrt='final_value:{0}'.format(name), rows=ar, cols=ar,
+                                  wrt='values:{0}'.format(name), rows=ar, cols=size + ar,
                                   val=1.0)
 
             self.declare_partials(of='states:{0}++'.format(name),
@@ -100,18 +100,20 @@ class EndpointConditionsComp(ExplicitComponent):
         for name, options in iteritems(self.metadata['control_options']):
             shape = options['shape']
             units = options['units']
+            size = np.prod(shape)
+
+            src_idxs_start = np.arange(0, size, 1, dtype=int)
+            src_idxs_end = np.arange(-size, 0, 1, dtype=int)
+            src_idxs = np.reshape(np.concatenate((src_idxs_start, src_idxs_end)),
+                                  newshape=(2,) + shape)
 
             self.add_input(
-                name='initial_value:{0}'.format(name),
-                val=np.zeros(shape),
-                desc='The initial value of state {0}'.format(name),
-                units=units)
-
-            self.add_input(
-                name='final_value:{0}'.format(name),
-                val=np.zeros(shape),
-                desc='The final value of state {0}'.format(name),
-                units=units)
+                name='values:{0}'.format(name),
+                val=np.zeros_like(src_idxs),
+                desc='Values of control {0} at the phase endpoints'.format(name),
+                units=units,
+                src_indices=src_idxs,
+                flat_src_indices=True)
 
             self.add_input(
                 name='initial_jump:{0}'.format(name),
@@ -149,11 +151,10 @@ class EndpointConditionsComp(ExplicitComponent):
                 desc='The value of state {0} before the final jump'.format(name),
                 units=units)
 
-            size = np.prod(shape)
             ar = np.arange(size)
 
             self.declare_partials(of='controls:{0}--'.format(name),
-                                  wrt='initial_value:{0}'.format(name), rows=ar, cols=ar,
+                                  wrt='values:{0}'.format(name), rows=ar, cols=ar,
                                   val=1.0)
 
             self.declare_partials(of='controls:{0}--'.format(name),
@@ -161,15 +162,15 @@ class EndpointConditionsComp(ExplicitComponent):
                                   cols=ar, val=-1.0)
 
             self.declare_partials(of='controls:{0}-+'.format(name),
-                                  wrt='initial_value:{0}'.format(name), rows=ar, cols=ar,
+                                  wrt='values:{0}'.format(name), rows=ar, cols=ar,
                                   val=1.0)
 
             self.declare_partials(of='controls:{0}+-'.format(name),
-                                  wrt='final_value:{0}'.format(name), rows=ar, cols=ar,
+                                  wrt='values:{0}'.format(name), rows=ar, cols=size + ar,
                                   val=1.0)
 
             self.declare_partials(of='controls:{0}++'.format(name),
-                                  wrt='final_value:{0}'.format(name), rows=ar, cols=ar,
+                                  wrt='values:{0}'.format(name), rows=ar, cols=size + ar,
                                   val=1.0)
 
             self.declare_partials(of='controls:{0}++'.format(name),
@@ -179,18 +180,15 @@ class EndpointConditionsComp(ExplicitComponent):
     def _setup_time(self):
         time_units = self.metadata['time_options']['units']
 
-        self.add_input(name='initial_value:time',
-                       desc='value of time at the beginning of integration',
-                       val=np.zeros(1),
-                       units=time_units)
+        self.add_input(name='values:time',
+                       desc='value of time at the endpoints of the phase',
+                       val=np.zeros(2),
+                       units=time_units,
+                       src_indices=[0, -1],
+                       flat_src_indices=True)
 
         self.add_input(name='initial_jump:time',
                        desc='discontinuity in time at the beginning of the phase',
-                       val=np.zeros(1),
-                       units=time_units)
-
-        self.add_input(name='final_value:time',
-                       desc='value of time at the end of integration',
                        val=np.zeros(1),
                        units=time_units)
 
@@ -219,11 +217,11 @@ class EndpointConditionsComp(ExplicitComponent):
                         val=np.zeros(1),
                         units=time_units)
 
-        self.declare_partials(of='time--', wrt='initial_value:time', val=1.0)
+        self.declare_partials(of='time--', wrt='values:time', val=np.array([[1.0, 0]]))
         self.declare_partials(of='time--', wrt='initial_jump:time', val=-1.0)
-        self.declare_partials(of='time-+', wrt='initial_value:time', val=1.0)
-        self.declare_partials(of='time+-', wrt='final_value:time', val=1.0)
-        self.declare_partials(of='time++', wrt='final_value:time', val=1.0)
+        self.declare_partials(of='time-+', wrt='values:time', val=np.array([[1.0, 0]]))
+        self.declare_partials(of='time+-', wrt='values:time', val=np.array([[0, 1.0]]))
+        self.declare_partials(of='time++', wrt='values:time', val=np.array([[0, 1.0]]))
         self.declare_partials(of='time++', wrt='final_jump:time', val=1.0)
 
     def setup(self):
@@ -233,37 +231,37 @@ class EndpointConditionsComp(ExplicitComponent):
 
     def compute(self, inputs, outputs):
 
-        outputs['time--'] = inputs['initial_value:time'] - inputs['initial_jump:time']
-        outputs['time-+'] = inputs['initial_value:time']
-        outputs['time+-'] = inputs['final_value:time']
-        outputs['time++'] = inputs['final_value:time'] + inputs['final_jump:time']
+        outputs['time--'] = inputs['values:time'][0] - inputs['initial_jump:time']
+        outputs['time-+'] = inputs['values:time'][0]
+        outputs['time+-'] = inputs['values:time'][-1]
+        outputs['time++'] = inputs['values:time'][-1] + inputs['final_jump:time']
 
         for state_name, options in iteritems(self.metadata['state_options']):
             outputs['states:{0}--'.format(state_name)] = \
-                inputs['initial_value:{0}'.format(state_name)] - \
+                inputs['values:{0}'.format(state_name)][0, ...] - \
                 inputs['initial_jump:{0}'.format(state_name)]
 
             outputs['states:{0}-+'.format(state_name)] = \
-                inputs['initial_value:{0}'.format(state_name)]
+                inputs['values:{0}'.format(state_name)][0, ...]
 
             outputs['states:{0}+-'.format(state_name)] = \
-                inputs['final_value:{0}'.format(state_name)]
+                inputs['values:{0}'.format(state_name)][-1, ...]
 
             outputs['states:{0}++'.format(state_name)] = \
-                inputs['final_value:{0}'.format(state_name)] + \
+                inputs['values:{0}'.format(state_name)][-1, ...] + \
                 inputs['final_jump:{0}'.format(state_name)]
 
         for control_name, options in iteritems(self.metadata['control_options']):
             outputs['controls:{0}--'.format(control_name)] = \
-                inputs['initial_value:{0}'.format(control_name)] - \
+                inputs['values:{0}'.format(control_name)][0, ...] - \
                 inputs['initial_jump:{0}'.format(control_name)]
 
             outputs['controls:{0}-+'.format(control_name)] = \
-                inputs['initial_value:{0}'.format(control_name)]
+                inputs['values:{0}'.format(control_name)][0, ...]
 
             outputs['controls:{0}+-'.format(control_name)] = \
-                inputs['final_value:{0}'.format(control_name)]
+                inputs['values:{0}'.format(control_name)][-1, ...]
 
             outputs['controls:{0}++'.format(control_name)] = \
-                inputs['final_value:{0}'.format(control_name)] + \
+                inputs['values:{0}'.format(control_name)][-1, ...] + \
                 inputs['final_jump:{0}'.format(control_name)]
