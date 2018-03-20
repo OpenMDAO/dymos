@@ -69,8 +69,9 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
         import matplotlib.pyplot as plt
         import dymos.examples.ssto.ex_ssto_moon_linear_tangent as ex_ssto_moon_lintan
 
-        p = ex_ssto_moon_lintan(transcription='gauss-lobatto', optimizer='SLSQP',
-                                top_level_jacobian='csc', )
+        p = ex_ssto_moon_lintan.ssto_moon_linear_tangent(transcription='gauss-lobatto',
+                                                         optimizer='SLSQP',
+                                                         top_level_jacobian='csc' )
         p.setup()
 
         phase = p.model.phase0
