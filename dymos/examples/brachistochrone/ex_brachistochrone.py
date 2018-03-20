@@ -2,13 +2,8 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-import os
-if os.environ.get('DISPLAY', '') == '':
-    import matplotlib
-    print('no display found. Using non-interactive Agg backend')
-    matplotlib.use('Agg')
-
-
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DenseJacobian,\
@@ -81,7 +76,7 @@ def brachistochrone_min_time(
 
         p.model.linear_solver = DirectSolver()
 
-        p.setup(mode='fwd', check=True)
+        p.setup(mode='rev', check=True)
     else:
         p.setup(force_alloc_complex=force_alloc_complex)
         p.set_solver_print(level=-1)

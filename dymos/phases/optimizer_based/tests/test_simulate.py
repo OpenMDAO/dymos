@@ -20,7 +20,8 @@ SHOW_PLOTS = False
 
 class TestSimulateRecording(unittest.TestCase):
 
-    def tearDownClass():
+    @classmethod
+    def tearDownClass(cls):
         for filename in ['phase0_sim.db', 'brachistochrone_sim.db']:
             if os.path.exists(filename):
                 os.remove(filename)
@@ -53,8 +54,6 @@ class TestSimulateRecording(unittest.TestCase):
 
         phase.add_control('theta', units='deg', dynamic=True,
                           rate_continuity=True, lower=0.01, upper=179.9)
-
-        phase.add_control('g', units='m/s**2', dynamic=False, opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -130,8 +129,6 @@ class TestSimulateRecording(unittest.TestCase):
 
         phase.add_control('theta', units='deg', dynamic=True,
                           rate_continuity=True, lower=0.01, upper=179.9)
-
-        phase.add_control('g', units='m/s**2', dynamic=False, opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)

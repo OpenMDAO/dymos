@@ -11,6 +11,9 @@ from dymos.examples.min_time_climb.aero.cd0_comp import CD0Comp
 
 assert_almost_equal = np.testing.assert_almost_equal
 
+import matplotlib
+matplotlib.use('Agg')
+
 SHOW_PLOTS = False
 
 

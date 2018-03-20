@@ -28,7 +28,6 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
                                                                           p.args[2]])
     )
     def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='rev'):
-        ex_ssto_moon_lintan.SHOW_PLOTS = False
         p = ex_ssto_moon_lintan.ssto_moon_linear_tangent(transcription, num_seg=10,
                                                          transcription_order=5,
                                                          top_level_jacobian=jacobian)

@@ -6,9 +6,6 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-import matplotlib
-matplotlib.use('Agg')
-
 from parameterized import parameterized
 from itertools import product
 
@@ -16,6 +13,9 @@ from openmdao.api import DenseJacobian, CSCJacobian
 from openmdao.utils.assert_utils import assert_rel_error
 
 import dymos.examples.ssto.ex_ssto_moon as ex_ssto_moon
+
+import matplotlib
+matplotlib.use('Agg')
 
 
 class TestExampleSSTOMoon(unittest.TestCase):

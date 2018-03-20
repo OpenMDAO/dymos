@@ -11,6 +11,9 @@ from dymos.examples.min_time_climb.aero.kappa_comp import KappaComp
 
 assert_almost_equal = np.testing.assert_almost_equal
 
+import matplotlib
+matplotlib.use('Agg')
+
 SHOW_PLOTS = False
 
 
