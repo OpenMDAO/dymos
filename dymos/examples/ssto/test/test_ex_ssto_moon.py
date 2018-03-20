@@ -43,15 +43,15 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
         assert_almost_equal(residuals**2, 0.0, decimal=4)
 
-    @parameterized.expand(
-        itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['dense', 'csc'],  # jacobian
-                          ['rev'],  # derivative_mode
-                          ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
-                                                                          p.args[0],
-                                                                          p.args[1],
-                                                                          p.args[2]])
-    )
+    # @parameterized.expand(
+    #     itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
+    #                       ['dense', 'csc'],  # jacobian
+    #                       ['rev'],  # derivative_mode
+    #                       ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
+    #                                                                       p.args[0],
+    #                                                                       p.args[1],
+    #                                                                       p.args[2]])
+    # )
     def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='rev'):
         p = ex_ssto_moon.ssto_moon(transcription, num_seg=10, transcription_order=5,
                                    top_level_jacobian=jacobian)
