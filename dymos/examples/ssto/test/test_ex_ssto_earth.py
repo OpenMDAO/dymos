@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 import os
+import sys
 
 import itertools
 import unittest
@@ -143,7 +144,8 @@ class TestExampleSSTOEarth(unittest.TestCase):
         axarr.set_ylabel('velocity, m/s')
         axarr.legend(loc='best')
 
-        plt.show()
+        if 'sphinx' in sys.modules:
+            plt.show()
 
 if __name__ == "__main__":
     unittest.main()
