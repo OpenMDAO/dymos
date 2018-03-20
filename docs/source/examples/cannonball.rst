@@ -1,5 +1,5 @@
-Implicit Simulation of a Cannonball
-===================================
+Pseudospectral Time Integration of a Ballistic Cannonball
+===========================================================
 
 First, we begin with an example on the use of implicit simulation of a simple system without
 dynamic controls: the flight of a cannonball.

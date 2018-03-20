@@ -1,5 +1,5 @@
-A simple optimal control example
-================================
+Brachistocrone: A simple optimal control example
+==================================================
 
 We illustrate how to use ozone to solve an optimal control problem - the Brachistochrone problem.
 We seek to find the curve along which a ball rolls from one point to another in the shortest amount of time.

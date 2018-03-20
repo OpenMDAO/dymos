@@ -6,10 +6,15 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
+import matplotlib
+matplotlib.use('Agg')
+
 from parameterized import parameterized
 from itertools import product
 
 from openmdao.api import DenseJacobian, CSCJacobian
+from openmdao.utils.assert_utils import assert_rel_error
+
 import dymos.examples.ssto.ex_ssto_moon as ex_ssto_moon
 
 
@@ -76,19 +81,66 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
         self.run_asserts(p, transcription)
 
-    # @parameterized.expand(product(
-    #     # ['optimizer-based', 'solver-based', 'time-marching'],
-    #     ['solver-based'],
-    #     ['RK4'],
-    # ))
-    # def test_results_glm(self, glm_formulation='solver-based', glm_integrator='RK4'):
-    #     transcription = 'glm'
-    #     ex_ssto_moon.SHOW_PLOTS = False
-    #     p = ex_ssto_moon.ssto_moon(
-    #         transcription=transcription, num_seg=10, optimizer='SNOPT',
-    #         glm_formulation=glm_formulation, glm_integrator=glm_integrator,
-    #     )
-    #     self.run_asserts(p, transcription)
+
+    def test_plot(self):
+        import matplotlib.pyplot as plt
+
+        import dymos.examples.ssto.ex_ssto_moon as ex_ssto_moon
+
+        p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10, transcription_order=5, top_level_jacobian='csc')
+
+        p.setup(mode='rev', check=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 500.0
+
+        phase = p.model.phase0
+
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='disc')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='disc')
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='disc')
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='disc')
+        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='disc')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='all')
+
+        p.run_driver()
+
+
+        ##############################
+        # quick check of the results
+        ##############################
+        assert_rel_error(self, phase.get_values('y')[-1], 1.85E5, 1e-4)
+        assert_rel_error(self, phase.get_values('vx')[-1], 1627.0, 1e-4)
+        assert_rel_error(self, phase.get_values('vy')[-1], 0, 1e-4)
+
+        ##############################
+        # Plot the trajectory
+        ##############################
+        plt.figure(facecolor='white')
+        plt.plot(phase.get_values('x'), phase.get_values('y'), 'bo')
+        plt.xlabel('x, m')
+        plt.ylabel('y, m')
+        plt.grid()
+
+        fig = plt.figure(facecolor='white')
+        fig.suptitle('results for flat_earth_without_aero')
+
+        axarr = fig.add_subplot(2, 1, 1)
+        axarr.plot(phase.get_values('time'),
+                   np.degrees(phase.get_values('theta')), 'bo')
+        axarr.set_ylabel(r'$\theta$, deg')
+        axarr.axes.get_xaxis().set_visible(False)
+
+        axarr = fig.add_subplot(2, 1, 2)
+
+        axarr.plot(phase.get_values('time'),
+                   np.degrees(phase.get_values('vx')), 'bo', label='$v_x$')
+        axarr.plot(phase.get_values('time'),
+                   np.degrees(phase.get_values('vy')), 'ro', label='$v_y$')
+        axarr.set_xlabel('time, s')
+        axarr.set_ylabel('velocity, m/s')
+        axarr.legend(loc='best')
+        plt.show()
 
 
 if __name__ == "__main__":
