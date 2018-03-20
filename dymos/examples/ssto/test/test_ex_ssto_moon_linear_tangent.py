@@ -65,13 +65,12 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
         assert_almost_equal(p['phase0.controls:a_ctrl'], -0.0082805, decimal=4)
         assert_almost_equal(p['phase0.controls:b_ctrl'], 2.74740137, decimal=4)
 
-
     def test_plot(self):
         import matplotlib.pyplot as plt
+        import dymos.examples.ssto.ex_ssto_moon_linear_tangent as ex_ssto_moon_lintan
 
-        p = ex_ssto_moon_lintan.ssto_moon_linear_tangent(transcription='gauss-lobatto', optimizer='SLSQP',
-                                                         top_level_jacobian='csc', )
-
+        p = ex_ssto_moon_lintan(transcription='gauss-lobatto', optimizer='SLSQP',
+                                top_level_jacobian='csc', )
         p.setup()
 
         phase = p.model.phase0
@@ -102,7 +101,6 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
         plt.xlabel('x, m')
         plt.ylabel('y, m')
         plt.grid()
-
 
         fig = plt.figure(facecolor='white')
         fig.suptitle('results for flat_earth_without_aero')

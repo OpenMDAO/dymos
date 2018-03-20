@@ -81,13 +81,13 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
         self.run_asserts(p, transcription)
 
-
     def test_plot(self):
         import matplotlib.pyplot as plt
 
         import dymos.examples.ssto.ex_ssto_moon as ex_ssto_moon
 
-        p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10, transcription_order=5, top_level_jacobian='csc')
+        p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10,
+                                   transcription_order=5, top_level_jacobian='csc')
 
         p.setup(mode='rev', check=True)
 
@@ -104,7 +104,6 @@ class TestExampleSSTOMoon(unittest.TestCase):
         p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='all')
 
         p.run_driver()
-
 
         ##############################
         # quick check of the results

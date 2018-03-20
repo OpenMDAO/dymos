@@ -1,4 +1,4 @@
-#from __future__ import print_function, division, absolute_import
+from __future__ import print_function, division, absolute_import
 
 import os
 
@@ -58,4 +58,3 @@ def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
     p.model.linear_solver = DirectSolver()
 
     return p
-

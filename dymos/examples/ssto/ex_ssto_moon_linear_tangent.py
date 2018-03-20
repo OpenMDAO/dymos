@@ -59,5 +59,3 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
     p.model.linear_solver = DirectSolver()
 
     return p
-
-

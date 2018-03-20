@@ -84,6 +84,3 @@ def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP',
     p.model.linear_solver = DirectSolver()
 
     return p
-
-
-
