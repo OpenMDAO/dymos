@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 import itertools
+import sys
 import unittest
 
 import numpy as np
@@ -139,7 +140,8 @@ class TestExampleSSTOMoon(unittest.TestCase):
         axarr.set_xlabel('time, s')
         axarr.set_ylabel('velocity, m/s')
         axarr.legend(loc='best')
-        plt.show()
+        if 'sphinx' in sys.modules:
+            plt.show()
 
 
 if __name__ == "__main__":
