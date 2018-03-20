@@ -280,7 +280,6 @@ class GLMPhase(PhaseBase):
         gd = self.grid_data
 
         var_type = self._classify_var(var)
-        print('---', var_type)
 
         num_segments = self.metadata['num_segments']
 
