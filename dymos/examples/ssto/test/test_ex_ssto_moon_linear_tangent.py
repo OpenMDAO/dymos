@@ -71,7 +71,7 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
 
         p = ex_ssto_moon_lintan.ssto_moon_linear_tangent(transcription='gauss-lobatto',
                                                          optimizer='SLSQP',
-                                                         top_level_jacobian='csc' )
+                                                         top_level_jacobian='csc')
         p.setup()
 
         phase = p.model.phase0
