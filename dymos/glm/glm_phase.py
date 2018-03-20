@@ -43,8 +43,6 @@ class GLMPhase(PhaseBase):
         self.metadata['transcription'] = 'glm'
 
     def setup(self):
-        self.metadata['ode_class'].ode_options = self._to_ozone_ode(
-            self.metadata['ode_class'].ode_options)
         super(GLMPhase, self).setup()
 
         num_opt_controls = len([name for (name, options) in iteritems(self.control_options)
@@ -280,7 +278,6 @@ class GLMPhase(PhaseBase):
         gd = self.grid_data
 
         var_type = self._classify_var(var)
-        print('---', var_type)
 
         num_segments = self.metadata['num_segments']
 
@@ -335,33 +332,6 @@ class GLMPhase(PhaseBase):
             raise NotImplementedError()
 
         return output
-
-    def _to_ozone_ode(self, ode_options):
-        """
-        Constructs an ODEFunction suitable for use in an Ozone integrator.
-
-        Parameters
-        ----------
-        ode_options : ODEOptions
-            Container for time, state, and parameter options.
-
-        Returns
-        -------
-        new_ode_options : ODEOptions
-            Modified container for time, state, and parameter options.
-        """
-        new_ode_options = ODEOptions()
-
-        new_ode_options._time_options = ode_options._time_options
-        new_ode_options._states = ode_options._states
-
-        for control, opts in iteritems(self.control_options):
-            if opts['dynamic']:
-                new_ode_options._dynamic_parameters[control] = opts
-                new_ode_options._dynamic_parameters[control]['targets'] = \
-                    ode_options._dynamic_parameters[control]['targets']
-
-        return new_ode_options
 
     def _setup_path_constraints(self):
         pass

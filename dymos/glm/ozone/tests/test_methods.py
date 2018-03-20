@@ -14,7 +14,7 @@ from dymos.glm.ozone.methods_list import method_classes
 from dymos import Phase, declare_state, declare_time
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-from openmdao.api import Problem, Group, ExplicitComponent
+from openmdao.api import Problem, Group, ExplicitComponent, IndepVarComp, ScipyOptimizeDriver
 
 
 @declare_time(targets='t')
@@ -55,10 +55,12 @@ class SimpleODE(ExplicitComponent):
 class OzoneODETestCase(unittest.TestCase):
 
     @parameterized.expand(product(
-        ['solver-based', 'time-marching'],
+        ['optimizer-based', 'solver-based', 'time-marching'],
         method_classes.keys(),
     ))
     def test(self, glm_formulation, glm_integrator):
+        tf = 1e-2
+
         p = Problem(model=Group())
         phase = Phase('glm',
                       ode_class=SimpleODE,
@@ -67,16 +69,28 @@ class OzoneODETestCase(unittest.TestCase):
                       method_name=glm_integrator)
         p.model.add_subsystem('phase0', phase)
 
-        p.setup()
+        p.model.add_subsystem('dummy_comp', IndepVarComp('dummy_var'))
+        p.model.add_objective('dummy_comp.dummy_var')
 
-        tf = 1e-2
+        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(tf, tf))
+
+        if glm_formulation == 'optimizer-based':
+            p.driver = ScipyOptimizeDriver()
+            p.driver.options['optimizer'] = 'SLSQP'
+            p.driver.options['tol'] = 1e-9
+            p.driver.options['disp'] = True
+
+        p.setup()
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = tf
         p['phase0.states:y'] = phase.interpolate(ys=[1, 1])
 
-        p.run_model()
+        if glm_formulation == 'optimizer-based':
+            p.run_driver()
+        else:
+            p.run_model()
 
-        np.testing.assert_almost_equal(p['phase0.out_states:y'][-1], np.exp(tf), decimal=5)
         np.testing.assert_almost_equal(phase.get_values('time')[-1, 0], tf, decimal=5)
         np.testing.assert_almost_equal(phase.get_values('y')[-1, 0], np.exp(tf), decimal=5)
+        np.testing.assert_almost_equal(p['phase0.out_states:y'][-1], np.exp(tf), decimal=5)

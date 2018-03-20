@@ -59,7 +59,7 @@ def brachistochrone_min_time(
     phase.add_control('theta', units='deg', dynamic=True,
                       rate_continuity=True, lower=0.01, upper=179.9)
 
-    phase.add_control('g', units='m/s**2', dynamic=False, opt=False, val=9.80665)
+    phase.add_control('g', units='m/s**2', dynamic=True, opt=False, val=9.80665)
 
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', scaler=10)
