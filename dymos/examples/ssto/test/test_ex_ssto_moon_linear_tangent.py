@@ -94,15 +94,16 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
         assert_rel_error(self, phase.get_values('vx')[-1], 1627.0, 1e-4)
         assert_rel_error(self, phase.get_values('vy')[-1], 0, 1e-4)
 
+        ##############################
+        # Plot the trajectory
+        ##############################
         plt.figure(facecolor='white')
         plt.plot(phase.get_values('x'), phase.get_values('y'), 'bo')
         plt.xlabel('x, m')
         plt.ylabel('y, m')
         plt.grid()
 
-        ##############################
-        # Plot the trajectory
-        ##############################
+
         fig = plt.figure(facecolor='white')
         fig.suptitle('results for flat_earth_without_aero')
 
