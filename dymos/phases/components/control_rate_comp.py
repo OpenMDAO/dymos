@@ -146,12 +146,23 @@ class ControlRateComp(ExplicitComponent):
                 u = inputs[self._input_names[name]]
 
                 outputs[self._output_rate_names[name]] = np.tensordot(self.D, u, axes=(1, 0))
-
                 outputs[self._output_rate2_names[name]] = np.tensordot(self.D2, u, axes=(1, 0))
 
-                for i in range(n):
-                    outputs[self._output_rate_names[name]][i] /= inputs['dt_dstau'][i]
-                    outputs[self._output_rate2_names[name]][i] /= inputs['dt_dstau'][i]**2
+                if len(outputs[self._output_rate_names[name]].shape) == 1:
+                    outputs[self._output_rate_names[name]] /= inputs['dt_dstau']
+                    outputs[self._output_rate2_names[name]] /= inputs['dt_dstau']**2
+                elif len(outputs[self._output_rate_names[name]].shape) == 2:
+                    outputs[self._output_rate_names[name]] /= inputs['dt_dstau'][:, np.newaxis]
+                    outputs[self._output_rate2_names[name]] /= inputs['dt_dstau'][:, np.newaxis]**2
+                elif len(outputs[self._output_rate_names[name]].shape) == 3:
+                    outputs[self._output_rate_names[name]] /= \
+                        inputs['dt_dstau'][:, np.newaxis, np.newaxis]
+                    outputs[self._output_rate2_names[name]] /= \
+                        inputs['dt_dstau'][:, np.newaxis, np.newaxis]**2
+                else:
+                    for i in range(n):
+                        outputs[self._output_rate_names[name]][i, ...] /= inputs['dt_dstau'][i]
+                        outputs[self._output_rate2_names[name]][i, ...] /= inputs['dt_dstau'][i]**2
 
     def compute_partials(self, inputs, partials):
         control_options = self.metadata['control_options']
