@@ -20,17 +20,14 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['csc'],  # jacobian
                           ['rev'],  # derivative_mode
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
                                                                           p.args[0],
-                                                                          p.args[1],
-                                                                          p.args[2]])
+                                                                          p.args[1]])
     )
-    def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='rev'):
+    def test_results(self, transcription='gauss-lobatto', derivative_mode='rev'):
         p = ex_ssto_moon_lintan.ssto_moon_linear_tangent(transcription, num_seg=10,
-                                                         transcription_order=5,
-                                                         top_level_jacobian=jacobian)
+                                                         transcription_order=5,)
 
         p.setup(mode=derivative_mode, check=True)
 
@@ -69,8 +66,7 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
         import dymos.examples.ssto.ex_ssto_moon_linear_tangent as ex_ssto_moon_lintan
 
         p = ex_ssto_moon_lintan.ssto_moon_linear_tangent(transcription='gauss-lobatto',
-                                                         optimizer='SLSQP',
-                                                         top_level_jacobian='csc')
+                                                         optimizer='SLSQP')
         p.setup()
 
         phase = p.model.phase0

@@ -926,9 +926,9 @@ class PhaseBase(Group):
             if not p_is_connected:
                 unconnected.append(p)
         if unconnected:
-            logger.warning('The following ODE parameters are not provided'
-                           ' by phase {0} as controls, control rates nor'
-                           ' parameters: {1}'.format(self.name, unconnected))
+            logger.warning('The following ODE parameters are not provided '
+                           'by phase "{0}" as controls or control rates: {1}. '
+                           'The default value will be used.'.format(self.name, unconnected))
 
     def get_values(self, var, nodes=None):
         """

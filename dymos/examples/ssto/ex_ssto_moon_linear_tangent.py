@@ -9,7 +9,28 @@ from dymos.examples.ssto.launch_vehicle_linear_tangent_ode import LaunchVehicleL
 
 
 def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
-                             top_level_jacobian='csc', optimizer='SLSQP'):
+                             optimizer='SLSQP'):
+    """
+    Returns an instance of the SSTO problem for ascent from the lunar surface using linear
+    tangent guidance.
+
+    Parameters
+    ----------
+    transcription : str
+        The transcription method for optimal control:  'gauss-lobatto', 'radau-ps', or 'glm'.
+    num_seg : int
+        The number of segments in the phase.
+    transcription_order : int or sequence
+        The transcription order for the states in each segment.
+    optimizer : str
+        The optimization driver to use for the problem:  'SLSQP' or 'SNOPT'.
+
+    Returns
+    -------
+    prob : openmdao.Problem
+        The OpenMDAO problem instance for the optimal control problem.
+
+    """
 
     p = Problem(model=Group())
 
@@ -49,13 +70,7 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
 
     phase.add_objective('time', index=-1, scaler=0.01)
 
-    if top_level_jacobian.lower() == 'csc':
-        p.model.jacobian = CSCJacobian()
-    elif top_level_jacobian.lower() == 'dense':
-        p.model.jacobian = DenseJacobian()
-    elif top_level_jacobian.lower() == 'csr':
-        p.model.jacobian = CSRJacobian()
-
+    p.model.jacobian = CSCJacobian()
     p.model.linear_solver = DirectSolver()
 
     return p
