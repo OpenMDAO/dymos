@@ -194,7 +194,6 @@ class StateInterpComp(ExplicitComponent):
             a = np.tensordot(self.matrices['Ad'], xd, axes=(1, 0)).T
             outputs[xdotc_str] = (a / dt_dstau).T
 
-
     def _compute_gauss_lobatto(self, inputs, outputs):
         state_options = self.metadata['state_options']
 
