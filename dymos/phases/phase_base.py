@@ -1009,7 +1009,8 @@ class PhaseBase(Group):
         m = 2.0 / (_xs[-1] - _xs[0])
         b = 1.0 - (m * _xs[-1])
         taus = m * _xs + b
-        interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind)
+        interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind,
+                                          bounds_error=False, fill_value='extrapolate')
         res = np.atleast_2d(interpfunc(node_locations))
         if res.shape[0] == 1:
             res = res.T
