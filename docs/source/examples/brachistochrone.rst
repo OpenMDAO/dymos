@@ -1,69 +1,83 @@
-Brachistocrone: A simple optimal control example
-==================================================
+=================================================
+Brachistochrone: A simple optimal control example
+=================================================
 
-We illustrate how to use ozone to solve an optimal control problem - the Brachistochrone problem.
-We seek to find the curve along which a ball rolls from one point to another in the shortest amount of time.
+We seek to find the optimal shape of a wire between two points (A and B) such that a bead sliding
+without friction along the wire moves from point A to point B in minimum time.
+
+.. embed-code::
+    source/examples/figures/brachistochrone_fbd.py
+    :layout: plot
+
 We minimize the final time, :math:`t_f`, by varying the dynamic control, :math:`\theta`, subject to the dynamics,
 
 .. math ::
-  \frac{\partial x}{\partial t} &= v \sin(\theta) \\
-  \frac{\partial y}{\partial t} &= v \cos(\theta) \\
-  \frac{\partial v}{\partial t} &= g \cos(\theta). \\
+    \frac{d x}{d t} &= v \sin(\theta) \\
+    \frac{d y}{d t} &= v \cos(\theta) \\
+    \frac{d v}{d t} &= g \cos(\theta)
 
 The initial conditions are
 
 .. math ::
-  x(0) &= 0 \\
-  y(0) &= 0 \\
-  v(0) &= 0, \\
+    x_0 &= 0 \\
+    y_0 &= 10 \\
+    v_0 &= 0, \\
 
-and the transversality constraints are
+and the final conditions are
 
 .. math ::
-  x(t_f) &= 2.0 \\
-  y(t_f) &= -2.0 \\
+    x_f &= 10 \\
+    y_f &= 5 \\
+    v_f &= \mathrm{free}
 
-Here, we use the 6th order Gauss--Legendre collocation method with 20 time steps.
+1. The ODE System: brachistochrone_ode.py
+-----------------------------------------
 
-1. Defining the system
-----------------------
+.. embed-code::
+    ../dymos/examples/brachistochrone/brachistochrone_ode.py
+    :layout: code
 
-Here, our ODE function is defined by a single OpenMDAO system, an :code:`ExplicitComponent`.
+There are a few things to note about the ODE system.  First, it is just a standard OpenMDAO system,
+in this case an :code:`ExplicitComponent`.  The :code:`declare_time`, :code:`declare_state`, and
+:code:`declare_parameter` decorators are used to inform Dymos as to where the time, states, and
+potential control variables should be connected to the system.  The :code:`rate_source` parameter
+of :code:`declare_state` dictates the output in the system that provides the time-derivative of
+the corresponding state variable.
 
+The second important feature is the :code:`num_nodes` metadata.  This informs the component as to
+the number of time points for which it will be computing its values, which varies depending on the
+transcription method.  Performance of Dymos is significantly improved by using vectorized operations,
+as opposed to for-loops, to compute the outputs at all times simultaneously.
 
-2. Defining the ODE function class
-----------------------------------
+Finally, note that we are specifying rows and columns when declaring the partial derivatives.
+Since our inputs and outputs are scalars *at each point in time*, and the value at an input at
+one time only directly impacts the values of an output at the same point in time, the partial
+derivative jacobian will be diagonal.  Specifying the partial derivatives as being sparse can
+greatly improve the performance of Dymos.
 
-Here, we define the :code:`ODEFunction`, where we declare the 3 states and the control variable,
-which is called a parameter in :code:`ODEFunction`.
-
----
-
-
-3. Building and running the problem
+2. Building and running the problem
 -----------------------------------
 
-Here, we pass call :code:`ScipyODEIntegrator` to build our integration model and run it.
-The run script and resulting plot are shown below.  In the code we follow these
-general steps:
+In the following code we follow the following process to solve the problem:
 
 * Instantiate a problem and set up the driver.
 
-* Create a Phase (here we use GaussLobattoPhase), give it our ODE function, and add it to the problem.
+* Create a Phase, give it our ODE system class, and add it to the problem.
 
 * Set the time options (bounds on initial time and duration, scaling, etc).
 
 * Set the state options (bounds, scaling, etc).  In this case we use :code:`fix_initial` and :code:`fix_final` to specify whether the initial/final values are included as design variables.
 
-* Add controls to the problem.  Recall that :code:`ODEFunction` can include parameters which impact the results.  We can add static or dynamic controls and tie them (or their derivatives) to these parameters.
+* Add controls to the problem.  We can add static or dynamic controls and tie them (or their derivatives) to the parameters in the ODE system.
 
 * Set the objective.  Here we seek to minimize the final time.
 
-* Call setup and then set the initial values of our variables.  We use interpolation routines to allow us to specify all values of states and controls at the discretization nodes.
+* Call setup and then set the initial values of our variables.  We use interpolation routines to allow us to specify values of the states at the state discretization nodes and controls at all nodes.
 
 * Run the driver.
 
 * Simulate the control time history using scipy.ode.  This serves as a check that our optimization resulted in a valid solution.
 
-
-
+.. embed-code::
+    dymos.examples.brachistochrone.test.test_doc_brachistochrone.TestBrachistochroneExample.test_brachistochrone_for_docs_gauss_lobatto
+    :layout: code, output, plot

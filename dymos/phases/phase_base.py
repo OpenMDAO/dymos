@@ -926,9 +926,9 @@ class PhaseBase(Group):
             if not p_is_connected:
                 unconnected.append(p)
         if unconnected:
-            logger.warning('The following ODE parameters are not provided'
-                           ' by phase {0} as controls, control rates nor'
-                           ' parameters: {1}'.format(self.name, unconnected))
+            logger.warning('The following ODE parameters are not provided '
+                           'by phase "{0}" as controls or control rates: {1}. '
+                           'The default value will be used.'.format(self.name, unconnected))
 
     def get_values(self, var, nodes=None):
         """
@@ -1009,7 +1009,8 @@ class PhaseBase(Group):
         m = 2.0 / (_xs[-1] - _xs[0])
         b = 1.0 - (m * _xs[-1])
         taus = m * _xs + b
-        interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind)
+        interpfunc = interpolate.interp1d(taus, ys, axis=axis, kind=kind,
+                                          bounds_error=False, fill_value='extrapolate')
         res = np.atleast_2d(interpfunc(node_locations))
         if res.shape[0] == 1:
             res = res.T
