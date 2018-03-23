@@ -15,7 +15,8 @@ OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 class TestBrachistochroneExample(unittest.TestCase):
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         for filename in ['phase0_sim.db', 'brachistochrone_sim.db']:
             if os.path.exists(filename):
                 os.remove(filename)

@@ -2,6 +2,14 @@
 Examples
 ========
 
+The Brachistochrone Problem
+---------------------------
+
+.. toctree::
+  :maxdepth: 1
+  :titlesonly:
+
+  brachistochrone
 
 Single Stage To Orbit
 -----------------------
