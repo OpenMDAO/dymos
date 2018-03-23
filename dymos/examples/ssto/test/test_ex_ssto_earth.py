@@ -113,7 +113,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
         plt.plot(exp_out.get_values('x'), exp_out.get_values('y'), 'r-', label='simulated')
         plt.xlabel('x, m')
         plt.ylabel('y, m')
-        plt.legend()
+        plt.legend(loc='best', ncol=2)
         plt.grid()
 
         fig = plt.figure(facecolor='white')
@@ -142,7 +142,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
 
         axarr.set_xlabel('downrange, m')
         axarr.set_ylabel('altitude, m')
-        axarr.legend(loc='best')
+        axarr.legend(loc='best', ncol=2)
 
         axarr = fig.add_subplot(3, 1, 3)
 
@@ -158,7 +158,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
 
         axarr.set_xlabel('time, s')
         axarr.set_ylabel('velocity, m/s')
-        axarr.legend(loc='best')
+        axarr.legend(loc='best', ncol=2)
 
         plt.show()
 
