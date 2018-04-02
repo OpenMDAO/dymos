@@ -27,6 +27,9 @@ class ContinuityComp(ExplicitComponent):
         self.metadata.declare('time_units', default=None, allow_none=True, types=string_types,
                               desc='Units of the integration variable')
 
+        self.metadata.declare('enforce_state_continuity', default=True, types=bool,
+                              desc='Whether to add state continuity constraints')
+
     def _setup_value_continuity(self):
         state_options = self.metadata['state_options']
         control_options = self.metadata['control_options']
@@ -52,8 +55,9 @@ class ContinuityComp(ExplicitComponent):
                 desc='Consistency constraint values for state {0}'.format(state_name),
                 units=units)
 
-            self.add_constraint(name='defect_states:{0}'.format(state_name),
-                                equals=0.0, scaler=1.0, linear=True)
+            if self.metadata['enforce_state_continuity']:
+                self.add_constraint(name='defect_states:{0}'.format(state_name),
+                                    equals=0.0, scaler=1.0, linear=True)
 
             size = np.prod(shape)
 
