@@ -239,9 +239,6 @@ class GLMPhase(PhaseBase):
                 for state in self.state_options
             ])
 
-        self.nonlinear_solver = NonlinearBlockGS(iprint=2, maxiter=40, atol=1e-14, rtol=1e-12)
-        # self.linear_solver = LinearBlockGS(iprint=2, maxiter=40, atol=1e-14, rtol=1e-12)
-
     def _setup_states(self):
         formulation = self.metadata['formulation']
         if formulation == 'optimizer-based':
