@@ -9,6 +9,9 @@ from dymos import Phase
 
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
+import matplotlib
+matplotlib.use('Agg')
+
 SHOW_PLOTS = True
 
 

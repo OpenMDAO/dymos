@@ -10,12 +10,9 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver,
 from dymos import Phase
 from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
-SHOW_PLOTS = True
-
 
 def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
-               top_level_jacobian='csc', optimizer='SLSQP', derivative_mode='rev'):
-
+               top_level_jacobian='csc', optimizer='SLSQP'):
     p = Problem(model=Group())
     if optimizer == 'SNOPT':
         p.driver = pyOptSparseDriver()
@@ -60,66 +57,4 @@ def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
 
     p.model.linear_solver = DirectSolver()
 
-    p.setup(mode=derivative_mode, check=True)
-
-    p['phase0.t_initial'] = 0.0
-    p['phase0.t_duration'] = 150.0
-    p['phase0.states:x'] = phase.interpolate(ys=[0, 1.15E5], nodes='disc')
-    p['phase0.states:y'] = phase.interpolate(ys=[0, 1.85E5], nodes='disc')
-    p['phase0.states:vx'] = phase.interpolate(ys=[0, 7796.6961], nodes='disc')
-    p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='disc')
-    p['phase0.states:m'] = phase.interpolate(ys=[117000, 1163], nodes='disc')
-    p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='all')
-
-    p.run_model()
-
-    p.run_driver()
-
-    if SHOW_PLOTS:  # pragma: no cover
-        exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 100))
-
-        import matplotlib.pyplot as plt
-        plt.figure(facecolor='white')
-        plt.plot(phase.get_values('x'), phase.get_values('y'), 'bo', label='solution')
-        plt.plot(exp_out.get_values('x'), exp_out.get_values('y'), 'r-', label='simulated')
-        plt.xlabel('x, m')
-        plt.ylabel('y, m')
-        plt.legend()
-        plt.grid()
-
-        fig = plt.figure(facecolor='white')
-        fig.suptitle('results for flat_earth_without_aero')
-
-        axarr = fig.add_subplot(2, 1, 1)
-        axarr.plot(phase.get_values('time'),
-                   phase.get_values('theta', units='deg'), 'bo', label='solution')
-        axarr.plot(exp_out.get_values('time'),
-                   exp_out.get_values('theta', units='deg'), 'b-', label='simulated')
-        axarr.set_ylabel(r'$\theta$, deg')
-        axarr.axes.get_xaxis().set_visible(False)
-
-        axarr = fig.add_subplot(2, 1, 2)
-
-        axarr.plot(phase.get_values('time'),
-                   phase.get_values('vx'), 'bo', label='$v_x$ solution')
-        axarr.plot(exp_out.get_values('time'),
-                   exp_out.get_values('vx'), 'b-', label='$v_x$ simulated')
-
-        axarr.plot(phase.get_values('time'),
-                   phase.get_values('vy'), 'ro', label='$v_y$ solution')
-        axarr.plot(exp_out.get_values('time'),
-                   exp_out.get_values('vy'), 'r-', label='$v_y$ simulated')
-
-        axarr.set_xlabel('time, s')
-        axarr.set_ylabel('velocity, m/s')
-        axarr.legend(loc='best')
-        plt.show()
-
-        os.remove('phase0_sim.db')
-
     return p
-
-
-if __name__ == '__main__':
-    ssto_earth(transcription='gauss-lobatto', top_level_jacobian='csc',
-               derivative_mode='fwd')

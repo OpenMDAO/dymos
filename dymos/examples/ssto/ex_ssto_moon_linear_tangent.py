@@ -7,11 +7,30 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver,
 from dymos import Phase
 from dymos.examples.ssto.launch_vehicle_linear_tangent_ode import LaunchVehicleLinearTangentODE
 
-SHOW_PLOTS = True
-
 
 def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
-                             top_level_jacobian='csc', optimizer='SLSQP', derivative_mode='rev'):
+                             optimizer='SLSQP'):
+    """
+    Returns an instance of the SSTO problem for ascent from the lunar surface using linear
+    tangent guidance.
+
+    Parameters
+    ----------
+    transcription : str
+        The transcription method for optimal control:  'gauss-lobatto', 'radau-ps', or 'glm'.
+    num_seg : int
+        The number of segments in the phase.
+    transcription_order : int or sequence
+        The transcription order for the states in each segment.
+    optimizer : str
+        The optimization driver to use for the problem:  'SLSQP' or 'SNOPT'.
+
+    Returns
+    -------
+    prob : openmdao.Problem
+        The OpenMDAO problem instance for the optimal control problem.
+
+    """
 
     p = Problem(model=Group())
 
@@ -51,60 +70,7 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
 
     phase.add_objective('time', index=-1, scaler=0.01)
 
-    if top_level_jacobian.lower() == 'csc':
-        p.model.jacobian = CSCJacobian()
-    elif top_level_jacobian.lower() == 'dense':
-        p.model.jacobian = DenseJacobian()
-    elif top_level_jacobian.lower() == 'csr':
-        p.model.jacobian = CSRJacobian()
-
+    p.model.jacobian = CSCJacobian()
     p.model.linear_solver = DirectSolver()
 
-    p.setup(mode=derivative_mode, check=True)
-
-    p['phase0.t_initial'] = 0.0
-    p['phase0.t_duration'] = 500.0
-    p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='disc')
-    p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='disc')
-    p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='disc')
-    p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='disc')
-    p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='disc')
-    p['phase0.controls:a_ctrl'] = -0.01
-    p['phase0.controls:b_ctrl'] = 3.0
-
-    p.run_driver()
-
-    if SHOW_PLOTS:  # pragma: no cover
-        import matplotlib.pyplot as plt
-        plt.figure(facecolor='white')
-        plt.plot(phase.get_values('x'), phase.get_values('y'), 'bo')
-        plt.xlabel('x, m')
-        plt.ylabel('y, m')
-        plt.grid()
-
-        fig = plt.figure(facecolor='white')
-        fig.suptitle('results for flat_earth_without_aero')
-
-        axarr = fig.add_subplot(2, 1, 1)
-        axarr.plot(phase.get_values('time'),
-                   np.degrees(phase.get_values('guidance.theta')), 'bo')
-        axarr.set_ylabel(r'$\theta$, deg')
-        axarr.axes.get_xaxis().set_visible(False)
-
-        axarr = fig.add_subplot(2, 1, 2)
-
-        axarr.plot(phase.get_values('time'),
-                   np.degrees(phase.get_values('vx')), 'bo', label='$v_x$')
-        axarr.plot(phase.get_values('time'),
-                   np.degrees(phase.get_values('vy')), 'ro', label='$v_y$')
-        axarr.set_xlabel('time, s')
-        axarr.set_ylabel('velocity, m/s')
-        axarr.legend(loc='best')
-        plt.show()
-
     return p
-
-
-if __name__ == '__main__':
-    ssto_moon_linear_tangent(transcription='gauss-lobatto', optimizer='SLSQP',
-                             top_level_jacobian='csc', derivative_mode='rev')

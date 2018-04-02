@@ -2,13 +2,17 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-import matplotlib.pyplot as plt
+import os
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DenseJacobian,\
     CSCJacobian, CSRJacobian, DirectSolver
 
 from dymos import Phase
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 
 def double_integrator_direct_collocation(transcription='gauss-lobatto', top_level_jacobian='csc',

@@ -13,6 +13,8 @@ assert_almost_equal = np.testing.assert_almost_equal
 SHOW_PLOTS = False
 
 if SHOW_PLOTS:
+    import matplotlib
+    matplotlib.use('Agg')
     import matplotlib.pyplot as plt
 
 

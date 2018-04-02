@@ -32,28 +32,21 @@ initial trajectory will be physically compatible with those controls.
 So how do you specify a control profile guess?
 ----------------------------------------------
 
-|project| phases provide an interpolation method `phase.interpolate`.  Interpolate takes
-three arguments:
+|project| phases provide an interpolation method `phase.interpolate`, with the following call
+signature:
 
-- xs
-    Optional.  Values of the independent variable at the given y-values.  If only two values
-    are provided to ys this can be omitted and will assume the values [-1, 1] for linear
-    interpolation.
-- ys
-    Values to be interpolated.  If only two values are given, linear interpolation is assumed.
-- nodes
-    Specifies the nodes onto which the interpolation should be performed.  Option 'all' returns
-    interpolated values at all nodes in the phase.  Option 'disc' provides interpolated values
-    at the state discretization nodes, and option 'col' provides interpolated values at the
-    collocation nodes.
+.. automethod:: dymos.phases.phase_base.PhaseBase.interpolate
+    :noindex:
 
 This method is necessary because the distribution of nodes across a phase is dependent on the
 grid definition (number of segments, segment orders, and segment distribution).  Using something
 like `numpy.linspace` would provide values linearly interpolated onto evenly spaced nodes, but
 the nodes in the phase are typically not evenly spaced.
 
-In practice, use `nodes='all'` for interpolating control values and `nodes='disc'` for interpolating
-state values.
+In practice, for the Gauss-Lobatto and Radau-Pseudospectral transcriptions,
+use `nodes='all'` for interpolating control values and `nodes='disc'` for interpolating
+state values.  For GLM phases no node specification is necessary, values will be provided
+at the segment/time-step boundaries.
 
 [TODO Example]
 

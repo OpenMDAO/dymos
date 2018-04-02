@@ -190,16 +190,9 @@ class StateInterpComp(ExplicitComponent):
 
             xd = np.atleast_2d(inputs[xd_str])
 
-            # TODO: einsum magic
-            # outputs[xc_str] = np.einsum('i,ij...,jk...->ik...',
-            #                             dt_dstau,
-            #                             self.matrices['Bi'],
-            #                             fd)
-
-            outputs[xdotc_str] = np.tensordot(
-                self.matrices['Ad'], xd, axes=(1, 0))
-            for i in range(num_col_nodes):
-                outputs[xdotc_str][i] /= dt_dstau[i]
+            # Use transpose to divide each "row" of a by dt_dstau
+            a = np.tensordot(self.matrices['Ad'], xd, axes=(1, 0)).T
+            outputs[xdotc_str] = (a / dt_dstau).T
 
     def _compute_gauss_lobatto(self, inputs, outputs):
         state_options = self.metadata['state_options']
@@ -207,11 +200,8 @@ class StateInterpComp(ExplicitComponent):
         dt_dstau = np.atleast_1d(inputs['dt_dstau'])
 
         num_col_nodes = self.num_col_nodes
-        num_disc_nodes = self.num_disc_nodes
 
         for name in state_options:
-            m = self.sizes[name]
-
             xc_str = self.xc_str[name]
             xdotc_str = self.xdotc_str[name]
             xd_str = self.xd_str[name]
@@ -225,19 +215,23 @@ class StateInterpComp(ExplicitComponent):
             #                             self.matrices['Bi'],
             #                             fd)
 
-            outputs[xc_str] = np.tensordot(
-                self.matrices['Bi'], inputs[fd_str], axes=(1, 0))
-
-            for i in range(num_col_nodes):
-                outputs[xc_str][i] *= dt_dstau[i]
+            a = np.tensordot(self.matrices['Bi'], inputs[fd_str], axes=(1, 0)).T
+            outputs[xc_str] = (a * dt_dstau).T
 
             outputs[xc_str] += np.tensordot(
                 self.matrices['Ai'], xd, axes=(1, 0))
 
-            outputs[xdotc_str] = np.tensordot(
-                self.matrices['Ad'], xd, axes=(1, 0))
-            for i in range(num_col_nodes):
-                outputs[xdotc_str][i] /= dt_dstau[i]
+            outputs[xdotc_str] = np.tensordot(self.matrices['Ad'], xd, axes=(1, 0))
+
+            if len(outputs[xdotc_str].shape) == 1:
+                outputs[xdotc_str] /= dt_dstau
+            elif len(outputs[xdotc_str].shape) == 2:
+                outputs[xdotc_str] /= dt_dstau[:, np.newaxis]
+            elif len(outputs[xdotc_str].shape) == 3:
+                outputs[xdotc_str] /= dt_dstau[:, np.newaxis, np.newaxis]
+            else:
+                for i in range(num_col_nodes):
+                    outputs[xdotc_str][i, ...] /= dt_dstau[i]
 
             outputs[xdotc_str] += np.tensordot(
                 self.matrices['Bd'], inputs[fd_str], axes=(1, 0))
@@ -246,7 +240,6 @@ class StateInterpComp(ExplicitComponent):
         state_options = self.metadata['state_options']
 
         ndn = self.num_disc_nodes
-        ncn = self.num_col_nodes
 
         for name in state_options:
             size = self.sizes[name]
