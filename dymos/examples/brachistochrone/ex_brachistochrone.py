@@ -50,11 +50,8 @@ def brachistochrone_min_time(
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True)
     else:
-        phase.add_boundary_constraint('x', loc='initial', equals=0.)
         phase.add_boundary_constraint('x', loc='final', equals=10.)
-        phase.add_boundary_constraint('y', loc='initial', equals=10.)
         phase.add_boundary_constraint('y', loc='final', equals=5.)
-        phase.add_boundary_constraint('v', loc='initial', equals=0.)
 
     phase.add_control('theta', units='deg', dynamic=True,
                       rate_continuity=True, lower=0.01, upper=179.9)

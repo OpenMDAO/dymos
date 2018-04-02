@@ -110,7 +110,8 @@ class GLMPhase(PhaseBase):
             continuity_comp = ContinuityComp(grid_data=grid_data,
                                              state_options=self.state_options,
                                              control_options=self.control_options,
-                                             time_units=time_units)
+                                             time_units=time_units,
+                                             enforce_state_continuity=False)
 
             # State continuity is guaranteed by the ODE solver
 
