@@ -34,6 +34,8 @@ class Integrator(Group):
         self.metadata.declare('normalized_times', types=np.ndarray)
         self.metadata.declare('all_norm_times', types=np.ndarray)
 
+        self.metadata.declare('state_options', types=dict)
+
     def setup(self):
         ode_class = self.metadata['ode_class']
         self._ode_options = ode_class.ode_options
@@ -65,13 +67,26 @@ class Integrator(Group):
         # Dummy state history to pull out initial conditions to conform to pointer's api
         for state_name, state in iteritems(states):
             name = 'IC_state:%s' % state_name
-            state = self._ode_options._states[state_name]
+            state = self.metadata['state_options'][state_name]
 
             comp.add_output(
                 name,
                 shape=(len(normalized_times),) + state['shape'], units=state['units']
             )
             promotes.append(name)
+
+            if not state['fix_initial']:
+                lower = state['lower']
+                upper = state['upper']
+                if lower is not None and not np.isscalar(lower):
+                    lower = lower[0]
+                if upper is not None and not np.isscalar(upper):
+                    upper = upper[0]
+
+                comp.add_design_var(
+                    name, indices=np.arange(np.prod(state['shape'])),
+                    lower=lower, upper=upper,
+                )
 
         # # Initial conditions
         # if initial_conditions is not None:

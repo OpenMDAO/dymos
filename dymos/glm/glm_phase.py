@@ -199,7 +199,8 @@ class GLMPhase(PhaseBase):
             self.metadata['ode_class'],
             self.metadata['formulation'],
             self.metadata['method_name'],
-            normalized_times=self._norm_times
+            normalized_times=self._norm_times,
+            state_options=self.state_options,
         )
 
         self.add_subsystem(
@@ -222,7 +223,8 @@ class GLMPhase(PhaseBase):
             self.metadata['ode_class'],
             self.metadata['formulation'],
             self.metadata['method_name'],
-            normalized_times=self._norm_times
+            normalized_times=self._norm_times,
+            state_options=self.state_options,
         )
 
         self.add_subsystem(

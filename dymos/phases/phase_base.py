@@ -111,12 +111,9 @@ class PhaseBase(Group):
 
         """
         if self.metadata['transcription'] == 'glm':
-            if 'fix_initial' in kwargs and not kwargs['fix_initial']:
-                raise NotImplementedError(
-                    'GLMPhase does not yet support optimizing the initial state value.')
             if 'fix_final' in kwargs and kwargs['fix_final']:
                 raise NotImplementedError(
-                    'GLMPhase does not yet support fixing the final state value in this way. ' +
+                    'GLMPhase does not support fixing the final state value in this way. ' +
                     'Equivalent, you can add a boundary constraint on the final state value: ' +
                     "phase.add_boundary_constraint('x', loc='final', equals=0.)")
         self.state_options[name].update(kwargs)
