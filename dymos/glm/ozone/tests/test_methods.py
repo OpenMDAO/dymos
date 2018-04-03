@@ -72,7 +72,7 @@ class OzoneODETestCase(unittest.TestCase):
         p.model.add_subsystem('dummy_comp', IndepVarComp('dummy_var'))
         p.model.add_objective('dummy_comp.dummy_var')
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(tf, tf))
+        phase.set_time_options(fix_initial=True, initial_bounds=(0, 0), duration_bounds=(tf, tf))
 
         if glm_formulation == 'optimizer-based':
             p.driver = ScipyOptimizeDriver()
