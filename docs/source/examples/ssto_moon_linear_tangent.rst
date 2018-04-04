@@ -3,8 +3,7 @@ SSTO Lunar Ascent with Linear Tangent Guidance
 ==============================================
 
 The following example implements a minimum time, single-stage to orbit ascent problem for
-launching from the lunar surface.  This example assumes constant acceleration and a
-rectilinear gravity field.  Unlike the previous lunar ascent example, here we use knowledge of
+launching from the lunar surface.  Unlike the SSTO Lunar Ascent example, here we use knowledge of
 the solution to simplify the optimization.
 
 Instead of optimizing the thrust angle at any point in time as a dynamic control, we use our
@@ -18,8 +17,8 @@ at many points into optimizing the value of just two scalar parameters, :math:`a
 
 Implementing this modified constrol scheme requires only a few changes.  Rather than declaring
 :math:`\theta` as a controllable parameter for the ODE system, we implement a new component,
-LinearTangentGuidanceComp that accepts :math:`a`, :math:`b` and :math:`c` as inputs and outputs
-:math:`theta`, which is then connected to the equations of motion component.
+LinearTangentGuidanceComp that accepts :math:`a` and :math:`b` as *static* optimal controls.  It
+calculates :math:`theta`, which is then connected to the equations of motion component.
 
 -------------------------------
 Component and Group Definitions

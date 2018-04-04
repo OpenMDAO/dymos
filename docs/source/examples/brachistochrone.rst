@@ -9,7 +9,7 @@ without friction along the wire moves from point A to point B in minimum time.
     source/examples/figures/brachistochrone_fbd.py
     :layout: plot
 
-We minimize the final time, :math:`t_f`, by varying the dynamic control, :math:`\theta`, subject to the dynamics,
+We minimize the final time, :math:`t_f`, by varying the dynamic control, :math:`\theta`, subject to the dynamics:
 
 .. math ::
     \frac{d x}{d t} &= v \sin(\theta) \\

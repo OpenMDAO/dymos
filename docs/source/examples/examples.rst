@@ -17,6 +17,6 @@ Single Stage To Orbit
   :maxdepth: 1
   :titlesonly:
 
+  ssto_earth
   ssto_moon
   ssto_moon_linear_tangent
-  ssto_earth
