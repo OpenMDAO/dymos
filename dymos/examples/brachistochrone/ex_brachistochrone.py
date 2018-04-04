@@ -17,7 +17,7 @@ SHOW_PLOTS = False
 
 
 def brachistochrone_min_time(
-        transcription='gauss-lobatto', num_segments=8, run_driver=True,
+        transcription='gauss-lobatto', num_segments=8, run_driver=True, test_fix_initial=True,
         top_level_jacobian='csc',
         glm_formulation='solver-based', glm_integrator='GaussLegendre4', force_alloc_complex=False):
     p = Problem(model=Group())
@@ -47,13 +47,18 @@ def brachistochrone_min_time(
 
     phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-    if transcription != 'glm':
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
+    if test_fix_initial:
+        phase.set_state_options('x', fix_initial=True)
+        phase.set_state_options('y', fix_initial=True)
         phase.set_state_options('v', fix_initial=True)
-    else:
         phase.add_boundary_constraint('x', loc='final', equals=10.)
         phase.add_boundary_constraint('y', loc='final', equals=5.)
+    else:
+        phase.add_boundary_constraint('x', loc='initial', equals=0.)
+        phase.add_boundary_constraint('x', loc='final', equals=10.)
+        phase.add_boundary_constraint('y', loc='initial', equals=10.)
+        phase.add_boundary_constraint('y', loc='final', equals=5.)
+        phase.add_boundary_constraint('v', loc='initial', equals=0.)
 
     phase.add_control('theta', units='deg', dynamic=True,
                       rate_continuity=True, lower=0.01, upper=179.9)
