@@ -311,8 +311,10 @@ class GLMPhase(PhaseBase):
             parameter_comp = self.input_controls
             if self.control_options[var]['dynamic']:
                 output = np.zeros((num_segments + 1,) + self.control_options[var]['shape'])
-                output[:-1, ...] = self._outputs['input_controls.controls:{0}_out'.format(var)][::2, ...]
-                output[-1, ...] = self._outputs['input_controls.controls:{0}_out'.format(var)][-1, ...]
+                output[:-1, ...] = \
+                    self._outputs['input_controls.controls:{0}_out'.format(var)][::2, ...]
+                output[-1, ...] = \
+                    self._outputs['input_controls.controls:{0}_out'.format(var)][-1, ...]
             else:
                 raise NotImplementedError()
 
