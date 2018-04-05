@@ -302,8 +302,8 @@ class GLMPhase(PhaseBase):
             control_comp = self.indep_controls
             if self.control_options[var]['dynamic']:
                 output = np.zeros((num_segments + 1,) + self.control_options[var]['shape'])
-                output[:-1, ...] = control_comp._outputs['controls:{0}'.format(var)][::2, ...]
-                output[-1, ...] = control_comp._outputs['controls:{0}'.format(var)][-1, ...]
+                output[:-1, ...] = self._outputs['controls:{0}'.format(var)][::2, ...]
+                output[-1, ...] = self._outputs['controls:{0}'.format(var)][-1, ...]
             else:
                 raise NotImplementedError()
 
@@ -311,8 +311,8 @@ class GLMPhase(PhaseBase):
             parameter_comp = self.input_controls
             if self.control_options[var]['dynamic']:
                 output = np.zeros((num_segments + 1,) + self.control_options[var]['shape'])
-                output[:-1, ...] = control_comp._outputs['controls:{0}'.format(var)][::2, ...]
-                output[-1, ...] = control_comp._outputs['controls:{0}'.format(var)][-1, ...]
+                output[:-1, ...] = self._outputs['input_controls.controls:{0}_out'.format(var)][::2, ...]
+                output[-1, ...] = self._outputs['input_controls.controls:{0}_out'.format(var)][-1, ...]
             else:
                 raise NotImplementedError()
 
@@ -751,8 +751,14 @@ class GLMPhase(PhaseBase):
         if var_type == 'state':
             self._outputs['ozone.initial_condition:{}'.format(var)] = interpolated_values[0]
             if formulation == 'optimizer-based':
-                self._outputs['ozone.integration_group.desvars_comp.Y:{}'.format(var)] = \
+                name = 'ozone.integration_group.desvars_comp.Y:{}'.format(var)
+                self._outputs[name] = \
                     np.einsum('i...,j->ij...', interpolated_values[1:], np.ones(num_stages))
-            # elif formulation == 'solver-based':
-        elif var_type == 'indep_control' or var_type == 'input_control':
+            elif formulation == 'solver-based':
+                name = 'ozone.integration_group.vectorized_stagestep_comp.Y_out:{}'.format(var)
+                self._outputs[name] = \
+                    np.einsum('i...,j->ij...', interpolated_values[1:], np.ones(num_stages))
+        elif var_type == 'indep_control':
             self._outputs['controls:{}'.format(var)] = interpolated_values
+        elif var_type == 'input_control':
+            self._outputs['input_controls.controls:{0}_out'.format(var)] = interpolated_values
