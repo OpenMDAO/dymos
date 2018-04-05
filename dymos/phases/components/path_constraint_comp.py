@@ -15,7 +15,7 @@ class PathConstraintCompBase(ExplicitComponent):
 
     def _add_path_constraint(self, name, var_class, shape=(1,), units=None, res_units=None, desc='',
                              lower=None, upper=None, equals=None, scaler=None, adder=None,
-                             ref=None, ref0=None, linear=False, res_ref=1.0, var_set=0,
+                             ref=None, ref0=None, linear=False, res_ref=1.0, var_set=0, type_=None,
                              distributed=False):
         """
         Add a final constraint to this component
@@ -64,6 +64,8 @@ class PathConstraintCompBase(ExplicitComponent):
         var_set : hashable object
             For advanced users only. ID or color for this variable, relevant for reconfigurability.
             Default is 0.
+        type_ : str
+            One of 'state', 'indep_control', 'input_control', 'control_rate', 'control_rate2'.
         distributed : bool
             If True, this variable is distributed across multiple processes.
         """
@@ -73,7 +75,8 @@ class PathConstraintCompBase(ExplicitComponent):
         kwargs = {'shape': shape, 'units': units, 'res_units': res_units, 'desc': desc,
                   'lower': lower, 'upper': upper, 'equals': equals, 'scaler': scaler,
                   'adder': adder, 'ref': ref, 'ref0': ref0, 'linear': linear, 'src_all': src_all,
-                  'res_ref': res_ref, 'var_set': var_set, 'distributed': distributed}
+                  'res_ref': res_ref, 'var_set': var_set, 'distributed': distributed,
+                  'type_': type_}
         self._path_constraints.append((name, kwargs))
 
 
@@ -235,6 +238,66 @@ class RadauPathConstraintComp(PathConstraintCompBase):
                 dependent=True,
                 rows=all_rows,
                 cols=np.arange(all_size),
+                val=1.0)
+
+    def compute(self, inputs, outputs):
+        for (input_name, output_name, _) in self._vars:
+            outputs[output_name] = inputs[input_name]
+
+
+class GLMPathConstraintComp(PathConstraintCompBase):
+
+    def initialize(self):
+        self._path_constraints = []
+        self._vars = []
+        self.metadata.declare('num_timesteps', types=int)
+        self.metadata.declare('num_stages', types=int)
+
+    def setup(self):
+        """
+        Define the independent variables as output variables.
+        """
+        num_timesteps = self.metadata['num_timesteps']
+        num_stages = self.metadata['num_stages']
+        control_types = ['state', 'indep_control', 'input_control', 'control_rate', 'control_rate2']
+
+        for (name, kwargs) in self._path_constraints:
+            if kwargs['type_'] in control_types:
+                shape = (2 * num_timesteps,)
+            elif kwargs['type_'] == 'state':
+                shape = (num_timesteps, num_stages)
+            else:
+                shape = (2 * num_timesteps - 1, num_stages)
+                shape = ((2 * num_timesteps - 1) * num_stages,)
+
+            input_name = 'all_values:{0}'.format(name)
+            input_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
+            input_kwargs['shape'] = shape + kwargs['shape']
+            self.add_input(input_name, **input_kwargs)
+
+            output_name = 'path:{0}'.format(name)
+            output_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
+            output_kwargs['shape'] = shape + kwargs['shape']
+            self.add_output(output_name, **output_kwargs)
+
+            constraint_kwargs = {k: kwargs.get(k, None)
+                                 for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
+                                           'scaler', 'indices', 'linear')}
+            self.add_constraint(output_name, **constraint_kwargs)
+
+            self._vars.append((input_name, output_name, kwargs['shape']))
+            # Setup partials
+
+            all_shape = shape + kwargs['shape']
+            all_size = np.prod(all_shape)
+            arange = np.arange(all_size)
+
+            self.declare_partials(
+                of=output_name,
+                wrt=input_name,
+                dependent=True,
+                rows=arange,
+                cols=arange,
                 val=1.0)
 
     def compute(self, inputs, outputs):

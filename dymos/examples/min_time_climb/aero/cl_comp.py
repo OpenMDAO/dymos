@@ -16,7 +16,7 @@ class CLComp(ExplicitComponent):
         self.add_input('alpha', shape=(nn,), desc='angle of attck', units='rad')
 
         # Outputs
-        self.add_output(name='CL', val=np.zeros(nn), desc='lift coefficient', units=None)
+        self.add_output(name='CL', val=np.ones(nn), desc='lift coefficient', units=None)
 
         # Jacobian
         ar = np.arange(nn)

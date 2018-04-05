@@ -18,7 +18,7 @@ class MachComp(ExplicitComponent):
         self.add_input('sos', shape=(nn,), desc='alpha lift coefficient', units='m/s')
 
         # Outputs
-        self.add_output(name='mach', val=np.zeros(nn), desc='Mach number', units=None)
+        self.add_output(name='mach', val=0.7*np.ones(nn), desc='Mach number', units=None)
 
         # Jacobian
         ar = np.arange(nn)

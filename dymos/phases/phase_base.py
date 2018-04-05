@@ -32,7 +32,7 @@ class PhaseBase(Group):
         self.control_options = {}
         self.time_options = TimeOptionsDictionary()
         self._boundary_constraints = {}
-        self._path_constaints = {}
+        self._path_constraints = {}
         self._objectives = []
         self._ode_controls = {}
         self.grid_data = None
@@ -357,11 +357,11 @@ class PhaseBase(Group):
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
 
-        if name not in self._path_constaints:
-            self._path_constaints[name] = {}
-            self._path_constaints[name]['constraint_name'] = constraint_name
+        if name not in self._path_constraints:
+            self._path_constraints[name] = {}
+            self._path_constraints[name]['constraint_name'] = constraint_name
 
-        self._path_constaints[name].update(kwargs)
+        self._path_constraints[name].update(kwargs)
 
     def set_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
@@ -950,6 +950,35 @@ class PhaseBase(Group):
         """
         raise NotImplementedError('get_values has not been implemented for this class.')
 
+    def set_values(self, var, value, nodes=None, kind='linear', axis=0):
+        """
+        Retrieve the values of the given variable at the given
+        subset of nodes.
+
+        Parameters
+        ----------
+        var : str
+            The variable whose values are to be returned.  This may be
+            the name 'time', the name of a state, control, or parameter,
+            or the path to a variable in the ODE system of the phase.
+        value : ndarray
+            Array of time/control/state/parameter values.
+        nodes : str
+            The name of the node subset, one of 'disc', 'col', 'None'.
+            This option does not apply to GLMPhase. The default is 'None'.
+        kind : str
+            Specifies the kind of interpolation, as per the scipy.interpolate package.
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
+            Default is 'linear'.
+        axis : int
+            Specifies the axis along which interpolation should be performed.  Default is
+            the first axis (0).
+        """
+        raise NotImplementedError('set_values has not been implemented for this class.')
+
     def interpolate(self, xs=None, ys=None, nodes=None, kind='linear', axis=0):
         """
         Return an array of values on [a,b] linearly interpolated to the
@@ -961,8 +990,9 @@ class PhaseBase(Group):
             Array of integration variable values.
         ys :  ndarray
             Array of control/state/parameter values.
-        nodes :  str
-            Node type ('disc', 'col' or 'all').
+        nodes : str
+            The name of the node subset, one of 'disc', 'col', 'None'.
+            This option does not apply to GLMPhase. The default is 'None'.
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
             One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'

@@ -5,10 +5,12 @@ import numpy as np
 
 from dymos.phases.phase_base import PhaseBase
 from dymos.phases.components import BoundaryConstraintComp, EndpointConditionsComp, ContinuityComp
+from dymos.phases.components import GLMPathConstraintComp
 from dymos.ode_options import ODEOptions
 from dymos.glm.dynamic_interp_comp import DynamicInterpComp
 from dymos.glm.ozone.ode_integrator import ODEIntegrator
-from dymos.glm.ozone.methods_list import method_classes
+from dymos.glm.ozone.methods_list import method_classes, get_method
+
 from openmdao.api import IndepVarComp, NonlinearBlockGS
 
 
@@ -93,6 +95,9 @@ class GLMPhase(PhaseBase):
 
         if len(self._boundary_constraints) > 0:
             order.append('boundary_constraints')
+
+        if len(self._path_constraints) > 0:
+            order.append('path_constraints')
 
         self.set_order(order)
 
@@ -206,8 +211,8 @@ class GLMPhase(PhaseBase):
         self.add_subsystem(
             'ozone', ode_int,
             promotes_outputs=[
-                ('IC_state:{0}'.format(state), 'states:{0}'.format(state))
-                for state in self.state_options
+                # ('IC_state:{0}'.format(state), 'states:{0}'.format(state))
+                # for state in self.state_options
             ] + [
                 ('state:{0}'.format(state), 'out_states:{0}'.format(state))
                 for state in self.state_options
@@ -230,8 +235,8 @@ class GLMPhase(PhaseBase):
         self.add_subsystem(
             'ozone', ode_int,
             promotes_outputs=[
-                ('IC_state:{0}'.format(state), 'states:{0}'.format(state))
-                for state in self.state_options
+                # ('IC_state:{0}'.format(state), 'states:{0}'.format(state))
+                # for state in self.state_options
             ] + [
                 ('state:{0}'.format(state), 'out_states:{0}'.format(state))
                 for state in self.state_options
@@ -333,14 +338,110 @@ class GLMPhase(PhaseBase):
         return output
 
     def _setup_path_constraints(self):
-        pass
+        """
+        Add a path constraint component if necessary and issue appropriate connections as
+        part of the setup stack.
+        """
+        num_timesteps = self.metadata['num_segments']
+        num_stages = get_method(self.metadata['method_name']).num_stages
+
+        for var in self._path_constraints:
+            var_type = self._classify_var(var)
+
+            self._path_constraints[var]['type_'] = var_type
+
+        path_comp = None
+        if self._path_constraints:
+            path_comp = GLMPathConstraintComp(num_timesteps=num_timesteps, num_stages=num_stages)
+            self.add_subsystem('path_constraints', subsys=path_comp)
+
+        for var, options in iteritems(self._path_constraints):
+            con_units = options.get('units', None)
+            con_name = options['constraint_name']
+
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = self._classify_var(var)
+
+            if var_type == 'state':
+                state_shape = self.state_options[var]['shape']
+                state_units = self.state_options[var]['units']
+                options['shape'] = state_shape
+                options['units'] = state_units if con_units is None else con_units
+                options['linear'] = False
+                self.connect(src_name='out_states:{0}'.format(var),
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'indep_control':
+                control_shape = self.control_options[var]['shape']
+                control_units = self.control_options[var]['units']
+                options['shape'] = control_shape
+                options['units'] = control_units if con_units is None else con_units
+                options['linear'] = True
+                constraint_path = 'controls:{0}'.format(var)
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'input_control':
+                control_shape = self.control_options[var]['shape']
+                control_units = self.control_options[var]['units']
+                options['shape'] = control_shape
+                options['units'] = control_units if con_units is None else con_units
+                options['linear'] = True
+                constraint_path = 'input_controls:{0}_out'.format(var)
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'control_rate':
+                control_name = var[:-5]
+                control_shape = self.control_options[control_name]['shape']
+                control_units = self.control_options[control_name]['units']
+                options['shape'] = control_shape
+                options['units'] = control_units if con_units is None else con_units
+                constraint_path = 'control_rates:{0}_rate'.format(control_name)
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'control_rate2':
+                control_name = var[:-6]
+                control_shape = self.control_options[control_name]['shape']
+                control_units = self.control_options[control_name]['units']
+                options['shape'] = control_shape
+                options['units'] = control_units if con_units is None else con_units
+                constraint_path = 'control_rates:{0}_rate2'.format(control_name)
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            else:
+                # Failed to find variable, assume it is in the RHS
+                options['linear'] = False
+                self.connect(src_name='ozone.integration_group.ode_comp.{0}'.format(var),
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            kwargs = options.copy()
+            if var_type == 'control_rate':
+                kwargs['units'] = get_rate_units(options['units'],
+                                                 self.time_options['units'],
+                                                 deriv=1)
+            elif var_type == 'control_rate2':
+                kwargs['units'] = get_rate_units(options['units'],
+                                                 self.time_options['units'],
+                                                 deriv=2)
+            kwargs.pop('constraint_name', None)
+            path_comp._add_path_constraint(con_name, var_type, **kwargs)
 
     def _setup_boundary_constraints(self):
         """
         Adds BoundaryConstraintComp if necessary and issues appropriate connections.
         """
         transcription = self.metadata['transcription']
+        formulation = self.metadata['formulation']
         bc_comp = None
+
+        num_timesteps = self.metadata['num_segments']
+        num_stages = get_method(self.metadata['method_name']).num_stages
 
         if self._boundary_constraints:
             bc_comp = self.add_subsystem('boundary_constraints', subsys=BoundaryConstraintComp())
@@ -353,6 +454,7 @@ class GLMPhase(PhaseBase):
             # Determine the path to the variable which we will be constraining
             var_type = self._classify_var(var)
 
+            custom_var = False
             if var_type == 'time':
                 options['shape'] = (1,)
                 options['units'] = self.time_options['units'] if con_units is None else con_units
@@ -400,13 +502,13 @@ class GLMPhase(PhaseBase):
                 options['units'] = control_rate_units if con_units is None else con_units
                 constraint_path = 'control_rates:{0}'.format(var)
             else:
+                custom_var = True
+
                 # Failed to find variable, assume it is in the RHS
-                if transcription == 'gauss-lobatto':
-                    constraint_path = 'rhs_disc.{0}'.format(var)
-                elif transcription == 'radau-ps':
-                    constraint_path = 'rhs_all.{0}'.format(var)
+                if formulation == 'optimizer-based' or formulation == 'solver-based':
+                    constraint_path = 'ozone.integration_group.ode_comp.{0}'.format(var)
                 else:
-                    raise ValueError('Invalid transcription')
+                    raise NotImplementedError()
 
                 options['shape'] = con_shape
                 options['units'] = con_units
@@ -421,10 +523,17 @@ class GLMPhase(PhaseBase):
                                               **options['final'])
 
             # Build the correct src_indices regardless of shape
-            size = np.prod(options['shape'])
-            src_idxs_initial = np.arange(size, dtype=int).reshape(options['shape'])
-            src_idxs_final = np.arange(-size, 0, dtype=int).reshape(options['shape'])
-            src_idxs = np.stack((src_idxs_initial, src_idxs_final))
+            if custom_var:
+                indices = np.arange(num_timesteps * num_stages * np.prod(con_shape)).reshape(
+                    (num_timesteps, num_stages,) + con_shape)
+                src_idxs_initial = indices[0, 0].flatten()
+                src_idxs_final = indices[-1, 0].flatten()
+                src_idxs = np.concatenate([src_idxs_initial, src_idxs_final])
+            else:
+                size = np.prod(options['shape'])
+                src_idxs_initial = np.arange(size, dtype=int).reshape(options['shape'])
+                src_idxs_final = np.arange(-size, 0, dtype=int).reshape(options['shape'])
+                src_idxs = np.stack((src_idxs_initial, src_idxs_final))
 
             self.connect(constraint_path,
                          'boundary_constraints.boundary_values:{0}'.format(con_name),
@@ -602,3 +711,48 @@ class GLMPhase(PhaseBase):
                                              vectorize_derivs=vectorize_derivs,
                                              simul_coloring=simul_coloring,
                                              simul_map=simul_map)
+
+    def set_values(self, var, val, nodes=None, kind='linear', axis=0):
+        """
+        Retrieve the values of the given variable at the given
+        subset of nodes.
+
+        Parameters
+        ----------
+        var : str
+            The variable whose values are to be returned.  This may be
+            the name 'time', the name of a state, control, or parameter,
+            or the path to a variable in the ODE system of the phase.
+        val : ndarray
+            Array of time/control/state/parameter values.
+        nodes : str
+            The name of the node subset, one of 'disc', 'col', 'None'.
+            This option does not apply to GLMPhase. The default is 'None'.
+        kind : str
+            Specifies the kind of interpolation, as per the scipy.interpolate package.
+            One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
+            where 'zero', 'slinear', 'quadratic' and 'cubic' refer to a spline
+            interpolation of zeroth, first, second or third order) or as an
+            integer specifying the order of the spline interpolator to use.
+            Default is 'linear'.
+        axis : int
+            Specifies the axis along which interpolation should be performed.  Default is
+            the first axis (0).
+        """
+        var_type = self._classify_var(var)
+        formulation = self.metadata['formulation']
+        num_stages = get_method(self.metadata['method_name']).num_stages
+
+        if var_type == 'time':
+            interpolated_values = self.interpolate(xs=val, nodes=nodes, kind=kind, axis=axis)
+        else:
+            interpolated_values = self.interpolate(ys=val, nodes=nodes, kind=kind, axis=axis)
+
+        if var_type == 'state':
+            self._outputs['ozone.initial_condition:{}'.format(var)] = interpolated_values[0]
+            if formulation == 'optimizer-based':
+                self._outputs['ozone.integration_group.desvars_comp.Y:{}'.format(var)] = \
+                    np.einsum('i...,j->ij...', interpolated_values[1:], np.ones(num_stages))
+            # elif formulation == 'solver-based':
+        elif var_type == 'indep_control' or var_type == 'input_control':
+            self._outputs['controls:{}'.format(var)] = interpolated_values

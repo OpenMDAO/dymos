@@ -39,42 +39,49 @@ class ContinuityComp(ExplicitComponent):
 
         self.jacs = {}
 
-        for state_name, options in iteritems(state_options):
-            shape = options['shape']
-            units = options['units']
+        if self.metadata['enforce_state_continuity']:
 
-            self.add_input(
-                name='states:{0}'.format(state_name),
-                shape=(num_disc_nodes,) + shape,
-                desc='Values of state {0} at discretization nodes'.format(state_name),
-                units=units)
+            for state_name, options in iteritems(state_options):
+                shape = options['shape']
+                units = options['units']
 
-            self.add_output(
-                name='defect_states:{0}'.format(state_name),
-                shape=(num_segments - 1,) + shape,
-                desc='Consistency constraint values for state {0}'.format(state_name),
-                units=units)
+                self.add_input(
+                    name='states:{0}'.format(state_name),
+                    shape=(num_disc_nodes,) + shape,
+                    desc='Values of state {0} at discretization nodes'.format(state_name),
+                    units=units)
 
-            if self.metadata['enforce_state_continuity']:
+                self.add_output(
+                    name='defect_states:{0}'.format(state_name),
+                    shape=(num_segments - 1,) + shape,
+                    desc='Consistency constraint values for state {0}'.format(state_name),
+                    units=units)
+
                 self.add_constraint(name='defect_states:{0}'.format(state_name),
                                     equals=0.0, scaler=1.0, linear=True)
 
-            size = np.prod(shape)
+                size = np.prod(shape)
 
-            vals = np.zeros((num_segments - 1, 2, size))
-            rows = np.zeros((num_segments - 1, 2, size), int)
-            cols = np.zeros((num_segments - 1, 2, size), int)
+                vals = np.zeros((num_segments - 1, 2, size))
+                rows = np.zeros((num_segments - 1, 2, size), int)
+                cols = np.zeros((num_segments - 1, 2, size), int)
 
-            arange = np.arange(size)
+                arange = np.arange(size)
 
-            vals[:, 0] = 1.0
-            vals[:, 1] = -1.0
-            for iseg in range(num_segments - 1):
-                rows[iseg, :, :] = iseg * size + arange
-                cols[iseg, 0, :] = (segment_indices[iseg, 1] - 1) * size + arange
-                cols[iseg, 1, :] = segment_indices[iseg + 1, 0] * size + arange
+                vals[:, 0] = 1.0
+                vals[:, 1] = -1.0
+                for iseg in range(num_segments - 1):
+                    rows[iseg, :, :] = iseg * size + arange
+                    cols[iseg, 0, :] = (segment_indices[iseg, 1] - 1) * size + arange
+                    cols[iseg, 1, :] = segment_indices[iseg + 1, 0] * size + arange
 
-            self.jacs[state_name] = (vals.ravel(), rows.ravel(), cols.ravel())
+                self.jacs[state_name] = (vals.ravel(), rows.ravel(), cols.ravel())
+
+                self.declare_partials(
+                    'defect_states:{0}'.format(state_name),
+                    'states:{0}'.format(state_name),
+                    val=vals, rows=rows, cols=cols,
+                )
 
         for control_name, options in iteritems(control_options):
             shape = options['shape']
@@ -113,17 +120,6 @@ class ContinuityComp(ExplicitComponent):
 
                 self.jacs[control_name] = (vals.ravel(), rows.ravel(), cols.ravel())
 
-        for state_name, options in iteritems(state_options):
-            vals, rows, cols = self.jacs[state_name]
-            self.declare_partials(
-                'defect_states:{0}'.format(state_name),
-                'states:{0}'.format(state_name),
-                val=vals, rows=rows, cols=cols,
-            )
-
-        for control_name, options in iteritems(control_options):
-            if options['dynamic'] and options['continuity']:
-                vals, rows, cols = self.jacs[control_name]
                 self.declare_partials(
                     'defect_controls:{0}'.format(control_name),
                     'controls:{0}'.format(control_name),
@@ -224,17 +220,18 @@ class ContinuityComp(ExplicitComponent):
         compressed = self.metadata['grid_data'].compressed
 
         if not compressed:
-            for state_name, options in iteritems(state_options):
-                vals, rows, cols = self.jacs[state_name]
+            if self.metadata['enforce_state_continuity']:
+                for state_name, options in iteritems(state_options):
+                    vals, rows, cols = self.jacs[state_name]
 
-                outputs_raw = outputs['defect_states:{0}'.format(state_name)]
-                inputs_raw = inputs['states:{0}'.format(state_name)]
+                    outputs_raw = outputs['defect_states:{0}'.format(state_name)]
+                    inputs_raw = inputs['states:{0}'.format(state_name)]
 
-                outputs_flat = outputs_raw.reshape((np.prod(outputs_raw.shape)))
-                inputs_flat = inputs_raw.reshape((np.prod(inputs_raw.shape)))
+                    outputs_flat = outputs_raw.reshape((np.prod(outputs_raw.shape)))
+                    inputs_flat = inputs_raw.reshape((np.prod(inputs_raw.shape)))
 
-                outputs_flat[:] = 0.
-                np.add.at(outputs_flat, rows, vals * inputs_flat[cols])
+                    outputs_flat[:] = 0.
+                    np.add.at(outputs_flat, rows, vals * inputs_flat[cols])
 
             for control_name, options in iteritems(control_options):
                 if options['dynamic'] and options['continuity']:

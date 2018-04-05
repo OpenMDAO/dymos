@@ -17,7 +17,7 @@ class CLaComp(ExplicitComponent):
         self.add_input('mach', shape=(nn,), desc='Mach number', units=None)
 
         # Outputs
-        self.add_output(name='CLa', val=np.zeros(nn), desc='alpha lift coefficient', units=None)
+        self.add_output(name='CLa', val=np.ones(nn), desc='alpha lift coefficient', units=None)
 
         # Jacobian
         ar = np.arange(nn)

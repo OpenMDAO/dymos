@@ -81,6 +81,7 @@ def brachistochrone_min_time(
         p.setup(mode='rev', check=True)
     else:
         p.setup(force_alloc_complex=force_alloc_complex)
+        p.final_setup()
         p.set_solver_print(level=-1)
 
     p['phase0.t_initial'] = 0.0
@@ -92,10 +93,10 @@ def brachistochrone_min_time(
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='disc')
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='all')
     else:
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10])
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5])
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9])
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5])
+        phase.set_values('x', [0, 10])
+        phase.set_values('y', [10, 5])
+        phase.set_values('v', [0, 9.9])
+        phase.set_values('theta', [5, 100.5])
 
     p.run_model()
     if run_driver:
@@ -143,3 +144,16 @@ def brachistochrone_min_time(
         plt.show()
 
     return p
+
+
+if __name__ == '__main__':
+    glm_formulation='solver-based'
+    glm_integrator='RK4'
+    test_fix_initial=True
+    transcription = 'glm'
+    SHOW_PLOTS = False
+    p = brachistochrone_min_time(
+        transcription=transcription, run_driver=True,
+        glm_formulation=glm_formulation, glm_integrator=glm_integrator,
+        test_fix_initial=test_fix_initial,
+    )
