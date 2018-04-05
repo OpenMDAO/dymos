@@ -10,6 +10,7 @@ The Brachistochrone Problem
   :titlesonly:
 
   brachistochrone
+  simultaneous_derivs
 
 Single Stage To Orbit
 -----------------------

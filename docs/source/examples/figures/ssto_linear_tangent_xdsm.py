@@ -3,11 +3,11 @@ from __future__ import print_function, division, absolute_import
 from pyxdsm.XDSM import XDSM
 
 from openmdao.api import Problem
-from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
+from dymos.examples.ssto.launch_vehicle_linear_tangent_ode import LaunchVehicleLinearTangentODE
 
 def main():
     p = Problem()
-    p.model = LaunchVehicleODE(num_nodes=1)
+    p.model = LaunchVehicleLinearTangentODE(num_nodes=1)
     p.setup()
 
     p.run_model()
@@ -25,11 +25,14 @@ def main():
                'xdot': r'$\dot{x}$',
                'vxdot': r'$\dot{v}_x$',
                'vydot': r'$\dot{v}_y$',
-               'theta': r'$\theta$'}
+               'theta': r'$\theta$',
+               'a_ctrl': r'$a$',
+               'b_ctrl': r'$b$',
+               'time': r'$time$'}
 
     xdsm = XDSM()
     xdsm.from_openmdao_group(p.model, var_map=var_map)
-    xdsm.write('ssto_xdsm', build=True, cleanup=True)
+    xdsm.write('ssto_linear_tangent_xdsm', build=True, cleanup=True)
 
 
 

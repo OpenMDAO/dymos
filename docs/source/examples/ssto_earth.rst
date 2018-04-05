@@ -49,6 +49,17 @@ Run Script
 Component and Group Definitions
 --------------------------------
 
+The ODE system for this problem consists of two components. The atmosphere component computes density (:math:`\rho`).
+The eom component computes the state rates.
+
+.. figure:: figures/ssto_xdsm.png
+
+    The XDSM diagram for the ODE system in the SSTO problem.  The unconnected inputs to the EOM
+    at the top of the diagram are provided by the Dymos phase as states, controls, or time values.
+    The outputs, including the state rates, are shown on the right side of the diagram.  The Dymos
+    phases use state rate values to ensure that the integration technique satisfies the dynamics
+    of the system.
+
 ex_ssto_earth.py
 ----------------------
 .. embed-code::

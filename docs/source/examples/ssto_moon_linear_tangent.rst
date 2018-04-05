@@ -24,6 +24,13 @@ calculates :math:`theta`, which is then connected to the equations of motion com
 Component and Group Definitions
 -------------------------------
 
+.. figure:: figures/ssto_linear_tangent_xdsm.png
+
+    The XDSM for the ODE system in the SSTO linear tangent problem.  The only significant change
+    is that we have a new component, `guidance`, which accepts :math:`a`, :math:`b`,
+    and :math:`time`, and computes :math:`\theta`.
+
+
 linear_tangent_guidance_comp.py
 -------------------------------
 .. embed-code::
