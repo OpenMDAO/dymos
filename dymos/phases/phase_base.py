@@ -1,6 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 from collections import Iterable
+import inspect
 from six import iteritems
 
 import numpy as np
@@ -19,6 +20,7 @@ from dymos.phases.options import ControlOptionsDictionary, \
     StateOptionsDictionary, TimeOptionsDictionary
 from dymos.phases.components import ControlRateComp
 from dymos.phases.grid_data import GridData
+from dymos.ode_options import ODEOptions
 from dymos.utils.misc import get_rate_units
 from dymos.utils.misc import CoerceDesvar
 
@@ -37,6 +39,16 @@ class PhaseBase(Group):
         self._ode_controls = {}
         self.grid_data = None
         self._time_extents = []
+
+        # check that ode_class is appropriate
+        if not inspect.isclass(self.metadata['ode_class']):
+            raise ValueError('ode_class must be a class, not an instance.')
+        if not issubclass(self.metadata['ode_class'], System):
+            raise ValueError('ode_class must be derived from openmdao.core.System.')
+        if not hasattr(self.metadata['ode_class'], 'ode_options') or \
+                not isinstance(self.metadata['ode_class'].ode_options, ODEOptions):
+            raise ValueError('ode_class has no ODE metadata.  Use @declare_time, @declare_state'
+                             'and @declare_control to assign ODE metadata.')
 
         self.ode_options = self.metadata['ode_class'].ode_options
 
