@@ -33,7 +33,7 @@ class OzoneODETestCase(unittest.TestCase):
         p.model.add_subsystem('phase0', phase)
 
         phase.add_control('theta', units='deg', dynamic=True,
-                          rate_continuity=True, lower=0.01, upper=179.9)
+                          rate_continuity=None, lower=0.01, upper=179.9)
 
         p.setup(force_alloc_complex=True)
         p.final_setup()
