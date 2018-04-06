@@ -55,10 +55,11 @@ class VectorizedIntegrator(Integrator):
                     'Y:%s' % state_name,
                     shape=(num_times - 1, num_stages,) + state['shape'],
                     units=state['units'])
-                lower = self.metadata['state_options'][state_name]['lower']
-                upper = self.metadata['state_options'][state_name]['upper']
-                scaler = self.metadata['state_options'][state_name]['scaler']
-                comp.add_design_var('Y:%s' % state_name, lower=lower, upper=upper, scaler=scaler)
+                kwargs = {
+                    name: self.metadata['state_options'][state_name][name]
+                    for name in ['lower', 'upper', 'scaler', 'adder', 'ref', 'ref0']
+                }
+                comp.add_design_var('Y:%s' % state_name, **kwargs)
             integration_group.add_subsystem('desvars_comp', comp)
         elif formulation == 'solver-based':
             comp = IndepVarComp()

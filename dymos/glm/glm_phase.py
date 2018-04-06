@@ -211,9 +211,6 @@ class GLMPhase(PhaseBase):
         self.add_subsystem(
             'ozone', ode_int,
             promotes_outputs=[
-                # ('IC_state:{0}'.format(state), 'states:{0}'.format(state))
-                # for state in self.state_options
-            ] + [
                 ('state:{0}'.format(state), 'out_states:{0}'.format(state))
                 for state in self.state_options
             ],
@@ -235,9 +232,6 @@ class GLMPhase(PhaseBase):
         self.add_subsystem(
             'ozone', ode_int,
             promotes_outputs=[
-                # ('IC_state:{0}'.format(state), 'states:{0}'.format(state))
-                # for state in self.state_options
-            ] + [
                 ('state:{0}'.format(state), 'out_states:{0}'.format(state))
                 for state in self.state_options
             ],

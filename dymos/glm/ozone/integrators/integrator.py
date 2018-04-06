@@ -64,30 +64,6 @@ class Integrator(Group):
         comp = IndepVarComp()
         promotes = []
 
-        # # Dummy state history to pull out initial conditions to conform to pointer's api
-        # for state_name, state in iteritems(states):
-        #     name = 'IC_state:%s' % state_name
-        #     state = self.metadata['state_options'][state_name]
-        #
-        #     comp.add_output(
-        #         name,
-        #         shape=(len(normalized_times),) + state['shape'], units=state['units']
-        #     )
-        #     promotes.append(name)
-        #
-        #     if not state['fix_initial']:
-        #         lower = state['lower']
-        #         upper = state['upper']
-        #         if lower is not None and not np.isscalar(lower):
-        #             lower = lower[0]
-        #         if upper is not None and not np.isscalar(upper):
-        #             upper = upper[0]
-        #
-        #         comp.add_design_var(
-        #             name, indices=np.arange(np.prod(state['shape'])),
-        #             lower=lower, upper=upper,
-        #         )
-
         # Initial conditions
         for state_name, state in iteritems(states):
             name = get_name('initial_condition', state_name)
@@ -127,20 +103,6 @@ class Integrator(Group):
             promotes.append('final_time')
 
         self.add_subsystem('inputs', comp, promotes_outputs=promotes)
-
-        # # ------------------------------------------------------------------------------------
-        # # Initial conditions comp
-        # comp = InitialConditionsComp(states=states)
-        # self.add_subsystem(
-        #     'initial_conditions_comp', comp, promotes_outputs=[
-        #         ('out:%s' % state_name, get_name('initial_condition', state_name))
-        #         for state_name in states
-        #     ])
-        # for state_name in states:
-        #     size = np.prod(state['shape'])
-        #     self.connect(
-        #         'IC_state:%s' % state_name, 'initial_conditions_comp.in:%s' % state_name,
-        #         src_indices=np.arange(size), flat_src_indices=True)
 
         # ------------------------------------------------------------------------------------
         # Time comp

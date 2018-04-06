@@ -144,16 +144,3 @@ def brachistochrone_min_time(
         plt.show()
 
     return p
-
-
-if __name__ == '__main__':
-    glm_formulation = 'solver-based'
-    glm_integrator = 'RK4'
-    test_fix_initial = True
-    transcription = 'glm'
-    SHOW_PLOTS = False
-    p = brachistochrone_min_time(
-        transcription=transcription, run_driver=True,
-        glm_formulation=glm_formulation, glm_integrator=glm_integrator,
-        test_fix_initial=test_fix_initial,
-    )
