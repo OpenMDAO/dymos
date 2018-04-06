@@ -758,3 +758,82 @@ class GLMPhase(PhaseBase):
             self._outputs['controls:{}'.format(var)] = interpolated_values
         elif var_type == 'input_control':
             self._outputs['input_controls.controls:{0}_out'.format(var)] = interpolated_values
+
+    def add_control(self, name, val=0.0, units=0, dynamic=True, opt=True, lower=None, upper=None,
+                    fix_initial=False, fix_final=False,
+                    scaler=None, adder=None, ref=None, ref0=None, continuity=None,
+                    rate_continuity=None, rate2_continuity=None,
+                    rate_param=None, rate2_param=None):
+        """
+        Declares that a parameter of the ODE is to potentially be used as an optimal control.
+
+        Parameters
+        ----------
+        name : str
+            Name of the controllable parameter in the ODE.
+        val : float or ndarray
+            Default value of the control at all nodes.  If val scalar and the control
+            is dynamic it will be broadcast.
+        units : str or None or 0
+            Units in which the control variable is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        dynamic : bool
+            If True (default) this is a dynamic control, the values provided correspond to
+            the number of nodes in the phase.  If False, this is a static control, sized (1,),
+            and that value is broadcast to all nodes within the phase.
+        opt : bool
+            If True (default) the value(s) of this control will be design variables in
+            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
+            If False, the values of this control will exist in
+            'phase_name.input_controls.controls:control_name', where it may be connected to
+            external sources if desired.
+        lower : float or ndarray
+            The lower bound of the control at the nodes of the phase.
+        upper : float or ndarray
+            The upper bound of the control at the nodes of the phase.
+        scaler : float or ndarray
+            The scaler of the control value at the nodes of the phase.
+        adder : float or ndarray
+            The adder of the control value at the nodes of the phase.
+        ref0 : float or ndarray
+            The zero-reference value of the control at the nodes of the phase.
+        ref : float or ndarray
+            The unit-reference value of the control at the nodes of the phase
+        contiuity : bool or None
+            True if continuity in the value of the control is desired at the segment bounds.
+            See notes about default values for continuity.
+        rate_continuity : bool or None
+            True if continuity in the rate of the control is desired at the segment bounds.
+            See notes about default values for continuity.
+        rate_param : None or str
+            The name of the parameter in the ODE to which the first time-derivative
+            of the control value is connected.
+        rate2_param : None or str
+            The name of the parameter in the ODE to which the second time-derivative
+            of the control value is connected.
+
+        Notes
+        -----
+        If continuity is None or rate continuity is None, the default value for
+        continuity is True and rate continuity of False.
+
+        The default value of continuity and rate continuity for input controls (opt=False)
+        is False.
+
+        The user may override these defaults by specifying them as True or False.
+
+        """
+        if rate_continuity == True:
+            raise NotImplementedError(
+                'GLMPhase does not have support for nonlinear controls within segments ' +
+                'so rate_continuity cannot be enforced.')
+        if rate2_continuity == True:
+            raise NotImplementedError(
+                'GLMPhase does not have support for nonlinear controls within segments ' +
+                'so rate2_continuity cannot be enforced.')
+
+        super(GLMPhase, self).add_control(
+            name, val=val, units=units, dynamic=dynamic, opt=opt, lower=lower, upper=upper,
+            fix_initial=fix_initial, fix_final=fix_final, scaler=scaler, adder=adder,
+            ref=ref, ref0=ref0, continuity=continuity, rate_continuity=None,
+            rate2_continuity=None, rate_param=rate_param, rate2_param=rate2_param)

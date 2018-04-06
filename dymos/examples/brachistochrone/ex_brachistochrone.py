@@ -60,8 +60,13 @@ def brachistochrone_min_time(
         phase.add_boundary_constraint('y', loc='final', equals=5.)
         phase.add_boundary_constraint('v', loc='initial', equals=0.)
 
+    if transcription != 'glm':
+        rate_continuity = True
+    else:
+        rate_continuity = None
+
     phase.add_control('theta', units='deg', dynamic=True,
-                      rate_continuity=True, lower=0.01, upper=179.9)
+                      rate_continuity=rate_continuity, lower=0.01, upper=179.9)
 
     phase.add_control('g', units='m/s**2', dynamic=True, opt=False, val=9.80665)
 
