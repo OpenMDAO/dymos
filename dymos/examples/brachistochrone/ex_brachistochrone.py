@@ -32,7 +32,7 @@ def brachistochrone_min_time(
         p.driver = ScipyOptimizeDriver()
 
     kwargs = {}
-    if transcription == 'gauss-lobatto' or transcription == 'radau-ps':
+    if transcription != 'glm':
         kwargs['transcription_order'] = 3
     else:
         kwargs['formulation'] = glm_formulation
