@@ -823,11 +823,11 @@ class GLMPhase(PhaseBase):
         The user may override these defaults by specifying them as True or False.
 
         """
-        if rate_continuity == True:
+        if rate_continuity:
             raise NotImplementedError(
                 'GLMPhase does not have support for nonlinear controls within segments ' +
                 'so rate_continuity cannot be enforced.')
-        if rate2_continuity == True:
+        if rate2_continuity:
             raise NotImplementedError(
                 'GLMPhase does not have support for nonlinear controls within segments ' +
                 'so rate2_continuity cannot be enforced.')
