@@ -82,7 +82,7 @@ class PhaseBase(Group):
             'transcription_order', default=3, types=(int, Iterable),
             desc='Order of the transcription')
         self.metadata.declare(
-            'compressed', default=False, types=bool, desc='Use compressed transcription')
+            'compressed', default=True, types=bool, desc='Use compressed transcription')
 
     def set_state_options(self, name, **kwargs):
         """

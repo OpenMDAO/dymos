@@ -359,7 +359,24 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                     'control_rate2': 'control_rate_comp.control_rates:{0}',
                     'rhs': 'rhs_all.{0}'}
 
-        if var_type == 'rhs':
+        if var_type == 'state':
+            var_path = var_prefix + path_map[var_type].format(var)
+            output_units = op[var_path]['units']
+            output_value = convert_units(op[var_path]['value'][gd.input_maps['state_to_disc'], ...],
+                                         output_units, units)
+
+        elif var_type in ('input_control', 'indep_control'):
+            var_path = var_prefix + path_map[var_type].format(var)
+            output_units = op[var_path]['units']
+
+            if self.control_options[var]['dynamic']:
+                vals = op[var_path]['value'][gd.input_maps['dynamic_control_to_all'], ...]
+                output_value = convert_units(vals, output_units, units)
+            else:
+                output_value = convert_units(op[var_path]['value'], output_units, units)
+                output_value = np.repeat(output_value, gd.num_nodes, axis=0)
+
+        elif var_type == 'rhs':
             rhs_all_outputs = dict(self.rhs_all.list_outputs(out_stream=None, values=True,
                                                              shape=True, units=True))
             prom2abs_all = self.rhs_all._var_allprocs_prom2abs_list
@@ -371,10 +388,6 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             var_path = var_prefix + path_map[var_type].format(var)
             output_units = op[var_path]['units']
             output_value = convert_units(op[var_path]['value'], output_units, units)
-
-            if var_type in ('indep_control', 'input_control') and \
-                    not self.control_options[var]['dynamic']:
-                output_value = np.repeat(output_value, gd.num_nodes, axis=0)
 
         # Always return a column vector
         if len(output_value.shape) == 1:

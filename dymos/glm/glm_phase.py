@@ -23,6 +23,10 @@ class GLMPhase(PhaseBase):
         self._node_indices = None
         self._segment_times = None
 
+        if self.metadata['compressed']:
+            raise ValueError('GLMPhase does not currently support compressed transcription. '
+                             'Specify `compressed=False` when initializing the phase.')
+
     def initialize(self):
         super(GLMPhase, self).initialize()
         # Optional metadata

@@ -20,17 +20,18 @@ matplotlib.use('Agg')
 
 class TestExampleSSTOMoon(unittest.TestCase):
 
-    def run_asserts(self, p, transcription):
+    def run_asserts(self, p, transcription, compressed):
         # Ensure defects are zero
         for state in ['x', 'y', 'vx', 'vy', 'm']:
             if transcription != 'glm':
                 assert_almost_equal(p['phase0.collocation_constraint.defects:{0}'.format(state)],
                                     0.0, decimal=5)
 
-            assert_almost_equal(p['phase0.continuity_constraint.'
-                                  'defect_states:{0}'.format(state)],
-                                0.0, decimal=5,
-                                err_msg='error in state continuity for state {0}'.format(state))
+            if compressed:
+                assert_almost_equal(p['phase0.continuity_constraint.'
+                                      'defect_states:{0}'.format(state)],
+                                    0.0, decimal=5,
+                                    err_msg='error in state continuity for state {0}'.format(state))
 
         # Ensure time found is the known solution
         assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)
@@ -52,9 +53,10 @@ class TestExampleSSTOMoon(unittest.TestCase):
     #                                                                       p.args[1],
     #                                                                       p.args[2]])
     # )
-    def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='rev'):
+    def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='rev',
+                     compressed=False):
         p = ex_ssto_moon.ssto_moon(transcription, num_seg=10, transcription_order=5,
-                                   top_level_jacobian=jacobian)
+                                   top_level_jacobian=jacobian, compressed=compressed)
 
         p.setup(mode=derivative_mode, check=True)
 
@@ -79,7 +81,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
         p.run_driver()
 
-        self.run_asserts(p, transcription)
+        self.run_asserts(p, transcription, compressed)
 
     def test_plot(self):
         import matplotlib.pyplot as plt

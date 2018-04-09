@@ -12,7 +12,7 @@ from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
 
 def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
-               top_level_jacobian='csc', optimizer='SLSQP'):
+               top_level_jacobian='csc', optimizer='SLSQP', compressed=False):
     p = Problem(model=Group())
     if optimizer == 'SNOPT':
         p.driver = pyOptSparseDriver()
@@ -27,7 +27,8 @@ def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
                   ode_class=LaunchVehicleODE,
                   ode_init_kwargs={'central_body': 'earth'},
                   num_segments=num_seg,
-                  transcription_order=transcription_order)
+                  transcription_order=transcription_order,
+                  compressed=compressed)
 
     p.model.add_subsystem('phase0', phase)
 
