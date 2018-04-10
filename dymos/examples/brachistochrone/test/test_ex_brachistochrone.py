@@ -22,9 +22,6 @@ class TestBrachistochroneExample(unittest.TestCase):
                 os.remove(filename)
 
     def run_asserts(self, p, transcription):
-        print(p['phase0.controls:theta'])
-        print(p.model.phase0.get_values('theta'))
-
         t_initial = p.model.phase0.get_values('time')[0]
         tf = p.model.phase0.get_values('time')[-1]
 
