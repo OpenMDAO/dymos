@@ -9,21 +9,23 @@ from dymos.examples.ssto.launch_vehicle_linear_tangent_ode import LaunchVehicleL
 
 
 def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
-                             optimizer='SLSQP'):
+                             optimizer='SLSQP', compressed=True):
     """
     Returns an instance of the SSTO problem for ascent from the lunar surface using linear
     tangent guidance.
 
     Parameters
     ----------
-    transcription : str
+    transcription : str ('gauss-lobatto')
         The transcription method for optimal control:  'gauss-lobatto', 'radau-ps', or 'glm'.
-    num_seg : int
+    num_seg : int (10)
         The number of segments in the phase.
-    transcription_order : int or sequence
+    transcription_order : int or sequence (5)
         The transcription order for the states in each segment.
-    optimizer : str
+    optimizer : str ('SLSQP')
         The optimization driver to use for the problem:  'SLSQP' or 'SNOPT'.
+    compressed : bool (True)
+        If True, run with compressed transcription.
 
     Returns
     -------
@@ -47,7 +49,8 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
                   ode_class=LaunchVehicleLinearTangentODE,
                   ode_init_kwargs={'central_body': 'moon'},
                   num_segments=num_seg,
-                  transcription_order=transcription_order)
+                  transcription_order=transcription_order,
+                  compressed=compressed)
 
     p.model.add_subsystem('phase0', phase)
 
