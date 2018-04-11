@@ -113,11 +113,11 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         path_comp = None
         gd = self.grid_data
 
-        if self._path_constaints:
+        if self._path_constraints:
             path_comp = GaussLobattoPathConstraintComp(grid_data=gd)
             self.add_subsystem('path_constraints', subsys=path_comp)
 
-        for var, options in iteritems(self._path_constaints):
+        for var, options in iteritems(self._path_constraints):
             con_units = options.get('units', None)
             con_name = options['constraint_name']
 
