@@ -25,6 +25,9 @@ from dymos.utils.misc import get_rate_units
 from dymos.utils.misc import CoerceDesvar
 
 
+_unspecified = object()
+
+
 class PhaseBase(Group):
     def __init__(self, **kwargs):
 
@@ -34,7 +37,7 @@ class PhaseBase(Group):
         self.control_options = {}
         self.time_options = TimeOptionsDictionary()
         self._boundary_constraints = {}
-        self._path_constaints = {}
+        self._path_constraints = {}
         self._objectives = []
         self._ode_controls = {}
         self.grid_data = None
@@ -84,51 +87,68 @@ class PhaseBase(Group):
         self.metadata.declare(
             'compressed', default=True, types=bool, desc='Use compressed transcription')
 
-    def set_state_options(self, name, **kwargs):
+    def set_state_options(self, name, units=_unspecified, val=1.0,
+                          fix_initial=False, fix_final=False, initial_bounds=None,
+                          final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
+                          ref=None, ref0=None, defect_scaler=1.0):
         """
-        Declares that a control of the RHS is to be used as a dynamic control.
+        Set options that apply the EOM state variable of the given name.
 
         Parameters
         ----------
         name : str
             Name of the state variable in the RHS.
         units : str or None
-            Units in which the state variable is defined.
-        opt : bool
-            Specifies whether this state is to be a design variable for the optimization.
-            If False, then the value is expected to be set by the user or provided externally.
+            Units in which the state variable is defined.  Internally components may use different
+            units for the state variable, but the IndepVarComp which provides its value will provide
+            it in these units, and collocation defects will use these units.  If units is not
+            specified here then the value as defined in the ODEOptions (@declare_state) will be
+            used.
         val :  ndarray
-            The default value of the state at the nodes of the phase.
-        fix_initial : bool
+            The default value of the state at the state discretization nodes of the phase.
+        fix_initial : bool(False)
             If True, omit the first value of the state from the design variables (prevent the
-            optimizer from changing it). Default = False.
-        fix_final : bool
+            optimizer from changing it).
+        fix_final : bool(False)
             If True, omit the final value of the state from the design variables (prevent the
-            optimizer from changing it). Default = False.
-        lower : float or ndarray
+            optimizer from changing it).
+        lower : float or ndarray or None (None)
             The lower bound of the state at the nodes of the phase.
-        upper : float or ndarray
+        upper : float or ndarray or None (None)
             The upper bound of the state at the nodes of the phase.
-        scaler : float or ndarray
+        scaler : float or ndarray or None (None)
             The scaler of the state value at the nodes of the phase.
-        adder : float or ndarray
+        adder : float or ndarray or None (None)
             The adder of the state value at the nodes of the phase.
-        ref0 : float or ndarray
+        ref0 : float or ndarray or None (None)
             The zero-reference value of the state at the nodes of the phase.
-        ref : float or ndarray
+        ref : float or ndarray or None (None)
             The unit-reference value of the state at the nodes of the phase
-        defect_scaler : float or ndarray
+        defect_scaler : float or ndarray (1.0)
             The scaler of the state defect at the collocation nodes of the phase.
-        continuity : bool or dict
 
         """
         if self.metadata['transcription'] == 'glm':
-            if 'fix_final' in kwargs and kwargs['fix_final']:
+            if fix_final:
                 raise NotImplementedError(
                     'GLMPhase does not support fixing the final state value in this way. ' +
                     'Equivalent, you can add a boundary constraint on the final state value: ' +
                     "phase.add_boundary_constraint('x', loc='final', equals=0.)")
-        self.state_options[name].update(kwargs)
+
+        if units is not _unspecified:
+            self.state_options[name]['units'] = units
+        self.state_options[name]['val'] = val
+        self.state_options[name]['fix_initial'] = fix_initial
+        self.state_options[name]['fix_final'] = fix_final
+        self.state_options[name]['initial_bounds'] = initial_bounds
+        self.state_options[name]['final_bounds'] = final_bounds
+        self.state_options[name]['lower'] = lower
+        self.state_options[name]['upper'] = upper
+        self.state_options[name]['scaler'] = scaler
+        self.state_options[name]['adder'] = adder
+        self.state_options[name]['ref'] = ref
+        self.state_options[name]['ref0'] = ref0
+        self.state_options[name]['defect_scaler'] = defect_scaler
 
     def add_control(self, name, val=0.0, units=0, dynamic=True, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,
@@ -277,9 +297,11 @@ class PhaseBase(Group):
         if units != 0:
             self.control_options[name]['units'] = units
 
-    def add_boundary_constraint(self, name, loc, constraint_name=None, **kwargs):
+    def add_boundary_constraint(self, name, loc, constraint_name=None, units=None, lower=None,
+                                upper=None, equals=None, scaler=None, adder=None,
+                                ref=None, ref0=None, linear=False):
         r"""
-        Add a constraint variable to this system.
+        Add a boundary constraint to a variable in the phase.
 
         Parameters
         ----------
@@ -292,6 +314,10 @@ class PhaseBase(Group):
             The name of the variable as provided to the boundary constraint comp.  By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
+        units : str or None
+            The units in which the boundary constraint is to be applied.  If None, use the
+            units associated with the constrained output.  If provided, must be compatible with
+            the variables units.
         lower : float or ndarray, optional
             Lower boundary for the variable
         upper : float or ndarray, optional
@@ -310,15 +336,10 @@ class PhaseBase(Group):
             is second in precedence.
         linear : bool
             Set to True if constraint is linear. Default is False.
-        **kwargs : optional
-            Keyword arguments that are saved as metadata for the
-            design variable.
         """
-        if 'indices' in kwargs:
-            raise ValueError('boundary constraint does not accept indices')
-
         if loc not in ['initial', 'final']:
-            raise ValueError('invalid boundary constraint location {0}'.format(loc))
+            raise ValueError('invalid boundary constraint location ({0}). must be '
+                             '"initial" or "final"'.format(loc))
 
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
@@ -330,11 +351,21 @@ class PhaseBase(Group):
         if loc not in self._boundary_constraints[name]:
             self._boundary_constraints[name][loc] = {}
 
-        self._boundary_constraints[name][loc].update(kwargs)
+        self._boundary_constraints[name][loc]['lower'] = lower
+        self._boundary_constraints[name][loc]['upper'] = upper
+        self._boundary_constraints[name][loc]['equals'] = equals
+        self._boundary_constraints[name][loc]['scaler'] = scaler
+        self._boundary_constraints[name][loc]['adder'] = adder
+        self._boundary_constraints[name][loc]['ref0'] = ref0
+        self._boundary_constraints[name][loc]['ref'] = ref
+        self._boundary_constraints[name][loc]['linear'] = linear
+        self._boundary_constraints[name][loc]['units'] = units
 
-    def add_path_constraint(self, name, constraint_name=None, **kwargs):
+    def add_path_constraint(self, name, constraint_name=None, units=None, lower=None,
+                            upper=None, equals=None, scaler=None, adder=None,
+                            ref=None, ref0=None, linear=False):
         r"""
-        Add a constraint variable to this system.
+        Add a path constraint to a variable in the phase.
 
         Parameters
         ----------
@@ -344,6 +375,10 @@ class PhaseBase(Group):
             The name of the variable as provided to the boundary constraint comp.  By
             default this is the last element in `name` when split by dots.  The user may
             override the constraint name if splitting the path causes name collisions.
+        units : str or None
+            The units in which the boundary constraint is to be applied.  If None, use the
+            units associated with the constrained output.  If provided, must be compatible with
+            the variables units.
         lower : float or ndarray, optional
             Lower boundary for the variable
         upper : float or ndarray, optional
@@ -362,18 +397,24 @@ class PhaseBase(Group):
             is second in precedence.
         linear : bool
             Set to True if constraint is linear. Default is False.
-        **kwargs : optional
-            Keyword arguments that are saved as metadata for the
-            design variable.
+
         """
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
 
-        if name not in self._path_constaints:
-            self._path_constaints[name] = {}
-            self._path_constaints[name]['constraint_name'] = constraint_name
+        if name not in self._path_constraints:
+            self._path_constraints[name] = {}
+            self._path_constraints[name]['constraint_name'] = constraint_name
 
-        self._path_constaints[name].update(kwargs)
+        self._path_constraints[name]['lower'] = lower
+        self._path_constraints[name]['upper'] = upper
+        self._path_constraints[name]['equals'] = equals
+        self._path_constraints[name]['scaler'] = scaler
+        self._path_constraints[name]['adder'] = adder
+        self._path_constraints[name]['ref0'] = ref0
+        self._path_constraints[name]['ref'] = ref
+        self._path_constraints[name]['linear'] = linear
+        self._path_constraints[name]['units'] = units
 
     def set_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
@@ -503,7 +544,11 @@ class PhaseBase(Group):
                                              simul_coloring=simul_coloring,
                                              simul_map=simul_map)
 
-    def set_time_options(self, **kwargs):
+    def set_time_options(self, opt_initial=True, opt_duration=True, initial=0.0,
+                         initial_bounds=(None, None), initial_scaler=None,
+                         initial_adder=None, initial_ref=None, initial_ref0=None,
+                         duration=1.0, duration_bounds=(None, None), duration_scaler=None,
+                         duration_adder=None, duration_ref=None, duration_ref0=None):
         """
         Set options for the time (or the integration variable) in the Phase.
 
@@ -512,11 +557,11 @@ class PhaseBase(Group):
         opt_initial : bool
             If True, the initial time of the phase is a design variable
             for optimization, otherwise False.
-        opt_initial : bool
+        opt_duration : bool
             If True, the duration of the phase is a design variable
             for optimization, otherwise False.
         initial : float
-            Value of the time at the start of the phase.
+            Default value of the time at the start of the phase.
         initial_bounds : Iterable of size 2
             Tuple of (lower, upper) bounds for time at the start of the phase.
         initial_scaler : float
@@ -542,39 +587,53 @@ class PhaseBase(Group):
             Unit-reference value for the duration of time across the phase.
         """
         # Don't allow the user to provide desvar options if the control is not optimal
-        if not kwargs.get('opt_initial', True):
+        if not opt_initial:
             illegal_options = []
-            if kwargs.get('initial_bounds', None) is not None:
+            if initial_bounds != (None, None):
                 illegal_options.append('initial_bounds')
-            if kwargs.get('initial_scaler', None) is not None:
+            if initial_scaler is not None:
                 illegal_options.append('initial_scaler')
-            if kwargs.get('initial_adder', None) is not None:
+            if initial_adder is not None:
                 illegal_options.append('initial_adder')
-            if kwargs.get('initial_ref', None) is not None:
+            if initial_ref is not None:
                 illegal_options.append('initial_ref')
-            if kwargs.get('initial_ref0', None) is not None:
+            if initial_ref0 is not None:
                 illegal_options.append('initial_ref0')
             if illegal_options:
-                msg = 'Invalid options for non-optimal ' \
+                msg = 'Invalid options for fixed ' \
                       'initial time: {0}'.format(', '.join(illegal_options))
                 raise ValueError(msg)
-        if not kwargs.get('opt_duration', True):
+        if not opt_duration:
             illegal_options = []
-            if kwargs.get('duration_bounds', None) is not None:
+            if duration_bounds != (None, None):
                 illegal_options.append('duration_bounds')
-            if kwargs.get('duration_scaler', None) is not None:
+            if duration_scaler is not None:
                 illegal_options.append('duration_scaler')
-            if kwargs.get('duration_adder', None) is not None:
+            if duration_adder is not None:
                 illegal_options.append('duration_adder')
-            if kwargs.get('duration_ref', None) is not None:
+            if duration_ref is not None:
                 illegal_options.append('duration_ref')
-            if kwargs.get('duration_ref0', None) is not None:
+            if duration_ref0 is not None:
                 illegal_options.append('duration_ref0')
             if illegal_options:
-                msg = 'Invalid options for non-optimal ' \
+                msg = 'Invalid options for fixed ' \
                       'duration: {0}'.format(', '.join(illegal_options))
                 raise ValueError(msg)
-        self.time_options.update(kwargs)
+        self.time_options['opt_initial'] = opt_initial
+        self.time_options['initial'] = initial
+        self.time_options['initial_bounds'] = initial_bounds
+        self.time_options['initial_scaler'] = initial_scaler
+        self.time_options['initial_adder'] = initial_adder
+        self.time_options['initial_ref'] = initial_ref
+        self.time_options['initial_ref0'] = initial_ref0
+
+        self.time_options['opt_duration'] = opt_duration
+        self.time_options['duration'] = duration
+        self.time_options['duration_bounds'] = duration_bounds
+        self.time_options['duration_scaler'] = duration_scaler
+        self.time_options['duration_adder'] = duration_adder
+        self.time_options['duration_ref'] = duration_ref
+        self.time_options['duration_ref0'] = duration_ref0
 
     def _classify_var(self, var):
         """
