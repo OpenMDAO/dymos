@@ -74,6 +74,7 @@ class PathConstraintCompBase(ExplicitComponent):
                   'lower': lower, 'upper': upper, 'equals': equals, 'scaler': scaler,
                   'adder': adder, 'ref': ref, 'ref0': ref0, 'linear': linear, 'src_all': src_all,
                   'res_ref': res_ref, 'var_set': var_set, 'distributed': distributed}
+
         self._path_constraints.append((name, kwargs))
 
 

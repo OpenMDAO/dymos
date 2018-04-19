@@ -112,6 +112,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         """
         path_comp = None
         gd = self.grid_data
+        time_units = self.time_options['units']
 
         if self._path_constraints:
             path_comp = GaussLobattoPathConstraintComp(grid_data=gd)
@@ -129,7 +130,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
             if var_type == 'time':
                 options['shape'] = (1,)
-                options['units'] = self.time_options['units'] if con_units is None else con_units
+                options['units'] = time_units if con_units is None else con_units
                 options['linear'] = True
                 self.connect(src_name='time',
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
@@ -184,7 +185,8 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                 control_shape = self.control_options[control_name]['shape']
                 control_units = self.control_options[control_name]['units']
                 options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
+                options['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                    if con_units is None else con_units
                 constraint_path = 'control_rates:{0}_rate'.format(control_name)
                 self.connect(src_name=constraint_path,
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
@@ -194,7 +196,8 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                 control_shape = self.control_options[control_name]['shape']
                 control_units = self.control_options[control_name]['units']
                 options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
+                options['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                    if con_units is None else con_units
                 constraint_path = 'control_rates:{0}_rate2'.format(control_name)
                 self.connect(src_name=constraint_path,
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
@@ -208,14 +211,6 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                              tgt_name='path_constraints.col_values:{0}'.format(con_name))
 
             kwargs = options.copy()
-            if var_type == 'control_rate':
-                kwargs['units'] = get_rate_units(options['units'],
-                                                 self.time_options['units'],
-                                                 deriv=1)
-            elif var_type == 'control_rate2':
-                kwargs['units'] = get_rate_units(options['units'],
-                                                 self.time_options['units'],
-                                                 deriv=2)
             kwargs.pop('constraint_name', None)
             path_comp._add_path_constraint(con_name, var_type, **kwargs)
 
