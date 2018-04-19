@@ -5,11 +5,11 @@ import numpy as np
 
 from dymos.phases.phase_base import PhaseBase
 from dymos.phases.components import BoundaryConstraintComp, EndpointConditionsComp, ContinuityComp
-from dymos.ode_options import ODEOptions
 from dymos.glm.dynamic_interp_comp import DynamicInterpComp
 from dymos.glm.ozone.ode_integrator import ODEIntegrator
 from dymos.glm.ozone.methods_list import method_classes
-from openmdao.api import IndepVarComp, NonlinearBlockGS
+from dymos.utils.misc import get_rate_units
+from openmdao.api import IndepVarComp
 
 
 class GLMPhase(PhaseBase):

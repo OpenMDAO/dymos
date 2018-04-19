@@ -87,10 +87,12 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
         assert_rel_error(self, p['phase0.controls:theta'],
                          outputs['phase0.indep_controls.controls:theta']['value'])
 
-        num_segments = cr.system_metadata['phase0']['user_metadata']['num_segments']
-        transcription_order = cr.system_metadata['phase0']['user_metadata']['transcription_order']
-        segment_ends = cr.system_metadata['phase0']['user_metadata']['segment_ends']
-        ode_class = cr.system_metadata['phase0']['user_metadata']['ode_class']
+        phase0_metadata = cr.system_metadata['phase0']['component_metadata']
+
+        num_segments = phase0_metadata['num_segments']
+        transcription_order = phase0_metadata['transcription_order']
+        segment_ends = phase0_metadata['segment_ends']
+        ode_class = phase0_metadata['ode_class']
 
         print(num_segments)
         print(transcription_order)
