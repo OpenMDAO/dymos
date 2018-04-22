@@ -9,7 +9,7 @@ from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
 
 def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP',
-              top_level_jacobian='csc', transcription_order=5,
+              top_level_jacobian='csc', transcription_order=5, compressed=False,
               glm_formulation='solver-based', glm_integrator='GaussLegendre4'):
 
     p = Problem(model=Group())
@@ -34,6 +34,7 @@ def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP',
                   ode_class=LaunchVehicleODE,
                   ode_init_kwargs={'central_body': 'moon'},
                   num_segments=num_seg,
+                  compressed=compressed,
                   **kwargs)
 
     p.model.add_subsystem('phase0', phase)

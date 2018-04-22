@@ -149,5 +149,5 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
 
 if __name__ == '__main__':
-    p = min_time_climb(transcription='radau-ps', optimizer='SLSQP',
-                       num_seg=10, transcription_order=3, top_level_jacobian='dense')
+    p = min_time_climb(transcription='gauss-lobatto', optimizer='SNOPT',
+                       num_seg=10, transcription_order=3, top_level_jacobian='csc')

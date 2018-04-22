@@ -66,7 +66,8 @@ class OzoneODETestCase(unittest.TestCase):
                       ode_class=SimpleODE,
                       num_segments=10,
                       formulation=glm_formulation,
-                      method_name=glm_integrator)
+                      method_name=glm_integrator,
+                      compressed=False)
         p.model.add_subsystem('phase0', phase)
 
         p.model.add_subsystem('dummy_comp', IndepVarComp('dummy_var'))

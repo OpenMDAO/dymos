@@ -10,8 +10,8 @@ from dymos.ode_options import ODEOptions
 from dymos.glm.dynamic_interp_comp import DynamicInterpComp
 from dymos.glm.ozone.ode_integrator import ODEIntegrator
 from dymos.glm.ozone.methods_list import method_classes, get_method
-
-from openmdao.api import IndepVarComp, NonlinearBlockGS
+from dymos.utils.misc import get_rate_units
+from openmdao.api import IndepVarComp
 
 
 class GLMPhase(PhaseBase):
@@ -24,6 +24,10 @@ class GLMPhase(PhaseBase):
         self._norm_times = None
         self._node_indices = None
         self._segment_times = None
+
+        if self.metadata['compressed']:
+            raise ValueError('GLMPhase does not currently support compressed transcription. '
+                             'Specify `compressed=False` when initializing the phase.')
 
     def initialize(self):
         super(GLMPhase, self).initialize()

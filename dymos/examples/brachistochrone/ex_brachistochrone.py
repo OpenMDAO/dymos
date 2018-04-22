@@ -18,7 +18,7 @@ SHOW_PLOTS = False
 
 def brachistochrone_min_time(
         transcription='gauss-lobatto', num_segments=8, run_driver=True, test_fix_initial=True,
-        top_level_jacobian='csc',
+        top_level_jacobian='csc', compressed=True,
         glm_formulation='solver-based', glm_integrator='GaussLegendre4', force_alloc_complex=False):
     p = Problem(model=Group())
 
@@ -41,6 +41,7 @@ def brachistochrone_min_time(
     phase = Phase(transcription,
                   ode_class=BrachistochroneODE,
                   num_segments=num_segments,
+                  compressed=compressed,
                   **kwargs)
 
     p.model.add_subsystem('phase0', phase)

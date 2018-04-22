@@ -73,7 +73,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         p = ex_brachistochrone.brachistochrone_min_time(
             transcription=transcription, run_driver=True,
             glm_formulation=glm_formulation, glm_integrator=glm_integrator,
-            test_fix_initial=test_fix_initial,
+            test_fix_initial=test_fix_initial, compressed=False
         )
         self.run_asserts(p, transcription)
         self.tearDown()

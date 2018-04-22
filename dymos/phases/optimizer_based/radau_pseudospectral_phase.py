@@ -87,6 +87,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         """
         path_comp = None
         gd = self.grid_data
+        time_units = self.time_options['units']
 
         if self._path_constraints:
             path_comp = RadauPathConstraintComp(grid_data=gd)
@@ -104,7 +105,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
             if var_type == 'time':
                 options['shape'] = (1,)
-                options['units'] = self.time_options['units'] if con_units is None else con_units
+                options['units'] = time_units if con_units is None else con_units
                 options['linear'] = True
                 self.connect(src_name='time',
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
@@ -157,7 +158,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 control_shape = self.control_options[control_name]['shape']
                 control_units = self.control_options[control_name]['units']
                 options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
+                options['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                    if con_units is None else con_units
                 constraint_path = 'control_rates:{0}_rate'.format(control_name)
                 self.connect(src_name=constraint_path,
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
@@ -167,7 +169,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 control_shape = self.control_options[control_name]['shape']
                 control_units = self.control_options[control_name]['units']
                 options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
+                options['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                    if con_units is None else con_units
                 constraint_path = 'control_rates:{0}_rate2'.format(control_name)
                 self.connect(src_name=constraint_path,
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
@@ -180,14 +183,6 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                              src_indices=gd.subset_node_indices['disc'])
 
             kwargs = options.copy()
-            if var_type == 'control_rate':
-                kwargs['units'] = get_rate_units(options['units'],
-                                                 self.time_options['units'],
-                                                 deriv=1)
-            elif var_type == 'control_rate2':
-                kwargs['units'] = get_rate_units(options['units'],
-                                                 self.time_options['units'],
-                                                 deriv=2)
             kwargs.pop('constraint_name', None)
             path_comp._add_path_constraint(con_name, var_type, **kwargs)
 
@@ -359,7 +354,24 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                     'control_rate2': 'control_rate_comp.control_rates:{0}',
                     'rhs': 'rhs_all.{0}'}
 
-        if var_type == 'rhs':
+        if var_type == 'state':
+            var_path = var_prefix + path_map[var_type].format(var)
+            output_units = op[var_path]['units']
+            output_value = convert_units(op[var_path]['value'][gd.input_maps['state_to_disc'], ...],
+                                         output_units, units)
+
+        elif var_type in ('input_control', 'indep_control'):
+            var_path = var_prefix + path_map[var_type].format(var)
+            output_units = op[var_path]['units']
+
+            if self.control_options[var]['dynamic']:
+                vals = op[var_path]['value'][gd.input_maps['dynamic_control_to_all'], ...]
+                output_value = convert_units(vals, output_units, units)
+            else:
+                output_value = convert_units(op[var_path]['value'], output_units, units)
+                output_value = np.repeat(output_value, gd.num_nodes, axis=0)
+
+        elif var_type == 'rhs':
             rhs_all_outputs = dict(self.rhs_all.list_outputs(out_stream=None, values=True,
                                                              shape=True, units=True))
             prom2abs_all = self.rhs_all._var_allprocs_prom2abs_list
@@ -371,10 +383,6 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             var_path = var_prefix + path_map[var_type].format(var)
             output_units = op[var_path]['units']
             output_value = convert_units(op[var_path]['value'], output_units, units)
-
-            if var_type in ('indep_control', 'input_control') and \
-                    not self.control_options[var]['dynamic']:
-                output_value = np.repeat(output_value, gd.num_nodes, axis=0)
 
         # Always return a column vector
         if len(output_value.shape) == 1:

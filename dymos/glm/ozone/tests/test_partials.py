@@ -29,7 +29,8 @@ class OzoneODETestCase(unittest.TestCase):
                       ode_class=BrachistochroneODE,
                       num_segments=2,
                       formulation=glm_formulation,
-                      method_name=glm_integrator)
+                      method_name=glm_integrator,
+                      compressed=False)
         p.model.add_subsystem('phase0', phase)
 
         phase.add_control('theta', units='deg', dynamic=True,

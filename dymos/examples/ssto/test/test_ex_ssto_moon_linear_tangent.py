@@ -25,9 +25,10 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
                                                                           p.args[0],
                                                                           p.args[1]])
     )
-    def test_results(self, transcription='gauss-lobatto', derivative_mode='rev'):
+    def test_results(self, transcription='gauss-lobatto', derivative_mode='rev', compressed=True):
         p = ex_ssto_moon_lintan.ssto_moon_linear_tangent(transcription, num_seg=10,
-                                                         transcription_order=5,)
+                                                         transcription_order=5,
+                                                         compressed=compressed)
 
         p.setup(mode=derivative_mode, check=True)
 
@@ -49,10 +50,11 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
             assert_almost_equal(p['phase0.collocation_constraint.defects:{0}'.format(state)],
                                 0.0, decimal=5)
 
-            assert_almost_equal(p['phase0.continuity_constraint.'
-                                  'defect_states:{0}'.format(state)],
-                                0.0, decimal=5,
-                                err_msg='error in state continuity for state {0}'.format(state))
+            if not compressed:
+                assert_almost_equal(p['phase0.continuity_constraint.'
+                                      'defect_states:{0}'.format(state)],
+                                    0.0, decimal=5,
+                                    err_msg='error in state continuity for state {0}'.format(state))
 
         # Ensure time found is the known solution
         assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)

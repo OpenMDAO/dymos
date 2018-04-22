@@ -67,7 +67,7 @@ install:
 # - cd ..;
 
 - pip install git+https://github.com/OpenMDAO/OpenMDAO.git
-- pip install git+https://github.com/SMTorg/smt.git
+# - pip install git+https://github.com/SMTorg/smt.git
 - pip install coveralls
 - pip install -e .
 
