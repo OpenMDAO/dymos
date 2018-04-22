@@ -132,16 +132,18 @@ class GLMPhase(PhaseBase):
                         'continuity_constraint.controls:{}'.format(name),
                         src_indices=grid_data.subset_node_indices['disc'])
                     continuity = True
-                    if options['rate_continuity']:
-                        continuity = True
-                        self.connect('control_rates:{0}_rate'.format(name),
-                                     'continuity_constraint.control_rates:{}_rate'.format(name),
-                                     src_indices=grid_data.subset_node_indices['disc'])
-                    if options['rate2_continuity']:
-                        continuity = True
-                        self.connect('control_rates:{0}_rate'.format(name),
-                                     'continuity_constraint.control_rates:{}_rate'.format(name),
-                                     src_indices=grid_data.subset_node_indices['disc'])
+
+                    # TODO: once controls are nonlinear, we can support rate continuity.
+                    # if options['rate_continuity']:
+                    #     continuity = True
+                    #     self.connect('control_rates:{0}_rate'.format(name),
+                    #                  'continuity_constraint.control_rates:{}_rate'.format(name),
+                    #                  src_indices=grid_data.subset_node_indices['disc'])
+                    # if options['rate2_continuity']:
+                    #     continuity = True
+                    #     self.connect('control_rates:{0}_rate'.format(name),
+                    #                  'continuity_constraint.control_rates:{}_rate'.format(name),
+                    #                  src_indices=grid_data.subset_node_indices['disc'])
 
             if continuity:
                 self.add_subsystem('continuity_constraint', continuity_comp)
@@ -323,14 +325,6 @@ class GLMPhase(PhaseBase):
                 control_rate_comp._outputs['control_rates:{0}_rate'.format(var)][::2, ...]
             output[-1, ...] = \
                 control_rate_comp._outputs['control_rates:{0}_rate'.format(var)][-1, ...]
-
-        elif var_type == 'parameter_rate':
-            control_rate_comp = self.control_rate_comp
-            output = np.zeros((num_segments + 1,) + self.control_options[var]['shape'])
-            output[:-1, ...] = \
-                control_rate_comp._outputs['parameter_rates:{0}_rate'.format(var)][::2, ...]
-            output[-1, ...] = \
-                control_rate_comp._outputs['parameter_rates:{0}_rate'.format(var)][-1, ...]
 
         elif var_type == 'rhs':
             raise NotImplementedError()
