@@ -33,7 +33,7 @@ class TestBrachistochroneExample(unittest.TestCase):
 
         v0 = p.model.phase0.get_values('v')[0]
         vf = p.model.phase0.get_values('v')[-1]
-        
+
         g = p.model.phase0.get_values('g')
 
         thetaf = p.model.phase0.get_values('theta')[-1]
