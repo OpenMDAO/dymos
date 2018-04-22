@@ -35,9 +35,9 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Major step limit'] = 0.5
 
     kwargs = {}
+    kwargs['compressed'] = False
     if transcription != 'glm':
         kwargs['transcription_order'] = 3
-        kwargs['compressed'] = False
     else:
         kwargs['formulation'] = formulation
         kwargs['method_name'] = method_name
@@ -149,5 +149,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
 
 if __name__ == '__main__':
-    p = min_time_climb(transcription='gauss-lobatto', optimizer='SNOPT',
-                       num_seg=10, transcription_order=3, top_level_jacobian='csc')
+    SHOW_PLOTS = False
+    p = min_time_climb(
+        optimizer='SLSQP', num_seg=10, transcription='glm',
+        formulation='optimizer-based', method_name='GaussLegendre2', force_alloc_complex=False)

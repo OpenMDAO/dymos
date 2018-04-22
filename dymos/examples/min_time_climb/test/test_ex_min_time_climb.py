@@ -22,7 +22,7 @@ class TestExampleMinTimeClimb(unittest.TestCase):
                                                                           p.args[0],
                                                                           p.args[1]])
     )
-    def xtest_results(self, transcription='gauss-lobatto', jacobian='csc'):
+    def test_results(self, transcription='gauss-lobatto', jacobian='csc'):
         ex_min_time_climb.SHOW_PLOTS = False
         p = ex_min_time_climb.min_time_climb(optimizer='SLSQP',
                                              num_seg=10,
@@ -48,7 +48,7 @@ class TestExampleMinTimeClimb(unittest.TestCase):
         phase = p.model.phase0
 
         # Check that time matches to within 1% of an externally verified solution.
-        solution = 364.6
+        solution = 237.7
         assert_almost_equal((phase.get_values('time')[-1] - solution) / solution, 0.0, decimal=2)
 
 if __name__ == '__main__':
