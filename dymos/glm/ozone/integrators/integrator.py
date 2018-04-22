@@ -6,7 +6,6 @@ from openmdao.core.system import System
 from six import iteritems
 
 import dymos.glm.ozone.methods.method as methods
-from dymos.glm.ozone.components.initial_conditions_comp import InitialConditionsComp
 from dymos.glm.ozone.components.time_comp import TimeComp
 from dymos.glm.ozone.components.starting_comp import StartingComp
 from dymos.glm.ozone.components.dynamic_parameter_comp import DynamicParameterComp

@@ -33,6 +33,8 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Function precision'] = 1.0E-6
         p.driver.opt_settings['Linesearch tolerance'] = 0.10
         p.driver.opt_settings['Major step limit'] = 0.5
+    elif optimizer == 'SLSQP' and transcription == 'glm':
+        p.driver.opt_settings['MAXIT'] = 7
 
     kwargs = {}
     kwargs['compressed'] = False
@@ -153,3 +155,4 @@ if __name__ == '__main__':
     p = min_time_climb(
         optimizer='SLSQP', num_seg=10, transcription='glm',
         formulation='optimizer-based', method_name='GaussLegendre2', force_alloc_complex=False)
+    print(p.model.phase0.get_values('time'))
