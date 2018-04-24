@@ -16,7 +16,7 @@ class SpeedOfSoundComp(ExplicitComponent):
         self.add_input(name='temp', val=np.zeros(nn), desc='Temperature', units='K')
 
         # Outputs
-        self.add_output(name='sos', val=np.zeros(nn), desc='local speed of sound', units='m/s')
+        self.add_output(name='sos', val=200*np.ones(nn), desc='local speed of sound', units='m/s')
 
         # Product of the gas constant times the ratio of specific heats
         gamma = 1.4    # Ratio of specific heads

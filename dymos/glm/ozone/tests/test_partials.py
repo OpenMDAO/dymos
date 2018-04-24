@@ -34,16 +34,17 @@ class OzoneODETestCase(unittest.TestCase):
         p.model.add_subsystem('phase0', phase)
 
         phase.add_control('theta', units='deg', dynamic=True,
-                          rate_continuity=True, lower=0.01, upper=179.9)
+                          rate_continuity=None, lower=0.01, upper=179.9)
 
         p.setup(force_alloc_complex=True)
+        p.final_setup()
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10])
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5])
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9])
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5])
+        phase.set_values('x', [0, 10])
+        phase.set_values('y', [10, 5])
+        phase.set_values('v', [0, 9.9])
+        phase.set_values('theta', [5, 100.5])
 
         p.run_model()
         jac = p.check_partials()

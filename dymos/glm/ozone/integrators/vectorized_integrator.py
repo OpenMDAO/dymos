@@ -55,7 +55,11 @@ class VectorizedIntegrator(Integrator):
                     'Y:%s' % state_name,
                     shape=(num_times - 1, num_stages,) + state['shape'],
                     units=state['units'])
-                comp.add_design_var('Y:%s' % state_name)
+                kwargs = {
+                    name: self.metadata['state_options'][state_name][name]
+                    for name in ['lower', 'upper', 'scaler', 'adder', 'ref', 'ref0']
+                }
+                comp.add_design_var('Y:%s' % state_name, **kwargs)
             integration_group.add_subsystem('desvars_comp', comp)
         elif formulation == 'solver-based':
             comp = IndepVarComp()
@@ -177,9 +181,10 @@ class VectorizedIntegrator(Integrator):
                 self._get_state_names('integration_group.vectorized_stagestep_comp', 'Y_in'),
             )
             for state_name, state in iteritems(states):
+                defect_scaler = self.metadata['state_options'][state_name]['defect_scaler']
                 integration_group.add_constraint(
                     'vectorized_stagestep_comp.Y_out:%s' % state_name,
-                    equals=0., vectorize_derivs=True,
+                    equals=0., vectorize_derivs=True, scaler=defect_scaler,
                 )
 
         if has_starting_method:

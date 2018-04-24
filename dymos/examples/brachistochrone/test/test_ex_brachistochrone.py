@@ -34,6 +34,8 @@ class TestBrachistochroneExample(unittest.TestCase):
         v0 = p.model.phase0.get_values('v')[0]
         vf = p.model.phase0.get_values('v')[-1]
 
+        g = p.model.phase0.get_values('g')
+
         thetaf = p.model.phase0.get_values('theta')[-1]
 
         assert_almost_equal(t_initial, 0.0)
@@ -45,6 +47,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         assert_almost_equal(xf, 10.0, decimal=3)
         assert_almost_equal(yf, 5.0, decimal=3)
         assert_almost_equal(vf, 9.902, decimal=3)
+        assert_almost_equal(g, 9.80665, decimal=3)
 
         if transcription != 'radau-ps':
             assert_almost_equal(thetaf, 100.12, decimal=0)

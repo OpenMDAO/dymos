@@ -32,7 +32,7 @@ def brachistochrone_min_time(
         p.driver = ScipyOptimizeDriver()
 
     kwargs = {}
-    if transcription == 'gauss-lobatto' or transcription == 'radau-ps':
+    if transcription != 'glm':
         kwargs['transcription_order'] = 3
     else:
         kwargs['formulation'] = glm_formulation
@@ -61,8 +61,13 @@ def brachistochrone_min_time(
         phase.add_boundary_constraint('y', loc='final', equals=5.)
         phase.add_boundary_constraint('v', loc='initial', equals=0.)
 
+    if transcription != 'glm':
+        rate_continuity = True
+    else:
+        rate_continuity = None
+
     phase.add_control('theta', units='deg', dynamic=True,
-                      rate_continuity=True, lower=0.01, upper=179.9)
+                      rate_continuity=rate_continuity, lower=0.01, upper=179.9)
 
     phase.add_control('g', units='m/s**2', dynamic=True, opt=False, val=9.80665)
 
@@ -82,6 +87,7 @@ def brachistochrone_min_time(
         p.setup(mode='rev', check=True)
     else:
         p.setup(force_alloc_complex=force_alloc_complex)
+        p.final_setup()
         p.set_solver_print(level=-1)
 
     p['phase0.t_initial'] = 0.0
@@ -93,10 +99,10 @@ def brachistochrone_min_time(
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='disc')
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='all')
     else:
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10])
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5])
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9])
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5])
+        phase.set_values('x', [0, 10])
+        phase.set_values('y', [10, 5])
+        phase.set_values('v', [0, 9.9])
+        phase.set_values('theta', [5, 100.5])
 
     p.run_model()
     if run_driver:
