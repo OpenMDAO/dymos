@@ -1,6 +1,5 @@
 from __future__ import print_function, absolute_import, division
 
-import os
 import unittest
 
 
@@ -17,9 +16,13 @@ class TestBrachistochroneSimulDerivsRunExample(unittest.TestCase):
 
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SNOPT'
+
+        # Compute sparsity/coloring when run_driver is called
+        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.options['dynamic_simul_derivs_repeats'] = 5
+
         p.driver.opt_settings['Major iterations limit'] = 1000
         p.driver.opt_settings['iSumm'] = 6
-        p.driver.set_simul_deriv_color('coloring.json')
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,

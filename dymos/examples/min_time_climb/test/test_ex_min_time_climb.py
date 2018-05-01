@@ -10,7 +10,7 @@ from parameterized import parameterized
 
 import dymos.examples.min_time_climb.ex_min_time_climb as ex_min_time_climb
 
-SHOW_PLOTS = False
+SHOW_PLOTS = True
 
 
 class TestExampleMinTimeClimb(unittest.TestCase):
@@ -23,9 +23,9 @@ class TestExampleMinTimeClimb(unittest.TestCase):
                                                                           p.args[1]])
     )
     def test_results(self, transcription='gauss-lobatto', jacobian='csc'):
-        ex_min_time_climb.SHOW_PLOTS = False
+        ex_min_time_climb.SHOW_PLOTS = True
         p = ex_min_time_climb.min_time_climb(optimizer='SLSQP',
-                                             num_seg=10,
+                                             num_seg=12,
                                              transcription_order=3,
                                              transcription=transcription,
                                              top_level_jacobian=jacobian)

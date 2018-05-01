@@ -21,8 +21,8 @@ class TestControlEndpointDefectComp(unittest.TestCase):
 
         self.p = Problem(model=Group())
 
-        control_opts = {'u': {'units': 'm', 'shape': (1,)},
-                        'v': {'units': 'm', 'shape': (3, 2)}}
+        control_opts = {'u': {'units': 'm', 'shape': (1,), 'dynamic': True, 'opt': True},
+                        'v': {'units': 'm', 'shape': (3, 2), 'dynamic': True, 'opt': True}}
 
         indep_comp = IndepVarComp()
         self.p.model.add_subsystem('indep', indep_comp, promotes=['*'])
