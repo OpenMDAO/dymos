@@ -24,6 +24,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     p.driver = pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
+
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 1000
         p.driver.opt_settings['iSumm'] = 6
@@ -37,10 +38,10 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['MAXIT'] = 7
 
     kwargs = {}
-    kwargs['compressed'] = False
     if transcription != 'glm':
         kwargs['transcription_order'] = 3
     else:
+        kwargs['compressed'] = False
         kwargs['formulation'] = formulation
         kwargs['method_name'] = method_name
 
@@ -93,6 +94,9 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.add_objective('time', loc='final', ref=100.0)
 
     if transcription != 'glm':
+        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.options['dynamic_simul_derivs_repeats'] = 5
+
         if top_level_jacobian.lower() == 'csc':
             p.model.jacobian = CSCJacobian()
         elif top_level_jacobian.lower() == 'dense':
@@ -145,14 +149,18 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         plt.xlabel('airspeed (m/s)')
         plt.ylabel('altitude (m)')
 
+        plt.figure()
+        plt.plot(phase.get_values('time'), phase.get_values('alpha'), 'ro')
+        plt.plot(exp_out.get_values('time'), exp_out.get_values('alpha'), 'b-')
+        plt.xlabel('time (s)')
+        plt.ylabel('alpha (rad)')
+
         plt.show()
 
     return p
 
 
 if __name__ == '__main__':
-    SHOW_PLOTS = False
+    SHOW_PLOTS = True
     p = min_time_climb(
-        optimizer='SLSQP', num_seg=10, transcription='glm',
-        formulation='optimizer-based', method_name='GaussLegendre2', force_alloc_complex=False)
-    print(p.model.phase0.get_values('time'))
+        optimizer='SLSQP', num_seg=10, transcription='radau-ps', force_alloc_complex=False)

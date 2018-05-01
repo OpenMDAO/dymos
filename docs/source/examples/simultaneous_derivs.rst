@@ -5,9 +5,9 @@ Brachistochrone with Simultaneous Derivatives
 A key feature of collocation algorithms such as high-order Gauss-Lobatto collocation or the
 Radau pseudospectral method is that they exhibit a large degree of *sparsity* in the total
 Jacobian.  By modeling the state-time histories as a series of polynomial segments, the collocation
-defect constraints within each segment is largely dependent only on the state and control values
+defect constraints within each segment are largely dependent only on the state and control values
 within the same segment.  State-of-the-art pseudospectral optimization tools such as SOCS, OTIS,
-and GPOPS use the notion of *sparse finite differences* to perturb multiple independent variables
+and GPOPS-II use the notion of *sparse finite differences* to perturb multiple independent variables
 simultaneously when approximating the constraint Jacobian.  This can significantly reduce the
 computational effort required to approximate the entire Jacobian via finite difference.
 
@@ -19,31 +19,39 @@ convergence more robust.
 OpenMDAO uses a simultaneous "coloring" algorithm to determine which variables can be perturbed
 simultaneously to determine the total constraint Jacobian.  Variables in the same "color" each
 impact a unique constraint, such that when all the variables are perturbed we can be assured that
-any change in the constraint vector is due to at most one scalar variable.
+any change in the constraint vector is due to at most one scalar variable.  Since OpenMDAO uses
+a linear solver to assemble to total derivative Jacobian, coloring reduces the number of linear
+solves from one per variable in forward mode to one per *color*. In the brachistochrone example
+below this reduces the number of linear solves from 1001 to 9.  This capability makes problems
+of moderate size run orders of magnitude faster, and can make intractably large problems tractable.
+
+.. note::
+    While some optimizers (SNOPT and IPOPT) are particularly adept at dealing with large, sparse
+    nonlinear programming problems, coloring can still benefit drivers which do not account for
+    sparsity (such as SLSQP) since it significantly reduces the cost of computing the Jacobian.
+
+.. note::
+    Currently OpenMDAO's coloring algorithm requires that problems be setup using "forward" mode.
 
 Step 1: Using OpenMDAO's Simul-Coloring Capability
 ==================================================
 
-The first step in the process is to construct an optimal control problem. To demonstrate this
-capability we'll instantiate the brachistochrone problem with 200 3rd-order Gauss-Lobatto segments.
+OpenMDAO supports dynamic simul-coloring, meaning it can automatically run the Jacobian coloring
+algorithm before handing the problem to the optimizer.  To enable this capability, simply
+add the following lines to the pyoptsparsedriver.
+
+.. code-block::
+    driver.options['dynamic_simul_derivs'] = True
+    driver.options['dynamic_simul_derivs_repeats'] = 5
+
+This enables the coloring algorithm and runs 5 passes of the Jacobian randomization algorithm,
+in an effort to ensure that we don't include any "incidental" zeros as part of the spasity.
+
+To demonstrate this capability we'll instantiate the brachistochrone problem with 200 3rd-order Gauss-Lobatto segments.
 
 .. embed-code::
-    dymos.examples.brachistochrone.test.test_doc_brach_setup_simul_derivs.TestBrachistochroneSimulDerivsSetupExample.test_brachistochrone_for_docs_gauss_lobatto_simul_derivs
+    dymos.examples.brachistochrone.test.test_doc_brach_run_simul_derivs.TestBrachistochroneSimulDerivsRunExample.test_brachistochrone_for_docs_gauss_lobatto_simul_derivs
     :layout: code
-
-Having defined our code, we invoke the coloring algorithm via the OpenMDAO command line interface.
-Save the above problem in a file `brach.py`.  The coloring is then invoked via:
-
-.. code-block:: none
-    openmdao simul_coloring -n 5 -t 1.0E-15 -o -s coloring.json brach.py
-
-This runs five passes of the algoirthm (`-n 5`).  Each time, random data is inserted for the
-design variables and the total Jacobian computed.  After each pass, a running sum of the Jacobian
-matrix is maintained.  Elements of the total Jacobian that are truly nonzero will accumulate
-to values above the threshold tolerance (`-t 1.0E-15`), and OpenMDAO will determine a "color"
-for each design variable.  The sparsity pattern is also saved so that it can be used by
-"sparse-aware" optimizers like SNOPT and IPOPT (`-s`).  The resulting coloring metadata will be stored
-in the specified output file (`-o coloring.json`).
 
 The simul_coloring script outputs the following information about our problem:
 
@@ -58,21 +66,16 @@ The simul_coloring script outputs the following information about our problem:
     195 columns in color 6
     197 columns in color 7
     201 columns in color 8
-    Sparsity structure has been computed for all response/design_var sub-jacobians.
+
     Total colors vs. total size: 9 vs 1001  (99.1% improvement)
 
-Step 2: Giving pyoptsparse the coloring information
-===================================================
+Running the coloring algorithm separately
+=========================================
 
-To provide the problem with the coloring information we use the driver `set_simul_deriv_color`
-method, providing it with the file to which the coloring data was saved.
-
-.. code-block:: python
-
-    p.driver.set_simul_deriv_color('coloring.json')
-
-Inserting the above statement into the code above will run the brachistochrone using SNOPT and
-take into account the sparsity infromation.
+OpenMDAO supports the ability to run the coloring algorithm "offline" and then provide the
+data to the driver via a saved file.  This is potentially useful to users whose model is particularly
+expensive to color, and whom aren't changing the problem significantly between runs.  Consult
+OpenMDAO's documentation for more information on this feature.
 
 Performance comparison with and without simultaneous derivatives
 ================================================================

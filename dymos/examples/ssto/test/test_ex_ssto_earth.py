@@ -33,8 +33,8 @@ class TestExampleSSTOEarth(unittest.TestCase):
     #                                                                       p.args[1],
     #                                                                       p.args[2]])
     # )
-    def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='rev',
-                     compressed=False):
+    def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='fwd',
+                     compressed=True):
 
         p = ex_ssto_earth.ssto_earth(transcription, num_seg=10, transcription_order=5,
                                      top_level_jacobian=jacobian, compressed=compressed)
@@ -78,7 +78,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
         p = ex_ssto_earth.ssto_earth('gauss-lobatto', num_seg=20, transcription_order=5,
                                      top_level_jacobian='csc')
 
-        p.setup()
+        p.setup(mode='fwd')
 
         phase = p.model.phase0
         p['phase0.t_initial'] = 0.0

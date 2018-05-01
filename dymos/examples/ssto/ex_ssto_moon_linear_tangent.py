@@ -39,11 +39,15 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
     if optimizer == 'SNOPT':
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = optimizer
+        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.options['dynamic_simul_derivs_repeats'] = 5
         p.driver.opt_settings['Major iterations limit'] = 100
         p.driver.opt_settings['iSumm'] = 6
         p.driver.opt_settings['Verify level'] = 3
     else:
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.options['dynamic_simul_derivs_repeats'] = 5
 
     phase = Phase(transcription,
                   ode_class=LaunchVehicleLinearTangentODE,

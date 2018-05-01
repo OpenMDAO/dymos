@@ -205,9 +205,13 @@ class OptimizerBasedPhaseBase(PhaseBase):
         indep_controls = []
         input_parameters = []
         control_rate_comp = []
+        control_defect_comp = []
 
         num_opt_controls = len([name for (name, options) in iteritems(self.control_options)
                                 if options['opt']])
+
+        num_dynamic_opt_controls = len([name for (name, options) in iteritems(self.control_options)
+                                        if options['opt'] and options['dynamic']])
 
         num_input_controls = len([name for (name, options) in iteritems(self.control_options)
                                   if not options['opt']])
@@ -220,6 +224,8 @@ class OptimizerBasedPhaseBase(PhaseBase):
             input_parameters = ['input_controls']
         if num_controls > 0:
             control_rate_comp = ['control_rate_comp']
+        if num_dynamic_opt_controls > 0:
+            control_defect_comp = ['control_defect_comp']
 
         order = self._time_extents + input_parameters + indep_controls + \
             ['indep_states', 'time'] + control_rate_comp + ['indep_jumps', 'endpoint_conditions']
@@ -227,7 +233,8 @@ class OptimizerBasedPhaseBase(PhaseBase):
         if transcription == 'gauss-lobatto':
             order = order + ['rhs_disc', 'state_interp', 'rhs_col', 'collocation_constraint']
         elif transcription == 'radau-ps':
-            order = order + ['state_interp', 'rhs_all', 'collocation_constraint']
+            order = order + control_defect_comp + \
+                ['state_interp', 'rhs_all', 'collocation_constraint']
         else:
             raise ValueError('Invalid transcription: {0}'.format(transcription))
 

@@ -53,7 +53,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
     #                                                                       p.args[1],
     #                                                                       p.args[2]])
     # )
-    def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='rev',
+    def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='fwd',
                      compressed=False):
         p = ex_ssto_moon.ssto_moon(transcription, num_seg=10, transcription_order=5,
                                    top_level_jacobian=jacobian, compressed=compressed)
@@ -91,7 +91,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
         p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10,
                                    transcription_order=5, top_level_jacobian='csc')
 
-        p.setup(mode='rev', check=True)
+        p.setup(mode='fwd', check=True)
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 500.0

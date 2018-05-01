@@ -4,10 +4,10 @@ import os
 import unittest
 
 
-class TestBrachistochroneSimulDerivsRunExample(unittest.TestCase):
+class TestBrachistochroneWithoutSimulDerivsRunExample(unittest.TestCase):
 
     @unittest.skip('skipped until SNOPT is available on CI')
-    def test_brachistochrone_for_docs_gauss_lobatto_simul_derivs(self):
+    def test_brachistochrone_for_docs_gauss_lobatto_without_simul_derivs(self):
         from openmdao.api import Problem, Group, pyOptSparseDriver, CSCJacobian, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase

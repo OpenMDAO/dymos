@@ -7,6 +7,7 @@ import numpy as np
 from openmdao.utils.units import convert_units, valid_units
 
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
+from .components import ControlEndpointDefectComp
 from ..components import RadauPathConstraintComp
 from ...utils.misc import get_rate_units
 
@@ -50,10 +51,23 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
     def _setup_controls(self):
         super(RadauPseudospectralPhase, self)._setup_controls()
 
+        added_defect_constraint = False
+
         for name, options in iteritems(self.control_options):
 
             if options['dynamic']:
                 map_indices_to_all = self.grid_data.input_maps['dynamic_control_to_all']
+                if options['opt']:
+                    if not added_defect_constraint:
+                        def_comp = ControlEndpointDefectComp(grid_data=self.grid_data,
+                                                             control_options=self.control_options)
+                        self.add_subsystem('control_defect_comp', subsys=def_comp,
+                                           promotes_outputs=['*'])
+                        added_defect_constraint = True
+                    self.connect('controls:{0}'.format(name),
+                                 'control_defect_comp.controls:{0}'.format(name),
+                                 src_indices=map_indices_to_all)
+
             else:
                 map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
 
