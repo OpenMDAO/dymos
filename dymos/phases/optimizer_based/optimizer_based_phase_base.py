@@ -44,8 +44,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         ----------
         times : str or sequence
             The times at which the observing function will be called, and outputs will be saved.
-            If given as a string, it must be one of 'all' (all nodes), 'disc' (discretization
-            nodes), or 'col' (collocation nodes).
+            If given as a string, it must be a valid node subset name.
             If given as a sequence, it directly provides the times at which output is provided,
             *in addition to the segment boundaries*.
         integrator : str
@@ -137,7 +136,8 @@ class OptimizerBasedPhaseBase(PhaseBase):
                     control_vals = self._outputs['controls:{0}_out'.format(control_name)]
 
                 if options['dynamic']:
-                    map_input_idxs_to_all = self.grid_data.input_maps['dynamic_control_to_all']
+                    map_input_idxs_to_all = \
+                        self.grid_data.input_maps['dynamic_control_input_to_disc']
                     interp = LagrangeBarycentricInterpolant(gd.node_stau[seg_idxs[0]:seg_idxs[1]])
                     ctrl_vals = control_vals[map_input_idxs_to_all][seg_idxs[0]:seg_idxs[1]].ravel()
                     interp.setup(x0=seg_times[0], xf=seg_times[-1], f_j=ctrl_vals)
@@ -160,7 +160,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 t_out[1:-1] = times[idxs_times_in_seg]
                 t_out[0] = seg_times[0]
                 t_out[-1] = seg_times[-1]
-            elif times == 'disc':
+            elif times in ('disc', 'state_disc'):
                 t_out = seg_times[::2]
             elif times == 'all':
                 t_out = seg_times
@@ -250,7 +250,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
     def _setup_rhs(self):
         grid_data = self.grid_data
         time_units = self.time_options['units']
-        map_input_indices_to_disc = self.grid_data.input_maps['state_to_disc']
+        map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
         num_input_nodes = self.grid_data.num_state_input_nodes
 
         self.add_subsystem('state_interp',
@@ -380,18 +380,18 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 if options['dynamic'] and options['continuity'] and not compressed:
                     self.connect(control_src_name,
                                  'continuity_constraint.controls:{0}'.format(name),
-                                 src_indices=grid_data.subset_node_indices['disc'])
+                                 src_indices=grid_data.subset_node_indices['state_disc'])
 
                 if options['opt'] and options['dynamic']:
                     if options['rate_continuity']:
                         self.connect('control_rates:{0}_rate'.format(name),
                                      'continuity_constraint.control_rates:{}_rate'.format(name),
-                                     src_indices=grid_data.subset_node_indices['disc'])
+                                     src_indices=grid_data.subset_node_indices['state_disc'])
 
                     if options['rate2_continuity']:
                         self.connect('control_rates:{0}_rate2'.format(name),
                                      'continuity_constraint.control_rates:{}_rate2'.format(name),
-                                     src_indices=grid_data.subset_node_indices['disc'])
+                                     src_indices=grid_data.subset_node_indices['state_disc'])
 
     def _setup_endpoint_conditions(self):
 

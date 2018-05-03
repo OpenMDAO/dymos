@@ -111,12 +111,12 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 298.46902
 
-        p['phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='disc')
-        p['phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='disc')
-        p['phase0.states:v'] = phase.interpolate(ys=[135.964, 283.159], nodes='disc')
-        p['phase0.states:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='disc')
-        p['phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='disc')
-        p['phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='all')
+        p['phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='state_disc')
+        p['phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_disc')
+        p['phase0.states:v'] = phase.interpolate(ys=[135.964, 283.159], nodes='state_disc')
+        p['phase0.states:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='state_disc')
+        p['phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='state_disc')
+        p['phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_disc')
     else:
         p.setup(force_alloc_complex=force_alloc_complex)
         p.final_setup()

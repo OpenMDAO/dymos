@@ -189,13 +189,13 @@ class TestPathConstraintCompRadau(unittest.TestCase):
         p = self.p
         gd = self.gd
         assert_almost_equal(p['a_disc'],
-                            p['path_constraints.path:a'][gd.subset_node_indices['disc'], ...])
+                            p['path_constraints.path:a'][gd.subset_node_indices['state_disc'], ...])
 
         assert_almost_equal(p['b_disc'],
-                            p['path_constraints.path:b'][gd.subset_node_indices['disc'], ...])
+                            p['path_constraints.path:b'][gd.subset_node_indices['state_disc'], ...])
 
         assert_almost_equal(p['c_disc'],
-                            p['path_constraints.path:c'][gd.subset_node_indices['disc'], ...])
+                            p['path_constraints.path:c'][gd.subset_node_indices['state_disc'], ...])
 
     def test_partials(self):
         np.set_printoptions(linewidth=1024, edgeitems=1000)

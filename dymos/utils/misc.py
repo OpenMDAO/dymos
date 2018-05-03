@@ -43,18 +43,37 @@ class CoerceDesvar(object):
     Check the desvar options for the appropriate shape and resize
     accordingly with opt_initial and opt_final options.
     """
-
     def __init__(self, num_input_nodes, desvar_indices, options):
-        self.num_disc_nodes = num_input_nodes
+        self.num_input_nodes = num_input_nodes
         self.desvar_indices = desvar_indices
         self.options = options
 
     def __call__(self, option):
+        """
+        Test that the given opption has a shape that is compliant with the number of input
+        nodes for the design variable.
+
+        Parameters
+        ----------
+        option : str
+            The name of the option whose value(s) are desired.
+
+        Returns
+        -------
+        The value of the desvar option
+
+        Raises
+        ------
+        ValueError
+            If the number of values in the option is not compliant with the number of input
+            nodes for the design variable.
+
+        """
         val = self.options[option]
         if val is None or np.isscalar(val):
             return val
         else:
-            if len(val) != self.num_disc_nodes:
+            if len(val) != self.num_input_nodes:
                 raise ValueError('array-valued option {0} must have length '
-                                 'num_disc_nodes ({1})'.format(option, val))
+                                 'num_input_nodes ({1})'.format(option, val))
             return val[self.desvar_indices]

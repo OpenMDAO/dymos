@@ -28,17 +28,23 @@ def gauss_lobatto_subsets(n):
     Returns
     -------
     subsets : A dictionary with the following keys:
-        'disc' gives the indices of the discretization nodes
+        'disc' gives the indices of the state discretization nodes (deprecated)
+        'state_disc' gives the indices of the state discretization nodes
+        'control_disc' gives the indices of the control discretization nodes
+        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
         'col' gives the indices of the collocation nodes
         'all' gives all node indices
     """
     if n % 2 == 0:
-        raise ValueError('A Gauss Lobatto scheme must use an odd number of points')
+        raise ValueError('A Gauss-Lobatto scheme must use an odd number of points')
 
     subsets = {
-        'disc': np.arange(0, n, 2),
-        'col': np.arange(1, n, 2),
-        'all': np.arange(n),
+        'disc': np.arange(0, n, 2, dtype=int),
+        'state_disc': np.arange(0, n, 2, dtype=int),
+        'control_disc': np.arange(n, dtype=int),
+        'segment_ends': np.array([0, n-1], dtype=int),
+        'col': np.arange(1, n, 2, dtype=int),
+        'all': np.arange(n, dtype=int),
     }
 
     return subsets
@@ -57,14 +63,20 @@ def radau_pseudospectral_subsets(n):
     Returns
     -------
     subsets : A dictionary with the following keys:
-        'disc' gives the indices of the discretization nodes
+        'disc' gives the indices of the state discretization nodes (deprecated)
+        'state_disc' gives the indices of the state discretization nodes
+        'control_disc' gives the indices of the control discretization nodes
+        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
         'col' gives the indices of the collocation nodes
         'all' gives all node indices
     """
     node_indices = {
         'disc': np.arange(n),
-        'col': np.arange(n - 1),
-        'all': np.arange(n),
+        'state_disc': np.arange(n, dtype=int),
+        'control_disc': np.arange(n, dtype=int),
+        'segment_ends': np.array([0, n - 1], dtype=int),
+        'col': np.arange(n - 1, dtype=int),
+        'all': np.arange(n, dtype=int),
     }
     return node_indices
 
@@ -90,6 +102,8 @@ def glm_subsets(n):
 
     subsets = {
         'disc': np.arange(n),
+        'state_disc': np.arange(n),
+        'control_disc': np.array([0, n-1]),
         'col': np.arange(n - 1),
         'all': np.arange(n),
     }
@@ -119,8 +133,8 @@ class GridData(object):
         ----------
         num_segments : int
             The number of segments in the phase.
-        transcription : (str, str)
-            Case-insensitive transcription scheme and points (e.g., ('gauss-lobatto', 'radau-ps')).
+        transcription : str
+            Case-insensitive transcription scheme (e.g., ('gauss-lobatto', 'radau-ps')).
         transcription_order : int or int ndarray[:]
             The order of the state transcription in each segment, as a scalar or a vector.
         segment_ends : Iterable[num_segments + 1] or None
@@ -214,8 +228,8 @@ class GridData(object):
 
         self.compressed = compressed
 
-        self.input_maps = {'state_to_disc': np.empty(0, dtype=int),
-                           'dynamic_control_to_all': np.empty(0, dtype=int)}
+        self.input_maps = {'state_input_to_disc': np.empty(0, dtype=int),
+                           'dynamic_control_input_to_disc': np.empty(0, dtype=int)}
 
         # Define get_subsets and node points based on the transcription scheme
         if transcription.lower() == 'gauss-lobatto':
@@ -264,27 +278,28 @@ class GridData(object):
                 self.subset_num_nodes_per_segment[name].append(len(val))
 
                 # Build the state decompression map
-                if name == 'disc':
+                if name == 'state_disc':
                     idxs = np.arange(len(val))
                     if iseg > 0:
-                        idxs += self.input_maps['state_to_disc'][-1]
+                        idxs += self.input_maps['state_input_to_disc'][-1]
                         if not compressed:
                             idxs += 1
-                    self.input_maps['state_to_disc'] = \
-                        np.concatenate((self.input_maps['state_to_disc'], idxs))
+                    self.input_maps['state_input_to_disc'] = \
+                        np.concatenate((self.input_maps['state_input_to_disc'], idxs))
 
                 # Build the control decompression map
-                elif name == 'all':
+                elif name == 'control_disc':
                     idxs = np.arange(len(val))
                     if iseg > 0:
-                        idxs += self.input_maps['dynamic_control_to_all'][-1]
+                        idxs += self.input_maps['dynamic_control_input_to_disc'][-1]
                         if not compressed:
                             idxs += 1
-                    self.input_maps['dynamic_control_to_all'] = \
-                        np.concatenate((self.input_maps['dynamic_control_to_all'], idxs))
+                    self.input_maps['dynamic_control_input_to_disc'] = \
+                        np.concatenate((self.input_maps['dynamic_control_input_to_disc'], idxs))
 
-        self.num_state_input_nodes = len(set(self.input_maps['state_to_disc']))
-        self.num_dynamic_control_input_nodes = len(set(self.input_maps['dynamic_control_to_all']))
+        self.num_state_input_nodes = len(set(self.input_maps['state_input_to_disc']))
+        self.num_dynamic_control_input_nodes = \
+            len(set(self.input_maps['dynamic_control_input_to_disc']))
 
         # Now that we know the sizes, allocate arrays
         self.node_stau = np.empty(self.num_nodes)

@@ -130,7 +130,7 @@ class GLMPhase(PhaseBase):
                     self.connect(
                         'controls:{0}'.format(name),
                         'continuity_constraint.controls:{}'.format(name),
-                        src_indices=grid_data.subset_node_indices['disc'])
+                        src_indices=grid_data.subset_node_indices['state_disc'])
                     continuity = True
 
                     # TODO: once controls are nonlinear, we can support rate continuity.

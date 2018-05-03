@@ -89,7 +89,7 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
         grid_data = self.metadata['grid_data']
 
         num_nodes = grid_data.num_nodes
-        num_disc_nodes = grid_data.subset_num_nodes['disc']
+        num_state_disc_nodes = grid_data.subset_num_nodes['state_disc']
         num_col_nodes = grid_data.subset_num_nodes['col']
         for (name, kwargs) in self._path_constraints:
             input_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
@@ -106,7 +106,7 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
                 col_input_name = 'col_values:{0}'.format(name)
 
                 self.add_input(disc_input_name,
-                               shape=(num_disc_nodes,) + shape,
+                               shape=(num_state_disc_nodes,) + shape,
                                **input_kwargs)
 
                 self.add_input(col_input_name,
@@ -146,16 +146,16 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
                     cols=np.arange(all_size),
                     val=1.0)
             else:
-                disc_shape = (num_disc_nodes,) + shape
+                disc_shape = (num_state_disc_nodes,) + shape
                 col_shape = (num_col_nodes,) + shape
 
                 var_size = np.prod(shape)
                 disc_size = np.prod(disc_shape)
                 col_size = np.prod(col_shape)
 
-                disc_row_starts = grid_data.subset_node_indices['disc'] * var_size
+                state_disc_row_starts = grid_data.subset_node_indices['state_disc'] * var_size
                 disc_rows = []
-                for i in disc_row_starts:
+                for i in state_disc_row_starts:
                     disc_rows.extend(range(i, i + var_size))
                 disc_rows = np.asarray(disc_rows, dtype=int)
 
@@ -182,7 +182,7 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
                     val=1.0)
 
     def compute(self, inputs, outputs):
-        disc_indices = self.metadata['grid_data'].subset_node_indices['disc']
+        disc_indices = self.metadata['grid_data'].subset_node_indices['state_disc']
         col_indices = self.metadata['grid_data'].subset_node_indices['col']
         for (disc_input_name, col_input_name, all_inp_name, src_all, output_name, _) in self._vars:
             if src_all:

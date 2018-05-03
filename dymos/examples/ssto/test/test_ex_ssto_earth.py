@@ -43,12 +43,13 @@ class TestExampleSSTOEarth(unittest.TestCase):
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 150.0
-        p['phase0.states:x'] = p.model.phase0.interpolate(ys=[0, 1.15E5], nodes='disc')
-        p['phase0.states:y'] = p.model.phase0.interpolate(ys=[0, 1.85E5], nodes='disc')
-        p['phase0.states:vx'] = p.model.phase0.interpolate(ys=[0, 7796.6961], nodes='disc')
-        p['phase0.states:vy'] = p.model.phase0.interpolate(ys=[1.0E-6, 0], nodes='disc')
-        p['phase0.states:m'] = p.model.phase0.interpolate(ys=[117000, 1163], nodes='disc')
-        p['phase0.controls:theta'] = p.model.phase0.interpolate(ys=[1.5, -0.76], nodes='all')
+        p['phase0.states:x'] = p.model.phase0.interpolate(ys=[0, 1.15E5], nodes='state_disc')
+        p['phase0.states:y'] = p.model.phase0.interpolate(ys=[0, 1.85E5], nodes='state_disc')
+        p['phase0.states:vx'] = p.model.phase0.interpolate(ys=[0, 7796.6961], nodes='state_disc')
+        p['phase0.states:vy'] = p.model.phase0.interpolate(ys=[1.0E-6, 0], nodes='state_disc')
+        p['phase0.states:m'] = p.model.phase0.interpolate(ys=[117000, 1163], nodes='state_disc')
+        p['phase0.controls:theta'] = p.model.phase0.interpolate(ys=[1.5, -0.76],
+                                                                nodes='control_disc')
 
         # p.run_model()
 
@@ -83,12 +84,12 @@ class TestExampleSSTOEarth(unittest.TestCase):
         phase = p.model.phase0
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 150.0
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 1.15E5], nodes='disc')
-        p['phase0.states:y'] = phase.interpolate(ys=[0, 1.85E5], nodes='disc')
-        p['phase0.states:vx'] = phase.interpolate(ys=[0, 7796.6961], nodes='disc')
-        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='disc')
-        p['phase0.states:m'] = phase.interpolate(ys=[117000, 1163], nodes='disc')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='all')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 1.15E5], nodes='state_disc')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 1.85E5], nodes='state_disc')
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 7796.6961], nodes='state_disc')
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_disc')
+        p['phase0.states:m'] = phase.interpolate(ys=[117000, 1163], nodes='state_disc')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='control_disc')
 
         p.run_driver()
 
