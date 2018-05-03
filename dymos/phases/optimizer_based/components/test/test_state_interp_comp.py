@@ -54,18 +54,21 @@ class TestStateInterpComp(unittest.TestCase):
         X_ivc = IndepVarComp()
         p.model.add_subsystem('X_ivc', X_ivc, promotes=['state_disc:x', 'state_disc:v'])
 
-        X_ivc.add_output('state_disc:x', val=np.zeros(gd.subset_num_nodes['disc']), units='m')
-        X_ivc.add_output('state_disc:v', val=np.zeros(gd.subset_num_nodes['disc']), units='m/s')
+        X_ivc.add_output('state_disc:x', val=np.zeros(gd.subset_num_nodes['state_disc']),
+                         units='m')
+
+        X_ivc.add_output('state_disc:v', val=np.zeros(gd.subset_num_nodes['state_disc']),
+                         units='m/s')
 
         F_ivc = IndepVarComp()
         p.model.add_subsystem('F_ivc', F_ivc, promotes=['staterate_disc:x', 'staterate_disc:v'])
 
         F_ivc.add_output('staterate_disc:x',
-                         val=np.zeros(gd.subset_num_nodes['disc']),
+                         val=np.zeros(gd.subset_num_nodes['state_disc']),
                          units='m/s')
 
         F_ivc.add_output('staterate_disc:v',
-                         val=np.zeros(gd.subset_num_nodes['disc']),
+                         val=np.zeros(gd.subset_num_nodes['state_disc']),
                          units='m/s**2')
 
         dt_dtau_ivc = IndepVarComp()
@@ -163,13 +166,13 @@ class TestStateInterpComp(unittest.TestCase):
         p.model.add_subsystem('X_ivc', X_ivc, promotes=['state_disc:pos'])
 
         X_ivc.add_output('state_disc:pos',
-                         val=np.zeros((gd.subset_num_nodes['disc'], 2)), units='m')
+                         val=np.zeros((gd.subset_num_nodes['state_disc'], 2)), units='m')
 
         F_ivc = IndepVarComp()
         p.model.add_subsystem('F_ivc', F_ivc, promotes=['staterate_disc:pos'])
 
         F_ivc.add_output('staterate_disc:pos',
-                         val=np.zeros((gd.subset_num_nodes['disc'], 2)),
+                         val=np.zeros((gd.subset_num_nodes['state_disc'], 2)),
                          units='m/s')
 
         dt_dtau_ivc = IndepVarComp()
@@ -273,13 +276,13 @@ class TestStateInterpComp(unittest.TestCase):
         p.model.add_subsystem('X_ivc', X_ivc, promotes=['state_disc:pos'])
 
         X_ivc.add_output('state_disc:pos',
-                         val=np.zeros((gd.subset_num_nodes['disc'], 2)), units='m')
+                         val=np.zeros((gd.subset_num_nodes['state_disc'], 2)), units='m')
 
         F_ivc = IndepVarComp()
         p.model.add_subsystem('F_ivc', F_ivc, promotes=['staterate_disc:pos'])
 
         F_ivc.add_output('staterate_disc:pos',
-                         val=np.zeros((gd.subset_num_nodes['disc'], 2)),
+                         val=np.zeros((gd.subset_num_nodes['state_disc'], 2)),
                          units='m/s')
 
         dt_dtau_ivc = IndepVarComp()
@@ -329,8 +332,11 @@ class TestStateInterpComp(unittest.TestCase):
         X_ivc = IndepVarComp()
         p.model.add_subsystem('X_ivc', X_ivc, promotes=['state_disc:x', 'state_disc:v'])
 
-        X_ivc.add_output('state_disc:x', val=np.zeros(gd.subset_num_nodes['disc']), units='m')
-        X_ivc.add_output('state_disc:v', val=np.zeros(gd.subset_num_nodes['disc']), units='m/s')
+        X_ivc.add_output('state_disc:x', val=np.zeros(gd.subset_num_nodes['state_disc']),
+                         units='m')
+
+        X_ivc.add_output('state_disc:v', val=np.zeros(gd.subset_num_nodes['state_disc']),
+                         units='m/s')
 
         dt_dtau_ivc = IndepVarComp()
         dt_dtau_ivc.add_output('dt_dstau', val=0.0*np.zeros(gd.subset_num_nodes['col']), units='s')

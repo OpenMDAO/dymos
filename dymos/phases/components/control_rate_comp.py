@@ -128,7 +128,7 @@ class ControlRateComp(ExplicitComponent):
         self.sizes = {}
         self.num_nodes = num_nodes
 
-        _, self.D = self.metadata['grid_data'].phase_lagrange_matrices('all', 'all')
+        _, self.D = self.metadata['grid_data'].phase_lagrange_matrices('control_disc', 'all')
         self.D2 = np.dot(self.D, self.D)
 
         self._setup_controls()

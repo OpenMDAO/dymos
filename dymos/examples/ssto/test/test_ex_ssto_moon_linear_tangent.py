@@ -35,11 +35,11 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
         phase = p.model.phase0
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 500.0
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='disc')
-        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='disc')
-        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='disc')
-        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='disc')
-        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='disc')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_disc')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_disc')
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_disc')
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_disc')
+        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_disc')
         p['phase0.controls:a_ctrl'] = -0.01
         p['phase0.controls:b_ctrl'] = 3.0
 
@@ -74,11 +74,11 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
         phase = p.model.phase0
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 500.0
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='disc')
-        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='disc')
-        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='disc')
-        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='disc')
-        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='disc')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_disc')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_disc')
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_disc')
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_disc')
+        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_disc')
         p['phase0.controls:a_ctrl'] = -0.01
         p['phase0.controls:b_ctrl'] = 3.0
 

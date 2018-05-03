@@ -33,8 +33,8 @@ class ContinuityComp(ExplicitComponent):
     def _setup_value_continuity(self):
         state_options = self.metadata['state_options']
         control_options = self.metadata['control_options']
-        segment_indices = self.metadata['grid_data'].subset_segment_indices['disc']
-        num_disc_nodes = self.metadata['grid_data'].subset_num_nodes['disc']
+        segment_indices = self.metadata['grid_data'].subset_segment_indices['state_disc']
+        num_disc_nodes = self.metadata['grid_data'].subset_num_nodes['state_disc']
         num_segments = self.metadata['grid_data'].num_segments
 
         self.jacs = {}

@@ -86,14 +86,12 @@ class TestContinuityComp(unittest.TestCase):
         for state in ('x', 'y'):
             assert_almost_equal(self.p['cnty_comp.defect_states:{0}'.format(state)][0, ...],
                                 self.p[state][2, ...] - self.p[state][3, ...])
-        for state in ('x', 'y'):
             assert_almost_equal(self.p['cnty_comp.defect_states:{0}'.format(state)][1, ...],
                                 self.p[state][4, ...] - self.p[state][5, ...])
 
         for state in ('u', 'v'):
             assert_almost_equal(self.p['cnty_comp.defect_controls:{0}'.format(state)][0, ...],
                                 self.p[state][4, ...] - self.p[state][5, ...])
-        for state in ('u', 'v'):
             assert_almost_equal(self.p['cnty_comp.defect_controls:{0}'.format(state)][1, ...],
                                 self.p[state][7, ...] - self.p[state][8, ...])
 

@@ -81,8 +81,8 @@ class TestControlRateComp(unittest.TestCase):
         ivc = IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
-        ivc.add_output('controls:a', val=np.zeros(gd.subset_num_nodes['all']), units='m')
-        ivc.add_output('controls:b', val=np.zeros(gd.subset_num_nodes['all']), units='m')
+        ivc.add_output('controls:a', val=np.zeros(gd.subset_num_nodes['control_disc']), units='m')
+        ivc.add_output('controls:b', val=np.zeros(gd.subset_num_nodes['control_disc']), units='m')
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=10.0, units='s')
 
@@ -150,7 +150,8 @@ class TestControlRateComp(unittest.TestCase):
         ivc = IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
-        ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['all'], 3)), units='m')
+        ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['control_disc'], 3)),
+                       units='m')
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=10.0, units='s')
 
@@ -228,7 +229,8 @@ class TestControlRateComp(unittest.TestCase):
         ivc = IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
-        ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['all'], 3, 1)), units='m')
+        ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['control_disc'], 3, 1)),
+                       units='m')
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=10.0, units='s')
 
@@ -306,7 +308,8 @@ class TestControlRateComp(unittest.TestCase):
         ivc = IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
-        ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['all'], 2, 2)), units='m')
+        ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['control_disc'], 2, 2)),
+                       units='m')
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=10.0, units='s')
 
@@ -393,8 +396,8 @@ class TestControlRateComp(unittest.TestCase):
         ivc = IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
-        ivc.add_output('controls:a', val=np.zeros(gd.subset_num_nodes['all']), units='m')
-        ivc.add_output('controls:b', val=np.zeros(gd.subset_num_nodes['all']), units='m')
+        ivc.add_output('controls:a', val=np.zeros(gd.subset_num_nodes['control_disc']), units='m')
+        ivc.add_output('controls:b', val=np.zeros(gd.subset_num_nodes['control_disc']), units='m')
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=10.0, units='s')
 
@@ -461,7 +464,8 @@ class TestControlRateComp(unittest.TestCase):
         ivc = IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
-        ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['all'], 3)), units='m')
+        ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['control_disc'], 3)),
+                       units='m')
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=10.0, units='s')
 
@@ -539,7 +543,8 @@ class TestControlRateComp(unittest.TestCase):
         ivc = IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
-        ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['all'], 3, 1)), units='m')
+        ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['control_disc'], 3, 1)),
+                       units='m')
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=10.0, units='s')
 
@@ -617,7 +622,8 @@ class TestControlRateComp(unittest.TestCase):
         ivc = IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
-        ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['all'], 2, 2)), units='m')
+        ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['control_disc'], 2, 2)),
+                       units='m')
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=10.0, units='s')
 

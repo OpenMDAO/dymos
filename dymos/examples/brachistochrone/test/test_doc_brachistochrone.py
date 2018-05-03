@@ -53,10 +53,10 @@ class TestBrachistochroneExample(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='disc')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='disc')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='disc')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='all')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_disc')
+        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_disc')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_disc')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_disc')
 
         # Solve for the optimal trajectory
         p.run_driver()

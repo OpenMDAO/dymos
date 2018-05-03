@@ -49,7 +49,7 @@ class StateInterpComp(ExplicitComponent):
     def setup(self):
         time_units = self.metadata['time_units']
 
-        num_disc_nodes = self.metadata['grid_data'].subset_num_nodes['disc']
+        num_disc_nodes = self.metadata['grid_data'].subset_num_nodes['state_disc']
         num_col_nodes = self.metadata['grid_data'].subset_num_nodes['col']
 
         state_options = self.metadata['state_options']
@@ -103,9 +103,9 @@ class StateInterpComp(ExplicitComponent):
             self.xdotc_str[state_name] = 'staterate_col:{0}'.format(state_name)
 
         if transcription == 'gauss-lobatto':
-            Ai, Bi, Ad, Bd = self.metadata['grid_data'].phase_hermite_matrices('disc', 'col')
+            Ai, Bi, Ad, Bd = self.metadata['grid_data'].phase_hermite_matrices('state_disc', 'col')
         elif transcription == 'radau-ps':
-            Ai, Ad = self.metadata['grid_data'].phase_lagrange_matrices('disc', 'col')
+            Ai, Ad = self.metadata['grid_data'].phase_lagrange_matrices('state_disc', 'col')
             Bi = Bd = np.zeros(shape=(num_col_nodes, num_disc_nodes))
         else:
             raise ValueError('unhandled transcription type: '

@@ -807,9 +807,10 @@ class PhaseBase(Group):
         for name, options in iteritems(self.control_options):
             if options['opt']:
                 if options['dynamic']:
+                    # Dynamic controls
                     num_dynamic_controls = num_dynamic_controls + 1
                     num_input_nodes = grid_data.num_dynamic_control_input_nodes
-                    map_indices_to_all = self.grid_data.input_maps['dynamic_control_to_all']
+                    map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
 
                     desvar_indices = list(range(self.grid_data.num_dynamic_control_input_nodes))
                     if options['fix_initial']:
@@ -818,16 +819,16 @@ class PhaseBase(Group):
                         desvar_indices.pop()
 
                     if len(desvar_indices) > 0:
-                        coerce_desvar_option = CoerceDesvar(grid_data.subset_num_nodes['disc'],
-                                                            desvar_indices, options)
+                        coerce_desvar = CoerceDesvar(grid_data.subset_num_nodes['control_disc'],
+                                                     desvar_indices, options)
 
                         self.add_design_var(name='controls:{0}'.format(name),
-                                            lower=coerce_desvar_option('lower'),
-                                            upper=coerce_desvar_option('upper'),
-                                            scaler=coerce_desvar_option('scaler'),
-                                            adder=coerce_desvar_option('adder'),
-                                            ref0=coerce_desvar_option('ref0'),
-                                            ref=coerce_desvar_option('ref'),
+                                            lower=coerce_desvar('lower'),
+                                            upper=coerce_desvar('upper'),
+                                            scaler=coerce_desvar('scaler'),
+                                            adder=coerce_desvar('adder'),
+                                            ref0=coerce_desvar('ref0'),
+                                            ref=coerce_desvar('ref'),
                                             indices=desvar_indices)
                 # END DYNAMIC CONTROL
                 else:
@@ -853,10 +854,9 @@ class PhaseBase(Group):
             # END OPTIMAL CONTROL
             else:
                 if options['dynamic']:
-                    map_indices_to_all = self.grid_data.input_maps['dynamic_control_to_all']
+                    map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
                 else:
-                    map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'],
-                                                  dtype=int)
+                    map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 control_src_name = 'controls:{0}_out'.format(name)
 
             # END INPUT CONTROL
@@ -1009,9 +1009,9 @@ class PhaseBase(Group):
             The variable whose values are to be returned.  This may be
             the name 'time', the name of a state, control, or parameter,
             or the path to a variable in the ODE system of the phase.
-        nodes : str
-            The name of the node subset, one of 'disc', 'col', 'None'.
-            This option does not apply to GLMPhase. The default is 'None'.
+        nodes : str or None
+            The name of the node subset or None.
+            This option does not apply to GLMPhase. The default is None.
 
         Returns
         -------
@@ -1035,8 +1035,8 @@ class PhaseBase(Group):
         value : ndarray
             Array of time/control/state/parameter values.
         nodes : str
-            The name of the node subset, one of 'disc', 'col', 'None'.
-            This option does not apply to GLMPhase. The default is 'None'.
+            The name of the node subset or None.
+            This option does not apply to GLMPhase. The default is None.
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
             One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
@@ -1061,9 +1061,9 @@ class PhaseBase(Group):
             Array of integration variable values.
         ys :  ndarray
             Array of control/state/parameter values.
-        nodes : str
-            The name of the node subset, one of 'disc', 'col', 'None'.
-            This option does not apply to GLMPhase. The default is 'None'.
+        nodes : str or None
+            The name of the node subset or None.
+            This option does not apply to GLMPhase. The default is None.
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
             One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
@@ -1088,8 +1088,10 @@ class PhaseBase(Group):
 
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
-        if nodes not in ('col', 'disc', 'all'):
-            raise ValueError("nodes must be one of 'col', 'disc', or 'all'")
+        if nodes not in ('col', 'disc', 'all', 'state_disc', 'control_disc',
+                         'segment_ends'):
+            raise ValueError("nodes must be one of 'col', 'disc', 'all', 'state_disc', "
+                             "'control_disc', or 'segment_ends'")
         if xs is None:
             if len(ys) != 2:
                 raise ValueError('xs may only be unspecified when len(ys)=2')
