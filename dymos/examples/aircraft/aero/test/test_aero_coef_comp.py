@@ -23,11 +23,11 @@ class TestAeroCoefComp(unittest.TestCase):
 
         ivc.add_output('mach', val=np.zeros(nn), units=None)
         ivc.add_output('alpha',val=np.zeros(nn), units='rad')
-        ivc.add_output('h',val=np.zeros(nn), units='km')
+        ivc.add_output('alt',val=np.zeros(nn), units='km')
         ivc.add_output('eta',val=np.zeros(nn), units='rad')
 
         prob.model.connect('mach', 'aero.mach')
-        prob.model.connect('h', 'aero.h')
+        prob.model.connect('alt', 'aero.alt')
         prob.model.connect('alpha', 'aero.alpha')
         prob.model.connect('eta', 'aero.eta')
 
@@ -37,7 +37,7 @@ class TestAeroCoefComp(unittest.TestCase):
 
         prob['mach'] = 0.85*np.ones(nn)
 
-        prob['h'] = np.array([  0.            ,   0.553093433783,   1.129059821455,
+        prob['alt'] = np.array([  0.            ,   0.553093433783,   1.129059821455,
                                 1.730321131057,   2.35947047237 ,   3.019070277784,
                                 3.71116823958 ,   4.436240405573,   5.191067159896,
                                 5.964994808747,   6.735049468246,   7.470889546615,

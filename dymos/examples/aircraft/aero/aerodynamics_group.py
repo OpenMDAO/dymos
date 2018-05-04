@@ -19,7 +19,7 @@ class AerodynamicsGroup(Group):
 
         self.add_subsystem(name='aero_coef_comp',
                            subsys=AeroCoefComp(num_nodes=n),
-                           promotes_inputs=['mach', 'alpha', 'h', 'eta'],
+                           promotes_inputs=['mach', 'alpha', 'alt', 'eta'],
                            promotes_outputs=['CL', 'CD', 'CM'])
 
         self.add_subsystem(name='aero_forces_comp',

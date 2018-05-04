@@ -68,7 +68,7 @@ def mission(aircraft="CRM", num_seg=10, seg_ncn=2, rel_lengths="lgl",
         phase0.set_state_options('W_f', val=phase0.cardinal_node_space(1.2E5,0), lower=0.0,upper=1.0E6,ic_fix=False,fc_fix=True,scaler=0.0001,defect_scaler=0.001)
 
         phase0.add_dynamic_control('M', val=phase0.node_space(0.80,0.80), opt=variable_mach, lower=0.2, upper=0.8,scaler=1.0,seg_rate_continuity=True)
-        phase0.add_dynamic_control('h', units='km', val=phase0.node_space(0.0,0.0),opt=True,ic_fix=True, fc_fix=True,lower=0.0,upper=20.0,scaler=1.0,seg_rate_continuity=True)
+        phase0.add_dynamic_control('alt', units='km', val=phase0.node_space(0.0,0.0),opt=True,ic_fix=True, fc_fix=True,lower=0.0,upper=20.0,scaler=1.0,seg_rate_continuity=True)
 
 
         pax_wt = 84.02869

@@ -5,7 +5,7 @@ import numpy as np
 from openmdao.api import ExplicitComponent
 
 
-class ThrottleSettingComp(ExplicitComponent):
+class ThrottleComp(ExplicitComponent):
     """ Compute 'tau' (throttle parameter) which is the ratio of the current thrust
         (as determined to provie flight equilibrium) with the maximum thrust given
         the current aircraft state.

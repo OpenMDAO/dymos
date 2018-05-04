@@ -18,16 +18,16 @@ class SFCComp(ExplicitComponent):
         self.Ka = 1.5E-4 * 9.80665
 
         # Inputs
-        self.add_input(name='SFC_SL', desc='sea-level specific fuel consumption', units='1/s')
-        self.add_input(name='h', desc='altitude', units='m')
+        self.add_input(name='tsfc_sl', desc='sea-level specific fuel consumption', units='1/s')
+        self.add_input(name='alt', shape=(nn,), desc='altitude', units='m')
 
         # Outputs
-        self.add_output(name='SFC', val=np.zeros(nn), desc='specific fuel consumption', units='1/s')
+        self.add_output(name='tsfc', val=np.zeros(nn), desc='specific fuel consumption', units='1/s')
 
         # Partials
         ar = np.arange(nn)
-        self.declare_partials('SFC', 'SFC_SL', rows=ar, cols=ar, val=1.0)
-        self.declare_partials('SFC', 'h', rows=ar, cols=ar, val=-1.0E-6 * self.Ka)
+        self.declare_partials('tsfc', 'tsfc_sl', rows=ar, cols=np.zeros(nn), val=1.0)
+        self.declare_partials('tsfc', 'alt', rows=ar, cols=ar, val=-1.0E-6 * self.Ka)
 
     def compute(self, inputs, outputs):
-        outputs['SFC'] = inputs['SFC_SL'] - 1.0E-6 * self.Ka * inputs['h']
+        outputs['tsfc'] = inputs['tsfc_sl'] - 1.0E-6 * self.Ka * inputs['alt']

@@ -63,7 +63,7 @@ class AircraftMissionODE(Group):
 
         self.add(name='throttle_comp', system=ThrottleSettingComp(grid_data))
 
-        self.add(name='sfc_comp', system=SFCComp(grid_data))
+        self.add(name='tsfc_comp', system=SFCComp(grid_data))
 
         self.add(name='eom_comp',system=MissionEOM(grid_data))
 
