@@ -20,4 +20,3 @@ class AeroCoefComp(MetaModelStructured):
         self.add_output(name='CL', val=np.zeros(nn), units=None, training_data=CL_data)
         self.add_output(name='CD', val=np.zeros(nn), units=None, training_data=CD_data + 0.015)
         self.add_output(name='CM', val=np.zeros(nn), units=None, training_data=CM_data)
-

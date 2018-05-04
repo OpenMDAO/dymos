@@ -6,6 +6,8 @@ from dymos import declare_time, declare_state, declare_parameter
 from dymos.models.atmosphere import StandardAtmosphereGroup
 
 from .flight_path_angle_comp import FlightPathAngleComp
+from .dynamic_pressure_comp import DynamicPressureComp
+from .aero.aerodynamics_group import AerodynamicsGroup
 from .range_rate_comp import RangeRateComp
 from .velocity_comp import VelocityComp
 
@@ -28,13 +30,17 @@ class AircraftMissionODE(Group):
     def setup(self):
         nn = self.metadata['num_nodes']
 
-        self.add(name='atmos', system=StandardAtmosphereGroup(num_nodes=nn))
+        self.add_subsystem(name='atmos',
+                           subsys=StandardAtmosphereGroup(num_nodes=nn))
 
-        self.add(name='vel_comp', system=VelocityComp(num_nodes=nn))
+        self.add_subsystem(name='vel_comp',
+                           subsys=VelocityComp(num_nodes=nn))
 
-        self.add(name='gam_comp', system=FlightPathAngleComp(num_nodes=nn))
+        self.add_subsystem(name='gam_comp',
+                           subsys=FlightPathAngleComp(num_nodes=nn))
 
-        # self.add(name='q_comp', system=DynamicPressureComp(num_nodes=nn))
+        self.add_subsystem(name='q_comp',
+                           subsys=DynamicPressureComp(num_nodes=nn))
         #
         # self.add(name='flight_equilibrium',
         #          system=FlightEquilibriumAnalysisGroup(grid_data,mbi_CL, mbi_CD, mbi_CM, mbi_num,iprint=False))
@@ -60,3 +66,6 @@ class AircraftMissionODE(Group):
         self.add(name='sfc_comp', system=SFCComp(grid_data))
 
         self.add(name='eom_comp',system=MissionEOM(grid_data))
+
+        self.add_subsystem(name='range_rate_comp',
+                           subsys=RangeRateComp(num_nodes=nn))
