@@ -42,7 +42,6 @@ class TestPropulsionComp(unittest.TestCase):
         assert_rel_error(self, self.p['propulsion.dXdt:W_f'],
                          np.linspace(0, -1.02E6 * 2 * 8.951E-6 * 9.81, self.n))
 
-
     def test_partials(self):
         cpd = self.p.check_partials(method='cs', suppress_output=True)
         assert_check_partials(cpd)
