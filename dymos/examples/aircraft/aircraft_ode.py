@@ -5,25 +5,24 @@ from openmdao.api import Group
 from dymos import declare_time, declare_state, declare_parameter
 from dymos.models.atmosphere import StandardAtmosphereGroup
 
-from .flight_path_angle_comp import FlightPathAngleComp
+from .unsteady_flight_path_angle_comp import UnsteadyFlightPathAngleComp
 from .dynamic_pressure_comp import DynamicPressureComp
-from .aero.aerodynamics_group import AerodynamicsGroup
-from .flight_dynamics.flight_dynamics_group import FlightDynamicsGroup
+from .flight_equlibrium.flight_equilibrium_group import FlightEquilibriumGroup
 from .propulsion.propulsion_group import PropulsionGroup
 from .range_rate_comp import RangeRateComp
-from .velocity_comp import VelocityComp
+from .mach_comp import MachComp
 
 
-@declare_time(units='s')
-@declare_state('x', rate_source='eom.xdot', units='m')
-@declare_state('y', rate_source='eom.ydot', targets=['atmos.y'], units='m')
-@declare_state('vx', rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
-@declare_state('vy', rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
-@declare_state('m', rate_source='eom.mdot', targets=['eom.m'], units='kg')
-@declare_parameter('thrust', targets=['eom.thrust'], units='N')
-@declare_parameter('theta', targets=['eom.theta'], units='rad')
-@declare_parameter('Isp', targets=['eom.Isp'], units='s')
-class AircraftMissionODE(Group):
+@declare_time(units='km')
+@declare_state('range', rate_source='dXdt:range', units='m/s')
+@declare_state('mass', rate_source='propulsion.dXdt:mass', units='kg')
+@declare_parameter('alt', targets=['atmos.h', 'flight_equlibrium.alt'], units='m')
+@declare_parameter('climb_rate', targets=['gam_comp.climb_rate'], units='m/s')
+@declare_parameter('climb_rate2', targets=['gam_comp.climb_rate2'], units='m/s**2')
+@declare_parameter('TAS', targets=['gam_comp.TAS', 'q_comp.TAS', 'range_rate_comp.TAS',
+                                   'flight_equlibrium.TAS'], units='m/s')
+@declare_parameter('TAS_rate', targets=['flight_equlibrium.TAS_rate'], units='m/s**2')
+class AircraftODE(Group):
 
     def initialize(self):
         self.metadata.declare('num_nodes', types=int,
@@ -35,19 +34,35 @@ class AircraftMissionODE(Group):
         self.add_subsystem(name='atmos',
                            subsys=StandardAtmosphereGroup(num_nodes=nn))
 
-        self.add_subsystem(name='vel_comp',
-                           subsys=VelocityComp(num_nodes=nn))
+        self.connect('atmos.pres', 'propulsion.pres')
+        self.connect('atmos.sos', 'mach_comp.sos')
+        self.connect('atmos.rho', 'q_comp.rho')
+
+        self.add_subsystem(name='mach_comp',
+                           subsys=MachComp(num_nodes=nn))
+
+        self.connect('mach_comp.mach', ['aero.mach'])
 
         self.add_subsystem(name='gam_comp',
-                           subsys=FlightPathAngleComp(num_nodes=nn))
+                           subsys=UnsteadyFlightPathAngleComp(num_nodes=nn))
+
+        self.connect('gam_comp.gam', ('flight_dynamics.gam', 'range_rate_comp.gam'))
+
+        self.connect('gam_comp.gam_rate', 'flight_equilibrium.gam_rate')
 
         self.add_subsystem(name='q_comp',
                            subsys=DynamicPressureComp(num_nodes=nn))
 
-        self.add_subsystem(name='flight_dynamics',
-                           subsys=FlightDynamicsGroup(num_nodes=nn))
+        self.connect('q_comp.q', ('aero.q'))
 
-        self.add_subsystem(name='propulsion', system=PropulsionGroup(num_nodes=nn))
+        self.add_subsystem(name='flight_equilibrium',
+                           subsys=FlightEquilibriumGroup(num_nodes=nn),
+                           promotes_inputs=['aero.*', 'flight_dynamics.*'],
+                           promotes_outputs=['aero.*', 'flight_dynamics.*'])
+
+        self.connect('flight_equilibrium.thrust', 'propulsion.thrust')
+
+        self.add_subsystem(name='propulsion', subsys=PropulsionGroup(num_nodes=nn))
 
         self.add_subsystem(name='range_rate_comp',
                            subsys=RangeRateComp(num_nodes=nn))

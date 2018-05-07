@@ -7,7 +7,7 @@ from openmdao.api import Group, BalanceComp, NewtonSolver, DirectSolver, ArmijoG
 from ..aero.aerodynamics_group import AerodynamicsGroup
 from .unsteady_flight_dynamics_comp import UnsteadyFlightDynamicsComp
 
-class FlightDynamicsGroup(Group):
+class FlightEquilibriumGroup(Group):
 
     def initialize(self):
         self.metadata.declare('num_nodes', types=int,
@@ -17,17 +17,23 @@ class FlightDynamicsGroup(Group):
         nn = self.metadata['num_nodes']
 
         self.add_subsystem('aero',
-                           subsys=AerodynamicsGroup(num_nodes=nn),
-                           promotes_inputs=['mach', 'alpha', 'alt', 'eta', 'q'])
+                           subsys=AerodynamicsGroup(num_nodes=nn))
 
-        self.add_subsystem('dynamics',
-                           subsys=UnsteadyFlightDynamicsComp(num_nodes=nn),
-                           promotes_inputs=['thrust', 'gam', 'alpha', 'm', 'TAS'])
+        self.add_subsystem('flight_dynamics',
+                           subsys=UnsteadyFlightDynamicsComp(num_nodes=nn))
 
-        bal = self.add_subsystem(name='balance',
+        self.connect('aero.L', 'flight_dynamics.L')
+        self.connect('aero.D', 'flight_dynamics.D')
+        self.connect('aero.CM', 'TAS_gam_balance.CM')
+
+        bal = self.add_subsystem(name='TAS_gam_balance',
                                  subsys=BalanceComp(),
                                  promotes_inputs=['TAS_rate', 'gam_rate'],
                                  promotes_outputs=['alpha', 'thrust', 'eta'])
+
+        self.connect('alpha', ('aero.alpha', 'flight_dynamics.alpha'))
+        self.connect('thrust', ('flight_dynamics.thrust'))
+        self.connect('eta', ('aero.eta'))
 
         bal.add_balance('alpha', units='rad', eq_units='m/s**2', lhs_name='TAS_rate_computed',
                         rhs_name='TAS_rate', val=0.01*np.ones(nn), lower=-20, upper=30)
@@ -38,13 +44,8 @@ class FlightDynamicsGroup(Group):
         bal.add_balance('eta', units='rad', val=0.01*np.ones(nn), eq_units=None, lhs_name='CM',
                         lower=-30, upper=30, rhs_val=0.0)
 
-        self.connect('aero.CM', 'balance.CM')
-        self.connect('aero.D', 'dynamics.D')
-        self.connect('aero.L', 'dynamics.L')
-
-        self.connect('dynamics.TAS_rate_computed', 'balance.TAS_rate_computed')
-        self.connect('dynamics.gam_rate_computed', 'balance.gam_rate_computed')
-
+        self.connect('flight_dynamics.TAS_rate_computed', 'TAS_gam_balance.TAS_rate_computed')
+        self.connect('flight_dynamics.gam_rate_computed', 'TAS_gam_balance.gam_rate_computed')
 
         self.linear_solver = DirectSolver()
         self.nonlinear_solver = NewtonSolver()

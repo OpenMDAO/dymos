@@ -13,12 +13,12 @@ class UnsteadyFlightPathAngleComp(ExplicitComponent):
         nn = self.metadata['num_nodes']
 
         # Inputs
-        self.add_input('h_rate',
+        self.add_input('climb_rate',
                        val=0.01*np.ones(nn),
                        desc='Altitude rate',
                        units='m/s')
 
-        self.add_input('h_rate2',
+        self.add_input('climb_rate2',
                        val=0.01*np.ones(nn),
                        desc='Altitude rate',
                        units='m/s**2')
@@ -42,11 +42,11 @@ class UnsteadyFlightPathAngleComp(ExplicitComponent):
 
         # Setup partials
         ar = np.arange(nn)
-        self.declare_partials(of='gam', wrt='h_rate', rows=ar, cols=ar)
+        self.declare_partials(of='gam', wrt='climb_rate', rows=ar, cols=ar)
         self.declare_partials(of='gam', wrt='TAS', rows=ar, cols=ar)
 
-        self.declare_partials(of='gam_rate', wrt='h_rate', rows=ar, cols=ar)
-        self.declare_partials(of='gam_rate', wrt='h_rate2', rows=ar, cols=ar)
+        self.declare_partials(of='gam_rate', wrt='climb_rate', rows=ar, cols=ar)
+        self.declare_partials(of='gam_rate', wrt='climb_rate2', rows=ar, cols=ar)
         self.declare_partials(of='gam_rate', wrt='TAS', rows=ar, cols=ar)
         self.declare_partials(of='gam_rate', wrt='TAS_rate', rows=ar, cols=ar)
 
@@ -54,32 +54,32 @@ class UnsteadyFlightPathAngleComp(ExplicitComponent):
         """ Flight path angle is calculated by taking the arcsin of the ratio
         of the altitude rate to velocity.
         """
-        h_rate = inputs['h_rate']
-        h_rate2 = inputs['h_rate2']
+        climb_rate = inputs['climb_rate']
+        climb_rate2 = inputs['climb_rate2']
         v = inputs['TAS']
         v_rate = inputs['TAS_rate']
 
-        ratio = np.clip(h_rate/v, -0.999, 0.999)
+        ratio = np.clip(climb_rate/v, -0.999, 0.999)
         outputs['gam'] = np.arcsin(ratio)
-        outputs['gam_rate'] = (v * h_rate2 - h_rate * v_rate)/(v**2 * np.sqrt(1-ratio**2))
+        outputs['gam_rate'] = (v * climb_rate2 - climb_rate * v_rate)/(v**2 * np.sqrt(1-ratio**2))
 
     def compute_partials(self, inputs, partials):
         """ The jacobian of the flight path angle component.
 
         """
-        h_rate = inputs['h_rate']
-        h_rate2 = inputs['h_rate2']
+        climb_rate = inputs['climb_rate']
+        climb_rate2 = inputs['climb_rate2']
         v = inputs['TAS']
         v_rate = inputs['TAS_rate']
 
-        ratio = np.clip(h_rate/v, -0.999, 0.999)
+        ratio = np.clip(climb_rate/v, -0.999, 0.999)
         denom = np.sqrt(1.0 - ratio**2)
 
-        partials['gam', 'h_rate'] = 1.0 / (v * denom)
-        partials['gam', 'TAS'] = -h_rate / (v**2 * denom)
+        partials['gam', 'climb_rate'] = 1.0 / (v * denom)
+        partials['gam', 'TAS'] = -climb_rate / (v**2 * denom)
 
-        x = h_rate
-        y = h_rate2
+        x = climb_rate
+        y = climb_rate2
         z = v_rate
 
         x2 = x * x
@@ -88,6 +88,6 @@ class UnsteadyFlightPathAngleComp(ExplicitComponent):
         v3 = v2 * v
 
         partials['gam_rate', 'TAS'] = - denom * (v3 * y - 2 * v2 * x * z + x3 * z) / (v * (v2 - x2)**2)
-        partials['gam_rate', 'h_rate'] = (x * y - v * z)/(denom * (v3 - v * x2))
-        partials['gam_rate', 'TAS_rate'] = -h_rate / (v2 * denom)
-        partials['gam_rate', 'h_rate2'] = 1.0 / (v * denom)
+        partials['gam_rate', 'climb_rate'] = (x * y - v * z)/(denom * (v3 - v * x2))
+        partials['gam_rate', 'TAS_rate'] = -climb_rate / (v2 * denom)
+        partials['gam_rate', 'climb_rate2'] = 1.0 / (v * denom)

@@ -42,10 +42,10 @@ class PropulsionGroup(Group):
                            promotes_inputs=['alt'],
                            promotes_outputs=['tsfc'])
 
-        self.add_subsystem(name='fuel_burn_comp',
+        self.add_subsystem(name='fuel_burn_rate_comp',
                            subsys=FuelBurnRateComp(num_nodes=n),
                            promotes_inputs=['tsfc', 'thrust'],
-                           promotes_outputs=['dXdt:W_f'])
+                           promotes_outputs=['dXdt:mass'])
 
         self.connect('assumptions.tsfc_sl', 'tsfc_comp.tsfc_sl')
         self.connect('assumptions.max_thrust_sl', 'max_thrust_sl')

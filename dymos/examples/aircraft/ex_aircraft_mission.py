@@ -20,8 +20,8 @@ from pointer.core import Trajectory, RHS, CollocationPhase
 
 from .aerodynamics import setup_surrogates_all
 from .atmosphere import StandardAtmosphereGroup
-from .velocity_comp import VelocityComp
-from .flight_path_angle_comp import FlightPathAngleComp
+from .velocity_comp import TrueAirspeedComp
+from .flight_path_angle_comp_deprecated import FlightPathAngleComp
 from .dynamic_pressure_comp import DynamicPressureComp
 from .flight_equilibrium import FlightEquilibriumAnalysisGroup
 from .propulsion import MaxThrustComp, ThrottleSettingComp, SFCComp

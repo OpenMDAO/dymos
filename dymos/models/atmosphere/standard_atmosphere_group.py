@@ -33,16 +33,20 @@ class StandardAtmosphereGroup(Group):
 
         self.add_subsystem('pres_comp',
                            PressureComp(num_nodes=n),
-                           promotes=['h', 'pres'])
+                           promotes_inputs=['h'],
+                           promotes_outputs=['pres'])
 
         self.add_subsystem('temp_comp',
                            TemperatureComp(num_nodes=n),
-                           promotes=['h', 'temp'])
+                           promotes_inputs=['h'],
+                           promotes_outputs=['temp'])
 
         self.add_subsystem('sos_comp',
                            SpeedOfSoundComp(num_nodes=n),
-                           promotes=['temp', 'sos'])
+                           promotes_inputs=['temp'],
+                           promotes_outputs=['sos'])
 
         self.add_subsystem('rho_comp',
                            DensityComp(num_nodes=n),
-                           promotes=['pres', 'temp', 'rho'])
+                           promotes_inputs=['pres', 'temp'],
+                           promotes_outputs=['rho'])

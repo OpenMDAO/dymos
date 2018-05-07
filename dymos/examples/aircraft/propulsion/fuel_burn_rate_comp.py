@@ -18,17 +18,18 @@ class FuelBurnRateComp(ExplicitComponent):
         self.add_input(name='tsfc', shape=(nn,), desc='specific fuel consumption', units='1/s')
 
         # Outputs
-        self.add_output(name='dXdt:W_f', shape=(nn,),
-                        desc='rate of fuel flow - negative when fuel is being depleted', units=None)
+        self.add_output(name='dXdt:mass', shape=(nn,),
+                        desc='rate of aircraft mass change - negative when fuel is being depleted',
+                        units='kg/s')
 
         # Partials
         ar = np.arange(nn)
-        self.declare_partials('dXdt:W_f', 'thrust', rows=ar, cols=ar)
-        self.declare_partials('dXdt:W_f', 'tsfc', rows=ar, cols=ar)
+        self.declare_partials('dXdt:mass', 'thrust', rows=ar, cols=ar)
+        self.declare_partials('dXdt:mass', 'tsfc', rows=ar, cols=ar)
 
     def compute(self, inputs, outputs):
-        outputs['dXdt:W_f'] = -inputs['tsfc'] * inputs['thrust']
+        outputs['dXdt:mass'] = -inputs['tsfc'] * inputs['thrust'] / 9.80665
 
     def compute_partials(self, inputs, partials):
-        partials['dXdt:W_f', 'thrust'] = -inputs['tsfc']
-        partials['dXdt:W_f', 'tsfc'] = -inputs['thrust']
+        partials['dXdt:mass', 'thrust'] = -inputs['tsfc'] / 9.80665
+        partials['dXdt:mass', 'tsfc'] = -inputs['thrust'] / 9.80665
