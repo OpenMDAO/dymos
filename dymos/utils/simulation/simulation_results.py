@@ -139,9 +139,10 @@ class SimulationResults(object):
         # Populate outputs of ODE
         prom2abs_ode_outputs = p.model.ode._var_allprocs_prom2abs_list['output']
         for prom_name, abs_name in iteritems(prom2abs_ode_outputs):
-            print('prom_name', prom_name)
-            print('abs_name', abs_name, p[abs_name[0]].shape)
-            p[abs_name[0]] = np.reshape(self.get_values(prom_name), p[abs_name[0]].shape)
+            if p[abs_name[0]].shape[0] == 1:
+                p[abs_name[0]] = self.get_values(prom_name)[0]
+            else:
+                p[abs_name[0]] = np.reshape(self.get_values(prom_name), p[abs_name[0]].shape)
 
         # Run model to record file
         p.run_driver()

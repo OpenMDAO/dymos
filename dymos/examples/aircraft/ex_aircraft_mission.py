@@ -1,6 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
-__author__ = "rfalck"
+import numpy as np
 
 from openmdao.api import Problem, Group, ScipyOptimizeDriver, pyOptSparseDriver, DirectSolver, \
     CSCJacobian
@@ -47,12 +47,16 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
         phase.add_control('TAS', units='m/s', dynamic=False, lower=0.0, upper=260.0,
                           rate_param='TAS_rate', rate_continuity=True)
 
+        phase.add_objective('time')
+
         p.model.jacobian = CSCJacobian()
         p.model.linear_solver = DirectSolver()
 
         p.setup(mode='fwd')
 
-        p['phase0.states:range'] = phase.interpolate(ys=(0, 10000), nodes='state_disc')
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 100.0
+        p['phase0.states:range'] = phase.interpolate(ys=(0, 25000), nodes='state_disc')
         p['phase0.states:mass'] = phase.interpolate(ys=(200000, 200000), nodes='state_disc')
         p['phase0.controls:TAS'] = 250.0
         p['phase0.controls:alt'] = 9.144
@@ -63,10 +67,11 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
 if __name__ == '__main__':
 
     p = ex_aircraft_mission()
-    p.run_model()
+    p.run_driver()
 
-    exp_out = p.model.phase0.simulate(times='all')
+    exp_out = p.model.phase0.simulate(times=np.linspace(0, 100, 100))
 
-    import matplotlib.pyplt as plt
-    plt.plot(p.model.phase0.get_values('range'), p.model.phase0.get_values('alt'), 'ro')
+    import matplotlib.pyplot as plt
+    plt.plot(p.model.phase0.get_values('time'), p.model.phase0.get_values('range', units='km'), 'ro')
+    plt.plot(exp_out.get_values('time'), exp_out.get_values('range', units='km'), 'b-')
     plt.show()
