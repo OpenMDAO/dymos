@@ -32,7 +32,7 @@ class FlightPathAngleComp(ExplicitComponent):
         k = np.sqrt(1 - (h_rate / tas)**2)
 
         dgam_dhdot = 1.0 / (tas * k)
-        dgam_dtas = -h_rate/ (k * tas**2)
+        dgam_dtas = -h_rate / (k * tas**2)
 
         partials['gam', 'TAS'] = dgam_dtas
         partials['gam', 'climb_rate'] = dgam_dhdot

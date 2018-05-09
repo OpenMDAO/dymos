@@ -6,7 +6,8 @@ import numpy as np
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
-from dymos.examples.aircraft.flight_equlibrium.flight_equilibrium_group import FlightEquilibriumGroup
+from dymos.examples.aircraft.flight_equlibrium.flight_equilibrium_group import \
+    FlightEquilibriumGroup
 
 
 class TestFlightEquilibriumGroup(unittest.TestCase):
@@ -23,11 +24,13 @@ class TestFlightEquilibriumGroup(unittest.TestCase):
         ivc.add_output('TAS', val=200.0 * np.ones(cls.n), units='m/s', desc='true airspeed')
         ivc.add_output('TAS_rate', val=np.zeros(cls.n), units='m/s**2', desc='acceleration')
         ivc.add_output('gam', val=np.zeros(cls.n), units='rad', desc='flight path angle')
-        ivc.add_output('gam_rate', val=np.zeros(cls.n), units='rad/s', desc='flight path angle rate')
-        ivc.add_output('S', val= 427.8 * np.ones(cls.n), units='m**2', desc='reference area')
-        ivc.add_output('mach', val= 0.5 * np.ones(cls.n), units=None, desc='mach number')
+        ivc.add_output('gam_rate', val=np.zeros(cls.n), units='rad/s',
+                       desc='flight path angle rate')
+        ivc.add_output('S', val=427.8 * np.ones(cls.n), units='m**2', desc='reference area')
+        ivc.add_output('mach', val=0.5 * np.ones(cls.n), units=None, desc='mach number')
         ivc.add_output('mass', val=200000 * np.ones(cls.n), units='kg', desc='aircraft dry mass')
-        ivc.add_output('q', val=0.5 * 200.0**2 * np.ones(cls.n), units='Pa', desc='dynamic pressure')
+        ivc.add_output('q', val=0.5 * 200.0**2 * np.ones(cls.n), units='Pa',
+                       desc='dynamic pressure')
 
         cls.p.model.add_subsystem('flight_equilibrium', FlightEquilibriumGroup(num_nodes=cls.n),
                                   promotes_inputs=['aero.*', 'flight_dynamics.*'],
@@ -64,4 +67,3 @@ class TestFlightEquilibriumGroup(unittest.TestCase):
         np.set_printoptions(linewidth=1024)
         cpd = self.p.check_partials(suppress_output=False, method='fd', step=1.0E-6)
         # assert_check_partials(cpd, atol=1.0E-6, rtol=2.0)
-

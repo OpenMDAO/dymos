@@ -18,11 +18,20 @@ class SFCComp(ExplicitComponent):
         self.Ka = 1.5E-4 * 9.80665
 
         # Inputs
-        self.add_input(name='tsfc_sl', desc='sea-level specific fuel consumption', units='1/s')
-        self.add_input(name='alt', shape=(nn,), desc='altitude', units='m')
+        self.add_input(name='tsfc_sl',
+                       desc='sea-level specific fuel consumption',
+                       units='1/s')
+
+        self.add_input(name='alt',
+                       shape=(nn,),
+                       desc='altitude',
+                       units='m')
 
         # Outputs
-        self.add_output(name='tsfc', val=np.zeros(nn), desc='specific fuel consumption', units='1/s')
+        self.add_output(name='tsfc',
+                        val=np.zeros(nn),
+                        desc='specific fuel consumption',
+                        units='1/s')
 
         # Partials
         ar = np.arange(nn)

@@ -13,15 +13,16 @@ from .range_rate_comp import RangeRateComp
 from .mach_comp import MachComp
 
 
-@declare_time(units='km')
-@declare_state('range', rate_source='dXdt:range', units='m/s')
+@declare_time(units='s')
+@declare_state('range', rate_source='range_rate_comp.dXdt:range', units='m')
 @declare_state('mass', rate_source='propulsion.dXdt:mass', units='kg')
-@declare_parameter('alt', targets=['atmos.h', 'flight_equlibrium.alt'], units='m')
+@declare_parameter('alt', targets=['atmos.h', 'aero.alt'], units='m')
 @declare_parameter('climb_rate', targets=['gam_comp.climb_rate'], units='m/s')
 @declare_parameter('climb_rate2', targets=['gam_comp.climb_rate2'], units='m/s**2')
 @declare_parameter('TAS', targets=['gam_comp.TAS', 'q_comp.TAS', 'range_rate_comp.TAS',
-                                   'flight_equlibrium.TAS'], units='m/s')
-@declare_parameter('TAS_rate', targets=['flight_equlibrium.TAS_rate'], units='m/s**2')
+                                   'flight_dynamics.TAS'], units='m/s')
+@declare_parameter('TAS_rate', targets=['gam_comp.TAS_rate', 'flight_equilibrium.TAS_rate'],
+                   units='m/s**2')
 class AircraftODE(Group):
 
     def initialize(self):

@@ -7,6 +7,7 @@ from openmdao.api import Group, BalanceComp, NewtonSolver, DirectSolver, ArmijoG
 from ..aero.aerodynamics_group import AerodynamicsGroup
 from .unsteady_flight_dynamics_comp import UnsteadyFlightDynamicsComp
 
+
 class FlightEquilibriumGroup(Group):
 
     def initialize(self):
@@ -49,9 +50,6 @@ class FlightEquilibriumGroup(Group):
 
         self.linear_solver = DirectSolver()
         self.nonlinear_solver = NewtonSolver()
-        # self.jacobian = DenseJacobian()
-        # flight_equilibrium_group.nonlinear_solver.linesearch = BoundsEnforceLS()
-        # flight_equilibrium_group.nonlinear_solver.linesearch.options['bound_enforcement'] = 'vector'
         self.nonlinear_solver.linesearch = ArmijoGoldsteinLS()
         self.nonlinear_solver.options['solve_subsystems'] = True
         self.nonlinear_solver.linesearch.options['print_bound_enforce'] = True

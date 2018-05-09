@@ -26,12 +26,11 @@ class UnsteadyFlightDynamicsComp(ExplicitComponent):
         self.add_input(name='mass', shape=(n,), desc='aircraft mass', units='kg')
         self.add_input(name='TAS', shape=(n,), desc='true airspeed', units='m/s')
 
-
-        self.add_output(name='TAS_rate_computed',shape=(n,),
+        self.add_output(name='TAS_rate_computed', shape=(n,),
                         desc='rate of change in TAS required to match the given flight conditions',
                         units='m/s**2')
 
-        self.add_output(name='gam_rate_computed',shape=(n,),
+        self.add_output(name='gam_rate_computed', shape=(n,),
                         desc='rate of change in gam required to match the given flight conditions',
                         units='rad/s')
 

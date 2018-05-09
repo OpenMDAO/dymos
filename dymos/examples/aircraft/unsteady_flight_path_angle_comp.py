@@ -87,7 +87,8 @@ class UnsteadyFlightPathAngleComp(ExplicitComponent):
         v2 = v * v
         v3 = v2 * v
 
-        partials['gam_rate', 'TAS'] = - denom * (v3 * y - 2 * v2 * x * z + x3 * z) / (v * (v2 - x2)**2)
+        partials['gam_rate', 'TAS'] = \
+            - denom * (v3 * y - 2 * v2 * x * z + x3 * z) / (v * (v2 - x2)**2)
         partials['gam_rate', 'climb_rate'] = (x * y - v * z)/(denom * (v3 - v * x2))
         partials['gam_rate', 'TAS_rate'] = -climb_rate / (v2 * denom)
         partials['gam_rate', 'climb_rate2'] = 1.0 / (v * denom)

@@ -23,7 +23,7 @@ class MaxThrustComp(ExplicitComponent):
         self.add_input(name='max_thrust_sl', shape=(1,), desc='maximum thrust at sea-level',
                        units='N')
 
-        self.add_output(name='max_thrust',shape=(nn,), desc='maximum thrust at current altitude',
+        self.add_output(name='max_thrust', shape=(nn,), desc='maximum thrust at current altitude',
                         units='N')
 
         ar = np.arange(nn)

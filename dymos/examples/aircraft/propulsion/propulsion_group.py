@@ -21,7 +21,7 @@ class PropulsionGroup(Group):
 
         assumptions = self.add_subsystem('assumptions', subsys=IndepVarComp())
 
-        assumptions.add_output('tsfc_sl', val=2*8.951e-6*9.81, units='1/s',
+        assumptions.add_output('tsfc_sl', val=2 * 8.951e-6 * 9.80665, units='1/s',
                                desc='thrust specific fuel consumption at sea-level')
 
         assumptions.add_output('max_thrust_sl', val=1.02E6, units='N',

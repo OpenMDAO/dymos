@@ -37,10 +37,18 @@ class TestPropulsionComp(unittest.TestCase):
         cls.p.run_model()
 
     def test_results(self):
-        assert_rel_error(self, self.p['propulsion.tsfc'], 2*8.951e-6*9.81*np.ones(self.n))
-        assert_rel_error(self, self.p['propulsion.tau'], np.linspace(0, 1.0, self.n))
-        assert_rel_error(self, self.p['propulsion.dXdt:W_f'],
-                         np.linspace(0, -1.02E6 * 2 * 8.951E-6 * 9.81, self.n))
+
+        assert_rel_error(self,
+                         self.p['propulsion.tsfc'],
+                         2 * 8.951e-6 * 9.80665 * np.ones(self.n))
+
+        assert_rel_error(self,
+                         self.p['propulsion.tau'],
+                         np.linspace(0, 1.0, self.n))
+
+        assert_rel_error(self,
+                         self.p['propulsion.dXdt:mass'],
+                         np.linspace(0, -1.02E6 * 2 * 8.951E-6, self.n))
 
     def test_partials(self):
         cpd = self.p.check_partials(method='cs', suppress_output=True)
