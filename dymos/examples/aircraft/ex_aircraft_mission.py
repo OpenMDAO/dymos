@@ -21,7 +21,7 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
             p.driver.options['dynamic_simul_derivs_repeats'] = 5
             p.driver.opt_settings['Major iterations limit'] = 100
             p.driver.opt_settings['iSumm'] = 6
-            p.driver.opt_settings['Verify level'] = 3
+            # p.driver.opt_settings['Verify level'] = 3
         else:
             p.driver = ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
@@ -69,9 +69,16 @@ if __name__ == '__main__':
     p = ex_aircraft_mission()
     p.run_driver()
 
-    exp_out = p.model.phase0.simulate(times=np.linspace(0, 100, 100))
+    exp_out = p.model.phase0.simulate(times='all')
 
     import matplotlib.pyplot as plt
+
+    np.set_printoptions(linewidth=256)
+    print(p['phase0.states:range'].T)
+    print(p.model.phase0.get_values('range').T)
+    print(exp_out.get_values('range').T)
+
+
     plt.plot(p.model.phase0.get_values('time'), p.model.phase0.get_values('range'), 'ro')
     plt.plot(exp_out.get_values('time'), exp_out.get_values('range'), 'b-')
     plt.show()
