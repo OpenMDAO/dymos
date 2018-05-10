@@ -15,27 +15,27 @@ class ContinuityComp(ExplicitComponent):
 
     def initialize(self):
 
-        self.metadata.declare('grid_data', types=GridData,
-                              desc='Container object for grid info')
+        self.options.declare('grid_data', types=GridData,
+                             desc='Container object for grid info')
 
-        self.metadata.declare('state_options', types=dict,
-                              desc='Dictionary of state names/options for the phase')
+        self.options.declare('state_options', types=dict,
+                             desc='Dictionary of state names/options for the phase')
 
-        self.metadata.declare('control_options', types=dict,
-                              desc='Dictionary of control names/options for the phase')
+        self.options.declare('control_options', types=dict,
+                             desc='Dictionary of control names/options for the phase')
 
-        self.metadata.declare('time_units', default=None, allow_none=True, types=string_types,
-                              desc='Units of the integration variable')
+        self.options.declare('time_units', default=None, allow_none=True, types=string_types,
+                             desc='Units of the integration variable')
 
-        self.metadata.declare('enforce_state_continuity', default=True, types=bool,
-                              desc='Whether to add state continuity constraints')
+        self.options.declare('enforce_state_continuity', default=True, types=bool,
+                             desc='Whether to add state continuity constraints')
 
     def _setup_value_continuity(self):
-        state_options = self.metadata['state_options']
-        control_options = self.metadata['control_options']
-        segment_indices = self.metadata['grid_data'].subset_segment_indices['state_disc']
-        num_disc_nodes = self.metadata['grid_data'].subset_num_nodes['state_disc']
-        num_segments = self.metadata['grid_data'].num_segments
+        state_options = self.options['state_options']
+        control_options = self.options['control_options']
+        segment_indices = self.options['grid_data'].subset_segment_indices['state_disc']
+        num_disc_nodes = self.options['grid_data'].subset_num_nodes['state_disc']
+        num_segments = self.options['grid_data'].num_segments
 
         self.jacs = {}
 
@@ -55,7 +55,7 @@ class ContinuityComp(ExplicitComponent):
                 desc='Consistency constraint values for state {0}'.format(state_name),
                 units=units)
 
-            if self.metadata['enforce_state_continuity']:
+            if self.options['enforce_state_continuity']:
                 self.add_constraint(name='defect_states:{0}'.format(state_name),
                                     equals=0.0, scaler=1.0, linear=True)
 
@@ -131,16 +131,16 @@ class ContinuityComp(ExplicitComponent):
                 )
 
     def _setup_rate_continuity(self):
-        control_options = self.metadata['control_options']
-        segment_indices = self.metadata['grid_data'].subset_segment_indices['disc']
-        num_disc_nodes = self.metadata['grid_data'].subset_num_nodes['disc']
-        num_segments = self.metadata['grid_data'].num_segments
+        control_options = self.options['control_options']
+        segment_indices = self.options['grid_data'].subset_segment_indices['disc']
+        num_disc_nodes = self.options['grid_data'].subset_num_nodes['disc']
+        num_segments = self.options['grid_data'].num_segments
 
         for control_name, options in iteritems(control_options):
             shape = options['shape']
             units = options['units']
-            rate_units = get_rate_units(units, self.metadata['time_units'], deriv=1)
-            rate2_units = get_rate_units(units, self.metadata['time_units'], deriv=2)
+            rate_units = get_rate_units(units, self.options['time_units'], deriv=1)
+            rate2_units = get_rate_units(units, self.options['time_units'], deriv=2)
 
             if options['opt'] and options['dynamic']:
 
@@ -213,15 +213,15 @@ class ContinuityComp(ExplicitComponent):
 
     def setup(self):
         self.jacs = {}
-        compressed = self.metadata['grid_data'].compressed
+        compressed = self.options['grid_data'].compressed
         if not compressed:
             self._setup_value_continuity()
         self._setup_rate_continuity()
 
     def compute(self, inputs, outputs):
-        state_options = self.metadata['state_options']
-        control_options = self.metadata['control_options']
-        compressed = self.metadata['grid_data'].compressed
+        state_options = self.options['state_options']
+        control_options = self.options['control_options']
+        compressed = self.options['grid_data'].compressed
 
         if not compressed:
             for state_name, options in iteritems(state_options):

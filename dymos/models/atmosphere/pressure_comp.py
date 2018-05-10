@@ -9,10 +9,10 @@ class PressureComp(ExplicitComponent):
     Compute the local pressure at the given altitude
     """
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        n = self.metadata['num_nodes']
+        n = self.options['num_nodes']
 
         tmp1 = 1.0 - 0.0065 * h_lower / 288.16
         tmp2 = np.exp(-9.81 * epsilon / (288 * 216.65))

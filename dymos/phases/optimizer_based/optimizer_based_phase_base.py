@@ -91,8 +91,8 @@ class OptimizerBasedPhaseBase(PhaseBase):
                   ' before simulating the phase.'
             raise RuntimeError(msg)
 
-        rhs_integrator = ScipyODEIntegrator(ode_class=self.metadata['ode_class'],
-                                            ode_init_kwargs=self.metadata['ode_init_kwargs'],
+        rhs_integrator = ScipyODEIntegrator(ode_class=self.options['ode_class'],
+                                            ode_init_kwargs=self.options['ode_init_kwargs'],
                                             time_options=self.time_options,
                                             state_options=self.state_options,
                                             control_options=self.control_options)
@@ -177,6 +177,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                                      integrator=integrator,
                                                      integrator_params=integrator_params,
                                                      observer=observer)
+
+            # print(seg_out.outputs)
+            # exit(0)
+
             if first_seg:
                 exp_out.outputs.update(seg_out.outputs)
             else:
@@ -192,14 +196,14 @@ class OptimizerBasedPhaseBase(PhaseBase):
             phase_name = self.pathname.split('.')[0]
             filepath = record_file if record_file else '{0}_sim.db'.format(phase_name)
 
-            exp_out.record_results(filepath, self.metadata['ode_class'],
-                                   self.metadata['ode_init_kwargs'])
+            exp_out.record_results(filepath, self.options['ode_class'],
+                                   self.options['ode_init_kwargs'])
         return exp_out
 
     def setup(self):
         super(OptimizerBasedPhaseBase, self).setup()
 
-        transcription = self.metadata['transcription']
+        transcription = self.options['transcription']
         grid_data = self.grid_data
 
         indep_controls = []
@@ -257,7 +261,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                            subsys=StateInterpComp(grid_data=grid_data,
                                                   state_options=self.state_options,
                                                   time_units=time_units,
-                                                  transcription=self.metadata['transcription']))
+                                                  transcription=self.options['transcription']))
 
         self.connect(
             'time.dt_dstau', 'state_interp.dt_dstau',
@@ -349,7 +353,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         Setup the Collocation and Continuity components as necessary.
         """
         grid_data = self.grid_data
-        compressed = self.metadata['compressed']
+        compressed = self.options['compressed']
 
         time_units = self.time_options['units']
 

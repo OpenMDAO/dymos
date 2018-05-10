@@ -14,10 +14,10 @@ class PropulsionGroup(Group):
     fuel expenditure rate, and the aircraft throttle setting.
     """
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        n = self.metadata['num_nodes']
+        n = self.options['num_nodes']
 
         assumptions = self.add_subsystem('assumptions', subsys=IndepVarComp())
 

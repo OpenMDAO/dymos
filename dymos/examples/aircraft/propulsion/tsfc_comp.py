@@ -10,10 +10,10 @@ class SFCComp(ExplicitComponent):
     and the sea-level specific fuel consumption.
     """
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         self.Ka = 1.5E-4 * 9.80665
 

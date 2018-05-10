@@ -25,7 +25,7 @@ class GLMPhase(PhaseBase):
         self._node_indices = None
         self._segment_times = None
 
-        if self.metadata['compressed']:
+        if self.options['compressed']:
             raise ValueError('GLMPhase does not currently support compressed transcription. '
                              'Specify `compressed=False` when initializing the phase.')
 
@@ -33,19 +33,19 @@ class GLMPhase(PhaseBase):
         super(GLMPhase, self).initialize()
         # Optional metadata
 
-        self.metadata.declare(
+        self.options.declare(
             'formulation', default='solver-based',
             values=['optimizer-based', 'solver-based', 'time-marching'],
             desc='Formulation for solving the ODE.')
 
-        self.metadata.declare(
+        self.options.declare(
             'method_name', default='RK4', values=set(method_classes.keys()),
             desc='Scheme used to integrate the ODE.')
-        self.metadata.declare(
+        self.options.declare(
             'num_timesteps', types=int,
             desc='Minimum number of timesteps, more may be used.')
 
-        self.metadata['transcription'] = 'glm'
+        self.options['transcription'] = 'glm'
 
     def setup(self):
         super(GLMPhase, self).setup()
@@ -153,7 +153,7 @@ class GLMPhase(PhaseBase):
         grid_data = self.grid_data
 
         # TODO: Build interpolant rather than forcing a timestep.
-        min_steps = self.metadata['num_segments']
+        min_steps = self.options['num_segments']
         max_h = 1. / min_steps
         # node_times = (grid_data.node_ptau + 1.0) / 2.0
         node_indices = []
@@ -177,7 +177,7 @@ class GLMPhase(PhaseBase):
             i_new = i
             segment_times.append([i_old, i_new])
 
-        self._norm_times = np.zeros(2 * self.metadata['num_segments'])
+        self._norm_times = np.zeros(2 * self.options['num_segments'])
         self._norm_times[0::2] = grid_data.segment_ends[:-1]
         self._norm_times[1::2] = grid_data.segment_ends[1:]
         self._norm_times = (self._norm_times - self._norm_times[0]) \
@@ -207,9 +207,9 @@ class GLMPhase(PhaseBase):
 
     def _setup_sand(self):
         ode_int = ODEIntegrator(
-            self.metadata['ode_class'],
-            self.metadata['formulation'],
-            self.metadata['method_name'],
+            self.options['ode_class'],
+            self.options['formulation'],
+            self.options['method_name'],
             normalized_times=self._norm_times,
             state_options=self.state_options,
         )
@@ -228,9 +228,9 @@ class GLMPhase(PhaseBase):
 
     def _setup_mdf(self):
         ode_int = ODEIntegrator(
-            self.metadata['ode_class'],
-            self.metadata['formulation'],
-            self.metadata['method_name'],
+            self.options['ode_class'],
+            self.options['formulation'],
+            self.options['method_name'],
             normalized_times=self._norm_times,
             state_options=self.state_options,
         )
@@ -247,7 +247,7 @@ class GLMPhase(PhaseBase):
             ])
 
     def _setup_states(self):
-        formulation = self.metadata['formulation']
+        formulation = self.options['formulation']
         if formulation == 'optimizer-based':
             self._setup_sand()
         elif formulation == 'solver-based' or formulation == 'time-marching':
@@ -283,7 +283,7 @@ class GLMPhase(PhaseBase):
 
         var_type = self._classify_var(var)
 
-        num_segments = self.metadata['num_segments']
+        num_segments = self.options['num_segments']
 
         if var_type == 'time':
             output = np.zeros((num_segments + 1, 1))
@@ -336,8 +336,8 @@ class GLMPhase(PhaseBase):
         Add a path constraint component if necessary and issue appropriate connections as
         part of the setup stack.
         """
-        num_timesteps = self.metadata['num_segments']
-        num_stages = get_method(self.metadata['method_name']).num_stages
+        num_timesteps = self.options['num_segments']
+        num_stages = get_method(self.options['method_name']).num_stages
 
         for var in self._path_constraints:
             var_type = self._classify_var(var)
@@ -430,12 +430,12 @@ class GLMPhase(PhaseBase):
         """
         Adds BoundaryConstraintComp if necessary and issues appropriate connections.
         """
-        transcription = self.metadata['transcription']
-        formulation = self.metadata['formulation']
+        transcription = self.options['transcription']
+        formulation = self.options['formulation']
         bc_comp = None
 
-        num_timesteps = self.metadata['num_segments']
-        num_stages = get_method(self.metadata['method_name']).num_stages
+        num_timesteps = self.options['num_segments']
+        num_stages = get_method(self.options['method_name']).num_stages
 
         if self._boundary_constraints:
             bc_comp = self.add_subsystem('boundary_constraints', subsys=BoundaryConstraintComp())
@@ -734,8 +734,8 @@ class GLMPhase(PhaseBase):
             the first axis (0).
         """
         var_type = self._classify_var(var)
-        formulation = self.metadata['formulation']
-        num_stages = get_method(self.metadata['method_name']).num_stages
+        formulation = self.options['formulation']
+        num_stages = get_method(self.options['method_name']).num_stages
 
         if var_type == 'time':
             interpolated_values = self.interpolate(xs=val, nodes=nodes, kind=kind, axis=axis)

@@ -12,10 +12,10 @@ class AerodynamicsGroup(Group):
     drag forces on the aircraft.
     """
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        n = self.metadata['num_nodes']
+        n = self.options['num_nodes']
 
         self.add_subsystem(name='aero_coef_comp',
                            subsys=AeroCoefComp(num_nodes=n),

@@ -19,9 +19,9 @@ class ExplicitTMIntegrator(Integrator):
     def setup(self):
         super(ExplicitTMIntegrator, self).setup()
 
-        ode_class = self.metadata['ode_class']
-        method = self.metadata['method']
-        starting_coeffs = self.metadata['starting_coeffs']
+        ode_class = self.options['ode_class']
+        method = self.options['method']
+        starting_coeffs = self.options['starting_coeffs']
 
         has_starting_method = method.starting_method is not None
         is_starting_method = starting_coeffs is not None

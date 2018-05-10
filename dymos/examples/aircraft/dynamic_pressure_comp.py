@@ -7,10 +7,10 @@ from openmdao.api import ExplicitComponent
 class DynamicPressureComp(ExplicitComponent):
     """ Compute the dynamic pressure based on the velocity and the atmospheric density. """
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         # Inputs
         self.add_input(name='rho', shape=(nn,), desc='Atmospheric density', units='kg/m**3')

@@ -10,16 +10,16 @@ from openmdao.api import ExplicitComponent
 class TimeComp(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('time_units', types=str, allow_none=True)
-        self.metadata.declare('normalized_times', types=np.ndarray)
-        self.metadata.declare('my_norm_times', types=np.ndarray)
-        self.metadata.declare('stage_norm_times', types=np.ndarray)
+        self.options.declare('time_units', types=str, allow_none=True)
+        self.options.declare('normalized_times', types=np.ndarray)
+        self.options.declare('my_norm_times', types=np.ndarray)
+        self.options.declare('stage_norm_times', types=np.ndarray)
 
     def setup(self):
-        time_units = self.metadata['time_units']
-        normalized_times = self.metadata['normalized_times']
-        my_norm_times = self.metadata['my_norm_times']
-        stage_norm_times = self.metadata['stage_norm_times']
+        time_units = self.options['time_units']
+        normalized_times = self.options['normalized_times']
+        my_norm_times = self.options['my_norm_times']
+        stage_norm_times = self.options['stage_norm_times']
 
         num_times = len(normalized_times)
         num_my_times = len(my_norm_times)
@@ -43,9 +43,9 @@ class TimeComp(ExplicitComponent):
         self.declare_partials('stage_times', 'final_time', val=np.array(stage_norm_times))
 
     def compute(self, inputs, outputs):
-        normalized_times = self.metadata['normalized_times']
-        my_norm_times = self.metadata['my_norm_times']
-        stage_norm_times = self.metadata['stage_norm_times']
+        normalized_times = self.options['normalized_times']
+        my_norm_times = self.options['my_norm_times']
+        stage_norm_times = self.options['stage_norm_times']
 
         t0 = inputs['initial_time']
         t1 = inputs['final_time']

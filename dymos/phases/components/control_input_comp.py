@@ -14,20 +14,20 @@ class ControlInputComp(ExplicitComponent):
     external source.
     """
     def initialize(self):
-        self.metadata.declare(name='num_nodes',
-                              types=int,
-                              desc='The number of nodes in the phase')
+        self.options.declare(name='num_nodes',
+                             types=int,
+                             desc='The number of nodes in the phase')
 
-        self.metadata.declare(name='control_options',
-                              types=dict,
-                              desc='Dictionary of options for the controls')
+        self.options.declare(name='control_options',
+                             types=dict,
+                             desc='Dictionary of options for the controls')
 
         self._input_controls = []
         self._output_names = {}
         self._input_names = {}
 
     def setup(self):
-        for control_name, options in iteritems(self.metadata['control_options']):
+        for control_name, options in iteritems(self.options['control_options']):
             if options['opt']:
                 # Ignore this control if it is an optimal control
                 continue
@@ -36,7 +36,7 @@ class ControlInputComp(ExplicitComponent):
             self._output_names[control_name] = 'controls:{0}_out'.format(control_name)
 
             if options['dynamic']:
-                n = self.metadata['num_nodes']
+                n = self.options['num_nodes']
             else:
                 n = 1
 

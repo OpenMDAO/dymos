@@ -44,16 +44,16 @@ class PhaseBase(Group):
         self._time_extents = []
 
         # check that ode_class is appropriate
-        if not inspect.isclass(self.metadata['ode_class']):
+        if not inspect.isclass(self.options['ode_class']):
             raise ValueError('ode_class must be a class, not an instance.')
-        if not issubclass(self.metadata['ode_class'], System):
+        if not issubclass(self.options['ode_class'], System):
             raise ValueError('ode_class must be derived from openmdao.core.System.')
-        if not hasattr(self.metadata['ode_class'], 'ode_options') or \
-                not isinstance(self.metadata['ode_class'].ode_options, ODEOptions):
+        if not hasattr(self.options['ode_class'], 'ode_options') or \
+                not isinstance(self.options['ode_class'].ode_options, ODEOptions):
             raise ValueError('ode_class has no ODE metadata.  Use @declare_time, @declare_state'
                              'and @declare_control to assign ODE metadata.')
 
-        self.ode_options = self.metadata['ode_class'].ode_options
+        self.ode_options = self.options['ode_class'].ode_options
 
         # Copy default value for options from the ODEOptions
         for state_name, options in iteritems(self.ode_options._states):
@@ -69,22 +69,22 @@ class PhaseBase(Group):
 
     def initialize(self):
         # Required metadata
-        self.metadata.declare('num_segments', types=int, desc='Number of segments')
-        self.metadata.declare('ode_class',
-                              desc='System defining the ODE')
-        self.metadata.declare('ode_init_kwargs', types=dict, default={},
-                              desc='Keyword arguments provided when initializing the ODE System')
-        self.metadata.declare('transcription', values=['gauss-lobatto', 'radau-ps', 'glm'],
-                              desc='Transcription technique of the optimal control problem.')
+        self.options.declare('num_segments', types=int, desc='Number of segments')
+        self.options.declare('ode_class',
+                             desc='System defining the ODE')
+        self.options.declare('ode_init_kwargs', types=dict, default={},
+                             desc='Keyword arguments provided when initializing the ODE System')
+        self.options.declare('transcription', values=['gauss-lobatto', 'radau-ps', 'glm'],
+                             desc='Transcription technique of the optimal control problem.')
 
         # Optional metadata
-        self.metadata.declare(
+        self.options.declare(
             'segment_ends', default=None, types=Iterable, allow_none=True,
             desc='Iterable of locations of segment ends or None for equally spaced segments')
-        self.metadata.declare(
+        self.options.declare(
             'transcription_order', default=3, types=(int, Iterable),
             desc='Order of the transcription')
-        self.metadata.declare(
+        self.options.declare(
             'compressed', default=True, types=bool, desc='Use compressed transcription')
 
     def set_state_options(self, name, units=_unspecified, val=1.0,
@@ -128,7 +128,7 @@ class PhaseBase(Group):
             The scaler of the state defect at the collocation nodes of the phase.
 
         """
-        if self.metadata['transcription'] == 'glm':
+        if self.options['transcription'] == 'glm':
             if fix_final:
                 raise NotImplementedError(
                     'GLMPhase does not support fixing the final state value in this way. ' +
@@ -224,10 +224,10 @@ class PhaseBase(Group):
             self.control_options[name]['units'] = ode_param_info['units']
             self.control_options[name]['shape'] = ode_param_info['shape']
         else:
-            rate_used = rate_param is not None and \
-                rate_param in self.ode_options._dynamic_parameters
-            rate2_used = rate2_param is not None and \
-                rate2_param in self.ode_options._dynamic_parameters
+            rate_used = \
+                rate_param is not None and rate_param in self.ode_options._dynamic_parameters
+            rate2_used = \
+                rate2_param is not None and rate2_param in self.ode_options._dynamic_parameters
             if not rate_used and not rate2_used:
                 err_msg = '{0} is not a controllable parameter in the ODE system, nor is it ' \
                           'connected to one through its rate or second derivative.'.format(name)
@@ -676,11 +676,11 @@ class PhaseBase(Group):
             return 'rhs'
 
     def setup(self):
-        transcription = self.metadata['transcription']
-        num_segments = self.metadata['num_segments']
-        transcription_order = self.metadata['transcription_order']
-        segment_ends = self.metadata['segment_ends']
-        compressed = self.metadata['compressed']
+        transcription = self.options['transcription']
+        num_segments = self.options['num_segments']
+        transcription_order = self.options['transcription_order']
+        segment_ends = self.options['segment_ends']
+        compressed = self.options['compressed']
 
         if np.any(np.asarray(transcription_order) < 3):
             raise ValueError('Given transcription order ({0}) is less than '
@@ -885,7 +885,7 @@ class PhaseBase(Group):
         """
         Adds BoundaryConstraintComp if necessary and issues appropriate connections.
         """
-        transcription = self.metadata['transcription']
+        transcription = self.options['transcription']
         bc_comp = None
 
         if self._boundary_constraints:
@@ -979,7 +979,7 @@ class PhaseBase(Group):
     def _check_unprovided_controls(self):
         logger = get_logger('check_config', use_format=True)
         unconnected = []
-        ode_options = self.metadata['ode_class'].ode_options
+        ode_options = self.options['ode_class'].ode_options
         ode_parameters = ode_options._dynamic_parameters.copy()
 
         for p in ode_parameters:
@@ -1080,7 +1080,7 @@ class PhaseBase(Group):
         np.array
             The values of y interpolated at nodes of the specified type.
         """
-        if self.metadata['transcription'] == 'glm' and nodes is not None:
+        if self.options['transcription'] == 'glm' and nodes is not None:
             raise ValueError('With GLMPhase, nodes=None is the only valid option.')
 
         if nodes is None:
@@ -1102,7 +1102,7 @@ class PhaseBase(Group):
             raise ValueError('xs must be viewable as a 1D array')
 
         node_locations = self.grid_data.node_ptau[self.grid_data.subset_node_indices[nodes]]
-        if self.metadata['compressed']:
+        if self.options['compressed']:
             node_locations = np.array(sorted(list(set(node_locations))))
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()

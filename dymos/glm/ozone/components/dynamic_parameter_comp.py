@@ -12,13 +12,13 @@ from dymos.glm.ozone.utils.sparse_linear_spline import get_sparse_linear_spline
 class DynamicParameterComp(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('dynamic_parameters', types=dict)
-        self.metadata.declare('normalized_times', types=np.ndarray)
-        self.metadata.declare('stage_norm_times', types=np.ndarray)
+        self.options.declare('dynamic_parameters', types=dict)
+        self.options.declare('normalized_times', types=np.ndarray)
+        self.options.declare('stage_norm_times', types=np.ndarray)
 
     def setup(self):
-        normalized_times = self.metadata['normalized_times']
-        stage_norm_times = self.metadata['stage_norm_times']
+        normalized_times = self.options['normalized_times']
+        stage_norm_times = self.options['stage_norm_times']
 
         num_times = len(normalized_times)
         num_stage_times = len(stage_norm_times)
@@ -29,7 +29,7 @@ class DynamicParameterComp(ExplicitComponent):
         self.mtx = scipy.sparse.csc_matrix(
             (data0, (rows0, cols0)), shape=(num_stage_times, num_times))
 
-        for parameter_name, parameter in iteritems(self.metadata['dynamic_parameters']):
+        for parameter_name, parameter in iteritems(self.options['dynamic_parameters']):
             size = np.prod(parameter['shape'])
             shape = parameter['shape']
 
@@ -60,7 +60,7 @@ class DynamicParameterComp(ExplicitComponent):
             self.declare_partials(out_name, in_name, val=data, rows=rows, cols=cols)
 
     def compute(self, inputs, outputs):
-        for parameter_name, parameter in iteritems(self.metadata['dynamic_parameters']):
+        for parameter_name, parameter in iteritems(self.options['dynamic_parameters']):
             in_name = get_name('in', parameter_name)
             out_name = get_name('out', parameter_name)
 

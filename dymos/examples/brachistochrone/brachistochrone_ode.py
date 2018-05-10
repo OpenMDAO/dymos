@@ -14,10 +14,10 @@ from dymos import declare_time, declare_state, declare_parameter
 class BrachistochroneODE(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         # Inputs
         self.add_input('v',
@@ -56,7 +56,7 @@ class BrachistochroneODE(ExplicitComponent):
                         units='m/s')
 
         # Setup partials
-        arange = np.arange(self.metadata['num_nodes'])
+        arange = np.arange(self.options['num_nodes'])
 
         self.declare_partials(of='vdot', wrt='g', rows=arange, cols=arange)
         self.declare_partials(of='vdot', wrt='theta', rows=arange, cols=arange)

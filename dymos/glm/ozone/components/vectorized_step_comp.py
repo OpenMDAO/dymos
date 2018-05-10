@@ -12,21 +12,21 @@ from dymos.glm.ozone.utils.units import get_rate_units
 class VectorizedStepComp(ImplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('states', types=dict)
-        self.metadata.declare('time_units', types=str, allow_none=True)
-        self.metadata.declare('num_times', types=int)
-        self.metadata.declare('num_stages', types=int)
-        self.metadata.declare('num_step_vars', types=int)
-        self.metadata.declare('glm_B', types=np.ndarray)
-        self.metadata.declare('glm_V', types=np.ndarray)
+        self.options.declare('states', types=dict)
+        self.options.declare('time_units', types=str, allow_none=True)
+        self.options.declare('num_times', types=int)
+        self.options.declare('num_stages', types=int)
+        self.options.declare('num_step_vars', types=int)
+        self.options.declare('glm_B', types=np.ndarray)
+        self.options.declare('glm_V', types=np.ndarray)
 
     def setup(self):
-        time_units = self.metadata['time_units']
-        num_times = self.metadata['num_times']
-        num_stages = self.metadata['num_stages']
-        num_step_vars = self.metadata['num_step_vars']
-        glm_B = self.metadata['glm_B']
-        glm_V = self.metadata['glm_V']
+        time_units = self.options['time_units']
+        num_times = self.options['num_times']
+        num_stages = self.options['num_stages']
+        num_step_vars = self.options['num_step_vars']
+        glm_B = self.options['glm_B']
+        glm_V = self.options['glm_V']
 
         self.dy_dy = dy_dy = {}
         self.dy_dy_inv = dy_dy_inv = {}
@@ -35,7 +35,7 @@ class VectorizedStepComp(ImplicitComponent):
 
         self.add_input('h_vec', shape=(num_times - 1), units=time_units)
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
             shape = state['shape']
 
@@ -118,13 +118,13 @@ class VectorizedStepComp(ImplicitComponent):
             self.declare_partials(y_name, F_name, rows=rows, cols=cols)
 
     def apply_nonlinear(self, inputs, outputs, residuals):
-        num_times = self.metadata['num_times']
-        num_step_vars = self.metadata['num_step_vars']
-        glm_B = self.metadata['glm_B']
+        num_times = self.options['num_times']
+        num_step_vars = self.options['num_step_vars']
+        glm_B = self.options['glm_B']
 
         dy_dy = self.dy_dy
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
             shape = state['shape']
 
@@ -143,13 +143,13 @@ class VectorizedStepComp(ImplicitComponent):
                 'jl,i,il...->ij...', glm_B, inputs['h_vec'], inputs[F_name])  # hF term
 
     def solve_nonlinear(self, inputs, outputs):
-        num_times = self.metadata['num_times']
-        num_step_vars = self.metadata['num_step_vars']
-        glm_B = self.metadata['glm_B']
+        num_times = self.options['num_times']
+        num_step_vars = self.options['num_step_vars']
+        glm_B = self.options['glm_B']
 
         dy_dy_inv = self.dy_dy_inv
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
             shape = state['shape']
 
@@ -166,9 +166,9 @@ class VectorizedStepComp(ImplicitComponent):
                 (num_times, num_step_vars,) + shape)
 
     def linearize(self, inputs, outputs, partials):
-        glm_B = self.metadata['glm_B']
+        glm_B = self.options['glm_B']
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
             shape = state['shape']
 
@@ -185,12 +185,12 @@ class VectorizedStepComp(ImplicitComponent):
                 'jk,ik...->ijk...', glm_B, inputs[F_name]).flatten()
 
     def solve_linear(self, d_outputs, d_residuals, mode):
-        num_times = self.metadata['num_times']
-        num_step_vars = self.metadata['num_step_vars']
+        num_times = self.options['num_times']
+        num_step_vars = self.options['num_step_vars']
 
         dy_dy_inv = self.dy_dy_inv
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
             shape = state['shape']
 
@@ -211,12 +211,12 @@ class VectorizedStepComp(ImplicitComponent):
                 d_residuals[y_name] = sol_vec.reshape((num_times, num_step_vars,) + shape)
 
     def solve_multi_linear(self, d_outputs, d_residuals, mode):
-        num_times = self.metadata['num_times']
-        num_step_vars = self.metadata['num_step_vars']
+        num_times = self.options['num_times']
+        num_step_vars = self.options['num_step_vars']
 
         dy_dy_inv = self.dy_dy_inv
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
             shape = state['shape']
 

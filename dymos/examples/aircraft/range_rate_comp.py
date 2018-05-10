@@ -10,10 +10,10 @@ class RangeRateComp(ExplicitComponent):
     """
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         self.add_input('TAS', val=np.ones(nn), desc='True airspeed', units='m/s')
 
@@ -23,7 +23,7 @@ class RangeRateComp(ExplicitComponent):
                         units='m/s')
 
         # Setup partials
-        ar = np.arange(self.metadata['num_nodes'])
+        ar = np.arange(self.options['num_nodes'])
         self.declare_partials(of='*', wrt='*', dependent=False)
         self.declare_partials(of='dXdt:range', wrt='TAS', rows=ar, cols=ar)
         self.declare_partials(of='dXdt:range', wrt='gam', rows=ar, cols=ar)

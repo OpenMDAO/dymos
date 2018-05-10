@@ -18,17 +18,17 @@ class VectorizedIntegrator(Integrator):
     def initialize(self):
         super(VectorizedIntegrator, self).initialize()
 
-        self.metadata.declare(
+        self.options.declare(
             'formulation', default='solver-based', values=['solver-based', 'optimizer-based'])
 
     def setup(self):
         super(VectorizedIntegrator, self).setup()
 
-        ode_class = self.metadata['ode_class']
+        ode_class = self.options['ode_class']
         ode_options = ode_class.ode_options
-        method = self.metadata['method']
-        starting_coeffs = self.metadata['starting_coeffs']
-        formulation = self.metadata['formulation']
+        method = self.options['method']
+        starting_coeffs = self.options['starting_coeffs']
+        formulation = self.options['formulation']
 
         has_starting_method = method.starting_method is not None
         is_starting_method = starting_coeffs is not None
@@ -56,7 +56,7 @@ class VectorizedIntegrator(Integrator):
                     shape=(num_times - 1, num_stages,) + state['shape'],
                     units=state['units'])
                 kwargs = {
-                    name: self.metadata['state_options'][state_name][name]
+                    name: self.options['state_options'][state_name][name]
                     for name in ['lower', 'upper', 'scaler', 'adder', 'ref', 'ref0']
                 }
                 comp.add_design_var('Y:%s' % state_name, **kwargs)
@@ -181,14 +181,14 @@ class VectorizedIntegrator(Integrator):
                 self._get_state_names('integration_group.vectorized_stagestep_comp', 'Y_in'),
             )
             for state_name, state in iteritems(states):
-                defect_scaler = self.metadata['state_options'][state_name]['defect_scaler']
+                defect_scaler = self.options['state_options'][state_name]['defect_scaler']
                 integration_group.add_constraint(
                     'vectorized_stagestep_comp.Y_out:%s' % state_name,
                     equals=0., vectorize_derivs=True, scaler=defect_scaler,
                 )
 
         if has_starting_method:
-            self.starting_system.metadata['formulation'] = self.metadata['formulation']
+            self.starting_system.options['formulation'] = self.options['formulation']
 
         if formulation == 'solver-based':
             integration_group.nonlinear_solver = NonlinearBlockGS(

@@ -10,12 +10,12 @@ class UnsteadyFlightDynamicsComp(ExplicitComponent):
     """
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
         self._g = 9.80665
 
     def setup(self):
-        n = self.metadata['num_nodes']
+        n = self.options['num_nodes']
 
         # Parameter inputs
         self.add_input(name='thrust', shape=(n,), desc='thrust', units='N')

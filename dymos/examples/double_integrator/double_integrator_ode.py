@@ -12,10 +12,10 @@ from dymos import declare_time, declare_state, declare_parameter
 class DoubleIntegratorODE(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         # Inputs
         self.add_input('v', val=np.ones(nn), desc='velocity', units='m/s')
@@ -24,7 +24,7 @@ class DoubleIntegratorODE(ExplicitComponent):
         self.add_output('xdot', val=np.ones(nn), desc='position time-derivative', units='m/s')
 
         # Setup partials
-        arange = np.arange(self.metadata['num_nodes'])
+        arange = np.arange(self.options['num_nodes'])
         self.declare_partials(of='vdot', wrt='u', rows=arange, cols=arange, val=1.0)
         self.declare_partials(of='xdot', wrt='v', rows=arange, cols=arange, val=1.0)
 

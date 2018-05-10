@@ -10,10 +10,10 @@ class LinearTangentGuidanceComp(ExplicitComponent):
         pitch angle tangent as function of time.
     """
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         self.add_input('a_ctrl',
                        val=np.zeros(nn),
@@ -36,7 +36,7 @@ class LinearTangentGuidanceComp(ExplicitComponent):
                         units='rad')
 
         # Setup partials
-        arange = np.arange(self.metadata['num_nodes'])
+        arange = np.arange(self.options['num_nodes'])
 
         self.declare_partials(of='theta', wrt='a_ctrl', rows=arange, cols=arange, val=1.0)
         self.declare_partials(of='theta', wrt='b_ctrl', rows=arange, cols=arange, val=1.0)

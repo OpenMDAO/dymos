@@ -7,10 +7,10 @@ class ThrustComp(ExplicitComponent):
     """ Computes mass flow rate for the F4's 2 J79 engines at full throttle. """
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         # Inputs
         self.add_input('max_thrust', shape=(nn,), desc='maximum thrust', units='N')

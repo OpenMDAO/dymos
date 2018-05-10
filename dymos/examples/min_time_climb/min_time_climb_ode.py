@@ -29,10 +29,10 @@ class MinTimeClimbODE(Group):
     ode_options.declare_parameter('throttle', targets=['throttle'], units=None)
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         self.add_subsystem(name='atmos',
                            subsys=StandardAtmosphereGroup(num_nodes=nn),

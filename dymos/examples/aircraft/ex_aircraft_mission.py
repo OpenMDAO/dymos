@@ -56,7 +56,7 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 100.0
-        p['phase0.states:range'] = phase.interpolate(ys=(0, 25000), nodes='state_disc')
+        p['phase0.states:range'] = phase.interpolate(ys=(10, 35), nodes='state_disc')
         p['phase0.states:mass'] = phase.interpolate(ys=(200000, 200000), nodes='state_disc')
         p['phase0.controls:TAS'] = 250.0
         p['phase0.controls:alt'] = 9.144
@@ -72,6 +72,6 @@ if __name__ == '__main__':
     exp_out = p.model.phase0.simulate(times=np.linspace(0, 100, 100))
 
     import matplotlib.pyplot as plt
-    plt.plot(p.model.phase0.get_values('time'), p.model.phase0.get_values('range', units='km'), 'ro')
-    plt.plot(exp_out.get_values('time'), exp_out.get_values('range', units='km'), 'b-')
+    plt.plot(p.model.phase0.get_values('time'), p.model.phase0.get_values('range'), 'ro')
+    plt.plot(exp_out.get_values('time'), exp_out.get_values('range'), 'b-')
     plt.show()

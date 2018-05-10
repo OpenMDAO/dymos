@@ -8,10 +8,10 @@ from openmdao.api import ExplicitComponent
 class AeroForcesComp(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         self.add_input('q', val=np.ones(nn), desc='dynamic pressure', units='Pa')
         self.add_input('S', val=np.ones(nn), desc='aerodynamic reference area', units='m**2')

@@ -7,17 +7,17 @@ class MachComp(ExplicitComponent):
     """ Compute Mach number based on true airspeed and the local speed of sound. """
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
         self.add_input('sos', val=np.zeros(nn), desc='atmospheric speed of sound', units='m/s')
         self.add_input('TAS', val=np.zeros(nn), desc='true airspeed', units='m/s')
 
         self.add_output('mach', val=np.zeros(nn), desc='Mach number', units=None)
 
         # Setup partials
-        ar = np.arange(self.metadata['num_nodes'])
+        ar = np.arange(self.options['num_nodes'])
 
         self.declare_partials(of='mach', wrt='TAS', rows=ar, cols=ar)
         self.declare_partials(of='mach', wrt='sos', rows=ar, cols=ar)

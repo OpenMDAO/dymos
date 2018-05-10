@@ -46,7 +46,7 @@ class MaxThrustComp(MetaModelStructured):
     """ Interpolates max thrust for 2 J79 jet engines. """
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
         self.add_input(name='h', val=0.0 * np.ones(nn), units='ft', training_data=THR_DATA['h'])
         self.add_input(name='mach', val=0.2 * np.ones(nn), training_data=THR_DATA['mach'])
         self.add_output(name='max_thrust', val=np.zeros(nn), units='lbf',

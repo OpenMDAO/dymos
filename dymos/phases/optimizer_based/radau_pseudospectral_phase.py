@@ -37,7 +37,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
     def initialize(self, **kwargs):
         super(RadauPseudospectralPhase, self).initialize(**kwargs)
-        self.metadata['transcription'] = 'radau-ps'
+        self.options['transcription'] = 'radau-ps'
 
     def _setup_time(self):
         comps = super(RadauPseudospectralPhase, self)._setup_time()
@@ -203,13 +203,13 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
     def _setup_rhs(self):
         super(RadauPseudospectralPhase, self)._setup_rhs()
 
-        ODEClass = self.metadata['ode_class']
+        ODEClass = self.options['ode_class']
         grid_data = self.grid_data
         num_input_nodes = self.grid_data.num_state_input_nodes
 
         map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
 
-        kwargs = self.metadata['ode_init_kwargs']
+        kwargs = self.options['ode_init_kwargs']
         self.add_subsystem('rhs_all',
                            subsys=ODEClass(num_nodes=grid_data.subset_num_nodes['all'],
                                            **kwargs))

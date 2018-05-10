@@ -37,7 +37,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
     def initialize(self, **kwargs):
         super(GaussLobattoPhase, self).initialize(**kwargs)
-        self.metadata['transcription'] = 'gauss-lobatto'
+        self.options['transcription'] = 'gauss-lobatto'
 
     def _setup_time(self):
         comps = super(GaussLobattoPhase, self)._setup_time()
@@ -225,10 +225,10 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         super(GaussLobattoPhase, self)._setup_rhs()
 
         grid_data = self.grid_data
-        ODEClass = self.metadata['ode_class']
+        ODEClass = self.options['ode_class']
         num_input_nodes = self.grid_data.num_state_input_nodes
 
-        kwargs = self.metadata['ode_init_kwargs']
+        kwargs = self.options['ode_init_kwargs']
         rhs_disc = ODEClass(num_nodes=grid_data.subset_num_nodes['state_disc'], **kwargs)
         rhs_col = ODEClass(num_nodes=grid_data.subset_num_nodes['col'], **kwargs)
 

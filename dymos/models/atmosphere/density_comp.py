@@ -9,10 +9,10 @@ class DensityComp(ExplicitComponent):
     """
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        n = self.metadata['num_nodes']
+        n = self.options['num_nodes']
 
         # Inputs
         self.add_input('pres',

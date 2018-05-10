@@ -6,10 +6,10 @@ from openmdao.api import ExplicitComponent
 class CDComp(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         # Inputs
         self.add_input('CD0', shape=(nn,), desc='zero-lift drag coefficient', units=None)

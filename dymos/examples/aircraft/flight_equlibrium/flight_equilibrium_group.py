@@ -11,11 +11,11 @@ from .unsteady_flight_dynamics_comp import UnsteadyFlightDynamicsComp
 class FlightEquilibriumGroup(Group):
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int,
-                              desc='Number of nodes to be evaluated in the RHS')
+        self.options.declare('num_nodes', types=int,
+                             desc='Number of nodes to be evaluated in the RHS')
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         self.add_subsystem('aero',
                            subsys=AerodynamicsGroup(num_nodes=nn))

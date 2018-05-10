@@ -15,23 +15,23 @@ class CollocationComp(ExplicitComponent):
     """
     def initialize(self):
 
-        self.metadata.declare(
+        self.options.declare(
             'grid_data', types=GridData,
             desc='Container object for grid info')
 
-        self.metadata.declare(
+        self.options.declare(
             'state_options', types=dict,
             desc='Dictionary of state names/options for the phase')
 
-        self.metadata.declare(
+        self.options.declare(
             'time_units', default=None, allow_none=True, types=string_types,
             desc='Units of time')
 
     def setup(self):
-        gd = self.metadata['grid_data']
+        gd = self.options['grid_data']
         num_col_nodes = gd.subset_num_nodes['col']
-        time_units = self.metadata['time_units']
-        state_options = self.metadata['state_options']
+        time_units = self.options['time_units']
+        state_options = self.options['state_options']
 
         self.var_names = var_names = {}
         for state_name in state_options:
@@ -78,8 +78,8 @@ class CollocationComp(ExplicitComponent):
                                 scaler=def_scl)
 
         # Setup partials
-        num_col_nodes = self.metadata['grid_data'].subset_num_nodes['col']
-        state_options = self.metadata['state_options']
+        num_col_nodes = self.options['grid_data'].subset_num_nodes['col']
+        state_options = self.options['state_options']
 
         for state_name, options in state_options.items():
             shape = options['shape']
@@ -100,7 +100,7 @@ class CollocationComp(ExplicitComponent):
                                   val=-1.0)
 
     def compute(self, inputs, outputs):
-        state_options = self.metadata['state_options']
+        state_options = self.options['state_options']
 
         for state_name in state_options:
             var_names = self.var_names[state_name]

@@ -10,11 +10,11 @@ class MaxThrustComp(ExplicitComponent):
         maximum sea-level thrust with a simple pressure correction.
     """
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
-        self.metadata.declare('max_thrust_sl', types=float, desc='maximum thrust at sea-level (N)')
+        self.options.declare('num_nodes', types=int)
+        self.options.declare('max_thrust_sl', types=float, desc='maximum thrust at sea-level (N)')
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         self.pres_sl = 101325.0  # Pa
 

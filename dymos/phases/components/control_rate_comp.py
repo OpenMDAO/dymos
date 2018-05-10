@@ -26,13 +26,13 @@ class ControlRateComp(ExplicitComponent):
     """
 
     def initialize(self):
-        self.metadata.declare(
+        self.options.declare(
             'control_options', types=dict,
             desc='Dictionary of options for the dynamic controls')
-        self.metadata.declare(
+        self.options.declare(
             'time_units', default=None, allow_none=True, types=string_types,
             desc='Units of time')
-        self.metadata.declare(
+        self.options.declare(
             'grid_data', types=GridData,
             desc='Container object for grid info')
 
@@ -43,9 +43,9 @@ class ControlRateComp(ExplicitComponent):
         self._output_rate2_names = {}
 
     def _setup_controls(self):
-        control_options = self.metadata['control_options']
+        control_options = self.options['control_options']
         num_nodes = self.num_nodes
-        time_units = self.metadata['time_units']
+        time_units = self.options['time_units']
 
         for name, options in iteritems(control_options):
             self._input_names[name] = 'controls:{0}'.format(name)
@@ -114,8 +114,8 @@ class ControlRateComp(ExplicitComponent):
                                 units=rate2_units)
 
     def setup(self):
-        num_nodes = self.metadata['grid_data'].num_nodes
-        time_units = self.metadata['time_units']
+        num_nodes = self.options['grid_data'].num_nodes
+        time_units = self.options['time_units']
 
         self.add_input('dt_dstau', shape=num_nodes, units=time_units)
 
@@ -128,7 +128,7 @@ class ControlRateComp(ExplicitComponent):
         self.sizes = {}
         self.num_nodes = num_nodes
 
-        _, self.D = self.metadata['grid_data'].phase_lagrange_matrices('control_disc', 'all')
+        _, self.D = self.options['grid_data'].phase_lagrange_matrices('control_disc', 'all')
         self.D2 = np.dot(self.D, self.D)
 
         self._setup_controls()
@@ -136,7 +136,7 @@ class ControlRateComp(ExplicitComponent):
         self.set_check_partial_options('*', method='cs')
 
     def compute(self, inputs, outputs):
-        control_options = self.metadata['control_options']
+        control_options = self.options['control_options']
 
         for name, options in iteritems(control_options):
 
@@ -151,7 +151,7 @@ class ControlRateComp(ExplicitComponent):
                 outputs[self._output_rate2_names[name]] = (b / inputs['dt_dstau'] ** 2).T
 
     def compute_partials(self, inputs, partials):
-        control_options = self.metadata['control_options']
+        control_options = self.options['control_options']
 
         for name, options in iteritems(control_options):
             control_name = self._input_names[name]

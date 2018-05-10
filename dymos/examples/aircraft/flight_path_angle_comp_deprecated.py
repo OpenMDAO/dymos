@@ -7,16 +7,16 @@ class FlightPathAngleComp(ExplicitComponent):
     """ Compute the flight path angle (gamma) based on true airspeed and climb rate. """
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
         self.add_input('TAS', val=np.zeros(nn), desc='true airspeed', units='m/s')
         self.add_input('climb_rate', val=np.zeros(nn), desc='climb rate', units='m/s')
         self.add_output('gam', val=np.zeros(nn), desc='flight path angle', units='rad')
 
         # Setup partials
-        ar = np.arange(self.metadata['num_nodes'])
+        ar = np.arange(self.options['num_nodes'])
 
         self.declare_partials(of='gam', wrt='TAS', rows=ar, cols=ar)
         self.declare_partials(of='gam', wrt='climb_rate', rows=ar, cols=ar)

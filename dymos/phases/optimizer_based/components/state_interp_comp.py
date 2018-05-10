@@ -30,31 +30,31 @@ class StateInterpComp(ExplicitComponent):
 
     def initialize(self):
 
-        self.metadata.declare(
+        self.options.declare(
             'transcription', values=['gauss-lobatto', 'radau-ps'],
             desc='Transcription technique of the optimal control problem.')
 
-        self.metadata.declare(
+        self.options.declare(
             'grid_data', types=GridData,
             desc='Container object for grid info')
 
-        self.metadata.declare(
+        self.options.declare(
             'state_options', types=dict,
             desc='Dictionary of state names/options for the phase')
 
-        self.metadata.declare(
+        self.options.declare(
             'time_units', default=None, allow_none=True, types=string_types,
             desc='Units of the integration variable')
 
     def setup(self):
-        time_units = self.metadata['time_units']
+        time_units = self.options['time_units']
 
-        num_disc_nodes = self.metadata['grid_data'].subset_num_nodes['state_disc']
-        num_col_nodes = self.metadata['grid_data'].subset_num_nodes['col']
+        num_disc_nodes = self.options['grid_data'].subset_num_nodes['state_disc']
+        num_col_nodes = self.options['grid_data'].subset_num_nodes['col']
 
-        state_options = self.metadata['state_options']
+        state_options = self.options['state_options']
 
-        transcription = self.metadata['transcription']
+        transcription = self.options['transcription']
 
         self.add_input(name='dt_dstau', shape=(num_col_nodes,), units=time_units,
                        desc='For each node, the duration of its '
@@ -103,13 +103,13 @@ class StateInterpComp(ExplicitComponent):
             self.xdotc_str[state_name] = 'staterate_col:{0}'.format(state_name)
 
         if transcription == 'gauss-lobatto':
-            Ai, Bi, Ad, Bd = self.metadata['grid_data'].phase_hermite_matrices('state_disc', 'col')
+            Ai, Bi, Ad, Bd = self.options['grid_data'].phase_hermite_matrices('state_disc', 'col')
         elif transcription == 'radau-ps':
-            Ai, Ad = self.metadata['grid_data'].phase_lagrange_matrices('state_disc', 'col')
+            Ai, Ad = self.options['grid_data'].phase_lagrange_matrices('state_disc', 'col')
             Bi = Bd = np.zeros(shape=(num_col_nodes, num_disc_nodes))
         else:
             raise ValueError('unhandled transcription type: '
-                             '{0}'.format(self.metadata['transcription']))
+                             '{0}'.format(self.options['transcription']))
         self.matrices = {'Ai': Ai, 'Bi': Bi, 'Ad': Ad, 'Bd': Bd}
 
         # Setup partials
@@ -178,7 +178,7 @@ class StateInterpComp(ExplicitComponent):
                                   rows=self.Ad_rows[name], cols=self.Ad_cols[name])
 
     def _compute_radau(self, inputs, outputs):
-        state_options = self.metadata['state_options']
+        state_options = self.options['state_options']
 
         dt_dstau = np.atleast_1d(inputs['dt_dstau'])
 
@@ -195,7 +195,7 @@ class StateInterpComp(ExplicitComponent):
             outputs[xdotc_str] = (a / dt_dstau).T
 
     def _compute_gauss_lobatto(self, inputs, outputs):
-        state_options = self.metadata['state_options']
+        state_options = self.options['state_options']
 
         dt_dstau = np.atleast_1d(inputs['dt_dstau'])
 
@@ -237,7 +237,7 @@ class StateInterpComp(ExplicitComponent):
                 self.matrices['Bd'], inputs[fd_str], axes=(1, 0))
 
     def _compute_partials_radau(self, inputs, partials):
-        state_options = self.metadata['state_options']
+        state_options = self.options['state_options']
 
         ndn = self.num_disc_nodes
 
@@ -263,7 +263,7 @@ class StateInterpComp(ExplicitComponent):
 
         dt_dstau = inputs['dt_dstau']
 
-        for name, options in iteritems(self.metadata['state_options']):
+        for name, options in iteritems(self.options['state_options']):
             size = self.sizes[name]
 
             xdotc_name = self.xdotc_str[name]
@@ -290,7 +290,7 @@ class StateInterpComp(ExplicitComponent):
             partials[xdotc_name, xd_name] = (self.jacs['Ad'][name] / dt_dstau_x_size)[r_nz, c_nz]
 
     def compute(self, inputs, outputs):
-        transcription = self.metadata['transcription']
+        transcription = self.options['transcription']
 
         if transcription == 'gauss-lobatto':
             self._compute_gauss_lobatto(inputs, outputs)
@@ -300,7 +300,7 @@ class StateInterpComp(ExplicitComponent):
             raise ValueError('Invalid transcription: {0}'.format(transcription))
 
     def compute_partials(self, inputs, partials):
-        transcription = self.metadata['transcription']
+        transcription = self.options['transcription']
 
         if transcription == 'gauss-lobatto':
             self._compute_partials_gauss_lobatto(inputs, partials)
