@@ -50,9 +50,9 @@ class FlightEquilibriumGroup(Group):
 
         self.linear_solver = DirectSolver()
         self.nonlinear_solver = NewtonSolver()
-        self.nonlinear_solver.linesearch = ArmijoGoldsteinLS()
-        self.nonlinear_solver.options['solve_subsystems'] = True
-        self.nonlinear_solver.linesearch.options['print_bound_enforce'] = True
-        self.nonlinear_solver.options['err_on_maxiter'] = True
-        self.nonlinear_solver.options['max_sub_solves'] = 10
+        # self.nonlinear_solver.linesearch = ArmijoGoldsteinLS()
+        # self.nonlinear_solver.options['solve_subsystems'] = True
+        # self.nonlinear_solver.linesearch.options['print_bound_enforce'] = True
+        # self.nonlinear_solver.options['err_on_maxiter'] = True
+        # self.nonlinear_solver.options['max_sub_solves'] = 10
         self.nonlinear_solver.options['iprint'] = -1

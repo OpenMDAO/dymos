@@ -11,11 +11,13 @@ from .flight_equlibrium.flight_equilibrium_group import FlightEquilibriumGroup
 from .propulsion.propulsion_group import PropulsionGroup
 from .range_rate_comp import RangeRateComp
 from .mach_comp import MachComp
+from .mass_comp import MassComp
 
 
 @declare_time(units='s')
 @declare_state('range', rate_source='range_rate_comp.dXdt:range', units='m')
-@declare_state('mass', rate_source='propulsion.dXdt:mass', units='kg')
+@declare_state('mass_fuel', targets=['mass_comp.mass_fuel'],
+               rate_source='propulsion.dXdt:mass_fuel', units='kg')
 @declare_parameter('alt', targets=['atmos.h', 'aero.alt', 'propulsion.alt'], units='m')
 @declare_parameter('climb_rate', targets=['gam_comp.climb_rate'], units='m/s')
 @declare_parameter('climb_rate2', targets=['gam_comp.climb_rate2'], units='m/s**2')
@@ -23,6 +25,9 @@ from .mach_comp import MachComp
                                    'mach_comp.TAS', 'flight_dynamics.TAS'], units='m/s')
 @declare_parameter('TAS_rate', targets=['gam_comp.TAS_rate', 'flight_equilibrium.TAS_rate'],
                    units='m/s**2')
+@declare_parameter('S', targets=['aero.S'], units='m**2')
+@declare_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
+@declare_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 class AircraftODE(Group):
 
     def initialize(self):
@@ -31,6 +36,11 @@ class AircraftODE(Group):
 
     def setup(self):
         nn = self.options['num_nodes']
+
+        self.add_subsystem(name='mass_comp',
+                           subsys=MassComp(num_nodes=nn))
+
+        self.connect('mass_comp.mass_total', 'flight_dynamics.mass')
 
         self.add_subsystem(name='atmos',
                            subsys=StandardAtmosphereGroup(num_nodes=nn))

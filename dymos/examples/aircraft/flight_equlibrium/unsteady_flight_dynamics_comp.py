@@ -65,10 +65,7 @@ class UnsteadyFlightDynamicsComp(ExplicitComponent):
         sgam = np.sin(gam)
 
         outputs['TAS_rate_computed'] = (T * ca - D) / m - g * sgam
-        # TAS_dot_comp = outputs['TAS_rate_computed']
-
         outputs['gam_rate_computed'] = (T * sa + L) / (m * TAS) - g * cgam / TAS
-        # gam_dot_comp = outputs['gam_rate_computed']
 
     def compute_partials(self, inputs, partials):
         T = inputs['thrust']

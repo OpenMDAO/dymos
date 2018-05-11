@@ -45,7 +45,7 @@ class PropulsionGroup(Group):
         self.add_subsystem(name='fuel_burn_rate_comp',
                            subsys=FuelBurnRateComp(num_nodes=n),
                            promotes_inputs=['tsfc', 'thrust'],
-                           promotes_outputs=['dXdt:mass'])
+                           promotes_outputs=['dXdt:mass_fuel'])
 
         self.connect('assumptions.tsfc_sl', 'tsfc_comp.tsfc_sl')
         self.connect('assumptions.max_thrust_sl', 'max_thrust_sl')

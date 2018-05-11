@@ -47,7 +47,7 @@ class TestPropulsionComp(unittest.TestCase):
                          np.linspace(0, 1.0, self.n))
 
         assert_rel_error(self,
-                         self.p['propulsion.dXdt:mass'],
+                         self.p['propulsion.dXdt:mass_fuel'],
                          np.linspace(0, -1.02E6 * 2 * 8.951E-6, self.n))
 
     def test_partials(self):

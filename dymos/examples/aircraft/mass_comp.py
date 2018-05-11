@@ -3,28 +3,26 @@ import numpy as np
 from openmdao.api import ExplicitComponent
 
 
-class MachComp(ExplicitComponent):
-    """ Compute Mach number based on true airspeed and the local speed of sound. """
+class MassComp(ExplicitComponent):
+    """ Compute the total mass of the aircraft """
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
 
     def setup(self):
         nn = self.options['num_nodes']
-        self.add_input('sos', val=np.zeros(nn), desc='atmospheric speed of sound', units='m/s')
-        self.add_input('TAS', val=np.zeros(nn), desc='true airspeed', units='m/s')
+        self.add_input('mass_fuel', val=np.ones(nn), desc='fuel mass', units='kg')
+        self.add_input('mass_empty', val=np.ones(nn), desc='empty aircraft mass', units='kg')
+        self.add_input('mass_payload', val=np.ones(nn), desc='aircraft payload mass', units='kg')
 
-        self.add_output('mach', val=np.zeros(nn), desc='Mach number', units=None)
+        self.add_output('mass_total', val=np.ones(nn), desc='total aircraft mass', units='kg')
 
         # Setup partials
         ar = np.arange(self.options['num_nodes'])
 
-        self.declare_partials(of='mach', wrt='TAS', rows=ar, cols=ar)
-        self.declare_partials(of='mach', wrt='sos', rows=ar, cols=ar)
+        self.declare_partials(of='mass_total', wrt='mass_fuel', rows=ar, cols=ar, val=1.0)
+        self.declare_partials(of='mass_total', wrt='mass_empty', rows=ar, cols=ar, val=1.0)
+        self.declare_partials(of='mass_total', wrt='mass_payload', rows=ar, cols=ar, val=1.0)
 
     def compute(self, inputs, outputs):
-        outputs['mach'] = inputs['TAS'] / inputs['sos']
-
-    def compute_partials(self, inputs, partials):
-        partials['mach', 'TAS'] = 1.0 / inputs['sos']
-        partials['mach', 'sos'] = -inputs['TAS'] / inputs['sos']**2
+        outputs['mass_total'] = inputs['mass_fuel'] + inputs['mass_empty'] + inputs['mass_payload']

@@ -3,6 +3,7 @@ from __future__ import division, print_function, absolute_import
 from collections import Iterable
 import inspect
 from six import iteritems
+import warnings
 
 import numpy as np
 
@@ -263,7 +264,7 @@ class PhaseBase(Group):
                 illegal_options.append('rate_continuity')
             if illegal_options:
                 msg = 'Invalid options for non-optimal control:' + ', '.join(illegal_options)
-                raise ValueError(msg)
+                warnings.warn(msg, RuntimeWarning)
 
         self.control_options[name]['val'] = val
         self.control_options[name]['dynamic'] = dynamic
