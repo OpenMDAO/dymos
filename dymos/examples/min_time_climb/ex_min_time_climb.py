@@ -163,4 +163,4 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 if __name__ == '__main__':
     SHOW_PLOTS = True
     p = min_time_climb(
-        optimizer='SLSQP', num_seg=10, transcription='radau-ps', force_alloc_complex=False)
+        optimizer='SNOPT', num_seg=10, transcription='gauss-lobatto', force_alloc_complex=False)

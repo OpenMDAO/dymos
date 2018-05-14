@@ -50,6 +50,8 @@ class FlightEquilibriumGroup(Group):
 
         self.linear_solver = DirectSolver()
         self.nonlinear_solver = NewtonSolver()
+        self.nonlinear_solver.options['atol'] = 1e-14
+        self.nonlinear_solver.options['rtol'] = 1e-14
         # self.nonlinear_solver.linesearch = ArmijoGoldsteinLS()
         # self.nonlinear_solver.options['solve_subsystems'] = True
         # self.nonlinear_solver.linesearch.options['print_bound_enforce'] = True

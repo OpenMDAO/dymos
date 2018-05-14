@@ -362,6 +362,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                            state_options=self.state_options,
                                            time_units=time_units))
 
+        self.connect(
+            'time.dt_dstau', ('collocation_constraint.dt_dstau'),
+            src_indices=grid_data.subset_node_indices['col'])
+
         num_segment_boundaries = grid_data.num_segments - 1
 
         if num_segment_boundaries > 0:

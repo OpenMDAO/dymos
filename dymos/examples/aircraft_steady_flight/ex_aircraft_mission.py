@@ -7,8 +7,8 @@ from openmdao.api import Problem, Group, ScipyOptimizeDriver, pyOptSparseDriver,
 
 from dymos import Phase
 
-from dymos.examples.aircraft.aircraft_ode import AircraftODE
-from dymos.examples.aircraft.cost_comp import CostComp
+from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
+# from dymos.examples.aircraft_steady_flight.cost_comp import CostComp
 
 # Demonstrates:
 # 1. Externally sourced controls (S)
@@ -48,6 +48,8 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
         assumptions.add_output('S', val=427.8, units='m**2')
+        assumptions.add_output('mass_empty', val=1.0, units='kg')
+        assumptions.add_output('mass_payload', val=1.0, units='kg')
 
         p.model.add_subsystem('phase0', phase)
 
@@ -55,17 +57,15 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
                                duration_bounds=(100, 7200),
                                duration_ref=3600)
 
-        phase.set_state_options('range', units='km', fix_initial=True, fix_final=False, scaler=0.01)
+        phase.set_state_options('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
+                                defect_scaler=1.0E-1)
         phase.set_state_options('mass_fuel', fix_initial=False, upper=20000.0, lower=0.0,
-                                scaler=1.0E-4, defect_scaler=10.0)
+                                scaler=1.0E-4, defect_scaler=1.0E-2)
 
-        phase.add_control('alt', units='km', dynamic=True, opt=True, lower=0.0, upper=11.0,
-                          rate_param='climb_rate', rate_continuity=True,
-                          rate2_param='climb_rate2', rate2_continuity=True, ref=1.0)
+        phase.add_control('alt', units='km', dynamic=True, opt=True, lower=0.0, upper=10.0,
+                          rate_param='climb_rate', rate_continuity=True,ref=1.0)
 
-        phase.add_control('TAS', units='m/s', dynamic=True, opt=True, lower=250.0, upper=250.0,
-                          rate_param='TAS_rate', rate_continuity=True, rate2_continuity=True,
-                          ref=100.0)
+        phase.add_control('TAS', units='m/s', dynamic=True, opt=True, lower=250.0, upper=250.0, ref=100.0)
 
         phase.add_control('S', units='m**2', dynamic=False, opt=False)
         phase.add_control('mass_empty', units='kg', dynamic=False, opt=False)
@@ -77,19 +77,21 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
         # units='m/s**2')
         # phase.add_path_constraint('TAS_rate2', lower=-0.01, upper=0.01, units='m/s**3')
         # phase.add_path_constraint('alt_rate', lower=-3000, upper=3000, units='ft/min')
-        phase.add_boundary_constraint('alt', loc='initial', equals=10.0)
-        phase.add_boundary_constraint('alt', loc='final', equals=10.0)
+        phase.add_boundary_constraint('alt', loc='initial', equals=0.0)
+        phase.add_boundary_constraint('alt', loc='final', equals=0.0)
         # phase.add_boundary_constraint('TAS', loc='initial', equals=200.0)
         # phase.add_boundary_constraint('TAS', loc='final', equals=200.0)
         phase.add_boundary_constraint('range', loc='final', equals=1296.4, ref=100.0, units='km')
         # phase.add_boundary_constraint('mass', loc='final', lower=200000.0, ref=100000, units='kg')
 
         p.model.connect('assumptions.S', 'phase0.controls:S')
+        p.model.connect('assumptions.mass_empty', 'phase0.controls:mass_empty')
+        p.model.connect('assumptions.mass_payload', 'phase0.controls:mass_payload')
 
-        p.model.add_subsystem('cost_comp', subsys=CostComp())
-
-        p.model.connect('phase0.t_duration', 'cost_comp.tof')
-        p.model.connect('phase0.states:mass_fuel', 'cost_comp.initial_mass_fuel', src_indices=[0])
+        # p.model.add_subsystem('cost_comp', subsys=CostComp())
+        #
+        # p.model.connect('phase0.t_duration', 'cost_comp.tof')
+        # p.model.connect('phase0.states:mass_fuel', 'cost_comp.initial_mass_fuel', src_indices=[0])
 
         # phase.add_objective('range', loc='final', ref=-100)
         # p.model.add_objective('mass_fuel', loc='initial', ref=1E4)
@@ -106,18 +108,19 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.0, 0), nodes='state_disc')
         p['phase0.controls:TAS'] = phase.interpolate(ys=(250, 250), nodes='control_disc')
         # p['phase0.controls:TAS'][0] = p['phase0.controls:TAS'][-1] = 100.0
-        p['phase0.controls:alt'] = phase.interpolate(ys=(9.144, 9.144), nodes='control_disc')
+        p['phase0.controls:alt'] = phase.interpolate(ys=(0, 0), nodes='control_disc')
         # p['phase0.controls:alt'][0] = p['phase0.controls:alt'][-1] = 0.0
-        p['phase0.controls:S'] = 427.8
-        p['phase0.controls:mass_empty'] = 0.15E6
-        p['phase0.controls:mass_payload'] = 84.02869 * 400
+
+        p['assumptions.S'] = 427.8
+        p['assumptions.mass_empty'] = 0.15E6
+        p['assumptions.mass_payload'] = 84.02869 * 400
 
         return p
 
 
 if __name__ == '__main__':
 
-    p = ex_aircraft_mission(transcription='gauss-lobatto', num_seg=12, transcription_order=5)
+    p = ex_aircraft_mission(transcription='gauss-lobatto', num_seg=20, transcription_order=3)
 
     # from openmdao.api import view_model
     #
@@ -127,7 +130,7 @@ if __name__ == '__main__':
 
     p.run_driver()
 
-    exp_out = p.model.phase0.simulate(times='all')
+    # exp_out = p.model.phase0.simulate(times='all')
 
     import matplotlib.pyplot as plt
 
@@ -135,25 +138,25 @@ if __name__ == '__main__':
     plt.plot(p.model.phase0.get_values('range', units='km'),
              p.model.phase0.get_values('alt', units='km'),
              'ro')
-    plt.plot(exp_out.get_values('range', units='km'),
-             exp_out.get_values('alt', units='km'),
-             'b-')
+    # plt.plot(exp_out.get_values('range', units='km'),
+    #          exp_out.get_values('alt', units='km'),
+    #          'b-')
 
-    plt.figure()
-    plt.plot(p.model.phase0.get_values('alt', units='km'),
-             p.model.phase0.get_values('atmos.rho', units='kg/m**3'),
-             'ro')
-    plt.plot(exp_out.get_values('alt', units='km'),
-             exp_out.get_values('atmos.rho', units='kg/m**3'),
-             'b-')
+    # plt.figure()
+    # plt.plot(p.model.phase0.get_values('alt', units='km'),
+    #          p.model.phase0.get_values('atmos.rho', units='kg/m**3'),
+    #          'ro')
+    # plt.plot(exp_out.get_values('alt', units='km'),
+    #          exp_out.get_values('atmos.rho', units='kg/m**3'),
+    #          'b-')
 
-    plt.figure()
-    plt.plot(p.model.phase0.get_values('range', units='km'),
-             p.model.phase0.get_values('q_comp.q', units='Pa'),
-             'ro')
-    plt.plot(exp_out.get_values('range', units='km'),
-             exp_out.get_values('q_comp.q', units='Pa'),
-             'b-')
+    # plt.figure()
+    # plt.plot(p.model.phase0.get_values('range', units='km'),
+    #          p.model.phase0.get_values('q_comp.q', units='Pa'),
+    #          'ro')
+    # plt.plot(exp_out.get_values('range', units='km'),
+    #          exp_out.get_values('q_comp.q', units='Pa'),
+    #          'b-')
 
     for var, units in [('mass_fuel', 'kg'), ('flight_equilibrium.alpha', 'deg'),
                        ('propulsion.tau', None), ('TAS_rate', 'm/s**2'), ('alt', 'km'),
@@ -162,9 +165,9 @@ if __name__ == '__main__':
         plt.plot(p.model.phase0.get_values('time'),
                  p.model.phase0.get_values(var, units=units),
                  'ro')
-        plt.plot(exp_out.get_values('time'),
-                 exp_out.get_values(var, units=units),
-                 'b-')
+        # plt.plot(exp_out.get_values('time'),
+        #          exp_out.get_values(var, units=units),
+        #          'b-')
         plt.suptitle('{0} ({1})'.format(var, units))
 
     plt.show()
