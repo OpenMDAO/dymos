@@ -19,7 +19,7 @@ from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 
 def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_order=3,
-                        optimizer='SNOPT', compressed=True):
+                        seg_ends=None, optimizer='SNOPT', compressed=True):
 
         p = Problem(model=Group())
         if optimizer == 'SNOPT':
@@ -28,10 +28,10 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
             p.driver.options['dynamic_simul_derivs'] = True
             p.driver.options['dynamic_simul_derivs_repeats'] = 5
             p.driver.opt_settings['Major iterations limit'] = 100
-            p.driver.opt_settings['Major step limit'] = 0.05
+            # p.driver.opt_settings['Major step limit'] = 0.05
             p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
             p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-            p.driver.opt_settings["Linesearch tolerance"] = 0.10
+            # p.driver.opt_settings["Linesearch tolerance"] = 0.10
             p.driver.opt_settings['iSumm'] = 6
             # p.driver.opt_settings['Verify level'] = 3
         else:
@@ -42,7 +42,7 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
         phase = Phase(transcription,
                       ode_class=AircraftODE,
                       num_segments=num_seg,
-                      transcription_order=transcription_order,
+                      transcription_order=transcription_order, segment_ends=seg_ends,
                       compressed=compressed)
 
         # Pass Reference Area from an external source
@@ -54,18 +54,20 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(initial_bounds=(0, 0),
-                               duration_bounds=(100, 7200),
+                               duration_bounds=(10, 7200),
                                duration_ref=3600)
 
         phase.set_state_options('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
-                                defect_scaler=1.0E-1)
-        phase.set_state_options('mass_fuel', fix_initial=False, upper=20000.0, lower=0.0,
-                                scaler=1.0E-4, defect_scaler=1.0E-2)
+                                defect_scaler=0.01)
+        phase.set_state_options('mass_fuel', fix_initial=False, fix_final=True, upper=25000.0,
+                                lower=0.0, scaler=1.0E-4, defect_scaler=1.0E-2)
 
-        phase.add_control('alt', units='km', dynamic=True, opt=True, lower=0.0, upper=10.0,
-                          rate_param='climb_rate', rate_continuity=True,ref=1.0)
+        phase.add_control('alt', units='m', dynamic=True, opt=True, lower=0.0, upper=15000.0,
+                          rate_param='climb_rate', rate_continuity=True, rate2_continuity=False,
+                          fix_initial=False, fix_final=False)
 
-        phase.add_control('TAS', units='m/s', dynamic=True, opt=True, lower=250.0, upper=250.0, ref=100.0)
+        phase.add_control('mach', units=None, dynamic=False, opt=False,
+                          lower=0.8, upper=0.8, ref=1.0)
 
         phase.add_control('S', units='m**2', dynamic=False, opt=False)
         phase.add_control('mass_empty', units='kg', dynamic=False, opt=False)
@@ -73,14 +75,8 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
 
         phase.add_path_constraint('flight_equilibrium.alpha', lower=-14, upper=14, units='deg')
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
-        # phase.add_path_constraint('TAS_rate', lower=-0.1*9.80665, upper=0.1*9.80665,
-        # units='m/s**2')
-        # phase.add_path_constraint('TAS_rate2', lower=-0.01, upper=0.01, units='m/s**3')
-        # phase.add_path_constraint('alt_rate', lower=-3000, upper=3000, units='ft/min')
-        phase.add_boundary_constraint('alt', loc='initial', equals=0.0)
-        phase.add_boundary_constraint('alt', loc='final', equals=0.0)
-        # phase.add_boundary_constraint('TAS', loc='initial', equals=200.0)
-        # phase.add_boundary_constraint('TAS', loc='final', equals=200.0)
+        phase.add_path_constraint('alt_rate2', lower=-0.05, upper=0.05, ref=0.01, units='m/s**2')
+
         phase.add_boundary_constraint('range', loc='final', equals=1296.4, ref=100.0, units='km')
         # phase.add_boundary_constraint('mass', loc='final', lower=200000.0, ref=100000, units='kg')
 
@@ -95,7 +91,7 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
 
         # phase.add_objective('range', loc='final', ref=-100)
         # p.model.add_objective('mass_fuel', loc='initial', ref=1E4)
-        phase.add_objective('mass_fuel', loc='initial', ref=1E4)
+        phase.add_objective('mass_fuel', loc='initial', ref=1E3)
 
         p.model.jacobian = CSCJacobian()
         p.model.linear_solver = DirectSolver()
@@ -106,10 +102,10 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
         p['phase0.t_duration'] = 1.515132 * 3600.0
         p['phase0.states:range'] = phase.interpolate(ys=(0, 1296.4), nodes='state_disc')
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.0, 0), nodes='state_disc')
-        p['phase0.controls:TAS'] = phase.interpolate(ys=(250, 250), nodes='control_disc')
+        p['phase0.controls:mach'] = 0.8
         # p['phase0.controls:TAS'][0] = p['phase0.controls:TAS'][-1] = 100.0
-        p['phase0.controls:alt'] = phase.interpolate(ys=(0, 0), nodes='control_disc')
-        # p['phase0.controls:alt'][0] = p['phase0.controls:alt'][-1] = 0.0
+        p['phase0.controls:alt'] = phase.interpolate(ys=(10000, 10000), nodes='control_disc')
+        p['phase0.controls:alt'][0] = p['phase0.controls:alt'][-1] = 0.0
 
         p['assumptions.S'] = 427.8
         p['assumptions.mass_empty'] = 0.15E6
@@ -120,17 +116,38 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
 
 if __name__ == '__main__':
 
-    p = ex_aircraft_mission(transcription='gauss-lobatto', num_seg=20, transcription_order=3)
+    from dymos.utils.lgl import lgl
 
-    # from openmdao.api import view_model
-    #
-    # view_model(p.model)
+    num_seg = 50
+    seg_ends, _ = lgl(num_seg+1)
+    p = ex_aircraft_mission(transcription='gauss-lobatto', num_seg=num_seg, seg_ends=seg_ends,
+                            transcription_order=3)
+
+    from openmdao.api import view_model
+
+    view_model(p.model)
     #
     # exit(0)
+    # from openmdao.api import view_model
+    # view_model(p.model)
 
     p.run_driver()
 
-    # exp_out = p.model.phase0.simulate(times='all')
+    exp_out = p.model.phase0.simulate(times=np.linspace(0,
+                                                        p.model.phase0.get_values('time')[-1], 500))
+
+    np.set_printoptions(linewidth=1024)
+    print(p['phase0.continuity_constraint.defect_control_rates:alt_rate'])
+    print()
+    print(p['phase0.control_rate_comp.control_rates:alt_rate'].T)
+
+    segend_idxs = p.model.phase0.grid_data.subset_node_indices['segment_ends']
+    print(p['phase0.control_rate_comp.control_rates:alt_rate'][segend_idxs, :])
+
+    print()
+    print(p['phase0.continuity_constraint.control_rates:alt_rate'].T)
+    print()
+    print(p['phase0.control_rate_comp.dt_dstau'])
 
     import matplotlib.pyplot as plt
 
@@ -138,9 +155,9 @@ if __name__ == '__main__':
     plt.plot(p.model.phase0.get_values('range', units='km'),
              p.model.phase0.get_values('alt', units='km'),
              'ro')
-    # plt.plot(exp_out.get_values('range', units='km'),
-    #          exp_out.get_values('alt', units='km'),
-    #          'b-')
+    plt.plot(exp_out.get_values('range', units='km'),
+             exp_out.get_values('alt', units='km'),
+             'b-')
 
     # plt.figure()
     # plt.plot(p.model.phase0.get_values('alt', units='km'),
@@ -159,15 +176,17 @@ if __name__ == '__main__':
     #          'b-')
 
     for var, units in [('mass_fuel', 'kg'), ('flight_equilibrium.alpha', 'deg'),
-                       ('propulsion.tau', None), ('TAS_rate', 'm/s**2'), ('alt', 'km'),
-                       ('alt_rate', 'ft/min'), ('mach_comp.mach', None), ('propulsion.dXdt:mass_fuel', 'kg/s')]:
+                       ('propulsion.tau', None), ('alt', 'km'), ('alt_rate', 'm/s'),
+                       ('alt_rate2', 'm/s**2'), ('tas_comp.TAS', 'm/s'),
+                       ('propulsion.dXdt:mass_fuel', 'kg/s'), ('mass_fuel', 'kg')]:
         plt.figure()
+        print(var)
         plt.plot(p.model.phase0.get_values('time'),
                  p.model.phase0.get_values(var, units=units),
                  'ro')
-        # plt.plot(exp_out.get_values('time'),
-        #          exp_out.get_values(var, units=units),
-        #          'b-')
+        plt.plot(exp_out.get_values('time'),
+                 exp_out.get_values(var, units=units),
+                 'b-')
         plt.suptitle('{0} ({1})'.format(var, units))
 
     plt.show()

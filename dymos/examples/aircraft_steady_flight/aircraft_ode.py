@@ -11,6 +11,7 @@ from .flight_equlibrium.steady_flight_equilibrium_group import SteadyFlightEquil
 from .propulsion.propulsion_group import PropulsionGroup
 from .range_rate_comp import RangeRateComp
 from .mach_comp import MachComp
+from .true_airspeed_comp import TrueAirspeedComp
 from .mass_comp import MassComp
 
 
@@ -20,9 +21,10 @@ from .mass_comp import MassComp
                rate_source='propulsion.dXdt:mass_fuel', units='kg')
 @declare_parameter('alt', targets=['atmos.h', 'aero.alt', 'propulsion.alt'], units='m')
 @declare_parameter('climb_rate', targets=['gam_comp.climb_rate'], units='m/s')
-@declare_parameter('TAS', targets=['gam_comp.TAS', 'q_comp.TAS', 'range_rate_comp.TAS',
-                                   'mach_comp.TAS'], units='m/s')
-@declare_parameter('S', targets=['aero.S','flight_equilibrium.S', 'propulsion.S'], units='m**2')
+# @declare_parameter('TAS', targets=['gam_comp.TAS', 'q_comp.TAS', 'range_rate_comp.TAS',
+#                                    'mach_comp.TAS'], units='m/s')
+@declare_parameter('mach', targets=['tas_comp.mach', 'aero.mach'], units='m/s')
+@declare_parameter('S', targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'], units='m**2')
 @declare_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
 @declare_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 class AircraftODE(Group):
@@ -43,13 +45,16 @@ class AircraftODE(Group):
                            subsys=StandardAtmosphereGroup(num_nodes=nn))
 
         self.connect('atmos.pres', 'propulsion.pres')
-        self.connect('atmos.sos', 'mach_comp.sos')
+        self.connect('atmos.sos', 'tas_comp.sos')
         self.connect('atmos.rho', 'q_comp.rho')
 
-        self.add_subsystem(name='mach_comp',
-                           subsys=MachComp(num_nodes=nn))
+        self.add_subsystem(name='tas_comp',
+                           subsys=TrueAirspeedComp(num_nodes=nn))
 
-        self.connect('mach_comp.mach', ['aero.mach'])
+        self.connect('tas_comp.TAS',
+                     ('gam_comp.TAS', 'q_comp.TAS', 'range_rate_comp.TAS'))
+
+        # self.connect('mach_comp.mach', ['aero.mach'])
 
         self.add_subsystem(name='gam_comp',
                            subsys=SteadyFlightPathAngleComp(num_nodes=nn))

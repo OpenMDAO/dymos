@@ -77,7 +77,8 @@ class TestCollocationComp(unittest.TestCase):
                             dt_dstau[:, np.newaxis] * (self.p['f_approx:x']-self.p['f_computed:x']))
 
         assert_almost_equal(self.p['defect_comp.defects:v'],
-                            dt_dstau[:, np.newaxis, np.newaxis] * (self.p['f_approx:v']-self.p['f_computed:v']))
+                            dt_dstau[:, np.newaxis, np.newaxis] *
+                            (self.p['f_approx:v']-self.p['f_computed:v']))
 
     def test_partials(self):
         np.set_printoptions(linewidth=1024)

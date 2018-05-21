@@ -760,7 +760,8 @@ class GLMPhase(PhaseBase):
     def add_control(self, name, val=0.0, units=0, dynamic=True, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,
                     scaler=None, adder=None, ref=None, ref0=None, continuity=None,
-                    rate_continuity=None, rate2_continuity=None,
+                    rate_continuity=None, rate_continuity_scaler=1.0,
+                    rate2_continuity=None, rate2_continuity_scaler=1.0,
                     rate_param=None, rate2_param=None):
         """
         Declares that a parameter of the ODE is to potentially be used as an optimal control.
@@ -801,8 +802,17 @@ class GLMPhase(PhaseBase):
             True if continuity in the value of the control is desired at the segment bounds.
             See notes about default values for continuity.
         rate_continuity : bool or None
-            True if continuity in the rate of the control is desired at the segment bounds.
+            True if continuity in the rate of the control is desired at the segment bounds.  This
+            rate is normalized to segment tau space.
             See notes about default values for continuity.
+        rate_continuity_scaler : float or ndarray
+            The scaler to use for the rate_continuity constraint given to the optimizer.
+        rate2_continuity : bool or None
+            True if continuity in the second derivative of the control is desired at the
+            segment bounds. This second derivative is normalized to segment tau space.
+            See notes about default values for continuity.
+        rate2_continuity_scaler : float or ndarray
+            The scaler to use for the rate2_continuity constraint given to the optimizer.
         rate_param : None or str
             The name of the parameter in the ODE to which the first time-derivative
             of the control value is connected.
@@ -834,4 +844,6 @@ class GLMPhase(PhaseBase):
             name, val=val, units=units, dynamic=dynamic, opt=opt, lower=lower, upper=upper,
             fix_initial=fix_initial, fix_final=fix_final, scaler=scaler, adder=adder,
             ref=ref, ref0=ref0, continuity=continuity, rate_continuity=None,
+            rate_continuity_scaler=rate_continuity_scaler,
+            rate2_continuity_scaler=rate2_continuity_scaler,
             rate2_continuity=None, rate_param=rate_param, rate2_param=rate2_param)

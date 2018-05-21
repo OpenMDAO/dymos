@@ -27,7 +27,7 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
             p.driver.opt_settings["Linesearch tolerance"] = 0.10
             p.driver.opt_settings['iSumm'] = 6
-            # p.driver.opt_settings['Verify level'] = 3
+            p.driver.opt_settings['Verify level'] = 3
         else:
             p.driver = ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
@@ -36,8 +36,7 @@ class TestAircraftCruise(unittest.TestCase):
         phase = Phase('gauss-lobatto',
                       ode_class=AircraftODE,
                       num_segments=1,
-                      transcription_order=7,
-                      compressed=True)
+                      transcription_order=9)
 
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
@@ -59,8 +58,8 @@ class TestAircraftCruise(unittest.TestCase):
         phase.add_control('alt', units='km', dynamic=False, opt=False, lower=0.0, upper=10.0,
                           rate_param='climb_rate', rate_continuity=True, ref=1.0)
 
-        phase.add_control('TAS', units='m/s', dynamic=False, opt=False, lower=250.0, upper=250.0,
-                          ref=100.0)
+        phase.add_control('mach', units=None, dynamic=False, opt=False, lower=0.2, upper=0.9,
+                          ref=1.0)
 
         phase.add_control('S', units='m**2', dynamic=False, opt=False)
         phase.add_control('mass_empty', units='kg', dynamic=False, opt=False)
@@ -101,9 +100,9 @@ class TestAircraftCruise(unittest.TestCase):
         p['phase0.t_duration'] = 1.515132 * 3600.0
         p['phase0.states:range'] = phase.interpolate(ys=(0, 1296.4), nodes='state_disc')
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.594555, 0), nodes='state_disc')
-        p['phase0.controls:TAS'] = 239.553835 # phase.interpolate(ys=(250, 250), nodes='control_disc')
+        p['phase0.controls:mach'] = 0.8  # phase.interpolate(ys=(250, 250), nodes='control_disc')
         # p['phase0.controls:TAS'][0] = p['phase0.controls:TAS'][-1] = 100.0
-        p['phase0.controls:alt'] = 10.0 # phase.interpolate(ys=(0, 0), nodes='control_disc')
+        p['phase0.controls:alt'] = 5.0  # phase.interpolate(ys=(0, 0), nodes='control_disc')
         # p['phase0.controls:alt'][0] = p['phase0.controls:alt'][-1] = 0.0
 
         p['assumptions.S'] = 427.8
@@ -114,9 +113,48 @@ class TestAircraftCruise(unittest.TestCase):
 
         p.run_driver()
 
+        print('fuel weight')
         print(phase.get_values('mass_fuel') * 9.80665)
+        print('empty weight')
+        print(phase.get_values('mass_empty') * 9.80665)
+        print('payload weight')
+        print(phase.get_values('mass_payload') * 9.80665)
 
+        print('range')
+        print(phase.get_values('range'))
 
+        print('flight path angle')
+        print(phase.get_values('gam_comp.gam'))
+
+        print('true airspeed')
+        print(phase.get_values('tas_comp.TAS'))
+
+        print('coef of lift')
+        print(phase.get_values('aero.CL'))
+
+        print('coef of drag')
+        print(phase.get_values('aero.CD'))
+
+        print('atmos density')
+        print(phase.get_values('atmos.rho'))
+
+        print('alpha')
+        print(phase.get_values('flight_equilibrium.alpha'))
+
+        print('coef of thrust')
+        print(phase.get_values('flight_equilibrium.CT'))
+
+        print('max_thrust')
+        print(phase.get_values('propulsion.max_thrust'))
+
+        print('tau')
+        print(phase.get_values('propulsion.tau'))
+
+        print('dynamic pressure')
+        print(phase.get_values('q_comp.q'))
+
+        print('S')
+        print(phase.get_values('S'))
 
         # def test_results(self):
         #     print('dXdt:mass_fuel', self.p['ode.propulsion.dXdt:mass_fuel'])

@@ -97,11 +97,22 @@ class ControlOptionsDictionary(OptionsDictionary):
                           'option is invalid if opt=False.')
 
         self.declare(name='rate_continuity', types=(bool, dict), default=True,
-                     desc='Enforce continuity of control first derivatives at segment boundaries. '
+                     desc='Enforce continuity of control first derivatives in dimensionless time '
+                          'at segment boundaries. '
+                          'This option is invalid if opt=False.')
+
+        self.declare(name='rate_continuity_scaler', types=(Number,), default=1.0,
+                     desc='Scaler of the dimensionless rate continuity constraint at '
+                          'segment boundaries. '
                           'This option is invalid if opt=False.')
 
         self.declare(name='rate2_continuity', types=(bool, dict), default=True,
                      desc='Enforce continuity of control second derivatives at segment boundaries. '
+                          'This option is invalid if opt=False.')
+
+        self.declare(name='rate2_continuity_scaler', types=(Number,), default=1.0,
+                     desc='Scaler of the dimensionless rate continuity constraint at '
+                          'segment boundaries. '
                           'This option is invalid if opt=False.')
 
 

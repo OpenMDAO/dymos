@@ -39,7 +39,7 @@ class TestAircraftODEGroup(unittest.TestCase):
         cls.p.model.connect('TAS', ['ode.mach_comp.TAS', 'ode.gam_comp.TAS', 'ode.q_comp.TAS',
                                     'ode.range_rate_comp.TAS'])
         cls.p.model.connect('climb_rate', ['ode.gam_comp.climb_rate'])
-        cls.p.model.connect('S', ('ode.aero.S','ode.flight_equilibrium.S', 'ode.propulsion.S'))
+        cls.p.model.connect('S', ('ode.aero.S', 'ode.flight_equilibrium.S', 'ode.propulsion.S'))
 
         cls.p.model.jacobian = CSCJacobian()
         cls.p.model.linear_solver = DirectSolver()

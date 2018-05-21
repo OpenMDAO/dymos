@@ -7,7 +7,8 @@ class CostComp(ExplicitComponent):
     """ Compute the operating cost of the flight as a combination of flight time and fuel."""
     def setup(self):
         self.add_input('tof', val=3600.0, desc='time of flight', units='s')
-        self.add_input('initial_mass_fuel', val=20000.0, desc='initial aircraft fuel mass', units='kg')
+        self.add_input('initial_mass_fuel', val=20000.0, desc='initial aircraft fuel mass',
+                       units='kg')
 
         self.add_output('cost', val=1.0, desc='operating cost', units='kg')
 

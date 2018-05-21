@@ -157,7 +157,8 @@ if __name__ == '__main__':
 
     for var, units in [('mass_fuel', 'kg'), ('flight_equilibrium.alpha', 'deg'),
                        ('propulsion.tau', None), ('TAS_rate', 'm/s**2'), ('alt', 'km'),
-                       ('alt_rate', 'ft/min'), ('mach_comp.mach', None), ('propulsion.dXdt:mass_fuel', 'kg/s')]:
+                       ('alt_rate', 'ft/min'), ('mach_comp.mach', None),
+                       ('propulsion.dXdt:mass_fuel', 'kg/s')]:
         plt.figure()
         plt.plot(p.model.phase0.get_values('time'),
                  p.model.phase0.get_values(var, units=units),

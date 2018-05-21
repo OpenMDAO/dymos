@@ -4,6 +4,7 @@ from openmdao.api import Group
 
 from .aero_coef_comp import AeroCoefComp
 from .aero_forces_comp import AeroForcesComp
+from .mbi_aero_coef_comp import MBIAeroCoeffComp, setup_surrogates_all
 
 
 class AerodynamicsGroup(Group):
@@ -17,9 +18,20 @@ class AerodynamicsGroup(Group):
     def setup(self):
         n = self.options['num_nodes']
 
+        # self.add_subsystem(name='aero_coef_comp',
+        #                    subsys=AeroCoefComp(num_nodes=n, extrapolate=True),
+        #                    promotes_inputs=['mach', 'alpha', 'alt', 'eta'],
+        #                    promotes_outputs=['CL', 'CD', 'CM'])
+
+        mbi_CL, mbi_CD, mbi_CM, mbi_num = setup_surrogates_all()
+        mbi_CL.seterr(bounds='warn')
+        mbi_CD.seterr(bounds='warn')
+        mbi_CM.seterr(bounds='warn')
+
         self.add_subsystem(name='aero_coef_comp',
-                           subsys=AeroCoefComp(num_nodes=n),
-                           promotes_inputs=['mach', 'alpha', 'alt', 'eta'],
+                           subsys=MBIAeroCoeffComp(num_nodes=n, mbi_CL=mbi_CL, mbi_CD=mbi_CD,
+                                                   mbi_CM=mbi_CM, mbi_num=mbi_num),
+                           promotes_inputs=[('M', 'mach'), 'alpha', ('h', 'alt'), 'eta'],
                            promotes_outputs=['CL', 'CD', 'CM'])
 
         self.add_subsystem(name='aero_forces_comp',

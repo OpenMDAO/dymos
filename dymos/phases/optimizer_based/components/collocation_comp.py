@@ -104,7 +104,6 @@ class CollocationComp(ExplicitComponent):
                                   wrt='dt_dstau',
                                   rows=r, cols=c)
 
-
     def compute(self, inputs, outputs):
         state_options = self.options['state_options']
         dt_dstau = inputs['dt_dstau']
@@ -114,10 +113,7 @@ class CollocationComp(ExplicitComponent):
 
             f_approx = inputs[var_names['f_approx']]
             f_computed = inputs[var_names['f_computed']]
-            # print(dt_dstau[:, np.newaxis])
-            # print(f_approx - f_computed)
-            # exit(0)
-            # outputs[var_names['defect']] = (f_approx - f_computed)
+
             outputs[var_names['defect']] = ((f_approx - f_computed).T * dt_dstau).T
 
     def compute_partials(self, inputs, partials):
@@ -133,5 +129,3 @@ class CollocationComp(ExplicitComponent):
             partials[var_names['defect'], var_names['f_approx']] = k
             partials[var_names['defect'], var_names['f_computed']] = -k
             partials[var_names['defect'], 'dt_dstau'] = (f_approx - f_computed).ravel()
-
-

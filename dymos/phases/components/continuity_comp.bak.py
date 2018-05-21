@@ -135,9 +135,11 @@ class ContinuityComp(ExplicitComponent):
         segment_indices = self.options['grid_data'].subset_segment_indices['disc']
         num_disc_nodes = self.options['grid_data'].subset_num_nodes['disc']
         num_segments = self.options['grid_data'].num_segments
-        time_units = self.options['time_units']
 
-        self.add_input('t_duration', units=time_units, val=1.0, desc='time duration of the phase')
+        self.add_input(name='dt_dstau',
+                       shape=(num_disc_nodes,),
+                       desc='for each discretization node, the duration of its segment divided '
+                            'by two.', units=self.options['time_units'])
 
         for control_name, options in iteritems(control_options):
             shape = options['shape']
@@ -166,65 +168,56 @@ class ContinuityComp(ExplicitComponent):
 
                 if options['rate_continuity']:
                     self.add_input(
-                        name='control_rates:{0}_rate'.format(control_name),
+                        name='control_rates:{0}_norm_rate'.format(control_name),
                         shape=(num_disc_nodes,) + shape,
-                        desc='Values of control {0} derivative at '
+                        desc='Values of control {0} derivative in segment tau space at '
                              'discretization nodes'.format(control_name),
-                        units=rate_units)
+                        units=units)
 
                     self.add_output(
-                        name='defect_control_rates:{0}_rate'.format(control_name),
+                        name='defect_control_rates:{0}_norm_rate'.format(control_name),
                         shape=(num_segments - 1,) + shape,
                         desc='Consistency constraint values for '
-                             'control {0} derivative'.format(control_name),
-                        units=rate_units)
+                             'control {0} derivative in segment tau space'.format(control_name),
+                        units=units)
 
-                    self.add_constraint(name='defect_control_rates:{0}_rate'.format(control_name),
+                    self.add_constraint(name='defect_control_rates:'
+                                             '{0}_norm_rate'.format(control_name),
                                         equals=0.0, scaler=options['rate_continuity_scaler'],
                                         linear=False)
 
                     vals, rows, cols = self.jacs[control_name]
                     self.declare_partials(
-                        'defect_control_rates:{0}_rate'.format(control_name),
-                        'control_rates:{0}_rate'.format(control_name),
-                        rows=rows, cols=cols,
-                    )
-
-                    self.declare_partials(
-                        'defect_control_rates:{0}_rate'.format(control_name),
-                        't_duration', dependent=True,
+                        'defect_control_rates:{0}_norm_rate'.format(control_name),
+                        'control_rates:{0}_norm_rate'.format(control_name),
+                        val=vals, rows=rows, cols=cols,
                     )
 
                 if options['rate2_continuity']:
                     self.add_input(
-                        name='control_rates:{0}_rate2'.format(control_name),
+                        name='control_rates:{0}_norm_rate2'.format(control_name),
                         shape=(num_disc_nodes,) + shape,
-                        desc='Values of control {0} second derivative '
+                        desc='Values of control {0} second derivative in segment tau space '
                              'at discretization nodes'.format(control_name),
-                        units=rate2_units)
+                        units=units)
 
                     self.add_output(
-                        name='defect_control_rates:{0}_rate2'.format(control_name),
+                        name='defect_control_rates:{0}_norm_rate2'.format(control_name),
                         shape=(num_segments - 1,) + shape,
                         desc='Consistency constraint values for control '
-                             '{0} second derivative'.format(control_name),
-                        units=rate2_units)
+                             '{0} second derivative in segment tau space'.format(control_name),
+                        units=units)
 
-                    self.add_constraint(name='defect_control_rates:{0}_rate2'.format(control_name),
-                                        equals=0.0, scaler=options['rate_continuity_scaler'],
+                    self.add_constraint(name='defect_control_rates:'
+                                             '{0}_norm_rate2'.format(control_name),
+                                        equals=0.0, scaler=options['rate2_continuity_scaler'],
                                         linear=False)
 
                     vals, rows, cols = self.jacs[control_name]
-
                     self.declare_partials(
-                        'defect_control_rates:{0}_rate2'.format(control_name),
-                        'control_rates:{0}_rate2'.format(control_name),
+                        'defect_control_rates:{0}_norm_rate2'.format(control_name),
+                        'control_rates:{0}_norm_rate2'.format(control_name),
                         val=vals, rows=rows, cols=cols,
-                    )
-
-                    self.declare_partials(
-                        'defect_control_rates:{0}_rate2'.format(control_name),
-                        't_duration', dependent=True
                     )
 
     def setup(self):
@@ -270,8 +263,8 @@ class ContinuityComp(ExplicitComponent):
                 if options['rate_continuity']:
                     vals, rows, cols = self.jacs[control_name]
 
-                    outputs_raw = outputs['defect_control_rates:{0}_rate'.format(control_name)]
-                    inputs_raw = inputs['control_rates:{0}_rate'.format(control_name)]
+                    outputs_raw = outputs['defect_control_rates:{0}_norm_rate'.format(control_name)]
+                    inputs_raw = inputs['control_rates:{0}_norm_rate'.format(control_name)]
 
                     outputs_flat = outputs_raw.reshape((np.prod(outputs_raw.shape)))
                     inputs_flat = inputs_raw.reshape((np.prod(inputs_raw.shape)))
@@ -279,38 +272,15 @@ class ContinuityComp(ExplicitComponent):
                     outputs_flat[:] = 0.
                     np.add.at(outputs_flat, rows, vals * inputs_flat[cols])
 
-                    outputs_flat *= inputs['t_duration']
-
                 if options['rate2_continuity']:
                     vals, rows, cols = self.jacs[control_name]
 
-                    outputs_raw = outputs['defect_control_rates:{0}_rate2'.format(control_name)]
-                    inputs_raw = inputs['control_rates:{0}_rate2'.format(control_name)]
+                    outputs_raw = outputs['defect_control_rates:'
+                                          '{0}_norm_rate2'.format(control_name)]
+                    inputs_raw = inputs['control_rates:{0}_norm_rate2'.format(control_name)]
 
                     outputs_flat = outputs_raw.reshape((np.prod(outputs_raw.shape)))
                     inputs_flat = inputs_raw.reshape((np.prod(inputs_raw.shape)))
 
                     outputs_flat[:] = 0.
                     np.add.at(outputs_flat, rows, vals * inputs_flat[cols])
-
-                    outputs_flat *= inputs['t_duration'] ** 2
-
-    def compute_partials(self, inputs, partials):
-
-        control_options = self.options['control_options']
-        for control_name, options in iteritems(control_options):
-            if options['opt'] and options['dynamic']:
-                if options['rate_continuity']:
-                    vals, rows, cols = self.jacs[control_name]
-                    partials['defect_control_rates:{0}_rate'.format(control_name),
-                             'control_rates:{0}_rate'.format(control_name)] = \
-                        vals * inputs['t_duration']
-                    partials['defect_control_rates:{0}_rate'.format(control_name),
-                             't_duration'] = vals
-                if options['rate2_continuity']:
-                    vals, rows, cols = self.jacs[control_name]
-                    partials['defect_control_rates:{0}_rate2'.format(control_name),
-                             'control_rates:{0}_rate2'.format(control_name)] = \
-                        vals * inputs['t_duration']**2
-                    partials['defect_control_rates:{0}_rate2'.format(control_name),
-                             't_duration'] = 2 * vals * inputs['t_duration']
