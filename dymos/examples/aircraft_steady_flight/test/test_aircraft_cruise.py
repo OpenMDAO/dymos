@@ -20,7 +20,6 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver = pyOptSparseDriver()
             p.driver.options['optimizer'] = optimizer
             p.driver.options['dynamic_simul_derivs'] = True
-            p.driver.options['dynamic_simul_derivs_repeats'] = 5
             p.driver.opt_settings['Major iterations limit'] = 100
             p.driver.opt_settings['Major step limit'] = 0.05
             p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
@@ -31,7 +30,6 @@ class TestAircraftCruise(unittest.TestCase):
         else:
             p.driver = ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
-            p.driver.options['dynamic_simul_derivs_repeats'] = 5
 
         phase = Phase('gauss-lobatto',
                       ode_class=AircraftODE,

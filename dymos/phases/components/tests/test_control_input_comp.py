@@ -62,7 +62,7 @@ class TestControlInputComp(unittest.TestCase):
         assert_almost_equal(self.p['input_controls.controls:d_out'], self.p['controls:d'])
 
     def test_partials(self):
-        cpd = self.p.check_partials(suppress_output=True)
+        cpd = self.p.check_partials(out_stream=None)
         assert_check_partials(cpd)
 
 

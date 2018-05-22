@@ -36,15 +36,14 @@ class ContinuityComp(ExplicitComponent):
         num_segend_nodes = self.options['grid_data'].subset_num_nodes['segment_ends']
         num_segments = self.options['grid_data'].num_segments
 
-        self.name_maps = {}
-        self.rate_jac_templates = {}
-
         for state_name, options in iteritems(state_options):
             shape = options['shape']
             size = np.prod(shape)
             units = options['units']
 
-            self.name_maps[state_name] = {}
+            if state_name not in self.name_maps:
+                self.name_maps[state_name] = {}
+
             self.name_maps[state_name]['value_names'] = \
                 ('states:{0}'.format(state_name),
                  'defect_states:{0}'.format(state_name))
@@ -87,7 +86,9 @@ class ContinuityComp(ExplicitComponent):
             size = np.prod(shape)
             units = options['units']
 
-            self.name_maps[control_name] = {}
+            if control_name not in self.name_maps:
+                self.name_maps[control_name] = {}
+
             self.name_maps[control_name]['value_names'] = \
                 ('controls:{0}'.format(control_name),
                  'defect_controls:{0}'.format(control_name))
@@ -139,6 +140,9 @@ class ContinuityComp(ExplicitComponent):
             units = options['units']
             rate_units = get_rate_units(units, self.options['time_units'], deriv=1)
             rate2_units = get_rate_units(units, self.options['time_units'], deriv=2)
+
+            if control_name not in self.name_maps:
+                self.name_maps[control_name] = {}
 
             self.name_maps[control_name]['rate_names'] = \
                 ('control_rates:{0}_rate'.format(control_name),
@@ -228,6 +232,8 @@ class ContinuityComp(ExplicitComponent):
 
     def setup(self):
         self.rate_jac_templates = {}
+        self.name_maps = {}
+
         compressed = self.options['grid_data'].compressed
         if not compressed:
             self._setup_value_continuity()

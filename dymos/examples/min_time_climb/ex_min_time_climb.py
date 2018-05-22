@@ -97,7 +97,6 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     if transcription != 'glm':
         p.driver.options['dynamic_simul_derivs'] = True
-        p.driver.options['dynamic_simul_derivs_repeats'] = 5
 
         if top_level_jacobian.lower() == 'csc':
             p.model.jacobian = CSCJacobian()

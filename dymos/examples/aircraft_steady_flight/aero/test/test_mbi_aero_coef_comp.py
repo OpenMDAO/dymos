@@ -30,7 +30,7 @@ class TestAeroCoefComp(unittest.TestCase):
         mbi_CL, mbi_CD, mbi_CM, mbi_num = setup_surrogates_all(MODEL)
 
         prob.model.add_subsystem(name='aero',
-                                 subsys=MBIAeroCoeffComp(num_nodes=NUM_NODES, mbi_CL=mbi_CL,
+                                 subsys=MBIAeroCoeffComp(vec_size=NUM_NODES, mbi_CL=mbi_CL,
                                                          mbi_CD=mbi_CD, mbi_CM=mbi_CM,
                                                          mbi_num=mbi_num))
 

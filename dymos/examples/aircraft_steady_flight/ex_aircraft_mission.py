@@ -26,7 +26,6 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
             p.driver = pyOptSparseDriver()
             p.driver.options['optimizer'] = optimizer
             p.driver.options['dynamic_simul_derivs'] = True
-            p.driver.options['dynamic_simul_derivs_repeats'] = 5
             p.driver.opt_settings['Major iterations limit'] = 100
             # p.driver.opt_settings['Major step limit'] = 0.05
             p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
@@ -37,7 +36,6 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
         else:
             p.driver = ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
-            p.driver.options['dynamic_simul_derivs_repeats'] = 5
 
         phase = Phase(transcription,
                       ode_class=AircraftODE,

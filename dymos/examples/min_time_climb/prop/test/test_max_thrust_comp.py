@@ -25,7 +25,7 @@ class TestBrysonThrustComp(unittest.TestCase):
 
         p.model.add_subsystem(name='ivc', subsys=ivc, promotes_outputs=['h', 'mach'])
         p.model.add_subsystem(name='tcomp',
-                              subsys=MaxThrustComp(num_nodes=n, extrapolate=True, method='cubic'))
+                              subsys=MaxThrustComp(vec_size=n, extrapolate=True, method='cubic'))
 
         p.model.connect('h', 'tcomp.h')
         p.model.connect('mach', 'tcomp.mach')

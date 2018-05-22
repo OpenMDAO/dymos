@@ -29,7 +29,7 @@ class AerodynamicsGroup(Group):
         mbi_CM.seterr(bounds='warn')
 
         self.add_subsystem(name='aero_coef_comp',
-                           subsys=MBIAeroCoeffComp(num_nodes=n, mbi_CL=mbi_CL, mbi_CD=mbi_CD,
+                           subsys=MBIAeroCoeffComp(vec_size=n, mbi_CL=mbi_CL, mbi_CD=mbi_CD,
                                                    mbi_CM=mbi_CM, mbi_num=mbi_num),
                            promotes_inputs=[('M', 'mach'), 'alpha', ('h', 'alt'), 'eta'],
                            promotes_outputs=['CL', 'CD', 'CM'])

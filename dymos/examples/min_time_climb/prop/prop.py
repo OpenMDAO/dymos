@@ -38,7 +38,7 @@ class PropGroup(Group):
     def setup(self):
         nn = self.options['num_nodes']
 
-        max_thrust_comp = MaxThrustComp(num_nodes=nn, extrapolate=True, method='cubic')
+        max_thrust_comp = MaxThrustComp(vec_size=nn, extrapolate=True, method='cubic')
 
         self.add_subsystem(name='max_thrust_comp',
                            subsys=max_thrust_comp,

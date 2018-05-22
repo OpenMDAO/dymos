@@ -19,7 +19,7 @@ class TestAeroCoefComp(unittest.TestCase):
 
         prob = Problem(model=Group())
 
-        prob.model.add_subsystem(name='aero', subsys=AeroCoefComp(num_nodes=nn, method='quintic'))
+        prob.model.add_subsystem(name='aero', subsys=AeroCoefComp(vec_size=nn, method='quintic'))
 
         ivc = prob.model.add_subsystem(name='ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
 
@@ -179,9 +179,6 @@ class TestAeroCoefComp(unittest.TestCase):
                          0.019550206447,  0.019241644947,  0.018968388593,  0.018724538140])
 
         prob.run_model()
-
-        np.set_printoptions(linewidth=100000)
-        print(prob['aero.CL'])
 
         assert_rel_error(self, prob['aero.CL'], CL_test, tolerance=0.005)
         assert_rel_error(self, prob['aero.CD'], CD_test, tolerance=0.005)

@@ -63,14 +63,14 @@ def setup_surrogates_all(model_name='CRM'):
 class MBIAeroCoeffComp(ExplicitComponent):
     """ Compute the lift, drag, and moment coefficients of the aircraft """
     def initialize(self):
-        self.options.declare('num_nodes', types=int)
+        self.options.declare('vec_size', types=int)
         self.options.declare('mbi_CL')
         self.options.declare('mbi_CD')
         self.options.declare('mbi_CM')
         self.options.declare('mbi_num')
 
     def setup(self):
-        nn = self.options['num_nodes']
+        nn = self.options['vec_size']
 
         # Inputs
         self.add_input(name='M', shape=(nn,), desc='Mach number', units=None)
@@ -110,8 +110,6 @@ class MBIAeroCoeffComp(ExplicitComponent):
         self.declare_partials('CM', 'eta', rows=ar, cols=ar)
 
     def compute(self, inputs, outputs):
-        nn = self.options['num_nodes']
-
         self.inputs[:, 0] = inputs['M']
         self.inputs[:, 1] = np.degrees(inputs['alpha'])  # convert to deg
         self.inputs[:, 2] = inputs['h'] * 3.28e3   # convert km to ft
@@ -122,7 +120,6 @@ class MBIAeroCoeffComp(ExplicitComponent):
         outputs['CM'][:] = self.options['mbi_CM'].evaluate(self.inputs)[:, 0]
 
     def compute_partials(self, inputs, partials):
-
         self.inputs[:, 0] = inputs['M']
         self.inputs[:, 1] = np.degrees(inputs['alpha'])  # convert to deg
         self.inputs[:, 2] = inputs['h'] * 3.28e3   # convert km to ft

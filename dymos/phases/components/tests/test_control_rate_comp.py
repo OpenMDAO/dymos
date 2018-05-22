@@ -131,7 +131,7 @@ class TestControlRateComp(unittest.TestCase):
                             np.atleast_2d(b_rate2_expected).T)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False, suppress_output=True, method='cs')
+        cpd = p.check_partials(compact_print=False, out_stream=None, method='cs')
         assert_check_partials(cpd)
 
     def test_control_rate_vector_gl(self):
@@ -209,7 +209,7 @@ class TestControlRateComp(unittest.TestCase):
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(method='cs', suppress_output=True)
+        cpd = p.check_partials(method='cs', out_stream=None)
 
         assert_check_partials(cpd)
 
@@ -288,7 +288,7 @@ class TestControlRateComp(unittest.TestCase):
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False, method='cs', suppress_output=True)
+        cpd = p.check_partials(compact_print=False, method='cs', out_stream=None)
 
         assert_check_partials(cpd)
 
@@ -375,7 +375,7 @@ class TestControlRateComp(unittest.TestCase):
                             a3_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False, method='cs', suppress_output=True)
+        cpd = p.check_partials(compact_print=False, method='cs', out_stream=None)
 
         assert_check_partials(cpd)
 
@@ -446,7 +446,7 @@ class TestControlRateComp(unittest.TestCase):
                             np.atleast_2d(b_rate2_expected).T)
 
         np.set_printoptions(linewidth=1024)
-        p.check_partials(compact_print=False, suppress_output=True)
+        p.check_partials(compact_print=False, out_stream=None)
 
     def test_control_rate_vector_radau(self):
 
@@ -523,7 +523,7 @@ class TestControlRateComp(unittest.TestCase):
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False, method='cs', suppress_output=True)
+        cpd = p.check_partials(compact_print=False, method='cs', out_stream=None)
 
         assert_check_partials(cpd)
 
@@ -602,7 +602,7 @@ class TestControlRateComp(unittest.TestCase):
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False, method='cs', suppress_output=True)
+        cpd = p.check_partials(compact_print=False, method='cs', out_stream=None)
 
         assert_check_partials(cpd)
 
@@ -690,7 +690,7 @@ class TestControlRateComp(unittest.TestCase):
                             a3_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False, method='cs', suppress_output=True)
+        cpd = p.check_partials(compact_print=False, method='cs', out_stream=None)
 
         assert_check_partials(cpd)
 

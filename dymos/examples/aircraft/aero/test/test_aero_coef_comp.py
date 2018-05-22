@@ -19,7 +19,7 @@ class TestAeroCoefComp(unittest.TestCase):
 
         prob = Problem(model=Group())
 
-        prob.model.add_subsystem(name='aero', subsys=AeroCoefComp(num_nodes=nn))
+        prob.model.add_subsystem(name='aero', subsys=AeroCoefComp(vec_size=nn))
 
         ivc = prob.model.add_subsystem(name='ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
 

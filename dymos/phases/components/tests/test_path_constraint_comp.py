@@ -131,7 +131,7 @@ class TestPathConstraintCompGL(unittest.TestCase):
 
     def test_partials(self):
         np.set_printoptions(linewidth=1024, edgeitems=1000)
-        cpd = self.p.check_partials(suppress_output=True)
+        cpd = self.p.check_partials(out_stream=None)
         assert_check_partials(cpd)
 
 
@@ -199,7 +199,7 @@ class TestPathConstraintCompRadau(unittest.TestCase):
 
     def test_partials(self):
         np.set_printoptions(linewidth=1024, edgeitems=1000)
-        cpd = self.p.check_partials(suppress_output=True)
+        cpd = self.p.check_partials(out_stream=None)
         assert_check_partials(cpd)
 
 

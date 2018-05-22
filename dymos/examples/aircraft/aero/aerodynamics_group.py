@@ -18,7 +18,7 @@ class AerodynamicsGroup(Group):
         n = self.options['num_nodes']
 
         self.add_subsystem(name='aero_coef_comp',
-                           subsys=AeroCoefComp(num_nodes=n),
+                           subsys=AeroCoefComp(vec_size=n),
                            promotes_inputs=['mach', 'alpha', 'alt', 'eta'],
                            promotes_outputs=['CL', 'CD', 'CM'])
 

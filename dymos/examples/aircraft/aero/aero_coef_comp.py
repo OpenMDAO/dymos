@@ -11,7 +11,7 @@ class AeroCoefComp(MetaModelStructuredComp):
     """ Interpolates aerodynamic coefficients for the NASA Common Research Model. """
 
     def setup(self):
-        nn = self.options['num_nodes']
+        nn = self.options['vec_size']
         self.add_input(name='mach', val=0.2 * np.ones(nn), units=None, training_data=mach_bp)
         self.add_input(name='alpha', val=0.0 * np.ones(nn), units='deg', training_data=alpha_bp)
         self.add_input(name='alt', val=0.0 * np.ones(nn), units='ft', training_data=h_bp)

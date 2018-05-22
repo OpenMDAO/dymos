@@ -51,5 +51,5 @@ class TestPropulsionComp(unittest.TestCase):
                          np.linspace(0, -1.02E6 * 2 * 8.951E-6, self.n))
 
     def test_partials(self):
-        cpd = self.p.check_partials(method='cs', suppress_output=True)
+        cpd = self.p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
