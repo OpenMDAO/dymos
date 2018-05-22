@@ -17,9 +17,9 @@ except:
     MBI = None
 
 
+@unittest.skipIf(MBI is None, 'MBI not available')
 class TestAircraftCruise(unittest.TestCase):
 
-    @unittest.skipIf(MBI is None, 'MBI not available')
     def test_cruise_results(self):
         p = Problem(model=Group())
         if optimizer == 'SNOPT':
@@ -178,7 +178,6 @@ class TestAircraftCruise(unittest.TestCase):
         #     cpd = self.p.check_partials(suppress_output=False)
         #     assert_check_partials(cpd, atol=1.0E-6, rtol=1.0)
 
-    @unittest.skipIf(MBI is None, 'MBI not available')
     def test_free_altitude_cruise_results(self):
         p = Problem(model=Group())
         if optimizer == 'SNOPT':

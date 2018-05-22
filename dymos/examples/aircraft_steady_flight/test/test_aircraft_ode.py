@@ -15,6 +15,7 @@ except:
     MBI = None
 
 
+@unittest.skipIf(MBI is None, 'MBI not available')
 class TestAircraftODEGroup(unittest.TestCase):
 
     @classmethod
@@ -53,7 +54,6 @@ class TestAircraftODEGroup(unittest.TestCase):
 
         cls.p.run_model()
 
-    @unittest.skipIf(MBI is None, 'MBI not available')
     def test_results(self):
         print('dXdt:mass_fuel', self.p['ode.propulsion.dXdt:mass_fuel'])
         print('D', self.p['ode.aero.D'])
