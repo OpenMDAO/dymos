@@ -3,7 +3,7 @@ from __future__ import division, print_function, absolute_import
 import numpy as np
 
 from openmdao.api import Problem, Group, ScipyOptimizeDriver, pyOptSparseDriver, DirectSolver, \
-    CSCJacobian, IndepVarComp
+    CSCJacobian, IndepVarComp, SqliteRecorder
 
 from dymos import Phase
 
@@ -37,6 +37,10 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
             p.driver = ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
 
+        rec = SqliteRecorder("aircraft_mission_results.db")
+        p.driver.add_recorder(rec)
+        p.driver.recording_options['record_desvars'] = True
+
         phase = Phase(transcription,
                       ode_class=AircraftODE,
                       num_segments=num_seg,
@@ -62,7 +66,7 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
 
         phase.add_control('alt', units='m', dynamic=True, opt=True, lower=0.0, upper=15000.0,
                           rate_param='climb_rate', rate_continuity=True, rate2_continuity=False,
-                          fix_initial=False, fix_final=False)
+                          fix_initial=True, fix_final=True)
 
         phase.add_control('mach', units=None, dynamic=False, opt=False,
                           lower=0.8, upper=0.8, ref=1.0)
@@ -73,7 +77,8 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
 
         phase.add_path_constraint('flight_equilibrium.alpha', lower=-14, upper=14, units='deg')
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
-        phase.add_path_constraint('alt_rate2', lower=-0.05, upper=0.05, ref=0.01, units='m/s**2')
+        phase.add_path_constraint('alt_rate', lower=-2000, upper=2000, ref=2000.0, units='ft/min')
+        # phase.add_path_constraint('alt_rate2', lower=-0.05, upper=0.05, ref=0.01, units='m/s**2')
 
         phase.add_boundary_constraint('range', loc='final', equals=1296.4, ref=100.0, units='km')
         # phase.add_boundary_constraint('mass', loc='final', lower=200000.0, ref=100000, units='kg')
@@ -100,10 +105,9 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
         p['phase0.t_duration'] = 1.515132 * 3600.0
         p['phase0.states:range'] = phase.interpolate(ys=(0, 1296.4), nodes='state_disc')
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.0, 0), nodes='state_disc')
-        p['phase0.controls:mach'] = 0.8
+        p['phase0.controls:mach'] = 0.7
         # p['phase0.controls:TAS'][0] = p['phase0.controls:TAS'][-1] = 100.0
-        p['phase0.controls:alt'] = phase.interpolate(ys=(10000, 10000), nodes='control_disc')
-        p['phase0.controls:alt'][0] = p['phase0.controls:alt'][-1] = 0.0
+        p['phase0.controls:alt'] = phase.interpolate(ys=(0, 0), nodes='control_disc')
 
         p['assumptions.S'] = 427.8
         p['assumptions.mass_empty'] = 0.15E6
@@ -116,14 +120,14 @@ if __name__ == '__main__':
 
     from dymos.utils.lgl import lgl
 
-    num_seg = 50
+    num_seg = 30
     seg_ends, _ = lgl(num_seg+1)
     p = ex_aircraft_mission(transcription='gauss-lobatto', num_seg=num_seg, seg_ends=seg_ends,
                             transcription_order=3)
 
-    from openmdao.api import view_model
-
-    view_model(p.model)
+    # from openmdao.api import view_model
+    #
+    # view_model(p.model)
     #
     # exit(0)
     # from openmdao.api import view_model

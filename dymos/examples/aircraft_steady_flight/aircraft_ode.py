@@ -1,6 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
-from openmdao.api import Group
+from openmdao.api import Group, DirectSolver, NewtonSolver, BoundsEnforceLS
 
 from dymos import declare_time, declare_state, declare_parameter
 from dymos.models.atmosphere import StandardAtmosphereGroup
@@ -78,3 +78,16 @@ class AircraftODE(Group):
         self.add_subsystem(name='propulsion', subsys=PropulsionGroup(num_nodes=nn))
 
         self.add_subsystem(name='range_rate_comp', subsys=RangeRateComp(num_nodes=nn))
+
+        # self.linear_solver = DirectSolver()
+        # self.nonlinear_solver = NewtonSolver()
+        # self.nonlinear_solver.options['atol'] = 1e-8
+        # self.nonlinear_solver.options['rtol'] = 1e-8
+        # self.nonlinear_solver.options['solve_subsystems'] = True
+        # self.nonlinear_solver.options['err_on_maxiter'] = True
+        # self.nonlinear_solver.options['max_sub_solves'] = 10
+        # self.nonlinear_solver.options['maxiter'] = 50
+        # # self.nonlinear_solver.options['iprint'] = 2
+        # # self.nonlinear_solver.linesearch = ArmijoGoldsteinLS()
+        # self.nonlinear_solver.linesearch = BoundsEnforceLS()
+        # self.nonlinear_solver.linesearch.options['print_bound_enforce'] = True
