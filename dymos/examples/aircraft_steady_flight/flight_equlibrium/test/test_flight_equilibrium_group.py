@@ -16,6 +16,7 @@ except:
     MBI = None
 
 
+@unittest.skipIf(MBI is None, 'MBI not available')
 class TestFlightEquilibriumGroup(unittest.TestCase):
 
     @classmethod
@@ -58,7 +59,6 @@ class TestFlightEquilibriumGroup(unittest.TestCase):
 
         cls.p.run_model()
 
-    @unittest.skipIf(MBI is None, 'MBI not available')
     def test_results(self):
         CL_eq = self.p['flight_equilibrium.CL_eq']
         CL = self.p['aero.CL']
@@ -67,7 +67,6 @@ class TestFlightEquilibriumGroup(unittest.TestCase):
         assert_rel_error(self,  CL_eq, CL, tolerance=1.0E-12)
         assert_rel_error(self,  CM, np.zeros_like(CM), tolerance=1.0E-12)
 
-    @unittest.skipIf(MBI is None, 'MBI not available')
     def test_partials(self):
         cpd = self.p.check_partials(out_stream=None, method='fd', step=1.0E-6)
         assert_check_partials(cpd, atol=5.0E-3, rtol=2.0)

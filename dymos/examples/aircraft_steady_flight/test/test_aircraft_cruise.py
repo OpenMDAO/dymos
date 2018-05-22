@@ -291,7 +291,6 @@ class TestAircraftCruise(unittest.TestCase):
         print('alt')
         print(phase.get_values('range', nodes='state_disc'))
 
-
         print('range')
         print(phase.get_values('range', nodes='state_disc'))
 
