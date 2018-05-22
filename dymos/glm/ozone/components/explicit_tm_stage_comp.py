@@ -11,29 +11,29 @@ from dymos.glm.ozone.utils.units import get_rate_units
 class ExplicitTMStageComp(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('states', types=dict)
-        self.metadata.declare('time_units', types=str, allow_none=True)
-        self.metadata.declare('num_stages', types=int)
-        self.metadata.declare('num_step_vars', types=int)
-        self.metadata.declare('glm_A', types=np.ndarray)
-        self.metadata.declare('glm_U', types=np.ndarray)
-        self.metadata.declare('i_stage', types=int)
-        self.metadata.declare('i_step', types=int)
+        self.options.declare('states', types=dict)
+        self.options.declare('time_units', types=str, allow_none=True)
+        self.options.declare('num_stages', types=int)
+        self.options.declare('num_step_vars', types=int)
+        self.options.declare('glm_A', types=np.ndarray)
+        self.options.declare('glm_U', types=np.ndarray)
+        self.options.declare('i_stage', types=int)
+        self.options.declare('i_step', types=int)
 
     def setup(self):
-        time_units = self.metadata['time_units']
-        num_stages = self.metadata['num_stages']
-        num_step_vars = self.metadata['num_step_vars']
-        i_stage = self.metadata['i_stage']
-        i_step = self.metadata['i_step']
-        glm_A = self.metadata['glm_A']
-        glm_U = self.metadata['glm_U']
+        time_units = self.options['time_units']
+        num_stages = self.options['num_stages']
+        num_step_vars = self.options['num_step_vars']
+        i_stage = self.options['i_stage']
+        i_step = self.options['i_step']
+        glm_A = self.options['glm_A']
+        glm_U = self.options['glm_U']
 
         self.declare_partials('*', '*', dependent=False)
 
         self.add_input('h', units=time_units)
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
 
             y_old_name = get_name('y_old', state_name, i_step=i_step, i_stage=i_stage)
@@ -74,14 +74,14 @@ class ExplicitTMStageComp(ExplicitComponent):
                 self.declare_partials(Y_name, F_name, rows=arange, cols=arange)
 
     def compute(self, inputs, outputs):
-        num_stages = self.metadata['num_stages']
-        num_step_vars = self.metadata['num_step_vars']
-        i_stage = self.metadata['i_stage']
-        glm_A = self.metadata['glm_A']
-        glm_U = self.metadata['glm_U']
-        i_step = self.metadata['i_step']
+        num_stages = self.options['num_stages']
+        num_step_vars = self.options['num_step_vars']
+        i_stage = self.options['i_stage']
+        glm_A = self.options['glm_A']
+        glm_U = self.options['glm_U']
+        i_step = self.options['i_step']
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
 
             y_old_name = get_name('y_old', state_name, i_step=i_step, i_stage=i_stage)
@@ -95,14 +95,14 @@ class ExplicitTMStageComp(ExplicitComponent):
                 outputs[Y_name] += inputs['h'] * glm_A[i_stage, j_stage] * inputs[F_name]
 
     def compute_partials(self, inputs, partials):
-        num_stages = self.metadata['num_stages']
-        num_step_vars = self.metadata['num_step_vars']
-        i_stage = self.metadata['i_stage']
-        glm_A = self.metadata['glm_A']
-        glm_U = self.metadata['glm_U']
-        i_step = self.metadata['i_step']
+        num_stages = self.options['num_stages']
+        num_step_vars = self.options['num_step_vars']
+        i_stage = self.options['i_stage']
+        glm_A = self.options['glm_A']
+        glm_U = self.options['glm_U']
+        i_step = self.options['i_step']
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
 
             Y_name = get_name('Y', state_name, i_step=i_step, i_stage=i_stage)

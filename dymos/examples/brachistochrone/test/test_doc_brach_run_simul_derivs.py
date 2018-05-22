@@ -19,7 +19,6 @@ class TestBrachistochroneSimulDerivsRunExample(unittest.TestCase):
 
         # Compute sparsity/coloring when run_driver is called
         p.driver.options['dynamic_simul_derivs'] = True
-        p.driver.options['dynamic_simul_derivs_repeats'] = 5
 
         p.driver.opt_settings['Major iterations limit'] = 1000
         p.driver.opt_settings['iSumm'] = 6

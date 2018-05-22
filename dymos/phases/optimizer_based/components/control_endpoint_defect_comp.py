@@ -24,19 +24,19 @@ class ControlEndpointDefectComp(ExplicitComponent):
 
     def initialize(self):
 
-        self.metadata.declare(
+        self.options.declare(
             'grid_data', types=GridData,
             desc='Container object for grid info')
 
-        self.metadata.declare(
+        self.options.declare(
             'control_options', types=dict,
             desc='Dictionary of control names/options for the phase')
 
     def setup(self):
-        gd = self.metadata['grid_data']
+        gd = self.options['grid_data']
         num_nodes = gd.subset_num_nodes['all']
 
-        control_options = self.metadata['control_options']
+        control_options = self.options['control_options']
 
         # We only need the last row of the Lagrange interpolation matrix since we
         # desire the interpolated control value at the endpoint of the phase.
@@ -92,7 +92,7 @@ class ControlEndpointDefectComp(ExplicitComponent):
                                   rows=row_idxs, cols=col_idxs, val=dout_din)
 
     def compute(self, inputs, outputs):
-        gd = self.metadata['grid_data']
+        gd = self.options['grid_data']
 
         for name in self._input_str:
             u_col = inputs[self._input_str[name]][gd.subset_node_indices['col']]

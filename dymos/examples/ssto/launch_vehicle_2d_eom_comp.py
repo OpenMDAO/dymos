@@ -11,19 +11,19 @@ _g = {'earth': 9.80665,
 class LaunchVehicle2DEOM(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
-        self.metadata.declare('central_body', values=['earth', 'moon'], default='earth',
-                              desc='The central graviational body for the launch vehicle.')
+        self.options.declare('central_body', values=['earth', 'moon'], default='earth',
+                             desc='The central graviational body for the launch vehicle.')
 
-        self.metadata.declare('CD', types=float, default=0.5,
-                              desc='coefficient of drag')
+        self.options.declare('CD', types=float, default=0.5,
+                             desc='coefficient of drag')
 
-        self.metadata.declare('S', types=float, default=7.069,
-                              desc='aerodynamic reference area (m**2)')
+        self.options.declare('S', types=float, default=7.069,
+                             desc='aerodynamic reference area (m**2)')
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         # Inputs
         self.add_input('vx',
@@ -88,7 +88,7 @@ class LaunchVehicle2DEOM(ExplicitComponent):
                         units='kg/s')
 
         # Setup partials
-        ar = np.arange(self.metadata['num_nodes'])
+        ar = np.arange(self.options['num_nodes'])
 
         self.declare_partials(of='xdot', wrt='vx', rows=ar, cols=ar, val=1.0)
         self.declare_partials(of='ydot', wrt='vy', rows=ar, cols=ar, val=1.0)
@@ -119,8 +119,8 @@ class LaunchVehicle2DEOM(ExplicitComponent):
         F_T = inputs['thrust']
         Isp = inputs['Isp']
 
-        g = _g[self.metadata['central_body']]
-        CDA = self.metadata['CD'] * self.metadata['S']
+        g = _g[self.options['central_body']]
+        CDA = self.options['CD'] * self.options['S']
 
         outputs['xdot'] = vx
         outputs['ydot'] = vy
@@ -139,8 +139,8 @@ class LaunchVehicle2DEOM(ExplicitComponent):
         F_T = inputs['thrust']
         Isp = inputs['Isp']
 
-        g = _g[self.metadata['central_body']]
-        CDA = self.metadata['CD'] * self.metadata['S']
+        g = _g[self.options['central_body']]
+        CDA = self.options['CD'] * self.options['S']
 
         jacobian['vxdot', 'vx'] = -CDA * rho * vx / m
         jacobian['vxdot', 'rho'] = -0.5 * CDA * vx**2 / m

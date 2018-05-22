@@ -11,7 +11,7 @@ class PathConstraintCompBase(ExplicitComponent):
     def initialize(self):
         self._path_constraints = []
         self._vars = []
-        self.metadata.declare('grid_data', types=GridData, desc='Container object for grid info')
+        self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
     def _add_path_constraint(self, name, var_class, shape=(1,), units=None, res_units=None, desc='',
                              lower=None, upper=None, equals=None, scaler=None, adder=None,
@@ -86,7 +86,7 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
         """
         Define the independent variables as output variables.
         """
-        grid_data = self.metadata['grid_data']
+        grid_data = self.options['grid_data']
 
         num_nodes = grid_data.num_nodes
         num_state_disc_nodes = grid_data.subset_num_nodes['state_disc']
@@ -182,8 +182,8 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
                     val=1.0)
 
     def compute(self, inputs, outputs):
-        disc_indices = self.metadata['grid_data'].subset_node_indices['state_disc']
-        col_indices = self.metadata['grid_data'].subset_node_indices['col']
+        disc_indices = self.options['grid_data'].subset_node_indices['state_disc']
+        col_indices = self.options['grid_data'].subset_node_indices['col']
         for (disc_input_name, col_input_name, all_inp_name, src_all, output_name, _) in self._vars:
             if src_all:
                 outputs[output_name] = inputs[all_inp_name]
@@ -198,7 +198,7 @@ class RadauPathConstraintComp(PathConstraintCompBase):
         """
         Define the independent variables as output variables.
         """
-        grid_data = self.metadata['grid_data']
+        grid_data = self.options['grid_data']
         num_nodes = grid_data.num_nodes
 
         for (name, kwargs) in self._path_constraints:
@@ -250,15 +250,15 @@ class GLMPathConstraintComp(PathConstraintCompBase):
     def initialize(self):
         self._path_constraints = []
         self._vars = []
-        self.metadata.declare('num_timesteps', types=int)
-        self.metadata.declare('num_stages', types=int)
+        self.options.declare('num_timesteps', types=int)
+        self.options.declare('num_stages', types=int)
 
     def setup(self):
         """
         Define the independent variables as output variables.
         """
-        num_timesteps = self.metadata['num_timesteps']
-        num_stages = self.metadata['num_stages']
+        num_timesteps = self.options['num_timesteps']
+        num_stages = self.options['num_stages']
         control_types = ['state', 'indep_control', 'input_control', 'control_rate', 'control_rate2']
 
         for (name, kwargs) in self._path_constraints:

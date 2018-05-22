@@ -29,7 +29,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Major iterations limit'] = 1000
         p.driver.opt_settings['iSumm'] = 6
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
-        p.driver.opt_settings['Major optimality tolerance'] = 1.0E-5
+        p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         p.driver.opt_settings['Verify level'] = 3
         p.driver.opt_settings['Function precision'] = 1.0E-6
         p.driver.opt_settings['Linesearch tolerance'] = 0.10
@@ -39,6 +39,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     kwargs = {}
     if transcription != 'glm':
+        kwargs['compressed'] = True
         kwargs['transcription_order'] = 3
     else:
         kwargs['compressed'] = False
@@ -76,7 +77,8 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         rate_continuity = None
 
     phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
-                      dynamic=True, rate_continuity=rate_continuity)
+                      dynamic=True, rate_continuity=rate_continuity, rate_continuity_scaler=100.0,
+                      rate2_continuity=False)
 
     phase.add_control('S', val=49.2386, units='m**2', dynamic=False, opt=False)
     phase.add_control('Isp', val=1600.0, units='s', dynamic=False, opt=False)
@@ -91,11 +93,10 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.add_path_constraint(name='alpha', lower=-8, upper=8)
 
     # Minimize time at the end of the phase
-    phase.add_objective('time', loc='final', ref=100.0)
+    phase.add_objective('time', loc='final')
 
     if transcription != 'glm':
         p.driver.options['dynamic_simul_derivs'] = True
-        p.driver.options['dynamic_simul_derivs_repeats'] = 5
 
         if top_level_jacobian.lower() == 'csc':
             p.model.jacobian = CSCJacobian()
@@ -163,4 +164,5 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 if __name__ == '__main__':
     SHOW_PLOTS = True
     p = min_time_climb(
-        optimizer='SLSQP', num_seg=10, transcription='radau-ps', force_alloc_complex=False)
+        optimizer='SNOPT', num_seg=15, transcription='gauss-lobatto', transcription_order=3,
+        force_alloc_complex=True)

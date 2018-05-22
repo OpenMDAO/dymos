@@ -12,15 +12,15 @@ from dymos.glm.ozone.utils.var_names import get_name
 class StartingComp(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('states', types=dict)
-        self.metadata.declare('num_step_vars', types=int)
+        self.options.declare('states', types=dict)
+        self.options.declare('num_step_vars', types=int)
 
     def setup(self):
-        num_step_vars = self.metadata['num_step_vars']
+        num_step_vars = self.options['num_step_vars']
 
         self.declare_partials('*', '*', dependent=False)
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
 
             initial_condition_name = get_name('initial_condition', state_name)
@@ -36,7 +36,7 @@ class StartingComp(ExplicitComponent):
                 starting_name, initial_condition_name, val=ones, rows=arange, cols=arange)
 
     def compute(self, inputs, outputs):
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             initial_condition_name = get_name('initial_condition', state_name)
             starting_name = get_name('starting', state_name)
 

@@ -9,10 +9,10 @@ class LiftDragForceComp(ExplicitComponent):
     (lift, drag, cross) force.
     """
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         self.add_input(name='CL', val=np.zeros(nn,), desc='lift coefficient', units=None)
         self.add_input(name='CD', val=np.zeros(nn,), desc='drag coefficient', units=None)

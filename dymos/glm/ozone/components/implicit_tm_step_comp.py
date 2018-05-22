@@ -11,27 +11,27 @@ from dymos.glm.ozone.utils.units import get_rate_units
 class ImplicitTMStepComp(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('states', types=dict)
-        self.metadata.declare('time_units', types=str, allow_none=True)
-        self.metadata.declare('num_stages', types=int)
-        self.metadata.declare('num_step_vars', types=int)
-        self.metadata.declare('glm_B', types=np.ndarray)
-        self.metadata.declare('glm_V', types=np.ndarray)
-        self.metadata.declare('i_step', types=int)
+        self.options.declare('states', types=dict)
+        self.options.declare('time_units', types=str, allow_none=True)
+        self.options.declare('num_stages', types=int)
+        self.options.declare('num_step_vars', types=int)
+        self.options.declare('glm_B', types=np.ndarray)
+        self.options.declare('glm_V', types=np.ndarray)
+        self.options.declare('i_step', types=int)
 
     def setup(self):
-        time_units = self.metadata['time_units']
-        num_stages = self.metadata['num_stages']
-        num_step_vars = self.metadata['num_step_vars']
-        i_step = self.metadata['i_step']
-        glm_B = self.metadata['glm_B']
-        glm_V = self.metadata['glm_V']
+        time_units = self.options['time_units']
+        num_stages = self.options['num_stages']
+        num_step_vars = self.options['num_step_vars']
+        i_step = self.options['i_step']
+        glm_B = self.options['glm_B']
+        glm_V = self.options['glm_V']
 
         self.dy_dF = dy_dF = {}
 
         self.add_input('h', units=time_units)
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
             shape = state['shape']
 
@@ -78,11 +78,11 @@ class ImplicitTMStepComp(ExplicitComponent):
             self.declare_partials(y_new_name, y_old_name, val=data, rows=rows, cols=cols)
 
     def compute(self, inputs, outputs):
-        glm_B = self.metadata['glm_B']
-        glm_V = self.metadata['glm_V']
-        i_step = self.metadata['i_step']
+        glm_B = self.options['glm_B']
+        glm_V = self.options['glm_V']
+        i_step = self.options['i_step']
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
             shape = state['shape']
 
@@ -95,14 +95,14 @@ class ImplicitTMStepComp(ExplicitComponent):
                 + np.einsum('ij,j...->i...', glm_V, inputs[y_old_name])
 
     def compute_partials(self, inputs, partials):
-        time_units = self.metadata['time_units']
-        num_stages = self.metadata['num_stages']
-        num_step_vars = self.metadata['num_step_vars']
-        glm_B = self.metadata['glm_B']
-        glm_V = self.metadata['glm_V']
-        i_step = self.metadata['i_step']
+        time_units = self.options['time_units']
+        num_stages = self.options['num_stages']
+        num_step_vars = self.options['num_step_vars']
+        glm_B = self.options['glm_B']
+        glm_V = self.options['glm_V']
+        i_step = self.options['i_step']
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
             shape = state['shape']
 

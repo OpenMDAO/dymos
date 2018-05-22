@@ -6,10 +6,10 @@ from openmdao.api import ExplicitComponent
 class CLComp(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         # Inputs
         self.add_input('CLa', shape=(nn,), desc='alpha lift coefficient', units=None)

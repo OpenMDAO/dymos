@@ -87,7 +87,7 @@ class TestPhaseLinkageComp(unittest.TestCase):
                             self.p['linkage_comp.L01c_v'])
 
     def test_partials(self):
-        cpd = self.p.check_partials(suppress_output=True)
+        cpd = self.p.check_partials(out_stream=None)
         assert_check_partials(cpd)
 
 

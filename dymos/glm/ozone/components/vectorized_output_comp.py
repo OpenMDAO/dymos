@@ -12,21 +12,21 @@ from dymos.glm.ozone.utils.var_names import get_name
 class VectorizedOutputComp(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('states', types=dict)
-        self.metadata.declare('num_starting_times', types=int)
-        self.metadata.declare('num_my_times', types=int)
-        self.metadata.declare('num_step_vars', types=int)
-        self.metadata.declare('starting_coeffs', types=np.ndarray, allow_none=True)
+        self.options.declare('states', types=dict)
+        self.options.declare('num_starting_times', types=int)
+        self.options.declare('num_my_times', types=int)
+        self.options.declare('num_step_vars', types=int)
+        self.options.declare('starting_coeffs', types=np.ndarray, allow_none=True)
 
     def setup(self):
-        num_starting_times = self.metadata['num_starting_times']
-        num_my_times = self.metadata['num_my_times']
-        num_step_vars = self.metadata['num_step_vars']
-        starting_coeffs = self.metadata['starting_coeffs']
+        num_starting_times = self.options['num_starting_times']
+        num_my_times = self.options['num_my_times']
+        num_step_vars = self.options['num_step_vars']
+        starting_coeffs = self.options['starting_coeffs']
 
         num_times = num_starting_times + num_my_times - 1
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             size = np.prod(state['shape'])
             shape = state['shape']
 
@@ -58,11 +58,11 @@ class VectorizedOutputComp(ExplicitComponent):
             self.declare_partials(out_state_name, y_name, val=data, rows=rows, cols=cols)
 
     def compute(self, inputs, outputs):
-        num_starting_times = self.metadata['num_starting_times']
-        num_my_times = self.metadata['num_my_times']
-        starting_coeffs = self.metadata['starting_coeffs']
+        num_starting_times = self.options['num_starting_times']
+        num_my_times = self.options['num_my_times']
+        starting_coeffs = self.options['starting_coeffs']
 
-        for state_name, state in iteritems(self.metadata['states']):
+        for state_name, state in iteritems(self.options['states']):
             y_name = get_name('y', state_name)
             starting_state_name = get_name('starting_state', state_name)
             out_state_name = get_name('state', state_name)

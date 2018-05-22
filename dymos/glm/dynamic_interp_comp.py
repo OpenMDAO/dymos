@@ -22,34 +22,34 @@ class DynamicInterpComp(ExplicitComponent):
 
     def initialize(self):
 
-        self.metadata.declare('grid_data', types=GridData,
-                              desc='Container object for grid info')
+        self.options.declare('grid_data', types=GridData,
+                             desc='Container object for grid info')
 
-        self.metadata.declare('control_options', types=dict,
-                              desc='Dictionary of control names/options for the phase')
+        self.options.declare('control_options', types=dict,
+                             desc='Dictionary of control names/options for the phase')
 
-        self.metadata.declare('time_units', default=None, allow_none=True,
-                              types=string_types,
-                              desc='Units of the integration variable')
+        self.options.declare('time_units', default=None, allow_none=True,
+                             types=string_types,
+                             desc='Units of the integration variable')
 
-        self.metadata.declare('normalized_times', types=np.ndarray,
-                              desc='Array of timesteps for the ODE solver.')
+        self.options.declare('normalized_times', types=np.ndarray,
+                             desc='Array of timesteps for the ODE solver.')
 
-        self.metadata.declare(
+        self.options.declare(
             'segment_times', types=list,
             desc='Ranges of timesteps corresponding to each segment.'
         )
 
     def setup(self):
-        time_units = self.metadata['time_units']
+        time_units = self.options['time_units']
 
-        grid_data = self.metadata['grid_data']
+        grid_data = self.options['grid_data']
         num_nodes = grid_data.num_nodes
 
-        normalized_times = self.metadata['normalized_times']
+        normalized_times = self.options['normalized_times']
         num_timesteps = normalized_times.shape[0]
 
-        control_options = self.metadata['control_options']
+        control_options = self.options['control_options']
 
         for dynamic_name, opts in iteritems(control_options):
             shape = opts['shape']
@@ -70,7 +70,7 @@ class DynamicInterpComp(ExplicitComponent):
                          'entry {0} at timesteps'.format(dynamic_name))
 
         L_blocks = []
-        segment_times = self.metadata['segment_times']
+        segment_times = self.options['segment_times']
         for iseg in range(grid_data.num_segments):
             i1, i2 = grid_data.subset_segment_indices['all'][iseg, :]
             indices = grid_data.subset_node_indices['all'][i1:i2]
@@ -111,7 +111,7 @@ class DynamicInterpComp(ExplicitComponent):
                 )
 
     def compute(self, inputs, outputs):
-        control_options = self.metadata['control_options']
+        control_options = self.options['control_options']
         for dynamic_name, options in iteritems(control_options):
             if options['dynamic']:
                 outputs['dynamic_ts:' + dynamic_name] = \

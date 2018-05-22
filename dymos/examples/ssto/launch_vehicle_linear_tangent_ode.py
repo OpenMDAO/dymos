@@ -22,15 +22,15 @@ from .linear_tangent_guidance_comp import LinearTangentGuidanceComp
 class LaunchVehicleLinearTangentODE(Group):
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int,
-                              desc='Number of nodes to be evaluated in the RHS')
+        self.options.declare('num_nodes', types=int,
+                             desc='Number of nodes to be evaluated in the RHS')
 
-        self.metadata.declare('central_body', values=['earth', 'moon'], default='earth',
-                              desc='The central graviational body for the launch vehicle.')
+        self.options.declare('central_body', values=['earth', 'moon'], default='earth',
+                             desc='The central graviational body for the launch vehicle.')
 
     def setup(self):
-        nn = self.metadata['num_nodes']
-        cb = self.metadata['central_body']
+        nn = self.options['num_nodes']
+        cb = self.options['central_body']
 
         if cb == 'earth':
             rho_ref = 1.225

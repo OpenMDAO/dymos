@@ -12,12 +12,12 @@ class EndpointConditionsComp(ExplicitComponent):
     phase continuity.
     """
     def initialize(self):
-        self.metadata.declare('time_options', types=OptionsDictionary)
-        self.metadata.declare('state_options', types=dict)
-        self.metadata.declare('control_options', types=dict)
+        self.options.declare('time_options', types=OptionsDictionary)
+        self.options.declare('state_options', types=dict)
+        self.options.declare('control_options', types=dict)
 
     def _setup_states(self):
-        for name, options in iteritems(self.metadata['state_options']):
+        for name, options in iteritems(self.options['state_options']):
             shape = options['shape']
             units = options['units']
             size = np.prod(shape)
@@ -97,7 +97,7 @@ class EndpointConditionsComp(ExplicitComponent):
                                   cols=ar, val=1.0)
 
     def _setup_controls(self):
-        for name, options in iteritems(self.metadata['control_options']):
+        for name, options in iteritems(self.options['control_options']):
             shape = options['shape']
             units = options['units']
             size = np.prod(shape)
@@ -178,7 +178,7 @@ class EndpointConditionsComp(ExplicitComponent):
                                   cols=ar, val=1.0)
 
     def _setup_time(self):
-        time_units = self.metadata['time_options']['units']
+        time_units = self.options['time_options']['units']
 
         self.add_input(name='values:time',
                        desc='value of time at the endpoints of the phase',
@@ -236,7 +236,7 @@ class EndpointConditionsComp(ExplicitComponent):
         outputs['time+-'] = inputs['values:time'][-1]
         outputs['time++'] = inputs['values:time'][-1] + inputs['final_jump:time']
 
-        for state_name, options in iteritems(self.metadata['state_options']):
+        for state_name, options in iteritems(self.options['state_options']):
             outputs['states:{0}--'.format(state_name)] = \
                 inputs['values:{0}'.format(state_name)][0, ...] - \
                 inputs['initial_jump:{0}'.format(state_name)]
@@ -251,7 +251,7 @@ class EndpointConditionsComp(ExplicitComponent):
                 inputs['values:{0}'.format(state_name)][-1, ...] + \
                 inputs['final_jump:{0}'.format(state_name)]
 
-        for control_name, options in iteritems(self.metadata['control_options']):
+        for control_name, options in iteritems(self.options['control_options']):
             outputs['controls:{0}--'.format(control_name)] = \
                 inputs['values:{0}'.format(control_name)][0, ...] - \
                 inputs['initial_jump:{0}'.format(control_name)]

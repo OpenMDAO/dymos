@@ -53,7 +53,7 @@ class ScipyODEIntegrator(object):
 
         pos = 0
 
-        for state, options in iteritems(self.ode_options._states):
+        for state, options in iteritems(state_options):
             self.state_options[state] = {'rate_source': options['rate_source'],
                                          'pos': pos,
                                          'shape': options['shape'],

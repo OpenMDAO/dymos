@@ -25,7 +25,7 @@ class GLMPhase(PhaseBase):
         self._node_indices = None
         self._segment_times = None
 
-        if self.metadata['compressed']:
+        if self.options['compressed']:
             raise ValueError('GLMPhase does not currently support compressed transcription. '
                              'Specify `compressed=False` when initializing the phase.')
 
@@ -33,19 +33,19 @@ class GLMPhase(PhaseBase):
         super(GLMPhase, self).initialize()
         # Optional metadata
 
-        self.metadata.declare(
+        self.options.declare(
             'formulation', default='solver-based',
             values=['optimizer-based', 'solver-based', 'time-marching'],
             desc='Formulation for solving the ODE.')
 
-        self.metadata.declare(
+        self.options.declare(
             'method_name', default='RK4', values=set(method_classes.keys()),
             desc='Scheme used to integrate the ODE.')
-        self.metadata.declare(
+        self.options.declare(
             'num_timesteps', types=int,
             desc='Minimum number of timesteps, more may be used.')
 
-        self.metadata['transcription'] = 'glm'
+        self.options['transcription'] = 'glm'
 
     def setup(self):
         super(GLMPhase, self).setup()
@@ -130,7 +130,7 @@ class GLMPhase(PhaseBase):
                     self.connect(
                         'controls:{0}'.format(name),
                         'continuity_constraint.controls:{}'.format(name),
-                        src_indices=grid_data.subset_node_indices['state_disc'])
+                        src_indices=grid_data.subset_node_indices['segment_ends'])
                     continuity = True
 
                     # TODO: once controls are nonlinear, we can support rate continuity.
@@ -153,7 +153,7 @@ class GLMPhase(PhaseBase):
         grid_data = self.grid_data
 
         # TODO: Build interpolant rather than forcing a timestep.
-        min_steps = self.metadata['num_segments']
+        min_steps = self.options['num_segments']
         max_h = 1. / min_steps
         # node_times = (grid_data.node_ptau + 1.0) / 2.0
         node_indices = []
@@ -177,7 +177,7 @@ class GLMPhase(PhaseBase):
             i_new = i
             segment_times.append([i_old, i_new])
 
-        self._norm_times = np.zeros(2 * self.metadata['num_segments'])
+        self._norm_times = np.zeros(2 * self.options['num_segments'])
         self._norm_times[0::2] = grid_data.segment_ends[:-1]
         self._norm_times[1::2] = grid_data.segment_ends[1:]
         self._norm_times = (self._norm_times - self._norm_times[0]) \
@@ -207,9 +207,9 @@ class GLMPhase(PhaseBase):
 
     def _setup_sand(self):
         ode_int = ODEIntegrator(
-            self.metadata['ode_class'],
-            self.metadata['formulation'],
-            self.metadata['method_name'],
+            self.options['ode_class'],
+            self.options['formulation'],
+            self.options['method_name'],
             normalized_times=self._norm_times,
             state_options=self.state_options,
         )
@@ -228,9 +228,9 @@ class GLMPhase(PhaseBase):
 
     def _setup_mdf(self):
         ode_int = ODEIntegrator(
-            self.metadata['ode_class'],
-            self.metadata['formulation'],
-            self.metadata['method_name'],
+            self.options['ode_class'],
+            self.options['formulation'],
+            self.options['method_name'],
             normalized_times=self._norm_times,
             state_options=self.state_options,
         )
@@ -247,7 +247,7 @@ class GLMPhase(PhaseBase):
             ])
 
     def _setup_states(self):
-        formulation = self.metadata['formulation']
+        formulation = self.options['formulation']
         if formulation == 'optimizer-based':
             self._setup_sand()
         elif formulation == 'solver-based' or formulation == 'time-marching':
@@ -283,7 +283,7 @@ class GLMPhase(PhaseBase):
 
         var_type = self._classify_var(var)
 
-        num_segments = self.metadata['num_segments']
+        num_segments = self.options['num_segments']
 
         if var_type == 'time':
             output = np.zeros((num_segments + 1, 1))
@@ -336,8 +336,8 @@ class GLMPhase(PhaseBase):
         Add a path constraint component if necessary and issue appropriate connections as
         part of the setup stack.
         """
-        num_timesteps = self.metadata['num_segments']
-        num_stages = get_method(self.metadata['method_name']).num_stages
+        num_timesteps = self.options['num_segments']
+        num_stages = get_method(self.options['method_name']).num_stages
 
         for var in self._path_constraints:
             var_type = self._classify_var(var)
@@ -430,12 +430,12 @@ class GLMPhase(PhaseBase):
         """
         Adds BoundaryConstraintComp if necessary and issues appropriate connections.
         """
-        transcription = self.metadata['transcription']
-        formulation = self.metadata['formulation']
+        transcription = self.options['transcription']
+        formulation = self.options['formulation']
         bc_comp = None
 
-        num_timesteps = self.metadata['num_segments']
-        num_stages = get_method(self.metadata['method_name']).num_stages
+        num_timesteps = self.options['num_segments']
+        num_stages = get_method(self.options['method_name']).num_stages
 
         if self._boundary_constraints:
             bc_comp = self.add_subsystem('boundary_constraints', subsys=BoundaryConstraintComp())
@@ -734,8 +734,8 @@ class GLMPhase(PhaseBase):
             the first axis (0).
         """
         var_type = self._classify_var(var)
-        formulation = self.metadata['formulation']
-        num_stages = get_method(self.metadata['method_name']).num_stages
+        formulation = self.options['formulation']
+        num_stages = get_method(self.options['method_name']).num_stages
 
         if var_type == 'time':
             interpolated_values = self.interpolate(xs=val, nodes=nodes, kind=kind, axis=axis)
@@ -760,7 +760,8 @@ class GLMPhase(PhaseBase):
     def add_control(self, name, val=0.0, units=0, dynamic=True, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,
                     scaler=None, adder=None, ref=None, ref0=None, continuity=None,
-                    rate_continuity=None, rate2_continuity=None,
+                    rate_continuity=None, rate_continuity_scaler=1.0,
+                    rate2_continuity=None, rate2_continuity_scaler=1.0,
                     rate_param=None, rate2_param=None):
         """
         Declares that a parameter of the ODE is to potentially be used as an optimal control.
@@ -801,8 +802,17 @@ class GLMPhase(PhaseBase):
             True if continuity in the value of the control is desired at the segment bounds.
             See notes about default values for continuity.
         rate_continuity : bool or None
-            True if continuity in the rate of the control is desired at the segment bounds.
+            True if continuity in the rate of the control is desired at the segment bounds.  This
+            rate is normalized to segment tau space.
             See notes about default values for continuity.
+        rate_continuity_scaler : float or ndarray
+            The scaler to use for the rate_continuity constraint given to the optimizer.
+        rate2_continuity : bool or None
+            True if continuity in the second derivative of the control is desired at the
+            segment bounds. This second derivative is normalized to segment tau space.
+            See notes about default values for continuity.
+        rate2_continuity_scaler : float or ndarray
+            The scaler to use for the rate2_continuity constraint given to the optimizer.
         rate_param : None or str
             The name of the parameter in the ODE to which the first time-derivative
             of the control value is connected.
@@ -834,4 +844,6 @@ class GLMPhase(PhaseBase):
             name, val=val, units=units, dynamic=dynamic, opt=opt, lower=lower, upper=upper,
             fix_initial=fix_initial, fix_final=fix_final, scaler=scaler, adder=adder,
             ref=ref, ref0=ref0, continuity=continuity, rate_continuity=None,
+            rate_continuity_scaler=rate_continuity_scaler,
+            rate2_continuity_scaler=rate2_continuity_scaler,
             rate2_continuity=None, rate_param=rate_param, rate2_param=rate2_param)

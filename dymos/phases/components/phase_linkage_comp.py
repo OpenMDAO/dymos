@@ -15,11 +15,11 @@ class PhaseLinkageComp(ExplicitComponent):
     one or more variables.
     """
     def initialize(self):
-        self.metadata.declare('linkages', default=[])
+        self.options.declare('linkages', default=[])
 
     def setup(self):
 
-        for lnk in self.metadata['linkages']:
+        for lnk in self.options['linkages']:
             self.add_input(name=lnk['cond0_name'], shape=lnk['shape'],
                            val=np.zeros(lnk['shape']), units=lnk['units'])
 
@@ -139,9 +139,9 @@ class PhaseLinkageComp(ExplicitComponent):
             lnk['cond0_name'] = '{0}:lhs'.format(lnk['name'])
             lnk['cond1_name'] = '{0}:rhs'.format(lnk['name'])
 
-            self.metadata['linkages'].append(lnk)
+            self.options['linkages'].append(lnk)
 
     def compute(self, inputs, outputs):
 
-        for lnk in self.metadata['linkages']:
+        for lnk in self.options['linkages']:
             outputs[lnk['name']] = inputs[lnk['cond1_name']] - inputs[lnk['cond0_name']]

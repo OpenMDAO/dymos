@@ -11,10 +11,10 @@ class StateRateCollectorComp(ExplicitComponent):
     different units than those defined in the state_options/time_options.
     """
     def initialize(self):
-        self.metadata.declare(
+        self.options.declare(
             'state_options', types=dict,
             desc='Dictionary of options for the ODE state variables.')
-        self.metadata.declare(
+        self.options.declare(
             'time_units', default=None, allow_none=True, types=string_types,
             desc='Units of time')
 
@@ -23,8 +23,8 @@ class StateRateCollectorComp(ExplicitComponent):
         self._output_names = {}
 
     def setup(self):
-        state_options = self.metadata['state_options']
-        time_units = self.metadata['time_units']
+        state_options = self.options['state_options']
+        time_units = self.options['time_units']
 
         for name, options in iteritems(state_options):
             self._input_names[name] = 'state_rates_in:{0}_rate'.format(name)
@@ -38,7 +38,7 @@ class StateRateCollectorComp(ExplicitComponent):
             self.add_output(self._output_names[name], shape=shape, units=rate_units)
 
     def compute(self, inputs, outputs):
-        state_options = self.metadata['state_options']
+        state_options = self.options['state_options']
 
         for name, options in iteritems(state_options):
             outputs[self._output_names[name]] = inputs[self._input_names[name]]

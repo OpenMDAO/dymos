@@ -11,7 +11,7 @@ from openmdao.api import ExplicitComponent
 class _BrachistochroneODE(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
 
 class TestODEOptions(unittest.TestCase):

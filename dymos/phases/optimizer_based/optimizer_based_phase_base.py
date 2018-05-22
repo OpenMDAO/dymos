@@ -3,9 +3,8 @@ from __future__ import division, print_function, absolute_import
 from collections import Iterable
 
 import numpy as np
-from dymos.phases.components import ContinuityComp
 from dymos.phases.optimizer_based.components import CollocationComp, StateInterpComp
-from dymos.phases.components import EndpointConditionsComp
+from dymos.phases.components import EndpointConditionsComp, ContinuityComp
 from dymos.phases.phase_base import PhaseBase
 from dymos.utils.interpolate import LagrangeBarycentricInterpolant, StaticInterpolant
 from dymos.utils.misc import CoerceDesvar
@@ -91,8 +90,8 @@ class OptimizerBasedPhaseBase(PhaseBase):
                   ' before simulating the phase.'
             raise RuntimeError(msg)
 
-        rhs_integrator = ScipyODEIntegrator(ode_class=self.metadata['ode_class'],
-                                            ode_init_kwargs=self.metadata['ode_init_kwargs'],
+        rhs_integrator = ScipyODEIntegrator(ode_class=self.options['ode_class'],
+                                            ode_init_kwargs=self.options['ode_init_kwargs'],
                                             time_options=self.time_options,
                                             state_options=self.state_options,
                                             control_options=self.control_options)
@@ -177,6 +176,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                                      integrator=integrator,
                                                      integrator_params=integrator_params,
                                                      observer=observer)
+
+            # print(seg_out.outputs)
+            # exit(0)
+
             if first_seg:
                 exp_out.outputs.update(seg_out.outputs)
             else:
@@ -192,14 +195,14 @@ class OptimizerBasedPhaseBase(PhaseBase):
             phase_name = self.pathname.split('.')[0]
             filepath = record_file if record_file else '{0}_sim.db'.format(phase_name)
 
-            exp_out.record_results(filepath, self.metadata['ode_class'],
-                                   self.metadata['ode_init_kwargs'])
+            exp_out.record_results(filepath, self.options['ode_class'],
+                                   self.options['ode_init_kwargs'])
         return exp_out
 
     def setup(self):
         super(OptimizerBasedPhaseBase, self).setup()
 
-        transcription = self.metadata['transcription']
+        transcription = self.options['transcription']
         grid_data = self.grid_data
 
         indep_controls = []
@@ -257,7 +260,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                            subsys=StateInterpComp(grid_data=grid_data,
                                                   state_options=self.state_options,
                                                   time_units=time_units,
-                                                  transcription=self.metadata['transcription']))
+                                                  transcription=self.options['transcription']))
 
         self.connect(
             'time.dt_dstau', 'state_interp.dt_dstau',
@@ -349,7 +352,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         Setup the Collocation and Continuity components as necessary.
         """
         grid_data = self.grid_data
-        compressed = self.metadata['compressed']
+        compressed = self.options['compressed']
 
         time_units = self.time_options['units']
 
@@ -357,6 +360,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
                            CollocationComp(grid_data=grid_data,
                                            state_options=self.state_options,
                                            time_units=time_units))
+
+        self.connect(
+            'time.dt_dstau', ('collocation_constraint.dt_dstau'),
+            src_indices=grid_data.subset_node_indices['col'])
 
         num_segment_boundaries = grid_data.num_segments - 1
 
@@ -370,8 +377,13 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
             for name, options in iteritems(self.state_options):
                 if not compressed and options['continuity']:
+                    # The sub-indices of state_disc indices that are segment ends
+                    state_disc_idxs = grid_data.subset_node_indices['state_disc']
+                    segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+                    disc_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
                     self.connect('states:{0}'.format(name),
-                                 'continuity_constraint.states:{}'.format(name))
+                                 'continuity_constraint.states:{}'.format(name),
+                                 src_indices=disc_subidxs)
 
             for name, options in iteritems(self.control_options):
                 control_src_name = 'controls:{0}'.format(name) if options['opt'] \
@@ -380,18 +392,18 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 if options['dynamic'] and options['continuity'] and not compressed:
                     self.connect(control_src_name,
                                  'continuity_constraint.controls:{0}'.format(name),
-                                 src_indices=grid_data.subset_node_indices['state_disc'])
+                                 src_indices=grid_data.subset_node_indices['segment_ends'])
 
                 if options['opt'] and options['dynamic']:
                     if options['rate_continuity']:
                         self.connect('control_rates:{0}_rate'.format(name),
                                      'continuity_constraint.control_rates:{}_rate'.format(name),
-                                     src_indices=grid_data.subset_node_indices['state_disc'])
+                                     src_indices=grid_data.subset_node_indices['segment_ends'])
 
                     if options['rate2_continuity']:
                         self.connect('control_rates:{0}_rate2'.format(name),
                                      'continuity_constraint.control_rates:{}_rate2'.format(name),
-                                     src_indices=grid_data.subset_node_indices['state_disc'])
+                                     src_indices=grid_data.subset_node_indices['segment_ends'])
 
     def _setup_endpoint_conditions(self):
 

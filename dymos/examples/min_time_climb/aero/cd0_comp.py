@@ -7,10 +7,10 @@ class CD0Comp(ExplicitComponent):
     """ Computes the zero-lift drag coefficient
     """
     def initialize(self):
-        self.metadata.declare('num_nodes', types=int)
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
-        nn = self.metadata['num_nodes']
+        nn = self.options['num_nodes']
 
         # Inputs
         self.add_input('mach', shape=(nn,), desc='Mach number', units=None)

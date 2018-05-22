@@ -22,22 +22,22 @@ from openmdao.api import Problem, Group, ExplicitComponent, IndepVarComp, ScipyO
 class SimpleODE(ExplicitComponent):
 
     def initialize(self):
-        self.metadata.declare('num_nodes', default=1, types=int)
-        self.metadata.declare('a', default=1., types=(int, float))
+        self.options.declare('num_nodes', default=1, types=int)
+        self.options.declare('a', default=1., types=(int, float))
 
     def setup(self):
-        num = self.metadata['num_nodes']
+        num = self.options['num_nodes']
 
         self.add_input('y', shape=(num, 1))
         self.add_input('t', shape=num)
         self.add_output('dy_dt', shape=(num, 1))
 
-        self.declare_partials('dy_dt', 'y', val=self.metadata['a'] * np.eye(num))
+        self.declare_partials('dy_dt', 'y', val=self.options['a'] * np.eye(num))
 
         self.eye = np.eye(num)
 
     def compute(self, inputs, outputs):
-        outputs['dy_dt'] = self.metadata['a'] * inputs['y']
+        outputs['dy_dt'] = self.options['a'] * inputs['y']
 
     def get_test_parameters(self):
         t0 = 0.
@@ -46,7 +46,7 @@ class SimpleODE(ExplicitComponent):
         return initial_conditions, t0, t1
 
     def get_exact_solution(self, initial_conditions, t0, t):
-        a = self.metadata['a']
+        a = self.options['a']
         y0 = initial_conditions['y']
         C = y0 / np.exp(a * t0)
         return {'y': C * np.exp(a * t)}
