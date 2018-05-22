@@ -39,6 +39,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     kwargs = {}
     if transcription != 'glm':
+        kwargs['compressed'] = True
         kwargs['transcription_order'] = 3
     else:
         kwargs['compressed'] = False

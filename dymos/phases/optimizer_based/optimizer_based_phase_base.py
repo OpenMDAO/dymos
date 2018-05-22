@@ -3,9 +3,8 @@ from __future__ import division, print_function, absolute_import
 from collections import Iterable
 
 import numpy as np
-from dymos.phases.components import ContinuityComp
 from dymos.phases.optimizer_based.components import CollocationComp, StateInterpComp
-from dymos.phases.components import EndpointConditionsComp
+from dymos.phases.components import EndpointConditionsComp, ContinuityComp
 from dymos.phases.phase_base import PhaseBase
 from dymos.utils.interpolate import LagrangeBarycentricInterpolant, StaticInterpolant
 from dymos.utils.misc import CoerceDesvar
@@ -378,8 +377,13 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
             for name, options in iteritems(self.state_options):
                 if not compressed and options['continuity']:
+                    # The sub-indices of state_disc indices that are segment ends
+                    state_disc_idxs = grid_data.subset_node_indices['state_disc']
+                    segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+                    disc_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
                     self.connect('states:{0}'.format(name),
-                                 'continuity_constraint.states:{}'.format(name))
+                                 'continuity_constraint.states:{}'.format(name),
+                                 src_indices=disc_subidxs)
 
             for name, options in iteritems(self.control_options):
                 control_src_name = 'controls:{0}'.format(name) if options['opt'] \
@@ -388,18 +392,18 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 if options['dynamic'] and options['continuity'] and not compressed:
                     self.connect(control_src_name,
                                  'continuity_constraint.controls:{0}'.format(name),
-                                 src_indices=grid_data.subset_node_indices['state_disc'])
+                                 src_indices=grid_data.subset_node_indices['segment_ends'])
 
                 if options['opt'] and options['dynamic']:
                     if options['rate_continuity']:
                         self.connect('control_rates:{0}_rate'.format(name),
                                      'continuity_constraint.control_rates:{}_rate'.format(name),
-                                     src_indices=grid_data.subset_node_indices['state_disc'])
+                                     src_indices=grid_data.subset_node_indices['segment_ends'])
 
                     if options['rate2_continuity']:
                         self.connect('control_rates:{0}_rate2'.format(name),
                                      'continuity_constraint.control_rates:{}_rate2'.format(name),
-                                     src_indices=grid_data.subset_node_indices['state_disc'])
+                                     src_indices=grid_data.subset_node_indices['segment_ends'])
 
     def _setup_endpoint_conditions(self):
 

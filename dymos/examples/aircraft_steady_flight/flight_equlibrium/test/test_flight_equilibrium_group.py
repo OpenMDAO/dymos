@@ -57,11 +57,10 @@ class TestFlightEquilibriumGroup(unittest.TestCase):
         CL = self.p['aero.CL']
         CM = self.p['aero.CM']
 
-        assert_rel_error(self,  CL_eq, CL, tolerance=1.0E-14)
-        assert_rel_error(self,  CM, np.zeros_like(CM), tolerance=1.0E-14)
+        assert_rel_error(self,  CL_eq, CL, tolerance=1.0E-12)
+        assert_rel_error(self,  CM, np.zeros_like(CM), tolerance=1.0E-12)
 
     # @unittest.skip('skip for now')
     def test_partials(self):
-        np.set_printoptions(linewidth=1024)
-        cpd = self.p.check_partials(suppress_output=False, method='fd', step=1.0E-6)
+        cpd = self.p.check_partials(out_stream=None, method='fd', step=1.0E-6)
         assert_check_partials(cpd, atol=5.0E-3, rtol=2.0)

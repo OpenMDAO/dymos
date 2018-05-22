@@ -9,7 +9,7 @@ from openmdao.api import Problem, Group, IndepVarComp, CSCJacobian, DirectSolver
 from dymos import Phase
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
-optimizer = 'SNOPT'
+optimizer = 'SLSQP'
 
 
 class TestAircraftCruise(unittest.TestCase):

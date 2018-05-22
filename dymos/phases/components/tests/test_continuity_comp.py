@@ -9,11 +9,11 @@ from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.phases.grid_data import GridData
-from dymos.phases.components import ContinuityComp
+from dymos.phases.components.continuity_comp import ContinuityComp
 from dymos.phases.options import StateOptionsDictionary, ControlOptionsDictionary
 
 
-class TestContinuityComp(unittest.TestCase):
+class TestContinuityComp2(unittest.TestCase):
 
     def setUp(self):
 
@@ -27,7 +27,7 @@ class TestContinuityComp(unittest.TestCase):
 
         ivp = self.p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
 
-        ndn = gd.subset_num_nodes['disc']
+        ndn = gd.subset_num_nodes['state_disc']
         nn = gd.subset_num_nodes['all']
 
         ivp.add_output('x', val=np.arange(ndn), units='m')
@@ -60,18 +60,23 @@ class TestContinuityComp(unittest.TestCase):
                                    state_options=state_options, control_options=control_options)
 
         self.p.model.add_subsystem('cnty_comp', subsys=cnty_comp)
+        # The sub-indices of state_disc indices that are segment ends
+        state_disc_idxs = gd.subset_node_indices['state_disc']
+        segment_end_idxs = gd.subset_node_indices['segment_ends']
+        disc_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
 
-        self.p.model.connect('x', 'cnty_comp.states:x')
-        self.p.model.connect('y', 'cnty_comp.states:y')
+        self.p.model.connect('x', 'cnty_comp.states:x', src_indices=disc_subidxs)
+        self.p.model.connect('y', 'cnty_comp.states:y', src_indices=disc_subidxs)
+
         self.p.model.connect('t_duration', 'cnty_comp.t_duration')
 
         size_u = nn * np.prod(control_options['u']['shape'])
         src_idxs_u = np.arange(size_u).reshape((nn,) + control_options['u']['shape'])
-        src_idxs_u = src_idxs_u[gd.subset_node_indices['disc'], ...]
+        src_idxs_u = src_idxs_u[gd.subset_node_indices['segment_ends'], ...]
 
         size_v = nn * np.prod(control_options['v']['shape'])
         src_idxs_v = np.arange(size_v).reshape((nn,) + control_options['v']['shape'])
-        src_idxs_v = src_idxs_v[gd.subset_node_indices['disc'], ...]
+        src_idxs_v = src_idxs_v[gd.subset_node_indices['segment_ends'], ...]
 
         self.p.model.connect('u', 'cnty_comp.controls:u', src_indices=src_idxs_u,
                              flat_src_indices=True)
@@ -108,19 +113,19 @@ class TestContinuityComp(unittest.TestCase):
 
         for state in ('x', 'y'):
             assert_almost_equal(self.p['cnty_comp.defect_states:{0}'.format(state)][0, ...],
-                                self.p[state][2, ...] - self.p[state][3, ...])
+                                self.p[state][3, ...] - self.p[state][2, ...])
             assert_almost_equal(self.p['cnty_comp.defect_states:{0}'.format(state)][1, ...],
-                                self.p[state][4, ...] - self.p[state][5, ...])
+                                self.p[state][5, ...] - self.p[state][4, ...])
 
         for state in ('u', 'v'):
             assert_almost_equal(self.p['cnty_comp.defect_controls:{0}'.format(state)][0, ...],
-                                self.p[state][4, ...] - self.p[state][5, ...])
+                                self.p[state][5, ...] - self.p[state][4, ...])
             assert_almost_equal(self.p['cnty_comp.defect_controls:{0}'.format(state)][1, ...],
-                                self.p[state][7, ...] - self.p[state][8, ...])
+                                self.p[state][8, ...] - self.p[state][7, ...])
 
     def test_partials(self):
         np.set_printoptions(linewidth=1024)
-        cpd = self.p.check_partials(method='cs')
+        cpd = self.p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
 
 

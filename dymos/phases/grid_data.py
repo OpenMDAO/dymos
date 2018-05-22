@@ -101,11 +101,12 @@ def glm_subsets(n):
     n = 2
 
     subsets = {
-        'disc': np.arange(n),
-        'state_disc': np.arange(n),
-        'control_disc': np.array([0, n-1]),
-        'col': np.arange(n - 1),
-        'all': np.arange(n),
+        'disc': np.arange(n, dtype=int),
+        'state_disc': np.arange(n, dtype=int),
+        'control_disc': np.array([0, n-1], dtype=int),
+        'segment_ends': np.array([0, n - 1], dtype=int),
+        'col': np.arange(n - 1, dtype=int),
+        'all': np.arange(n, dtype=int),
     }
 
     return subsets
@@ -242,7 +243,6 @@ class GridData(object):
                 return lgr(n, include_endpoint=True)
         elif transcription.lower() == 'glm':
             # This is copied from the 'gauss-lobatto' transcription code just to make it run.
-            # GridData is not actually used for the GLMPhase
             get_subsets = glm_subsets
             get_points = glm
         else:
