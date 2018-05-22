@@ -36,12 +36,18 @@ class ContinuityComp(ExplicitComponent):
         num_segend_nodes = self.options['grid_data'].subset_num_nodes['segment_ends']
         num_segments = self.options['grid_data'].num_segments
 
+        self.name_maps = {}
         self.rate_jac_templates = {}
 
         for state_name, options in iteritems(state_options):
             shape = options['shape']
             size = np.prod(shape)
             units = options['units']
+
+            self.name_maps[state_name] = {}
+            self.name_maps[state_name]['value_names'] = \
+                ('states:{0}'.format(state_name),
+                 'defect_states:{0}'.format(state_name))
 
             self.add_input(name='states:{0}'.format(state_name),
                            shape=(num_segend_nodes,) + shape,
@@ -80,6 +86,11 @@ class ContinuityComp(ExplicitComponent):
             shape = options['shape']
             size = np.prod(shape)
             units = options['units']
+
+            self.name_maps[control_name] = {}
+            self.name_maps[control_name]['value_names'] = \
+                ('controls:{0}'.format(control_name),
+                 'defect_controls:{0}'.format(control_name))
 
             if options['dynamic'] and options['continuity']:
                 self.add_input(
@@ -128,6 +139,14 @@ class ContinuityComp(ExplicitComponent):
             units = options['units']
             rate_units = get_rate_units(units, self.options['time_units'], deriv=1)
             rate2_units = get_rate_units(units, self.options['time_units'], deriv=2)
+
+            self.name_maps[control_name]['rate_names'] = \
+                ('control_rates:{0}_rate'.format(control_name),
+                 'defect_control_rates:{0}_rate'.format(control_name))
+
+            self.name_maps[control_name]['rate2_names'] = \
+                ('control_rates:{0}_rate2'.format(control_name),
+                 'defect_control_rates:{0}_rate2'.format(control_name))
 
             if options['opt'] and options['dynamic']:
 
@@ -221,36 +240,33 @@ class ContinuityComp(ExplicitComponent):
 
         if not compressed:
             for state_name, options in iteritems(state_options):
-
-                end_vals = inputs['states:{0}'.format(state_name)][1:-1:2, ...]
-                start_vals = inputs['states:{0}'.format(state_name)][2:-1:2, ...]
-
-                outputs['defect_states:{0}'.format(state_name)] = start_vals - end_vals
+                input_name, output_name = self.name_maps[state_name]['value_names']
+                end_vals = inputs[input_name][1:-1:2, ...]
+                start_vals = inputs[input_name][2:-1:2, ...]
+                outputs[output_name] = start_vals - end_vals
 
             for name, options in iteritems(control_options):
                 if options['dynamic'] and options['continuity']:
-                    end_vals = inputs['controls:{0}'.format(name)][1:-1:2, ...]
-                    start_vals = inputs['controls:{0}'.format(name)][2:-1:2, ...]
-
-                    outputs['defect_controls:{0}'.format(name)] = start_vals - end_vals
+                    input_name, output_name = self.name_maps[name]['value_names']
+                    end_vals = inputs[input_name][1:-1:2, ...]
+                    start_vals = inputs[input_name][2:-1:2, ...]
+                    outputs[output_name] = start_vals - end_vals
 
         dt_dptau = inputs['t_duration'] / 2.0
 
         for name, options in iteritems(control_options):
             if options['opt'] and options['dynamic']:
                 if options['rate_continuity']:
-                    end_vals = inputs['control_rates:{0}_rate'.format(name)][1:-1:2, ...]
-                    start_vals = inputs['control_rates:{0}_rate'.format(name)][2:-1:2, ...]
-
-                    outputs['defect_control_rates:{0}_rate'.format(name)] = \
-                        (start_vals - end_vals) * dt_dptau
+                    input_name, output_name = self.name_maps[name]['rate_names']
+                    end_vals = inputs[input_name][1:-1:2, ...]
+                    start_vals = inputs[input_name][2:-1:2, ...]
+                    outputs[output_name] = (start_vals - end_vals) * dt_dptau
 
                 if options['rate2_continuity']:
-                    end_vals = inputs['control_rates:{0}_rate2'.format(name)][1:-1:2, ...]
-                    start_vals = inputs['control_rates:{0}_rate2'.format(name)][2:-1:2, ...]
-
-                    outputs['defect_control_rates:{0}_rate2'.format(name)] = \
-                        (start_vals - end_vals) * dt_dptau ** 2
+                    input_name, output_name = self.name_maps[name]['rate2_names']
+                    end_vals = inputs[input_name][1:-1:2, ...]
+                    start_vals = inputs[input_name][2:-1:2, ...]
+                    outputs[output_name] = (start_vals - end_vals) * dt_dptau ** 2
 
     def compute_partials(self, inputs, partials):
 
@@ -260,25 +276,21 @@ class ContinuityComp(ExplicitComponent):
         for control_name, options in iteritems(control_options):
             if options['opt'] and options['dynamic']:
                 if options['rate_continuity']:
+                    input_name, output_name = self.name_maps[control_name]['rate_names']
                     val = self.rate_jac_templates[control_name]
-                    partials['defect_control_rates:{0}_rate'.format(control_name),
-                             'control_rates:{0}_rate'.format(control_name)] = \
-                        val * dt_dptau
+                    partials[output_name, input_name] = val * dt_dptau
 
-                    end_vals = inputs['control_rates:{0}_rate'.format(control_name)][1:-1:2, ...]
-                    start_vals = inputs['control_rates:{0}_rate'.format(control_name)][2:-1:2, ...]
+                    end_vals = inputs[input_name][1:-1:2, ...]
+                    start_vals = inputs[input_name][2:-1:2, ...]
 
-                    partials['defect_control_rates:{0}_rate'.format(control_name),
-                             't_duration'] = 0.5 * (start_vals - end_vals)
+                    partials[output_name, 't_duration'] = 0.5 * (start_vals - end_vals)
 
                 if options['rate2_continuity']:
+                    input_name, output_name = self.name_maps[control_name]['rate2_names']
                     val = self.rate_jac_templates[control_name]
-                    partials['defect_control_rates:{0}_rate2'.format(control_name),
-                             'control_rates:{0}_rate2'.format(control_name)] = \
-                        val * dt_dptau**2
+                    partials[output_name, input_name] = val * dt_dptau**2
 
-                    end_vals = inputs['control_rates:{0}_rate2'.format(control_name)][1:-1:2, ...]
-                    start_vals = inputs['control_rates:{0}_rate2'.format(control_name)][2:-1:2, ...]
+                    end_vals = inputs[input_name][1:-1:2, ...]
+                    start_vals = inputs[input_name][2:-1:2, ...]
 
-                    partials['defect_control_rates:{0}_rate2'.format(control_name),
-                             't_duration'] = (start_vals - end_vals) * dt_dptau
+                    partials[output_name, 't_duration'] = (start_vals - end_vals) * dt_dptau
