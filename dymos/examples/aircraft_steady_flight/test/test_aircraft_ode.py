@@ -9,6 +9,12 @@ from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 
+try:
+    import MBI
+except:
+    MBI = None
+
+
 class TestAircraftODEGroup(unittest.TestCase):
 
     @classmethod
@@ -47,6 +53,7 @@ class TestAircraftODEGroup(unittest.TestCase):
 
         cls.p.run_model()
 
+    @unittest.skipIf(MBI is None, 'MBI not available')
     def test_results(self):
         print('dXdt:mass_fuel', self.p['ode.propulsion.dXdt:mass_fuel'])
         print('D', self.p['ode.aero.D'])

@@ -11,9 +11,15 @@ from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 optimizer = 'SLSQP'
 
+try:
+    import MBI
+except:
+    MBI = None
+
 
 class TestAircraftCruise(unittest.TestCase):
 
+    @unittest.skipIf(MBI is None, 'MBI not available')
     def test_cruise_results(self):
         p = Problem(model=Group())
         if optimizer == 'SNOPT':
