@@ -8,6 +8,7 @@ from openmdao.api import Problem, Group, IndepVarComp, CSCJacobian, DirectSolver
 
 from dymos import Phase
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
+from dymos.utils.lgl import lgl
 
 optimizer = 'SNOPT'
 
@@ -185,20 +186,26 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver.options['optimizer'] = optimizer
             p.driver.options['dynamic_simul_derivs'] = True
             p.driver.opt_settings['Major iterations limit'] = 100
-            p.driver.opt_settings['Major step limit'] = 0.05
+            p.driver.opt_settings['Major step limit'] = 0.01
             p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
             p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
             p.driver.opt_settings["Linesearch tolerance"] = 0.10
             p.driver.opt_settings['iSumm'] = 6
-            p.driver.opt_settings['Verify level'] = 3
+            # p.driver.opt_settings['Verify level'] = 3
         else:
             p.driver = ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
 
+
+        num_seg = 20
+        seg_ends, _ = lgl(num_seg+1)
+
         phase = Phase('gauss-lobatto',
                       ode_class=AircraftODE,
-                      num_segments=1,
-                      transcription_order=21)
+                      num_segments=num_seg,
+                      segment_ends=seg_ends,
+                      transcription_order=5,
+                      compressed=False)
 
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
@@ -218,8 +225,9 @@ class TestAircraftCruise(unittest.TestCase):
                                 scaler=1.0E-5, defect_scaler=1.0E-1)
 
         phase.add_control('alt', units='km', dynamic=True, opt=True, lower=0.0, upper=15.0,
-                          rate_param='climb_rate', rate_continuity=False,
-                          rate2_continuity=False, ref=1.0,
+                          rate_param='climb_rate',
+                          rate_continuity=True, rate_continuity_scaler=1.0,
+                          rate2_continuity=True, rate2_continuity_scaler=1.0, ref=1.0,
                           fix_initial=True, fix_final=True)
 
         phase.add_control('mach', units=None, dynamic=False, opt=False, lower=0.2, upper=0.9,
@@ -262,7 +270,7 @@ class TestAircraftCruise(unittest.TestCase):
         p.setup(mode='fwd')
 
         p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 1.515132 * 3600.0
+        p['phase0.t_duration'] = 3600.0
         p['phase0.states:range'] = phase.interpolate(ys=(0, 1296.4), nodes='state_disc')
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.594555, 0), nodes='state_disc')
 
@@ -275,7 +283,7 @@ class TestAircraftCruise(unittest.TestCase):
         p['assumptions.mass_empty'] = 0.15E6
         p['assumptions.mass_payload'] = 84.02869 * 400
 
-        # Pointer 1 Solutions for santity checking
+        # Pointer 1 Solutions for sanity checking
 
         #
         # p['phase0.states:range'][:, 0] =  np.array([0.00000000, 63.78986715, 217.99919311, 423.04130144,
@@ -296,26 +304,76 @@ class TestAircraftCruise(unittest.TestCase):
         #
         # p['phase0.controls:alt'][:, 0] = alt_vals
 
+        # Single segment solution
+        t = np.array([0., 31.36986611,  104.44266547,  217.26944042,  367.19653306,
+              550.70815309,  763.50247153, 1000.5915901,  1256.41825828, 1524.98607156,
+              1800.,        2075.01392844, 2343.58174172, 2599.4084099,  2836.49752847,
+              3049.29184691, 3232.80346694, 3382.73055958, 3495.55733453, 3568.63013389,
+              3600.])
+
+        W_f = np.array([8.62016434e+04, 8.14556211e+04, 7.42469108e+04, 6.73491868e+04,
+                        6.12080807e+04, 5.58611805e+04, 5.10947721e+04, 4.59037780e+04,
+                        4.03598653e+04, 3.44670765e+04, 2.85592311e+04, 2.25348019e+04,
+                        1.68217852e+04, 1.12124431e+04, 6.21851100e+03, 1.71335128e+03,
+                        1.80827253e+02, 2.78042730e+02, 1.23113603e+02, 5.71575012e+01,
+                        0.00000000e+00])
+
+        alt = np.array([0.,          2.5381092,   6.12787429,  9.13748244, 11.26195018, 12.31412154,
+                       12.42074214, 12.44104463, 12.43724935, 12.49355302, 12.47209842, 12.54626737,
+                       12.50505153, 12.59928069, 12.5457165,  12.50236519, 10.49259545,  7.26902195,
+                         4.2006138,   1.45236857,  0.        ])
+
+        range = np.array([  0.,             8.00927444,  26.50801939,  54.22310512,  89.94526328,
+                            133.19490034, 183.45013562, 239.39403724, 299.78718216, 363.17513138,
+                            428.08506013, 493.00602384, 556.38257006, 616.78787457, 672.71842949,
+                            722.98603773, 766.27671535, 802.52033301, 831.00952267, 850.03029062,
+                            858.37490553])
+
+        print(t)
+        print(W_f)
+
+        p['phase0.states:range'] = phase.interpolate(xs=t, ys=range, nodes='state_disc')
+        p['phase0.states:mass_fuel'] = phase.interpolate(xs=t, ys=W_f/9.80665, nodes='state_disc')
+        # p['phase0.controls:alt'] = phase.interpolate(xs=t, ys=alt, nodes='control_disc')
+        p['phase0.controls:alt'] = phase.interpolate(xs=t, ys=alt, nodes='all')
+
         p.run_model()
 
         p.run_driver()
 
+        exp_out = phase.simulate(times=np.linspace(0, 3600, 100))
+
         print('fuel weight')
-        print(phase.get_values('mass_fuel', nodes='state_disc', units='kg') * 9.80665)
+        print(phase.get_values('mass_fuel', nodes='all', units='kg').T * 9.80665)
         print('empty weight')
-        print(phase.get_values('mass_empty') * 9.80665)
+        print(phase.get_values('mass_empty', nodes='all').T * 9.80665)
         print('payload weight')
-        print(phase.get_values('mass_payload') * 9.80665)
+        print(phase.get_values('mass_payload', nodes='all').T * 9.80665)
 
         import matplotlib.pyplot as plt
-        plt.plot(phase.get_values('time', nodes='all'), phase.get_values('alt', nodes='all'))
+        plt.plot(phase.get_values('time', nodes='all'), phase.get_values('alt', nodes='all'), 'ro')
+        plt.plot(exp_out.get_values('time'), exp_out.get_values('alt'), 'b-')
         plt.figure()
-        plt.plot(phase.get_values('time', nodes='all'), phase.get_values('mass_fuel', nodes='all'))
+        plt.plot(phase.get_values('time', nodes='all'), phase.get_values('mass_fuel', nodes='all'), 'ro')
+        plt.plot(exp_out.get_values('time'), exp_out.get_values('mass_fuel'), 'b-')
+        plt.figure()
+        plt.plot(phase.get_values('time', nodes='all'), phase.get_values('propulsion.dXdt:mass_fuel', nodes='all'), 'ro')
+        plt.plot(exp_out.get_values('time'), exp_out.get_values('propulsion.dXdt:mass_fuel'), 'b-')
+
+        print('time')
+        print(phase.get_values('time', nodes='all').T)
+
         print('alt')
-        print(phase.get_values('range', nodes='state_disc'))
+        print(phase.get_values('alt', nodes='all').T)
+
+        print('alt_rate')
+        print(phase.get_values('alt_rate', nodes='all').T)
+
+        print('alt_rate2')
+        print(phase.get_values('alt_rate2', nodes='all').T)
 
         print('range')
-        print(phase.get_values('range', nodes='state_disc').T)
+        print(phase.get_values('range', nodes='all').T)
 
         print('flight path angle')
         print(phase.get_values('gam_comp.gam').T)
@@ -337,6 +395,10 @@ class TestAircraftCruise(unittest.TestCase):
 
         print('coef of thrust')
         print(phase.get_values('flight_equilibrium.CT').T)
+
+        print('fuel flow rate')
+        print(phase.get_values('propulsion.dXdt:mass_fuel').T)
+
 
         print('max_thrust')
         print(phase.get_values('propulsion.max_thrust', units='N').T)

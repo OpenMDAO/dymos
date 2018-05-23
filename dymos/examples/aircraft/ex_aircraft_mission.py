@@ -19,7 +19,7 @@ from dymos.examples.aircraft.cost_comp import CostComp
 
 
 def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_order=3,
-                        optimizer='SNOPT', compressed=True):
+                        optimizer='SNOPT', compressed=False):
 
         p = Problem(model=Group())
         if optimizer == 'SNOPT':
@@ -115,7 +115,8 @@ def ex_aircraft_mission(transcription='radau-ps', num_seg=10, transcription_orde
 
 if __name__ == '__main__':
 
-    p = ex_aircraft_mission(transcription='gauss-lobatto', num_seg=12, transcription_order=5)
+    p = ex_aircraft_mission(transcription='gauss-lobatto', num_seg=20, transcription_order=5,
+                            compressed=False)
 
     # from openmdao.api import view_model
     #
