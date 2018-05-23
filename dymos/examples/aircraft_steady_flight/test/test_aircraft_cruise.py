@@ -197,8 +197,8 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase = Phase('gauss-lobatto',
                       ode_class=AircraftODE,
-                      num_segments=2,
-                      transcription_order=5)
+                      num_segments=1,
+                      transcription_order=21)
 
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
@@ -214,12 +214,13 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase.set_state_options('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
                                 defect_scaler=1.0E-1)
-        phase.set_state_options('mass_fuel', fix_final=True, upper=20000.0, lower=0.0,
-                                scaler=1.0E-4, defect_scaler=1.0E-2)
+        phase.set_state_options('mass_fuel', fix_final=True, upper=1.5E5, lower=0.0,
+                                scaler=1.0E-5, defect_scaler=1.0E-1)
 
-        phase.add_control('alt', units='km', dynamic=True, opt=True, lower=0.0, upper=12.0,
-                          rate_param='climb_rate', rate_continuity=True,
-                          rate2_continuity=True, ref=1.0)
+        phase.add_control('alt', units='km', dynamic=True, opt=True, lower=0.0, upper=15.0,
+                          rate_param='climb_rate', rate_continuity=False,
+                          rate2_continuity=False, ref=1.0,
+                          fix_initial=True, fix_final=True)
 
         phase.add_control('mach', units=None, dynamic=False, opt=False, lower=0.2, upper=0.9,
                           ref=1.0)
@@ -228,14 +229,15 @@ class TestAircraftCruise(unittest.TestCase):
         phase.add_control('mass_empty', units='kg', dynamic=False, opt=False)
         phase.add_control('mass_payload', units='kg', dynamic=False, opt=False)
 
-        # phase.add_path_constraint('flight_equilibrium.alpha', lower=-14, upper=14, units='deg')
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
+
+
         # phase.add_path_constraint('TAS_rate', lower=-0.1*9.80665, upper=0.1*9.80665,
         # units='m/s**2')
         # phase.add_path_constraint('TAS_rate2', lower=-0.01, upper=0.01, units='m/s**3')
         # phase.add_path_constraint('alt_rate', lower=-3000, upper=3000, units='ft/min')
-        phase.add_boundary_constraint('alt', loc='initial', equals=5.0)
-        phase.add_boundary_constraint('alt', loc='final', equals=5.0)
+        # phase.add_boundary_constraint('alt', loc='initial', equals=5.0)
+        # phase.add_boundary_constraint('alt', loc='final', equals=5.0)
         # phase.add_boundary_constraint('TAS', loc='initial', equals=200.0)
         # phase.add_boundary_constraint('TAS', loc='final', equals=200.0)
         # phase.add_boundary_constraint('range', loc='final', equals=1296.4, ref=100.0, units='km')
@@ -263,16 +265,38 @@ class TestAircraftCruise(unittest.TestCase):
         p['phase0.t_duration'] = 1.515132 * 3600.0
         p['phase0.states:range'] = phase.interpolate(ys=(0, 1296.4), nodes='state_disc')
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.594555, 0), nodes='state_disc')
+
         p['phase0.controls:mach'] = 0.8  # phase.interpolate(ys=(250, 250), nodes='control_disc')
         # p['phase0.controls:TAS'][0] = p['phase0.controls:TAS'][-1] = 100.0
-        p['phase0.controls:alt'] = 5.0  # phase.interpolate(ys=(0, 0), nodes='control_disc')
+        p['phase0.controls:alt'][:] = 0.0  # phase.interpolate(ys=(0, 0), nodes='control_disc')
         # p['phase0.controls:alt'][0] = p['phase0.controls:alt'][-1] = 0.0
 
         p['assumptions.S'] = 427.8
         p['assumptions.mass_empty'] = 0.15E6
         p['assumptions.mass_payload'] = 84.02869 * 400
 
-        # p.run_model()
+        # Pointer 1 Solutions for santity checking
+
+        #
+        # p['phase0.states:range'][:, 0] =  np.array([0.00000000, 63.78986715, 217.99919311, 423.04130144,
+        #                                             628.09599846, 782.54822429, 847.1623999])
+        #
+        # p['phase0.states:mass_fuel'][:, 0] = np.array([79150.67244978, 63853.80723819, 49335.30301755,
+        #                                                30321.07184045, 11422.44453767,     0.00000000,
+        #                                                0.00000000]) / 9.80665
+        #
+        # state_disc = np.array([5., 12.28854503, 12.43121934, 12.5233378, 12.64305232, 10.32126997,
+        #                        5.])
+        # col = np.array([13.26107203, 12.40106011, 12.43030169, 12.47325148, 12.43620504, 11.88501037])
+        #
+        # alt_vals = np.zeros(len(state_disc) + len(col), dtype=float)
+        # alt_vals[0::2] = state_disc
+        # alt_vals[1::2] = col
+        #
+        #
+        # p['phase0.controls:alt'][:, 0] = alt_vals
+
+        p.run_model()
 
         p.run_driver()
 
@@ -291,40 +315,40 @@ class TestAircraftCruise(unittest.TestCase):
         print(phase.get_values('range', nodes='state_disc'))
 
         print('range')
-        print(phase.get_values('range', nodes='state_disc'))
+        print(phase.get_values('range', nodes='state_disc').T)
 
         print('flight path angle')
-        print(phase.get_values('gam_comp.gam'))
+        print(phase.get_values('gam_comp.gam').T)
 
         print('true airspeed')
-        print(phase.get_values('tas_comp.TAS', units='m/s'))
+        print(phase.get_values('tas_comp.TAS', units='m/s').T)
 
         print('coef of lift')
-        print(phase.get_values('aero.CL'))
+        print(phase.get_values('aero.CL').T)
 
         print('coef of drag')
-        print(phase.get_values('aero.CD'))
+        print(phase.get_values('aero.CD').T)
 
         print('atmos density')
-        print(phase.get_values('atmos.rho'))
+        print(phase.get_values('atmos.rho').T)
 
         print('alpha')
-        print(phase.get_values('flight_equilibrium.alpha', units='rad'))
+        print(phase.get_values('flight_equilibrium.alpha', units='rad').T)
 
         print('coef of thrust')
-        print(phase.get_values('flight_equilibrium.CT'))
+        print(phase.get_values('flight_equilibrium.CT').T)
 
         print('max_thrust')
-        print(phase.get_values('propulsion.max_thrust', units='N'))
+        print(phase.get_values('propulsion.max_thrust', units='N').T)
 
         print('tau')
-        print(phase.get_values('propulsion.tau'))
+        print(phase.get_values('propulsion.tau').T)
 
         print('dynamic pressure')
-        print(phase.get_values('q_comp.q', units='Pa'))
+        print(phase.get_values('q_comp.q', units='Pa').T)
 
         print('S')
-        print(phase.get_values('S', units='m**2'))
+        print(phase.get_values('S', units='m**2').T)
 
         plt.show()
 
