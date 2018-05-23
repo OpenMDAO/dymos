@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp, DenseJacobian, CSCJacobian
+from openmdao.api import Problem, Group, IndepVarComp, DirectSolver
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.phases.options import TimeOptionsDictionary, StateOptionsDictionary, \
@@ -86,9 +86,8 @@ class TestEndpointConditionComp(unittest.TestCase):
         p.model.connect('phase:initial_jump:theta', 'end_conditions.initial_jump:theta')
         p.model.connect('phase:final_jump:theta', 'end_conditions.final_jump:theta')
 
-        # p.model.jacobian = DictionaryJacobian()  # Works
-        p.model.jacobian = DenseJacobian()  # Works
-        # p.model.jacobian = CSCJacobian()  # Fails
+        p.model.linear_solver=DirectSolver(assemble_jac=True)
+        p.model.options['assembled_jac_type'] = 'dense'
 
         p.setup(mode='fwd', force_alloc_complex=True)
 
@@ -201,9 +200,8 @@ class TestEndpointConditionComp(unittest.TestCase):
         p.model.connect('phase:initial_jump:cmd', 'end_conditions.initial_jump:cmd')
         p.model.connect('phase:final_jump:cmd', 'end_conditions.final_jump:cmd')
 
-        # p.model.jacobian = DictionaryJacobian()  # Works
-        # p.model.jacobian = DenseJacobian()  # Fails
-        p.model.jacobian = CSCJacobian()  # Fails
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup(mode='fwd', force_alloc_complex=True)
 

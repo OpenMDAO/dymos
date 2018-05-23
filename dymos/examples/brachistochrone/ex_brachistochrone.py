@@ -6,8 +6,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DenseJacobian,\
-    CSCJacobian, CSRJacobian, DirectSolver
+from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
 from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -75,14 +74,8 @@ def brachistochrone_min_time(
     phase.add_objective('time', loc='final', scaler=10)
 
     if transcription != 'glm':
-        if top_level_jacobian.lower() == 'csc':
-            p.model.jacobian = CSCJacobian()
-        elif top_level_jacobian.lower() == 'dense':
-            p.model.jacobian = DenseJacobian()
-        elif top_level_jacobian.lower() == 'csr':
-            p.model.jacobian = CSRJacobian()
-
-        p.model.linear_solver = DirectSolver()
+        p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
 
         p.setup(mode='rev', check=True)
     else:

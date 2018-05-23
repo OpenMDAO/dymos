@@ -4,8 +4,7 @@ import os
 
 import numpy as np
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DenseJacobian, \
-    CSCJacobian, CSRJacobian, DirectSolver
+from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
 from dymos import Phase
 from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
@@ -51,13 +50,7 @@ def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
 
     phase.add_objective('time', loc='final', scaler=0.01)
 
-    if top_level_jacobian.lower() == 'csc':
-        p.model.jacobian = CSCJacobian()
-    elif top_level_jacobian.lower() == 'dense':
-        p.model.jacobian = DenseJacobian()
-    elif top_level_jacobian.lower() == 'csr':
-        p.model.jacobian = CSRJacobian()
-
-    p.model.linear_solver = DirectSolver()
+    p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
+    p.model.linear_solver = DirectSolver(assemble_jac=True)
 
     return p

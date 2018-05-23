@@ -13,7 +13,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, CSCJacobian, DirectSolver
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -43,8 +43,8 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('theta_rate', lower=0, upper=100, units='deg/s')
 
-        p.model.jacobian = CSCJacobian()
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup(mode='rev')
 
@@ -67,7 +67,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, CSCJacobian, DirectSolver
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -98,8 +98,8 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('theta_rate2', lower=-200, upper=200, units='rad/s**2')
 
-        p.model.jacobian = CSCJacobian()
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup(mode='rev')
 
@@ -122,7 +122,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, CSCJacobian, DirectSolver
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -152,8 +152,8 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('theta_rate', lower=0, upper=100, units='deg/s')
 
-        p.model.jacobian = CSCJacobian()
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup(mode='rev')
 
@@ -176,7 +176,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, CSCJacobian, DirectSolver
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -207,8 +207,8 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('theta_rate2', lower=-200, upper=200, units='rad/s**2')
 
-        p.model.jacobian = CSCJacobian()
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup(mode='rev')
 

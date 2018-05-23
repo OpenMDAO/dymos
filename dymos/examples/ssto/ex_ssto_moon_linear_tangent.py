@@ -1,8 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DenseJacobian, \
-    CSCJacobian, CSRJacobian, DirectSolver
+from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
 from dymos import Phase
 from dymos.examples.ssto.launch_vehicle_linear_tangent_ode import LaunchVehicleLinearTangentODE
@@ -75,7 +74,7 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
 
     phase.add_objective('time', index=-1, scaler=0.01)
 
-    p.model.jacobian = CSCJacobian()
-    p.model.linear_solver = DirectSolver()
+    p.model.options['assembled_jac_type'] = 'csc'
+    p.model.linear_solver = DirectSolver(assemble_jac=True)
 
     return p

@@ -42,7 +42,7 @@ add the following lines to the pyoptsparsedriver.
 
 .. code-block::
     driver.options['dynamic_simul_derivs'] = True
-    driver.options['dynamic_simul_derivs_repeats'] = 5
+    driver.options['dynamic_derivs_repeats'] = 5
 
 This enables the coloring algorithm and runs 5 passes of the Jacobian randomization algorithm,
 in an effort to ensure that we don't include any "incidental" zeros as part of the spasity.

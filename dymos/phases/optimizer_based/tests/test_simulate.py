@@ -7,8 +7,8 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DenseJacobian,\
-    CSCJacobian, CSRJacobian, DirectSolver, CaseReader
+from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver, \
+    CaseReader
 
 from dymos import Phase
 from dymos.utils.simulation import SimulationResults
@@ -58,12 +58,8 @@ class TestSimulateRecording(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        if top_level_jacobian.lower() == 'csc':
-            p.model.jacobian = CSCJacobian()
-        elif top_level_jacobian.lower() == 'dense':
-            p.model.jacobian = DenseJacobian()
-        elif top_level_jacobian.lower() == 'csr':
-            p.model.jacobian = CSRJacobian()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
 
         p.model.linear_solver = DirectSolver()
 
@@ -133,14 +129,8 @@ class TestSimulateRecording(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        if top_level_jacobian.lower() == 'csc':
-            p.model.jacobian = CSCJacobian()
-        elif top_level_jacobian.lower() == 'dense':
-            p.model.jacobian = DenseJacobian()
-        elif top_level_jacobian.lower() == 'csr':
-            p.model.jacobian = CSRJacobian()
-
-        p.model.linear_solver = DirectSolver()
+        p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
 
         p.setup(mode='fwd')
 

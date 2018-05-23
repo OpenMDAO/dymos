@@ -8,7 +8,7 @@ class TestBrachistochroneWithoutSimulDerivsRunExample(unittest.TestCase):
 
     @unittest.skip('skipped until SNOPT is available on CI')
     def test_brachistochrone_for_docs_gauss_lobatto_without_simul_derivs(self):
-        from openmdao.api import Problem, Group, pyOptSparseDriver, CSCJacobian, DirectSolver
+        from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -42,8 +42,8 @@ class TestBrachistochroneWithoutSimulDerivsRunExample(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.jacobian = CSCJacobian()
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup(mode='fwd')
 

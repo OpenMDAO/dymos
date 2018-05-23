@@ -17,7 +17,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, CSCJacobian, DirectSolver
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -45,8 +45,8 @@ class TestBrachistochroneExample(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.jacobian = CSCJacobian()
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup(mode='rev')
 

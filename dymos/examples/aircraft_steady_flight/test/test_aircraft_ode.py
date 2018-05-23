@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import unittest
 
 import numpy as np
-from openmdao.api import Problem, Group, IndepVarComp, CSCJacobian, DirectSolver
+from openmdao.api import Problem, Group, IndepVarComp, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
@@ -47,8 +47,8 @@ class TestAircraftODEGroup(unittest.TestCase):
         cls.p.model.connect('climb_rate', ['ode.gam_comp.climb_rate'])
         cls.p.model.connect('S', ('ode.aero.S', 'ode.flight_equilibrium.S', 'ode.propulsion.S'))
 
-        cls.p.model.jacobian = CSCJacobian()
-        cls.p.model.linear_solver = DirectSolver()
+        cls.p.model.linear_solver = DirectSolver(assemble_jac=True)
+        cls.p.model.options['assembled_jac_type'] = 'csc'
 
         cls.p.setup(check=True, mode='fwd')
 
