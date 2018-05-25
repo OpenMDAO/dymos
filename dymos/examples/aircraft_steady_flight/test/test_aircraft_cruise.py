@@ -17,6 +17,9 @@ except:
     MBI = None
 
 
+SHOW_PLOTS = False
+
+
 @unittest.skipIf(MBI is None, 'MBI not available')
 class TestAircraftCruise(unittest.TestCase):
 
@@ -283,10 +286,6 @@ class TestAircraftCruise(unittest.TestCase):
         print('payload weight')
         print(phase.get_values('mass_payload') * 9.80665)
 
-        import matplotlib.pyplot as plt
-        plt.plot(phase.get_values('time', nodes='all'), phase.get_values('alt', nodes='all'))
-        plt.figure()
-        plt.plot(phase.get_values('time', nodes='all'), phase.get_values('mass_fuel', nodes='all'))
         print('alt')
         print(phase.get_values('range', nodes='state_disc'))
 
@@ -326,7 +325,12 @@ class TestAircraftCruise(unittest.TestCase):
         print('S')
         print(phase.get_values('S', units='m**2'))
 
-        plt.show()
+        if SHOW_PLOTS:
+            import matplotlib.pyplot as plt
+            plt.plot(phase.get_values('time', nodes='all'), phase.get_values('alt', nodes='all'))
+            plt.figure()
+            plt.plot(phase.get_values('time', nodes='all'), phase.get_values('mass_fuel', nodes='all'))
+            plt.show()
 
         # def test_results(self):
         #     print('dXdt:mass_fuel', self.p['ode.propulsion.dXdt:mass_fuel'])
