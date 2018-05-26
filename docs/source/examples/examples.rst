@@ -21,3 +21,11 @@ Single Stage To Orbit
   ssto_earth
   ssto_moon
   ssto_moon_linear_tangent
+
+Commercial Aircraft - Differential Inclusion
+--------------------------------------------
+.. toctree::
+  :maxdepth: 1
+  :titlesonly:
+
+  commercial_aircraft

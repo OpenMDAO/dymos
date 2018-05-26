@@ -185,8 +185,8 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver = pyOptSparseDriver()
             p.driver.options['optimizer'] = optimizer
             p.driver.options['dynamic_simul_derivs'] = True
-            p.driver.opt_settings['Major iterations limit'] = 100
-            p.driver.opt_settings['Major step limit'] = 0.01
+            p.driver.opt_settings['Major iterations limit'] = 1000
+            p.driver.opt_settings['Major step limit'] = 0.1
             p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
             p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
             p.driver.opt_settings["Linesearch tolerance"] = 0.10
@@ -200,7 +200,7 @@ class TestAircraftCruise(unittest.TestCase):
         num_seg = 20
         seg_ends, _ = lgl(num_seg+1)
 
-        phase = Phase('gauss-lobatto',
+        phase = Phase('radau-ps',
                       ode_class=AircraftODE,
                       num_segments=num_seg,
                       segment_ends=seg_ends,
@@ -226,11 +226,11 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase.add_control('alt', units='km', dynamic=True, opt=True, lower=0.0, upper=15.0,
                           rate_param='climb_rate',
-                          rate_continuity=True, rate_continuity_scaler=1.0,
-                          rate2_continuity=True, rate2_continuity_scaler=1.0, ref=1.0,
+                          rate_continuity=False, rate_continuity_scaler=1.0,
+                          rate2_continuity=False, rate2_continuity_scaler=1.0, ref=1.0,
                           fix_initial=True, fix_final=True)
 
-        phase.add_control('mach', units=None, dynamic=False, opt=False, lower=0.2, upper=0.9,
+        phase.add_control('mach', units=None, dynamic=False, opt=True, lower=0.5, upper=0.9,
                           ref=1.0)
 
         phase.add_control('S', units='m**2', dynamic=False, opt=False)
@@ -238,6 +238,8 @@ class TestAircraftCruise(unittest.TestCase):
         phase.add_control('mass_payload', units='kg', dynamic=False, opt=False)
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
+        phase.add_path_constraint('alt_rate', lower=-3000, upper=3000, ref=3000, units='ft/min')
+        # phase.add_path_constraint('mach_rate', equals=0.0, ref=0.01)
 
 
         # phase.add_path_constraint('TAS_rate', lower=-0.1*9.80665, upper=0.1*9.80665,
@@ -274,7 +276,7 @@ class TestAircraftCruise(unittest.TestCase):
         p['phase0.states:range'] = phase.interpolate(ys=(0, 1296.4), nodes='state_disc')
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.594555, 0), nodes='state_disc')
 
-        p['phase0.controls:mach'] = 0.8  # phase.interpolate(ys=(250, 250), nodes='control_disc')
+        p['phase0.controls:mach'][:] = 0.8  # phase.interpolate(ys=(250, 250), nodes='control_disc')
         # p['phase0.controls:TAS'][0] = p['phase0.controls:TAS'][-1] = 100.0
         p['phase0.controls:alt'][:] = 0.0  # phase.interpolate(ys=(0, 0), nodes='control_disc')
         # p['phase0.controls:alt'][0] = p['phase0.controls:alt'][-1] = 0.0
@@ -353,12 +355,23 @@ class TestAircraftCruise(unittest.TestCase):
         import matplotlib.pyplot as plt
         plt.plot(phase.get_values('time', nodes='all'), phase.get_values('alt', nodes='all'), 'ro')
         plt.plot(exp_out.get_values('time'), exp_out.get_values('alt'), 'b-')
+        plt.suptitle('altitude vs time')
         plt.figure()
         plt.plot(phase.get_values('time', nodes='all'), phase.get_values('mass_fuel', nodes='all'), 'ro')
         plt.plot(exp_out.get_values('time'), exp_out.get_values('mass_fuel'), 'b-')
+        plt.suptitle('fuel mass vs time')
         plt.figure()
         plt.plot(phase.get_values('time', nodes='all'), phase.get_values('propulsion.dXdt:mass_fuel', nodes='all'), 'ro')
         plt.plot(exp_out.get_values('time'), exp_out.get_values('propulsion.dXdt:mass_fuel'), 'b-')
+        plt.suptitle('fuel mass flow rate vs time')
+        plt.figure()
+        plt.plot(phase.get_values('time', nodes='all'), phase.get_values('mach', nodes='all'), 'ro')
+        plt.plot(exp_out.get_values('time'), exp_out.get_values('mach'), 'b-')
+        plt.suptitle('mach vs time')
+        plt.figure()
+        plt.plot(phase.get_values('time', nodes='all'), phase.get_values('mach_rate', nodes='all'), 'ro')
+        plt.plot(exp_out.get_values('time'), exp_out.get_values('mach_rate'), 'b-')
+        plt.suptitle('mach rate vs time')
 
         print('time')
         print(phase.get_values('time', nodes='all').T)
