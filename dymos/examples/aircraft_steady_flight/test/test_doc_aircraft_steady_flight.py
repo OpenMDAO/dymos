@@ -61,8 +61,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
                           rate2_continuity=True, rate2_continuity_scaler=1.0, ref=1.0,
                           fix_initial=True, fix_final=True)
 
-        phase.add_control('mach', units=None, dynamic=False, opt=False, lower=0.8, upper=0.8,
-                          ref=1.0)
+        phase.add_control('mach', units=None, dynamic=False, opt=False)
 
         phase.add_control('S', units='m**2', dynamic=False, opt=False)
         phase.add_control('mass_empty', units='kg', dynamic=False, opt=False)

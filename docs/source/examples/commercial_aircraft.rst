@@ -291,6 +291,15 @@ L             lift force (N)                  output
 D             drag force (N)                  output
 ============  ==============================  ======================
 
+.. note::
+    This example uses `openmdao.api.MetaModelStructuredComp` to interpolate aerodynamic properties
+    of the vehicle.  This component is somewhat easier to use since it is distributed as part of
+    OpenMDAO, but it can be significantly slower than alternatives such as
+    `MBI <https://github.com/OpenMDAO/MBI>`_ and `SMT <https://github.com/SMTorg/smt>`_.  The
+    Aerodynamics group includes an implementation of the aerodynamics coefficients interpolant
+    which uses MBI that is commented out.  By switching to MBI for this component, this problem
+    will solve roughly 20 times faster.
+
 Flight Equilibrium
 ==================
 
@@ -311,7 +320,7 @@ The thrust coefficient necessary for steady flight is computed by balancing the 
 The lift coefficient required for steady flight is found by balancing lift and weight:
 
 .. math ::
-    \tilde{C_L} = W_total * \frac{\cos{\gam}}{q \cdot S} - C_T * \sin{\alpha}
+    \tilde{C_L} = W_{total} * \frac{\cos{\gamma}}{q \cdot S} - C_T * \sin{\alpha}
 
 Using coefficients in the balance equations is better scaled from a numerical standpoint.
 
