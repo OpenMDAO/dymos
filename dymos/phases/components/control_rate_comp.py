@@ -133,8 +133,6 @@ class ControlRateComp(ExplicitComponent):
 
         self._setup_controls()
 
-        self.set_check_partial_options('*', method='cs')
-
     def compute(self, inputs, outputs):
         control_options = self.options['control_options']
 

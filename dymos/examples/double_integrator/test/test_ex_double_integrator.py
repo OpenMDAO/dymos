@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division
 
+import itertools
 import unittest
 from numpy.testing import assert_almost_equal
 
@@ -10,10 +11,20 @@ import dymos.examples.double_integrator.ex_double_integrator as ex_double_integr
 
 class TestDoubleIntegratorExample(unittest.TestCase):
 
-    @parameterized.expand(['gauss-lobatto', 'radau-ps'])
-    def test_ex_double_integrator(self, transcription='radau-ps'):
+    @parameterized.expand(
+        itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
+                          ['dense', 'csc', 'csr'],  # jacobian
+                          ['fwd', 'rev'],  # derivative_mode
+                          ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
+                                                                          p.args[0],
+                                                                          p.args[1],
+                                                                          p.args[2]])
+    )
+    def test_ex_double_integrator(self, transcription='radau-ps', jacobian='csc',
+                                  derivative_mode='fwd'):
         ex_double_integrator.SHOW_PLOTS = False
-        p = ex_double_integrator.double_integrator_direct_collocation(transcription)
+        p = ex_double_integrator.double_integrator_direct_collocation(transcription,
+                                                                      top_level_jacobian=jacobian)
 
         x0 = p.model.phase0.get_values('x')[0]
         xf = p.model.phase0.get_values('x')[-1]
