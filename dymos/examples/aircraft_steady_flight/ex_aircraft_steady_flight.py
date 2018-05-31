@@ -114,7 +114,8 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     plt.plot(exp_out.get_values('time'), exp_out.get_values('alt'), 'b-')
     plt.suptitle('altitude vs time')
     plt.figure()
-    plt.plot(phase.get_values('time', nodes='all'), phase.get_values('alt_rate', nodes='all', units='ft/min'), 'ro')
+    plt.plot(phase.get_values('time', nodes='all'),
+             phase.get_values('alt_rate', nodes='all', units='ft/min'), 'ro')
     plt.plot(exp_out.get_values('time'), exp_out.get_values('alt_rate', units='ft/min'), 'b-')
     plt.suptitle('altitude rate vs time')
     plt.figure()
@@ -189,24 +190,6 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     print(phase.get_values('S', units='m**2').T)
 
     plt.show()
-
-    # def test_results(self):
-    #     print('dXdt:mass_fuel', self.p['ode.propulsion.dXdt:mass_fuel'])
-    #     print('D', self.p['ode.aero.D'])
-    #     print('thrust', self.p['ode.propulsion.thrust'])
-    #     print('range rate', self.p['ode.range_rate_comp.dXdt:range'])
-    #
-    #     from openmdao.api import view_model
-    #     view_model(self.p.model)
-    #
-    #     assert_rel_error(self,
-    #                      self.p['ode.range_rate_comp.dXdt:range'],
-    #                      self.p['TAS'] * np.cos(self.p['ode.gam_comp.gam']))
-    #
-    # def test_partials(self):
-    #     np.set_printoptions(linewidth=1024)
-    #     cpd = self.p.check_partials(suppress_output=False)
-    #     assert_check_partials(cpd, atol=1.0E-6, rtol=1.0)
 
 
 if __name__ == '__main__':
