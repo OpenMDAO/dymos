@@ -9,8 +9,5 @@ Useful Tools and Components
     :maxdepth: 2
 
     interpolation
-    dot_product_comp
-    cross_product_comp
-    matrix_vector_product_comp
     matrix_partials_wizard
 

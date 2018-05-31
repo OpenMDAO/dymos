@@ -10,7 +10,6 @@ from .dynamic_pressure_comp import DynamicPressureComp
 from .flight_equlibrium.steady_flight_equilibrium_group import SteadyFlightEquilibriumGroup
 from .propulsion.propulsion_group import PropulsionGroup
 from .range_rate_comp import RangeRateComp
-from .mach_comp import MachComp
 from .true_airspeed_comp import TrueAirspeedComp
 from .mass_comp import MassComp
 
@@ -21,8 +20,6 @@ from .mass_comp import MassComp
                rate_source='propulsion.dXdt:mass_fuel', units='kg')
 @declare_parameter('alt', targets=['atmos.h', 'aero.alt', 'propulsion.alt'], units='m')
 @declare_parameter('climb_rate', targets=['gam_comp.climb_rate'], units='m/s')
-# @declare_parameter('TAS', targets=['gam_comp.TAS', 'q_comp.TAS', 'range_rate_comp.TAS',
-#                                    'mach_comp.TAS'], units='m/s')
 @declare_parameter('mach', targets=['tas_comp.mach', 'aero.mach'], units='m/s')
 @declare_parameter('S', targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'], units='m**2')
 @declare_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
@@ -54,14 +51,10 @@ class AircraftODE(Group):
         self.connect('tas_comp.TAS',
                      ('gam_comp.TAS', 'q_comp.TAS', 'range_rate_comp.TAS'))
 
-        # self.connect('mach_comp.mach', ['aero.mach'])
-
         self.add_subsystem(name='gam_comp',
                            subsys=SteadyFlightPathAngleComp(num_nodes=nn))
 
         self.connect('gam_comp.gam', ('flight_equilibrium.gam', 'range_rate_comp.gam'))
-
-        # self.connect('gam_comp.gam_rate', 'flight_equilibrium.gam_rate')
 
         self.add_subsystem(name='q_comp',
                            subsys=DynamicPressureComp(num_nodes=nn))
