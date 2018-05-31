@@ -1,9 +1,6 @@
-__author__ = 'rfalck'
-
 import unittest
 
 import numpy as np
-from numpy.testing import assert_almost_equal
 
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_rel_error
@@ -13,7 +10,7 @@ from dymos.examples.aircraft_steady_flight.aero.mbi_aero_coef_comp import setup_
 
 try:
     import MBI
-except:
+except ImportError:
     MBI = None
 
 
