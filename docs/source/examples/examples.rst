@@ -4,13 +4,21 @@ Examples
 
 The Brachistochrone Problem
 ---------------------------
-
 .. toctree::
   :maxdepth: 1
   :titlesonly:
 
   brachistochrone
   simultaneous_derivs
+
+The Double Integrator
+---------------------
+.. toctree::
+  :maxdepth: 1
+  :titlesonly:
+
+  double_integrator
+
 
 Single Stage To Orbit
 -----------------------
