@@ -9,6 +9,7 @@ from openmdao.utils.assert_utils import assert_rel_error
 import dymos.examples.min_time_climb_diff_inc.ex_min_time_climb_diff_inc as \
     ex_min_time_climb_diff_inc
 
+
 class TestExampleMinTimeClimbDiffInc(unittest.TestCase):
 
     @parameterized.expand(
