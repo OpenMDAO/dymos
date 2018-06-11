@@ -10,14 +10,14 @@ import dymos.examples.min_time_climb_diff_inc.ex_min_time_climb_diff_inc as \
     ex_min_time_climb_diff_inc
 
 try:
-    import pyoptsparse.pySNOPT.pySNOPT as pySNOPT
+    from pyoptsparse import SNOPT
 except ImportError:
-    pySNOPT = None
+    SNOPT = None
 
 
 class TestExampleMinTimeClimbDiffInc(unittest.TestCase):
 
-    @unittest.skipIf(pySNOPT is None, 'This example requires pyoptsparse SNOPT')
+    @unittest.skipIf(SNOPT is None, 'This example requires pyoptsparse SNOPT')
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           ['csc'],  # jacobian
