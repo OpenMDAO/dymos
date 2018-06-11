@@ -1,5 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
+import numpy as np
+
 from openmdao.api import Group, IndepVarComp
 
 from .thrust_comp import ThrustComp
