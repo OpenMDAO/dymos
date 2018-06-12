@@ -13,7 +13,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         import matplotlib.pyplot as plt
 
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, pyOptSparseDriver, \
-            DirectSolver, CSCJacobian, IndepVarComp, SqliteRecorder
+            DirectSolver, IndepVarComp, SqliteRecorder
         from openmdao.utils.assert_utils import assert_rel_error
 
         from dymos import Phase
@@ -76,8 +76,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         phase.add_objective('range', loc='final', ref=-1.0)
 
-        p.model.jacobian = CSCJacobian()
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
 
         p.setup(mode='fwd')
 

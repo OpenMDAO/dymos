@@ -3,7 +3,7 @@ from __future__ import division, print_function, absolute_import
 import numpy as np
 
 from openmdao.api import Problem, Group, ScipyOptimizeDriver, pyOptSparseDriver, DirectSolver, \
-    CSCJacobian, IndepVarComp, SqliteRecorder
+    IndepVarComp, SqliteRecorder
 
 from dymos import Phase
 
@@ -81,8 +81,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     phase.add_objective('range', loc='final', ref=-1.0)
 
-    p.model.jacobian = CSCJacobian()
-    p.model.linear_solver = DirectSolver()
+    p.model.linear_solver = DirectSolver(assemble_jac=True)
 
     p.setup(mode='fwd')
 

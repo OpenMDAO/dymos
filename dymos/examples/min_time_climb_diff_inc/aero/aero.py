@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import numpy as np
 
-from openmdao.api import Group, DenseJacobian
+from openmdao.api import Group
 
 from .dynamic_pressure_comp import DynamicPressureComp
 from .lift_drag_force_comp import LiftDragForceComp

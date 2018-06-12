@@ -1,7 +1,7 @@
 import numpy as np
 from six import iteritems
 
-from openmdao.api import Group, IndepVarComp, NewtonSolver, DirectSolver, DenseJacobian
+from openmdao.api import Group, IndepVarComp, NewtonSolver, DirectSolver
 
 from dymos.glm.ozone.integrators.integrator import Integrator
 from dymos.glm.ozone.components.starting_comp import StartingComp
@@ -132,8 +132,8 @@ class ImplicitTMIntegrator(Integrator):
                 )
 
             group.nonlinear_solver = NewtonSolver(iprint=2, maxiter=100)
-            group.linear_solver = DirectSolver()
-            group.jacobian = DenseJacobian()
+            group.linear_solver = DirectSolver(assemble_jac=True)
+            group.options['assembled_jac_type'] = 'dense'
 
         promotes = []
         promotes.extend([get_name('state', state_name) for state_name in states])

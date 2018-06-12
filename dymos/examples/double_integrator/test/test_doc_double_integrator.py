@@ -11,7 +11,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
     def test_double_integrator_for_docs(self):
         import numpy as np
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, CSCJacobian, DirectSolver
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from dymos import Phase
         from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 
@@ -38,8 +38,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         # Maximize distance travelled in one second.
         phase.add_objective('x', loc='final', scaler=-1)
 
-        p.model.jacobian = CSCJacobian()
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
 
         p.setup(mode='fwd', check=True)
 

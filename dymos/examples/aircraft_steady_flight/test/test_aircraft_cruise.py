@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import unittest
 
 import numpy as np
-from openmdao.api import Problem, Group, IndepVarComp, CSCJacobian, DirectSolver, \
+from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, \
     pyOptSparseDriver, ScipyOptimizeDriver
 
 from dymos import Phase
@@ -76,8 +76,8 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase.add_objective('time', loc='final', ref=3600)
 
-        p.model.jacobian = CSCJacobian()
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup(mode='fwd')
 

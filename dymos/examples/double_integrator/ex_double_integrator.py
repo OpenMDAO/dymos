@@ -1,7 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DenseJacobian,\
-    CSCJacobian, CSRJacobian, DirectSolver
+from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
 from dymos import Phase
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
@@ -41,13 +40,8 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
     # Maximize distance travelled in one second.
     phase.add_objective('x', loc='final', scaler=-1)
 
-    if top_level_jacobian.lower() == 'csc':
-        p.model.jacobian = CSCJacobian()
-    elif top_level_jacobian.lower() == 'dense':
-        p.model.jacobian = DenseJacobian()
-    elif top_level_jacobian.lower() == 'csr':
-        p.model.jacobian = CSRJacobian()
-    p.model.linear_solver = DirectSolver()
+    p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
+    p.model.linear_solver = DirectSolver(assemble_jac=True)
 
     p.setup(mode='fwd', check=True)
 

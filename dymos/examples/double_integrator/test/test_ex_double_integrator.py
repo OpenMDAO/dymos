@@ -13,7 +13,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['dense', 'csc', 'csr'],  # jacobian
+                          ['dense', 'csc'],  # jacobian
                           ['fwd', 'rev'],  # derivative_mode
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
                                                                           p.args[0],

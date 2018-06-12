@@ -2,9 +2,7 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, DenseJacobian, DirectSolver, \
-    CSCJacobian, CSRJacobian
-
+from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
 from dymos import Phase
 
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
@@ -125,15 +123,9 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     if transcription != 'glm':
         p.driver.options['dynamic_simul_derivs'] = True
+        p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
 
-        if top_level_jacobian.lower() == 'csc':
-            p.model.jacobian = CSCJacobian()
-        elif top_level_jacobian.lower() == 'dense':
-            p.model.jacobian = DenseJacobian()
-        elif top_level_jacobian.lower() == 'csr':
-            p.model.jacobian = CSRJacobian()
-
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = DirectSolver(assemble_jac=True)
 
         p.setup(mode='fwd', check=True)
 
