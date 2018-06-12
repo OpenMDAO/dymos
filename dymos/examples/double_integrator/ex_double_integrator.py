@@ -1,21 +1,13 @@
 from __future__ import print_function, division, absolute_import
 
-import numpy as np
-
-import os
-
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
 from dymos import Phase
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
 
 def double_integrator_direct_collocation(transcription='gauss-lobatto', top_level_jacobian='csc',
-                                         optimizer='SLSQP', show_plots=False, compressed=True):
+                                         optimizer='SLSQP', compressed=True):
     p = Problem(model=Group())
 
     if optimizer == 'SNOPT':
@@ -61,50 +53,6 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
     p['phase0.controls:u'] = phase.interpolate(ys=[1, -1], nodes='control_disc')
 
     p.run_driver()
-
-    exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'], p['phase0.t_duration'], 100),
-                             record=False)
-
-    if show_plots:
-        # Plot results
-        fig, axes = plt.subplots(3, 1)
-        fig.suptitle('Double Integrator Direct Collocation Solution')
-
-        t_imp = phase.get_values('time', nodes='all')
-        x_imp = phase.get_values('x', nodes='all')
-        v_imp = phase.get_values('v', nodes='all')
-        u_imp = phase.get_values('u', nodes='all')
-
-        t_exp = exp_out.get_values('time')
-        x_exp = exp_out.get_values('x')
-        v_exp = exp_out.get_values('v')
-        u_exp = exp_out.get_values('u')
-
-        axes[0].plot(t_imp, x_imp, 'ro', label='implicit')
-        axes[0].plot(t_exp, x_exp, 'b-', label='explicit')
-
-        axes[0].set_xlabel('time (s)')
-        axes[0].set_ylabel('x (m)')
-        axes[0].grid(True)
-        axes[0].legend(loc='best')
-
-        axes[1].plot(t_imp, v_imp, 'ro', label='implicit')
-        axes[1].plot(t_exp, v_exp, 'b-', label='explicit')
-
-        axes[1].set_xlabel('time (s)')
-        axes[1].set_ylabel('v (m/s)')
-        axes[1].grid(True)
-        axes[1].legend(loc='best')
-
-        axes[2].plot(t_imp, u_imp, 'ro', label='implicit')
-        axes[2].plot(t_exp, u_exp, 'b-', label='explicit')
-
-        axes[2].set_xlabel('time (s)')
-        axes[2].set_ylabel('u (m/s**2)')
-        axes[2].grid(True)
-        axes[2].legend(loc='best')
-
-        plt.show()
 
     return p
 

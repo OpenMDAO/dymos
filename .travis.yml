@@ -25,6 +25,7 @@ addons:
     - openmpi-bin
 
 before_install:
+- sudo apt-get install gfortran
 - wget "https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh" -O miniconda.sh
 - chmod +x miniconda.sh
 - ./miniconda.sh -b  -p /home/travis/miniconda;
@@ -61,10 +62,10 @@ install:
 - cd ..;
 
 # install MBI
-# - git clone https://github.com/OpenMDAO/MBI.git;
-# - cd MBI;
-# - python setup.py build install;
-# - cd ..;
+- git clone https://github.com/OpenMDAO/MBI.git;
+- cd MBI;
+- python setup.py build install;
+- cd ..;
 
 - pip install git+https://github.com/OpenMDAO/OpenMDAO.git
 # - pip install git+https://github.com/SMTorg/smt.git

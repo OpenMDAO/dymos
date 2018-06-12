@@ -374,6 +374,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                               state_options=self.state_options,
                                               control_options=self.control_options,
                                               time_units=time_units))
+            self.connect('t_duration', 'continuity_constraint.t_duration')
 
             for name, options in iteritems(self.state_options):
                 if not compressed and options['continuity']:

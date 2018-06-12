@@ -8,7 +8,7 @@ from numpy import array
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos.examples.aircraft.aero.aero_coef_comp import AeroCoefComp
+from dymos.examples.aircraft_steady_flight.aero.aero_coef_comp import AeroCoefComp
 
 
 class TestAeroCoefComp(unittest.TestCase):
