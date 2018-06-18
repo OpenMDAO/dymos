@@ -2,12 +2,10 @@ from __future__ import print_function, division, absolute_import
 
 from .optimizer_based.gauss_lobatto_phase import GaussLobattoPhase
 from .optimizer_based.radau_pseudospectral_phase import RadauPseudospectralPhase
-from dymos.glm.glm_phase import GLMPhase
 
 
 _transcriptions = {'gauss-lobatto': GaussLobattoPhase,
-                   'radau-ps': RadauPseudospectralPhase,
-                   'glm': GLMPhase}
+                   'radau-ps': RadauPseudospectralPhase}
 
 
 def Phase(transcription, **kwargs):

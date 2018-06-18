@@ -9,7 +9,7 @@ from dymos import Phase
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 SHOW_PLOTS = True
 
@@ -29,7 +29,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['iSumm'] = 6
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-        p.driver.opt_settings['Verify level'] = 3
+        # p.driver.opt_settings['Verify level'] = 3
         p.driver.opt_settings['Function precision'] = 1.0E-6
         p.driver.opt_settings['Linesearch tolerance'] = 0.10
         p.driver.opt_settings['Major step limit'] = 0.5
@@ -154,7 +154,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
 
 if __name__ == '__main__':
-    SHOW_PLOTS = True
+    SHOW_PLOTS = False
     p = min_time_climb(
         optimizer='SNOPT', num_seg=15, transcription='gauss-lobatto', transcription_order=3,
-        force_alloc_complex=True)
+        force_alloc_complex=False)

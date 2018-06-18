@@ -69,22 +69,21 @@ def min_time_climb_diff_inc(optimizer='SLSQP', num_seg=3, transcription='gauss-l
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', ref=1.0)
 
-    if transcription != 'glm':
-        p.driver.options['dynamic_simul_derivs'] = True
+    p.driver.options['dynamic_simul_derivs'] = True
 
-        p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+    p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
+    p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-        p.setup(mode='fwd', check=True, force_alloc_complex=True)
+    p.setup(mode='fwd', check=True, force_alloc_complex=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 298.46902
+    p['phase0.t_initial'] = 0.0
+    p['phase0.t_duration'] = 298.46902
 
-        p['phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='state_disc')
-        p['phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_disc')
-        p['phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='state_disc')
-        p['phase0.controls:v'] = phase.interpolate(ys=[135.964, 150.0], nodes='control_disc')
-        p['phase0.controls:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_disc')
+    p['phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='state_disc')
+    p['phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_disc')
+    p['phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='state_disc')
+    p['phase0.controls:v'] = phase.interpolate(ys=[135.964, 150.0], nodes='control_disc')
+    p['phase0.controls:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_disc')
 
     p.run_driver()
 
