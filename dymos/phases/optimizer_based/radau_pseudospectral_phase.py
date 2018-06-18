@@ -248,7 +248,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
-                      vectorize_derivs=False, simul_coloring=None, simul_map=None):
+                      vectorize_derivs=False):
         """
         Allows the user to add an objective in the phase.  If name is not a state,
         control, control rate, or 'time', then this is assumed to be the path of the variable
@@ -282,13 +282,6 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             calculations with other variables sharing the same parallel_deriv_color.
         vectorize_derivs : bool
             If True, vectorize derivative calculations.
-        simul_coloring : ndarray or list of int
-            An array or list of integer color values.  Must match the size of the
-            objective variable.
-        simul_map : dict
-            Mapping of this response to each design variable where simultaneous derivs will
-            be used.  Each design variable entry is another dict keyed on color, and the values
-            in the color dict are tuples of the form (resp_idxs, color_idxs).
         """
         var_type = self._classify_var(name)
 
@@ -316,9 +309,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                              shape=shape, ref=ref, ref0=ref0,
                                                              adder=adder, scaler=scaler,
                                                              parallel_deriv_color=pdc,
-                                                             vectorize_derivs=vectorize_derivs,
-                                                             simul_coloring=simul_coloring,
-                                                             simul_map=simul_map)
+                                                             vectorize_derivs=vectorize_derivs)
 
     def get_values(self, var, nodes=None, units=None):
         """
