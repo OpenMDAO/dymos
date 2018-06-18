@@ -431,7 +431,7 @@ class PhaseBase(Group):
 
     def set_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
-                      vectorize_derivs=False, simul_coloring=None, simul_map=None):
+                      vectorize_derivs=False):
         """
         Allows the user to set an objective in the phase.  If name is not a state,
         control, or 'time', then this is assumed to be the path of the variable
@@ -467,12 +467,11 @@ class PhaseBase(Group):
         warn_deprecation('set_objective has been replaced with add_objective')
         self.add_objective(name, loc=loc, index=index, shape=shape, ref=ref, ref0=ref0,
                            adder=adder, scaler=scaler, parallel_deriv_color=parallel_deriv_color,
-                           vectorize_derivs=vectorize_derivs, simul_coloring=simul_coloring,
-                           simul_map=simul_map)
+                           vectorize_derivs=vectorize_derivs)
 
     def _add_objective(self, obj_path, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                        adder=None, scaler=None, parallel_deriv_color=None,
-                       vectorize_derivs=False, simul_coloring=None, simul_map=None):
+                       vectorize_derivs=False):
         """
         Called by add_objective in classes that derive from PhaseBase.  Each subclass is responsible
         for determining the objective paht in the system.  This method then figures out the correct
@@ -520,13 +519,6 @@ class PhaseBase(Group):
             calculations with other variables sharing the same parallel_deriv_color.
         vectorize_derivs : bool
             If True, vectorize derivative calculations.
-        simul_coloring : ndarray or list of int
-            An array or list of integer color values.  Must match the size of the
-            objective variable.
-        simul_map : dict
-            Mapping of this response to each design variable where simultaneous derivs will
-            be used.  Each design variable entry is another dict keyed on color, and the values
-            in the color dict are tuples of the form (resp_idxs, color_idxs).
         """
         size = int(np.prod(shape))
 
@@ -553,9 +545,7 @@ class PhaseBase(Group):
         super(PhaseBase, self).add_objective(obj_path, ref=ref, ref0=ref0, index=obj_index,
                                              adder=adder, scaler=scaler,
                                              parallel_deriv_color=parallel_deriv_color,
-                                             vectorize_derivs=vectorize_derivs,
-                                             simul_coloring=simul_coloring,
-                                             simul_map=simul_map)
+                                             vectorize_derivs=vectorize_derivs)
 
     def set_time_options(self, opt_initial=True, opt_duration=True, initial=0.0,
                          initial_bounds=(None, None), initial_scaler=None,
