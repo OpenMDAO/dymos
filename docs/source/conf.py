@@ -95,6 +95,7 @@ todo_include_todos = False
 # Epilog/substitutions
 rst_epilog = """
 .. |project| replace:: Dymos
+.. |version| replace:: 0.8.0
 """
 
 # -- Options for HTML output ----------------------------------------------
