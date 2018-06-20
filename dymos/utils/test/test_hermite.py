@@ -67,5 +67,5 @@ class TestHermiteMatrices(unittest.TestCase):
         assert_almost_equal(ydot_i, ydot_computed)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

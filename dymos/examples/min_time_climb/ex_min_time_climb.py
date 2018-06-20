@@ -33,22 +33,12 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Function precision'] = 1.0E-6
         p.driver.opt_settings['Linesearch tolerance'] = 0.10
         p.driver.opt_settings['Major step limit'] = 0.5
-    elif optimizer == 'SLSQP' and transcription == 'glm':
-        p.driver.opt_settings['MAXIT'] = 7
-
-    kwargs = {}
-    if transcription != 'glm':
-        kwargs['compressed'] = True
-        kwargs['transcription_order'] = 3
-    else:
-        kwargs['compressed'] = False
-        kwargs['formulation'] = formulation
-        kwargs['method_name'] = method_name
 
     phase = Phase(transcription,
                   ode_class=MinTimeClimbODE,
                   num_segments=num_seg,
-                  **kwargs)
+                  compressed=True,
+                  transcription_order=3)
 
     p.model.add_subsystem('phase0', phase)
 
@@ -70,10 +60,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.set_state_options('m', fix_initial=True, lower=10.0, upper=1.0E5,
                             scaler=1.0E-3, defect_scaler=1.0E-3)
 
-    if transcription != 'glm':
-        rate_continuity = True
-    else:
-        rate_continuity = None
+    rate_continuity = True
 
     phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
                       dynamic=True, rate_continuity=rate_continuity, rate_continuity_scaler=100.0,
@@ -94,36 +81,21 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final')
 
-    if transcription != 'glm':
-        p.driver.options['dynamic_simul_derivs'] = True
-        p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+    p.driver.options['dynamic_simul_derivs'] = True
+    p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
+    p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-        p.setup(mode='fwd', check=True)
+    p.setup(mode='fwd', check=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 298.46902
+    p['phase0.t_initial'] = 0.0
+    p['phase0.t_duration'] = 298.46902
 
-        p['phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='state_disc')
-        p['phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_disc')
-        p['phase0.states:v'] = phase.interpolate(ys=[135.964, 283.159], nodes='state_disc')
-        p['phase0.states:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='state_disc')
-        p['phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='state_disc')
-        p['phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_disc')
-    else:
-        p.setup(force_alloc_complex=force_alloc_complex)
-        p.final_setup()
-        p.set_solver_print(level=-1)
-
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 298.46902
-
-        phase.set_values('r', [0.0, 111319.54])
-        phase.set_values('h', [100.0, 20000.0])
-        phase.set_values('v', [135.964, 283.159])
-        phase.set_values('gam', [0.0, 0.0])
-        phase.set_values('m', [19030.468, 16841.431])
-        phase.set_values('alpha', [0.0, 0.0])
+    p['phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='state_disc')
+    p['phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_disc')
+    p['phase0.states:v'] = phase.interpolate(ys=[135.964, 283.159], nodes='state_disc')
+    p['phase0.states:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='state_disc')
+    p['phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='state_disc')
+    p['phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_disc')
 
     p.run_driver()
 
@@ -148,6 +120,12 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         plt.xlabel('time (s)')
         plt.ylabel('alpha (rad)')
 
+        plt.figure()
+        plt.plot(phase.get_values('time'), phase.get_values('prop.thrust', units='lbf'), 'ro')
+        plt.plot(exp_out.get_values('time'), exp_out.get_values('prop.thrust', units='lbf'), 'b-')
+        plt.xlabel('time (s)')
+        plt.ylabel('thrust (lbf)')
+
         plt.show()
 
     return p
@@ -156,5 +134,5 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 if __name__ == '__main__':
     SHOW_PLOTS = False
     p = min_time_climb(
-        optimizer='SNOPT', num_seg=15, transcription='gauss-lobatto', transcription_order=3,
+        optimizer='SLSQP', num_seg=15, transcription='gauss-lobatto', transcription_order=3,
         force_alloc_complex=False)

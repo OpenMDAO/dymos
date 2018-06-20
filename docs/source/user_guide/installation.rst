@@ -18,7 +18,7 @@ follow these two steps:
 
 1. In terminal, clone the repository using `git`.
 
-2. Go into the |project| directory and use the command :code:`pip install -e .` to install ozone.
+2. Go into the |project| directory and use the command :code:`pip install -e .` to install dymos.
 
 .. code-block:: console
 

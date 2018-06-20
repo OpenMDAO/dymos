@@ -17,7 +17,7 @@ SHOW_PLOTS = False
 
 def brachistochrone_min_time(
         transcription='gauss-lobatto', num_segments=8, transcription_order=3, run_driver=True,
-        top_level_jacobian='csc', compressed=True, force_alloc_complex=False):
+        top_level_jacobian='csc', compressed=True):
     p = Problem(model=Group())
 
     if OPTIMIZER == 'SNOPT':
@@ -28,7 +28,6 @@ def brachistochrone_min_time(
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         p.driver.opt_settings['iSumm'] = 6
-        # p.driver.opt_settings['Verify level'] = 3
     else:
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
@@ -46,16 +45,9 @@ def brachistochrone_min_time(
     phase.set_state_options('x', fix_initial=True, fix_final=True)
     phase.set_state_options('y', fix_initial=True, fix_final=True)
     phase.set_state_options('v', fix_initial=True, fix_final=False)
-    # phase.add_boundary_constraint('x', loc='final', equals=10.)
-    # phase.add_boundary_constraint('y', loc='final', equals=5.)
-
-    if transcription != 'glm':
-        rate_continuity = True
-    else:
-        rate_continuity = None
 
     phase.add_control('theta', units='deg', dynamic=True,
-                      rate_continuity=rate_continuity, lower=0.01, upper=179.9)
+                      rate_continuity=True, lower=0.01, upper=179.9)
 
     phase.add_control('g', units='m/s**2', dynamic=False, opt=False, val=9.80665)
 

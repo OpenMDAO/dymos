@@ -19,6 +19,13 @@ The Double Integrator
 
   double_integrator
 
+Supersonic Interceptor Minimum Time Climb
+-----------------------------------------
+.. toctree::
+  :maxdepth: 1
+  :titlesonly:
+
+  min_time_climb
 
 Single Stage To Orbit
 -----------------------

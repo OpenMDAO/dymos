@@ -6,7 +6,7 @@ from openmdao.api import ExplicitComponent
 class FlightPathEOM2D(ExplicitComponent):
     """
     Computes the position and velocity equations of motion using a 2D flight path
-    parameterization of states per equaions 4.42 - 4.46 of _[1].
+    parameterization of states per equations 4.42 - 4.46 of _[1].
 
     References
     ----------

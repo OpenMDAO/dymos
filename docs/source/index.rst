@@ -3,35 +3,19 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-|project|: Open-source Optimal Control for Multidisciplinary Systems
-======================================================================
+
+|project|: Open-source Optimal Control for Multidisciplinary Systems (v.|version|)
+==================================================================================
 
 |project| is an open-source tool for solving optimal control problems involving multidisplinary systems.
 It is built on top of the `OpenMDAO framework <https://github.com/openmdao/blue>`_.
 The goal of |project| is to allow users to solve optimal control problems using a variety of methods.
-Presently, |project| supports optimal control in three ways:
+Presently, |project| supports optimal control via the following techniques:
 
-* Gauss--Lobatto collocation method :
+* Gauss-Lobatto collocation method [ConwayHerman1996]_
+* Radau-pseudospectral method [Garg2009]_
 
-  This method discretizes the ODE using an odd-numbered Legendre--Gauss--Lobatto points (e.g., 5).
-  A Hermite interpolant is generated from the odd-indexed points (e.g., 1st, 3rd, and 5th),
-  and the remaining points are the collocation points (e.g., 2nd and 4th).
-
-* Radau-pseudospectral method :
-
-  This method discretizes the ODE using Legendre--Gauss--Radau collocation points.
-  A Lagrange interpolant is generated to predict derivatives at each collocation point
-  that are forced to be equal to the right-hand side of the ODE as evaluated at the same points.
-
-* GLM family of methods :
-
-  The general linear methods (GLM) is a wide-ranging formulation
-  that unifies a large family of ODE integrators.
-  In Dymos, a long list of explicit and implicit Runge--Kutta methods are made available via the GLM option.
-  Internally, the Runge--Kutta are used to solve the ODE as an initial-value problem,
-  but Dymos can make use of Runge--Kutta methods to solve general optimal control problems including boundary-value problems.
-
-.. * Analytic Phases (analytic)
+More direct optimal control transcriptions may be added to |project| in the future.
 
 
 Table of Contents
@@ -42,10 +26,8 @@ Table of Contents
     :titlesonly:
 
     user_guide/user_guide
-    reference_manual/reference_manual
     examples/examples
     api_docs
-
 
 
 Indices and tables
@@ -54,3 +36,9 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+References
+==========
+.. [ConwayHerman1996] ﻿Herman, Albert L, and Bruce A Conway. “Direct Optimization Using Collocation Based on High-Order Gauss-Lobatto Quadrature Rules.” Journal of Guidance, Control, and Dynamics 19.3 (1996): 592–599.
+.. [Garg2009] ﻿Garg, Divya et al. “Direct Trajectory Optimization and Costate Estimation of General Optimal Control Problems Using a Radau Pseudospectral Method.” American Institute of Aeronautics and Astronautics, 2009.
