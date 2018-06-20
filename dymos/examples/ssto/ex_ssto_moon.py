@@ -8,8 +8,7 @@ from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
 
 def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP',
-              top_level_jacobian='csc', transcription_order=5, compressed=False,
-              glm_formulation='solver-based', glm_integrator='GaussLegendre4'):
+              top_level_jacobian='csc', transcription_order=5, compressed=False):
 
     p = Problem(model=Group())
 
@@ -24,42 +23,22 @@ def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP',
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-    kwargs = {}
-    if transcription == 'gauss-lobatto' or transcription == 'radau-ps':
-        kwargs['transcription_order'] = 3
-    else:
-        kwargs['formulation'] = glm_formulation
-        kwargs['method_name'] = glm_integrator
-
     phase = Phase(transcription,
                   ode_class=LaunchVehicleODE,
                   ode_init_kwargs={'central_body': 'moon'},
                   num_segments=num_seg,
                   compressed=compressed,
-                  **kwargs)
+                  transcription_order=3)
 
     p.model.add_subsystem('phase0', phase)
 
     phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 1000))
 
-    if transcription != 'glm':
-        phase.set_state_options('x', fix_initial=True, scaler=1.0E-5, lower=0)
-        phase.set_state_options('y', fix_initial=True, scaler=1.0E-5, lower=0)
-        phase.set_state_options('vx', fix_initial=True, scaler=1.0E-3, lower=0)
-        phase.set_state_options('vy', fix_initial=True, scaler=1.0E-3)
-        phase.set_state_options('m', fix_initial=True, scaler=1.0E-3)
-    else:
-        phase.set_state_options('x', fix_initial=True, fix_final=False, scaler=1.0E-5, lower=0)
-        phase.set_state_options('y', fix_initial=True, fix_final=False, scaler=1.0E-5, lower=0)
-        phase.set_state_options('vx', fix_initial=True, fix_final=False, scaler=1.0E-3, lower=0)
-        phase.set_state_options('vy', fix_initial=True, fix_final=False, scaler=1.0E-3)
-        phase.set_state_options('m', fix_initial=True, fix_final=False, scaler=1.0E-3)
-
-        phase.add_boundary_constraint('x', loc='initial', equals=0.)
-        phase.add_boundary_constraint('y', loc='initial', equals=0.)
-        phase.add_boundary_constraint('vx', loc='initial', equals=0.)
-        phase.add_boundary_constraint('vy', loc='initial', equals=1.0E-6)
-        phase.add_boundary_constraint('m', loc='initial', equals=50000.)
+    phase.set_state_options('x', fix_initial=True, scaler=1.0E-5, lower=0)
+    phase.set_state_options('y', fix_initial=True, scaler=1.0E-5, lower=0)
+    phase.set_state_options('vx', fix_initial=True, scaler=1.0E-3, lower=0)
+    phase.set_state_options('vy', fix_initial=True, scaler=1.0E-3)
+    phase.set_state_options('m', fix_initial=True, scaler=1.0E-3)
 
     phase.add_boundary_constraint('y', loc='final', equals=1.85E5, linear=True)
     phase.add_boundary_constraint('vx', loc='final', equals=1627.0)

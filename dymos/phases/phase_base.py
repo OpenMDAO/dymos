@@ -75,7 +75,7 @@ class PhaseBase(Group):
                              desc='System defining the ODE')
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
-        self.options.declare('transcription', values=['gauss-lobatto', 'radau-ps', 'glm'],
+        self.options.declare('transcription', values=['gauss-lobatto', 'radau-ps'],
                              desc='Transcription technique of the optimal control problem.')
 
         # Optional metadata
@@ -129,13 +129,6 @@ class PhaseBase(Group):
             The scaler of the state defect at the collocation nodes of the phase.
 
         """
-        if self.options['transcription'] == 'glm':
-            if fix_final:
-                raise NotImplementedError(
-                    'GLMPhase does not support fixing the final state value in this way. ' +
-                    'Equivalent, you can add a boundary constraint on the final state value: ' +
-                    "phase.add_boundary_constraint('x', loc='final', equals=0.)")
-
         if units is not _unspecified:
             self.state_options[name]['units'] = units
         self.state_options[name]['val'] = val
@@ -1013,8 +1006,7 @@ class PhaseBase(Group):
             the name 'time', the name of a state, control, or parameter,
             or the path to a variable in the ODE system of the phase.
         nodes : str or None
-            The name of the node subset or None.
-            This option does not apply to GLMPhase. The default is None.
+            The name of the node subset or None (default).
 
         Returns
         -------
@@ -1038,8 +1030,7 @@ class PhaseBase(Group):
         value : ndarray
             Array of time/control/state/parameter values.
         nodes : str
-            The name of the node subset or None.
-            This option does not apply to GLMPhase. The default is None.
+            The name of the node subset or None (default).
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
             One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
@@ -1065,8 +1056,7 @@ class PhaseBase(Group):
         ys :  ndarray
             Array of control/state/parameter values.
         nodes : str or None
-            The name of the node subset or None.
-            This option does not apply to GLMPhase. The default is None.
+            The name of the node subset or None (default).
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
             One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
@@ -1083,9 +1073,6 @@ class PhaseBase(Group):
         np.array
             The values of y interpolated at nodes of the specified type.
         """
-        if self.options['transcription'] == 'glm' and nodes is not None:
-            raise ValueError('With GLMPhase, nodes=None is the only valid option.')
-
         if nodes is None:
             nodes = 'all'
 

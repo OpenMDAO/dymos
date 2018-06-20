@@ -24,7 +24,7 @@ class LaunchVehicleODE(Group):
                              desc='Number of nodes to be evaluated in the RHS')
 
         self.options.declare('central_body', values=['earth', 'moon'], default='earth',
-                             desc='The central graviational body for the launch vehicle.')
+                             desc='The central gravitational body for the launch vehicle.')
 
     def setup(self):
         nn = self.options['num_nodes']

@@ -1,3 +1,4 @@
+
 from __future__ import absolute_import, division, print_function
 
 import itertools
@@ -34,25 +35,7 @@ class TestExampleMinTimeClimb(unittest.TestCase):
         phase = p.model.phase0
 
         # Check that time matches to within 1% of an externally verified solution.
-        assert_almost_equal((phase.get_values('time')[-1] - 321.0) / 321.0, 0.0, decimal=2)
-
-    # @parameterized.expand(itertools.product(
-    #     ['optimizer-based'],
-    #     ['GaussLegendre2'],
-    # ))
-    @unittest.skip('Pruning GLM examples for now')
-    def test_results_glm(self, formulation='optimizer-based', method_name='GaussLegendre2'):
-        ex_min_time_climb.SHOW_PLOTS = False
-        p = ex_min_time_climb.min_time_climb(
-            optimizer='SLSQP', num_seg=10, transcription='glm',
-            formulation=formulation, method_name=method_name, force_alloc_complex=False)
-
-        phase = p.model.phase0
-
-        # Check that time matches to within 1% of an externally verified solution.
-        solution = 321.0
-        print(phase.get_values('time'))
-        assert_rel_error(self, phase.get_values('time')[-1], solution, tolerance=0.01)
+        assert_rel_error(self, phase.get_values('time')[-1], 321.0, tolerance=2)
 
 if __name__ == '__main__':
     unittest.main()

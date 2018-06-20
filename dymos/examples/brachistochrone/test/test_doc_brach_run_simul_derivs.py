@@ -5,7 +5,6 @@ import unittest
 
 class TestBrachistochroneSimulDerivsRunExample(unittest.TestCase):
 
-    @unittest.skip('skipped until SNOPT is available on CI')
     def test_brachistochrone_for_docs_gauss_lobatto_simul_derivs(self):
         from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
@@ -15,17 +14,17 @@ class TestBrachistochroneSimulDerivsRunExample(unittest.TestCase):
         p = Problem(model=Group())
 
         p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver.options['optimizer'] = 'SLSQP'
 
         # Compute sparsity/coloring when run_driver is called
         p.driver.options['dynamic_simul_derivs'] = True
 
-        p.driver.opt_settings['Major iterations limit'] = 1000
-        p.driver.opt_settings['iSumm'] = 6
+        # p.driver.opt_settings['Major iterations limit'] = 1000
+        # p.driver.opt_settings['iSumm'] = 6
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,
-                      num_segments=200,
+                      num_segments=100,
                       transcription_order=3,
                       compressed=True)
 

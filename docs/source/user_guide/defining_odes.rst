@@ -152,8 +152,5 @@ Dimensioned Inputs and Outputs
 The above example assumes all inputs and outputs are scalar at each node.  Sometimes the user may
 encounter a situation in which the inputs and/or outputs are vectors, matrices, or tensors at
 each node.  In this case the dimension of the variable is `num_nodes`, with the dimension of the
-variable at a single node filling out the remaining indices.
-
-A 3-vector is thus dimensioned `(num_nodes, 3)`, while a 3 x 3 matrix would be
-sized `(num_nodes, 3, 3)`.  In such situations, defining the partials becomes a bit trickier.
-|project| includes a few tools to make things easier on the user.
+variable at a single node filling out the remaining indices. A 3-vector is thus dimensioned
+`(num_nodes, 3)`, while a 3 x 3 matrix would be sized `(num_nodes, 3, 3)`.

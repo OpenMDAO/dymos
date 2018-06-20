@@ -49,34 +49,13 @@ class TestBrachistochroneExample(unittest.TestCase):
         assert_almost_equal(vf, 9.902, decimal=3)
         assert_almost_equal(g, 9.80665, decimal=3)
 
-        if transcription != 'radau-ps':
-            assert_almost_equal(thetaf, 100.12, decimal=0)
+        assert_almost_equal(thetaf, 100.12, decimal=0)
 
     @parameterized.expand(product(
         ['gauss-lobatto', 'radau-ps'],
-        [True, False],
     ))
-    def test_ex_brachistochrone(self, transcription='radau-ps', test_fix_initial=True):
+    def test_ex_brachistochrone(self, transcription='radau-ps'):
         ex_brachistochrone.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(
-            transcription=transcription, test_fix_initial=test_fix_initial)
-        self.run_asserts(p, transcription)
-        self.tearDown()
-
-    # @parameterized.expand(product(
-    #     ['optimizer-based', 'solver-based', 'time-marching'],
-    #     ['RK4'],
-    #     [True, False],
-    # ))
-    def test_ex_brachistochrone_glm(
-            self, glm_formulation='solver-based', glm_integrator='RK4',
-            test_fix_initial=True):
-        transcription = 'glm'
-        ex_brachistochrone.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(
-            transcription=transcription, run_driver=True,
-            glm_formulation=glm_formulation, glm_integrator=glm_integrator,
-            test_fix_initial=test_fix_initial, compressed=False
-        )
+        p = ex_brachistochrone.brachistochrone_min_time(transcription=transcription)
         self.run_asserts(p, transcription)
         self.tearDown()

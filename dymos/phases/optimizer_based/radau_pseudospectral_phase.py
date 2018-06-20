@@ -323,8 +323,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             the name 'time', the name of a state, control, or parameter,
             or the path to a variable in the ODEFunction of the phase.
         nodes : str
-            The name of the node subset, one of 'disc', 'col', 'None'.
-            This option does not apply to GLMPhase. The default is 'None'.
+            The name of the node subset.
         units : str
             The units in which the values should be expressed.  Must be compatible
             with the corresponding units inside the phase.

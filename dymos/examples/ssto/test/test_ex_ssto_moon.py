@@ -22,15 +22,8 @@ class TestExampleSSTOMoon(unittest.TestCase):
     def run_asserts(self, p, transcription, compressed):
         # Ensure defects are zero
         for state in ['x', 'y', 'vx', 'vy', 'm']:
-            if transcription != 'glm':
-                assert_almost_equal(p['phase0.collocation_constraint.defects:{0}'.format(state)],
-                                    0.0, decimal=5)
-
-            if compressed:
-                assert_almost_equal(p['phase0.continuity_constraint.'
-                                      'defect_states:{0}'.format(state)],
-                                    0.0, decimal=5,
-                                    err_msg='error in state continuity for state {0}'.format(state))
+            assert_almost_equal(p['phase0.collocation_constraint.defects:{0}'.format(state)],
+                                0.0, decimal=5)
 
         # Ensure time found is the known solution
         assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)
@@ -63,20 +56,12 @@ class TestExampleSSTOMoon(unittest.TestCase):
         p['phase0.t_duration'] = 500.0
 
         phase = p.model.phase0
-        if transcription != 'glm':
-            p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_disc')
-            p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_disc')
-            p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_disc')
-            p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_disc')
-            p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_disc')
-            p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='control_disc')
-        else:
-            p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0])
-            p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0])
-            p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0])
-            p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0])
-            p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000])
-            p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76])
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_disc')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_disc')
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_disc')
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_disc')
+        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_disc')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='control_disc')
 
         p.run_driver()
 

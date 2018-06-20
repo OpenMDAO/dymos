@@ -2,15 +2,13 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from collections import Sized, Iterable
-from six import string_types, iteritems
+from six import iteritems
 
 from scipy.linalg import block_diag
 
 from dymos.utils.lg import lg
 from dymos.utils.lgl import lgl
 from dymos.utils.lgr import lgr
-from dymos.utils.glm import glm
 from dymos.utils.hermite import hermite_matrices
 from dymos.utils.lagrange import lagrange_matrices
 
@@ -79,37 +77,6 @@ def radau_pseudospectral_subsets(n):
         'all': np.arange(n, dtype=int),
     }
     return node_indices
-
-
-def glm_subsets(n):
-    """
-    Returns the subset dictionary corresponding to the GLM phase.
-
-    Parameters
-    ----------
-    n : int
-        The total number of nodes in the segment. This is ignored for GLM phases.
-        It is only here for compatibility with the other types of phases.
-
-    Returns
-    -------
-    subsets : A dictionary with the following keys:
-        'disc' gives the indices of the discretization nodes
-        'col' gives the indices of the collocation nodes
-        'all' gives all node indices
-    """
-    n = 2
-
-    subsets = {
-        'disc': np.arange(n, dtype=int),
-        'state_disc': np.arange(n, dtype=int),
-        'control_disc': np.array([0, n-1], dtype=int),
-        'segment_ends': np.array([0, n - 1], dtype=int),
-        'col': np.arange(n - 1, dtype=int),
-        'all': np.arange(n, dtype=int),
-    }
-
-    return subsets
 
 
 class GridData(object):
@@ -241,10 +208,6 @@ class GridData(object):
 
             def get_points(n):
                 return lgr(n, include_endpoint=True)
-        elif transcription.lower() == 'glm':
-            # This is copied from the 'gauss-lobatto' transcription code just to make it run.
-            get_subsets = glm_subsets
-            get_points = glm
         else:
             raise ValueError('Unknown transcription: {0}'.format(transcription))
 

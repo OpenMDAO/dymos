@@ -16,7 +16,7 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
     Parameters
     ----------
     transcription : str ('gauss-lobatto')
-        The transcription method for optimal control:  'gauss-lobatto', 'radau-ps', or 'glm'.
+        The transcription method for optimal control:  'gauss-lobatto', 'radau-ps'.
     num_seg : int (10)
         The number of segments in the phase.
     transcription_order : int or sequence (5)

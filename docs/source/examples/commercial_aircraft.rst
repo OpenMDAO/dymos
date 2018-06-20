@@ -12,6 +12,8 @@ This example is simplified in several ways.  The Mach number is fixed
 at 0.8.  When only considering fuel burn, the aircraft will tend to fly
 slower to conserve fuel, ignoring the running costs of being airborne.
 
+For a more detailed optimization of commercial aircraft performance, see [BettsAircraft1995]_.
+
 Differential Inclusion
 ----------------------
 

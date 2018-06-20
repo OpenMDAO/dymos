@@ -20,39 +20,19 @@ class BrachistochroneODE(ExplicitComponent):
         nn = self.options['num_nodes']
 
         # Inputs
-        self.add_input('v',
-                       val=np.zeros(nn),
-                       desc='velocity',
-                       units='m/s')
+        self.add_input('v', val=np.zeros(nn), desc='velocity', units='m/s')
 
-        self.add_input('g',
-                       val=9.80665 * np.ones(nn),
-                       desc='gravitational acceleration',
-                       units='m/s/s')
+        self.add_input('g', val=9.80665 * np.ones(nn), desc='grav. acceleration', units='m/s/s')
 
-        self.add_input('theta',
-                       val=np.zeros(nn),
-                       desc='angle of wire',
-                       units='rad')
+        self.add_input('theta', val=np.zeros(nn), desc='angle of wire', units='rad')
 
-        self.add_output('xdot',
-                        val=np.zeros(nn),
-                        desc='velocity component in x',
-                        units='m/s')
+        self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s')
 
-        self.add_output('ydot',
-                        val=np.zeros(nn),
-                        desc='velocity component in y',
-                        units='m/s')
+        self.add_output('ydot', val=np.zeros(nn), desc='velocity component in y', units='m/s')
 
-        self.add_output('vdot',
-                        val=np.zeros(nn),
-                        desc='acceleration magnitude',
-                        units='m/s**2')
+        self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2')
 
-        self.add_output('check',
-                        val=np.zeros(nn),
-                        desc='A check on the solution: v/sin(theta) = constant',
+        self.add_output('check', val=np.zeros(nn), desc='check solution: v/sin(theta) = constant',
                         units='m/s')
 
         # Setup partials
