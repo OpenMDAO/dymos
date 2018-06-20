@@ -152,8 +152,3 @@ Each phase can have its own:
 
 As with `ScipyODEIntegrator`, each dymos `Phase` is ultimately just an OpenMDAO Group that can exist in
 a problem along with numerous other groups.
-
-License
--------
-
-TBD
