@@ -211,20 +211,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
         transcription = self.options['transcription']
         grid_data = self.grid_data
 
-        indep_controls = []
-        input_controls = []
-        indep_design_params = []
-        input_design_params = []
-        control_rate_comp = []
-        control_defect_comp = []
-
         num_opt_controls = len([name for (name, options) in iteritems(self.control_options)
-                                        if options['opt']])
+                                if options['opt']])
 
         num_input_controls = len([name for (name, options) in iteritems(self.control_options)
                                   if not options['opt']])
-
-        num_controls = num_opt_controls + num_input_controls
 
         num_opt_design_params = len([name for (name, options) in
                                      iteritems(self.design_parameter_options) if options['opt']])
@@ -234,7 +225,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                        if not options['opt']])
 
         num_controls = len(self.control_options)
-        num_design_params = len(self.design_parameter_options)
 
         indep_controls = ['indep_controls'] if num_opt_controls > 0 else []
         input_controls = ['input_controls'] if num_input_controls > 0 else []

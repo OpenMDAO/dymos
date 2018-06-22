@@ -67,14 +67,40 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
     phase.add_boundary_constraint('vx', loc='final', equals=1627.0)
     phase.add_boundary_constraint('vy', loc='final', equals=0)
 
-    phase.add_control('a_ctrl', units='1/s', dynamic=False, opt=True)
-    phase.add_control('b_ctrl', units=None, dynamic=False, opt=True)
-    phase.add_control('thrust', units='N', dynamic=False, opt=False, val=3.0 * 50000.0 * 1.61544)
-    phase.add_control('Isp', units='s', dynamic=False, opt=False, val=1.0E6)
+    phase.add_design_parameter('a_ctrl', units='1/s', opt=True)
+    phase.add_design_parameter('b_ctrl', units=None, opt=True)
+    phase.add_design_parameter('thrust', units='N', opt=False, val=3.0 * 50000.0 * 1.61544)
+    phase.add_design_parameter('Isp', units='s', opt=False, val=1.0E6)
 
     phase.add_objective('time', index=-1, scaler=0.01)
 
     p.model.options['assembled_jac_type'] = 'csc'
     p.model.linear_solver = DirectSolver(assemble_jac=True)
 
+    p.setup(mode='fwd')
+
+    p['phase0.t_initial'] = 0.0
+    p['phase0.t_duration'] = 500.0
+    p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_disc')
+    p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_disc')
+    p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_disc')
+    p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_disc')
+    p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_disc')
+    p['phase0.design_parameters:a_ctrl'] = -0.01
+    p['phase0.design_parameters:b_ctrl'] = 3.0
+
+    p.run_driver()
+
+    from openmdao.api import view_model
+    view_model(p)
+
+    np.set_printoptions(linewidth=1024)
+    cpd = p.check_partials(compact_print=True)
+    from openmdao.utils.assert_utils import assert_check_partials
+    assert_check_partials(cpd)
+
     return p
+
+
+if __name__ == '__main__':
+    ssto_moon_linear_tangent(optimizer='SLSQP')

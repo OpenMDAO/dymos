@@ -65,19 +65,18 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
                       rate2_continuity=True, rate2_continuity_scaler=1.0, ref=1.0,
                       fix_initial=True, fix_final=True)
 
-    phase.add_control('mach', units=None, dynamic=False, opt=False, lower=0.8, upper=0.8,
-                      ref=1.0)
+    phase.add_control('mach', units=None, opt=False, lower=0.8, upper=0.8, ref=1.0)
 
-    phase.add_control('S', units='m**2', dynamic=False, opt=False)
-    phase.add_control('mass_empty', units='kg', dynamic=False, opt=False)
-    phase.add_control('mass_payload', units='kg', dynamic=False, opt=False)
+    phase.add_design_parameter('S', units='m**2', opt=False)
+    phase.add_design_parameter('mass_empty', units='kg', opt=False)
+    phase.add_design_parameter('mass_payload', units='kg', opt=False)
 
     phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
     phase.add_path_constraint('alt_rate', units='ft/min', lower=-3000, upper=3000, ref=3000)
 
-    p.model.connect('assumptions.S', 'phase0.controls:S')
-    p.model.connect('assumptions.mass_empty', 'phase0.controls:mass_empty')
-    p.model.connect('assumptions.mass_payload', 'phase0.controls:mass_payload')
+    p.model.connect('assumptions.S', 'phase0.design_parameters:S')
+    p.model.connect('assumptions.mass_empty', 'phase0.design_parameters:mass_empty')
+    p.model.connect('assumptions.mass_payload', 'phase0.design_parameters:mass_payload')
 
     phase.add_objective('range', loc='final', ref=-1.0)
 
@@ -192,4 +191,4 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
 
 if __name__ == '__main__':
-    ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps')
+    ex_aircraft_steady_flight(optimizer='SNOPT', transcription='radau-ps')

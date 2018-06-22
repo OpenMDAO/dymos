@@ -228,7 +228,7 @@ class PhaseBase(Group):
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
 
         if not dynamic:
-            warn_deprecation('Control {0} is static. Static controls should be added to the phase'
+            warn_deprecation('Control {0} is static. Static controls should be added to the phase '
                              'via the add_design_parameter method.'.format(name))
             self.add_design_parameter(name, val, units, opt, lower, upper, scaler, adder, ref, ref0)
             return
@@ -278,14 +278,13 @@ class PhaseBase(Group):
             if rate_continuity is not None:
                 illegal_options.append('rate_continuity')
             if illegal_options:
-                msg = 'Invalid options for non-optimal control:' + ', '.join(illegal_options)
+                msg = 'Invalid options for non-optimal control {0}:'.format(name) + \
+                      ', '.join(illegal_options)
                 warnings.warn(msg, RuntimeWarning)
 
         self.control_options[name]['val'] = val
         self.control_options[name]['dynamic'] = dynamic
         self.control_options[name]['opt'] = opt
-        # self.control_options[name]['opt_initial'] = opt_initial
-        # self.control_options[name]['opt_final'] = opt_final
         self.control_options[name]['fix_initial'] = fix_initial
         self.control_options[name]['fix_final'] = fix_final
         self.control_options[name]['lower'] = lower
@@ -314,7 +313,6 @@ class PhaseBase(Group):
 
         if units != 0:
             self.control_options[name]['units'] = units
-
 
     def add_design_parameter(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
                              scaler=None, adder=None, ref=None, ref0=None, rate_param=None,

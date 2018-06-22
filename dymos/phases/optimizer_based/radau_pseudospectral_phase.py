@@ -93,7 +93,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
     def _setup_design_parameters(self):
         super(RadauPseudospectralPhase, self)._setup_design_parameters()
 
-        for name, options in iteritems(self.control_options):
+        for name, options in iteritems(self.design_parameter_options):
 
             map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
 
