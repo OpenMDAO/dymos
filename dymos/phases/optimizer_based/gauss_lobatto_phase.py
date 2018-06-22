@@ -58,22 +58,18 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         grid_data = self.grid_data
 
         for name, options in iteritems(self.control_options):
-            if options['dynamic']:
-                map_indices_to_all = grid_data.input_maps['dynamic_control_input_to_disc']
-                map_indices_to_disc = \
-                    map_indices_to_all[grid_data.subset_node_indices['state_disc']]
-                map_indices_to_col = map_indices_to_all[grid_data.subset_node_indices['col']]
-            else:
-                map_indices_to_disc = np.zeros(grid_data.subset_num_nodes['state_disc'], dtype=int)
-                map_indices_to_col = np.zeros(grid_data.subset_num_nodes['col'], dtype=int)
+            map_indices_to_all = grid_data.input_maps['dynamic_control_input_to_disc']
+            map_indices_to_disc = \
+                map_indices_to_all[grid_data.subset_node_indices['state_disc']]
+            map_indices_to_col = map_indices_to_all[grid_data.subset_node_indices['col']]
 
             if options['opt']:
                 control_src_name = 'controls:{0}'.format(name)
             else:
                 control_src_name = 'controls:{0}_out'.format(name)
 
-            if name in self.ode_options._dynamic_parameters:
-                targets = self.ode_options._dynamic_parameters[name]['targets']
+            if name in self.ode_options._parameters:
+                targets = self.ode_options._parameters[name]['targets']
                 self.connect(control_src_name,
                              ['rhs_disc.{0}'.format(t) for t in targets],
                              src_indices=map_indices_to_disc)
@@ -83,7 +79,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                              src_indices=map_indices_to_col)
 
             if options['rate_param']:
-                targets = self.ode_options._dynamic_parameters[options['rate_param']]['targets']
+                targets = self.ode_options._parameters[options['rate_param']]['targets']
 
                 self.connect('control_rates:{0}_rate'.format(name),
                              ['rhs_disc.{0}'.format(t) for t in targets],
@@ -94,7 +90,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                              src_indices=map_indices_to_col)
 
             if options['rate2_param']:
-                targets = self.ode_options._dynamic_parameters[options['rate2_param']]['targets']
+                targets = self.ode_options._parameters[options['rate2_param']]['targets']
 
                 self.connect('control_rates:{0}_rate2'.format(name),
                              ['rhs_disc.{0}'.format(t) for t in targets],
@@ -105,6 +101,28 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                              src_indices=map_indices_to_col)
 
         return num_dynamic
+
+    def _setup_design_parameters(self):
+        super(GaussLobattoPhase, self)._setup_design_parameters()
+
+        for name, options in iteritems(self.design_parameter_options):
+            map_indices_to_disc = np.zeros(self.grid_data.subset_num_nodes['state_disc'], dtype=int)
+            map_indices_to_col = np.zeros(self.grid_data.subset_num_nodes['col'], dtype=int)
+
+            if options['opt']:
+                src_name = 'design_parameters:{0}'.format(name)
+            else:
+                src_name = 'design_parameters:{0}_out'.format(name)
+
+            if name in self.ode_options._parameters:
+                targets = self.ode_options._parameters[name]['targets']
+                self.connect(src_name,
+                             ['rhs_disc.{0}'.format(t) for t in targets],
+                             src_indices=map_indices_to_disc)
+
+                self.connect(src_name,
+                             ['rhs_col.{0}'.format(t) for t in targets],
+                             src_indices=map_indices_to_col)
 
     def _setup_path_constraints(self):
         """

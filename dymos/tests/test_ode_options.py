@@ -51,8 +51,8 @@ class TestODEOptions(unittest.TestCase):
             pass
 
         self.assertIn('ode_options', B.__dict__, msg='System does not have ode_options metadata')
-        self.assertEqual(B.ode_options._dynamic_parameters['theta']['targets'], ['theta'])
-        self.assertEqual(B.ode_options._dynamic_parameters['theta']['units'], 'rad')
+        self.assertEqual(B.ode_options._parameters['theta']['targets'], ['theta'])
+        self.assertEqual(B.ode_options._parameters['theta']['units'], 'rad')
 
     def test_all(self):
 
@@ -75,8 +75,8 @@ class TestODEOptions(unittest.TestCase):
         self.assertEqual(B.ode_options._states['v']['units'], 'm/s')
         self.assertEqual(B.ode_options._states['v']['rate_source'], 'vdot')
         self.assertEqual(B.ode_options._states['v']['targets'], ['v'])
-        self.assertEqual(B.ode_options._dynamic_parameters['theta']['targets'], ['theta'])
-        self.assertEqual(B.ode_options._dynamic_parameters['theta']['units'], 'rad')
+        self.assertEqual(B.ode_options._parameters['theta']['targets'], ['theta'])
+        self.assertEqual(B.ode_options._parameters['theta']['units'], 'rad')
 
 
 if __name__ == "__main__":

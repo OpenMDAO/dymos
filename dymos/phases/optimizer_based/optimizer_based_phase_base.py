@@ -94,7 +94,8 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                             ode_init_kwargs=self.options['ode_init_kwargs'],
                                             time_options=self.time_options,
                                             state_options=self.state_options,
-                                            control_options=self.control_options)
+                                            control_options=self.control_options,
+                                            design_parameter_options=self.design_parameter_options)
 
         if observer == 'default':
             observer = StdOutObserver(rhs_integrator)
@@ -115,11 +116,19 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         exp_out = SimulationResults(time_options=self.time_options,
                                     state_options=self.state_options,
-                                    control_options=self.control_options)
+                                    control_options=self.control_options,
+                                    design_parameter_options=self.design_parameter_options)
 
         seg_sequence = range(gd.num_segments)
         if direction == 'reverse':
             seg_sequence = reversed(seg_sequence)
+
+        for param_name, options in iteritems(self.design_parameter_options):
+            if options['opt']:
+                val = self._outputs['design_parameters:{0}'.format(param_name)]
+            else:
+                val = self._outputs['design_parameters:{0}_out'.format(param_name)]
+            rhs_integrator.set_design_param_value(param_name, val[0, ...], options['units'])
 
         first_seg = True
         for seg_i in seg_sequence:
@@ -134,18 +143,17 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 else:
                     control_vals = self._outputs['controls:{0}_out'.format(control_name)]
 
-                if options['dynamic']:
-                    map_input_idxs_to_all = \
-                        self.grid_data.input_maps['dynamic_control_input_to_disc']
-                    interp = LagrangeBarycentricInterpolant(gd.node_stau[seg_idxs[0]:seg_idxs[1]])
-                    ctrl_vals = control_vals[map_input_idxs_to_all][seg_idxs[0]:seg_idxs[1]].ravel()
-                    interp.setup(x0=seg_times[0], xf=seg_times[-1], f_j=ctrl_vals)
-                    rhs_integrator.set_interpolant(control_name, interp)
+                # if options['dynamic']:
+                map_input_idxs_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
+                interp = LagrangeBarycentricInterpolant(gd.node_stau[seg_idxs[0]:seg_idxs[1]])
+                ctrl_vals = control_vals[map_input_idxs_to_all][seg_idxs[0]:seg_idxs[1]].ravel()
+                interp.setup(x0=seg_times[0], xf=seg_times[-1], f_j=ctrl_vals)
+                rhs_integrator.set_interpolant(control_name, interp)
 
-                else:
-                    interp = StaticInterpolant(options['shape'])
-                    interp.setup(control_vals.ravel())
-                    rhs_integrator.set_interpolant(control_name, interp)
+                # else:
+                #     interp = StaticInterpolant(options['shape'])
+                #     interp.setup(control_vals.ravel())
+                #     rhs_integrator.set_interpolant(control_name, interp)
 
             if not first_seg:
                 for state_name, options in iteritems(self.state_options):
@@ -177,9 +185,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                                      integrator_params=integrator_params,
                                                      observer=observer)
 
-            # print(seg_out.outputs)
-            # exit(0)
-
             if first_seg:
                 exp_out.outputs.update(seg_out.outputs)
             else:
@@ -197,6 +202,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
             exp_out.record_results(filepath, self.options['ode_class'],
                                    self.options['ode_init_kwargs'])
+
         return exp_out
 
     def setup(self):
@@ -206,31 +212,39 @@ class OptimizerBasedPhaseBase(PhaseBase):
         grid_data = self.grid_data
 
         indep_controls = []
-        input_parameters = []
+        input_controls = []
+        indep_design_params = []
+        input_design_params = []
         control_rate_comp = []
         control_defect_comp = []
 
         num_opt_controls = len([name for (name, options) in iteritems(self.control_options)
-                                if options['opt']])
-
-        num_dynamic_opt_controls = len([name for (name, options) in iteritems(self.control_options)
-                                        if options['opt'] and options['dynamic']])
+                                        if options['opt']])
 
         num_input_controls = len([name for (name, options) in iteritems(self.control_options)
                                   if not options['opt']])
 
         num_controls = num_opt_controls + num_input_controls
 
-        if num_opt_controls > 0:
-            indep_controls = ['indep_controls']
-        if num_input_controls > 0:
-            input_parameters = ['input_controls']
-        if num_controls > 0:
-            control_rate_comp = ['control_rate_comp']
-        if num_dynamic_opt_controls > 0:
-            control_defect_comp = ['control_defect_comp']
+        num_opt_design_params = len([name for (name, options) in
+                                     iteritems(self.design_parameter_options) if options['opt']])
 
-        order = self._time_extents + input_parameters + indep_controls + \
+        num_input_design_params = len([name for (name, options) in
+                                       iteritems(self.design_parameter_options)
+                                       if not options['opt']])
+
+        num_controls = len(self.control_options)
+        num_design_params = len(self.design_parameter_options)
+
+        indep_controls = ['indep_controls'] if num_opt_controls > 0 else []
+        input_controls = ['input_controls'] if num_input_controls > 0 else []
+        indep_design_params = ['indep_design_params'] if num_opt_design_params > 0 else []
+        input_design_params = ['input_design_params'] if num_input_design_params > 0 else []
+        control_rate_comp = ['control_rate_comp'] if num_controls > 0 else []
+        control_defect_comp = ['control_defect_comp'] if num_opt_controls > 0 else []
+
+        order = self._time_extents + input_controls + indep_controls + \
+            indep_design_params + input_design_params + \
             ['indep_states', 'time'] + control_rate_comp + ['indep_jumps', 'endpoint_conditions']
 
         if transcription == 'gauss-lobatto':

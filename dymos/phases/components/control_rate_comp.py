@@ -58,60 +58,50 @@ class ControlRateComp(ExplicitComponent):
             rate_units = get_rate_units(units, time_units)
             rate2_units = get_rate_units(units, time_units, deriv=2)
 
-            if options['dynamic']:
-                self._dynamic_names.append(name)
+            self._dynamic_names.append(name)
 
-                self.add_input(self._input_names[name], val=np.ones(io_shape), units=units)
+            self.add_input(self._input_names[name], val=np.ones(io_shape), units=units)
 
-                self.add_output(self._output_rate_names[name], shape=io_shape, units=rate_units)
+            self.add_output(self._output_rate_names[name], shape=io_shape, units=rate_units)
 
-                self.add_output(self._output_rate2_names[name], shape=io_shape,
-                                units=rate2_units)
+            self.add_output(self._output_rate2_names[name], shape=io_shape,
+                            units=rate2_units)
 
-                size = np.prod(shape)
-                self.jacs[name] = np.zeros((num_nodes, size, num_nodes, size))
-                self.jacs2[name] = np.zeros((num_nodes, size, num_nodes, size))
-                for i in range(size):
-                    self.jacs[name][:, i, :, i] = self.D
-                    self.jacs2[name][:, i, :, i] = self.D2
-                self.jacs[name] = self.jacs[name].reshape((num_nodes * size, num_nodes * size),
-                                                          order='C')
-                self.jacs2[name] = self.jacs2[name].reshape((num_nodes * size, num_nodes * size),
-                                                            order='C')
+            size = np.prod(shape)
+            self.jacs[name] = np.zeros((num_nodes, size, num_nodes, size))
+            self.jacs2[name] = np.zeros((num_nodes, size, num_nodes, size))
+            for i in range(size):
+                self.jacs[name][:, i, :, i] = self.D
+                self.jacs2[name][:, i, :, i] = self.D2
+            self.jacs[name] = self.jacs[name].reshape((num_nodes * size, num_nodes * size),
+                                                      order='C')
+            self.jacs2[name] = self.jacs2[name].reshape((num_nodes * size, num_nodes * size),
+                                                        order='C')
 
-                self.jac_rows[name], self.jac_cols[name] = np.where(self.jacs[name] != 0)
-                self.jac2_rows[name], self.jac2_cols[name] = np.where(self.jacs2[name] != 0)
+            self.jac_rows[name], self.jac_cols[name] = np.where(self.jacs[name] != 0)
+            self.jac2_rows[name], self.jac2_cols[name] = np.where(self.jacs2[name] != 0)
 
-                self.sizes[name] = size
+            self.sizes[name] = size
 
-                cs = np.tile(np.arange(num_nodes, dtype=int), reps=size)
-                rs = np.concatenate([np.arange(0, num_nodes * size, size, dtype=int) + i
-                                     for i in range(size)])
+            cs = np.tile(np.arange(num_nodes, dtype=int), reps=size)
+            rs = np.concatenate([np.arange(0, num_nodes * size, size, dtype=int) + i
+                                 for i in range(size)])
 
-                self.declare_partials(of=self._output_rate_names[name],
-                                      wrt='dt_dstau',
-                                      rows=rs, cols=cs)
+            self.declare_partials(of=self._output_rate_names[name],
+                                  wrt='dt_dstau',
+                                  rows=rs, cols=cs)
 
-                self.declare_partials(of=self._output_rate_names[name],
-                                      wrt=self._input_names[name],
-                                      rows=self.jac_rows[name], cols=self.jac_cols[name])
+            self.declare_partials(of=self._output_rate_names[name],
+                                  wrt=self._input_names[name],
+                                  rows=self.jac_rows[name], cols=self.jac_cols[name])
 
-                self.declare_partials(of=self._output_rate2_names[name],
-                                      wrt='dt_dstau',
-                                      rows=rs, cols=cs)
+            self.declare_partials(of=self._output_rate2_names[name],
+                                  wrt='dt_dstau',
+                                  rows=rs, cols=cs)
 
-                self.declare_partials(of=self._output_rate2_names[name],
-                                      wrt=self._input_names[name],
-                                      rows=self.jac2_rows[name], cols=self.jac2_cols[name])
-
-            else:
-                self.add_output(self._output_rate_names[name],
-                                val=np.zeros(io_shape),
-                                units=rate_units)
-
-                self.add_output(self._output_rate2_names[name],
-                                val=np.zeros(io_shape),
-                                units=rate2_units)
+            self.declare_partials(of=self._output_rate2_names[name],
+                                  wrt=self._input_names[name],
+                                  rows=self.jac2_rows[name], cols=self.jac2_cols[name])
 
     def setup(self):
         num_nodes = self.options['grid_data'].num_nodes
@@ -140,15 +130,14 @@ class ControlRateComp(ExplicitComponent):
 
         for name, options in iteritems(control_options):
 
-            if options['dynamic']:
-                u = inputs[self._input_names[name]]
+            u = inputs[self._input_names[name]]
 
-                a = np.tensordot(self.D, u, axes=(1, 0)).T
-                b = np.tensordot(self.D2, u, axes=(1, 0)).T
+            a = np.tensordot(self.D, u, axes=(1, 0)).T
+            b = np.tensordot(self.D2, u, axes=(1, 0)).T
 
-                # divide each "row" by dt_dstau or dt_dstau**2
-                outputs[self._output_rate_names[name]] = (a / inputs['dt_dstau']).T
-                outputs[self._output_rate2_names[name]] = (b / inputs['dt_dstau'] ** 2).T
+            # divide each "row" by dt_dstau or dt_dstau**2
+            outputs[self._output_rate_names[name]] = (a / inputs['dt_dstau']).T
+            outputs[self._output_rate2_names[name]] = (b / inputs['dt_dstau'] ** 2).T
 
     def compute_partials(self, inputs, partials):
         control_options = self.options['control_options']

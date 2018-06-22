@@ -26,17 +26,22 @@ class SimulationResults(object):
     time_options : dymos.TimeOptionsDictionary or None
         The options dictionary for the phase tied to this instance of simulation results.  If
         being loaded from a file, this is not needed at instantiation.
-    state_options : dymos.StateOptionsDictionary or None
+    state_options : dict of dymos.StateOptionsDictionary or None
         The options dictionary for the phase tied to this instance of simulation results.  If
         being loaded from a file, this is not needed at instantiation.
-    control_options : dymos.ControlOptionsDictionary or None
+    control_options : dict of dymos.ControlOptionsDictionary or None
+        The options dictionary for the phase tied to this instance of simulation results.  If
+        being loaded from a file, this is not needed at instantiation.
+    design_parameter_options : dict of dymos.DesignParameterOptionsDictionary or None
         The options dictionary for the phase tied to this instance of simulation results.  If
         being loaded from a file, this is not needed at instantiation.
     """
-    def __init__(self, filepath=None, time_options=None, state_options=None, control_options=None):
+    def __init__(self, filepath=None, time_options=None, state_options=None, control_options=None,
+                 design_parameter_options=None):
         self.time_options = time_options
         self.state_options = state_options
         self.control_options = control_options
+        self.design_parameter_options = design_parameter_options
         self.outputs = {}
         self.units = {}
 
@@ -85,7 +90,7 @@ class SimulationResults(object):
                             ['ode.{0}'.format(t) for t in options['targets']])
 
         # Connect controls
-        sys_param_options = ode_sys.ode_options._dynamic_parameters
+        sys_param_options = ode_sys.ode_options._parameters
         for name, options in iteritems(self.control_options):
             units = options['units']
             ivc.add_output('controls:{0}'.format(name),
@@ -111,6 +116,14 @@ class SimulationResults(object):
                 p.model.connect('control_rates:{0}_rate2'.format(name),
                                 ['ode.{0}'.format(t) for t in rate2_targets],
                                 src_indices=np.arange(nn, dtype=int))
+        # Connect design parameters
+        for name, options in iteritems(self.design_parameter_options):
+            units = options['units']
+            ivc.add_output('design_parameters:{0}'.format(name),
+                           val=np.zeros((nn,) + options['shape']), units=units)
+            p.model.connect('design_parameters:{0}'.format(name),
+                            ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
+                            src_indices=np.arange(nn, dtype=int))
 
         p.setup(check=True)
 

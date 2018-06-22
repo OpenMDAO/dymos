@@ -55,42 +55,56 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
         for name, options in iteritems(self.control_options):
 
-            if options['dynamic']:
-                map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
-                if options['opt']:
-                    if not added_defect_constraint:
-                        def_comp = ControlEndpointDefectComp(grid_data=self.grid_data,
-                                                             control_options=self.control_options)
-                        self.add_subsystem('control_defect_comp', subsys=def_comp,
-                                           promotes_outputs=['*'])
-                        added_defect_constraint = True
-                    self.connect('controls:{0}'.format(name),
-                                 'control_defect_comp.controls:{0}'.format(name),
-                                 src_indices=map_indices_to_all)
-
-            else:
-                map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+            map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
+            if options['opt']:
+                if not added_defect_constraint:
+                    def_comp = ControlEndpointDefectComp(grid_data=self.grid_data,
+                                                         control_options=self.control_options)
+                    self.add_subsystem('control_defect_comp', subsys=def_comp,
+                                       promotes_outputs=['*'])
+                    added_defect_constraint = True
+                self.connect('controls:{0}'.format(name),
+                             'control_defect_comp.controls:{0}'.format(name),
+                             src_indices=map_indices_to_all)
 
             if options['opt']:
                 control_src_name = 'controls:{0}'.format(name)
             else:
                 control_src_name = 'controls:{0}_out'.format(name)
 
-            if name in self.ode_options._dynamic_parameters:
-                targets = self.ode_options._dynamic_parameters[name]['targets']
+            if name in self.ode_options._parameters:
+                targets = self.ode_options._parameters[name]['targets']
                 self.connect(control_src_name,
                              ['rhs_all.{0}'.format(t) for t in targets],
                              src_indices=map_indices_to_all)
 
             if options['rate_param']:
-                targets = self.ode_options._dynamic_parameters[options['rate_param']]['targets']
+                targets = self.ode_options._parameters[options['rate_param']]['targets']
                 self.connect('control_rates:{0}_rate'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets],
                              src_indices=map_indices_to_all)
 
             if options['rate2_param']:
-                targets = self.ode_options._dynamic_parameters[options['rate2_param']]['targets']
+                targets = self.ode_options._parameters[options['rate2_param']]['targets']
                 self.connect('control_rates:{0}_rate2'.format(name),
+                             ['rhs_all.{0}'.format(t) for t in targets],
+                             src_indices=map_indices_to_all)
+
+    def _setup_design_parameters(self):
+        super(RadauPseudospectralPhase, self)._setup_design_parameters()
+
+        for name, options in iteritems(self.control_options):
+
+            map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+
+            if options['opt']:
+                src_name = 'design_parameters:{0}'.format(name)
+            else:
+                src_name = 'design_parameters:{0}_out'.format(name)
+
+            if name in self.ode_options._parameters:
+                targets = self.ode_options._parameters[name]['targets']
+                self.connect(src_name,
                              ['rhs_all.{0}'.format(t) for t in targets],
                              src_indices=map_indices_to_all)
 

@@ -116,6 +116,69 @@ class ControlOptionsDictionary(OptionsDictionary):
                           'This option is invalid if opt=False.')
 
 
+class DesignParameterOptionsDictionary(OptionsDictionary):
+    """
+    An OptionsDictionary specific to design parameters.
+    """
+
+    def __init__(self, read_only=False):
+        super(DesignParameterOptionsDictionary, self).__init__(read_only)
+
+        self.declare(name='name', types=string_types,
+                     desc='The name of ODE system parameter to be set via design parameter.')
+
+        self.declare(name='units', types=string_types, default=None,
+                     allow_none=True, desc='The units in which the design parameter is defined.')
+
+        self.declare(name='desc', types=string_types, default='',
+                     desc='The description of the design parameter.')
+
+        self.declare(name='opt', default=True, types=bool,
+                     desc='If True, the control value will be a design variable '
+                          'for the optimization problem.  If False, allow the '
+                          'control to be connected externally.')
+
+        self.declare(name='targets', types=Iterable, default=[],
+                     desc='Used to store target information for ShootingPhase.  Should not be'
+                          'set by the user in add_design_parameter.')
+
+        self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
+                     desc='The default value of the design parameter in the phase.')
+
+        self.declare(name='shape', types=Iterable, default=(1,),
+                     desc='The shape of the design parameter.')
+
+        self.declare(name='lower', types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='The lower bound of the design parameter. This '
+                          'option is invalid if opt=False.')
+
+        self.declare(name='upper', types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='The upper bound of the design parameter. This '
+                          'option is invalid if opt=False.')
+
+        self.declare(name='scaler', types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='The scaler of the design parameter. This '
+                          'option is invalid if opt=False.')
+
+        self.declare(name='adder', types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='The adder of the design parameter. This'
+                          'option is invalid if opt=False.')
+
+        self.declare(name='ref0', types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='The zero-reference value of the design parameter. This '
+                          'option is invalid if opt=False.')
+
+        self.declare(name='ref', types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='The unit-reference value of the design parameter. This '
+                          'option is invalid if opt=False.')
+
+
 class StateOptionsDictionary(OptionsDictionary):
     """
     An OptionsDictionary specific to controls.

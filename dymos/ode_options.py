@@ -147,7 +147,7 @@ class ODEOptions(object):
         self._time_options = _ODETimeOptionsDictionary()
 
         self._states = {}
-        self._dynamic_parameters = {}
+        self._parameters = {}
         self._target_paths = []
 
         if time_options:
@@ -310,7 +310,7 @@ class ODEOptions(object):
         units : str or None
             Units of the parameter.
         """
-        if name in self._dynamic_parameters:
+        if name in self._parameters:
             raise ValueError('Dynamic parameter {0} has already been declared.'.format(name))
 
         options = _ODEParameterOptionsDictionary()
@@ -333,7 +333,7 @@ class ODEOptions(object):
         options['dynamic'] = True
 
         self._check_targets(name, options['targets'])
-        self._dynamic_parameters[name] = options
+        self._parameters[name] = options
 
     def __str__(self):
         s = 'Time Options:\n    targets: {0}\n    units: {1}'.format(self._time_options['targets'],
@@ -349,10 +349,10 @@ class ODEOptions(object):
                  '\n        units: {units}'.format(name=state, rate_source=options['rate_source'],
                                                    targets=options['targets'],
                                                    shape=options['shape'], units=options['units'])
-        if self._dynamic_parameters:
+        if self._parameters:
             s += '\nParameter Options:'
 
-        for param, options in iteritems(self._dynamic_parameters):
+        for param, options in iteritems(self._parameters):
             s += '\n    {name}' \
                  '\n        targets: {targets}' \
                  '\n        shape: {shape}' \
