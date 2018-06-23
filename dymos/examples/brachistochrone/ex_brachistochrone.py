@@ -12,7 +12,7 @@ from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 OPTIMIZER = 'SLSQP'
-SHOW_PLOTS = False
+SHOW_PLOTS = True
 
 
 def brachistochrone_min_time(
@@ -46,10 +46,9 @@ def brachistochrone_min_time(
     phase.set_state_options('y', fix_initial=True, fix_final=True)
     phase.set_state_options('v', fix_initial=True, fix_final=False)
 
-    phase.add_control('theta', units='deg', dynamic=True,
-                      rate_continuity=True, lower=0.01, upper=179.9)
+    phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
 
-    phase.add_control('g', units='m/s**2', dynamic=False, opt=False, val=9.80665)
+    phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', scaler=10)
@@ -65,6 +64,7 @@ def brachistochrone_min_time(
     p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_disc')
     p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_disc')
     p['phase0.controls:theta'] = phase.interpolate(ys=[0, 0], nodes='control_disc')
+    p['phase0.design_parameters:g'] = 9.80665
 
     p.run_model()
     if run_driver:
@@ -116,4 +116,4 @@ def brachistochrone_min_time(
 
 if __name__ == '__main__':
     brachistochrone_min_time(transcription='gauss-lobatto', num_segments=15, run_driver=True,
-                             top_level_jacobian='csc', compressed=True, force_alloc_complex=False)
+                             top_level_jacobian='csc', compressed=True)

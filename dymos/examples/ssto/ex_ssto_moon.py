@@ -1,6 +1,5 @@
 from __future__ import print_function, division, absolute_import
 
-import numpy as np
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
 from dymos import Phase
@@ -49,9 +48,9 @@ def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP',
         # last value of the control does not impact the collocation defects.
         phase.add_boundary_constraint('theta_rate2', loc='final', equals=0)
 
-    phase.add_control('theta', units='rad', dynamic=True, lower=-1.57, upper=1.57)
-    phase.add_control('thrust', units='N', dynamic=False, opt=False, val=3.0 * 50000.0 * 1.61544)
-    phase.add_control('Isp', units='s', dynamic=False, opt=False, val=1.0E6)
+    phase.add_control('theta', units='rad', lower=-1.57, upper=1.57)
+    phase.add_design_parameter('thrust', units='N', opt=False, val=3.0 * 50000.0 * 1.61544)
+    phase.add_design_parameter('Isp', units='s', opt=False, val=1.0E6)
 
     phase.add_objective('time', index=-1, scaler=0.01)
 

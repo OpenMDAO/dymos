@@ -36,7 +36,7 @@ class ScipyODEIntegrator(object):
 
     """
     def __init__(self, ode_class, time_options, state_options, control_options,
-                 ode_init_kwargs=None):
+                 design_parameter_options, ode_init_kwargs=None):
         self.prob = Problem(model=Group())
 
         self.ode = ode
@@ -50,6 +50,7 @@ class ScipyODEIntegrator(object):
         self.state_options = OrderedDict()
         self.time_options = time_options
         self.control_options = control_options
+        self.design_parameter_options = design_parameter_options
 
         pos = 0
 
@@ -117,30 +118,46 @@ class ScipyODEIntegrator(object):
 
         """
         model = self.prob.model
+
+        order = ['time_input', 'indep_states']
+
         if self.control_options:
             model.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])
 
-            model.set_order(['time_input', 'indep_states', 'indep_controls', 'ode',
-                             'state_rate_collector'])
+            order += ['indep_controls']
             model.connect('time', ['indep_controls.time'])
 
             for name, options in iteritems(self.control_options):
-                if name in self.ode_options._dynamic_parameters:
-                    targets = self.ode_options._dynamic_parameters[name]['targets']
+                if name in self.ode_options._parameters:
+                    targets = self.ode_options._parameters[name]['targets']
                     model.connect('controls:{0}'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in targets])
                 if options['rate_param']:
                     rate_param = options['rate_param']
-                    rate_targets = self.ode_options._dynamic_parameters[rate_param]['targets']
+                    rate_targets = self.ode_options._parameters[rate_param]['targets']
                     model.connect('control_rates:{0}_rate'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in rate_targets])
                 if options['rate2_param']:
                     rate2_param = options['rate2_param']
-                    rate2_targets = self.ode_options._dynamic_parameters[rate2_param]['targets']
+                    rate2_targets = self.ode_options._parameters[rate2_param]['targets']
                     model.connect('control_rates:{0}_rate2'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in rate2_targets])
-        else:
-            model.set_order(['time_input', 'indep_states', 'ode', 'state_rate_collector'])
+
+        if self.design_parameter_options:
+            ivc = model.add_subsystem('indep_design_params', IndepVarComp(), promotes_outputs=['*'])
+
+            order += ['indep_design_params']
+
+            for name, options in iteritems(self.design_parameter_options):
+                ivc.add_output('design_parameters:{0}'.format(name), val=np.zeros(options['shape']),
+                               units=options['units'])
+                if name in self.ode_options._parameters:
+                    targets = self.ode_options._parameters[name]['targets']
+                    model.connect('design_parameters:{0}'.format(name),
+                                  ['ode.{0}'.format(tgt) for tgt in targets])
+
+        order += ['ode', 'state_rate_collector']
+        model.set_order(order)
 
         self.prob.setup(check=check, mode=mode)
 
@@ -159,6 +176,22 @@ class ScipyODEIntegrator(object):
             value of the first time-derivative of the control at time t.
         """
         self._interp_comp.interpolants[name] = interpolant
+
+    def set_design_param_value(self, name, val, units=None):
+        """
+        Sets the values of design parameters in the problem, once self.prob has been setup.
+
+        Parameters
+        ----------
+        name : str
+            The name of the design parameter whose value is being set
+        val : float or ndarray
+            The value of the design parameter
+        units : str or None
+            The units in which the design parameter value is set.
+
+        """
+        self.prob.set_val('design_parameters:{0}'.format(name), val, units)
 
     def _unpack_state_vec(self, x):
         """

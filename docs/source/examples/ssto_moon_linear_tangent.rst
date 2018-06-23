@@ -17,7 +17,7 @@ at many points into optimizing the value of just two scalar parameters, :math:`a
 
 Implementing this modified constrol scheme requires only a few changes.  Rather than declaring
 :math:`\theta` as a controllable parameter for the ODE system, we implement a new component,
-LinearTangentGuidanceComp that accepts :math:`a` and :math:`b` as *static* optimal controls.  It
+LinearTangentGuidanceComp that accepts :math:`a` and :math:`b` as design parameters to be optimized.  It
 calculates :math:`theta`, which is then connected to the equations of motion component.
 
 -------------------------------

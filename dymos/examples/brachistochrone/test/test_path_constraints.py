@@ -1,18 +1,11 @@
 from __future__ import print_function, absolute_import, division
 
-import itertools
 import unittest
-
-from parameterized import parameterized
 
 
 class TestBrachistochronePathConstraints(unittest.TestCase):
 
     def test_control_rate_path_constraint_gl(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
@@ -33,10 +26,9 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True)
 
-        phase.add_control('theta', units='deg', dynamic=True,
-                          rate_continuity=False, lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_control('g', units='m/s**2', dynamic=False, opt=False, val=9.80665)
+        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -46,7 +38,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = 'csc'
 
-        p.setup(mode='rev')
+        p.setup(mode='fwd')
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
@@ -63,10 +55,6 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
 
     def test_control_rate2_path_constraint_gl(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
@@ -88,10 +76,9 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True)
 
-        phase.add_control('theta', units='deg', dynamic=True,
-                          rate_continuity=False, lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_control('g', units='m/s**2', dynamic=False, opt=False, val=9.80665)
+        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -101,7 +88,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = 'csc'
 
-        p.setup(mode='rev')
+        p.setup(mode='fwd')
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
@@ -118,10 +105,6 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
 
     def test_control_rate_path_constraint_radau(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
@@ -142,10 +125,9 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True)
 
-        phase.add_control('theta', units='deg', dynamic=True,
-                          rate_continuity=False, lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_control('g', units='m/s**2', dynamic=False, opt=False, val=9.80665)
+        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -155,7 +137,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = 'csc'
 
-        p.setup(mode='rev')
+        p.setup(mode='fwd')
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
@@ -172,10 +154,6 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
 
     def test_control_rate2_path_constraint_radau(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
@@ -197,10 +175,9 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True)
 
-        phase.add_control('theta', units='deg', dynamic=True,
-                          rate_continuity=False, lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_control('g', units='m/s**2', dynamic=False, opt=False, val=9.80665)
+        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -210,7 +187,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = 'csc'
 
-        p.setup(mode='rev')
+        p.setup(mode='fwd')
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0

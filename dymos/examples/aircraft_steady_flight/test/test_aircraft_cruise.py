@@ -3,8 +3,10 @@ from __future__ import print_function, division, absolute_import
 import unittest
 
 import numpy as np
+
 from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, \
     pyOptSparseDriver, ScipyOptimizeDriver
+from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos import Phase
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
@@ -58,21 +60,19 @@ class TestAircraftCruise(unittest.TestCase):
         phase.set_state_options('mass_fuel', fix_final=True, upper=20000.0, lower=0.0,
                                 scaler=1.0E-4, defect_scaler=1.0E-2)
 
-        phase.add_control('alt', units='km', dynamic=False, opt=False, lower=0.0, upper=10.0,
-                          rate_param='climb_rate', rate_continuity=True, ref=1.0)
+        phase.add_control('alt', units='km', opt=False, rate_param='climb_rate')
 
-        phase.add_control('mach', units=None, dynamic=False, opt=False, lower=0.2, upper=0.9,
-                          ref=1.0)
+        phase.add_control('mach', units=None, opt=False)
 
-        phase.add_control('S', units='m**2', dynamic=False, opt=False)
-        phase.add_control('mass_empty', units='kg', dynamic=False, opt=False)
-        phase.add_control('mass_payload', units='kg', dynamic=False, opt=False)
+        phase.add_design_parameter('S', units='m**2', opt=False)
+        phase.add_design_parameter('mass_empty', units='kg', opt=False)
+        phase.add_design_parameter('mass_payload', units='kg', opt=False)
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
 
-        p.model.connect('assumptions.S', 'phase0.controls:S')
-        p.model.connect('assumptions.mass_empty', 'phase0.controls:mass_empty')
-        p.model.connect('assumptions.mass_payload', 'phase0.controls:mass_payload')
+        p.model.connect('assumptions.S', 'phase0.design_parameters:S')
+        p.model.connect('assumptions.mass_empty', 'phase0.design_parameters:mass_empty')
+        p.model.connect('assumptions.mass_payload', 'phase0.design_parameters:mass_payload')
 
         phase.add_objective('time', loc='final', ref=3600)
 
@@ -85,58 +85,17 @@ class TestAircraftCruise(unittest.TestCase):
         p['phase0.t_duration'] = 1.515132 * 3600.0
         p['phase0.states:range'] = phase.interpolate(ys=(0, 1296.4), nodes='state_disc')
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.594555, 0), nodes='state_disc')
-        p['phase0.controls:mach'] = 0.8  # phase.interpolate(ys=(250, 250), nodes='control_disc')
-        # p['phase0.controls:TAS'][0] = p['phase0.controls:TAS'][-1] = 100.0
-        p['phase0.controls:alt'] = 5.0  # phase.interpolate(ys=(0, 0), nodes='control_disc')
-        # p['phase0.controls:alt'][0] = p['phase0.controls:alt'][-1] = 0.0
+        p['phase0.controls:mach'] = 0.8
+        p['phase0.controls:alt'] = 5.0
 
         p['assumptions.S'] = 427.8
         p['assumptions.mass_empty'] = 0.15E6
         p['assumptions.mass_payload'] = 84.02869 * 400
 
-        # p.run_model()
-
         p.run_driver()
 
-        print('fuel weight')
-        print(phase.get_values('mass_fuel', nodes='state_disc', units='kg') * 9.80665)
-        print('empty weight')
-        print(phase.get_values('mass_empty') * 9.80665)
-        print('payload weight')
-        print(phase.get_values('mass_payload') * 9.80665)
+        tas = phase.get_values('tas_comp.TAS', units='m/s')
+        time = phase.get_values('time', units='s')
+        range = phase.get_values('range', units='m')
 
-        print('range')
-        print(phase.get_values('range', nodes='state_disc'))
-
-        print('flight path angle')
-        print(phase.get_values('gam_comp.gam'))
-
-        print('true airspeed')
-        print(phase.get_values('tas_comp.TAS', units='m/s'))
-
-        print('coef of lift')
-        print(phase.get_values('aero.CL'))
-
-        print('coef of drag')
-        print(phase.get_values('aero.CD'))
-
-        print('atmos density')
-        print(phase.get_values('atmos.rho'))
-
-        print('alpha')
-        print(phase.get_values('flight_equilibrium.alpha', units='rad'))
-
-        print('coef of thrust')
-        print(phase.get_values('flight_equilibrium.CT'))
-
-        print('max_thrust')
-        print(phase.get_values('propulsion.max_thrust', units='N'))
-
-        print('tau')
-        print(phase.get_values('propulsion.tau'))
-
-        print('dynamic pressure')
-        print(phase.get_values('q_comp.q', units='Pa'))
-
-        print('S')
-        print(phase.get_values('S', units='m**2'))
+        assert_rel_error(self, range, tas*time, tolerance=1.0E-9)

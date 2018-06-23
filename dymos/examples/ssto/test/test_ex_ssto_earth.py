@@ -8,9 +8,7 @@ import unittest
 import matplotlib
 matplotlib.use('Agg')
 
-import numpy as np
 from numpy.testing import assert_almost_equal
-from openmdao.utils.assert_utils import assert_rel_error
 
 from parameterized import parameterized
 
@@ -69,10 +67,10 @@ class TestExampleSSTOEarth(unittest.TestCase):
         # Ensure time found is the known solution
         assert_almost_equal(p['phase0.t_duration'], 143, decimal=0)
 
-    # note: some code duplicated here on purpose.
-    #       This test is embedded into the docs, so it needs to be self contained.
     def test_simulate_plot(self):
         from matplotlib import pyplot as plt
+        import numpy as np
+        from openmdao.utils.assert_utils import assert_rel_error
 
         import dymos.examples.ssto.ex_ssto_earth as ex_ssto_earth
 

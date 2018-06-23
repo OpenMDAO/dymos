@@ -14,10 +14,13 @@ from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
 from openmdao.utils.logger_utils import get_logger
+from openmdao.utils.general_utils import warn_deprecation
+
 from dymos.phases.components import BoundaryConstraintComp
 from dymos.phases.components import ControlInputComp
+from dymos.phases.components import DesignParameterInputComp
 from dymos.phases.components import TimeComp
-from dymos.phases.options import ControlOptionsDictionary, \
+from dymos.phases.options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
     StateOptionsDictionary, TimeOptionsDictionary
 from dymos.phases.components import ControlRateComp
 from dymos.phases.grid_data import GridData
@@ -36,6 +39,7 @@ class PhaseBase(Group):
 
         self.state_options = {}
         self.control_options = {}
+        self.design_parameter_options = {}
         self.time_options = TimeOptionsDictionary()
         self._boundary_constraints = {}
         self._path_constraints = {}
@@ -144,14 +148,14 @@ class PhaseBase(Group):
         self.state_options[name]['ref0'] = ref0
         self.state_options[name]['defect_scaler'] = defect_scaler
 
-    def add_control(self, name, val=0.0, units=0, dynamic=True, opt=True, lower=None, upper=None,
-                    fix_initial=False, fix_final=False,
+    def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
+                    fix_initial=False, fix_final=False, dynamic=None,
                     scaler=None, adder=None, ref=None, ref0=None, continuity=None,
                     rate_continuity=None, rate_continuity_scaler=1.0,
                     rate2_continuity=None, rate2_continuity_scaler=1.0,
                     rate_param=None, rate2_param=None):
         """
-        Declares that a parameter of the ODE is to potentially be used as an optimal control.
+        Adds a dynamic control variable to be tied to a parameter in the ODE.
 
         Parameters
         ----------
@@ -163,7 +167,7 @@ class PhaseBase(Group):
         units : str or None or 0
             Units in which the control variable is defined.  If 0, use the units declared
             for the parameter in the ODE.
-        dynamic : bool
+        dynamic : bool (Deprecated)
             If True (default) this is a dynamic control, the values provided correspond to
             the number of nodes in the phase.  If False, this is a static control, sized (1,),
             and that value is broadcast to all nodes within the phase.
@@ -220,29 +224,43 @@ class PhaseBase(Group):
         """
         if name in self.control_options:
             raise ValueError('{0} has already been added as a control.'.format(name))
+        if name in self.design_parameter_options:
+            raise ValueError('{0} has already been added as a design parameter.'.format(name))
+
+        if dynamic is not None:
+            warn_deprecation('Keyword dynamic provided in add_control when adding control {0}. '
+                             'Static controls should be added to the phase via the '
+                             'add_design_parameter method.  In future versions, all controls will'
+                             'be considered dynamic'.format(name))
+            if not dynamic:
+                self.add_design_parameter(name, val, units, opt, lower, upper, scaler, adder, ref,
+                                          ref0)
+            return
+        else:
+            dynamic = True
 
         self.control_options[name] = ControlOptionsDictionary()
 
-        if name in self.ode_options._dynamic_parameters:
-            ode_param_info = self.ode_options._dynamic_parameters[name]
+        if name in self.ode_options._parameters:
+            ode_param_info = self.ode_options._parameters[name]
             self.control_options[name]['units'] = ode_param_info['units']
             self.control_options[name]['shape'] = ode_param_info['shape']
         else:
             rate_used = \
-                rate_param is not None and rate_param in self.ode_options._dynamic_parameters
+                rate_param is not None and rate_param in self.ode_options._parameters
             rate2_used = \
-                rate2_param is not None and rate2_param in self.ode_options._dynamic_parameters
+                rate2_param is not None and rate2_param in self.ode_options._parameters
             if not rate_used and not rate2_used:
                 err_msg = '{0} is not a controllable parameter in the ODE system, nor is it ' \
                           'connected to one through its rate or second derivative.'.format(name)
                 raise ValueError(err_msg)
 
         if rate_param is not None:
-            ode_rate_param_info = self.ode_options._dynamic_parameters[rate_param]
+            ode_rate_param_info = self.ode_options._parameters[rate_param]
             self.control_options[name]['rate_param'] = rate_param
             self.control_options[name]['shape'] = ode_rate_param_info['shape']
         if rate2_param is not None:
-            ode_rate2_param_info = self.ode_options._dynamic_parameters[rate2_param]
+            ode_rate2_param_info = self.ode_options._parameters[rate2_param]
             self.control_options[name]['rate2_param'] = rate2_param
             self.control_options[name]['shape'] = ode_rate2_param_info['shape']
 
@@ -266,14 +284,13 @@ class PhaseBase(Group):
             if rate_continuity is not None:
                 illegal_options.append('rate_continuity')
             if illegal_options:
-                msg = 'Invalid options for non-optimal control:' + ', '.join(illegal_options)
+                msg = 'Invalid options for non-optimal control {0}:'.format(name) + \
+                      ', '.join(illegal_options)
                 warnings.warn(msg, RuntimeWarning)
 
         self.control_options[name]['val'] = val
         self.control_options[name]['dynamic'] = dynamic
         self.control_options[name]['opt'] = opt
-        # self.control_options[name]['opt_initial'] = opt_initial
-        # self.control_options[name]['opt_final'] = opt_final
         self.control_options[name]['fix_initial'] = fix_initial
         self.control_options[name]['fix_final'] = fix_final
         self.control_options[name]['lower'] = lower
@@ -302,6 +319,96 @@ class PhaseBase(Group):
 
         if units != 0:
             self.control_options[name]['units'] = units
+
+    def add_design_parameter(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
+                             scaler=None, adder=None, ref=None, ref0=None, rate_param=None,
+                             rate2_param=None):
+        """
+        Declares that a parameter of the ODE is to potentially be used as an optimal control.
+
+        Parameters
+        ----------
+        name : str
+            Name of the controllable parameter in the ODE.
+        val : float or ndarray
+            Default value of the control at all nodes.  If val scalar and the control
+            is dynamic it will be broadcast.
+        units : str or None or 0
+            Units in which the control variable is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        opt : bool
+            If True (default) the value(s) of this control will be design variables in
+            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
+            If False, the values of this control will exist in
+            'phase_name.input_controls.controls:control_name', where it may be connected to
+            external sources if desired.
+        lower : float or ndarray
+            The lower bound of the control at the nodes of the phase.
+        upper : float or ndarray
+            The upper bound of the control at the nodes of the phase.
+        scaler : float or ndarray
+            The scaler of the control value at the nodes of the phase.
+        adder : float or ndarray
+            The adder of the control value at the nodes of the phase.
+        ref0 : float or ndarray
+            The zero-reference value of the control at the nodes of the phase.
+        ref : float or ndarray
+            The unit-reference value of the control at the nodes of the phase
+        rate_param : None or str
+            The name of the parameter in the ODE to which the first time-derivative
+            of the control value is connected. Rates of design parameters are always zero,
+            but this is included for consistency with dynamic controls.
+        rate2_param : None or str
+            The name of the parameter in the ODE to which the second time-derivative
+            of the control value is connected. Rates of design parameters are always zero,
+            but this is included for consistency with dynamic controls.
+
+        """
+        if name in self.control_options:
+            raise ValueError('{0} has already been added as a control.'.format(name))
+        if name in self.design_parameter_options:
+            raise ValueError('{0} has already been added as a design parameter.'.format(name))
+
+        self.design_parameter_options[name] = DesignParameterOptionsDictionary()
+
+        if name in self.ode_options._parameters:
+            ode_param_info = self.ode_options._parameters[name]
+            self.design_parameter_options[name]['units'] = ode_param_info['units']
+            self.design_parameter_options[name]['shape'] = ode_param_info['shape']
+        else:
+            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
+            raise ValueError(err_msg)
+
+        # Don't allow the user to provide desvar options if the design parameter is not a desvar
+        if not opt:
+            illegal_options = []
+            if lower is not None:
+                illegal_options.append('lower')
+            if upper is not None:
+                illegal_options.append('upper')
+            if scaler is not None:
+                illegal_options.append('scaler')
+            if adder is not None:
+                illegal_options.append('adder')
+            if ref is not None:
+                illegal_options.append('ref')
+            if ref0 is not None:
+                illegal_options.append('ref0')
+            if illegal_options:
+                msg = 'Invalid options for non-optimal control:' + ', '.join(illegal_options)
+                warnings.warn(msg, RuntimeWarning)
+
+        self.design_parameter_options[name]['val'] = val
+        self.design_parameter_options[name]['opt'] = opt
+        self.design_parameter_options[name]['lower'] = lower
+        self.design_parameter_options[name]['upper'] = upper
+        self.design_parameter_options[name]['scaler'] = scaler
+        self.design_parameter_options[name]['adder'] = adder
+        self.design_parameter_options[name]['ref'] = ref
+        self.design_parameter_options[name]['ref0'] = ref0
+
+        if units != 0:
+            self.design_parameter_options[name]['units'] = units
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None, lower=None,
                                 upper=None, equals=None, scaler=None, adder=None,
@@ -662,6 +769,11 @@ class PhaseBase(Group):
                 return 'indep_control'
             else:
                 return 'input_control'
+        elif var in self.design_parameter_options:
+            if self.design_parameter_options[var]['opt']:
+                return 'indep_design_parameter'
+            else:
+                return 'input_design_parameter'
         elif var.endswith('_rate'):
             if var[:-5] in self.control_options:
                 return 'control_rate'
@@ -699,13 +811,13 @@ class PhaseBase(Group):
             promoted_outputs = []
 
             self._setup_controls()
-            # self._setup_opt_controls()
-            # self._setup_input_controls()
             promoted_outputs.append('control_rates:*')
 
             self.add_subsystem('control_rate_comp', subsys=ctrl_rate_comp,
                                promotes_outputs=promoted_outputs)
             self.connect('time.dt_dstau', 'control_rate_comp.dt_dstau')
+        if self.design_parameter_options:
+            self._setup_design_parameters()
 
         self._setup_rhs()
         self._setup_defects()
@@ -865,6 +977,49 @@ class PhaseBase(Group):
 
         return num_dynamic_controls
 
+    def _setup_design_parameters(self):
+        """
+        Adds an IndepVarComp if necessary and issues appropriate connections based
+        on transcription.
+        """
+        opt_design_params = [name for (name, opts) in iteritems(self.design_parameter_options)
+                             if opts['opt']]
+
+        num_opt_design_params = len(opt_design_params)
+
+        num_input_design_params = len(self.design_parameter_options) - num_opt_design_params
+
+        grid_data = self.grid_data
+
+        if num_opt_design_params > 0:
+            indep = self.add_subsystem('indep_design_params', subsys=IndepVarComp(),
+                                       promotes_outputs=['*'])
+
+        if num_input_design_params > 0:
+            passthru = DesignParameterInputComp(
+                num_nodes=grid_data.num_nodes,
+                design_parameter_options=self.design_parameter_options)
+
+            self.add_subsystem('input_design_params', subsys=passthru, promotes_inputs=['*'],
+                               promotes_outputs=['*'])
+
+        for name, options in iteritems(self.design_parameter_options):
+            if options['opt']:
+                num_input_nodes = 1
+
+                self.add_design_var(name='design_parameters:{0}'.format(name),
+                                    lower=options['lower'],
+                                    upper=options['upper'],
+                                    scaler=options['scaler'],
+                                    adder=options['adder'],
+                                    ref0=options['ref0'],
+                                    ref=options['ref'])
+
+                indep.add_output(name='design_parameters:{0}'.format(name),
+                                 val=options['val'],
+                                 shape=(num_input_nodes, np.prod(options['shape'])),
+                                 units=options['units'])
+
     def _setup_rhs(self):
         raise NotImplementedError()
 
@@ -976,7 +1131,7 @@ class PhaseBase(Group):
         logger = get_logger('check_config', use_format=True)
         unconnected = []
         ode_options = self.options['ode_class'].ode_options
-        ode_parameters = ode_options._dynamic_parameters.copy()
+        ode_parameters = ode_options._parameters.copy()
 
         for p in ode_parameters:
             p_is_connected = False
@@ -986,6 +1141,9 @@ class PhaseBase(Group):
                 if options['rate_param'] == p:
                     p_is_connected = True
                 if options['rate2_param'] == p:
+                    p_is_connected = True
+            for param_name, options in iteritems(self.design_parameter_options):
+                if param_name == p:
                     p_is_connected = True
             if not p_is_connected:
                 unconnected.append(p)

@@ -12,18 +12,18 @@ although solving systems of DAEs is also possible.
 
   \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d})
 
-Controls
---------
+Controls and Design Parameters
+------------------------------
 
 In order to impact the behavior of such systems we need *controls*.  Controls may be allowed
 to vary with time, such as the angle-of-attack of an aircraft during flight.  We refer to these
 as *dynamic* controls :math:`\left(\bar{u}\right)`.  Other controllable parameters might be fixed
 with time, such as the wingspan of an aircraft.  We refer to these
-as *static* controls :math:`\left(\bar{d}\right)`, although in the literature they may also be
-referred to as design parameters.  The endpoints in time, state values, and control values
-define the independent variables for our optimization problem.  In |project|, we discretize these
-variables in time to convert a continuous-time optimal control problem into a nonlinear programming
-(NLP) problem.
+as *design parameters* :math:`\left(\bar{d}\right)`, although in the literature they may also be
+referred to as static controls.  The endpoints in time, state values, control values, and
+design parameter values define the independent variables for our optimization problem.
+In |project|, we discretize these variables in time to convert a continuous-time optimal control
+problem into a nonlinear programming (NLP) problem.
 
 Constraints
 -----------
@@ -39,7 +39,7 @@ desired value.
     \mathrm{Time:}& \qquad {t}_{lb} \leq t \leq {t}_{ub} \\
     \mathrm{State \, Variables:}& \qquad \bar{x}_{lb} \leq \bar{x} \leq \bar{x}_{ub} \\
     \mathrm{Dynamic \, Controls:}& \qquad \bar{u}_{lb} \leq \bar{u} \leq \bar{u}_{ub} \\
-    \mathrm{Static \, Controls:}& \qquad \bar{d}_{lb} \leq \bar{d} \leq \bar{d}_{ub} \\
+    \mathrm{Design \, Parameters:}& \qquad \bar{d}_{lb} \leq \bar{d} \leq \bar{d}_{ub} \\
     \end{align*}
 
 Other times we may we to constrain an output of our system at a specific point along the trajectory
@@ -89,7 +89,7 @@ The optimization problem as defined by |project| can Thus be stated as:
     \mathrm{Time:}& \qquad {t}_{lb} \leq t \leq {t}_{ub} \\
     \mathrm{State \, Variables:}& \qquad \bar{x}_{lb} \leq \bar{x} \leq \bar{x}_{ub} \\
     \mathrm{Dynamic \, Controls:}& \qquad \bar{u}_{lb} \leq \bar{u} \leq \bar{u}_{ub} \\
-    \mathrm{Static \, Controls:}& \qquad \bar{d}_{lb} \leq \bar{d} \leq \bar{d}_{ub} \\
+    \mathrm{Design \, Parameters:}& \qquad \bar{d}_{lb} \leq \bar{d} \leq \bar{d}_{ub} \\
     \mathrm{Initial \, Boundary \, Constraints:}& \qquad \bar{g}_{0,lb} \leq g_{0}(\bar{x}_0,t_0,\bar{u}_0, \bar{d}) \leq \bar{g}_{0,ub} \\
     \mathrm{Final \, Boundary \, Constraints:}& \qquad \bar{g}_{f,lb} \leq g_{f}(\bar{x}_f,t_f,\bar{u}_f, \bar{d}) \leq \bar{g}_{f,ub} \\
     \mathrm{Path \, Constraints:}& \qquad \bar{p}_{f,lb} \leq p_{f}(\bar{x},t,\bar{u},\bar{d}) \leq \bar{p}_{f,ub} \\
