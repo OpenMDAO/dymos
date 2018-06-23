@@ -4,8 +4,8 @@
    contain the root `toctree` directive.
 
 
-|project|: Open-source Optimal Control for Multidisciplinary Systems (v.|version|)
-==================================================================================
+|project|: Open-source Optimal Control for Multidisciplinary Systems
+====================================================================
 
 |project| is an open-source tool for solving optimal control problems involving multidisplinary systems.
 It is built on top of the `OpenMDAO framework <https://github.com/openmdao/blue>`_.
