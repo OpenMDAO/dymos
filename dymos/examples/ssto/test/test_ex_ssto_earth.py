@@ -72,9 +72,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
         import numpy as np
         from openmdao.utils.assert_utils import assert_rel_error
 
-
         import dymos.examples.ssto.ex_ssto_earth as ex_ssto_earth
-
 
         p = ex_ssto_earth.ssto_earth('gauss-lobatto', num_seg=20, transcription_order=5,
                                      top_level_jacobian='csc')
