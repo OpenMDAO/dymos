@@ -1,9 +1,5 @@
 from __future__ import print_function, division, absolute_import
 
-import os
-
-import numpy as np
-
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
 from dymos import Phase

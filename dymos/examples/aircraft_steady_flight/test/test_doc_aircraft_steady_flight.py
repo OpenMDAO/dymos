@@ -12,8 +12,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         import numpy as np
         import matplotlib.pyplot as plt
 
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, pyOptSparseDriver, \
-            DirectSolver, IndepVarComp, SqliteRecorder
+        from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, IndepVarComp
         from openmdao.utils.assert_utils import assert_rel_error
 
         from dymos import Phase
@@ -23,7 +22,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver.options['optimizer'] = 'SLSQP'
         p.driver.options['dynamic_simul_derivs'] = True
 
         num_seg = 15
