@@ -20,7 +20,7 @@ where
 and
 :math:`\textbf f` is the *ODE function*.
 
-|project| can treat the parameters :math:`\textbf u` as either static or dynamic **controls**.
+|project| can treat the parameters :math:`\textbf u` as either **design parameters** or dynamic **controls**.
 In addition, |project| automatically calculates the first and second time-derivatives of the controls.
 These derivatives can then be utilized as via constraints or as additional parameters to the ODE.
 Subsequently, the optimal control problem as solved by |project| can be expressed as:

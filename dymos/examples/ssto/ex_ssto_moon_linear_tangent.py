@@ -77,7 +77,7 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
     p.model.options['assembled_jac_type'] = 'csc'
     p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-    p.setup(mode='fwd')
+    p.setup(mode='fwd', force_alloc_complex=True)
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 500.0
@@ -90,14 +90,6 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
     p['phase0.design_parameters:b_ctrl'] = 3.0
 
     p.run_driver()
-
-    from openmdao.api import view_model
-    view_model(p)
-
-    np.set_printoptions(linewidth=1024)
-    cpd = p.check_partials(compact_print=True)
-    from openmdao.utils.assert_utils import assert_check_partials
-    assert_check_partials(cpd)
 
     return p
 

@@ -49,35 +49,40 @@ phase method `set_state_options`.  The following options are valid:
     state_options
 
 
-Controls
-~~~~~~~~
+Controls and Design Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Controls are typically inputs to the ODE that affect the ODE but, unlike states, don't define the
-system itself.  Things like throttle level, elevator deflection angle, or spring constants are
-considered to be controls.
+Typically, and ODE will have inputs that impact its values but, unlike states, don't define the
+system itself.  Such inputs include things like throttle level, elevator deflection angle,
+or spring constants.
 
-Some controls are values which we might expect to vary continuously throughout a trajectory, like
-an elevator deflection angle for instance.  We refer to these as *dynamic* controls.
+Some of these inputs are values which we might expect to vary continuously throughout a trajectory,
+like an elevator deflection angle for instance.  When we allow the optimizer to determine the dynamic
+value of these parameters, we call them *controls*.
 
-Other controls are values which impact the system but have one set value throughout the trajectory.
-As you might expect, we refer to these as *static* controls, since they do not vary with time.
-Static controls include things like the wingspan of a vehicle or the mass of a heatsink.  Since
-these parameters often are related to vehicle design, they are sometimes referred to as design
-parameters.  A control may be made static by specify the option `dynamic=False` in the phase method
-`add_control`.
+Other inputs are values which impact the system but have one set value throughout the trajectory.
+We refer to these non-time-varying inputs as *design parameters*, since they typically involve
+parameters which define a system. Design parameters include things like the wingspan of a vehicle
+or the mass of a heatsink.  A design parameter can be declared using the phase method
+`add_design_parameter`.
 
-States are defined in the ODE.  Controls, on the other hand, are optionally assigned to control
-parameters to the ODE.  Therefore, the method name to add a control to a phase is `add_control`.
-Valid options for controls are as follows:
+States are defined in the ODE.  Controls and design parameters, on the other hand, are optionally
+assigned to controllable parameters to the ODE.  Therefore, the method name to add a control to
+a phase is `add_control`. Valid options for controls and design parameters are as follows:
 
 .. embed-options::
     dymos.phases.options
     _ForDocs
     control_options
 
+.. embed-options::
+    dymos.phases.options
+    _ForDocs
+    design_parameter_options
+
 Like states, *dynamic* controls are modeled as polynomials.  When
 transcribed to a nonlinear programming problem, a dynamic control is given a unique value at each
-node within the phase.  Static controls are modeled as a singular value that is broadcast to all
+node within the phase.  Design parameters are modeled as a singular value that is broadcast to all
 nodes in the phase before the ODE function is evaluated.  If you can parameterize your problem in
 such a way that static controls can be used, performance may be significantly better due to the
 size of the NLP problem being much smaller.
@@ -94,7 +99,7 @@ The following problem demonstrates the use of |project| to solve for the minimum
 stage launch vehicle to reach lunar orbit from the surface of the moon.  Optimal control theory
 dictates that the tangent of the pitch angle of the thrust vector varies linearly with time.
 Therefore, rather than using a dynamic control to specify the thrust angle at each instance in
-time, we can instead specify two paramters (`a` and `b`) as static controls.  These parameters
+time, we can instead specify two paramters (`a` and `b`) as design parameters.  These parameters
 dictate the slope and intercept of the tangent of the thrust angle w.r.t. time.
 
 

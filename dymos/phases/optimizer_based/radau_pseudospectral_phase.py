@@ -368,6 +368,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                     'state': 'indep_states.states:{0}',
                     'indep_control': 'indep_controls.controls:{0}',
                     'input_control': 'input_controls.controls:{0}_out',
+                    'indep_design_parameter': 'indep_design_params.design_parameters:{0}',
+                    'input_design_parameter': 'input_design_params.design_parameters:{0}_out',
                     'control_rate': 'control_rate_comp.control_rates:{0}',
                     'control_rate2': 'control_rate_comp.control_rates:{0}',
                     'rhs': 'rhs_all.{0}'}
@@ -388,6 +390,13 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             else:
                 output_value = convert_units(op[var_path]['value'], output_units, units)
                 output_value = np.repeat(output_value, gd.num_nodes, axis=0)
+
+        elif var_type in ('input_design_parameter', 'indep_design_parameter'):
+            var_path = var_prefix + path_map[var_type].format(var)
+            output_units = op[var_path]['units']
+
+            output_value = convert_units(op[var_path]['value'], output_units, units)
+            output_value = np.repeat(output_value, gd.num_nodes, axis=0)
 
         elif var_type == 'rhs':
             rhs_all_outputs = dict(self.rhs_all.list_outputs(out_stream=None, values=True,

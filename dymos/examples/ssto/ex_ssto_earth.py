@@ -45,8 +45,8 @@ def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
     phase.add_boundary_constraint('vx', loc='final', equals=7796.6961)
     phase.add_boundary_constraint('vy', loc='final', equals=0)
 
-    phase.add_control('theta', units='rad', dynamic=True, lower=-1.57, upper=1.57)
-    phase.add_control('thrust', units='N', dynamic=False, opt=False, val=2100000.0)
+    phase.add_control('theta', units='rad', lower=-1.57, upper=1.57)
+    phase.add_design_parameter('thrust', units='N', opt=False, val=2100000.0)
 
     phase.add_objective('time', loc='final', scaler=0.01)
 

@@ -59,7 +59,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=True,
                             upper=1.5E5, lower=0.0, scaler=1.0E-5, defect_scaler=1.0E-1)
 
-    phase.add_control('alt', units='kft', dynamic=True, opt=True, lower=0.0, upper=50.0,
+    phase.add_control('alt', units='kft', opt=True, lower=0.0, upper=50.0,
                       rate_param='climb_rate',
                       rate_continuity=True, rate_continuity_scaler=1.0,
                       rate2_continuity=True, rate2_continuity_scaler=1.0, ref=1.0,

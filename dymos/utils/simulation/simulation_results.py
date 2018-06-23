@@ -149,6 +149,11 @@ class SimulationResults(object):
                 p['control_rates:{0}_rate2'.format(name)] = \
                     np.reshape(self.get_values('{0}_rate2'.format(name)), shape)
 
+        # Assign design parameters
+        for name, options in iteritems(self.design_parameter_options):
+            shape = p['design_parameters:{0}'.format(name)].shape
+            p['design_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
+
         # Populate outputs of ODE
         prom2abs_ode_outputs = p.model.ode._var_allprocs_prom2abs_list['output']
         for prom_name, abs_name in iteritems(prom2abs_ode_outputs):
@@ -158,7 +163,7 @@ class SimulationResults(object):
                 p[abs_name[0]] = np.reshape(self.get_values(prom_name), p[abs_name[0]].shape)
 
         # Run model to record file
-        p.run_driver()
+        p.run_model()
 
     def _load_results(self, filename):
         """
@@ -208,12 +213,11 @@ class SimulationResults(object):
         elif var in self.state_options:
             output_path = 'states:{0}'.format(var)
 
-        elif var in self.control_options and self.control_options[var]['opt']:
+        elif var in self.control_options:  # and self.control_options[var]['opt']:
             output_path = 'controls:{0}'.format(var)
 
-        elif var in self.control_options and not self.control_options[var]['opt']:
-            # TODO: make a test for this, haven't experimented with this yet.
-            output_path = 'controls:{0}'.format(var)
+        elif var in self.design_parameter_options:  # and self.design_parameter_options[var]['opt']:
+            output_path = 'design_parameters:{0}'.format(var)
 
         elif var.endswith('_rate') and var[:-5] in self.control_options:
             output_path = 'control_rates:{0}'.format(var)

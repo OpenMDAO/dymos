@@ -47,7 +47,7 @@ In the following code we follow the following process to solve the problem:
 
 * Set the state options (bounds, scaling, etc).  In this case we use :code:`fix_initial` and :code:`fix_final` to specify whether the initial/final values are included as design variables.
 
-* Add controls to the problem.  We can add static or dynamic controls and tie them (or their derivatives) to the parameters in the ODE system.
+* Add controls to the problem.  We can add design parameters or dynamic controls and tie them (or their derivatives) to the parameters in the ODE system.
 
 * Set the objective.  Here we seek to maximize the final value of :math:`x`.
 

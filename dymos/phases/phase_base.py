@@ -148,8 +148,8 @@ class PhaseBase(Group):
         self.state_options[name]['ref0'] = ref0
         self.state_options[name]['defect_scaler'] = defect_scaler
 
-    def add_control(self, name, val=0.0, units=0, dynamic=True, opt=True, lower=None, upper=None,
-                    fix_initial=False, fix_final=False,
+    def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
+                    fix_initial=False, fix_final=False, dynamic=None,
                     scaler=None, adder=None, ref=None, ref0=None, continuity=None,
                     rate_continuity=None, rate_continuity_scaler=1.0,
                     rate2_continuity=None, rate2_continuity_scaler=1.0,
@@ -167,7 +167,7 @@ class PhaseBase(Group):
         units : str or None or 0
             Units in which the control variable is defined.  If 0, use the units declared
             for the parameter in the ODE.
-        dynamic : bool
+        dynamic : bool (Deprecated)
             If True (default) this is a dynamic control, the values provided correspond to
             the number of nodes in the phase.  If False, this is a static control, sized (1,),
             and that value is broadcast to all nodes within the phase.
@@ -227,11 +227,17 @@ class PhaseBase(Group):
         if name in self.design_parameter_options:
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
 
-        if not dynamic:
-            warn_deprecation('Control {0} is static. Static controls should be added to the phase '
-                             'via the add_design_parameter method.'.format(name))
-            self.add_design_parameter(name, val, units, opt, lower, upper, scaler, adder, ref, ref0)
+        if dynamic is not None:
+            warn_deprecation('Keyword dynamic provided in add_control when adding control {0}. '
+                             'Static controls should be added to the phase via the '
+                             'add_design_parameter method.  In future versions, all controls will'
+                             'be considered dynamic'.format(name))
+            if not dynamic:
+                self.add_design_parameter(name, val, units, opt, lower, upper, scaler, adder, ref,
+                                          ref0)
             return
+        else:
+            dynamic = True
 
         self.control_options[name] = ControlOptionsDictionary()
 
@@ -763,6 +769,11 @@ class PhaseBase(Group):
                 return 'indep_control'
             else:
                 return 'input_control'
+        elif var in self.design_parameter_options:
+            if self.design_parameter_options[var]['opt']:
+                return 'indep_design_parameter'
+            else:
+                return 'input_design_parameter'
         elif var.endswith('_rate'):
             if var[:-5] in self.control_options:
                 return 'control_rate'

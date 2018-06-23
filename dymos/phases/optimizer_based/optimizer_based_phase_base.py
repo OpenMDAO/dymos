@@ -6,7 +6,7 @@ import numpy as np
 from dymos.phases.optimizer_based.components import CollocationComp, StateInterpComp
 from dymos.phases.components import EndpointConditionsComp, ContinuityComp
 from dymos.phases.phase_base import PhaseBase
-from dymos.utils.interpolate import LagrangeBarycentricInterpolant, StaticInterpolant
+from dymos.utils.interpolate import LagrangeBarycentricInterpolant
 from dymos.utils.misc import CoerceDesvar
 from dymos.utils.simulation import ScipyODEIntegrator, SimulationResults, \
     StdOutObserver, ProgressBarObserver
@@ -33,9 +33,9 @@ class OptimizerBasedPhaseBase(PhaseBase):
         A dictionary of the default options for controllable inputs of the Phase RHS
 
     """
-
     def simulate(self, times='all', integrator='vode', integrator_params=None,
-                 observer=None, direction='forward', record_file=None, record=True):
+                 observer=None, direction='forward', record_file=None, record=True,
+                 check_setup=False):
         """
         Integrate the current phase using the current values of time, states, and controls.
 
@@ -112,7 +112,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         for state_name, options in iteritems(self.state_options):
             x0[state_name] = self._outputs['states:{0}'.format(state_name)][x0_idx, ...]
 
-        rhs_integrator.setup()
+        rhs_integrator.setup(check=check_setup)
 
         exp_out = SimulationResults(time_options=self.time_options,
                                     state_options=self.state_options,
@@ -149,11 +149,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 ctrl_vals = control_vals[map_input_idxs_to_all][seg_idxs[0]:seg_idxs[1]].ravel()
                 interp.setup(x0=seg_times[0], xf=seg_times[-1], f_j=ctrl_vals)
                 rhs_integrator.set_interpolant(control_name, interp)
-
-                # else:
-                #     interp = StaticInterpolant(options['shape'])
-                #     interp.setup(control_vals.ravel())
-                #     rhs_integrator.set_interpolant(control_name, interp)
 
             if not first_seg:
                 for state_name, options in iteritems(self.state_options):
@@ -245,8 +240,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         else:
             raise ValueError('Invalid transcription: {0}'.format(transcription))
 
-        num_segment_boundaries = grid_data.num_segments - 1
-        if num_segment_boundaries > 0:
+        if self._requires_continuity_comp():
             order.append('continuity_constraint')
         if getattr(self, 'boundary_constraints', None) is not None:
             order.append('boundary_constraints')
@@ -351,12 +345,41 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                         ref=coerce_desvar_option('ref'),
                                         indices=desvar_indices)
 
+    def _requires_continuity_comp(self):
+        """
+        Returns True if the phase requires a continuity enforcement component.
+        """
+        grid_data = self.grid_data
+        compressed = self.options['compressed']
+        num_seg = grid_data.num_segments
+
+        continuous_states = \
+            [name for (name, opts) in iteritems(self.state_options) if opts['continuity']]
+
+        continuous_controls = \
+            [name for (name, opts) in iteritems(self.control_options) if opts['continuity']]
+
+        rate_continuous_controls = \
+            [name for (name, opts) in iteritems(self.control_options) if opts['rate_continuity']]
+
+        rate2_continuous_controls = \
+            [name for (name, opts) in iteritems(self.control_options) if opts['rate2_continuity']]
+
+        state_val_cont_required = not compressed and num_seg > 1 and continuous_states
+        control_val_cont_required = not compressed and num_seg > 1 and continuous_controls
+        control_rate_cont_required = num_seg > 1 and rate_continuous_controls
+        control_rate2_cont_required = num_seg > 1 and rate2_continuous_controls
+
+        return (state_val_cont_required or control_val_cont_required or
+                control_rate_cont_required or control_rate2_cont_required)
+
     def _setup_defects(self):
         """
         Setup the Collocation and Continuity components as necessary.
         """
         grid_data = self.grid_data
         compressed = self.options['compressed']
+        num_seg = grid_data.num_segments
 
         time_units = self.time_options['units']
 
@@ -369,16 +392,16 @@ class OptimizerBasedPhaseBase(PhaseBase):
             'time.dt_dstau', ('collocation_constraint.dt_dstau'),
             src_indices=grid_data.subset_node_indices['col'])
 
-        num_segment_boundaries = grid_data.num_segments - 1
-
-        if num_segment_boundaries > 0:
-            # Continuity Constraints
+        # Add the continuity constraint component if necessary
+        if self._requires_continuity_comp():
             self.add_subsystem('continuity_constraint',
                                ContinuityComp(grid_data=grid_data,
                                               state_options=self.state_options,
                                               control_options=self.control_options,
                                               time_units=time_units))
             self.connect('t_duration', 'continuity_constraint.t_duration')
+
+        if num_seg > 1:
 
             for name, options in iteritems(self.state_options):
                 if not compressed and options['continuity']:

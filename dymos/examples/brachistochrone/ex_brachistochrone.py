@@ -46,8 +46,7 @@ def brachistochrone_min_time(
     phase.set_state_options('y', fix_initial=True, fix_final=True)
     phase.set_state_options('v', fix_initial=True, fix_final=False)
 
-    phase.add_control('theta', units='deg', dynamic=True,
-                      rate_continuity=True, lower=0.01, upper=179.9)
+    phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
 
     phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 

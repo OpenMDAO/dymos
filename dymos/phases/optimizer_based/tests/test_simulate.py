@@ -52,8 +52,7 @@ class TestSimulateRecording(unittest.TestCase):
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True)
 
-        phase.add_control('theta', units='deg', dynamic=True,
-                          rate_continuity=True, lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -123,8 +122,7 @@ class TestSimulateRecording(unittest.TestCase):
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True)
 
-        phase.add_control('theta', units='deg', dynamic=True,
-                          rate_continuity=True, lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
