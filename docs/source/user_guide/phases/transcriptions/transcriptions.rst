@@ -6,9 +6,9 @@ Transcriptions
 optimal control problem into an analogous nonlinear programming (NLP) problem.
 
 |project| implements multi-phase trajectory optimization.  That is to say, in each phase
-the state and control time histories are continuous.  At the beginning or end of each phase,
+the state and time histories are continuous.  At the beginning or end of each phase,
 a discrete jump in the value of a state variable is permitted.  This comes in useful when
-modelling things like stage or store (mass) jettisons or impulsive maneuvers (:math:`\Delta`Vs).
+modeling things like stage or store (mass) jettisons or impulsive changes in velocity.
 By linking phases together with continuity constraints, a trajectory or series of trajectories
 can be assembled.
 

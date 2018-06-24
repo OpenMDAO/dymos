@@ -27,7 +27,6 @@ Table of Contents
 
     user_guide/user_guide
     examples/examples
-    api_docs
 
 
 Indices and tables
