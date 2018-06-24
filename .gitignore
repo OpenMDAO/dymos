@@ -21,11 +21,8 @@ SNOPT_summary.out
 .DS_Store
 
 # Sphinx build directory
-docs/build/
-docs/*.png
-
-# Build dir
-build
+# docs/build/
+# docs/*.png
 
 # nosetests coverage
 .coverage
