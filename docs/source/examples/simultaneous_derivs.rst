@@ -41,6 +41,7 @@ algorithm before handing the problem to the optimizer.  To enable this capabilit
 add the following lines to the pyoptsparsedriver.
 
 .. code-block::
+
     driver.options['dynamic_simul_derivs'] = True
     driver.options['dynamic_derivs_repeats'] = 5
 

@@ -19,9 +19,6 @@ class TestBrachistochroneSimulDerivsRunExample(unittest.TestCase):
         # Compute sparsity/coloring when run_driver is called
         p.driver.options['dynamic_simul_derivs'] = True
 
-        # p.driver.opt_settings['Major iterations limit'] = 1000
-        # p.driver.opt_settings['iSumm'] = 6
-
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,
                       num_segments=100,

@@ -21,4 +21,3 @@ the software supports the following techniques:
 
     gauss-lobatto
     radau-pseudospectral
-    general_linear_methods
