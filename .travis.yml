@@ -73,7 +73,7 @@ install:
 - pip install -e .
 
 script:
-- testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
+# - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
 # build the docs
 - cd docs
 - make clean
