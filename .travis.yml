@@ -24,79 +24,84 @@ addons:
     - libopenmpi-dev
     - openmpi-bin
 
-before_install:
-- sudo apt-get install gfortran
-- wget "https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh" -O miniconda.sh
-- chmod +x miniconda.sh
-- ./miniconda.sh -b  -p /home/travis/miniconda;
-- PATHPREFIX="/home/travis/miniconda/bin";
-- export PATH=$PATHPREFIX:$PATH
-- export CWD=$(pwd)
-- conda create --yes -n test_env python=$PY swig sphinx
-- source activate test_env
-- pip install --upgrade pip
-- pip install numpy==1.14.1
-- pip install scipy==1.0.0
-- pip install matplotlib
-- pip install nose
-- pip install mock
-- pip install pip
-- pip install networkx
-- pip install testflo
-- pip install pyyaml
+jobs:
+  include:
+    - stage: before_install
+      script:
+        - sudo apt-get install gfortran
+        - wget "https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh" -O miniconda.sh
+        - chmod +x miniconda.sh
+        - ./miniconda.sh -b  -p /home/travis/miniconda;
+        - PATHPREFIX="/home/travis/miniconda/bin";
+        - export PATH=$PATHPREFIX:$PATH
+        - export CWD=$(pwd)
+        - conda create --yes -n test_env python=$PY swig sphinx
+        - source activate test_env
+        - pip install --upgrade pip
+        - pip install numpy==1.14.1
+        - pip install scipy==1.0.0
+        - pip install matplotlib
+        - pip install nose
+        - pip install mock
+        - pip install pip
+        - pip install networkx
+        - pip install testflo
+        - pip install pyyaml
 
-install:
-# install pyoptsparse
-- git clone https://github.com/mdolab/pyoptsparse.git;
-- cd pyoptsparse;
-# get SNOPT source, securely, if SNOPT_LOCATION is set.
-#- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-#    cd pyoptsparse/pySNOPT/source;
-#    scp -r "$SNOPT_LOCATION" .;
-#    cd ../../..;
-#  fi
-# return to building pyoptsparse
-- python setup.py build install;
-- cd ..;
+    - stage: install
+      script:
+        # install pyoptsparse
+        - git clone https://github.com/mdolab/pyoptsparse.git;
+        - cd pyoptsparse;
+        # get SNOPT source, securely, if SNOPT_LOCATION is set.
+        #- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+        #    cd pyoptsparse/pySNOPT/source;
+        #    scp -r "$SNOPT_LOCATION" .;
+        #    cd ../../..;
+        #  fi
+        # return to building pyoptsparse
+        - python setup.py build install;
+        - cd ..;
 
-# install MBI
-- git clone https://github.com/OpenMDAO/MBI.git ./MBI.git;
-- cd MBI.git;
-- python setup.py build install;
-- cd ..;
+        # install MBI
+        - git clone https://github.com/OpenMDAO/MBI.git ./MBI.git;
+        - cd MBI.git;
+        - python setup.py build install;
+        - cd ..;
 
-- pip install coveralls
+        - pip install coveralls
 
-# install OpenMDAO in developer mode so we have access to its sphinx extensions
-- git clone https://github.com/OpenMDAO/OpenMDAO.git ./OpenMDAO.git;
-- cd OpenMDAO.git;
-- pip install -e .
-- cd ..;
+        # install OpenMDAO in developer mode so we have access to its sphinx extensions
+        - git clone https://github.com/OpenMDAO/OpenMDAO.git ./OpenMDAO.git;
+        - cd OpenMDAO.git;
+        - pip install -e .
+        - cd ..;
 
-- pip install -e .
+        - pip install -e .
 
-script:
-# - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
-# build the docs
-- cd docs
-- make clean
-- make html
-- cd ..
+    - stage: test
+      script:
+          - ls
+        # - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
 
-after_success:
-- coveralls
+    - stage: docbuild
+      script:
+        - cd docs
+        - make clean
+        - make html
+        - cd ..
 
-stages:
-  - name: deploy
-    if: $UPLOAD_DOCS = 1
+#    - stage: after_success
+#      - coveralls
 
-deploy:
-  provider: pages
-  skip-cleanup: true
-  local-dir: docs/build/html
-  target-branch: gh-pages
-  github-token: $GITHUB_TOKEN
-  keep-history: false
-  verbose: true
-  on:
-    branch: doc_updates
+    - stage: deploy
+        provider: pages
+        skip-cleanup: true
+        local-dir: docs/build/html
+        target-branch: gh-pages
+        github-token: $GITHUB_TOKEN
+        keep-history: false
+        verbose: true
+        on:
+          branch: master
+        if: $UPLOAD_DOCS = 1
