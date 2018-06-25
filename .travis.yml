@@ -94,7 +94,7 @@ jobs:
           - PY=3.6
       script:
         - echo building sphinx documentation
-        -  config --global user.email "travis@travis-ci.org"
+        - git config --global user.email "travis@travis-ci.org"
         - git config --global user.name "Travis CI"
         - git checkout -b doc_build
         - cd docs
@@ -102,6 +102,7 @@ jobs:
         - make html
         - git add -A build
         - git commit -m 'rebuilt docs'
+      after_success:
         - cd ..
         - git clean -f
         - git checkout -b gh-pages
@@ -111,7 +112,7 @@ jobs:
         - git checkout doc_build docs/build/html
         - mv ./docs/build/html/* ./
         - rm -rf ./docs
-        - git add -A
-        - git commit -m 'Updating documentation: $TRAVIS_BUILD_NUMBER'
+        - git add -A .
+        - git commit -m 'updating documentation - build ${TRAVIS_BUILD_NUMBER}'
         - git remote add origin-pages https://${GITHUB_TOKEN}@github.com/OpenMDAO/dymos.git > /dev/null 2>&1
-        - git push --quiet origin-pages gh-pages
+        - git push -f --quiet origin-pages gh-pages
