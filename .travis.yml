@@ -10,7 +10,7 @@ os:
 language: generic
 
 env:
-#  - PY=2.7 UPLOAD_DOCS=0
+  - PY=2.7 UPLOAD_DOCS=0
   - PY=3.6 UPLOAD_DOCS=1
 
 addons:
@@ -41,8 +41,6 @@ before_install:
 - pip install nose
 - pip install mock
 - pip install pip
-#- pip install jupyter
-#- pip install plotly
 - pip install networkx
 - pip install testflo
 - pip install pyyaml
@@ -67,11 +65,9 @@ install:
 - python setup.py build install;
 - cd ..;
 
-#- pip install git+https://github.com/OpenMDAO/OpenMDAO.git
-## - pip install git+https://github.com/SMTorg/smt.git
-#- pip install coveralls
-#- pip install -e .
+- pip install coveralls
 
+# install OpenMDAO in developer mode so we have access to its sphinx extensions
 - git clone https://github.com/OpenMDAO/OpenMDAO.git ./OpenMDAO.git;
 - cd OpenMDAO.git;
 - pip install -e .
@@ -90,12 +86,17 @@ script:
 after_success:
 - coveralls
 
+stages:
+  - name: deploy
+    if: $UPLOAD_DOCS = 1
+
 deploy:
   provider: pages
   skip-cleanup: true
   local-dir: docs/build/html
   target-branch: gh-pages
   github-token: $GITHUB_TOKEN
-  keep-history: true
+  keep-history: false
+  verbose: true
   on:
-    branch: master
+    branch: doc_updates
