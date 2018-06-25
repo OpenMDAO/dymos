@@ -75,6 +75,11 @@ install:
 
 - pip install -e .
 
+stages:
+  - test
+  - build_docs
+  - deploy
+
 jobs:
   include:
     - stage: test
