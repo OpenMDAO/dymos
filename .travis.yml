@@ -9,10 +9,6 @@ os:
 
 language: generic
 
-env:
-  - PY=2.7
-  - PY=3.6
-
 addons:
   apt:
     sources:
@@ -83,19 +79,22 @@ stages:
 jobs:
   include:
     - stage: test
+      env:
+        - PY=2.7
+        - PY=3.6
       script:
         - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
       after_success:
         - coveralls
     - stage: build_docs
+      env:
+          - PY=3.6
       script:
         - echo building sphinx documentation
         - cd docs
         - make clean
         - make html
         - cd ..
-    - stage: deploy
-      script: skip
       deploy:
         provider: pages
         skip-cleanup: true
