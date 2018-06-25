@@ -107,3 +107,5 @@ deploy:
   skip_cleanup: true
   script:
   - echo 'foo'
+  on:
+    branch: master
