@@ -60,6 +60,7 @@ install:
 - cd ..;
 
 # install MBI
+- echo ${PWD}
 - git clone https://github.com/OpenMDAO/MBI.git ./MBI.git;
 - cd MBI.git;
 - python setup.py build install;
@@ -68,6 +69,7 @@ install:
 - pip install coveralls
 
 # install OpenMDAO in developer mode so we have access to its sphinx extensions
+- echo ${PWD}
 - git clone https://github.com/OpenMDAO/OpenMDAO.git ./OpenMDAO.git;
 - cd OpenMDAO.git;
 - pip install -e .
