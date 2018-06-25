@@ -10,7 +10,7 @@ os:
 language: generic
 
 env:
-  - PY=2.7 UPLOAD_DOCS=0
+#  - PY=2.7 UPLOAD_DOCS=0
   - PY=3.6 UPLOAD_DOCS=1
 
 addons:
@@ -62,14 +62,21 @@ install:
 - cd ..;
 
 # install MBI
-- git clone https://github.com/OpenMDAO/MBI.git;
-- cd MBI;
+- git clone https://github.com/OpenMDAO/MBI.git ./MBI.git;
+- cd MBI.git;
 - python setup.py build install;
 - cd ..;
 
-- pip install git+https://github.com/OpenMDAO/OpenMDAO.git
-# - pip install git+https://github.com/SMTorg/smt.git
-- pip install coveralls
+#- pip install git+https://github.com/OpenMDAO/OpenMDAO.git
+## - pip install git+https://github.com/SMTorg/smt.git
+#- pip install coveralls
+#- pip install -e .
+
+- git clone https://github.com/OpenMDAO/OpenMDAO.git ./OpenMDAO.git;
+- cd OpenMDAO.git;
+- pip install -e .
+- cd ..;
+
 - pip install -e .
 
 script:
