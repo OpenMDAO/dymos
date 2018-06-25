@@ -104,6 +104,7 @@ jobs:
         - git commit -m 'rebuilt docs'
       after_success:
         - cd ..
+        - echo ${PWD}
         - git clean -f
         - git checkout -b gh-pages
         - git rm -rf .
