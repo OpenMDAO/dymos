@@ -77,7 +77,7 @@ install:
 
 script:
 # - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
-# build the docs
+# build the docs 
 - cd docs
 - make clean
 - make html
