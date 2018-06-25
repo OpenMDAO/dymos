@@ -10,8 +10,8 @@ os:
 language: generic
 
 env:
-  - PY=2.7 UPLOAD_DOCS=0
-  - PY=3.6 UPLOAD_DOCS=1
+  - PY=2.7
+  - PY=3.6
 
 addons:
   apt:
@@ -84,15 +84,25 @@ jobs:
   include:
     - stage: test
       script:
-        - echo running test
+        - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
+      after_success:
+        - coveralls
     - stage: build_docs
       script:
-        - echo docbuild
+        - echo building sphinx documentation
+        - cd docs
+        - make clean
+        - make html
+        - cd ..
     - stage: deploy
-      script:
-        - echo deploying
-
-after_success:
-- echo success
-#- coveralls
-
+      script: skip
+      deploy:
+        provider: pages
+        skip-cleanup: true
+        local-dir: docs/build/html
+        target-branch: gh-pages
+        github-token: $GITHUB_TOKEN
+        keep-history: false
+        verbose: true
+        on:
+          branch: master
