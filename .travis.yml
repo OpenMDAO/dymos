@@ -46,26 +46,26 @@ before_install:
 - pip install pyyaml
 
 install:
-## install pyoptsparse
-#- git clone https://github.com/mdolab/pyoptsparse.git;
-#- cd pyoptsparse;
-## get SNOPT source, securely, if SNOPT_LOCATION is set.
-##- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-##    cd pyoptsparse/pySNOPT/source;
-##    scp -r "$SNOPT_LOCATION" .;
-##    cd ../../..;
-##  fi
-## return to building pyoptsparse
-#- python setup.py build install;
-#- cd ..;
-#
-## install MBI
-#- git clone https://github.com/OpenMDAO/MBI.git ./MBI.git;
-#- cd MBI.git;
-#- python setup.py build install;
-#- cd ..;
-#
-#- pip install coveralls
+# install pyoptsparse
+- git clone https://github.com/mdolab/pyoptsparse.git;
+- cd pyoptsparse;
+# get SNOPT source, securely, if SNOPT_LOCATION is set.
+#- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+#    cd pyoptsparse/pySNOPT/source;
+#    scp -r "$SNOPT_LOCATION" .;
+#    cd ../../..;
+#  fi
+# return to building pyoptsparse
+- python setup.py build install;
+- cd ..;
+
+# install MBI
+- git clone https://github.com/OpenMDAO/MBI.git ./MBI.git;
+- cd MBI.git;
+- python setup.py build install;
+- cd ..;
+
+- pip install coveralls
 
 # install OpenMDAO in developer mode so we have access to its sphinx extensions
 - git clone https://github.com/OpenMDAO/OpenMDAO.git ./OpenMDAO.git;
