@@ -7,6 +7,10 @@ sudo: false
 os:
   - linux
 
+env:
+  - PY=2.7
+  - PY=3.6
+
 language: generic
 
 addons:
@@ -71,37 +75,43 @@ install:
 
 - pip install -e .
 
+# The script for the default test stage
+script:
+  - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
+
+# The after_success job for the default test stage
+after_success:
+  - coveralls
+
 stages:
   - test
   - build_docs
-  - deploy
 
 jobs:
   include:
-    - stage: test
-      env:
-        - PY=2.7
-        - PY=3.6
-      script:
-        - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
-      after_success:
-        - coveralls
-    - stage: build_docs
+    - stage: build and upload github pages
       env:
           - PY=3.6
       script:
         - echo building sphinx documentation
+        -  config --global user.email "travis@travis-ci.org"
+        - git config --global user.name "Travis CI"
+        - git checkout -b doc_build
         - cd docs
         - make clean
         - make html
+        - git add -A build
+        - git commit -m 'rebuilt docs'
         - cd ..
-      deploy:
-        provider: pages
-        skip-cleanup: true
-        local-dir: docs/build/html
-        target-branch: gh-pages
-        github-token: $GITHUB_TOKEN
-        keep-history: false
-        verbose: true
-        on:
-          branch: master
+        - git clean -f
+        - git checkout -b gh-pages
+        - git rm -rf .
+        - git clean -fdx
+        - touch .nojekyll
+        - git checkout doc_build docs/build/html
+        - mv ./docs/build/html/* ./
+        - rm -rf ./docs
+        - git add -A
+        - git commit -m 'Updating documentation: $TRAVIS_BUILD_NUMBER'
+        - git remote add origin-pages https://${GITHUB_TOKEN}@github.com/OpenMDAO/dymos.git > /dev/null 2>&1
+        - git push --quiet origin-pages gh-pages
