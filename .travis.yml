@@ -46,18 +46,26 @@ before_install:
 - pip install pyyaml
 
 install:
-- git clone https://github.com/mdolab/pyoptsparse.git;
-- cd pyoptsparse;
-- python setup.py build install;
-- cd ..;
-
-# install MBI
-- git clone https://github.com/OpenMDAO/MBI.git ./MBI.git;
-- cd MBI.git;
-- python setup.py build install;
-- cd ..;
-
-- pip install coveralls
+## install pyoptsparse
+#- git clone https://github.com/mdolab/pyoptsparse.git;
+#- cd pyoptsparse;
+## get SNOPT source, securely, if SNOPT_LOCATION is set.
+##- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+##    cd pyoptsparse/pySNOPT/source;
+##    scp -r "$SNOPT_LOCATION" .;
+##    cd ../../..;
+##  fi
+## return to building pyoptsparse
+#- python setup.py build install;
+#- cd ..;
+#
+## install MBI
+#- git clone https://github.com/OpenMDAO/MBI.git ./MBI.git;
+#- cd MBI.git;
+#- python setup.py build install;
+#- cd ..;
+#
+#- pip install coveralls
 
 # install OpenMDAO in developer mode so we have access to its sphinx extensions
 - git clone https://github.com/OpenMDAO/OpenMDAO.git ./OpenMDAO.git;
@@ -67,18 +75,27 @@ install:
 
 - pip install -e .
 
+jobs:
+  include:
+    - stage: test
+      script:
+        - echo running test
+    - stage: build_docs
+      script:
+        - echo docbuild
+    - stage: deploy
+      script:
+        - echo deploying
+
 script:
+# - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
+# build the docs
 - cd docs
 - make clean
+# - make html
 - cd ..
-
-deploy:
-  provider: script
-  skip_cleanup: true
-  script:
-  - echo 'foo'
-  on:
-    branch: master
 
 after_success:
 - echo success
+#- coveralls
+
