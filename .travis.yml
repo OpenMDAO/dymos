@@ -72,9 +72,6 @@ script:
 - make clean
 - cd ..
 
-after_success:
-- echo success
-
 deploy:
   provider: script
   skip_cleanup: true
@@ -82,3 +79,6 @@ deploy:
   - echo 'foo'
   on:
     branch: master
+
+after_success:
+- echo success
