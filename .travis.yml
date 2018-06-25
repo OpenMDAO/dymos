@@ -83,7 +83,8 @@ script:
 # - make html
 - cd ..
 
-#after_success:
+after_success:
+- echo success
 #- coveralls
 
 #stages:
