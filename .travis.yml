@@ -73,7 +73,7 @@ install:
 - cd ${ROOT_DIR};
 - git clone https://github.com/OpenMDAO/OpenMDAO.git ./OpenMDAO.git;
 - cd OpenMDAO.git;
-- pip install -e .=
+- pip install -e .
 
 - cd ${CWD};
 - pip install -e .
