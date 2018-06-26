@@ -47,10 +47,11 @@ before_install:
 - pip install networkx
 - pip install testflo
 - pip install pyyaml
+- pip install coveralls
 
 install:
 # install pyoptsparse
-- cd ${ROOT_DIR}
+- cd ${ROOT_DIR};
 - git clone https://github.com/mdolab/pyoptsparse.git ./pyoptsparse.git;
 - cd pyoptsparse.git;
 # get SNOPT source, securely, if SNOPT_LOCATION is set.
@@ -61,25 +62,20 @@ install:
 #  fi
 # return to building pyoptsparse
 - python setup.py build install;
-- cd ..;
 
 # install MBI
-- cd ${ROOT_DIR}
+- cd ${ROOT_DIR};
 - git clone https://github.com/OpenMDAO/MBI.git ./MBI.git;
 - cd MBI.git;
 - python setup.py build install;
-- cd ..;
-
-- pip install coveralls
 
 # install OpenMDAO in developer mode so we have access to its sphinx extensions
-- cd ${ROOT_DIR}
+- cd ${ROOT_DIR};
 - git clone https://github.com/OpenMDAO/OpenMDAO.git ./OpenMDAO.git;
 - cd OpenMDAO.git;
-- pip install -e .
-- cd ..;
+- pip install -e .=
 
-- cd ${CWD}
+- cd ${CWD};
 - pip install -e .
 
 # The script for the default test stage
@@ -122,4 +118,4 @@ jobs:
         - git add -A .
         - git commit -m 'updating documentation - build ${TRAVIS_BUILD_NUMBER}'
         - git remote add origin-pages https://${GITHUB_TOKEN}@github.com/OpenMDAO/dymos.git > /dev/null 2>&1
-        - git push -f --quiet origin-pages gh-pages
+        - test "$TRAVIS_REPO_SLUG" = "OpenMDAO/dymos" && $TRAVIS_PULL_REQUEST" = "false"  && git push -f --quiet origin-pages gh-pages
