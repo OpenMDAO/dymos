@@ -7,11 +7,11 @@ sudo: false
 os:
   - linux
 
-language: generic
-
 env:
   - PY=2.7
   - PY=3.6
+
+language: generic
 
 addons:
   apt:
@@ -32,7 +32,10 @@ before_install:
 - PATHPREFIX="/home/travis/miniconda/bin";
 - export PATH=$PATHPREFIX:$PATH
 - export CWD=$(pwd)
-- conda create --yes -n test_env python=$PY swig
+- cd ${CWD}
+- cd ..
+- export ROOT_DIR=$(pwd)
+- conda create --yes -n test_env python=$PY swig sphinx
 - source activate test_env
 - pip install --upgrade pip
 - pip install numpy==1.14.1
@@ -41,16 +44,16 @@ before_install:
 - pip install nose
 - pip install mock
 - pip install pip
-#- pip install jupyter
-#- pip install plotly
 - pip install networkx
 - pip install testflo
 - pip install pyyaml
+- pip install coveralls
 
 install:
 # install pyoptsparse
-- git clone https://github.com/mdolab/pyoptsparse.git;
-- cd pyoptsparse;
+- cd ${ROOT_DIR};
+- git clone https://github.com/mdolab/pyoptsparse.git ./pyoptsparse.git;
+- cd pyoptsparse.git;
 # get SNOPT source, securely, if SNOPT_LOCATION is set.
 #- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 #    cd pyoptsparse/pySNOPT/source;
@@ -59,21 +62,60 @@ install:
 #  fi
 # return to building pyoptsparse
 - python setup.py build install;
-- cd ..;
 
 # install MBI
-- git clone https://github.com/OpenMDAO/MBI.git;
-- cd MBI;
+- cd ${ROOT_DIR};
+- git clone https://github.com/OpenMDAO/MBI.git ./MBI.git;
+- cd MBI.git;
 - python setup.py build install;
-- cd ..;
 
-- pip install git+https://github.com/OpenMDAO/OpenMDAO.git
-# - pip install git+https://github.com/SMTorg/smt.git
-- pip install coveralls
+# install OpenMDAO in developer mode so we have access to its sphinx extensions
+- cd ${ROOT_DIR};
+- git clone https://github.com/OpenMDAO/OpenMDAO.git ./OpenMDAO.git;
+- cd OpenMDAO.git;
 - pip install -e .
 
-script:
-- testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
+- cd ${CWD};
+- pip install -e .
 
+# The script for the default test stage
+script:
+  - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
+
+# The after_success job for the default test stage
 after_success:
-- coveralls
+  - coveralls
+
+stages:
+  - test
+  - build_docs
+
+jobs:
+  include:
+    - stage: build and upload github pages
+      env:
+          - PY=3.6
+      script:
+        - echo building sphinx documentation
+        - git config --global user.email "travis@travis-ci.org"
+        - git config --global user.name "Travis CI"
+        - git checkout -b doc_build
+        - cd ${CWD}/docs
+        - make clean
+        - make html
+        - git add -A build
+        - git commit -m 'rebuilt docs'
+      after_success:
+        - cd ..
+        - git clean -f
+        - git checkout -b gh-pages
+        - git rm -rf .
+        - git clean -fdx
+        - touch .nojekyll
+        - git checkout doc_build docs/build/html
+        - mv ./docs/build/html/* ./
+        - rm -rf ./docs
+        - git add -A .
+        - git commit -m 'updating documentation - build ${TRAVIS_BUILD_NUMBER}'
+        - git remote add origin-pages https://${GITHUB_TOKEN}@github.com/OpenMDAO/dymos.git > /dev/null 2>&1
+        - test "$TRAVIS_REPO_SLUG" = "OpenMDAO/dymos" && $TRAVIS_PULL_REQUEST" = "false"  && git push -f --quiet origin-pages gh-pages

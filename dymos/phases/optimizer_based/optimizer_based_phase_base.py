@@ -76,8 +76,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
         Returns
         -------
         results : SimulationResults object
-
-
         """
         if not self.state_options:
             msg = 'Phase has no states, nothing to simulate. \n' \

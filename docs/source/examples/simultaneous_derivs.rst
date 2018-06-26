@@ -38,14 +38,11 @@ Step 1: Using OpenMDAO's Simul-Coloring Capability
 
 OpenMDAO supports dynamic simul-coloring, meaning it can automatically run the Jacobian coloring
 algorithm before handing the problem to the optimizer.  To enable this capability, simply
-add the following lines to the pyoptsparsedriver.
+add the following lines to the driver.
 
-.. code-block::
+.. code-block:: python
+
     driver.options['dynamic_simul_derivs'] = True
-    driver.options['dynamic_derivs_repeats'] = 5
-
-This enables the coloring algorithm and runs 5 passes of the Jacobian randomization algorithm,
-in an effort to ensure that we don't include any "incidental" zeros as part of the spasity.
 
 To demonstrate this capability we'll instantiate the brachistochrone problem with 200 3rd-order Gauss-Lobatto segments.
 
