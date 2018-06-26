@@ -32,7 +32,6 @@ before_install:
 - PATHPREFIX="/home/travis/miniconda/bin";
 - export PATH=$PATHPREFIX:$PATH
 - export CWD=$(pwd)
-- echo ${CWD}
 - conda create --yes -n test_env python=$PY swig sphinx
 - source activate test_env
 - pip install --upgrade pip
@@ -48,8 +47,9 @@ before_install:
 
 install:
 # install pyoptsparse
-- git clone https://github.com/mdolab/pyoptsparse.git;
-- cd pyoptsparse;
+- cd ${PWD}/../..
+- git clone https://github.com/mdolab/pyoptsparse.git ./pyoptsparse.git;
+- cd pyoptsparse.git;
 # get SNOPT source, securely, if SNOPT_LOCATION is set.
 #- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 #    cd pyoptsparse/pySNOPT/source;
@@ -61,7 +61,7 @@ install:
 - cd ..;
 
 # install MBI
-- echo ${PWD}
+- cd ${PWD}/../..
 - git clone https://github.com/OpenMDAO/MBI.git ./MBI.git;
 - cd MBI.git;
 - python setup.py build install;
@@ -70,12 +70,13 @@ install:
 - pip install coveralls
 
 # install OpenMDAO in developer mode so we have access to its sphinx extensions
-- echo ${PWD}
+- cd ${PWD}/../..
 - git clone https://github.com/OpenMDAO/OpenMDAO.git ./OpenMDAO.git;
 - cd OpenMDAO.git;
 - pip install -e .
 - cd ..;
 
+- cd ${PWD}
 - pip install -e .
 
 # The script for the default test stage
@@ -100,14 +101,13 @@ jobs:
         - git config --global user.email "travis@travis-ci.org"
         - git config --global user.name "Travis CI"
         - git checkout -b doc_build
-        - cd docs
+        - cd ${PWD}/docs
         - make clean
         - make html
         - git add -A build
         - git commit -m 'rebuilt docs'
       after_success:
         - cd ..
-        - echo ${PWD}
         - git clean -f
         - git checkout -b gh-pages
         - git rm -rf .
