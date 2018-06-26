@@ -32,6 +32,7 @@ before_install:
 - PATHPREFIX="/home/travis/miniconda/bin";
 - export PATH=$PATHPREFIX:$PATH
 - export CWD=$(pwd)
+- echo ${CWD}
 - conda create --yes -n test_env python=$PY swig sphinx
 - source activate test_env
 - pip install --upgrade pip
