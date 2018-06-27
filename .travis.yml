@@ -118,4 +118,4 @@ jobs:
         - git add -A .
         - git commit -m 'updating documentation - build ${TRAVIS_BUILD_NUMBER}'
         - git remote add origin-pages https://${GITHUB_TOKEN}@github.com/OpenMDAO/dymos.git > /dev/null 2>&1
-        - test "$TRAVIS_REPO_SLUG" = "OpenMDAO/dymos" && $TRAVIS_PULL_REQUEST" = "false"  && git push -f --quiet origin-pages gh-pages
+        - test ["$TRAVIS_REPO_SLUG" = "OpenMDAO/dymos"] && [$TRAVIS_PULL_REQUEST" = "false"]  && [git push -f --quiet origin-pages gh-pages]
