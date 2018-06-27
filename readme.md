@@ -18,6 +18,12 @@ Installation
 pip install git+https://github.com/OpenMDAO/dymos.git
 ```
 
+Documentation
+-------------
+
+Online documentation is available at [https://openmdao.github.io/dymos/](https://openmdao.github.io/dymos/)
+
+
 Defining Ordinary Differential Equations
 ----------------------------------------
 
