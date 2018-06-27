@@ -360,35 +360,22 @@ Finally, fuel burn rate is:
 .. math ::
     \dot{mass_{fuel}} = -TSFC \frac{T}{9.80665}
 
-1. The ODE System: brachistochrone_ode.py
------------------------------------------
+1. The ODE System: aircraft_ode.py
+----------------------------------
 
 .. embed-code::
-    ../dymos/examples/brachistochrone/brachistochrone_ode.py
+    ../dymos/examples/aircraft_steady_flight/aircraft_ode.py
     :layout: code
 
-There are a few things to note about the ODE system.  First, it is just a standard OpenMDAO system,
-in this case an :code:`ExplicitComponent`.  The :code:`declare_time`, :code:`declare_state`, and
-:code:`declare_parameter` decorators are used to inform Dymos as to where the time, states, and
-potential control variables should be connected to the system.  The :code:`rate_source` parameter
-of :code:`declare_state` dictates the output in the system that provides the time-derivative of
-the corresponding state variable.
-
-The second important feature is the :code:`num_nodes` metadata.  This informs the component as to
-the number of time points for which it will be computing its values, which varies depending on the
-transcription method.  Performance of Dymos is significantly improved by using vectorized operations,
-as opposed to for-loops, to compute the outputs at all times simultaneously.
-
-Finally, note that we are specifying rows and columns when declaring the partial derivatives.
-Since our inputs and outputs are scalars *at each point in time*, and the value at an input at
-one time only directly impacts the values of an output at the same point in time, the partial
-derivative jacobian will be diagonal.  Specifying the partial derivatives as being sparse can
-greatly improve the performance of Dymos.
+In this case the system has only two integrated states: `range` and `mass_fuel`.  There are six parameters.
+Two of them, `alt` and `climb_rate`, will be varied dynamically in the phase, and the other four,
+`mach`, `S`, `mass_empty`, and `mass_payload`, will be set to fixed values as non-optimized design
+parameters.  More details on the various models involved can be found in the examples code.
 
 2. Building and running the problem
 -----------------------------------
 
-In the following code we follow the following process to solve the problem:
+In the following code we define and solve the optimal control problem:
 
 .. embed-code::
     dymos.examples.aircraft_steady_flight.test.test_doc_aircraft_steady_flight.TestSteadyAircraftFlightForDocs.test_steady_aircraft_for_docs
