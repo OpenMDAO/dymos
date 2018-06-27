@@ -364,7 +364,7 @@ Finally, fuel burn rate is:
 -----------------------------------------
 
 .. embed-code::
-    ../dymos/examples/brachistochrone/brachistochrone_ode.py
+    ../dymos/examples/aircraft_steady_flight/aircraft_ode.py
     :layout: code
 
 There are a few things to note about the ODE system.  First, it is just a standard OpenMDAO system,
