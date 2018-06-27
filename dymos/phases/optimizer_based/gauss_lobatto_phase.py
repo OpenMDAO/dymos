@@ -227,7 +227,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
         grid_data = self.grid_data
         ODEClass = self.options['ode_class']
-        num_input_nodes = self.grid_data.num_state_input_nodes
+        num_input_nodes = self.grid_data.subset_num_nodes['state_input']
 
         kwargs = self.options['ode_init_kwargs']
         rhs_disc = ODEClass(num_nodes=grid_data.subset_num_nodes['state_disc'], **kwargs)
@@ -382,12 +382,12 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
         path_map = {'time': 'time.{0}',
                     'state': ('indep_states.states:{0}', 'state_interp.state_col:{0}'),
-                    'indep_control': 'indep_controls.controls:{0}',
-                    'input_control': 'input_controls.controls:{0}_out',
+                    'indep_control': 'control_interp_comp.control_values:{0}',
+                    'input_control': 'control_interp_comp.control_values:{0}',
                     'indep_design_parameter': 'indep_design_params.design_parameters:{0}',
                     'input_design_parameter': 'input_design_params.design_parameters:{0}_out',
-                    'control_rate': 'control_rate_comp.control_rates:{0}',
-                    'control_rate2': 'control_rate_comp.control_rates:{0}',
+                    'control_rate': 'control_interp_comp.control_rates:{0}',
+                    'control_rate2': 'control_interp_comp.control_rates:{0}',
                     'rhs': ('rhs_disc.{0}', 'rhs_col.{0}')}
 
         if var_type == 'state':

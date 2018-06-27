@@ -51,21 +51,9 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
     def _setup_controls(self):
         super(RadauPseudospectralPhase, self)._setup_controls()
 
-        added_defect_constraint = False
-
         for name, options in iteritems(self.control_options):
 
             map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
-            if options['opt']:
-                if not added_defect_constraint:
-                    def_comp = ControlEndpointDefectComp(grid_data=self.grid_data,
-                                                         control_options=self.control_options)
-                    self.add_subsystem('control_defect_comp', subsys=def_comp,
-                                       promotes_outputs=['*'])
-                    added_defect_constraint = True
-                self.connect('controls:{0}'.format(name),
-                             'control_defect_comp.controls:{0}'.format(name),
-                             src_indices=map_indices_to_all)
 
             if options['opt']:
                 control_src_name = 'controls:{0}'.format(name)
@@ -74,21 +62,19 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
             if name in self.ode_options._parameters:
                 targets = self.ode_options._parameters[name]['targets']
-                self.connect(control_src_name,
-                             ['rhs_all.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_all)
+
+                self.connect('control_interp_comp.control_values:{0}'.format(name),
+                             ['rhs_all.{0}'.format(t) for t in targets])
 
             if options['rate_param']:
                 targets = self.ode_options._parameters[options['rate_param']]['targets']
                 self.connect('control_rates:{0}_rate'.format(name),
-                             ['rhs_all.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_all)
+                             ['rhs_all.{0}'.format(t) for t in targets])
 
             if options['rate2_param']:
                 targets = self.ode_options._parameters[options['rate2_param']]['targets']
                 self.connect('control_rates:{0}_rate2'.format(name),
-                             ['rhs_all.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_all)
+                             ['rhs_all.{0}'.format(t) for t in targets])
 
     def _setup_design_parameters(self):
         super(RadauPseudospectralPhase, self)._setup_design_parameters()
@@ -219,7 +205,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
         ODEClass = self.options['ode_class']
         grid_data = self.grid_data
-        num_input_nodes = self.grid_data.num_state_input_nodes
+        num_input_nodes = grid_data.subset_num_nodes['state_input']
 
         map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
 
@@ -366,12 +352,12 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
         path_map = {'time': 'time.{0}',
                     'state': 'indep_states.states:{0}',
-                    'indep_control': 'indep_controls.controls:{0}',
-                    'input_control': 'input_controls.controls:{0}_out',
+                    'indep_control': 'control_interp_comp.control_values:{0}',
+                    'input_control': 'control_interp_comp.control_values:{0}_out',
                     'indep_design_parameter': 'indep_design_params.design_parameters:{0}',
                     'input_design_parameter': 'input_design_params.design_parameters:{0}_out',
-                    'control_rate': 'control_rate_comp.control_rates:{0}',
-                    'control_rate2': 'control_rate_comp.control_rates:{0}',
+                    'control_rate': 'control_interp_comp.control_rates:{0}',
+                    'control_rate2': 'control_interp_comp.control_rates:{0}',
                     'rhs': 'rhs_all.{0}'}
 
         if var_type == 'state':

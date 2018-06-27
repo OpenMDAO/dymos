@@ -223,18 +223,16 @@ class OptimizerBasedPhaseBase(PhaseBase):
         input_controls = ['input_controls'] if num_input_controls > 0 else []
         indep_design_params = ['indep_design_params'] if num_opt_design_params > 0 else []
         input_design_params = ['input_design_params'] if num_input_design_params > 0 else []
-        control_rate_comp = ['control_rate_comp'] if num_controls > 0 else []
-        control_defect_comp = ['control_defect_comp'] if num_opt_controls > 0 else []
+        control_interp_comp = ['control_interp_comp'] if num_controls > 0 else []
 
         order = self._time_extents + input_controls + indep_controls + \
             indep_design_params + input_design_params + \
-            ['indep_states', 'time'] + control_rate_comp + ['indep_jumps', 'endpoint_conditions']
+            ['indep_states', 'time'] + control_interp_comp + ['indep_jumps', 'endpoint_conditions']
 
         if transcription == 'gauss-lobatto':
             order = order + ['rhs_disc', 'state_interp', 'rhs_col', 'collocation_constraint']
         elif transcription == 'radau-ps':
-            order = order + control_defect_comp + \
-                ['state_interp', 'rhs_all', 'collocation_constraint']
+            order = order + ['state_interp', 'rhs_all', 'collocation_constraint']
         else:
             raise ValueError('Invalid transcription: {0}'.format(transcription))
 
@@ -250,7 +248,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         grid_data = self.grid_data
         time_units = self.time_options['units']
         map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
-        num_input_nodes = self.grid_data.num_state_input_nodes
+        num_input_nodes = self.grid_data.subset_num_nodes['state_input']
 
         self.add_subsystem('state_interp',
                            subsys=StateInterpComp(grid_data=grid_data,
@@ -279,7 +277,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         Add an IndepVarComp for the states and setup the states as design variables.
         """
         grid_data = self.grid_data
-        num_state_input_nodes = grid_data.num_state_input_nodes
+        num_state_input_nodes = grid_data.subset_num_nodes['state_input']
 
         indep = IndepVarComp()
         for name, options in iteritems(self.state_options):

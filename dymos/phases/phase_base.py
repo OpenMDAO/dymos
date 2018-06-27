@@ -22,7 +22,7 @@ from dymos.phases.components import DesignParameterInputComp
 from dymos.phases.components import TimeComp
 from dymos.phases.options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
     StateOptionsDictionary, TimeOptionsDictionary
-from dymos.phases.components import ControlRateComp
+from dymos.phases.components import ControlInterpComp
 from dymos.phases.grid_data import GridData
 from dymos.ode_options import ODEOptions
 from dymos.utils.misc import get_rate_units
@@ -804,18 +804,17 @@ class PhaseBase(Group):
 
         # Declare control_rate comp to which we'll connect controls and parameters.
         if self.control_options:
-            ctrl_rate_comp = ControlRateComp(control_options=self.control_options,
-                                             time_units=self.time_options['units'],
-                                             grid_data=self.grid_data)
-
-            promoted_outputs = []
-
+            ctrl_rate_comp = ControlInterpComp(control_options=self.control_options,
+                                               time_units=self.time_options['units'],
+                                               grid_data=self.grid_data)
             self._setup_controls()
-            promoted_outputs.append('control_rates:*')
 
-            self.add_subsystem('control_rate_comp', subsys=ctrl_rate_comp,
-                               promotes_outputs=promoted_outputs)
-            self.connect('time.dt_dstau', 'control_rate_comp.dt_dstau')
+            self.add_subsystem('control_interp_comp',
+                               subsys=ctrl_rate_comp,
+                               promotes_inputs=['controls:*'],
+                               promotes_outputs=['control_rates:*'])
+            self.connect('time.dt_dstau', 'control_interp_comp.dt_dstau')
+
         if self.design_parameter_options:
             self._setup_design_parameters()
 
@@ -914,43 +913,40 @@ class PhaseBase(Group):
 
         for name, options in iteritems(self.control_options):
             if options['opt']:
-                if options['dynamic']:
-                    # Dynamic controls
-                    num_dynamic_controls = num_dynamic_controls + 1
-                    num_input_nodes = grid_data.num_dynamic_control_input_nodes
-                    map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
+                num_dynamic_controls = num_dynamic_controls + 1
+                num_input_nodes = grid_data.subset_num_nodes['control_input']
 
-                    desvar_indices = list(range(self.grid_data.num_dynamic_control_input_nodes))
-                    if options['fix_initial']:
-                        desvar_indices.pop(0)
-                    if options['fix_final']:
-                        desvar_indices.pop()
+                desvar_indices = list(range(self.grid_data.subset_num_nodes['control_input']))
+                if options['fix_initial']:
+                    desvar_indices.pop(0)
+                if options['fix_final']:
+                    desvar_indices.pop()
 
-                    if len(desvar_indices) > 0:
-                        coerce_desvar = CoerceDesvar(grid_data.subset_num_nodes['control_disc'],
-                                                     desvar_indices, options)
-
-                        self.add_design_var(name='controls:{0}'.format(name),
-                                            lower=coerce_desvar('lower'),
-                                            upper=coerce_desvar('upper'),
-                                            scaler=coerce_desvar('scaler'),
-                                            adder=coerce_desvar('adder'),
-                                            ref0=coerce_desvar('ref0'),
-                                            ref=coerce_desvar('ref'),
-                                            indices=desvar_indices)
-                # END DYNAMIC CONTROL
-                else:
-                    # Static control
-                    num_input_nodes = 1
-                    map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                if len(desvar_indices) > 0:
+                    coerce_desvar = CoerceDesvar(grid_data.subset_num_nodes['control_disc'],
+                                                 desvar_indices, options)
 
                     self.add_design_var(name='controls:{0}'.format(name),
-                                        lower=options['lower'],
-                                        upper=options['upper'],
-                                        scaler=options['scaler'],
-                                        adder=options['adder'],
-                                        ref0=options['ref0'],
-                                        ref=options['ref'])
+                                        lower=coerce_desvar('lower'),
+                                        upper=coerce_desvar('upper'),
+                                        scaler=coerce_desvar('scaler'),
+                                        adder=coerce_desvar('adder'),
+                                        ref0=coerce_desvar('ref0'),
+                                        ref=coerce_desvar('ref'),
+                                        indices=desvar_indices)
+                # # END DYNAMIC CONTROL
+                # else:
+                #     # Static control
+                #     num_input_nodes = 1
+                #     map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                #
+                #     self.add_design_var(name='controls:{0}'.format(name),
+                #                         lower=options['lower'],
+                #                         upper=options['upper'],
+                #                         scaler=options['scaler'],
+                #                         adder=options['adder'],
+                #                         ref0=options['ref0'],
+                #                         ref=options['ref'])
 
                 indep.add_output(name='controls:{0}'.format(name),
                                  val=options['val'],
@@ -959,21 +955,16 @@ class PhaseBase(Group):
                 # END STATIC CONTROL
                 control_src_name = 'controls:{0}'.format(name)
 
-            # END OPTIMAL CONTROL
-            else:
-                if options['dynamic']:
-                    map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
-                else:
-                    map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                control_src_name = 'controls:{0}_out'.format(name)
+            # # END OPTIMAL CONTROL
+            # else:
+            #     map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
+            #
+            #     control_src_name = 'controls:{0}_out'.format(name)
 
             # END INPUT CONTROL
 
             # Connect to control rate
-            if options['dynamic']:
-                self.connect(control_src_name,
-                             'control_rate_comp.controls:{0}'.format(name),
-                             src_indices=map_indices_to_all)
+            # self.connect(control_src_name, 'control_interp_comp.controls:{0}'.format(name) )
 
         return num_dynamic_controls
 
@@ -1076,6 +1067,20 @@ class PhaseBase(Group):
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
                 constraint_path = 'controls:{0}_out'.format(var)
+            elif var_type == 'indep_design_parameter':
+                control_shape = self.design_parameter_options[var]['shape']
+                control_units = self.design_parameter_options[var]['units']
+                options['shape'] = control_shape if con_shape is None else con_shape
+                options['units'] = control_units if con_units is None else con_units
+                options['linear'] = True
+                constraint_path = 'design_parameters:{0}'.format(var)
+            elif var_type == 'input_design_parameter':
+                control_shape = self.design_parameter_options[var]['shape']
+                control_units = self.design_parameter_options[var]['units']
+                options['shape'] = control_shape if con_shape is None else con_shape
+                options['units'] = control_units if con_units is None else con_units
+                options['linear'] = True
+                constraint_path = 'design_parameters:{0}_out'.format(var)
             elif var_type == 'control_rate':
                 control_var = var[:-5]
                 control_shape = self.control_options[control_var]['shape']
@@ -1126,6 +1131,10 @@ class PhaseBase(Group):
             self.connect(constraint_path,
                          'boundary_constraints.boundary_values:{0}'.format(con_name),
                          src_indices=src_idxs, flat_src_indices=True)
+
+    def _setup_path_constraints(self):
+        raise NotImplementedError('_setup_path_constraints has not been implemented '
+                                  'for this phase type')
 
     def _check_unprovided_controls(self):
         logger = get_logger('check_config', use_format=True)

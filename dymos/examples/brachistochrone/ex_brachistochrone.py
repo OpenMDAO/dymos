@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
@@ -46,7 +46,7 @@ def brachistochrone_min_time(
     phase.set_state_options('y', fix_initial=True, fix_final=True)
     phase.set_state_options('v', fix_initial=True, fix_final=False)
 
-    phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
+    phase.add_control('theta', units='deg', lower=0.01, upper=179.9)
 
     phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -65,6 +65,9 @@ def brachistochrone_min_time(
     p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_disc')
     p['phase0.controls:theta'] = phase.interpolate(ys=[0, 0], nodes='control_disc')
     p['phase0.design_parameters:g'] = 9.80665
+
+    from openmdao.api import view_model
+    view_model(p)
 
     p.run_model()
     if run_driver:
@@ -111,9 +114,12 @@ def brachistochrone_min_time(
 
         plt.show()
 
+        from openmdao.api import view_model
+        view_model(p)
+
     return p
 
 
 if __name__ == '__main__':
-    brachistochrone_min_time(transcription='gauss-lobatto', num_segments=15, run_driver=True,
-                             top_level_jacobian='csc', compressed=True)
+    brachistochrone_min_time(transcription='gauss-lobatto', num_segments=20, run_driver=True,
+                             top_level_jacobian='csc', transcription_order=5, compressed=True)
