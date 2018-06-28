@@ -1,13 +1,10 @@
 from __future__ import division, print_function, absolute_import
 
+import numpy as np
+from openmdao.utils.units import convert_units, valid_units
 from six import iteritems
 
-import numpy as np
-
-from openmdao.utils.units import convert_units, valid_units
-
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
-from .components import ControlEndpointDefectComp
 from ..components import RadauPathConstraintComp
 from ...utils.misc import get_rate_units
 
@@ -139,16 +136,10 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 options['shape'] = control_shape
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
-                constraint_path = 'controls:{0}'.format(var)
-
-                if self.control_options[var]['dynamic']:
-                    ctrl_src_indices_all = gd.input_maps['dynamic_control_input_to_disc']
-                else:
-                    ctrl_src_indices_all = np.zeros(gd.subset_num_nodes['all'], dtype=int)
+                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                             src_indices=ctrl_src_indices_all)
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'input_control':
                 control_shape = self.control_options[var]['shape']
@@ -156,7 +147,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 options['shape'] = control_shape
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
-                constraint_path = 'input_controls:{0}_out'.format(var)
+                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
 
                 if self.control_options[var]['dynamic']:
                     ctrl_src_indices_all = gd.input_maps['dynamic_control_input_to_disc']
@@ -353,7 +344,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         path_map = {'time': 'time.{0}',
                     'state': 'indep_states.states:{0}',
                     'indep_control': 'control_interp_comp.control_values:{0}',
-                    'input_control': 'control_interp_comp.control_values:{0}_out',
+                    'input_control': 'control_interp_comp.control_values:{0}',
                     'indep_design_parameter': 'indep_design_params.design_parameters:{0}',
                     'input_design_parameter': 'input_design_params.design_parameters:{0}_out',
                     'control_rate': 'control_interp_comp.control_rates:{0}',
@@ -371,7 +362,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             output_units = op[var_path]['units']
 
             if self.control_options[var]['dynamic']:
-                vals = op[var_path]['value'][gd.input_maps['dynamic_control_input_to_disc'], ...]
+                vals = op[var_path]['value']
                 output_value = convert_units(vals, output_units, units)
             else:
                 output_value = convert_units(op[var_path]['value'], output_units, units)

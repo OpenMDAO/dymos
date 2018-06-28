@@ -136,15 +136,12 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
             for control_name, options in iteritems(self.control_options):
 
-                if options['opt']:
-                    control_vals = self._outputs['controls:{0}'.format(control_name)]
-                else:
-                    control_vals = self._outputs['controls:{0}_out'.format(control_name)]
+                control_vals = self._outputs['control_interp_comp.'
+                                             'control_values:{0}'.format(control_name)]
 
                 # if options['dynamic']:
-                map_input_idxs_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
                 interp = LagrangeBarycentricInterpolant(gd.node_stau[seg_idxs[0]:seg_idxs[1]])
-                ctrl_vals = control_vals[map_input_idxs_to_all][seg_idxs[0]:seg_idxs[1]].ravel()
+                ctrl_vals = control_vals[seg_idxs[0]:seg_idxs[1]].ravel()
                 interp.setup(x0=seg_times[0], xf=seg_times[-1], f_j=ctrl_vals)
                 rhs_integrator.set_interpolant(control_name, interp)
 
@@ -220,12 +217,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
         num_controls = len(self.control_options)
 
         indep_controls = ['indep_controls'] if num_opt_controls > 0 else []
-        input_controls = ['input_controls'] if num_input_controls > 0 else []
         indep_design_params = ['indep_design_params'] if num_opt_design_params > 0 else []
         input_design_params = ['input_design_params'] if num_input_design_params > 0 else []
         control_interp_comp = ['control_interp_comp'] if num_controls > 0 else []
 
-        order = self._time_extents + input_controls + indep_controls + \
+        order = self._time_extents + indep_controls + \
             indep_design_params + input_design_params + \
             ['indep_states', 'time'] + control_interp_comp + ['indep_jumps', 'endpoint_conditions']
 
@@ -410,8 +406,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                  src_indices=disc_subidxs)
 
             for name, options in iteritems(self.control_options):
-                control_src_name = 'controls:{0}'.format(name) if options['opt'] \
-                                   else 'controls:{0}_out'.format(name)
+                control_src_name = 'control_interp_comp.control_values:{0}'.format(name)
 
                 if options['dynamic'] and options['continuity'] and not compressed:
                     self.connect(control_src_name,
@@ -490,11 +485,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
             size = np.prod(options['shape'])
             ar = np.arange(size)
 
-            if options['opt']:
-                suffix = ''
-            else:
-                suffix = '_out'
-
             jump_comp.add_output('initial_jump:{0}'.format(control_name),
                                  val=np.zeros(options['shape']),
                                  units=options['units'],
@@ -507,7 +497,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(control_name))
 
-            self.connect('controls:{0}{1}'.format(control_name, suffix),
+            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
                          'endpoint_conditions.values:{0}'.format(control_name))
 
             self.connect('initial_jump:{0}'.format(control_name),

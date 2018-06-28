@@ -17,7 +17,6 @@ from openmdao.utils.logger_utils import get_logger
 from openmdao.utils.general_utils import warn_deprecation
 
 from dymos.phases.components import BoundaryConstraintComp
-from dymos.phases.components import ControlInputComp
 from dymos.phases.components import DesignParameterInputComp
 from dymos.phases.components import TimeComp
 from dymos.phases.options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
@@ -174,9 +173,7 @@ class PhaseBase(Group):
         opt : bool
             If True (default) the value(s) of this control will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the values of this control will exist in
-            'phase_name.input_controls.controls:control_name', where it may be connected to
-            external sources if desired.
+            If False, the values of this control will exist as aainput controls:{name}
         lower : float or ndarray
             The lower bound of the control at the nodes of the phase.
         upper : float or ndarray
@@ -339,9 +336,8 @@ class PhaseBase(Group):
         opt : bool
             If True (default) the value(s) of this control will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the values of this control will exist in
-            'phase_name.input_controls.controls:control_name', where it may be connected to
-            external sources if desired.
+            If False, the this control will exist as a promoted input to control_interp_comp where
+            it may be connected to an external source, if desired.
         lower : float or ndarray
             The lower bound of the control at the nodes of the phase.
         upper : float or ndarray
@@ -529,52 +525,11 @@ class PhaseBase(Group):
         self._path_constraints[name]['linear'] = linear
         self._path_constraints[name]['units'] = units
 
-    def set_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
-                      adder=None, scaler=None, parallel_deriv_color=None,
-                      vectorize_derivs=False):
-        """
-        Allows the user to set an objective in the phase.  If name is not a state,
-        control, or 'time', then this is assumed to be the path of the variable
-        to be constrained in the RHS.
-
-        The default OpenMDAO `add_objective` method may still be used with the correct
-        path name to the response, but this method is intended to be
-        transcription-independent.
-
-        Parameters
-        ----------
-        name : str
-            Name of the response variable in the system.
-        loc : str
-            Where in the phase the objective is to be evaluated.  Valid
-            options are 'start' and 'end'.  The default is 'end'.
-        ref : float or ndarray, optional
-            Value of response variable that scales to 1.0 in the driver.
-        ref0 : float or ndarray, optional
-            Value of response variable that scales to 0.0 in the driver.
-        index : int, optional
-            If variable is an array, this indicates which entry is of
-            interest for this particular response. This may be a positive
-            or negative integer.  If present, this overrides loc.
-        adder : float or ndarray, optional
-            Value to add to the model value to get the scaled value. Adder
-            is first in precedence.
-        scaler : float or ndarray, optional
-            value to multiply the model value to get the scaled value. Scaler
-            is second in precedence.
-
-        """
-        warn_deprecation('set_objective has been replaced with add_objective')
-        self.add_objective(name, loc=loc, index=index, shape=shape, ref=ref, ref0=ref0,
-                           adder=adder, scaler=scaler, parallel_deriv_color=parallel_deriv_color,
-                           vectorize_derivs=vectorize_derivs)
-
     def _add_objective(self, obj_path, loc='final', index=None, shape=(1,), ref=None, ref0=None,
-                       adder=None, scaler=None, parallel_deriv_color=None,
-                       vectorize_derivs=False):
+                       adder=None, scaler=None, parallel_deriv_color=None, vectorize_derivs=False):
         """
         Called by add_objective in classes that derive from PhaseBase.  Each subclass is responsible
-        for determining the objective paht in the system.  This method then figures out the correct
+        for determining the objective path in the system.  This method then figures out the correct
         index based on the given loc and index attributes, and calls the standard add_objective
         method.
 
@@ -894,20 +849,11 @@ class PhaseBase(Group):
 
         num_opt_controls = len(opt_controls)
 
-        num_input_controls = len(self.control_options) - num_opt_controls
-
         grid_data = self.grid_data
 
         if num_opt_controls > 0:
             indep = self.add_subsystem('indep_controls', subsys=IndepVarComp(),
                                        promotes_outputs=['*'])
-
-        if num_input_controls > 0:
-            passthru = ControlInputComp(num_nodes=grid_data.num_nodes,
-                                        control_options=self.control_options)
-
-            self.add_subsystem('input_controls', subsys=passthru, promotes_inputs=['*'],
-                               promotes_outputs=['*'])
 
         num_dynamic_controls = 0
 
@@ -934,37 +880,11 @@ class PhaseBase(Group):
                                         ref0=coerce_desvar('ref0'),
                                         ref=coerce_desvar('ref'),
                                         indices=desvar_indices)
-                # # END DYNAMIC CONTROL
-                # else:
-                #     # Static control
-                #     num_input_nodes = 1
-                #     map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                #
-                #     self.add_design_var(name='controls:{0}'.format(name),
-                #                         lower=options['lower'],
-                #                         upper=options['upper'],
-                #                         scaler=options['scaler'],
-                #                         adder=options['adder'],
-                #                         ref0=options['ref0'],
-                #                         ref=options['ref'])
 
                 indep.add_output(name='controls:{0}'.format(name),
                                  val=options['val'],
                                  shape=(num_input_nodes, np.prod(options['shape'])),
                                  units=options['units'])
-                # END STATIC CONTROL
-                control_src_name = 'controls:{0}'.format(name)
-
-            # # END OPTIMAL CONTROL
-            # else:
-            #     map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
-            #
-            #     control_src_name = 'controls:{0}_out'.format(name)
-
-            # END INPUT CONTROL
-
-            # Connect to control rate
-            # self.connect(control_src_name, 'control_interp_comp.controls:{0}'.format(name) )
 
         return num_dynamic_controls
 
@@ -1053,20 +973,20 @@ class PhaseBase(Group):
                 options['units'] = state_units if con_units is None else con_units
                 options['linear'] = True
                 constraint_path = 'states:{0}'.format(var)
-            elif var_type == 'indep_control':
+            elif var_type in 'indep_control':
                 control_shape = self.control_options[var]['shape']
                 control_units = self.control_options[var]['units']
                 options['shape'] = control_shape if con_shape is None else con_shape
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
-                constraint_path = 'controls:{0}'.format(var)
+                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
             elif var_type == 'input_control':
                 control_shape = self.control_options[var]['shape']
                 control_units = self.control_options[var]['units']
                 options['shape'] = control_shape if con_shape is None else con_shape
                 options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
-                constraint_path = 'controls:{0}_out'.format(var)
+                options['linear'] = False
+                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
             elif var_type == 'indep_design_parameter':
                 control_shape = self.design_parameter_options[var]['shape']
                 control_units = self.design_parameter_options[var]['units']
@@ -1079,7 +999,7 @@ class PhaseBase(Group):
                 control_units = self.design_parameter_options[var]['units']
                 options['shape'] = control_shape if con_shape is None else con_shape
                 options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
+                options['linear'] = False
                 constraint_path = 'design_parameters:{0}_out'.format(var)
             elif var_type == 'control_rate':
                 control_var = var[:-5]
@@ -1245,10 +1165,10 @@ class PhaseBase(Group):
 
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
-        if nodes not in ('col', 'disc', 'all', 'state_disc', 'control_disc',
-                         'segment_ends'):
+        if nodes not in ('col', 'disc', 'all', 'state_disc', 'state_input', 'control_disc',
+                         'control_input', 'segment_ends'):
             raise ValueError("nodes must be one of 'col', 'disc', 'all', 'state_disc', "
-                             "'control_disc', or 'segment_ends'")
+                             "'state_input', 'control_disc', 'control_input', or 'segment_ends'")
         if xs is None:
             if len(ys) != 2:
                 raise ValueError('xs may only be unspecified when len(ys)=2')

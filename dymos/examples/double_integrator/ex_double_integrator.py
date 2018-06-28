@@ -59,4 +59,4 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
 
 if __name__ == '__main__':
     prob = double_integrator_direct_collocation(transcription='gauss-lobatto', optimizer='SLSQP',
-                                                show_plots=True, compressed=False)
+                                                compressed=False)

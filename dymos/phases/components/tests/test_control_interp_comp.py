@@ -70,9 +70,8 @@ class TestControlRateComp(unittest.TestCase):
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           [True, False],  # compressed
-                          ), testcase_func_name=lambda f, n, p: '_'.join(['test_control_interp_scalar',
-                                                                          p.args[0],
-                                                                          str(p.args[1])])
+                          ), testcase_func_name=lambda f, n, p: '_'.join(
+            ['test_control_interp_scalar', p.args[0], str(p.args[1])])
     )
     def test_control_interp_scalar(self, transcription='gauss-lobatto', compressed=True):
 
@@ -162,9 +161,8 @@ class TestControlRateComp(unittest.TestCase):
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           [True, False],  # compressed
-                          ), testcase_func_name=lambda f, n, p: '_'.join(['test_control_interp_vector',
-                                                                          p.args[0],
-                                                                          str(p.args[1])])
+                          ), testcase_func_name=lambda f, n, p: '_'.join(
+            ['test_control_interp_vector', p.args[0], str(p.args[1])])
     )
     def test_control_interp_vector(self, transcription='gauss-lobatto', compressed=True):
 
@@ -264,9 +262,8 @@ class TestControlRateComp(unittest.TestCase):
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           [True, False],  # compressed
-                          ), testcase_func_name=lambda f, n, p: '_'.join(['test_control_interp_matrix_3x1',
-                                                                          p.args[0],
-                                                                          str(p.args[1])])
+                          ), testcase_func_name=lambda f, n, p: '_'.join(
+            ['test_control_interp_matrix_3x1', p.args[0], str(p.args[1])])
     )
     def test_control_interp_matrix_3x1(self, transcription='gauss-lobatto', compressed=True):
 
@@ -365,9 +362,8 @@ class TestControlRateComp(unittest.TestCase):
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           [True, False],  # compressed
-                          ), testcase_func_name=lambda f, n, p: '_'.join(['test_control_interp_matrix_2x2',
-                                                                          p.args[0],
-                                                                          str(p.args[1])])
+                          ), testcase_func_name=lambda f, n, p: '_'.join(
+            ['test_control_interp_matrix_2x2', p.args[0], str(p.args[1])])
     )
     def test_control_interp_matrix_2x2(self, transcription='gauss-lobatto', compressed=True):
 
