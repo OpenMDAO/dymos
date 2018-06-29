@@ -9,14 +9,13 @@ from dymos import Phase
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 
 SHOW_PLOTS = True
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
-                   transcription_order=5, top_level_jacobian='csc',
-                   formulation='optimizer-based', method_name='GaussLegendre2',
+                   transcription_order=3, top_level_jacobian='csc',
                    force_alloc_complex=False):
 
     p = Problem(model=Group())
@@ -38,7 +37,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                   ode_class=MinTimeClimbODE,
                   num_segments=num_seg,
                   compressed=True,
-                  transcription_order=3)
+                  transcription_order=transcription_order)
 
     p.model.add_subsystem('phase0', phase)
 
@@ -63,8 +62,8 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     rate_continuity = True
 
     phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
-                      rate_continuity=rate_continuity, rate_continuity_scaler=100.0,
-                      rate2_continuity=False)
+                      continuity=True, rate_continuity=rate_continuity,
+                      rate_continuity_scaler=100.0, rate2_continuity=False)
 
     phase.add_design_parameter('S', val=49.2386, units='m**2', opt=False)
     phase.add_design_parameter('Isp', val=1600.0, units='s', opt=False)
@@ -85,7 +84,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
     p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-    p.setup(mode='fwd', check=True)
+    p.setup(mode='fwd', check=True, force_alloc_complex=force_alloc_complex)
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 298.46902

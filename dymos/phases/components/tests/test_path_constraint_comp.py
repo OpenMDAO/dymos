@@ -34,9 +34,9 @@ class TestPathConstraintCompGL(unittest.TestCase):
                     'c': ControlOptionsDictionary(),
                     'd': ControlOptionsDictionary()}
 
-        controls['a'].update({'units': 'm', 'shape': (1,), 'dynamic': True, 'opt': False})
-        controls['b'].update({'units': 's', 'shape': (3,), 'dynamic': True, 'opt': False})
-        controls['c'].update({'units': 'kg', 'shape': (3, 3), 'dynamic': True, 'opt': False})
+        controls['a'].update({'units': 'm', 'shape': (1,), 'opt': False})
+        controls['b'].update({'units': 's', 'shape': (3,), 'opt': False})
+        controls['c'].update({'units': 'kg', 'shape': (3, 3), 'opt': False})
 
         ivc = IndepVarComp()
         self.p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -155,9 +155,9 @@ class TestPathConstraintCompRadau(unittest.TestCase):
                     'c': ControlOptionsDictionary(),
                     'd': ControlOptionsDictionary()}
 
-        controls['a'].update({'units': 'm', 'shape': (1,), 'dynamic': True, 'opt': False})
-        controls['b'].update({'units': 's', 'shape': (3,), 'dynamic': True, 'opt': False})
-        controls['c'].update({'units': 'kg', 'shape': (3, 3), 'dynamic': True, 'opt': False})
+        controls['a'].update({'units': 'm', 'shape': (1,), 'opt': False})
+        controls['b'].update({'units': 's', 'shape': (3,), 'opt': False})
+        controls['c'].update({'units': 'kg', 'shape': (3, 3), 'opt': False})
 
         ivc = IndepVarComp()
         self.p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])

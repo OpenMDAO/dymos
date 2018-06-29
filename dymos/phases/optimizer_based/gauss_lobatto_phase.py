@@ -7,7 +7,7 @@ import numpy as np
 from openmdao.utils.units import convert_units, valid_units
 
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
-from ..components import GaussLobattoPathConstraintComp
+from ..components import GaussLobattoPathConstraintComp, GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
 
 
@@ -248,16 +248,22 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
     def _setup_defects(self):
         super(GaussLobattoPhase, self)._setup_defects()
+        grid_data = self.grid_data
 
         for name, options in iteritems(self.state_options):
-
             self.connect(
                 'state_interp.staterate_col:%s' % name,
                 'collocation_constraint.f_approx:%s' % name)
-
             self.connect(
                 'rhs_col.%s' % options['rate_source'],
                 'collocation_constraint.f_computed:%s' % name)
+
+        if grid_data.num_segments > 1:
+            self.add_subsystem('continuity_comp',
+                               GaussLobattoContinuityComp(grid_data=grid_data,
+                                                          state_options=self.state_options,
+                                                          control_options=self.control_options,
+                                                          time_units=self.time_options['units']))
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,

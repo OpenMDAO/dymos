@@ -1,7 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
 from .boundary_constraint_comp import BoundaryConstraintComp
-from .continuity_comp import ContinuityComp
+from .continuity_comp import RadauPSContinuityComp, GaussLobattoContinuityComp
 from .control_interp_comp import ControlInterpComp
 from .design_parameter_input_comp import DesignParameterInputComp
 from .endpoint_conditions_comp import EndpointConditionsComp

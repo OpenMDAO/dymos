@@ -172,6 +172,9 @@ class GridData(object):
 
         Attributes
         ----------
+        transcription : str
+            The transcription to which this GridData instance applies.  One of
+            'gauss-lobatto' or 'radau-ps'.
         num_segments : int
             The number of segments in the phase
         segment_ends : ndarray or None
@@ -252,11 +255,13 @@ class GridData(object):
         self.input_maps = {'state_input_to_disc': np.empty(0, dtype=int),
                            'dynamic_control_input_to_disc': np.empty(0, dtype=int)}
 
+        self.transcription = transcription.lower()
+
         # Define get_subsets and node points based on the transcription scheme
-        if transcription.lower() == 'gauss-lobatto':
+        if self.transcription == 'gauss-lobatto':
             get_subsets = gauss_lobatto_subsets
             get_points = lgl
-        elif transcription.lower() == 'radau-ps':
+        elif self.transcription == 'radau-ps':
             get_subsets = radau_pseudospectral_subsets
 
             def get_points(n):

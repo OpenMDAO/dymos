@@ -32,7 +32,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         phase.set_state_options('x', fix_initial=True)
         phase.set_state_options('v', fix_initial=True, fix_final=True)
 
-        phase.add_control('u', units='m/s**2', scaler=0.01, continuity=True, rate_continuity=False,
+        phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
                           rate2_continuity=False, lower=-1.0, upper=1.0)
 
         # Maximize distance travelled in one second.

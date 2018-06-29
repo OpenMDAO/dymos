@@ -23,11 +23,11 @@ class ControlOptionsDictionary(OptionsDictionary):
 
         self.declare(name='desc', types=string_types, default='',
                      desc='The description of the control variable.')
-
-        self.declare(name='dynamic', types=bool, default=True,
-                     desc='If True, the control is vectorized, providing a value at '
-                          'each node in the phase.  If False, the control is static, '
-                          'providing a single value to be broadcast to all nodes in the phase.')
+        #
+        # self.declare(name='dynamic', types=bool, default=True,
+        #              desc='If True, the control is vectorized, providing a value at '
+        #                   'each node in the phase.  If False, the control is static, '
+        #                   'providing a single value to be broadcast to all nodes in the phase.')
 
         self.declare(name='opt', default=True, types=bool,
                      desc='If True, the control value will be a design variable '

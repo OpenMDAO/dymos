@@ -1,7 +1,7 @@
 import numpy as np
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 from scipy import ndimage
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, Arc

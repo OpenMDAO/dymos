@@ -209,12 +209,6 @@ class StateInterpComp(ExplicitComponent):
 
             xd = np.atleast_2d(inputs[xd_str])
 
-            # TODO: einsum magic
-            # outputs[xc_str] = np.einsum('i,ij...,jk...->ik...',
-            #                             dt_dstau,
-            #                             self.matrices['Bi'],
-            #                             fd)
-
             a = np.tensordot(self.matrices['Bi'], inputs[fd_str], axes=(1, 0)).T
             outputs[xc_str] = (a * dt_dstau).T
 

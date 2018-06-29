@@ -5,7 +5,7 @@ from openmdao.utils.units import convert_units, valid_units
 from six import iteritems
 
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
-from ..components import RadauPathConstraintComp
+from ..components import RadauPathConstraintComp, RadauPSContinuityComp
 from ...utils.misc import get_rate_units
 
 
@@ -149,14 +149,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 options['linear'] = True
                 constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
 
-                if self.control_options[var]['dynamic']:
-                    ctrl_src_indices_all = gd.input_maps['dynamic_control_input_to_disc']
-                else:
-                    ctrl_src_indices_all = np.zeros(gd.subset_num_nodes['all'], dtype=int)
-
                 self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                             src_indices=ctrl_src_indices_all)
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'control_rate':
                 control_name = var[:-5]
@@ -228,7 +222,6 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         grid_data = self.grid_data
 
         for name, options in iteritems(self.state_options):
-
             self.connect(
                 'state_interp.staterate_col:{0}'.format(name),
                 'collocation_constraint.f_approx:{0}'.format(name))
@@ -236,6 +229,13 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             self.connect('rhs_all.{0}'.format(options['rate_source']),
                          'collocation_constraint.f_computed:{0}'.format(name),
                          src_indices=grid_data.subset_node_indices['col'])
+
+        if grid_data.num_segments > 1:
+            self.add_subsystem('continuity_comp',
+                               RadauPSContinuityComp(grid_data=grid_data,
+                                                     state_options=self.state_options,
+                                                     control_options=self.control_options,
+                                                     time_units=self.time_options['units']))
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
@@ -361,12 +361,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             var_path = var_prefix + path_map[var_type].format(var)
             output_units = op[var_path]['units']
 
-            if self.control_options[var]['dynamic']:
-                vals = op[var_path]['value']
-                output_value = convert_units(vals, output_units, units)
-            else:
-                output_value = convert_units(op[var_path]['value'], output_units, units)
-                output_value = np.repeat(output_value, gd.num_nodes, axis=0)
+            vals = op[var_path]['value']
+            output_value = convert_units(vals, output_units, units)
 
         elif var_type in ('input_design_parameter', 'indep_design_parameter'):
             var_path = var_prefix + path_map[var_type].format(var)

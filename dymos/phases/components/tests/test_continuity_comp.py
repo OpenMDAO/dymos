@@ -2,26 +2,38 @@ from __future__ import print_function, division, absolute_import
 
 import unittest
 
+import itertools
+from parameterized import parameterized
+
 import numpy as np
-from numpy.testing import assert_almost_equal
 
 from openmdao.api import Problem, Group, IndepVarComp
-from openmdao.utils.assert_utils import assert_check_partials
+from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
 
 from dymos.phases.grid_data import GridData
-from dymos.phases.components.continuity_comp import ContinuityComp
+from dymos.phases.components.continuity_comp import GaussLobattoContinuityComp, \
+    RadauPSContinuityComp
 from dymos.phases.options import StateOptionsDictionary, ControlOptionsDictionary
 
 
-class TestContinuityComp2(unittest.TestCase):
+class TestContinuityComp(unittest.TestCase):
 
-    def setUp(self):
+    @parameterized.expand(
+        itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
+                          ['compressed', 'uncompressed'],  # jacobian
+                          ), testcase_func_name=lambda f, n, p: '_'.join(['test_continuity_comp',
+                                                                          p.args[0],
+                                                                          p.args[1]])
+    )
+    def test_continuity_comp(self, transcription='gauss-lobatto', compressed='compressed'):
 
-        gd = GridData(num_segments=3,
+        num_seg = 3
+
+        gd = GridData(num_segments=num_seg,
                       transcription_order=[5, 3, 3],
                       segment_ends=[0.0, 3.0, 10.0, 20],
-                      transcription='gauss-lobatto',
-                      compressed=False)
+                      transcription=transcription,
+                      compressed=compressed == 'compressed')
 
         self.p = Problem(model=Group())
 
@@ -30,8 +42,8 @@ class TestContinuityComp2(unittest.TestCase):
         ndn = gd.subset_num_nodes['state_disc']
         nn = gd.subset_num_nodes['all']
 
-        ivp.add_output('x', val=np.arange(ndn), units='m')
-        ivp.add_output('y', val=np.arange(ndn), units='m/s')
+        ivp.add_output('x', val=np.arange(nn), units='m')
+        ivp.add_output('y', val=np.arange(nn), units='m/s')
         ivp.add_output('u', val=np.zeros((nn, 3)), units='deg')
         ivp.add_output('v', val=np.arange(nn), units='N')
         ivp.add_output('u_rate', val=np.zeros((nn, 3)), units='deg/s')
@@ -56,17 +68,23 @@ class TestContinuityComp2(unittest.TestCase):
 
         control_options['v']['units'] = 'N'
 
-        cnty_comp = ContinuityComp(grid_data=gd, time_units='s',
-                                   state_options=state_options, control_options=control_options)
+        if transcription == 'gauss-lobatto':
+            cnty_comp = GaussLobattoContinuityComp(grid_data=gd, time_units='s',
+                                                   state_options=state_options,
+                                                   control_options=control_options)
+        elif transcription == 'radau-ps':
+            cnty_comp = RadauPSContinuityComp(grid_data=gd, time_units='s',
+                                              state_options=state_options,
+                                              control_options=control_options)
+        else:
+            raise ValueError('unrecognized transcription')
 
         self.p.model.add_subsystem('cnty_comp', subsys=cnty_comp)
         # The sub-indices of state_disc indices that are segment ends
-        state_disc_idxs = gd.subset_node_indices['state_disc']
         segment_end_idxs = gd.subset_node_indices['segment_ends']
-        disc_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
 
-        self.p.model.connect('x', 'cnty_comp.states:x', src_indices=disc_subidxs)
-        self.p.model.connect('y', 'cnty_comp.states:y', src_indices=disc_subidxs)
+        self.p.model.connect('x', 'cnty_comp.states:x', src_indices=segment_end_idxs)
+        self.p.model.connect('y', 'cnty_comp.states:y', src_indices=segment_end_idxs)
 
         self.p.model.connect('t_duration', 'cnty_comp.t_duration')
 
@@ -109,21 +127,23 @@ class TestContinuityComp2(unittest.TestCase):
 
         self.p.run_model()
 
-    def test_results(self):
-
         for state in ('x', 'y'):
-            assert_almost_equal(self.p['cnty_comp.defect_states:{0}'.format(state)][0, ...],
-                                self.p[state][3, ...] - self.p[state][2, ...])
-            assert_almost_equal(self.p['cnty_comp.defect_states:{0}'.format(state)][1, ...],
-                                self.p[state][5, ...] - self.p[state][4, ...])
+            expected_val = self.p[state][segment_end_idxs, ...][2::2, ...] - \
+                self.p[state][segment_end_idxs, ...][1:-1:2, ...]
 
-        for state in ('u', 'v'):
-            assert_almost_equal(self.p['cnty_comp.defect_controls:{0}'.format(state)][0, ...],
-                                self.p[state][5, ...] - self.p[state][4, ...])
-            assert_almost_equal(self.p['cnty_comp.defect_controls:{0}'.format(state)][1, ...],
-                                self.p[state][8, ...] - self.p[state][7, ...])
+            assert_rel_error(self,
+                             self.p['cnty_comp.defect_states:{0}'.format(state)],
+                             expected_val.reshape((num_seg - 1,) + state_options[state]['shape']))
 
-    def test_partials(self):
+        for ctrl in ('u', 'v'):
+
+            expected_val = self.p[ctrl][segment_end_idxs, ...][2::2, ...] - \
+                self.p[ctrl][segment_end_idxs, ...][1:-1:2, ...]
+
+            assert_rel_error(self,
+                             self.p['cnty_comp.defect_controls:{0}'.format(ctrl)],
+                             expected_val.reshape((num_seg-1,) + control_options[ctrl]['shape']))
+
         np.set_printoptions(linewidth=1024)
         cpd = self.p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)

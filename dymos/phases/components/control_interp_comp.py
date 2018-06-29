@@ -186,30 +186,29 @@ class ControlInterpComp(ExplicitComponent):
         for name, options in iteritems(control_options):
             control_name = self._input_names[name]
 
-            if options['dynamic']:
-                size = self.sizes[name]
+            size = self.sizes[name]
 
-                rate_name = self._output_rate_names[name]
-                rate2_name = self._output_rate2_names[name]
+            rate_name = self._output_rate_names[name]
+            rate2_name = self._output_rate2_names[name]
 
-                # Unroll matrix-shaped controls into an array at each node
-                u_d = np.reshape(inputs[control_name], (num_disc_nodes, size))
+            # Unroll matrix-shaped controls into an array at each node
+            u_d = np.reshape(inputs[control_name], (num_disc_nodes, size))
 
-                dt_dstau = inputs['dt_dstau']
-                dt_dstau_tile = np.tile(dt_dstau, size)
+            dt_dstau = inputs['dt_dstau']
+            dt_dstau_tile = np.tile(dt_dstau, size)
 
-                partials[rate_name, 'dt_dstau'] = \
-                    (-np.dot(self.D, u_d).ravel(order='F') / dt_dstau_tile ** 2)
+            partials[rate_name, 'dt_dstau'] = \
+                (-np.dot(self.D, u_d).ravel(order='F') / dt_dstau_tile ** 2)
 
-                partials[rate2_name, 'dt_dstau'] = \
-                    -2.0 * (np.dot(self.D2, u_d).ravel(order='F') / dt_dstau_tile ** 3)
+            partials[rate2_name, 'dt_dstau'] = \
+                -2.0 * (np.dot(self.D2, u_d).ravel(order='F') / dt_dstau_tile ** 3)
 
-                dt_dstau_x_size = np.repeat(dt_dstau, size)[:, np.newaxis]
+            dt_dstau_x_size = np.repeat(dt_dstau, size)[:, np.newaxis]
 
-                r_nz, c_nz = self.rate_jac_rows[name], self.rate_jac_cols[name]
-                partials[rate_name, control_name] = \
-                    (self.rate_jacs[name] / dt_dstau_x_size)[r_nz, c_nz]
+            r_nz, c_nz = self.rate_jac_rows[name], self.rate_jac_cols[name]
+            partials[rate_name, control_name] = \
+                (self.rate_jacs[name] / dt_dstau_x_size)[r_nz, c_nz]
 
-                r_nz, c_nz = self.rate2_jac_rows[name], self.rate2_jac_cols[name]
-                partials[rate2_name, control_name] = \
-                    (self.rate2_jacs[name] / dt_dstau_x_size ** 2)[r_nz, c_nz]
+            r_nz, c_nz = self.rate2_jac_rows[name], self.rate2_jac_cols[name]
+            partials[rate2_name, control_name] = \
+                (self.rate2_jacs[name] / dt_dstau_x_size ** 2)[r_nz, c_nz]

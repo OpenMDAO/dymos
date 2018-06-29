@@ -148,7 +148,7 @@ class PhaseBase(Group):
         self.state_options[name]['defect_scaler'] = defect_scaler
 
     def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
-                    fix_initial=False, fix_final=False, dynamic=None,
+                    fix_initial=False, fix_final=False,
                     scaler=None, adder=None, ref=None, ref0=None, continuity=None,
                     rate_continuity=None, rate_continuity_scaler=1.0,
                     rate2_continuity=None, rate2_continuity_scaler=1.0,
@@ -166,10 +166,6 @@ class PhaseBase(Group):
         units : str or None or 0
             Units in which the control variable is defined.  If 0, use the units declared
             for the parameter in the ODE.
-        dynamic : bool (Deprecated)
-            If True (default) this is a dynamic control, the values provided correspond to
-            the number of nodes in the phase.  If False, this is a static control, sized (1,),
-            and that value is broadcast to all nodes within the phase.
         opt : bool
             If True (default) the value(s) of this control will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
@@ -186,7 +182,7 @@ class PhaseBase(Group):
             The zero-reference value of the control at the nodes of the phase.
         ref : float or ndarray
             The unit-reference value of the control at the nodes of the phase
-        contiuity : bool or None
+        continuity : bool or None
             True if continuity in the value of the control is desired at the segment bounds.
             See notes about default values for continuity.
         rate_continuity : bool or None
@@ -223,18 +219,6 @@ class PhaseBase(Group):
             raise ValueError('{0} has already been added as a control.'.format(name))
         if name in self.design_parameter_options:
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
-
-        if dynamic is not None:
-            warn_deprecation('Keyword dynamic provided in add_control when adding control {0}. '
-                             'Static controls should be added to the phase via the '
-                             'add_design_parameter method.  In future versions, all controls will'
-                             'be considered dynamic'.format(name))
-            if not dynamic:
-                self.add_design_parameter(name, val, units, opt, lower, upper, scaler, adder, ref,
-                                          ref0)
-            return
-        else:
-            dynamic = True
 
         self.control_options[name] = ControlOptionsDictionary()
 
@@ -286,7 +270,6 @@ class PhaseBase(Group):
                 warnings.warn(msg, RuntimeWarning)
 
         self.control_options[name]['val'] = val
-        self.control_options[name]['dynamic'] = dynamic
         self.control_options[name]['opt'] = opt
         self.control_options[name]['fix_initial'] = fix_initial
         self.control_options[name]['fix_final'] = fix_final
@@ -749,11 +732,9 @@ class PhaseBase(Group):
             raise ValueError('Given transcription order ({0}) is less than '
                              'the minimum allowed value (3)'.format(transcription_order))
 
-        self.grid_data = grid_data = GridData(
-            num_segments=num_segments, transcription=transcription,
-            transcription_order=transcription_order,
-            segment_ends=segment_ends,
-            compressed=compressed)
+        self.grid_data = GridData(num_segments=num_segments, transcription=transcription,
+                                  transcription_order=transcription_order,
+                                  segment_ends=segment_ends, compressed=compressed)
 
         self._time_extents = self._setup_time()
 

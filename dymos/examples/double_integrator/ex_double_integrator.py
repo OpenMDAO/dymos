@@ -18,7 +18,8 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
         p.driver.opt_settings['iSumm'] = 6
         p.driver.opt_settings['Verify level'] = 3
     else:
-        p.driver = ScipyOptimizeDriver()
+        p.driver = pyOptSparseDriver()
+        p.driver.options['optimizer'] = optimizer
         p.driver.options['dynamic_simul_derivs'] = True
 
     phase = Phase(transcription,
@@ -34,7 +35,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
     phase.set_state_options('x', fix_initial=True)
     phase.set_state_options('v', fix_initial=True, fix_final=True)
 
-    phase.add_control('u', units='m/s**2', scaler=0.01, continuity=True, rate_continuity=False,
+    phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
                       rate2_continuity=False, lower=-1.0, upper=1.0)
 
     # Maximize distance travelled in one second.
@@ -58,5 +59,5 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
 
 
 if __name__ == '__main__':
-    prob = double_integrator_direct_collocation(transcription='gauss-lobatto', optimizer='SLSQP',
-                                                compressed=False)
+    prob = double_integrator_direct_collocation(transcription='radau-ps', optimizer='SLSQP',
+                                                compressed=True)
