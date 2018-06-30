@@ -1160,8 +1160,8 @@ class PhaseBase(Group):
             raise ValueError('xs must be viewable as a 1D array')
 
         node_locations = self.grid_data.node_ptau[self.grid_data.subset_node_indices[nodes]]
-        if self.options['compressed']:
-            node_locations = np.array(sorted(list(set(node_locations))))
+        # if self.options['compressed']:
+        #     node_locations = np.array(sorted(list(set(node_locations))))
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()
         m = 2.0 / (_xs[-1] - _xs[0])

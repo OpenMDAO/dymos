@@ -80,10 +80,10 @@ class TestFlightPathEOM2D(unittest.TestCase):
         self.p['phase0.t_initial'] = 0.0
         self.p['phase0.t_duration'] = t_duration
 
-        self.p['phase0.states:r'] = phase.interpolate(ys=[0, 700.0], nodes='state_disc')
-        self.p['phase0.states:h'] = phase.interpolate(ys=[0, 0], nodes='state_disc')
-        self.p['phase0.states:v'] = phase.interpolate(ys=[v0, v0], nodes='state_disc')
-        self.p['phase0.states:gam'] = phase.interpolate(ys=[gam0, -gam0], nodes='state_disc')
+        self.p['phase0.states:r'] = phase.interpolate(ys=[0, 700.0], nodes='state_input')
+        self.p['phase0.states:h'] = phase.interpolate(ys=[0, 0], nodes='state_input')
+        self.p['phase0.states:v'] = phase.interpolate(ys=[v0, v0], nodes='state_input')
+        self.p['phase0.states:gam'] = phase.interpolate(ys=[gam0, -gam0], nodes='state_input')
 
         self.p.run_model()
 
@@ -109,9 +109,9 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         self.p['phase0.states:r'] = phase.interpolate(ys=[0, v0 * np.cos(gam0) * t_duration],
                                                       nodes='state_disc')
-        self.p['phase0.states:h'] = phase.interpolate(ys=[0, 0], nodes='state_disc')
-        self.p['phase0.states:v'] = phase.interpolate(ys=[v0, v0], nodes='state_disc')
-        self.p['phase0.states:gam'] = phase.interpolate(ys=[gam0, -gam0], nodes='state_disc')
+        self.p['phase0.states:h'] = phase.interpolate(ys=[0, 0], nodes='state_input')
+        self.p['phase0.states:v'] = phase.interpolate(ys=[v0, v0], nodes='state_input')
+        self.p['phase0.states:gam'] = phase.interpolate(ys=[gam0, -gam0], nodes='state_input')
 
         self.p.run_driver()
 
@@ -136,9 +136,9 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         self.p['phase0.states:r'] = phase.interpolate(ys=[0, v0 * np.cos(gam0) * t_duration],
                                                       nodes='state_disc')
-        self.p['phase0.states:h'] = phase.interpolate(ys=[0, 0], nodes='state_disc')
-        self.p['phase0.states:v'] = phase.interpolate(ys=[v0, v0], nodes='state_disc')
-        self.p['phase0.states:gam'] = phase.interpolate(ys=[gam0, -gam0], nodes='state_disc')
+        self.p['phase0.states:h'] = phase.interpolate(ys=[0, 0], nodes='state_input')
+        self.p['phase0.states:v'] = phase.interpolate(ys=[v0, v0], nodes='state_input')
+        self.p['phase0.states:gam'] = phase.interpolate(ys=[gam0, -gam0], nodes='state_input')
 
         self.p.run_model()
 

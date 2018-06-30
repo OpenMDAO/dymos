@@ -45,9 +45,9 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 1.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 0.25], nodes='state_disc')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 0], nodes='state_disc')
-        p['phase0.controls:u'] = phase.interpolate(ys=[1, -1], nodes='control_disc')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 0.25], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 0], nodes='state_input')
+        p['phase0.controls:u'] = phase.interpolate(ys=[1, -1], nodes='control_input')
 
         p.run_driver()
 

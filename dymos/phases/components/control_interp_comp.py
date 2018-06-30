@@ -1,8 +1,11 @@
 from __future__ import print_function, division
 
-import numpy as np
-from openmdao.api import ExplicitComponent
 from six import string_types, iteritems
+
+import numpy as np
+from scipy.sparse import csr_matrix
+
+from openmdao.api import ExplicitComponent
 
 from dymos.phases.grid_data import GridData
 from dymos.utils.misc import get_rate_units
@@ -51,7 +54,7 @@ class ControlInterpComp(ExplicitComponent):
         control_options = self.options['control_options']
         gd = self.options['grid_data']
         num_nodes = self.num_nodes
-        num_control_disc_nodes = self.options['grid_data'].subset_num_nodes['control_disc']
+        num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
         time_units = self.options['time_units']
 
         for name, options in iteritems(control_options):
@@ -60,8 +63,7 @@ class ControlInterpComp(ExplicitComponent):
             self._output_rate_names[name] = 'control_rates:{0}_rate'.format(name)
             self._output_rate2_names[name] = 'control_rates:{0}_rate2'.format(name)
             shape = options['shape']
-            size = np.prod(shape)
-            input_shape = (num_control_disc_nodes,) + shape
+            input_shape = (num_control_input_nodes,) + shape
             output_shape = (num_nodes,) + shape
 
             units = options['units']
@@ -70,13 +72,7 @@ class ControlInterpComp(ExplicitComponent):
 
             self._dynamic_names.append(name)
 
-            input_idxs = np.reshape(np.arange(gd.subset_num_nodes['control_input'] * size),
-                                    newshape=((gd.subset_num_nodes['control_input'],) + shape))
-
-            src_idxs = input_idxs[gd.input_maps['dynamic_control_input_to_disc'], ...]
-
-            self.add_input(self._input_names[name], val=np.ones(input_shape), units=units,
-                           src_indices=src_idxs, flat_src_indices=True)
+            self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
 
             self.add_output(self._output_val_names[name], shape=output_shape, units=units)
 
@@ -86,21 +82,21 @@ class ControlInterpComp(ExplicitComponent):
                             units=rate2_units)
 
             size = np.prod(shape)
-            self.val_jacs[name] = np.zeros((num_nodes, size, num_control_disc_nodes, size))
-            self.rate_jacs[name] = np.zeros((num_nodes, size, num_control_disc_nodes, size))
-            self.rate2_jacs[name] = np.zeros((num_nodes, size, num_control_disc_nodes, size))
+            self.val_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
+            self.rate_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
+            self.rate2_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
             for i in range(size):
                 self.val_jacs[name][:, i, :, i] = self.L
                 self.rate_jacs[name][:, i, :, i] = self.D
                 self.rate2_jacs[name][:, i, :, i] = self.D2
             self.val_jacs[name] = self.val_jacs[name].reshape((num_nodes * size,
-                                                               num_control_disc_nodes * size),
+                                                              num_control_input_nodes * size),
                                                               order='C')
             self.rate_jacs[name] = self.rate_jacs[name].reshape((num_nodes * size,
-                                                                 num_control_disc_nodes * size),
+                                                                num_control_input_nodes * size),
                                                                 order='C')
             self.rate2_jacs[name] = self.rate2_jacs[name].reshape((num_nodes * size,
-                                                                   num_control_disc_nodes * size),
+                                                                  num_control_input_nodes * size),
                                                                   order='C')
             self.val_jac_rows[name], self.val_jac_cols[name] = \
                 np.where(self.val_jacs[name] != 0)
@@ -155,10 +151,23 @@ class ControlInterpComp(ExplicitComponent):
         self.sizes = {}
         self.num_nodes = num_nodes
 
-        self.L, self.D = gd.phase_lagrange_matrices('control_disc', 'all')
-        _, D_ctrl_to_ctrl = gd.phase_lagrange_matrices('control_disc', 'control_disc')
+        num_disc_nodes = gd.subset_num_nodes['control_disc']
+        num_input_nodes = gd.subset_num_nodes['control_input']
+        gd.input_maps['dynamic_control_input_to_disc']
 
-        self.D2 = np.dot(self.D, D_ctrl_to_ctrl)
+        # Find the indexing matrix that, multiplied by the values at the input nodes,
+        # gives the values at the discretization nodes
+        L_id = np.zeros((num_disc_nodes, num_input_nodes), dtype=float)
+        L_id[np.arange(num_disc_nodes, dtype=int),
+             gd.input_maps['dynamic_control_input_to_disc']] = 1.0
+
+        # The control interpolation matrix L is the product of M_index_to_disc and the nominal
+        # pseudospectral interpolation matrix from the discretization nodes to all nodes.
+        L_da, D_da = gd.phase_lagrange_matrices('control_disc', 'all')
+        _, D_aa = gd.phase_lagrange_matrices('all', 'all')
+        self.L = np.dot(L_da, L_id)
+        self.D = np.dot(D_da, L_id)
+        self.D2 = np.dot(D_aa, self.D)
 
         self._setup_controls()
 
@@ -181,7 +190,7 @@ class ControlInterpComp(ExplicitComponent):
 
     def compute_partials(self, inputs, partials):
         control_options = self.options['control_options']
-        num_disc_nodes = self.options['grid_data'].subset_num_nodes['control_disc']
+        num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
 
         for name, options in iteritems(control_options):
             control_name = self._input_names[name]
@@ -192,7 +201,7 @@ class ControlInterpComp(ExplicitComponent):
             rate2_name = self._output_rate2_names[name]
 
             # Unroll matrix-shaped controls into an array at each node
-            u_d = np.reshape(inputs[control_name], (num_disc_nodes, size))
+            u_d = np.reshape(inputs[control_name], (num_input_nodes, size))
 
             dt_dstau = inputs['dt_dstau']
             dt_dstau_tile = np.tile(dt_dstau, size)
