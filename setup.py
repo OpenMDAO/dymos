@@ -29,6 +29,7 @@ setup(name='dymos',
         'pep8',
         'parameterized',
         'sphinx',
+        'sphinxcontrib-bibtex'
         'redbaron'
     ],
     zip_safe=False,

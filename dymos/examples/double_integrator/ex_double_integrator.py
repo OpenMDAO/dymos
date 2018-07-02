@@ -7,20 +7,10 @@ from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegra
 
 
 def double_integrator_direct_collocation(transcription='gauss-lobatto', top_level_jacobian='csc',
-                                         optimizer='SLSQP', compressed=True):
+                                         compressed=True):
     p = Problem(model=Group())
-
-    if optimizer == 'SNOPT':
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = optimizer
-        p.driver.options['dynamic_simul_derivs'] = True
-        p.driver.opt_settings['Major iterations limit'] = 100
-        p.driver.opt_settings['iSumm'] = 6
-        p.driver.opt_settings['Verify level'] = 3
-    else:
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = optimizer
-        p.driver.options['dynamic_simul_derivs'] = True
+    p.driver = ScipyOptimizeDriver()
+    p.driver.options['dynamic_simul_derivs'] = True
 
     phase = Phase(transcription,
                   ode_class=DoubleIntegratorODE,
@@ -41,8 +31,8 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
     # Maximize distance travelled in one second.
     phase.add_objective('x', loc='final', scaler=-1)
 
-    p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
     p.model.linear_solver = DirectSolver(assemble_jac=True)
+    p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
 
     p.setup(mode='fwd', check=True)
 

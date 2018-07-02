@@ -142,8 +142,9 @@ may serve as controls.
 Integrating Ordinary Differential Equations
 -------------------------------------------
 
-dymos uses *Generalized Linear Methods* (GLM) to enable a variety of integration schemes to be applied to dynamical systems.
 dymos's `ScipyODEIntegrator` provides an OpenMDAO group which simulates the ODE system it is given.
+This explicit integration capability can be used to check solutions of the implicit collocation 
+techniques or to generate an initial guess for state-time histories of the implicit collocation.
 
 Solving Optimal Control Problems
 --------------------------------
@@ -156,5 +157,5 @@ Each phase can have its own:
 - Equations of motion
 - Boundary and path constraints
 
-As with `ScipyODEIntegrator`, each dymos `Phase` is ultimately just an OpenMDAO Group that can exist in
+Each dymos `Phase` is ultimately just an OpenMDAO Group that can exist in
 a problem along with numerous other groups.
