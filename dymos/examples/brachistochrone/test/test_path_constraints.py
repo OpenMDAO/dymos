@@ -43,10 +43,10 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_disc')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_disc')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_disc')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_disc')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -93,10 +93,10 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_disc')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_disc')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_disc')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_disc')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -115,7 +115,8 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase = Phase('radau-ps',
                       ode_class=BrachistochroneODE,
-                      num_segments=10)
+                      num_segments=10,
+                      compressed=False)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -125,7 +126,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True)
 
-        phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -142,10 +143,10 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_disc')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_disc')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_disc')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_disc')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[0.9, 101.5], nodes='control_input')
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -175,7 +176,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True)
 
-        phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -192,10 +193,10 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_disc')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_disc')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_disc')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_disc')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
 
         # Solve for the optimal trajectory
         p.run_driver()

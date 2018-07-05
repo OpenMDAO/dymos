@@ -41,6 +41,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.viewcode',
               'sphinx.ext.githubpages', #,
+              'sphinxcontrib.bibtex',
               #'numpydoc',
               'embed_code',
               'embed_options']
@@ -70,7 +71,7 @@ author = u'Rob Falck and John Hwang'
 # built documents.
 #
 # The short X.Y version.
-version = u'0.8.3'
+version = u'0.9.0'
 # The full version, including alpha/beta/rc tags.
 release = version
 

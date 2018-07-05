@@ -32,7 +32,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         phase.set_state_options('x', fix_initial=True)
         phase.set_state_options('v', fix_initial=True, fix_final=True)
 
-        phase.add_control('u', units='m/s**2', scaler=0.01, continuity=True, rate_continuity=False,
+        phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
                           rate2_continuity=False, lower=-1.0, upper=1.0)
 
         # Maximize distance travelled in one second.
@@ -45,9 +45,9 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 1.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 0.25], nodes='state_disc')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 0], nodes='state_disc')
-        p['phase0.controls:u'] = phase.interpolate(ys=[1, -1], nodes='control_disc')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 0.25], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 0], nodes='state_input')
+        p['phase0.controls:u'] = phase.interpolate(ys=[1, -1], nodes='control_input')
 
         p.run_driver()
 

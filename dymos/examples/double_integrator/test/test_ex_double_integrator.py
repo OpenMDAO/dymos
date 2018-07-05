@@ -14,17 +14,17 @@ class TestDoubleIntegratorExample(unittest.TestCase):
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           ['dense', 'csc'],  # jacobian
-                          ['fwd', 'rev'],  # derivative_mode
+                          ['compressed', 'uncompressed'],  # compressed transcription
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
                                                                           p.args[0],
                                                                           p.args[1],
                                                                           p.args[2]])
     )
     def test_ex_double_integrator(self, transcription='radau-ps', jacobian='csc',
-                                  derivative_mode='fwd'):
+                                  compressed='compressed'):
         ex_double_integrator.SHOW_PLOTS = False
-        p = ex_double_integrator.double_integrator_direct_collocation(transcription,
-                                                                      top_level_jacobian=jacobian)
+        p = ex_double_integrator.double_integrator_direct_collocation(
+            transcription, top_level_jacobian=jacobian, compressed=compressed == 'compressed')
 
         x0 = p.model.phase0.get_values('x')[0]
         xf = p.model.phase0.get_values('x')[-1]

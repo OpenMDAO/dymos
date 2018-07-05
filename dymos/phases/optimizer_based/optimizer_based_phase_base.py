@@ -4,7 +4,7 @@ from collections import Iterable
 
 import numpy as np
 from dymos.phases.optimizer_based.components import CollocationComp, StateInterpComp
-from dymos.phases.components import EndpointConditionsComp, ContinuityComp
+from dymos.phases.components import EndpointConditionsComp
 from dymos.phases.phase_base import PhaseBase
 from dymos.utils.interpolate import LagrangeBarycentricInterpolant
 from dymos.utils.misc import CoerceDesvar
@@ -136,15 +136,12 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
             for control_name, options in iteritems(self.control_options):
 
-                if options['opt']:
-                    control_vals = self._outputs['controls:{0}'.format(control_name)]
-                else:
-                    control_vals = self._outputs['controls:{0}_out'.format(control_name)]
+                control_vals = self._outputs['control_interp_comp.'
+                                             'control_values:{0}'.format(control_name)]
 
                 # if options['dynamic']:
-                map_input_idxs_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
                 interp = LagrangeBarycentricInterpolant(gd.node_stau[seg_idxs[0]:seg_idxs[1]])
-                ctrl_vals = control_vals[map_input_idxs_to_all][seg_idxs[0]:seg_idxs[1]].ravel()
+                ctrl_vals = control_vals[seg_idxs[0]:seg_idxs[1]].ravel()
                 interp.setup(x0=seg_times[0], xf=seg_times[-1], f_j=ctrl_vals)
                 rhs_integrator.set_interpolant(control_name, interp)
 
@@ -202,13 +199,9 @@ class OptimizerBasedPhaseBase(PhaseBase):
         super(OptimizerBasedPhaseBase, self).setup()
 
         transcription = self.options['transcription']
-        grid_data = self.grid_data
 
         num_opt_controls = len([name for (name, options) in iteritems(self.control_options)
                                 if options['opt']])
-
-        num_input_controls = len([name for (name, options) in iteritems(self.control_options)
-                                  if not options['opt']])
 
         num_opt_design_params = len([name for (name, options) in
                                      iteritems(self.design_parameter_options) if options['opt']])
@@ -220,26 +213,23 @@ class OptimizerBasedPhaseBase(PhaseBase):
         num_controls = len(self.control_options)
 
         indep_controls = ['indep_controls'] if num_opt_controls > 0 else []
-        input_controls = ['input_controls'] if num_input_controls > 0 else []
         indep_design_params = ['indep_design_params'] if num_opt_design_params > 0 else []
         input_design_params = ['input_design_params'] if num_input_design_params > 0 else []
-        control_rate_comp = ['control_rate_comp'] if num_controls > 0 else []
-        control_defect_comp = ['control_defect_comp'] if num_opt_controls > 0 else []
+        control_interp_comp = ['control_interp_comp'] if num_controls > 0 else []
 
-        order = self._time_extents + input_controls + indep_controls + \
+        order = self._time_extents + indep_controls + \
             indep_design_params + input_design_params + \
-            ['indep_states', 'time'] + control_rate_comp + ['indep_jumps', 'endpoint_conditions']
+            ['indep_states', 'time'] + control_interp_comp + ['indep_jumps', 'endpoint_conditions']
 
         if transcription == 'gauss-lobatto':
             order = order + ['rhs_disc', 'state_interp', 'rhs_col', 'collocation_constraint']
         elif transcription == 'radau-ps':
-            order = order + control_defect_comp + \
-                ['state_interp', 'rhs_all', 'collocation_constraint']
+            order = order + ['state_interp', 'rhs_all', 'collocation_constraint']
         else:
             raise ValueError('Invalid transcription: {0}'.format(transcription))
 
-        if self._requires_continuity_comp():
-            order.append('continuity_constraint')
+        if self.grid_data.num_segments > 1:
+            order.append('continuity_comp')
         if getattr(self, 'boundary_constraints', None) is not None:
             order.append('boundary_constraints')
         if getattr(self, 'path_constraints', None) is not None:
@@ -250,7 +240,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         grid_data = self.grid_data
         time_units = self.time_options['units']
         map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
-        num_input_nodes = self.grid_data.num_state_input_nodes
+        num_input_nodes = self.grid_data.subset_num_nodes['state_input']
 
         self.add_subsystem('state_interp',
                            subsys=StateInterpComp(grid_data=grid_data,
@@ -279,7 +269,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         Add an IndepVarComp for the states and setup the states as design variables.
         """
         grid_data = self.grid_data
-        num_state_input_nodes = grid_data.num_state_input_nodes
+        num_state_input_nodes = grid_data.subset_num_nodes['state_input']
 
         indep = IndepVarComp()
         for name, options in iteritems(self.state_options):
@@ -343,34 +333,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                         ref=coerce_desvar_option('ref'),
                                         indices=desvar_indices)
 
-    def _requires_continuity_comp(self):
-        """
-        Returns True if the phase requires a continuity enforcement component.
-        """
-        grid_data = self.grid_data
-        compressed = self.options['compressed']
-        num_seg = grid_data.num_segments
-
-        continuous_states = \
-            [name for (name, opts) in iteritems(self.state_options) if opts['continuity']]
-
-        continuous_controls = \
-            [name for (name, opts) in iteritems(self.control_options) if opts['continuity']]
-
-        rate_continuous_controls = \
-            [name for (name, opts) in iteritems(self.control_options) if opts['rate_continuity']]
-
-        rate2_continuous_controls = \
-            [name for (name, opts) in iteritems(self.control_options) if opts['rate2_continuity']]
-
-        state_val_cont_required = not compressed and num_seg > 1 and continuous_states
-        control_val_cont_required = not compressed and num_seg > 1 and continuous_controls
-        control_rate_cont_required = num_seg > 1 and rate_continuous_controls
-        control_rate2_cont_required = num_seg > 1 and rate2_continuous_controls
-
-        return (state_val_cont_required or control_val_cont_required or
-                control_rate_cont_required or control_rate2_cont_required)
-
     def _setup_defects(self):
         """
         Setup the Collocation and Continuity components as necessary.
@@ -386,50 +348,35 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                            state_options=self.state_options,
                                            time_units=time_units))
 
-        self.connect(
-            'time.dt_dstau', ('collocation_constraint.dt_dstau'),
-            src_indices=grid_data.subset_node_indices['col'])
+        self.connect('time.dt_dstau', ('collocation_constraint.dt_dstau'),
+                     src_indices=grid_data.subset_node_indices['col'])
 
         # Add the continuity constraint component if necessary
-        if self._requires_continuity_comp():
-            self.add_subsystem('continuity_constraint',
-                               ContinuityComp(grid_data=grid_data,
-                                              state_options=self.state_options,
-                                              control_options=self.control_options,
-                                              time_units=time_units))
-            self.connect('t_duration', 'continuity_constraint.t_duration')
-
         if num_seg > 1:
+            self.connect('t_duration', 'continuity_comp.t_duration')
 
             for name, options in iteritems(self.state_options):
-                if not compressed and options['continuity']:
-                    # The sub-indices of state_disc indices that are segment ends
-                    state_disc_idxs = grid_data.subset_node_indices['state_disc']
-                    segment_end_idxs = grid_data.subset_node_indices['segment_ends']
-                    disc_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
-                    self.connect('states:{0}'.format(name),
-                                 'continuity_constraint.states:{}'.format(name),
-                                 src_indices=disc_subidxs)
+                # The sub-indices of state_disc indices that are segment ends
+                state_disc_idxs = grid_data.subset_node_indices['state_disc']
+                segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+                disc_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
+                self.connect('states:{0}'.format(name),
+                             'continuity_comp.states:{}'.format(name),
+                             src_indices=disc_subidxs)
 
             for name, options in iteritems(self.control_options):
-                control_src_name = 'controls:{0}'.format(name) if options['opt'] \
-                                   else 'controls:{0}_out'.format(name)
+                control_src_name = 'control_interp_comp.control_values:{0}'.format(name)
+                self.connect(control_src_name,
+                             'continuity_comp.controls:{0}'.format(name),
+                             src_indices=grid_data.subset_node_indices['segment_ends'])
 
-                if options['dynamic'] and options['continuity'] and not compressed:
-                    self.connect(control_src_name,
-                                 'continuity_constraint.controls:{0}'.format(name),
-                                 src_indices=grid_data.subset_node_indices['segment_ends'])
+                self.connect('control_rates:{0}_rate'.format(name),
+                             'continuity_comp.control_rates:{}_rate'.format(name),
+                             src_indices=grid_data.subset_node_indices['segment_ends'])
 
-                if options['opt'] and options['dynamic']:
-                    if options['rate_continuity']:
-                        self.connect('control_rates:{0}_rate'.format(name),
-                                     'continuity_constraint.control_rates:{}_rate'.format(name),
-                                     src_indices=grid_data.subset_node_indices['segment_ends'])
-
-                    if options['rate2_continuity']:
-                        self.connect('control_rates:{0}_rate2'.format(name),
-                                     'continuity_constraint.control_rates:{}_rate2'.format(name),
-                                     src_indices=grid_data.subset_node_indices['segment_ends'])
+                self.connect('control_rates:{0}_rate2'.format(name),
+                             'continuity_comp.control_rates:{}_rate2'.format(name),
+                             src_indices=grid_data.subset_node_indices['segment_ends'])
 
     def _setup_endpoint_conditions(self):
 
@@ -492,11 +439,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
             size = np.prod(options['shape'])
             ar = np.arange(size)
 
-            if options['opt']:
-                suffix = ''
-            else:
-                suffix = '_out'
-
             jump_comp.add_output('initial_jump:{0}'.format(control_name),
                                  val=np.zeros(options['shape']),
                                  units=options['units'],
@@ -509,7 +451,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(control_name))
 
-            self.connect('controls:{0}{1}'.format(control_name, suffix),
+            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
                          'endpoint_conditions.values:{0}'.format(control_name))
 
             self.connect('initial_jump:{0}'.format(control_name),

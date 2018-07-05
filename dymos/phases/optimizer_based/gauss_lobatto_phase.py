@@ -7,7 +7,7 @@ import numpy as np
 from openmdao.utils.units import convert_units, valid_units
 
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
-from ..components import GaussLobattoPathConstraintComp
+from ..components import GaussLobattoPathConstraintComp, GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
 
 
@@ -58,47 +58,42 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         grid_data = self.grid_data
 
         for name, options in iteritems(self.control_options):
-            map_indices_to_all = grid_data.input_maps['dynamic_control_input_to_disc']
-            map_indices_to_disc = \
-                map_indices_to_all[grid_data.subset_node_indices['state_disc']]
-            map_indices_to_col = map_indices_to_all[grid_data.subset_node_indices['col']]
+            state_disc_idxs = grid_data.subset_node_indices['state_disc']
+            col_idxs = grid_data.subset_node_indices['col']
 
-            if options['opt']:
-                control_src_name = 'controls:{0}'.format(name)
-            else:
-                control_src_name = 'controls:{0}_out'.format(name)
+            control_src_name = 'control_interp_comp.control_values:{0}'.format(name)
 
             if name in self.ode_options._parameters:
                 targets = self.ode_options._parameters[name]['targets']
                 self.connect(control_src_name,
                              ['rhs_disc.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_disc)
+                             src_indices=state_disc_idxs)
 
                 self.connect(control_src_name,
                              ['rhs_col.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_col)
+                             src_indices=col_idxs)
 
             if options['rate_param']:
                 targets = self.ode_options._parameters[options['rate_param']]['targets']
 
                 self.connect('control_rates:{0}_rate'.format(name),
                              ['rhs_disc.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_disc)
+                             src_indices=state_disc_idxs)
 
                 self.connect('control_rates:{0}_rate'.format(name),
                              ['rhs_col.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_col)
+                             src_indices=col_idxs)
 
             if options['rate2_param']:
                 targets = self.ode_options._parameters[options['rate2_param']]['targets']
 
                 self.connect('control_rates:{0}_rate2'.format(name),
                              ['rhs_disc.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_disc)
+                             src_indices=state_disc_idxs)
 
                 self.connect('control_rates:{0}_rate2'.format(name),
                              ['rhs_col.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_col)
+                             src_indices=col_idxs)
 
         return num_dynamic
 
@@ -172,21 +167,10 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
 
-                if var_type == 'indep_control':
-                    constraint_path = 'controls:{0}'.format(var)
-                else:
-                    constraint_path = 'input_controls:{0}_out'.format(var)
-
-                if self.control_options[var]['dynamic']:
-                    # dynamic control - broadcast from input values to control discretization nodes
-                    ctrl_src_indices_all = gd.input_maps['dynamic_control_input_to_disc']
-                else:
-                    # static control - broadcast value to all nodes
-                    ctrl_src_indices_all = np.zeros(gd.subset_num_nodes['control_disc'], dtype=int)
+                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                             src_indices=ctrl_src_indices_all)
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'control_rate':
                 control_name = var[:-5]
@@ -227,7 +211,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
         grid_data = self.grid_data
         ODEClass = self.options['ode_class']
-        num_input_nodes = self.grid_data.num_state_input_nodes
+        num_input_nodes = self.grid_data.subset_num_nodes['state_input']
 
         kwargs = self.options['ode_init_kwargs']
         rhs_disc = ODEClass(num_nodes=grid_data.subset_num_nodes['state_disc'], **kwargs)
@@ -264,16 +248,22 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
     def _setup_defects(self):
         super(GaussLobattoPhase, self)._setup_defects()
+        grid_data = self.grid_data
 
         for name, options in iteritems(self.state_options):
-
             self.connect(
                 'state_interp.staterate_col:%s' % name,
                 'collocation_constraint.f_approx:%s' % name)
-
             self.connect(
                 'rhs_col.%s' % options['rate_source'],
                 'collocation_constraint.f_computed:%s' % name)
+
+        if grid_data.num_segments > 1:
+            self.add_subsystem('continuity_comp',
+                               GaussLobattoContinuityComp(grid_data=grid_data,
+                                                          state_options=self.state_options,
+                                                          control_options=self.control_options,
+                                                          time_units=self.time_options['units']))
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
@@ -320,9 +310,9 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         elif var_type == 'state':
             obj_path = 'states:{0}'.format(name)
         elif var_type == 'indep_control':
-            obj_path = 'controls:{0}'.format(name)
+            obj_path = 'control_interp_comp.control_values:{0}'.format(name)
         elif var_type == 'input_control':
-            obj_path = 'controls:{0}'.format(name)
+            obj_path = 'control_interp_comp.control_values:{0}'.format(name)
         elif var_type == 'control_rate':
             control_name = name[:-5]
             obj_path = 'control_rates:{0}_rate'.format(control_name)
@@ -382,12 +372,12 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
         path_map = {'time': 'time.{0}',
                     'state': ('indep_states.states:{0}', 'state_interp.state_col:{0}'),
-                    'indep_control': 'indep_controls.controls:{0}',
-                    'input_control': 'input_controls.controls:{0}_out',
+                    'indep_control': 'control_interp_comp.control_values:{0}',
+                    'input_control': 'control_interp_comp.control_values:{0}',
                     'indep_design_parameter': 'indep_design_params.design_parameters:{0}',
                     'input_design_parameter': 'input_design_params.design_parameters:{0}_out',
-                    'control_rate': 'control_rate_comp.control_rates:{0}',
-                    'control_rate2': 'control_rate_comp.control_rates:{0}',
+                    'control_rate': 'control_interp_comp.control_rates:{0}',
+                    'control_rate2': 'control_interp_comp.control_rates:{0}',
                     'rhs': ('rhs_disc.{0}', 'rhs_col.{0}')}
 
         if var_type == 'state':
@@ -417,7 +407,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             var_path = var_prefix + path_map[var_type].format(var)
             output_units = op[var_path]['units']
 
-            vals = op[var_path]['value'][gd.input_maps['dynamic_control_input_to_disc'], ...]
+            vals = op[var_path]['value']
             output_value = convert_units(vals, output_units, units)
 
         elif var_type in ('indep_design_parameter', 'input_design_parameter'):

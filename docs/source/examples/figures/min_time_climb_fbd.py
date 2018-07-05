@@ -1,13 +1,13 @@
 import numpy as np
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 from scipy import ndimage
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, Arc
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-def get_angle_plot(line1, line2, radius = 1, color = None, origin = [0, 0],
+def get_angle_plot(line1, line2, radius = 1, color = None, origin = (0, 0),
                    len_x_axis = 1, len_y_axis = 1):
 
     l1xy = line1.get_xydata()

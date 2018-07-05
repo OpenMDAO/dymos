@@ -1,0 +1,51 @@
+################################################################################################
+Release Notes for Dymos 0.9.0
+
+July 05, 2018
+
+
+This version updates the way controls are parameterized in Radau Pseudospectral phases.  For a
+segment of order n, there are n+1 total nodes.  The left-most n nodes comprise the 'control_disc'
+subset.  Due to differences with the Gauss-Lobatto method, new subsets 'control_input' and
+'state_input' were added.  These are identical to the discretization subsets when using an uncompessed
+transcription.  When transcription is compressed, the control is only specified at the first point
+in a shared segment bound.
+
+For instance, for Radau Pseudospectral, three adjacent segments of order 3might look like this:
+
+0  1  2  3
+x--x--x--o  5  6  7
+         x--x--x--o  9 10 11
+         4        x--x--x--o
+                  8
+
+Subsets 'control_input' and 'control_disc' consists of indices [0, 1, 2, 4, 5, 6, 8, 9, 10].
+Since the control is defined by n nodes on each segment, it has order n-1, consistent with that of
+the Gauss-Lobatto method.
+
+For Gauss-Lobatto, three adjacent segments of order 3 might look like this:
+
+0  1  2
+o--x--o  4  5
+      o--x--o  7  8
+      3     o--x--o
+            6
+
+Here the 'control_disc' subset consists of all nodes [0, 1, 2, 3, 4, 5, 6, 7, 8] while the control
+input subset omits the duplicate indices, 3 and 6, and is thus [0, 1, 2, 4, 5, 7, 8].  Again, the
+control has order n-1.
+
+Control value continuity is a linear constraint in the Gauss-Lobatto phase while it is a nonlinear
+constraint in the Radau Pseudospectral phase, since an interpolation is required.  For instance, the
+value on segment 0, node 3 is obtained by an interpolation using values at [0, 1, 2].
+
+
+New Features:
+-------------
+- The 'control_input' subset is now where all controls should be provided, and changes based on the transcription and compression setting.
+- The 'state_input' is where all state values should be provided.
+- The argument `dynamic` is no longer valid for `add_control`.  All controls are dynamic, and static controls should be added with `add_design_parameter`.
+- Design parameters do not have associated rates.
+- Control continuity is always computed, but only enforced when requested by the user.
+
+################################################################################################

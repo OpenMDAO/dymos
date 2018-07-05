@@ -36,7 +36,7 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
                                 0.0, decimal=5)
 
             if not compressed:
-                assert_almost_equal(p['phase0.continuity_constraint.'
+                assert_almost_equal(p['phase0.continuity_comp.'
                                       'defect_states:{0}'.format(state)],
                                     0.0, decimal=5,
                                     err_msg='error in state continuity for state {0}'.format(state))

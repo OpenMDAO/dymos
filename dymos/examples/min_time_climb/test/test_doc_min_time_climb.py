@@ -82,12 +82,12 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 500
 
-        p['phase0.states:r'] = phase.interpolate(ys=[0.0, 50000.0], nodes='state_disc')
-        p['phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_disc')
-        p['phase0.states:v'] = phase.interpolate(ys=[135.964, 283.159], nodes='state_disc')
-        p['phase0.states:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='state_disc')
-        p['phase0.states:m'] = phase.interpolate(ys=[19030.468, 10000.], nodes='state_disc')
-        p['phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_disc')
+        p['phase0.states:r'] = phase.interpolate(ys=[0.0, 50000.0], nodes='state_input')
+        p['phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[135.964, 283.159], nodes='state_input')
+        p['phase0.states:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='state_input')
+        p['phase0.states:m'] = phase.interpolate(ys=[19030.468, 10000.], nodes='state_input')
+        p['phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_input')
 
         # Solve for the optimal trajectory
         p.run_driver()

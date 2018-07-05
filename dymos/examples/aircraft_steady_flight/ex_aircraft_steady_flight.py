@@ -1,5 +1,9 @@
 from __future__ import division, print_function, absolute_import
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 import numpy as np
 
 from openmdao.api import Problem, Group, ScipyOptimizeDriver, pyOptSparseDriver, DirectSolver, \
@@ -27,10 +31,6 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         p.driver.opt_settings["Linesearch tolerance"] = 0.10
         p.driver.opt_settings['iSumm'] = 6
-    #     # p.driver.opt_settings['Verify level'] = 3
-    # else:
-    #     p.driver = ScipyOptimizeDriver()
-    #     p.driver.options['dynamic_simul_derivs'] = True
 
     num_seg = 15
     seg_ends, _ = lgl(num_seg + 1)
@@ -86,8 +86,8 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 3600.0
-    p['phase0.states:range'] = phase.interpolate(ys=(0, 1000.0), nodes='state_disc')
-    p['phase0.states:mass_fuel'] = phase.interpolate(ys=(30000, 0), nodes='state_disc')
+    p['phase0.states:range'] = phase.interpolate(ys=(0, 1000.0), nodes='state_input')
+    p['phase0.states:mass_fuel'] = phase.interpolate(ys=(30000, 0), nodes='state_input')
 
     p['phase0.controls:mach'][:] = 0.8
     p['phase0.controls:alt'][:] = 10.0
@@ -100,14 +100,6 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500))
 
-    print('fuel weight')
-    print(phase.get_values('mass_fuel', nodes='all', units='kg').T * 9.80665)
-    print('empty weight')
-    print(phase.get_values('mass_empty', nodes='all').T * 9.80665)
-    print('payload weight')
-    print(phase.get_values('mass_payload', nodes='all').T * 9.80665)
-
-    import matplotlib.pyplot as plt
     plt.plot(phase.get_values('time', nodes='all'), phase.get_values('alt', nodes='all'), 'ro')
     plt.plot(exp_out.get_values('time'), exp_out.get_values('alt'), 'b-')
     plt.suptitle('altitude vs time')
@@ -189,6 +181,8 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     plt.show()
 
+    return p
+
 
 if __name__ == '__main__':
-    ex_aircraft_steady_flight(optimizer='SNOPT', transcription='radau-ps')
+    ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps')

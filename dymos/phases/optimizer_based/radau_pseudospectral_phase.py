@@ -1,14 +1,11 @@
 from __future__ import division, print_function, absolute_import
 
+import numpy as np
+from openmdao.utils.units import convert_units, valid_units
 from six import iteritems
 
-import numpy as np
-
-from openmdao.utils.units import convert_units, valid_units
-
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
-from .components import ControlEndpointDefectComp
-from ..components import RadauPathConstraintComp
+from ..components import RadauPathConstraintComp, RadauPSContinuityComp
 from ...utils.misc import get_rate_units
 
 
@@ -51,21 +48,9 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
     def _setup_controls(self):
         super(RadauPseudospectralPhase, self)._setup_controls()
 
-        added_defect_constraint = False
-
         for name, options in iteritems(self.control_options):
 
             map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
-            if options['opt']:
-                if not added_defect_constraint:
-                    def_comp = ControlEndpointDefectComp(grid_data=self.grid_data,
-                                                         control_options=self.control_options)
-                    self.add_subsystem('control_defect_comp', subsys=def_comp,
-                                       promotes_outputs=['*'])
-                    added_defect_constraint = True
-                self.connect('controls:{0}'.format(name),
-                             'control_defect_comp.controls:{0}'.format(name),
-                             src_indices=map_indices_to_all)
 
             if options['opt']:
                 control_src_name = 'controls:{0}'.format(name)
@@ -74,21 +59,19 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
             if name in self.ode_options._parameters:
                 targets = self.ode_options._parameters[name]['targets']
-                self.connect(control_src_name,
-                             ['rhs_all.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_all)
+
+                self.connect('control_interp_comp.control_values:{0}'.format(name),
+                             ['rhs_all.{0}'.format(t) for t in targets])
 
             if options['rate_param']:
                 targets = self.ode_options._parameters[options['rate_param']]['targets']
                 self.connect('control_rates:{0}_rate'.format(name),
-                             ['rhs_all.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_all)
+                             ['rhs_all.{0}'.format(t) for t in targets])
 
             if options['rate2_param']:
                 targets = self.ode_options._parameters[options['rate2_param']]['targets']
                 self.connect('control_rates:{0}_rate2'.format(name),
-                             ['rhs_all.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_all)
+                             ['rhs_all.{0}'.format(t) for t in targets])
 
     def _setup_design_parameters(self):
         super(RadauPseudospectralPhase, self)._setup_design_parameters()
@@ -153,16 +136,10 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 options['shape'] = control_shape
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
-                constraint_path = 'controls:{0}'.format(var)
-
-                if self.control_options[var]['dynamic']:
-                    ctrl_src_indices_all = gd.input_maps['dynamic_control_input_to_disc']
-                else:
-                    ctrl_src_indices_all = np.zeros(gd.subset_num_nodes['all'], dtype=int)
+                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                             src_indices=ctrl_src_indices_all)
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'input_control':
                 control_shape = self.control_options[var]['shape']
@@ -170,16 +147,10 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 options['shape'] = control_shape
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
-                constraint_path = 'input_controls:{0}_out'.format(var)
-
-                if self.control_options[var]['dynamic']:
-                    ctrl_src_indices_all = gd.input_maps['dynamic_control_input_to_disc']
-                else:
-                    ctrl_src_indices_all = np.zeros(gd.subset_num_nodes['all'], dtype=int)
+                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
-                             tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                             src_indices=ctrl_src_indices_all)
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'control_rate':
                 control_name = var[:-5]
@@ -219,7 +190,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
         ODEClass = self.options['ode_class']
         grid_data = self.grid_data
-        num_input_nodes = self.grid_data.num_state_input_nodes
+        num_input_nodes = grid_data.subset_num_nodes['state_input']
 
         map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
 
@@ -251,7 +222,6 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         grid_data = self.grid_data
 
         for name, options in iteritems(self.state_options):
-
             self.connect(
                 'state_interp.staterate_col:{0}'.format(name),
                 'collocation_constraint.f_approx:{0}'.format(name))
@@ -259,6 +229,13 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             self.connect('rhs_all.{0}'.format(options['rate_source']),
                          'collocation_constraint.f_computed:{0}'.format(name),
                          src_indices=grid_data.subset_node_indices['col'])
+
+        if grid_data.num_segments > 1:
+            self.add_subsystem('continuity_comp',
+                               RadauPSContinuityComp(grid_data=grid_data,
+                                                     state_options=self.state_options,
+                                                     control_options=self.control_options,
+                                                     time_units=self.time_options['units']))
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
@@ -366,12 +343,12 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
         path_map = {'time': 'time.{0}',
                     'state': 'indep_states.states:{0}',
-                    'indep_control': 'indep_controls.controls:{0}',
-                    'input_control': 'input_controls.controls:{0}_out',
+                    'indep_control': 'control_interp_comp.control_values:{0}',
+                    'input_control': 'control_interp_comp.control_values:{0}',
                     'indep_design_parameter': 'indep_design_params.design_parameters:{0}',
                     'input_design_parameter': 'input_design_params.design_parameters:{0}_out',
-                    'control_rate': 'control_rate_comp.control_rates:{0}',
-                    'control_rate2': 'control_rate_comp.control_rates:{0}',
+                    'control_rate': 'control_interp_comp.control_rates:{0}',
+                    'control_rate2': 'control_interp_comp.control_rates:{0}',
                     'rhs': 'rhs_all.{0}'}
 
         if var_type == 'state':
@@ -384,12 +361,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             var_path = var_prefix + path_map[var_type].format(var)
             output_units = op[var_path]['units']
 
-            if self.control_options[var]['dynamic']:
-                vals = op[var_path]['value'][gd.input_maps['dynamic_control_input_to_disc'], ...]
-                output_value = convert_units(vals, output_units, units)
-            else:
-                output_value = convert_units(op[var_path]['value'], output_units, units)
-                output_value = np.repeat(output_value, gd.num_nodes, axis=0)
+            vals = op[var_path]['value']
+            output_value = convert_units(vals, output_units, units)
 
         elif var_type in ('input_design_parameter', 'indep_design_parameter'):
             var_path = var_prefix + path_map[var_type].format(var)

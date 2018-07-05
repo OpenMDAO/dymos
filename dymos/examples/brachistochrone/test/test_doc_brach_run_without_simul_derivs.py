@@ -6,7 +6,6 @@ import unittest
 
 class TestBrachistochroneWithoutSimulDerivsRunExample(unittest.TestCase):
 
-    @unittest.skip('skipped until SNOPT is available on CI')
     def test_brachistochrone_for_docs_gauss_lobatto_without_simul_derivs(self):
         from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
@@ -16,13 +15,11 @@ class TestBrachistochroneWithoutSimulDerivsRunExample(unittest.TestCase):
         p = Problem(model=Group())
 
         p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
-        p.driver.opt_settings['Major iterations limit'] = 1000
-        p.driver.opt_settings['iSumm'] = 6
+        p.driver.options['optimizer'] = 'SLSQP'
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,
-                      num_segments=200,
+                      num_segments=100,
                       transcription_order=3,
                       compressed=True)
 
@@ -49,10 +46,10 @@ class TestBrachistochroneWithoutSimulDerivsRunExample(unittest.TestCase):
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_disc')
-        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_disc')
-        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_disc')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_disc')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
 
         # Solve for the optimal trajectory
         p.run_driver()

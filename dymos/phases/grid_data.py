@@ -13,7 +13,7 @@ from dymos.utils.hermite import hermite_matrices
 from dymos.utils.lagrange import lagrange_matrices
 
 
-def gauss_lobatto_subsets(n):
+def gauss_lobatto_subsets(n, first_seg=False, compressed=False):
     """
     Returns the subset dictionary corresponding to the Gauss-Lobatto transcription.
 
@@ -22,16 +22,27 @@ def gauss_lobatto_subsets(n):
     num_nodes : int
         The total number of nodes in the Gauss-Lobatto segment.  Must be
         an odd number.
+    first_seg : bool
+        True if the subset requested is for the first segment in a phase.
+    compressed : bool
+        True if the subset requested is for a phase with compressed transcription.
 
     Returns
     -------
     subsets : A dictionary with the following keys:
         'disc' gives the indices of the state discretization nodes (deprecated)
         'state_disc' gives the indices of the state discretization nodes
+        'state_input' gives the indices of the state input nodes
         'control_disc' gives the indices of the control discretization nodes
+        'control_input' gives the indices of the control input nodes
         'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
         'col' gives the indices of the collocation nodes
         'all' gives all node indices
+
+    Notes
+    -----
+    Subset 'state_input' is the same as subset 'state_disc' if `compressed == False` or
+    `first_seg == True`.  The same is true of subsets 'control_input' and 'control_disc'.
     """
     if n % 2 == 0:
         raise ValueError('A Gauss-Lobatto scheme must use an odd number of points')
@@ -39,7 +50,11 @@ def gauss_lobatto_subsets(n):
     subsets = {
         'disc': np.arange(0, n, 2, dtype=int),
         'state_disc': np.arange(0, n, 2, dtype=int),
+        'state_input': np.arange(0, n, 2, dtype=int) if not compressed or first_seg
+        else np.arange(2, n, 2, dtype=int),
         'control_disc': np.arange(n, dtype=int),
+        'control_input': np.arange(n, dtype=int) if not compressed or first_seg
+        else np.arange(1, n, dtype=int),
         'segment_ends': np.array([0, n-1], dtype=int),
         'col': np.arange(1, n, 2, dtype=int),
         'all': np.arange(n, dtype=int),
@@ -48,7 +63,7 @@ def gauss_lobatto_subsets(n):
     return subsets
 
 
-def radau_pseudospectral_subsets(n):
+def radau_pseudospectral_subsets(n, first_seg=False, compressed=False):
     """
     Returns the subset dictionary corresponding to the Radau Pseudospectral
     transcription.
@@ -57,26 +72,68 @@ def radau_pseudospectral_subsets(n):
     ----------
     num_nodes : int
         The total number of nodes in the Radau Pseudospectral segment (including right endpoint).
+    first_seg : bool
+        True if the subset requested is for the first segment in a phase.
+    compressed : bool
+        True if the subset requested is for a phase with compressed transcription.
 
     Returns
     -------
     subsets : A dictionary with the following keys:
         'disc' gives the indices of the state discretization nodes (deprecated)
         'state_disc' gives the indices of the state discretization nodes
+        'state_input' gives the indices of the state input nodes
         'control_disc' gives the indices of the control discretization nodes
+        'control_input' gives the indices of the control input nodes
         'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
         'col' gives the indices of the collocation nodes
         'all' gives all node indices
+
+    Notes
+    -----
+    Subset 'state_input' is the same as subset 'state_disc' if `compressed == False` or
+    `first_seg == True`.  For Radau-Pseudospectral transcription, subset 'control_input' is always
+    the same as subset 'control_disc'.
     """
     node_indices = {
         'disc': np.arange(n),
         'state_disc': np.arange(n, dtype=int),
-        'control_disc': np.arange(n, dtype=int),
+        'state_input': np.arange(n, dtype=int) if not compressed or first_seg
+        else np.arange(1, n, dtype=int),
+        'control_disc': np.arange(n - 1, dtype=int),
+        'control_input': np.arange(n - 1, dtype=int),
         'segment_ends': np.array([0, n - 1], dtype=int),
         'col': np.arange(n - 1, dtype=int),
         'all': np.arange(n, dtype=int),
     }
     return node_indices
+
+
+def make_subset_map(from_subset_idxs, to_subset_idxs):
+    """
+    Creates a map from one subset to another using the indices of each subset within all nodes.
+
+    Parameters
+    ----------
+    from_subset_idxs : iterable of int
+        Subset indices for the subset from which we are mapping values.
+    to_subset_idxs : iterable of int
+        Subset indices for the subset to which we are mapping values.
+
+    Returns
+    -------
+    numpy.array of int
+        An index map which, when applied to values in the from_subset, will provide values
+        in the to_subset.
+
+    """
+    offset = 0
+    map = []
+    for i in range(len(to_subset_idxs)):
+        if to_subset_idxs[i] not in from_subset_idxs:
+            offset += 1
+        map.append(i - offset)
+    return np.array(map)
 
 
 class GridData(object):
@@ -115,6 +172,9 @@ class GridData(object):
 
         Attributes
         ----------
+        transcription : str
+            The transcription to which this GridData instance applies.  One of
+            'gauss-lobatto' or 'radau-ps'.
         num_segments : int
             The number of segments in the phase
         segment_ends : ndarray or None
@@ -190,20 +250,18 @@ class GridData(object):
 
         self.subset_num_nodes_per_segment = {}
 
-        self.num_dynamic_control_input_nodes = 0
-
-        self.num_state_input_nodes = 0
-
         self.compressed = compressed
 
         self.input_maps = {'state_input_to_disc': np.empty(0, dtype=int),
                            'dynamic_control_input_to_disc': np.empty(0, dtype=int)}
 
+        self.transcription = transcription.lower()
+
         # Define get_subsets and node points based on the transcription scheme
-        if transcription.lower() == 'gauss-lobatto':
+        if self.transcription == 'gauss-lobatto':
             get_subsets = gauss_lobatto_subsets
             get_points = lgl
-        elif transcription.lower() == 'radau-ps':
+        elif self.transcription == 'radau-ps':
             get_subsets = radau_pseudospectral_subsets
 
             def get_points(n):
@@ -233,36 +291,15 @@ class GridData(object):
         # Compute the number of nodes in the phase (total and by subset)
         for iseg in range(num_segments):
             segment_nodes, _ = get_points(transcription_order[iseg])
-            segment_subsets = get_subsets(len(segment_nodes))
+            segment_subsets = get_subsets(len(segment_nodes),
+                                          first_seg=iseg == 0,
+                                          compressed=compressed)
 
             self.num_nodes += len(segment_nodes)
+
             for name, val in iteritems(segment_subsets):
                 self.subset_num_nodes[name] += len(val)
                 self.subset_num_nodes_per_segment[name].append(len(val))
-
-                # Build the state decompression map
-                if name == 'state_disc':
-                    idxs = np.arange(len(val))
-                    if iseg > 0:
-                        idxs += self.input_maps['state_input_to_disc'][-1]
-                        if not compressed:
-                            idxs += 1
-                    self.input_maps['state_input_to_disc'] = \
-                        np.concatenate((self.input_maps['state_input_to_disc'], idxs))
-
-                # Build the control decompression map
-                elif name == 'control_disc':
-                    idxs = np.arange(len(val))
-                    if iseg > 0:
-                        idxs += self.input_maps['dynamic_control_input_to_disc'][-1]
-                        if not compressed:
-                            idxs += 1
-                    self.input_maps['dynamic_control_input_to_disc'] = \
-                        np.concatenate((self.input_maps['dynamic_control_input_to_disc'], idxs))
-
-        self.num_state_input_nodes = len(set(self.input_maps['state_input_to_disc']))
-        self.num_dynamic_control_input_nodes = \
-            len(set(self.input_maps['dynamic_control_input_to_disc']))
 
         # Now that we know the sizes, allocate arrays
         self.node_stau = np.empty(self.num_nodes)
@@ -278,7 +315,9 @@ class GridData(object):
         subset_ind1 = {name: 0 for name in subset_names}
         for iseg in range(num_segments):
             segment_nodes, _ = get_points(transcription_order[iseg])
-            segment_subsets = get_subsets(len(segment_nodes))
+            segment_subsets = get_subsets(len(segment_nodes),
+                                          first_seg=iseg == 0,
+                                          compressed=compressed)
 
             ind1 += len(segment_nodes)
             for name in subset_names:
@@ -303,6 +342,17 @@ class GridData(object):
             ind0 += len(segment_nodes)
             for name in subset_names:
                 subset_ind0[name] += len(segment_subsets[name])
+
+        state_input_idxs = self.subset_node_indices['state_input']
+        state_disc_idxs = self.subset_node_indices['state_disc']
+
+        control_input_idxs = self.subset_node_indices['control_input']
+        control_disc_idxs = self.subset_node_indices['control_disc']
+
+        self.input_maps['state_input_to_disc'] = make_subset_map(state_input_idxs, state_disc_idxs)
+
+        self.input_maps['dynamic_control_input_to_disc'] = make_subset_map(control_input_idxs,
+                                                                           control_disc_idxs)
 
     def phase_lagrange_matrices(self, given_set_name, eval_set_name):
         """

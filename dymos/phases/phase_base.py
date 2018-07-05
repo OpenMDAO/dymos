@@ -17,12 +17,11 @@ from openmdao.utils.logger_utils import get_logger
 from openmdao.utils.general_utils import warn_deprecation
 
 from dymos.phases.components import BoundaryConstraintComp
-from dymos.phases.components import ControlInputComp
 from dymos.phases.components import DesignParameterInputComp
 from dymos.phases.components import TimeComp
 from dymos.phases.options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
     StateOptionsDictionary, TimeOptionsDictionary
-from dymos.phases.components import ControlRateComp
+from dymos.phases.components import ControlInterpComp
 from dymos.phases.grid_data import GridData
 from dymos.ode_options import ODEOptions
 from dymos.utils.misc import get_rate_units
@@ -149,7 +148,7 @@ class PhaseBase(Group):
         self.state_options[name]['defect_scaler'] = defect_scaler
 
     def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
-                    fix_initial=False, fix_final=False, dynamic=None,
+                    fix_initial=False, fix_final=False,
                     scaler=None, adder=None, ref=None, ref0=None, continuity=None,
                     rate_continuity=None, rate_continuity_scaler=1.0,
                     rate2_continuity=None, rate2_continuity_scaler=1.0,
@@ -167,16 +166,10 @@ class PhaseBase(Group):
         units : str or None or 0
             Units in which the control variable is defined.  If 0, use the units declared
             for the parameter in the ODE.
-        dynamic : bool (Deprecated)
-            If True (default) this is a dynamic control, the values provided correspond to
-            the number of nodes in the phase.  If False, this is a static control, sized (1,),
-            and that value is broadcast to all nodes within the phase.
         opt : bool
             If True (default) the value(s) of this control will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the values of this control will exist in
-            'phase_name.input_controls.controls:control_name', where it may be connected to
-            external sources if desired.
+            If False, the values of this control will exist as aainput controls:{name}
         lower : float or ndarray
             The lower bound of the control at the nodes of the phase.
         upper : float or ndarray
@@ -189,7 +182,7 @@ class PhaseBase(Group):
             The zero-reference value of the control at the nodes of the phase.
         ref : float or ndarray
             The unit-reference value of the control at the nodes of the phase
-        contiuity : bool or None
+        continuity : bool or None
             True if continuity in the value of the control is desired at the segment bounds.
             See notes about default values for continuity.
         rate_continuity : bool or None
@@ -226,18 +219,6 @@ class PhaseBase(Group):
             raise ValueError('{0} has already been added as a control.'.format(name))
         if name in self.design_parameter_options:
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
-
-        if dynamic is not None:
-            warn_deprecation('Keyword dynamic provided in add_control when adding control {0}. '
-                             'Static controls should be added to the phase via the '
-                             'add_design_parameter method.  In future versions, all controls will'
-                             'be considered dynamic'.format(name))
-            if not dynamic:
-                self.add_design_parameter(name, val, units, opt, lower, upper, scaler, adder, ref,
-                                          ref0)
-            return
-        else:
-            dynamic = True
 
         self.control_options[name] = ControlOptionsDictionary()
 
@@ -289,7 +270,6 @@ class PhaseBase(Group):
                 warnings.warn(msg, RuntimeWarning)
 
         self.control_options[name]['val'] = val
-        self.control_options[name]['dynamic'] = dynamic
         self.control_options[name]['opt'] = opt
         self.control_options[name]['fix_initial'] = fix_initial
         self.control_options[name]['fix_final'] = fix_final
@@ -339,9 +319,8 @@ class PhaseBase(Group):
         opt : bool
             If True (default) the value(s) of this control will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the values of this control will exist in
-            'phase_name.input_controls.controls:control_name', where it may be connected to
-            external sources if desired.
+            If False, the this control will exist as a promoted input to control_interp_comp where
+            it may be connected to an external source, if desired.
         lower : float or ndarray
             The lower bound of the control at the nodes of the phase.
         upper : float or ndarray
@@ -529,52 +508,11 @@ class PhaseBase(Group):
         self._path_constraints[name]['linear'] = linear
         self._path_constraints[name]['units'] = units
 
-    def set_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
-                      adder=None, scaler=None, parallel_deriv_color=None,
-                      vectorize_derivs=False):
-        """
-        Allows the user to set an objective in the phase.  If name is not a state,
-        control, or 'time', then this is assumed to be the path of the variable
-        to be constrained in the RHS.
-
-        The default OpenMDAO `add_objective` method may still be used with the correct
-        path name to the response, but this method is intended to be
-        transcription-independent.
-
-        Parameters
-        ----------
-        name : str
-            Name of the response variable in the system.
-        loc : str
-            Where in the phase the objective is to be evaluated.  Valid
-            options are 'start' and 'end'.  The default is 'end'.
-        ref : float or ndarray, optional
-            Value of response variable that scales to 1.0 in the driver.
-        ref0 : float or ndarray, optional
-            Value of response variable that scales to 0.0 in the driver.
-        index : int, optional
-            If variable is an array, this indicates which entry is of
-            interest for this particular response. This may be a positive
-            or negative integer.  If present, this overrides loc.
-        adder : float or ndarray, optional
-            Value to add to the model value to get the scaled value. Adder
-            is first in precedence.
-        scaler : float or ndarray, optional
-            value to multiply the model value to get the scaled value. Scaler
-            is second in precedence.
-
-        """
-        warn_deprecation('set_objective has been replaced with add_objective')
-        self.add_objective(name, loc=loc, index=index, shape=shape, ref=ref, ref0=ref0,
-                           adder=adder, scaler=scaler, parallel_deriv_color=parallel_deriv_color,
-                           vectorize_derivs=vectorize_derivs)
-
     def _add_objective(self, obj_path, loc='final', index=None, shape=(1,), ref=None, ref0=None,
-                       adder=None, scaler=None, parallel_deriv_color=None,
-                       vectorize_derivs=False):
+                       adder=None, scaler=None, parallel_deriv_color=None, vectorize_derivs=False):
         """
         Called by add_objective in classes that derive from PhaseBase.  Each subclass is responsible
-        for determining the objective paht in the system.  This method then figures out the correct
+        for determining the objective path in the system.  This method then figures out the correct
         index based on the given loc and index attributes, and calls the standard add_objective
         method.
 
@@ -794,28 +732,25 @@ class PhaseBase(Group):
             raise ValueError('Given transcription order ({0}) is less than '
                              'the minimum allowed value (3)'.format(transcription_order))
 
-        self.grid_data = grid_data = GridData(
-            num_segments=num_segments, transcription=transcription,
-            transcription_order=transcription_order,
-            segment_ends=segment_ends,
-            compressed=compressed)
+        self.grid_data = GridData(num_segments=num_segments, transcription=transcription,
+                                  transcription_order=transcription_order,
+                                  segment_ends=segment_ends, compressed=compressed)
 
         self._time_extents = self._setup_time()
 
         # Declare control_rate comp to which we'll connect controls and parameters.
         if self.control_options:
-            ctrl_rate_comp = ControlRateComp(control_options=self.control_options,
-                                             time_units=self.time_options['units'],
-                                             grid_data=self.grid_data)
-
-            promoted_outputs = []
-
+            ctrl_rate_comp = ControlInterpComp(control_options=self.control_options,
+                                               time_units=self.time_options['units'],
+                                               grid_data=self.grid_data)
             self._setup_controls()
-            promoted_outputs.append('control_rates:*')
 
-            self.add_subsystem('control_rate_comp', subsys=ctrl_rate_comp,
-                               promotes_outputs=promoted_outputs)
-            self.connect('time.dt_dstau', 'control_rate_comp.dt_dstau')
+            self.add_subsystem('control_interp_comp',
+                               subsys=ctrl_rate_comp,
+                               promotes_inputs=['controls:*'],
+                               promotes_outputs=['control_rates:*'])
+            self.connect('time.dt_dstau', 'control_interp_comp.dt_dstau')
+
         if self.design_parameter_options:
             self._setup_design_parameters()
 
@@ -895,85 +830,42 @@ class PhaseBase(Group):
 
         num_opt_controls = len(opt_controls)
 
-        num_input_controls = len(self.control_options) - num_opt_controls
-
         grid_data = self.grid_data
 
         if num_opt_controls > 0:
             indep = self.add_subsystem('indep_controls', subsys=IndepVarComp(),
                                        promotes_outputs=['*'])
 
-        if num_input_controls > 0:
-            passthru = ControlInputComp(num_nodes=grid_data.num_nodes,
-                                        control_options=self.control_options)
-
-            self.add_subsystem('input_controls', subsys=passthru, promotes_inputs=['*'],
-                               promotes_outputs=['*'])
-
         num_dynamic_controls = 0
 
         for name, options in iteritems(self.control_options):
             if options['opt']:
-                if options['dynamic']:
-                    # Dynamic controls
-                    num_dynamic_controls = num_dynamic_controls + 1
-                    num_input_nodes = grid_data.num_dynamic_control_input_nodes
-                    map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
+                num_dynamic_controls = num_dynamic_controls + 1
+                num_input_nodes = grid_data.subset_num_nodes['control_input']
 
-                    desvar_indices = list(range(self.grid_data.num_dynamic_control_input_nodes))
-                    if options['fix_initial']:
-                        desvar_indices.pop(0)
-                    if options['fix_final']:
-                        desvar_indices.pop()
+                desvar_indices = list(range(self.grid_data.subset_num_nodes['control_input']))
+                if options['fix_initial']:
+                    desvar_indices.pop(0)
+                if options['fix_final']:
+                    desvar_indices.pop()
 
-                    if len(desvar_indices) > 0:
-                        coerce_desvar = CoerceDesvar(grid_data.subset_num_nodes['control_disc'],
-                                                     desvar_indices, options)
-
-                        self.add_design_var(name='controls:{0}'.format(name),
-                                            lower=coerce_desvar('lower'),
-                                            upper=coerce_desvar('upper'),
-                                            scaler=coerce_desvar('scaler'),
-                                            adder=coerce_desvar('adder'),
-                                            ref0=coerce_desvar('ref0'),
-                                            ref=coerce_desvar('ref'),
-                                            indices=desvar_indices)
-                # END DYNAMIC CONTROL
-                else:
-                    # Static control
-                    num_input_nodes = 1
-                    map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                if len(desvar_indices) > 0:
+                    coerce_desvar = CoerceDesvar(grid_data.subset_num_nodes['control_disc'],
+                                                 desvar_indices, options)
 
                     self.add_design_var(name='controls:{0}'.format(name),
-                                        lower=options['lower'],
-                                        upper=options['upper'],
-                                        scaler=options['scaler'],
-                                        adder=options['adder'],
-                                        ref0=options['ref0'],
-                                        ref=options['ref'])
+                                        lower=coerce_desvar('lower'),
+                                        upper=coerce_desvar('upper'),
+                                        scaler=coerce_desvar('scaler'),
+                                        adder=coerce_desvar('adder'),
+                                        ref0=coerce_desvar('ref0'),
+                                        ref=coerce_desvar('ref'),
+                                        indices=desvar_indices)
 
                 indep.add_output(name='controls:{0}'.format(name),
                                  val=options['val'],
                                  shape=(num_input_nodes, np.prod(options['shape'])),
                                  units=options['units'])
-                # END STATIC CONTROL
-                control_src_name = 'controls:{0}'.format(name)
-
-            # END OPTIMAL CONTROL
-            else:
-                if options['dynamic']:
-                    map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
-                else:
-                    map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                control_src_name = 'controls:{0}_out'.format(name)
-
-            # END INPUT CONTROL
-
-            # Connect to control rate
-            if options['dynamic']:
-                self.connect(control_src_name,
-                             'control_rate_comp.controls:{0}'.format(name),
-                             src_indices=map_indices_to_all)
 
         return num_dynamic_controls
 
@@ -1062,20 +954,34 @@ class PhaseBase(Group):
                 options['units'] = state_units if con_units is None else con_units
                 options['linear'] = True
                 constraint_path = 'states:{0}'.format(var)
-            elif var_type == 'indep_control':
+            elif var_type in 'indep_control':
                 control_shape = self.control_options[var]['shape']
                 control_units = self.control_options[var]['units']
                 options['shape'] = control_shape if con_shape is None else con_shape
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
-                constraint_path = 'controls:{0}'.format(var)
+                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
             elif var_type == 'input_control':
                 control_shape = self.control_options[var]['shape']
                 control_units = self.control_options[var]['units']
                 options['shape'] = control_shape if con_shape is None else con_shape
                 options['units'] = control_units if con_units is None else con_units
+                options['linear'] = False
+                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+            elif var_type == 'indep_design_parameter':
+                control_shape = self.design_parameter_options[var]['shape']
+                control_units = self.design_parameter_options[var]['units']
+                options['shape'] = control_shape if con_shape is None else con_shape
+                options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
-                constraint_path = 'controls:{0}_out'.format(var)
+                constraint_path = 'design_parameters:{0}'.format(var)
+            elif var_type == 'input_design_parameter':
+                control_shape = self.design_parameter_options[var]['shape']
+                control_units = self.design_parameter_options[var]['units']
+                options['shape'] = control_shape if con_shape is None else con_shape
+                options['units'] = control_units if con_units is None else con_units
+                options['linear'] = False
+                constraint_path = 'design_parameters:{0}_out'.format(var)
             elif var_type == 'control_rate':
                 control_var = var[:-5]
                 control_shape = self.control_options[control_var]['shape']
@@ -1126,6 +1032,10 @@ class PhaseBase(Group):
             self.connect(constraint_path,
                          'boundary_constraints.boundary_values:{0}'.format(con_name),
                          src_indices=src_idxs, flat_src_indices=True)
+
+    def _setup_path_constraints(self):
+        raise NotImplementedError('_setup_path_constraints has not been implemented '
+                                  'for this phase type')
 
     def _check_unprovided_controls(self):
         logger = get_logger('check_config', use_format=True)
@@ -1236,10 +1146,10 @@ class PhaseBase(Group):
 
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
-        if nodes not in ('col', 'disc', 'all', 'state_disc', 'control_disc',
-                         'segment_ends'):
+        if nodes not in ('col', 'disc', 'all', 'state_disc', 'state_input', 'control_disc',
+                         'control_input', 'segment_ends'):
             raise ValueError("nodes must be one of 'col', 'disc', 'all', 'state_disc', "
-                             "'control_disc', or 'segment_ends'")
+                             "'state_input', 'control_disc', 'control_input', or 'segment_ends'")
         if xs is None:
             if len(ys) != 2:
                 raise ValueError('xs may only be unspecified when len(ys)=2')
@@ -1250,8 +1160,8 @@ class PhaseBase(Group):
             raise ValueError('xs must be viewable as a 1D array')
 
         node_locations = self.grid_data.node_ptau[self.grid_data.subset_node_indices[nodes]]
-        if self.options['compressed']:
-            node_locations = np.array(sorted(list(set(node_locations))))
+        # if self.options['compressed']:
+        #     node_locations = np.array(sorted(list(set(node_locations))))
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()
         m = 2.0 / (_xs[-1] - _xs[0])

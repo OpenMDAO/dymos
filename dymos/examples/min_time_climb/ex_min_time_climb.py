@@ -15,8 +15,7 @@ SHOW_PLOTS = True
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
-                   transcription_order=5, top_level_jacobian='csc',
-                   formulation='optimizer-based', method_name='GaussLegendre2',
+                   transcription_order=3, top_level_jacobian='csc',
                    force_alloc_complex=False):
 
     p = Problem(model=Group())
@@ -29,16 +28,16 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['iSumm'] = 6
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-        # p.driver.opt_settings['Verify level'] = 3
         p.driver.opt_settings['Function precision'] = 1.0E-6
         p.driver.opt_settings['Linesearch tolerance'] = 0.10
         p.driver.opt_settings['Major step limit'] = 0.5
+        p.driver.opt_settings['Verify level'] = 3
 
     phase = Phase(transcription,
                   ode_class=MinTimeClimbODE,
                   num_segments=num_seg,
                   compressed=True,
-                  transcription_order=3)
+                  transcription_order=transcription_order)
 
     p.model.add_subsystem('phase0', phase)
 
@@ -60,11 +59,8 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.set_state_options('m', fix_initial=True, lower=10.0, upper=1.0E5,
                             scaler=1.0E-3, defect_scaler=1.0E-3)
 
-    rate_continuity = True
-
     phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
-                      rate_continuity=rate_continuity, rate_continuity_scaler=100.0,
-                      rate2_continuity=False)
+                      continuity=True, rate_continuity=True, rate2_continuity=False)
 
     phase.add_design_parameter('S', val=49.2386, units='m**2', opt=False)
     phase.add_design_parameter('Isp', val=1600.0, units='s', opt=False)
@@ -85,17 +81,17 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
     p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-    p.setup(mode='fwd', check=True)
+    p.setup(mode='fwd', check=True, force_alloc_complex=force_alloc_complex)
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 298.46902
 
-    p['phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='state_disc')
-    p['phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_disc')
-    p['phase0.states:v'] = phase.interpolate(ys=[135.964, 283.159], nodes='state_disc')
-    p['phase0.states:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='state_disc')
-    p['phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='state_disc')
-    p['phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_disc')
+    p['phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='state_input')
+    p['phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_input')
+    p['phase0.states:v'] = phase.interpolate(ys=[135.964, 283.159], nodes='state_input')
+    p['phase0.states:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='state_input')
+    p['phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='state_input')
+    p['phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_input')
 
     p.run_driver()
 

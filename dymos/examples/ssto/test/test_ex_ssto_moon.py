@@ -56,12 +56,12 @@ class TestExampleSSTOMoon(unittest.TestCase):
         p['phase0.t_duration'] = 500.0
 
         phase = p.model.phase0
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_disc')
-        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_disc')
-        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_disc')
-        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_disc')
-        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_disc')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='control_disc')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_input')
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_input')
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_input')
+        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='control_input')
 
         p.run_driver()
 
@@ -82,12 +82,12 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
         phase = p.model.phase0
 
-        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_disc')
-        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_disc')
-        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_disc')
-        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_disc')
-        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_disc')
-        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='control_disc')
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_input')
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_input')
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_input')
+        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='control_input')
 
         p.run_driver()
 
