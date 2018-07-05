@@ -6,7 +6,6 @@ import unittest
 
 class TestBrachistochroneWithoutSimulDerivsRunExample(unittest.TestCase):
 
-    @unittest.skip('skipped until SNOPT is available on CI')
     def test_brachistochrone_for_docs_gauss_lobatto_without_simul_derivs(self):
         from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
@@ -16,13 +15,11 @@ class TestBrachistochroneWithoutSimulDerivsRunExample(unittest.TestCase):
         p = Problem(model=Group())
 
         p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
-        p.driver.opt_settings['Major iterations limit'] = 1000
-        p.driver.opt_settings['iSumm'] = 6
+        p.driver.options['optimizer'] = 'SLSQP'
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,
-                      num_segments=200,
+                      num_segments=100,
                       transcription_order=3,
                       compressed=True)
 

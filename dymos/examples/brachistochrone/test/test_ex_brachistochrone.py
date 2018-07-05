@@ -55,7 +55,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         ['gauss-lobatto', 'radau-ps'],
     ))
     def test_ex_brachistochrone(self, transcription='radau-ps'):
-        ex_brachistochrone.SHOW_PLOTS = False
+        ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription=transcription)
         self.run_asserts(p, transcription)
         self.tearDown()
