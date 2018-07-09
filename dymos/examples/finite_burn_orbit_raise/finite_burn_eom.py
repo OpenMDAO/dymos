@@ -18,11 +18,11 @@ units.add_unit('DU', '{0}*m'.format(R_earth))
 
 
 @declare_time(units='TU')
-@declare_state('x1', rate_source='x1_dot', targets=['x1'], units='DU')
-@declare_state('x2', rate_source='x2_dot', targets=['x2'], units='rad')
-@declare_state('x3', rate_source='x3_dot', targets=['x3'], units='DU/TU')
-@declare_state('x4', rate_source='x4_dot', targets=['x4'], units='DU/TU')
-@declare_state('x5', rate_source='x5_dot', targets=['x5'], units='DU/TU**2')
+@declare_state('r', rate_source='r_dot', targets=['r'], units='DU')
+@declare_state('theta', rate_source='theta_dot', targets=['theta'], units='rad')
+@declare_state('vr', rate_source='vr_dot', targets=['vr'], units='DU/TU')
+@declare_state('vt', rate_source='vt_dot', targets=['vt'], units='DU/TU')
+@declare_state('at', rate_source='at_dot', targets=['at'], units='DU/TU**2')
 @declare_state('deltav', rate_source='deltav_dot', units='DU/TU')
 @declare_parameter('u1', targets=['u1'], units='rad')
 @declare_parameter('c', targets=['c'], units='DU/TU')
@@ -35,27 +35,27 @@ class FiniteBurnODE(ExplicitComponent):
         nn = self.options['num_nodes']
 
         # Inputs
-        self.add_input('x1',
+        self.add_input('r',
                        val=np.ones(nn),
                        desc='radius from center of attraction',
                        units='DU')
 
-        self.add_input('x2',
+        self.add_input('theta',
                        val=np.zeros(nn),
                        desc='anomaly term',
                        units='rad')
 
-        self.add_input('x3',
+        self.add_input('vr',
                        val=np.zeros(nn),
                        desc='local vertical velocity component',
                        units='DU/TU')
 
-        self.add_input('x4',
+        self.add_input('vt',
                        val=np.zeros(nn),
                        desc='local horizontal velocity component',
                        units='DU/TU')
 
-        self.add_input('x5',
+        self.add_input('at',
                        val=np.zeros(nn),
                        desc='acceleration due to thrust',
                        units='DU/TU**2')
@@ -70,27 +70,27 @@ class FiniteBurnODE(ExplicitComponent):
                        desc='exhaust velocity',
                        units='DU/TU')
 
-        self.add_output('x1_dot',
+        self.add_output('r_dot',
                         val=np.ones(nn),
                         desc='rate of change of radius from center of attraction',
                         units='DU/TU')
 
-        self.add_output('x2_dot',
+        self.add_output('theta_dot',
                         val=np.zeros(nn),
                         desc='rate of change of anomaly term',
                         units='rad/TU')
 
-        self.add_output('x3_dot',
+        self.add_output('vr_dot',
                         val=np.zeros(nn),
                         desc='rate of change of local vertical velocity component',
                         units='DU/TU**2')
 
-        self.add_output('x4_dot',
+        self.add_output('vt_dot',
                         val=np.zeros(nn),
                         desc='rate of change of local horizontal velocity component',
                         units='DU/TU**2')
 
-        self.add_output('x5_dot',
+        self.add_output('at_dot',
                         val=np.zeros(nn),
                         desc='rate of change of acceleration due to thrust',
                         units='DU/TU**3')
@@ -113,87 +113,87 @@ class FiniteBurnODE(ExplicitComponent):
         # Setup partials
         ar = np.arange(self.options['num_nodes'])
 
-        # x1 dot is a linear function of x3, so provide the partial value here
-        self.declare_partials(of='x1_dot', wrt='x3', rows=ar, cols=ar, val=1.0)
+        # r dot is a linear function of vr, so provide the partial value here
+        self.declare_partials(of='r_dot', wrt='vr', rows=ar, cols=ar, val=1.0)
 
-        self.declare_partials(of='x2_dot', wrt='x1', rows=ar, cols=ar)
-        self.declare_partials(of='x2_dot', wrt='x4', rows=ar, cols=ar)
+        self.declare_partials(of='theta_dot', wrt='r', rows=ar, cols=ar)
+        self.declare_partials(of='theta_dot', wrt='vt', rows=ar, cols=ar)
 
-        self.declare_partials(of='x3_dot', wrt='x1', rows=ar, cols=ar)
-        self.declare_partials(of='x3_dot', wrt='x4', rows=ar, cols=ar)
-        self.declare_partials(of='x3_dot', wrt='x5', rows=ar, cols=ar)
-        self.declare_partials(of='x3_dot', wrt='u1', rows=ar, cols=ar)
+        self.declare_partials(of='vr_dot', wrt='r', rows=ar, cols=ar)
+        self.declare_partials(of='vr_dot', wrt='vt', rows=ar, cols=ar)
+        self.declare_partials(of='vr_dot', wrt='at', rows=ar, cols=ar)
+        self.declare_partials(of='vr_dot', wrt='u1', rows=ar, cols=ar)
 
-        self.declare_partials(of='x4_dot', wrt='x1', rows=ar, cols=ar)
-        self.declare_partials(of='x4_dot', wrt='x3', rows=ar, cols=ar)
-        self.declare_partials(of='x4_dot', wrt='x4', rows=ar, cols=ar)
-        self.declare_partials(of='x4_dot', wrt='x5', rows=ar, cols=ar)
-        self.declare_partials(of='x4_dot', wrt='u1', rows=ar, cols=ar)
+        self.declare_partials(of='vt_dot', wrt='r', rows=ar, cols=ar)
+        self.declare_partials(of='vt_dot', wrt='vr', rows=ar, cols=ar)
+        self.declare_partials(of='vt_dot', wrt='vt', rows=ar, cols=ar)
+        self.declare_partials(of='vt_dot', wrt='at', rows=ar, cols=ar)
+        self.declare_partials(of='vt_dot', wrt='u1', rows=ar, cols=ar)
 
-        self.declare_partials(of='x5_dot', wrt='x5', rows=ar, cols=ar)
-        self.declare_partials(of='x5_dot', wrt='c', rows=ar, cols=ar)
+        self.declare_partials(of='at_dot', wrt='at', rows=ar, cols=ar)
+        self.declare_partials(of='at_dot', wrt='c', rows=ar, cols=ar)
 
-        self.declare_partials(of='deltav_dot', wrt='x5', rows=ar, cols=ar, val=1.0)
+        self.declare_partials(of='deltav_dot', wrt='at', rows=ar, cols=ar, val=1.0)
 
-        self.declare_partials(of='pos_x', wrt='x1', rows=ar, cols=ar)
-        self.declare_partials(of='pos_x', wrt='x2', rows=ar, cols=ar)
+        self.declare_partials(of='pos_x', wrt='r', rows=ar, cols=ar)
+        self.declare_partials(of='pos_x', wrt='theta', rows=ar, cols=ar)
 
-        self.declare_partials(of='pos_y', wrt='x1', rows=ar, cols=ar)
-        self.declare_partials(of='pos_y', wrt='x2', rows=ar, cols=ar)
+        self.declare_partials(of='pos_y', wrt='r', rows=ar, cols=ar)
+        self.declare_partials(of='pos_y', wrt='theta', rows=ar, cols=ar)
 
     def compute(self, inputs, outputs):
-        x1 = inputs['x1']
-        x2 = inputs['x2']
-        x3 = inputs['x3']
-        x4 = inputs['x4']
-        x5 = inputs['x5']
+        r = inputs['r']
+        theta = inputs['theta']
+        vr = inputs['vr']
+        vt = inputs['vt']
+        at = inputs['at']
         u1 = inputs['u1']
         c = inputs['c']
 
-        outputs['x1_dot'] = x3
-        outputs['x2_dot'] = x4 / x1
-        outputs['x3_dot'] = x4**2 / x1 - 1 / x1**2 + x5 * np.sin(u1)
-        outputs['x4_dot'] = -x3 * x4 / x1 + x5 * np.cos(u1)
-        outputs['x5_dot'] = x5**2 / c
-        outputs['deltav_dot'] = x5
+        outputs['r_dot'] = vr
+        outputs['theta_dot'] = vt / r
+        outputs['vr_dot'] = vt**2 / r - 1 / r**2 + at * np.sin(u1)
+        outputs['vt_dot'] = -vr * vt / r + at * np.cos(u1)
+        outputs['at_dot'] = at**2 / c
+        outputs['deltav_dot'] = at
 
-        outputs['pos_x'] = x1 * np.cos(x2)
-        outputs['pos_y'] = x1 * np.sin(x2)
+        outputs['pos_x'] = r * np.cos(theta)
+        outputs['pos_y'] = r * np.sin(theta)
 
     def compute_partials(self, inputs, partials):
-        x1 = inputs['x1']
-        x2 = inputs['x2']
-        x3 = inputs['x3']
-        x4 = inputs['x4']
-        x5 = inputs['x5']
+        r = inputs['r']
+        theta = inputs['theta']
+        vr = inputs['vr']
+        vt = inputs['vt']
+        at = inputs['at']
         u1 = inputs['u1']
         c = inputs['c']
 
         su1 = np.sin(u1)
         cu1 = np.cos(u1)
 
-        partials['x2_dot', 'x1'] = -x4 / x1**2
-        partials['x2_dot', 'x4'] = 1.0 / x1
+        partials['theta_dot', 'r'] = -vt / r**2
+        partials['theta_dot', 'vt'] = 1.0 / r
 
-        partials['x3_dot', 'x1'] = -x4**2 / x1**2 + 2.0 / x1**3
-        partials['x3_dot', 'x4'] = 2 * x4 / x1
-        partials['x3_dot', 'x5'] = su1
-        partials['x3_dot', 'u1'] = x5 * cu1
+        partials['vr_dot', 'r'] = -vt**2 / r**2 + 2.0 / r**3
+        partials['vr_dot', 'vt'] = 2 * vt / r
+        partials['vr_dot', 'at'] = su1
+        partials['vr_dot', 'u1'] = at * cu1
 
-        partials['x4_dot', 'x1'] = x3 * x4 / x1**2
-        partials['x4_dot', 'x3'] = -x4 / x1
-        partials['x4_dot', 'x4'] = -x3 / x1
-        partials['x4_dot', 'x5'] = cu1
-        partials['x4_dot', 'u1'] = -x5 * su1
+        partials['vt_dot', 'r'] = vr * vt / r**2
+        partials['vt_dot', 'vr'] = -vt / r
+        partials['vt_dot', 'vt'] = -vr / r
+        partials['vt_dot', 'at'] = cu1
+        partials['vt_dot', 'u1'] = -at * su1
 
-        partials['x5_dot', 'x5'] = 2 * x5 / c
-        partials['x5_dot', 'c'] = -x5**2 / c**2
+        partials['at_dot', 'at'] = 2 * at / c
+        partials['at_dot', 'c'] = -at**2 / c**2
 
-        partials['pos_x', 'x1'] = np.cos(x2)
-        partials['pos_x', 'x2'] = -x1 * np.sin(x2)
+        partials['pos_x', 'r'] = np.cos(theta)
+        partials['pos_x', 'theta'] = -r * np.sin(theta)
 
-        partials['pos_y', 'x1'] = np.sin(x2)
-        partials['pos_y', 'x2'] = x1 * np.cos(x2)
+        partials['pos_y', 'r'] = np.sin(theta)
+        partials['pos_y', 'theta'] = r * np.cos(theta)
 
 
 if __name__ == '__main__':
