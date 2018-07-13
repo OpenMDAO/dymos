@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
@@ -12,7 +12,7 @@ from dymos import Phase
 from dymos.phases.components.phase_linkage_comp import PhaseLinkageComp
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
-OPTIMIZER = 'SNOPT'
+OPTIMIZER = 'SLSQP'
 SHOW_PLOTS = True
 
 
@@ -29,14 +29,16 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto',
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         p.driver.opt_settings['iSumm'] = 6
     else:
-        p.driver = ScipyOptimizeDriver()
+        p.driver = pyOptSparseDriver()
+        p.driver.options['optimizer'] = OPTIMIZER
         p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.opt_settings['ACC'] = 1.0E-9
 
     # First Phase (burn)
 
     burn1 = Phase(transcription,
                   ode_class=FiniteBurnODE,
-                  num_segments=5,
+                  num_segments=4,
                   transcription_order=transcription_order,
                   compressed=compressed)
 
@@ -45,18 +47,18 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto',
     burn1.set_time_options(opt_initial=False, duration_bounds=(.5, 10))
     burn1.set_state_options('r', fix_initial=True, fix_final=False)
     burn1.set_state_options('theta', fix_initial=True, fix_final=False)
-    burn1.set_state_options('vr', fix_initial=True, fix_final=False)
-    burn1.set_state_options('vt', fix_initial=True, fix_final=False)
+    burn1.set_state_options('vr', fix_initial=True, fix_final=False, defect_scaler=0.1)
+    burn1.set_state_options('vt', fix_initial=True, fix_final=False, defect_scaler=0.1)
     burn1.set_state_options('at', fix_initial=True, fix_final=False)
     burn1.set_state_options('deltav', fix_initial=True, fix_final=False)
-    burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', lower=-179.9, upper=179.9)
+    burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg')
     burn1.add_design_parameter('c', opt=False, val=1.5)
 
     # Second Phase (Coast)
 
     coast = Phase(transcription,
                   ode_class=FiniteBurnODE,
-                  num_segments=8,
+                  num_segments=10,
                   transcription_order=transcription_order,
                   compressed=compressed)
 
@@ -69,7 +71,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto',
     coast.set_state_options('vt', fix_initial=False, fix_final=False)
     coast.set_state_options('at', fix_initial=True, fix_final=True)
     coast.set_state_options('deltav', fix_initial=False, fix_final=False)
-    coast.add_control('u1', opt=False, val=0.0, units='deg', lower=-179.9, upper=179.9)
+    coast.add_control('u1', opt=False, val=0.0, units='deg')
     coast.add_design_parameter('c', opt=False, val=1.5)
 
     # Third Phase (burn)
@@ -85,20 +87,21 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto',
     burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10))
     burn2.set_state_options('r', fix_initial=False, fix_final=True, defect_scaler=1.0)
     burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=1.0)
-    burn2.set_state_options('vr', fix_initial=False, fix_final=True, defect_scaler=1.0E-1)
-    burn2.set_state_options('vt', fix_initial=False, fix_final=True, defect_scaler=1.0E-1)
+    burn2.set_state_options('vr', fix_initial=False, fix_final=True, defect_scaler=0.1)
+    burn2.set_state_options('vt', fix_initial=False, fix_final=True, defect_scaler=0.1)
     burn2.set_state_options('at', fix_initial=False, fix_final=False, defect_scaler=1.0)
     burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
-    burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', lower=-179.9, upper=179.9)
+    burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
+                      ref0=-10, ref=10)
     burn2.add_design_parameter('c', opt=False, val=1.5)
 
     burn2.add_objective('deltav', loc='final')
 
     # Link Phases
     linkage_comp = p.model.add_subsystem('linkages', subsys=PhaseLinkageComp())
-    linkage_comp.add_linkage(name='L01', vars=['t', 'r', 'theta', 'vr', 'vt', 'deltav'])
-    linkage_comp.add_linkage(name='L12', vars=['t', 'r', 'theta', 'vr', 'vt', 'deltav'])
-    linkage_comp.add_linkage(name='L02', vars=['at'])
+    linkage_comp.add_linkage(name='L01', vars=['t', 'r', 'theta', 'vr', 'vt', 'deltav'], linear=True)
+    linkage_comp.add_linkage(name='L12', vars=['t', 'r', 'theta', 'vr', 'vt', 'deltav'], linear=True)
+    linkage_comp.add_linkage(name='L02', vars=['at'], linear=True)
 
     # Time Continuity
     p.model.connect('burn1.time++', 'linkages.L01_t:lhs')
@@ -192,6 +195,9 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto',
         fig_xy, ax_xy = plt.subplots()
         fig_xy.suptitle('Two Burn Orbit Raise Solution')
         ax_xy.set_aspect('equal', 'datalim')
+        theta = np.linspace(0, 2*np.pi, 100)
+        ax_xy.plot(1*np.cos(theta), 1*np.sin(theta), ls='-', color='gray', label='initial orbit')
+        ax_xy.plot(3*np.cos(theta), 3*np.sin(theta), ls='--', color='gray', label='final orbit')
 
         fig_at, ax_at = plt.subplots()
         fig_at.suptitle('Thrust/Mass History')
@@ -202,15 +208,26 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto',
         fig_deltav, ax_deltav = plt.subplots()
         fig_deltav.suptitle('Delta-V History')
 
-        for (phase, phase_exp_out) in [(burn1, burn1_exp_out), (coast, coast_exp_out), (burn2, burn2_exp_out)]:
+        for (phase, phase_exp_out) in [(burn1, burn1_exp_out),
+                                       (coast, coast_exp_out),
+                                       (burn2, burn2_exp_out)]:
             x_imp = phase.get_values('pos_x', nodes='all')
             y_imp = phase.get_values('pos_y', nodes='all')
 
             x_exp = phase_exp_out.get_values('pos_x')
             y_exp = phase_exp_out.get_values('pos_y')
 
-            ax_xy.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax_xy.plot(x_exp, y_exp, 'b-', label='explicit')
+            ax_xy.plot(x_imp, y_imp, 'ro', label='implicit' if phase == burn1 else None)
+            ax_xy.plot(x_exp, y_exp, 'b-', label='explicit' if phase == burn1 else None)
+
+            if phase is not coast:
+                theta_imp = phase.get_values('theta', nodes='all', units='rad')
+                u_imp = phase.get_values('u1', nodes='all', units='rad')
+                at_imp = phase.get_values('at', nodes='all')
+                a_x = at_imp * np.cos(theta_imp + u_imp + np.radians(90))
+                a_y = at_imp * np.sin(theta_imp + u_imp + np.radians(90))
+                ax_xy.quiver(x_imp, y_imp, 10*a_x, 10*a_y, scale=1, angles='xy', scale_units='xy',
+                             width=0.002, headwidth=0.1)
 
             x_imp = phase.get_values('time', nodes='all')
             y_imp = phase.get_values('at', nodes='all')
@@ -253,4 +270,4 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto',
 
 if __name__ == '__main__':
     two_burn_orbit_raise_problem(transcription='gauss-lobatto',
-                                 transcription_order=5, compressed=True)
+                                 transcription_order=3, compressed=True)

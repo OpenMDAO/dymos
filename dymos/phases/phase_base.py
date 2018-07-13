@@ -71,7 +71,6 @@ class PhaseBase(Group):
         self.time_options['targets'] = self.ode_options._time_options['targets']
 
     def initialize(self):
-        # Required metadata
         self.options.declare('num_segments', types=int, desc='Number of segments')
         self.options.declare('ode_class',
                              desc='System defining the ODE')
@@ -79,16 +78,13 @@ class PhaseBase(Group):
                              desc='Keyword arguments provided when initializing the ODE System')
         self.options.declare('transcription', values=['gauss-lobatto', 'radau-ps'],
                              desc='Transcription technique of the optimal control problem.')
-
-        # Optional metadata
-        self.options.declare(
-            'segment_ends', default=None, types=Iterable, allow_none=True,
-            desc='Iterable of locations of segment ends or None for equally spaced segments')
-        self.options.declare(
-            'transcription_order', default=3, types=(int, Iterable),
-            desc='Order of the transcription')
-        self.options.declare(
-            'compressed', default=True, types=bool, desc='Use compressed transcription')
+        self.options.declare('segment_ends', default=None, types=Iterable, allow_none=True,
+                             desc='Iterable of locations of segment ends or None for equally'
+                                  'spaced segments')
+        self.options.declare('transcription_order', default=3, types=(int, Iterable),
+                             desc='Order of the transcription')
+        self.options.declare('compressed', default=True, types=bool,
+                             desc='Use compressed transcription')
 
     def set_state_options(self, name, units=_unspecified, val=1.0,
                           fix_initial=False, fix_final=False, initial_bounds=None,
