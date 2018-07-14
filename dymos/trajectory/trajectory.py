@@ -63,6 +63,8 @@ class Trajectory(Group):
         for name, phs in iteritems(self._phases):
             phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
 
+        print('--- Linkage Report [{0}] ---'.format(self.pathname))
+
         if self._linkages:
             link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
 
@@ -70,6 +72,8 @@ class Trajectory(Group):
                 phase_name1, phase_name2 = pair
                 p1 = self._phases[phase_name1]
                 p2 = self._phases[phase_name2]
+
+                print('  ', phase_name1, '   ', phase_name2)
 
                 p1_states = set([key for key in p1.state_options])
                 p2_states = set([key for key in p2.state_options])
@@ -79,13 +83,14 @@ class Trajectory(Group):
 
                 varnames = vars.keys()
                 linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
+                max_varname_length = max(len(name) for name in varnames)
 
                 link_comp.add_linkage(name=linkage_name,
                                       vars=varnames)
 
                 for var, options in iteritems(vars):
                     loc1, loc2 = options['locs']
-                    print(var)
+
                     if var in p1_states:
                         source1 = 'states:{0}{1}'.format(var, loc1)
                     elif var in p1_controls:
@@ -106,34 +111,10 @@ class Trajectory(Group):
                     self.connect('{0}.{1}'.format(phase_name2, source2),
                                  'linkages.{0}_{1}:rhs'.format(linkage_name, var))
 
-        # linkage_comp.add_linkage(name='L01', vars=['t', 'r', 'theta', 'vr', 'vt', 'deltav'],
-        #                          linear=True)
-        # linkage_comp.add_linkage(name='L12', vars=['t', 'r', 'theta', 'vr', 'vt', 'deltav'],
-        #                          linear=True)
-        # linkage_comp.add_linkage(name='L02', vars=['at'], linear=True)
-        #
-        # # Time Continuity
-        # p.model.connect('burn1.time++', 'linkages.L01_t:lhs')
-        # p.model.connect('coast.time--', 'linkages.L01_t:rhs')
-        #
-        # p.model.connect('coast.time++', 'linkages.L12_t:lhs')
-        # p.model.connect('burn2.time--', 'linkages.L12_t:rhs')
-        #
-        # # Position and velocity continuity
-        # for state in ['r', 'theta', 'vr', 'vt', 'deltav']:
-        #     p.model.connect('burn1.states:{0}++'.format(state),
-        #                     'linkages.L01_{0}:lhs'.format(state))
-        #     p.model.connect('coast.states:{0}--'.format(state),
-        #                     'linkages.L01_{0}:rhs'.format(state))
-        #
-        #     p.model.connect('coast.states:{0}++'.format(state),
-        #                     'linkages.L12_{0}:lhs'.format(state))
-        #     p.model.connect('burn2.states:{0}--'.format(state),
-        #                     'linkages.L12_{0}:rhs'.format(state))
-        #
-        # # Thrust/weight continuity between the burn phases
-        # p.model.connect('burn1.states:at++', 'linkages.L02_at:lhs')
-        # p.model.connect('burn2.states:at--', 'linkages.L02_at:rhs')
+                    print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
+                                                                  max_varname_length+9))
+
+            print('----------------------------')
 
     def link_phases(self, phases, vars=None, locs=('++', '--')):
         """
@@ -215,14 +196,34 @@ class Trajectory(Group):
 
         _vars = ['*'] if vars is None else vars
 
+        # Resolve linkage pairs from the phases sequence
         a, b = itertools.tee(phases)
         next(b, None)
         phase_pairs = zip(a, b)
 
-        for phase1, phase2 in phase_pairs:
-            self._linkages[phase1, phase2] = {}
-            for var in _vars:
-                self._linkages[phase1, phase2][var] = {'locs': locs}
+        for phase1_name, phase2_name in phase_pairs:
+            self._linkages[phase1_name, phase2_name] = {}
 
-        print(self._linkages)
+            explicitly_linked_vars = [var for var in _vars if var != '*']
+
+            if '*' in _vars:
+                p1_states = set([key for key in self._phases[phase1_name].state_options])
+                p2_states = set([key for key in self._phases[phase2_name].state_options])
+                common_states = p1_states.intersection(p2_states)
+
+                implicitly_linked_vars = ['time'] + list(common_states)
+            else:
+                implicitly_linked_vars = []
+
+            linked_vars = list(set(implicitly_linked_vars + explicitly_linked_vars))
+
+            for var in linked_vars:
+                self._linkages[phase1_name, phase2_name][var] = {'locs': locs}
+
+    def simulate(self, parallel=True):
+        raise NotImplementedError('Trajectory.simulate has not yet been implemented.')
+
+    def get_values(self):
+        raise NotImplementedError('Trajectory.get_values has not yet been implemented.')
+
 

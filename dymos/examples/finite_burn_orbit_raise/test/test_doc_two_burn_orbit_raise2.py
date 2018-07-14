@@ -22,11 +22,8 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         OPTIMIZER = 'SNOPT'
 
-        p = Problem(model=Group())
-
         traj = Trajectory()
-
-        p.model.add_subsystem('traj', subsys=traj)
+        p = Problem(model=traj)
 
         if OPTIMIZER == 'SNOPT':
             p.driver = pyOptSparseDriver()
@@ -110,36 +107,6 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         traj.link_phases(['burn1', 'coast', 'burn2'], vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
         traj.link_phases(['burn1', 'burn2'], vars=['at'])
 
-        # linkage_comp = p.model.add_subsystem('linkages', subsys=PhaseLinkageComp())
-        # linkage_comp.add_linkage(name='L01', vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'],
-        #                          linear=True)
-        # linkage_comp.add_linkage(name='L12', vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'],
-        #                          linear=True)
-        # linkage_comp.add_linkage(name='L02', vars=['at'], linear=True)
-        #
-        # # Time Continuity
-        # p.model.connect('burn1.time++', 'linkages.L01_time:lhs')
-        # p.model.connect('coast.time--', 'linkages.L01_time:rhs')
-        #
-        # p.model.connect('coast.time++', 'linkages.L12_time:lhs')
-        # p.model.connect('burn2.time--', 'linkages.L12_time:rhs')
-        #
-        # # Position and velocity continuity
-        # for state in ['r', 'theta', 'vr', 'vt', 'deltav']:
-        #     p.model.connect('burn1.states:{0}++'.format(state),
-        #                     'linkages.L01_{0}:lhs'.format(state))
-        #     p.model.connect('coast.states:{0}--'.format(state),
-        #                     'linkages.L01_{0}:rhs'.format(state))
-        #
-        #     p.model.connect('coast.states:{0}++'.format(state),
-        #                     'linkages.L12_{0}:lhs'.format(state))
-        #     p.model.connect('burn2.states:{0}--'.format(state),
-        #                     'linkages.L12_{0}:rhs'.format(state))
-        #
-        # # Thrust/weight continuity between the burn phases
-        # p.model.connect('burn1.states:at++', 'linkages.L02_at:lhs')
-        # p.model.connect('burn2.states:at--', 'linkages.L02_at:rhs')
-
         # Finish Problem Setup
 
         p.model.options['assembled_jac_type'] = 'csc'
@@ -149,58 +116,58 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         # Set Initial Guesses
 
-        p.set_val('traj.burn1.t_initial', value=0.0)
-        p.set_val('traj.burn1.t_duration', value=2.25)
+        p.set_val('burn1.t_initial', value=0.0)
+        p.set_val('burn1.t_duration', value=2.25)
 
-        p.set_val('traj.burn1.states:r', value=burn1.interpolate(ys=[1, 1.5], nodes='state_input'))
-        p.set_val('traj.burn1.states:theta', value=burn1.interpolate(ys=[0, 1.7], nodes='state_input'))
-        p.set_val('traj.burn1.states:vr', value=burn1.interpolate(ys=[0, 0], nodes='state_input'))
-        p.set_val('traj.burn1.states:vt', value=burn1.interpolate(ys=[1, 1], nodes='state_input'))
-        p.set_val('traj.burn1.states:at', value=burn1.interpolate(ys=[0.1, 0], nodes='state_input'))
-        p.set_val('traj.burn1.states:deltav', value=burn1.interpolate(ys=[0, 0.1], nodes='state_input'))
-        p.set_val('traj.burn1.controls:u1',
+        p.set_val('burn1.states:r', value=burn1.interpolate(ys=[1, 1.5], nodes='state_input'))
+        p.set_val('burn1.states:theta', value=burn1.interpolate(ys=[0, 1.7], nodes='state_input'))
+        p.set_val('burn1.states:vr', value=burn1.interpolate(ys=[0, 0], nodes='state_input'))
+        p.set_val('burn1.states:vt', value=burn1.interpolate(ys=[1, 1], nodes='state_input'))
+        p.set_val('burn1.states:at', value=burn1.interpolate(ys=[0.1, 0], nodes='state_input'))
+        p.set_val('burn1.states:deltav', value=burn1.interpolate(ys=[0, 0.1], nodes='state_input'))
+        p.set_val('burn1.controls:u1',
                   value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
-        p.set_val('traj.burn1.design_parameters:c', value=1.5)
+        p.set_val('burn1.design_parameters:c', value=1.5)
 
-        p.set_val('traj.coast.t_initial', value=2.25)
-        p.set_val('traj.coast.t_duration', value=3.0)
+        p.set_val('coast.t_initial', value=2.25)
+        p.set_val('coast.t_duration', value=3.0)
 
-        p.set_val('traj.coast.states:r', value=coast.interpolate(ys=[1.3, 1.5], nodes='state_input'))
-        p.set_val('traj.coast.states:theta',
+        p.set_val('coast.states:r', value=coast.interpolate(ys=[1.3, 1.5], nodes='state_input'))
+        p.set_val('coast.states:theta',
                   value=coast.interpolate(ys=[2.1767, 1.7], nodes='state_input'))
-        p.set_val('traj.coast.states:vr', value=coast.interpolate(ys=[0.3285, 0], nodes='state_input'))
-        p.set_val('traj.coast.states:vt', value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
-        p.set_val('traj.coast.states:at', value=coast.interpolate(ys=[0, 0], nodes='state_input'))
-        p.set_val('traj.coast.controls:u1', value=coast.interpolate(ys=[0, 0], nodes='control_input'))
-        p.set_val('traj.coast.design_parameters:c', value=1.5)
+        p.set_val('coast.states:vr', value=coast.interpolate(ys=[0.3285, 0], nodes='state_input'))
+        p.set_val('coast.states:vt', value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
+        p.set_val('coast.states:at', value=coast.interpolate(ys=[0, 0], nodes='state_input'))
+        p.set_val('coast.controls:u1', value=coast.interpolate(ys=[0, 0], nodes='control_input'))
+        p.set_val('coast.design_parameters:c', value=1.5)
 
-        p.set_val('traj.burn2.t_initial', value=5.25)
-        p.set_val('traj.burn2.t_duration', value=1.75)
+        p.set_val('burn2.t_initial', value=5.25)
+        p.set_val('burn2.t_duration', value=1.75)
 
-        p.set_val('traj.burn2.states:r', value=burn2.interpolate(ys=[1, 3], nodes='state_input'))
-        p.set_val('traj.burn2.states:theta', value=burn2.interpolate(ys=[0, 4.0], nodes='state_input'))
-        p.set_val('traj.burn2.states:vr', value=burn2.interpolate(ys=[0, 0], nodes='state_input'))
-        p.set_val('traj.burn2.states:vt',
+        p.set_val('burn2.states:r', value=burn2.interpolate(ys=[1, 3], nodes='state_input'))
+        p.set_val('burn2.states:theta', value=burn2.interpolate(ys=[0, 4.0], nodes='state_input'))
+        p.set_val('burn2.states:vr', value=burn2.interpolate(ys=[0, 0], nodes='state_input'))
+        p.set_val('burn2.states:vt',
                   value=burn2.interpolate(ys=[1, np.sqrt(1 / 3)], nodes='state_input'))
-        p.set_val('traj.burn2.states:at', value=burn2.interpolate(ys=[0.1, 0], nodes='state_input'))
-        p.set_val('traj.burn2.states:deltav',
+        p.set_val('burn2.states:at', value=burn2.interpolate(ys=[0.1, 0], nodes='state_input'))
+        p.set_val('burn2.states:deltav',
                   value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
-        p.set_val('traj.burn2.controls:u1', value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
-        p.set_val('traj.burn2.design_parameters:c', value=1.5)
+        p.set_val('burn2.controls:u1', value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
+        p.set_val('burn2.design_parameters:c', value=1.5)
 
         p.run_driver()
 
-        assert_rel_error(self, p.get_val('traj.burn2.states:deltav')[-1], 0.3995, tolerance=1.0E-3)
+        assert_rel_error(self, p.get_val('burn2.states:deltav')[-1], 0.3995, tolerance=1.0E-3)
 
         # Plot results
         burn1_exp_out = burn1.simulate(times=np.linspace(
-            p['traj.burn1.t_initial'], p['traj.burn1.t_initial'] + p['traj.burn1.t_duration'], 50))
+            p['burn1.t_initial'], p['burn1.t_initial'] + p['burn1.t_duration'], 50))
 
         coast_exp_out = coast.simulate(times=np.linspace(
-            p['traj.coast.t_initial'], p['traj.coast.t_initial'] + p['traj.coast.t_duration'], 50))
+            p['coast.t_initial'], p['coast.t_initial'] + p['coast.t_duration'], 50))
 
         burn2_exp_out = burn2.simulate(times=np.linspace(
-            p['traj.burn2.t_initial'], p['traj.burn2.t_initial'] + p['traj.burn2.t_duration'], 50))
+            p['burn2.t_initial'], p['burn2.t_initial'] + p['burn2.t_duration'], 50))
 
         fig_xy, ax_xy = plt.subplots()
         fig_xy.suptitle('Two Burn Orbit Raise Solution')
