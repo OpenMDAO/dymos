@@ -20,7 +20,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
 
     p.model.add_subsystem('phase0', phase)
 
-    phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(1.0, 1.0))
+    phase.set_time_options(opt_initial=False, opt_duration=False)
 
     phase.set_state_options('x', fix_initial=True)
     phase.set_state_options('v', fix_initial=True, fix_final=True)
@@ -49,5 +49,4 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
 
 
 if __name__ == '__main__':
-    prob = double_integrator_direct_collocation(transcription='radau-ps', optimizer='SLSQP',
-                                                compressed=True)
+    prob = double_integrator_direct_collocation(transcription='radau-ps', compressed=True)

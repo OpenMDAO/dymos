@@ -14,7 +14,6 @@ from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
 from openmdao.utils.logger_utils import get_logger
-from openmdao.utils.general_utils import warn_deprecation
 
 from dymos.phases.components import BoundaryConstraintComp
 from dymos.phases.components import DesignParameterInputComp
@@ -585,22 +584,30 @@ class PhaseBase(Group):
                                              parallel_deriv_color=parallel_deriv_color,
                                              vectorize_derivs=vectorize_derivs)
 
-    def set_time_options(self, opt_initial=True, opt_duration=True, initial=0.0,
-                         initial_bounds=(None, None), initial_scaler=None,
+    def set_time_options(self, opt_initial=None, opt_duration=None, fix_initial=False,
+                         fix_duration=False, input_initial=False, input_duration=False,
+                         initial=0.0, initial_bounds=(None, None), initial_scaler=None,
                          initial_adder=None, initial_ref=None, initial_ref0=None,
-                         duration=1.0, duration_bounds=(None, None), duration_scaler=None,
-                         duration_adder=None, duration_ref=None, duration_ref0=None):
+                         duration=1.0, duration_bounds=(None, None),
+                         duration_scaler=None, duration_adder=None, duration_ref=None,
+                         duration_ref0=None):
         """
         Set options for the time (or the integration variable) in the Phase.
 
         Parameters
         ----------
-        opt_initial : bool
+        opt_initial : bool, deprecated
             If True, the initial time of the phase is a design variable
-            for optimization, otherwise False.
-        opt_duration : bool
+            for optimization, otherwise False. This option is deprecated in favor of fix_initial.
+        opt_duration : bool, deprecated
             If True, the duration of the phase is a design variable
-            for optimization, otherwise False.
+            for optimization, otherwise False. This option is deprecated in favor of fix_duration.
+        input_initial : bool
+            If True, the user is expected to link phase.t_initial to an external output source.
+            Providing input_initial=True makes all initial time optimization settings irrelevant.
+        input_duration : bool
+            If True, the user is expected to link phase.t_duration to an external output source.
+            Providing input_duration=True makes all time duration optimization settings irrelevant.
         initial : float
             Default value of the time at the start of the phase.
         initial_bounds : Iterable of size 2
@@ -627,8 +634,24 @@ class PhaseBase(Group):
         duration_ref : float
             Unit-reference value for the duration of time across the phase.
         """
+        if opt_initial is not None:
+            self.time_options['fix_initial'] = not opt_initial
+            warn_deprecation('opt_initial has been deprecated in favor of fix_initial, which has '
+                             'the opposite meaning. If the user desires to input the initial '
+                             'phase time from an exterior source, set input_initial=True')
+        else:
+            self.time_options['fix_initial'] = fix_initial
+
+        if opt_duration is not None:
+            self.time_options['fix_duration'] = not opt_duration
+            warn_deprecation('opt_duration has been deprecated in favor of fix_duration, which has '
+                             'the opposite meaning. If the user desires to input the phase '
+                             'duration from an exterior source, set input_duration=True')
+        else:
+            self.time_options['fix_duration'] = fix_duration
+
         # Don't allow the user to provide desvar options if the control is not optimal
-        if not opt_initial:
+        if input_initial or fix_initial:
             illegal_options = []
             if initial_bounds != (None, None):
                 illegal_options.append('initial_bounds')
@@ -644,7 +667,7 @@ class PhaseBase(Group):
                 msg = 'Invalid options for fixed ' \
                       'initial time: {0}'.format(', '.join(illegal_options))
                 raise ValueError(msg)
-        if not opt_duration:
+        if input_duration or fix_duration:
             illegal_options = []
             if duration_bounds != (None, None):
                 illegal_options.append('duration_bounds')
@@ -660,7 +683,8 @@ class PhaseBase(Group):
                 msg = 'Invalid options for fixed ' \
                       'duration: {0}'.format(', '.join(illegal_options))
                 raise ValueError(msg)
-        self.time_options['opt_initial'] = opt_initial
+
+        self.time_options['input_initial'] = input_initial
         self.time_options['initial'] = initial
         self.time_options['initial_bounds'] = initial_bounds
         self.time_options['initial_scaler'] = initial_scaler
@@ -668,7 +692,7 @@ class PhaseBase(Group):
         self.time_options['initial_ref'] = initial_ref
         self.time_options['initial_ref0'] = initial_ref0
 
-        self.time_options['opt_duration'] = opt_duration
+        self.time_options['input_duration'] = input_duration
         self.time_options['duration'] = duration
         self.time_options['duration_bounds'] = duration_bounds
         self.time_options['duration_scaler'] = duration_scaler
@@ -780,17 +804,17 @@ class PhaseBase(Group):
         externals = []
         comps = []
 
-        if self.time_options['opt_initial']:
+        if self.time_options['input_initial']:
+            externals.append('t_initial')
+        else:
             indeps.append('t_initial')
             self.connect('t_initial', 'time.t_initial')
-        else:
-            externals.append('t_initial')
 
-        if self.time_options['opt_duration']:
+        if self.time_options['input_duration']:
+            externals.append('t_duration')
+        else:
             indeps.append('t_duration')
             self.connect('t_duration', 'time.t_duration')
-        else:
-            externals.append('t_duration')
 
         if indeps:
             indep = IndepVarComp()
@@ -802,7 +826,7 @@ class PhaseBase(Group):
         time_comp = TimeComp(grid_data=grid_data, units=time_units)
         self.add_subsystem('time', time_comp, promotes_outputs=['time'], promotes_inputs=externals)
 
-        if self.time_options['opt_initial']:
+        if not (self.time_options['input_initial'] or self.time_options['fix_initial']):
             self.add_design_var('t_initial',
                                 lower=self.time_options['initial_bounds'][0],
                                 upper=self.time_options['initial_bounds'][1],
@@ -811,7 +835,7 @@ class PhaseBase(Group):
                                 ref0=self.time_options['initial_ref0'],
                                 ref=self.time_options['initial_ref'])
 
-        if self.time_options['opt_duration']:
+        if not (self.time_options['input_duration'] or self.time_options['fix_duration']):
             self.add_design_var('t_duration',
                                 lower=self.time_options['duration_bounds'][0],
                                 upper=self.time_options['duration_bounds'][1],

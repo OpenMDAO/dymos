@@ -263,7 +263,8 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                                GaussLobattoContinuityComp(grid_data=grid_data,
                                                           state_options=self.state_options,
                                                           control_options=self.control_options,
-                                                          time_units=self.time_options['units']))
+                                                          time_units=self.time_options['units']),
+                               promotes_inputs=['t_duration'])
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
