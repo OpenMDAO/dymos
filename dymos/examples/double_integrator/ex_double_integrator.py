@@ -20,7 +20,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
 
     p.model.add_subsystem('phase0', phase)
 
-    phase.set_time_options(opt_initial=False, opt_duration=False)
+    phase.set_time_options(fix_initial=True, fix_duration=True)
 
     phase.set_state_options('x', fix_initial=True)
     phase.set_state_options('v', fix_initial=True, fix_final=True)

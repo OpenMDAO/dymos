@@ -602,6 +602,10 @@ class PhaseBase(Group):
         opt_duration : bool, deprecated
             If True, the duration of the phase is a design variable
             for optimization, otherwise False. This option is deprecated in favor of fix_duration.
+        fix_initial : bool
+            If True, the initial time of the phase is not a design variable.
+        fix_duration : bool
+            If True, the duration of the phase is not a design variable
         input_initial : bool
             If True, the user is expected to link phase.t_initial to an external output source.
             Providing input_initial=True makes all initial time optimization settings irrelevant.
@@ -616,7 +620,7 @@ class PhaseBase(Group):
             Scalar for the initial value of time.
         initial_adder : float
             Adder for the initial value of time.
-        inital_ref0 : float
+        initial_ref0 : float
             Zero-reference value for the initial value of time.
         initial_ref : float
             Unit-reference value for the initial value of time.
@@ -638,7 +642,7 @@ class PhaseBase(Group):
             self.time_options['fix_initial'] = not opt_initial
             warn_deprecation('opt_initial has been deprecated in favor of fix_initial, which has '
                              'the opposite meaning. If the user desires to input the initial '
-                             'phase time from an exterior source, set input_initial=True')
+                             'phase time from an exterior source, set input_initial=True.')
         else:
             self.time_options['fix_initial'] = fix_initial
 
@@ -646,12 +650,15 @@ class PhaseBase(Group):
             self.time_options['fix_duration'] = not opt_duration
             warn_deprecation('opt_duration has been deprecated in favor of fix_duration, which has '
                              'the opposite meaning. If the user desires to input the phase '
-                             'duration from an exterior source, set input_duration=True')
+                             'duration from an exterior source, set input_duration=True.')
         else:
             self.time_options['fix_duration'] = fix_duration
 
-        # Don't allow the user to provide desvar options if the control is not optimal
-        if input_initial or fix_initial:
+        # Don't allow the user to provide desvar options if the time is not a desvar or is input.
+        if input_initial and fix_initial:
+            warnings.warn('Phase "{0}" initial time is an externally-connected input, '
+                          'therefore fix_initial has no effect.'.format(self.name), RuntimeWarning)
+        elif input_initial or fix_initial:
             illegal_options = []
             if initial_bounds != (None, None):
                 illegal_options.append('initial_bounds')
@@ -664,10 +671,16 @@ class PhaseBase(Group):
             if initial_ref0 is not None:
                 illegal_options.append('initial_ref0')
             if illegal_options:
-                msg = 'Invalid options for fixed ' \
-                      'initial time: {0}'.format(', '.join(illegal_options))
-                raise ValueError(msg)
-        if input_duration or fix_duration:
+                reason = 'input_initial=True' if input_initial else 'fix_initial=True'
+                msg = 'Phase time options have no effect because {2} for phase ' \
+                      '"{0}": {1}'.format(self.name, ', '.join(illegal_options), reason)
+                warnings.warn(msg, RuntimeWarning)
+
+        if input_duration and fix_duration:
+            warnings.warn('Phase "{0}" time duration is an externally-connected input, '
+                          'therefore fix_duration has no effect.'.format(self.name),
+                          RuntimeWarning)
+        elif input_duration or fix_duration:
             illegal_options = []
             if duration_bounds != (None, None):
                 illegal_options.append('duration_bounds')
@@ -680,9 +693,10 @@ class PhaseBase(Group):
             if duration_ref0 is not None:
                 illegal_options.append('duration_ref0')
             if illegal_options:
-                msg = 'Invalid options for fixed ' \
-                      'duration: {0}'.format(', '.join(illegal_options))
-                raise ValueError(msg)
+                reason = 'input_duration=True' if input_duration else 'fix_duration=True'
+                msg = 'Phase time options have no effect because {2} for phase ' \
+                      '"{0}": {1}'.format(self.name, ', '.join(illegal_options), reason)
+                warnings.warn(msg, RuntimeWarning)
 
         self.time_options['input_initial'] = input_initial
         self.time_options['initial'] = initial

@@ -285,14 +285,6 @@ class TimeOptionsDictionary(OptionsDictionary):
         self.declare('units', types=string_types, allow_none=True,
                      default='s', desc='Units for the integration variable')
 
-        self.declare(name='opt_initial', types=bool, default=None, allow_none=True,
-                     desc='If False, the initial value of time is not a design variable. This'
-                          'option is deprecated in favor of fix_initial')
-
-        self.declare(name='opt_duration', types=bool, default=None, allow_none=True,
-                     desc='If False, the phase duration is not a design variable. This option'
-                          'is deprecated in favor of fix_duration')
-
         self.declare(name='fix_initial', types=bool, default=False,
                      desc='If True, the initial value of time is not a design variable.')
 

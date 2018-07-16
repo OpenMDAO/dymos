@@ -17,7 +17,11 @@ In |project|, time is characterized by two variables:
 * `t_initial` - The initial time of the phase
 * `t_duration` - The duration of the phase
 
-The bounds, scaling, and units of these variables may be set using `set_time_options`.
+The bounds, scaling, and units of these variables may be set using `set_time_options`.  In addition,
+the user can specify that the initial time or duration of a phase is to be connected to some
+external output by specifying `input_initial = True` or `input_duration = True`.  In the case of
+fixed initial time or duration, or input initial time or duration, the optimization-related options
+have no effect and a warning will be raised if they are used.
 
 .. embed-options::
     dymos.phases.options

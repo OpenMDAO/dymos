@@ -40,7 +40,7 @@ def brachistochrone_min_time(
 
     p.model.add_subsystem('phase0', phase)
 
-    phase.set_time_options(opt_initial=False, duration_bounds=(.5, 10))
+    phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
     phase.set_state_options('x', fix_initial=True, fix_final=True)
     phase.set_state_options('y', fix_initial=True, fix_final=True)

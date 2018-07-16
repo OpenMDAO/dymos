@@ -41,7 +41,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     p.model.add_subsystem('phase0', phase)
 
-    phase.set_time_options(opt_initial=False, duration_bounds=(50, 400),
+    phase.set_time_options(fix_initial=True, duration_bounds=(50, 400),
                            duration_ref=100.0)
 
     phase.set_state_options('r', fix_initial=True, lower=0, upper=1.0E6,
