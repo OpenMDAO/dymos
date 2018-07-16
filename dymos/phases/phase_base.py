@@ -655,10 +655,10 @@ class PhaseBase(Group):
             self.time_options['fix_duration'] = fix_duration
 
         # Don't allow the user to provide desvar options if the time is not a desvar or is input.
-        if input_initial and fix_initial:
+        if input_initial and self.time_options['fix_initial']:
             warnings.warn('Phase "{0}" initial time is an externally-connected input, '
                           'therefore fix_initial has no effect.'.format(self.name), RuntimeWarning)
-        elif input_initial or fix_initial:
+        elif input_initial or self.time_options['fix_initial']:
             illegal_options = []
             if initial_bounds != (None, None):
                 illegal_options.append('initial_bounds')
@@ -676,11 +676,11 @@ class PhaseBase(Group):
                       '"{0}": {1}'.format(self.name, ', '.join(illegal_options), reason)
                 warnings.warn(msg, RuntimeWarning)
 
-        if input_duration and fix_duration:
+        if input_duration and self.time_options['fix_duration']:
             warnings.warn('Phase "{0}" time duration is an externally-connected input, '
                           'therefore fix_duration has no effect.'.format(self.name),
                           RuntimeWarning)
-        elif input_duration or fix_duration:
+        elif input_duration or self.time_options['fix_duration']:
             illegal_options = []
             if duration_bounds != (None, None):
                 illegal_options.append('duration_bounds')
