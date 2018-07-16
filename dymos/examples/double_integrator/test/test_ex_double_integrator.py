@@ -1,7 +1,9 @@
 from __future__ import print_function, absolute_import, division
 
 import itertools
+import sys
 import unittest
+
 from numpy.testing import assert_almost_equal
 
 from parameterized import parameterized
@@ -11,6 +13,9 @@ from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, Inde
 from dymos import Phase
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 import dymos.examples.double_integrator.ex_double_integrator as ex_double_integrator
+
+PY_MAJOR, PY_MINOR, _, _, _ = sys.version_info
+PY_VERSION = PY_MAJOR + 0.1 * PY_MINOR
 
 
 class TestDoubleIntegratorExample(unittest.TestCase):
@@ -93,6 +98,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         p.run_driver()
 
+    @unittest.skipIf(PY_VERSION < 3.3, 'assertWarns not available in this version of Python')
     def test_ex_double_integrator_input_and_fixed_times_warns(self, transcription='radau-ps'):
         """
         Tests that time optimization options cause a ValueError to be raised when t_initial and
@@ -156,6 +162,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         p.run_driver()
 
+    @unittest.skipIf(PY_VERSION < 3.3, 'assertWarns not available in this version of Python')
     def test_ex_double_integrator_input_times_warns(self, transcription='radau-ps'):
         """
         Tests that time optimization options cause a ValueError to be raised when t_initial and
@@ -224,6 +231,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         p.run_driver()
 
+    @unittest.skipIf(PY_VERSION < 3.3, 'assertWarns not available in this version of Python')
     def test_ex_double_integrator_fixed_times_warns(self, transcription='radau-ps'):
         """
         Tests that time optimization options cause a ValueError to be raised when t_initial and
@@ -284,6 +292,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         p.run_driver()
 
+    @unittest.skipIf(PY_VERSION < 3.3, 'assertWarns not available in this version of Python')
     def test_ex_double_integrator_deprecated_time_options(self, transcription='radau-ps'):
         """
         Tests that time optimization options cause a ValueError to be raised when t_initial and
