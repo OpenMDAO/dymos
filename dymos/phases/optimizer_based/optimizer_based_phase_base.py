@@ -353,7 +353,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         # Add the continuity constraint component if necessary
         if num_seg > 1:
-            self.connect('t_duration', 'continuity_comp.t_duration')
 
             for name, options in iteritems(self.state_options):
                 # The sub-indices of state_disc indices that are segment ends

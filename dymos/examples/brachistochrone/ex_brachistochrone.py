@@ -40,7 +40,7 @@ def brachistochrone_min_time(
 
     p.model.add_subsystem('phase0', phase)
 
-    phase.set_time_options(opt_initial=False, duration_bounds=(.5, 10))
+    phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
     phase.set_state_options('x', fix_initial=True, fix_final=True)
     phase.set_state_options('y', fix_initial=True, fix_final=True)
@@ -56,7 +56,7 @@ def brachistochrone_min_time(
 
     p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
     p.model.linear_solver = DirectSolver(assemble_jac=True)
-    p.setup(mode='fwd', check=True)
+    p.setup(check=True)
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 2.0

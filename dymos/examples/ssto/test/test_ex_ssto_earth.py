@@ -25,19 +25,16 @@ class TestExampleSSTOEarth(unittest.TestCase):
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           ['csc'],  # jacobian
-                          ['fwd'],  # derivative_mode
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
                                                                           p.args[0],
-                                                                          p.args[1],
-                                                                          p.args[2]])
+                                                                          p.args[1]])
     )
-    def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='fwd',
-                     compressed=True):
+    def test_results(self, transcription='gauss-lobatto', jacobian='csc', compressed=True):
 
         p = ex_ssto_earth.ssto_earth(transcription, num_seg=10, transcription_order=5,
                                      top_level_jacobian=jacobian, compressed=compressed)
 
-        p.setup(mode=derivative_mode, check=True)
+        p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 150.0
@@ -77,7 +74,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
         p = ex_ssto_earth.ssto_earth('gauss-lobatto', num_seg=20, transcription_order=5,
                                      top_level_jacobian='csc')
 
-        p.setup(mode='fwd')
+        p.setup()
 
         phase = p.model.phase0
         p['phase0.t_initial'] = 0.0

@@ -106,7 +106,7 @@ class ScipyODEIntegrator(object):
         # Flag that is set to true if has_controls is called
         self._has_dynamic_controls = False
 
-    def setup(self, check=False, mode='fwd'):
+    def setup(self, check=False):
         """
         Call setup on the ScipyODEIntegrator's problem instance.
 
@@ -159,7 +159,7 @@ class ScipyODEIntegrator(object):
         order += ['ode', 'state_rate_collector']
         model.set_order(order)
 
-        self.prob.setup(check=check, mode=mode)
+        self.prob.setup(check=check)
 
     def set_interpolant(self, name, interpolant):
         """

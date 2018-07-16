@@ -19,7 +19,25 @@ matplotlib.use('Agg')
 
 class TestExampleSSTOMoon(unittest.TestCase):
 
-    def run_asserts(self, p, transcription, compressed):
+    def test_results_gl_compressed(self):
+        p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10, transcription_order=5,
+                                   top_level_jacobian='csc', compressed=True)
+
+        p.setup(check=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 500.0
+
+        phase = p.model.phase0
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_input')
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_input')
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_input')
+        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='control_input')
+
+        p.run_driver()
+
         # Ensure defects are zero
         for state in ['x', 'y', 'vx', 'vy', 'm']:
             assert_almost_equal(p['phase0.collocation_constraint.defects:{0}'.format(state)],
@@ -36,21 +54,11 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
         assert_almost_equal(residuals**2, 0.0, decimal=4)
 
-    # @parameterized.expand(
-    #     itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-    #                       ['dense', 'csc'],  # jacobian
-    #                       ['rev'],  # derivative_mode
-    #                       ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
-    #                                                                       p.args[0],
-    #                                                                       p.args[1],
-    #                                                                       p.args[2]])
-    # )
-    def test_results(self, transcription='gauss-lobatto', jacobian='csc', derivative_mode='fwd',
-                     compressed=False):
-        p = ex_ssto_moon.ssto_moon(transcription, num_seg=10, transcription_order=5,
-                                   top_level_jacobian=jacobian, compressed=compressed)
+    def test_results_radau_compressed(self):
+        p = ex_ssto_moon.ssto_moon('radau-ps', num_seg=10, transcription_order=5,
+                                   top_level_jacobian='csc', compressed=True)
 
-        p.setup(mode=derivative_mode, check=True)
+        p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 500.0
@@ -65,7 +73,91 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
         p.run_driver()
 
-        self.run_asserts(p, transcription, compressed)
+        # Ensure defects are zero
+        for state in ['x', 'y', 'vx', 'vy', 'm']:
+            assert_almost_equal(p['phase0.collocation_constraint.defects:{0}'.format(state)],
+                                0.0, decimal=5)
+
+        # Ensure time found is the known solution
+        assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)
+
+        # Ensure the tangent of theta is (approximately) linear
+        time = p.model.phase0.get_values('time').flatten()
+        tan_theta = np.tan(p.model.phase0.get_values('theta').flatten())
+
+        coeffs, residuals, _, _, _ = np.polyfit(time, tan_theta, deg=1, full=True)
+
+        assert_almost_equal(residuals**2, 0.0, decimal=4)
+
+    def test_results_gl_uncompressed(self):
+        p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10, transcription_order=5,
+                                   top_level_jacobian='csc', compressed=False)
+
+        p.setup(check=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 500.0
+
+        phase = p.model.phase0
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_input')
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_input')
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_input')
+        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='control_input')
+
+        p.run_driver()
+
+        # Ensure defects are zero
+        for state in ['x', 'y', 'vx', 'vy', 'm']:
+            assert_almost_equal(p['phase0.collocation_constraint.defects:{0}'.format(state)],
+                                0.0, decimal=5)
+
+        # Ensure time found is the known solution
+        assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)
+
+        # Ensure the tangent of theta is (approximately) linear
+        time = p.model.phase0.get_values('time').flatten()
+        tan_theta = np.tan(p.model.phase0.get_values('theta').flatten())
+
+        coeffs, residuals, _, _, _ = np.polyfit(time, tan_theta, deg=1, full=True)
+
+        assert_almost_equal(residuals**2, 0.0, decimal=4)
+
+    def test_results_radau_uncompressed(self):
+        p = ex_ssto_moon.ssto_moon('radau-ps', num_seg=10, transcription_order=5,
+                                   top_level_jacobian='csc', compressed=False)
+
+        p.setup(check=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 500.0
+
+        phase = p.model.phase0
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_input')
+        p['phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_input')
+        p['phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_input')
+        p['phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='control_input')
+
+        p.run_driver()
+
+        # Ensure defects are zero
+        for state in ['x', 'y', 'vx', 'vy', 'm']:
+            assert_almost_equal(p['phase0.collocation_constraint.defects:{0}'.format(state)],
+                                0.0, decimal=5)
+
+        # Ensure time found is the known solution
+        assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)
+
+        # Ensure the tangent of theta is (approximately) linear
+        time = p.model.phase0.get_values('time').flatten()
+        tan_theta = np.tan(p.model.phase0.get_values('theta').flatten())
+
+        coeffs, residuals, _, _, _ = np.polyfit(time, tan_theta, deg=1, full=True)
+
+        assert_almost_equal(residuals**2, 0.0, decimal=4)
 
     def test_plot(self):
         import matplotlib.pyplot as plt
@@ -75,7 +167,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
         p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10,
                                    transcription_order=5, top_level_jacobian='csc')
 
-        p.setup(mode='fwd', check=True)
+        p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 500.0

@@ -50,7 +50,7 @@ class TestAircraftODEGroup(unittest.TestCase):
         cls.p.model.linear_solver = DirectSolver(assemble_jac=True)
         cls.p.model.options['assembled_jac_type'] = 'csc'
 
-        cls.p.setup(check=True, mode='fwd')
+        cls.p.setup(check=True)
 
         cls.p.run_model()
 

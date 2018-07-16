@@ -55,7 +55,7 @@ class TestFlightEquilibriumGroup(unittest.TestCase):
         cls.p.model.connect('W_total', 'flight_equilibrium.W_total')
         cls.p.model.connect('q', ('aero.q', 'flight_equilibrium.q'))
 
-        cls.p.setup(check=True, mode='fwd', force_alloc_complex=True)
+        cls.p.setup(check=True, force_alloc_complex=True)
 
         cls.p.run_model()
 

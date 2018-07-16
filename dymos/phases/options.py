@@ -23,11 +23,6 @@ class ControlOptionsDictionary(OptionsDictionary):
 
         self.declare(name='desc', types=string_types, default='',
                      desc='The description of the control variable.')
-        #
-        # self.declare(name='dynamic', types=bool, default=True,
-        #              desc='If True, the control is vectorized, providing a value at '
-        #                   'each node in the phase.  If False, the control is static, '
-        #                   'providing a single value to be broadcast to all nodes in the phase.')
 
         self.declare(name='opt', default=True, types=bool,
                      desc='If True, the control value will be a design variable '
@@ -290,13 +285,19 @@ class TimeOptionsDictionary(OptionsDictionary):
         self.declare('units', types=string_types, allow_none=True,
                      default='s', desc='Units for the integration variable')
 
-        self.declare(name='opt_initial', types=bool, default=True,
-                     desc='If False, the initial value of time is not a design variable'
-                          'of the phase and may be connected externally.')
+        self.declare(name='fix_initial', types=bool, default=False,
+                     desc='If True, the initial value of time is not a design variable.')
 
-        self.declare(name='opt_duration', types=bool, default=True,
-                     desc='If False, the  phase duration is not a design variable'
-                          'of the phase and may be connected externally.')
+        self.declare(name='fix_duration', types=bool, default=False,
+                     desc='If True, the  phase duration is not a design variable.')
+
+        self.declare(name='input_initial', types=bool, default=False,
+                     desc='If True, the initial value of time (t_initial) is expected to be '
+                          'connected to an external output source.')
+
+        self.declare(name='input_duration', types=bool, default=False,
+                     desc='If True, the phase duration (t_duration) is expected to be '
+                          'connected to an external output source.')
 
         self.declare('initial', types=Number,
                      desc='Value of the integration variable at the start of the phase.')

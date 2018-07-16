@@ -34,7 +34,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(opt_initial=False, duration_bounds=(50, 400),
+        phase.set_time_options(fix_initial=True, duration_bounds=(50, 400),
                                duration_ref=100.0)
 
         phase.set_state_options('r', fix_initial=True, lower=0, upper=1.0E6,
@@ -77,7 +77,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         p.model.options['assembled_jac_type'] = 'csc'
         p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-        p.setup(mode='fwd', check=True)
+        p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 500

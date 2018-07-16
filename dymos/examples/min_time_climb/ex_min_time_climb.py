@@ -41,7 +41,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     p.model.add_subsystem('phase0', phase)
 
-    phase.set_time_options(opt_initial=False, duration_bounds=(50, 400),
+    phase.set_time_options(fix_initial=True, duration_bounds=(50, 400),
                            duration_ref=100.0)
 
     phase.set_state_options('r', fix_initial=True, lower=0, upper=1.0E6,
@@ -81,7 +81,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
     p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-    p.setup(mode='fwd', check=True, force_alloc_complex=force_alloc_complex)
+    p.setup(check=True, force_alloc_complex=force_alloc_complex)
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 298.46902

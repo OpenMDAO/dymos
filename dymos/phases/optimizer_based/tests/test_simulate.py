@@ -62,7 +62,7 @@ class TestSimulateRecording(unittest.TestCase):
 
         p.model.linear_solver = DirectSolver()
 
-        p.setup(mode='fwd')
+        p.setup()
 
         p.setup()
 
@@ -130,7 +130,7 @@ class TestSimulateRecording(unittest.TestCase):
         p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
         p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-        p.setup(mode='fwd')
+        p.setup()
 
         p.setup()
 

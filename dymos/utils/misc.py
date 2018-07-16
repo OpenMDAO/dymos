@@ -41,7 +41,7 @@ def get_rate_units(units, time_units, deriv=1):
 class CoerceDesvar(object):
     """
     Check the desvar options for the appropriate shape and resize
-    accordingly with opt_initial and opt_final options.
+    accordingly with options.
     """
     def __init__(self, num_input_nodes, desvar_indices, options):
         self.num_input_nodes = num_input_nodes
