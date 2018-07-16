@@ -82,7 +82,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = 'csc'
 
-        p.setup(mode='fwd', check=True)
+        p.setup(check=True)
 
         p['t0'] = 0.0
         p['tp'] = 1.0
@@ -145,7 +145,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = 'csc'
 
-        p.setup(mode='fwd', check=True)
+        p.setup(check=True)
 
         p['t0'] = 0.0
         p['tp'] = 1.0
@@ -213,7 +213,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = 'csc'
 
-        p.setup(mode='fwd', check=True)
+        p.setup(check=True)
 
         p['t0'] = 0.0
         p['tp'] = 1.0
@@ -273,7 +273,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = 'csc'
 
-        p.setup(mode='fwd', check=True)
+        p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 1.0
@@ -348,7 +348,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = 'csc'
 
-        p.setup(mode='fwd', check=True)
+        p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 1.0

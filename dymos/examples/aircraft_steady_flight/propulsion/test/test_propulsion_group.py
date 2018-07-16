@@ -32,7 +32,7 @@ class TestPropulsionComp(unittest.TestCase):
         cls.p.model.connect('pres', 'propulsion.pres')
         cls.p.model.connect('CT', 'propulsion.CT')
 
-        cls.p.setup(mode='fwd', force_alloc_complex=True)
+        cls.p.setup(force_alloc_complex=True)
 
         cls.p.run_model()
 

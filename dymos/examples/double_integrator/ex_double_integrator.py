@@ -34,7 +34,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
     p.model.linear_solver = DirectSolver(assemble_jac=True)
     p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
 
-    p.setup(mode='fwd', check=True)
+    p.setup(check=True)
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 1.0

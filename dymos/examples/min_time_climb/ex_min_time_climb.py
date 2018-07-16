@@ -81,7 +81,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
     p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-    p.setup(mode='fwd', check=True, force_alloc_complex=force_alloc_complex)
+    p.setup(check=True, force_alloc_complex=force_alloc_complex)
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 298.46902

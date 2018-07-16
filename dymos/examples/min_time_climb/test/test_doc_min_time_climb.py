@@ -77,7 +77,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         p.model.options['assembled_jac_type'] = 'csc'
         p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-        p.setup(mode='fwd', check=True)
+        p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 500

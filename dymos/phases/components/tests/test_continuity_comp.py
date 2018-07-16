@@ -114,7 +114,7 @@ class TestContinuityComp(unittest.TestCase):
         self.p.model.connect('v_rate2', 'cnty_comp.control_rates:v_rate2', src_indices=src_idxs_v,
                              flat_src_indices=True)
 
-        self.p.setup(mode='fwd', check=True, force_alloc_complex=True)
+        self.p.setup(check=True, force_alloc_complex=True)
 
         self.p['x'] = np.random.rand(*self.p['x'].shape)
         self.p['y'] = np.random.rand(*self.p['y'].shape)

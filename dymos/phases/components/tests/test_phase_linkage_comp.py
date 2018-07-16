@@ -63,7 +63,7 @@ class TestPhaseLinkageComp(unittest.TestCase):
                              src_indices=np.arange(0, 9, dtype=int).reshape((3, 3)),
                              flat_src_indices=True)
 
-        self.p.setup(mode='fwd')
+        self.p.setup()
 
         self.p['phase0:x'] = np.random.rand(*self.p['phase0:x'].shape)
         self.p['phase0:u'] = np.random.rand(*self.p['phase0:u'].shape)

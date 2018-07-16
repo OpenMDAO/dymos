@@ -82,7 +82,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-    p.setup(mode='fwd')
+    p.setup()
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 3600.0

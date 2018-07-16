@@ -82,7 +82,7 @@ class TestPathConstraintCompGL(unittest.TestCase):
         self.p.model.connect('b_ctrl', 'path_constraints.all_values:b_ctrl')
         self.p.model.connect('c_ctrl', 'path_constraints.all_values:c_ctrl')
 
-        self.p.setup(mode='fwd')
+        self.p.setup()
 
         self.p['a_disc'] = np.random.rand(*self.p['a_disc'].shape)
         self.p['a_col'] = np.random.rand(*self.p['a_col'].shape)
@@ -181,7 +181,7 @@ class TestPathConstraintCompRadau(unittest.TestCase):
         self.p.model.connect('b_disc', 'path_constraints.all_values:b')
         self.p.model.connect('c_disc', 'path_constraints.all_values:c')
 
-        self.p.setup(mode='fwd')
+        self.p.setup()
 
         self.p.run_model()
 

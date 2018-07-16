@@ -62,7 +62,7 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
         p.model.add_recorder(rec)
         phase.add_recorder(rec)
 
-        p.setup(mode='rev')
+        p.setup()
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
