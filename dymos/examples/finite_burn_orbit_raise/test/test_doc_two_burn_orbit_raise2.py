@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import unittest
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 
 class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
@@ -13,11 +13,11 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         import matplotlib.pyplot as plt
 
-        from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
+        from openmdao.api import Problem, pyOptSparseDriver, DirectSolver, ScipyOptimizeDriver,\
+            SqliteRecorder
         from openmdao.utils.assert_utils import assert_rel_error
 
         from dymos import Phase, Trajectory
-        from dymos.phases.components.phase_linkage_comp import PhaseLinkageComp
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
         OPTIMIZER = 'SNOPT'
@@ -50,12 +50,12 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         traj.add_phase('burn1', burn1)
 
 
-        burn1.set_time_options(opt_initial=False, duration_bounds=(.5, 10))
+        burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
         burn1.set_state_options('r', fix_initial=True, fix_final=False)
         burn1.set_state_options('theta', fix_initial=True, fix_final=False)
         burn1.set_state_options('vr', fix_initial=True, fix_final=False, defect_scaler=0.1)
         burn1.set_state_options('vt', fix_initial=True, fix_final=False, defect_scaler=0.1)
-        burn1.set_state_options('at', fix_initial=True, fix_final=False)
+        burn1.set_state_options('accel', fix_initial=True, fix_final=False)
         burn1.set_state_options('deltav', fix_initial=True, fix_final=False)
         burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg')
         burn1.add_design_parameter('c', opt=False, val=1.5)
@@ -75,7 +75,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         coast.set_state_options('theta', fix_initial=False, fix_final=False)
         coast.set_state_options('vr', fix_initial=False, fix_final=False)
         coast.set_state_options('vt', fix_initial=False, fix_final=False)
-        coast.set_state_options('at', fix_initial=True, fix_final=True)
+        coast.set_state_options('accel', fix_initial=True, fix_final=True)
         coast.set_state_options('deltav', fix_initial=False, fix_final=False)
         coast.add_control('u1', opt=False, val=0.0, units='deg')
         coast.add_design_parameter('c', opt=False, val=1.5)
@@ -95,24 +95,27 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=1.0)
         burn2.set_state_options('vr', fix_initial=False, fix_final=True, defect_scaler=0.1)
         burn2.set_state_options('vt', fix_initial=False, fix_final=True, defect_scaler=0.1)
-        burn2.set_state_options('at', fix_initial=False, fix_final=False, defect_scaler=1.0)
+        burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
         burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          ref0=-10, ref=10)
+                          ref0=0, ref=10)
         burn2.add_design_parameter('c', opt=False, val=1.5)
 
         burn2.add_objective('deltav', loc='final')
 
         # Link Phases
-        traj.link_phases(['burn1', 'coast', 'burn2'], vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
-        traj.link_phases(['burn1', 'burn2'], vars=['at'])
+        traj.link_phases(phases=['burn1', 'coast', 'burn2'],
+                         vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
+        traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
         # Finish Problem Setup
 
         p.model.options['assembled_jac_type'] = 'csc'
         p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-        p.setup(mode='fwd', check=True)
+        p.driver.add_recorder(SqliteRecorder('two_burn_orbit_raise_example.db'))
+
+        p.setup(check=True)
 
         # Set Initial Guesses
 
@@ -123,7 +126,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         p.set_val('burn1.states:theta', value=burn1.interpolate(ys=[0, 1.7], nodes='state_input'))
         p.set_val('burn1.states:vr', value=burn1.interpolate(ys=[0, 0], nodes='state_input'))
         p.set_val('burn1.states:vt', value=burn1.interpolate(ys=[1, 1], nodes='state_input'))
-        p.set_val('burn1.states:at', value=burn1.interpolate(ys=[0.1, 0], nodes='state_input'))
+        p.set_val('burn1.states:accel', value=burn1.interpolate(ys=[0.1, 0], nodes='state_input'))
         p.set_val('burn1.states:deltav', value=burn1.interpolate(ys=[0, 0.1], nodes='state_input'))
         p.set_val('burn1.controls:u1',
                   value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
@@ -137,7 +140,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
                   value=coast.interpolate(ys=[2.1767, 1.7], nodes='state_input'))
         p.set_val('coast.states:vr', value=coast.interpolate(ys=[0.3285, 0], nodes='state_input'))
         p.set_val('coast.states:vt', value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
-        p.set_val('coast.states:at', value=coast.interpolate(ys=[0, 0], nodes='state_input'))
+        p.set_val('coast.states:accel', value=coast.interpolate(ys=[0, 0], nodes='state_input'))
         p.set_val('coast.controls:u1', value=coast.interpolate(ys=[0, 0], nodes='control_input'))
         p.set_val('coast.design_parameters:c', value=1.5)
 
@@ -149,7 +152,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         p.set_val('burn2.states:vr', value=burn2.interpolate(ys=[0, 0], nodes='state_input'))
         p.set_val('burn2.states:vt',
                   value=burn2.interpolate(ys=[1, np.sqrt(1 / 3)], nodes='state_input'))
-        p.set_val('burn2.states:at', value=burn2.interpolate(ys=[0.1, 0], nodes='state_input'))
+        p.set_val('burn2.states:accel', value=burn2.interpolate(ys=[0.1, 0], nodes='state_input'))
         p.set_val('burn2.states:deltav',
                   value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
         p.set_val('burn2.controls:u1', value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
@@ -160,14 +163,9 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         assert_rel_error(self, p.get_val('burn2.states:deltav')[-1], 0.3995, tolerance=1.0E-3)
 
         # Plot results
-        burn1_exp_out = burn1.simulate(times=np.linspace(
-            p['burn1.t_initial'], p['burn1.t_initial'] + p['burn1.t_duration'], 50))
+        exp_out = traj.simulate2(times=50)
 
-        coast_exp_out = coast.simulate(times=np.linspace(
-            p['coast.t_initial'], p['coast.t_initial'] + p['coast.t_duration'], 50))
-
-        burn2_exp_out = burn2.simulate(times=np.linspace(
-            p['burn2.t_initial'], p['burn2.t_initial'] + p['burn2.t_duration'], 50))
+        exit(0)
 
         fig_xy, ax_xy = plt.subplots()
         fig_xy.suptitle('Two Burn Orbit Raise Solution')
@@ -187,9 +185,9 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         fig_deltav, ax_deltav = plt.subplots()
         fig_deltav.suptitle('Delta-V History')
 
-        for (phase, phase_exp_out) in [(burn1, burn1_exp_out),
-                                       (coast, coast_exp_out),
-                                       (burn2, burn2_exp_out)]:
+        for (phase, phase_exp_out) in [(burn1, exp_out['burn1']),
+                                       (coast, exp_out['coast']),
+                                       (burn2, exp_out['burn2'])]:
             x_imp = phase.get_values('pos_x', nodes='all')
             y_imp = phase.get_values('pos_y', nodes='all')
 
@@ -202,7 +200,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
             if phase is not coast:
                 theta_imp = phase.get_values('theta', nodes='all', units='rad')
                 u_imp = phase.get_values('u1', nodes='all', units='rad')
-                at_imp = phase.get_values('at', nodes='all')
+                at_imp = phase.get_values('accel', nodes='all')
                 a_x = at_imp * np.cos(theta_imp + u_imp + np.radians(90))
                 a_y = at_imp * np.sin(theta_imp + u_imp + np.radians(90))
                 ax_xy.quiver(x_imp, y_imp, 10 * a_x, 10 * a_y, scale=1, angles='xy',
@@ -210,10 +208,10 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
                              width=0.002, headwidth=0.1)
 
             x_imp = phase.get_values('time', nodes='all')
-            y_imp = phase.get_values('at', nodes='all')
+            y_imp = phase.get_values('accel', nodes='all')
 
             x_exp = phase_exp_out.get_values('time')
-            y_exp = phase_exp_out.get_values('at')
+            y_exp = phase_exp_out.get_values('accel')
 
             ax_at.plot(x_imp, y_imp, 'ro', label='implicit')
             ax_at.plot(x_exp, y_exp, 'b-', label='explicit')

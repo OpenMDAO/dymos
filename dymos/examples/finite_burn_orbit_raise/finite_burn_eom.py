@@ -22,7 +22,7 @@ units.add_unit('DU', '{0}*m'.format(R_earth))
 @declare_state('theta', rate_source='theta_dot', targets=['theta'], units='rad')
 @declare_state('vr', rate_source='vr_dot', targets=['vr'], units='DU/TU')
 @declare_state('vt', rate_source='vt_dot', targets=['vt'], units='DU/TU')
-@declare_state('at', rate_source='at_dot', targets=['at'], units='DU/TU**2')
+@declare_state('accel', rate_source='at_dot', targets=['accel'], units='DU/TU**2')
 @declare_state('deltav', rate_source='deltav_dot', units='DU/TU')
 @declare_parameter('u1', targets=['u1'], units='rad')
 @declare_parameter('c', targets=['c'], units='DU/TU')
@@ -55,7 +55,7 @@ class FiniteBurnODE(ExplicitComponent):
                        desc='local horizontal velocity component',
                        units='DU/TU')
 
-        self.add_input('at',
+        self.add_input('accel',
                        val=np.zeros(nn),
                        desc='acceleration due to thrust',
                        units='DU/TU**2')
@@ -121,19 +121,19 @@ class FiniteBurnODE(ExplicitComponent):
 
         self.declare_partials(of='vr_dot', wrt='r', rows=ar, cols=ar)
         self.declare_partials(of='vr_dot', wrt='vt', rows=ar, cols=ar)
-        self.declare_partials(of='vr_dot', wrt='at', rows=ar, cols=ar)
+        self.declare_partials(of='vr_dot', wrt='accel', rows=ar, cols=ar)
         self.declare_partials(of='vr_dot', wrt='u1', rows=ar, cols=ar)
 
         self.declare_partials(of='vt_dot', wrt='r', rows=ar, cols=ar)
         self.declare_partials(of='vt_dot', wrt='vr', rows=ar, cols=ar)
         self.declare_partials(of='vt_dot', wrt='vt', rows=ar, cols=ar)
-        self.declare_partials(of='vt_dot', wrt='at', rows=ar, cols=ar)
+        self.declare_partials(of='vt_dot', wrt='accel', rows=ar, cols=ar)
         self.declare_partials(of='vt_dot', wrt='u1', rows=ar, cols=ar)
 
-        self.declare_partials(of='at_dot', wrt='at', rows=ar, cols=ar)
+        self.declare_partials(of='at_dot', wrt='accel', rows=ar, cols=ar)
         self.declare_partials(of='at_dot', wrt='c', rows=ar, cols=ar)
 
-        self.declare_partials(of='deltav_dot', wrt='at', rows=ar, cols=ar, val=1.0)
+        self.declare_partials(of='deltav_dot', wrt='accel', rows=ar, cols=ar, val=1.0)
 
         self.declare_partials(of='pos_x', wrt='r', rows=ar, cols=ar)
         self.declare_partials(of='pos_x', wrt='theta', rows=ar, cols=ar)
@@ -146,7 +146,7 @@ class FiniteBurnODE(ExplicitComponent):
         theta = inputs['theta']
         vr = inputs['vr']
         vt = inputs['vt']
-        at = inputs['at']
+        at = inputs['accel']
         u1 = inputs['u1']
         c = inputs['c']
 
@@ -165,7 +165,7 @@ class FiniteBurnODE(ExplicitComponent):
         theta = inputs['theta']
         vr = inputs['vr']
         vt = inputs['vt']
-        at = inputs['at']
+        at = inputs['accel']
         u1 = inputs['u1']
         c = inputs['c']
 
@@ -177,16 +177,16 @@ class FiniteBurnODE(ExplicitComponent):
 
         partials['vr_dot', 'r'] = -vt**2 / r**2 + 2.0 / r**3
         partials['vr_dot', 'vt'] = 2 * vt / r
-        partials['vr_dot', 'at'] = su1
+        partials['vr_dot', 'accel'] = su1
         partials['vr_dot', 'u1'] = at * cu1
 
         partials['vt_dot', 'r'] = vr * vt / r**2
         partials['vt_dot', 'vr'] = -vt / r
         partials['vt_dot', 'vt'] = -vr / r
-        partials['vt_dot', 'at'] = cu1
+        partials['vt_dot', 'accel'] = cu1
         partials['vt_dot', 'u1'] = -at * su1
 
-        partials['at_dot', 'at'] = 2 * at / c
+        partials['at_dot', 'accel'] = 2 * at / c
         partials['at_dot', 'c'] = -at**2 / c**2
 
         partials['pos_x', 'r'] = np.cos(theta)

@@ -6,7 +6,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
+from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, SqliteRecorder
 
 from dymos import Phase
 from dymos.phases.components.phase_linkage_comp import PhaseLinkageComp
@@ -127,7 +127,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto',
     p.model.options['assembled_jac_type'] = 'csc'
     p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-    p.setup(mode='fwd', check=True)
+    p.setup(check=True)
 
     # Set Initial Guesses
 
@@ -168,18 +168,6 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto',
 
     p.run_model()
     p.run_driver()
-
-    print(p.get_val('coast.states:r++'))
-    print(p.get_val('coast.states:theta++'))
-    print(p.get_val('coast.states:vr++'))
-    print(p.get_val('coast.states:vt++'))
-    print(p.get_val('coast.states:at++'))
-
-    print(p.get_val('burn2.states:r--'))
-    print(p.get_val('burn2.states:theta--'))
-    print(p.get_val('burn2.states:vr--'))
-    print(p.get_val('burn2.states:vt--'))
-    print(p.get_val('burn2.states:at--'))
 
     # Plot results
     if SHOW_PLOTS:

@@ -88,6 +88,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
                   ' before simulating the phase.'
             raise RuntimeError(msg)
 
+        if isinstance(times, int):
+            t0 = self._outputs['time.time'][0]
+            tf = self._outputs['time.time'][-1]
+            times = np.linspace(t0, tf, times)
+
         rhs_integrator = ScipyODEIntegrator(ode_class=self.options['ode_class'],
                                             ode_init_kwargs=self.options['ode_init_kwargs'],
                                             time_options=self.time_options,

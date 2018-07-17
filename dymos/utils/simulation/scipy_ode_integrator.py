@@ -289,10 +289,10 @@ class ScipyODEIntegrator(object):
         integrator : str
             The integrator to be used by scipy.ode.  This is one of:
             vode, zvode, lsoda, dopri5, or dopri853.
-        integrator_params : dict
+        integrator_params : dict, None
             Parameters specific to the chosen integrator.  See the Scipy
             documentation for details.
-        observer : callable, str, or None
+        observer : callable, str, None
             A callable function to be called at the specified timesteps in
             `integrate_times`.  This can be used to record the integrated trajectory.
             If 'default', a StdOutObserver will be used, which outputs all variables
@@ -301,7 +301,7 @@ class ScipyODEIntegrator(object):
 
         Returns
         -------
-        dict
+        SimulationResults
             A dictionary of variables in the RHS and their values at the given times.
 
         """
