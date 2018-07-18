@@ -49,7 +49,6 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         traj.add_phase('burn1', burn1)
 
-
         burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
         burn1.set_state_options('r', fix_initial=True, fix_final=False)
         burn1.set_state_options('theta', fix_initial=True, fix_final=False)
@@ -163,9 +162,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         assert_rel_error(self, p.get_val('burn2.states:deltav')[-1], 0.3995, tolerance=1.0E-3)
 
         # Plot results
-        exp_out = traj.simulate2(times=50)
-
-        exit(0)
+        exp_out = traj.simulate(times=50)
 
         fig_xy, ax_xy = plt.subplots()
         fig_xy.suptitle('Two Burn Orbit Raise Solution')

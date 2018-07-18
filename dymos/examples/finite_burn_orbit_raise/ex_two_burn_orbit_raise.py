@@ -99,8 +99,10 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto',
 
     # Link Phases
     linkage_comp = p.model.add_subsystem('linkages', subsys=PhaseLinkageComp())
-    linkage_comp.add_linkage(name='L01', vars=['t', 'r', 'theta', 'vr', 'vt', 'deltav'], linear=True)
-    linkage_comp.add_linkage(name='L12', vars=['t', 'r', 'theta', 'vr', 'vt', 'deltav'], linear=True)
+    linkage_comp.add_linkage(name='L01', vars=['t', 'r', 'theta', 'vr', 'vt', 'deltav'],
+                             linear=True)
+    linkage_comp.add_linkage(name='L12', vars=['t', 'r', 'theta', 'vr', 'vt', 'deltav'],
+                             linear=True)
     linkage_comp.add_linkage(name='L02', vars=['at'], linear=True)
 
     # Time Continuity
