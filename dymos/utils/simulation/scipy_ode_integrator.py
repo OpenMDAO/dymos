@@ -7,7 +7,7 @@ import numpy as np
 from dymos.utils.simulation.components.control_interpolation_comp import ControlInterpolationComp
 from dymos.utils.simulation.components.state_rate_collector_comp import StateRateCollectorComp
 from dymos.utils.simulation.progress_bar_observer import ProgressBarObserver
-from dymos.utils.simulation.simulation_results import SimulationResults
+from dymos.utils.simulation.phase_simulation_results import PhaseSimulationResults
 from dymos.utils.simulation.std_out_observer import StdOutObserver
 from openmdao.core.analysis_error import AnalysisError
 from openmdao.core.group import Group
@@ -301,7 +301,7 @@ class ScipyODEIntegrator(object):
 
         Returns
         -------
-        SimulationResults
+        PhaseSimulationResults
             A dictionary of variables in the RHS and their values at the given times.
 
         """
@@ -329,9 +329,9 @@ class ScipyODEIntegrator(object):
         self._f_ode(solver.t, solver.y)
 
         # Prepare the output dictionary
-        results = SimulationResults(time_options=self.time_options,
-                                    state_options=self.state_options,
-                                    control_options=self.control_options)
+        results = PhaseSimulationResults(time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options)
 
         model_outputs = self.prob.model.list_outputs(units=True, shape=True, out_stream=None)
 

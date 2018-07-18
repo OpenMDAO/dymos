@@ -10,7 +10,9 @@ try:
 except ImportError:
     izip = zip
 
-from openmdao.api import Group, ParallelGroup
+import numpy as np
+
+from openmdao.api import Problem, Group, IndepVarComp, ParallelGroup
 
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
 from ..utils.simulation import simulate_phase_map_unpack
@@ -240,8 +242,8 @@ class Trajectory(Group):
 
         Returns
         -------
-        dict of {str: SimulationResults}
-            A dictionary, keyed by phase name, containing the SimulationResults object from each
+        dict of {str: PhaseSimulationResults}
+            A dictionary, keyed by phase name, containing the PhaseSimulationResults object from each
             phase simulation.
 
         """
@@ -284,9 +286,16 @@ class Trajectory(Group):
         pool.close()
         pool.join()
 
-        results = {}
+        exp_outs_map = {}
         for i, phase_name in enumerate(self._phases.keys()):
-            results[phase_name] = exp_outs[i]
+            exp_outs_map[phase_name] = exp_outs[i]
+
+        from ..utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
+        results = TrajectorySimulationResults(traj=self)
+
+        print('Recording Results...', end='')
+        results.record_results(exp_outs_map)
+        print('Done')
 
         return results
 

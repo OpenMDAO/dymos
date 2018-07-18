@@ -8,7 +8,7 @@ from dymos.phases.components import EndpointConditionsComp
 from dymos.phases.phase_base import PhaseBase
 from dymos.utils.interpolate import LagrangeBarycentricInterpolant
 from dymos.utils.misc import CoerceDesvar
-from dymos.utils.simulation import ScipyODEIntegrator, SimulationResults, \
+from dymos.utils.simulation import ScipyODEIntegrator, PhaseSimulationResults, \
     StdOutObserver, ProgressBarObserver
 from openmdao.api import IndepVarComp
 from six import string_types, iteritems
@@ -75,7 +75,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         Returns
         -------
-        results : SimulationResults object
+        results : PhaseSimulationResults object
         """
         if not self.state_options:
             msg = 'Phase has no states, nothing to simulate. \n' \
@@ -117,10 +117,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         rhs_integrator.setup(check=check_setup)
 
-        exp_out = SimulationResults(time_options=self.time_options,
-                                    state_options=self.state_options,
-                                    control_options=self.control_options,
-                                    design_parameter_options=self.design_parameter_options)
+        exp_out = PhaseSimulationResults(time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options,
+                                         design_parameter_options=self.design_parameter_options)
 
         seg_sequence = range(gd.num_segments)
         if direction == 'reverse':

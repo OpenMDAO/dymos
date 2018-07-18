@@ -11,7 +11,7 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver,
     CaseReader
 
 from dymos import Phase
-from dymos.utils.simulation import SimulationResults
+from dymos.utils.simulation import PhaseSimulationResults
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 OPTIMIZER = 'SLSQP'
@@ -90,7 +90,7 @@ class TestSimulateRecording(unittest.TestCase):
                 _var = var
             assert_almost_equal(last_case.outputs[var].ravel(), exp_out.get_values(_var).ravel())
 
-        loaded_exp_out = SimulationResults('phase0_sim.db')
+        loaded_exp_out = PhaseSimulationResults('phase0_sim.db')
 
         for var in ['time', 'x', 'y', 'v', 'theta']:
             assert_almost_equal(exp_out.get_values(var).ravel(),
@@ -149,7 +149,7 @@ class TestSimulateRecording(unittest.TestCase):
                                                    50),
                                  record_file='brachistochrone_sim.db')
 
-        loaded_exp_out = SimulationResults('brachistochrone_sim.db')
+        loaded_exp_out = PhaseSimulationResults('brachistochrone_sim.db')
 
         for var in ['time', 'x', 'y', 'v', 'theta']:
             assert_almost_equal(exp_out.get_values(var).ravel(),

@@ -296,8 +296,7 @@ class PhaseBase(Group):
             self.control_options[name]['units'] = units
 
     def add_design_parameter(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
-                             scaler=None, adder=None, ref=None, ref0=None, rate_param=None,
-                             rate2_param=None):
+                             scaler=None, adder=None, ref=None, ref0=None):
         """
         Declares that a parameter of the ODE is to potentially be used as an optimal control.
 
@@ -328,14 +327,6 @@ class PhaseBase(Group):
             The zero-reference value of the control at the nodes of the phase.
         ref : float or ndarray
             The unit-reference value of the control at the nodes of the phase
-        rate_param : None or str
-            The name of the parameter in the ODE to which the first time-derivative
-            of the control value is connected. Rates of design parameters are always zero,
-            but this is included for consistency with dynamic controls.
-        rate2_param : None or str
-            The name of the parameter in the ODE to which the second time-derivative
-            of the control value is connected. Rates of design parameters are always zero,
-            but this is included for consistency with dynamic controls.
 
         """
         if name in self.control_options:

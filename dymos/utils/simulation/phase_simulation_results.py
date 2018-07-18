@@ -12,9 +12,9 @@ from dymos.phases.options import TimeOptionsDictionary, StateOptionsDictionary, 
     ControlOptionsDictionary
 
 
-class SimulationResults(object):
+class PhaseSimulationResults(object):
     """
-    SimulationResults is returned by phase.simulate.  It's primary
+    PhaseSimulationResults is returned by phase.simulate.  It's primary
     purpose is to hold the dictionary of results from the integration
     and to provide a `get_values` interface that is equivalent to that
     in Phase (except that it has no knowledge of nodes).
@@ -22,7 +22,7 @@ class SimulationResults(object):
     Parameters
     ----------
     filepath : str or None
-        A filepath from which SimulationResults are to be loaded.
+        A filepath from which PhaseSimulationResults are to be loaded.
     time_options : dymos.TimeOptionsDictionary or None
         The options dictionary for the phase tied to this instance of simulation results.  If
         being loaded from a file, this is not needed at instantiation.
@@ -167,7 +167,7 @@ class SimulationResults(object):
 
     def _load_results(self, filename):
         """
-        Load SimulationResults from the given file.
+        Load PhaseSimulationResults from the given file.
 
         Parameters
         ----------
@@ -204,7 +204,7 @@ class SimulationResults(object):
             raise ValueError('{0} is not a valid set of units.'.format(units))
 
         if nodes is not None:
-            raise RuntimeWarning('Argument nodes has no meaning for SimulationResults.get_values '
+            raise RuntimeWarning('Argument nodes has no meaning for PhaseSimulationResults.get_values '
                                  'and is included for compatibility with Phase.get_values')
 
         if var == 'time':

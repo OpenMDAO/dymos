@@ -11,7 +11,7 @@ except ImportError:
 import numpy as np
 from numpy import ndarray
 
-from . import ScipyODEIntegrator, SimulationResults
+from . import ScipyODEIntegrator, PhaseSimulationResults
 from ..interpolate import LagrangeBarycentricInterpolant
 
 
@@ -63,8 +63,8 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
 
     Returns
     -------
-    dict of {str : SimulationResults}
-        The SimulationResults object resulting from each Phase simulation, keyed by phase name.
+    dict of {str : PhaseSimulationResults}
+        The PhaseSimulationResults object resulting from each Phase simulation, keyed by phase name.
 
     """
     print('simulating ', phase_name)
@@ -91,10 +91,10 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
 
     rhs_integrator.setup(check=False)
 
-    exp_out = SimulationResults(time_options=time_options,
-                                state_options=state_options,
-                                control_options=control_options,
-                                design_parameter_options=design_parameter_options)
+    exp_out = PhaseSimulationResults(time_options=time_options,
+                                     state_options=state_options,
+                                     control_options=control_options,
+                                     design_parameter_options=design_parameter_options)
 
     seg_sequence = range(grid_data.num_segments)
 
@@ -168,8 +168,8 @@ def simulate_phase_map_unpack(args):
 
     Returns
     -------
-    dict of {str : SimulationResults}
-        The SimulationResults object resulting from each Phase simulation, keyed by phase name.
+    dict of {str : PhaseSimulationResults}
+        The PhaseSimulationResults object resulting from each Phase simulation, keyed by phase name.
 
     """
     return simulate_phase(*args)
