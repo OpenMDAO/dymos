@@ -6,9 +6,10 @@ import matplotlib
 # matplotlib.use('Agg')
 
 
-class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
+class TestTrajectorySimulationResults(unittest.TestCase):
 
-    def test_two_burn_orbit_raise_for_docs(self):
+    @classmethod
+    def setUpClass(cls):
         import numpy as np
 
         import matplotlib.pyplot as plt
@@ -19,25 +20,15 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         from dymos import Phase, Trajectory
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
-
-        OPTIMIZER = 'SLSQP'
+        from dymos.utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
 
         traj = Trajectory()
         p = Problem(model=traj)
 
-        if OPTIMIZER == 'SNOPT':
-            p.driver = pyOptSparseDriver()
-            p.driver.options['optimizer'] = OPTIMIZER
-            p.driver.options['dynamic_simul_derivs'] = True
-            p.driver.opt_settings['Major iterations limit'] = 100
-            p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
-            p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-            p.driver.opt_settings['iSumm'] = 6
-        else:
-            p.driver = pyOptSparseDriver()
-            p.driver.options['optimizer'] = OPTIMIZER
-            p.driver.options['dynamic_simul_derivs'] = True
-            p.driver.opt_settings['ACC'] = 1.0E-9
+        p.driver = pyOptSparseDriver()
+        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.opt_settings['ACC'] = 1.0E-9
 
         # First Phase (burn)
 
@@ -159,24 +150,29 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p.get_val('burn2.states:deltav')[-1], 0.3995, tolerance=1.0E-3)
+        # assert_rel_error(self, p.get_val('burn2.states:deltav')[-1], 0.3995, tolerance=1.0E-3)
 
         # Plot results
-        exp_out = traj.simulate(times=50)
+        cls.exp_out = traj.simulate(times=50)
 
-        from dymos.utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
+        cls.loaded_exp_out = TrajectorySimulationResults('traj_sim.db')
 
-        traj_exp_out = TrajectorySimulationResults()
+    def test_returned_and_loaded_equivalent(self):
 
-        loaded_exp_out = TrajectorySimulationResults('traj_sim.db')
+        for phase in ('burn1', 'coast', 'burn2'):
+            t_returned = self.exp_out.get_values('time')[phase]
+            r_returned = self.exp_out.get_values('time')[phase]
 
-        t = loaded_exp_out.get_values('time')
-        r = loaded_exp_out.get_values('r')
+            t_loaded = self.loaded_exp_out.get_values('time')[phase]
+            r_loaded = self.loaded_exp_out.get_values('r')[phase]
 
-        print(t)
-        print(r)
+            self.assertEqual(t_returned, t_loaded)
+            self.assertEqual(r_returned, r_loaded)
 
-        foo = loaded_exp_out.get_values('foo')
+    def test_nonexistent_var(self):
+
+        with self.assertRaises() as context:
+            foo = self.loaded_exp_out.get_values('foo')
 
 
         # fig_xy, ax_xy = plt.subplots()

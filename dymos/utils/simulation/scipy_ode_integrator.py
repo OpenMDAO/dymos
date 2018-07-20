@@ -271,6 +271,60 @@ class ScipyODEIntegrator(object):
         xdot = self._pack_state_rate_vec()
         return xdot
 
+    def _store_results(self, results, append=False):
+        """
+        Save the outputs of the integrators problem object into the given PhaseSimulationResults
+        instance.
+
+        Parameters
+        ----------
+        results : PhaseSimulationResults
+            The PhaseSimulationResults object into which results of the integration are
+            to be saved.
+        """
+        model_outputs = self.prob.model.list_outputs(units=True, shape=True, values=True, out_stream=None)
+
+        for output_name, options in model_outputs:
+            prom_name = self.prob.model._var_abs2prom['output'][output_name]
+            if prom_name.startswith('time'):
+                var_type = 'indep'
+                name = 'time'
+            elif prom_name.startswith('states:'):
+                var_type = 'states'
+                name = prom_name.replace('states:', '', 1)
+
+            elif prom_name.startswith('controls:'):
+                var_type = 'controls'
+                name = prom_name.replace('controls:', '', 1)
+
+            elif prom_name.startswith('control_rates:'):
+                var_type = 'control_rates'
+                name = prom_name.replace('control_rates:', '', 1)
+
+            elif prom_name.startswith('design_parameters:'):
+                var_type = 'design_parameters'
+                name = prom_name.replace('design_parameters:', '', 1)
+
+            elif prom_name.startswith('ode.'):
+                var_type = 'ode'
+                name = prom_name.replace('ode.', '', 1)
+
+            else:
+                # variable not recorded
+                return
+
+            if append:
+                results.outputs[var_type][name]['value'] = \
+                    np.concatenate((results.outputs[var_type][name]['value'],
+                                    np.atleast_2d(options['value'])),
+                                   axis=0)
+            else:
+                results.outputs[var_type][name] = {}
+                results.outputs[var_type][name]['value'] = np.atleast_2d(options['value']).copy()
+                results.outputs[var_type][name]['units'] = options['units']
+                results.outputs[var_type][name]['shape'] = tuple(options['shape'][1:])
+
+
     def integrate_times(self, x0_dict, times,
                         integrator='vode', integrator_params=None,
                         observer=None):
@@ -331,15 +385,10 @@ class ScipyODEIntegrator(object):
         # Prepare the output dictionary
         results = PhaseSimulationResults(time_options=self.time_options,
                                          state_options=self.state_options,
-                                         control_options=self.control_options)
+                                         control_options=self.control_options,
+                                         design_parameter_options=self.design_parameter_options)
 
-        model_outputs = self.prob.model.list_outputs(units=True, shape=True, out_stream=None)
-
-        for output_name, options in model_outputs:
-            prom_name = self.prob.model._var_abs2prom['output'][output_name]
-            results.outputs[prom_name] = {}
-            results.outputs[prom_name]['value'] = np.atleast_2d(self.prob[prom_name]).copy()
-            results.outputs[prom_name]['units'] = options['units']
+        self._store_results(results)
 
         if _observer:
             _observer(solver.t, solver.y, self.prob)
@@ -353,10 +402,8 @@ class ScipyODEIntegrator(object):
             except AnalysisError:
                 terminate = True
 
-            for var in results.outputs:
-                results.outputs[var]['value'] = np.concatenate((results.outputs[var]['value'],
-                                                                np.atleast_2d(self.prob[var])),
-                                                               axis=0)
+            self._store_results(results, append=True)
+
             if _observer:
                 _observer(solver.t, solver.y, self.prob)
 

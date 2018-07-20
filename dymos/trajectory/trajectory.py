@@ -10,12 +10,11 @@ try:
 except ImportError:
     izip = zip
 
-import numpy as np
-
-from openmdao.api import Problem, Group, IndepVarComp, ParallelGroup
+from openmdao.api import Group, ParallelGroup
 
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
 from ..utils.simulation import simulate_phase_map_unpack
+from ..utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
 
 
 class Trajectory(Group):
@@ -222,7 +221,7 @@ class Trajectory(Group):
             for var in linked_vars:
                 self._linkages[phase1_name, phase2_name][var] = {'locs': locs}
 
-    def simulate(self, times='all', num_procs=None, record=True):
+    def simulate(self, times='all', num_procs=None, record=True, record_file=None):
         """
         Simulate all phases in the trajectory using the scipy odeint interface.  If the trajectory
         has multiple phases, they can be simulated in parallel.
@@ -270,12 +269,11 @@ class Trajectory(Group):
                 control_values[control_name] = phase.get_values(control_name, nodes='all')
             for dp_name, options in iteritems(phase.design_parameter_options):
                 design_parameter_values[dp_name] = phase.get_values(dp_name, nodes='all')
-            record_file = None
 
             data.append((phase_name, ode_class, phase.time_options, phase.state_options,
                          phase.control_options, phase.design_parameter_options, time_values,
                          state_values, control_values, design_parameter_values, ode_init_kwargs,
-                         phase.grid_data, times_dict[phase_name], record, record_file))
+                         phase.grid_data, times_dict[phase_name], False, None))
 
         num_procs = mp.cpu_count() if num_procs is None else num_procs
 
@@ -290,12 +288,17 @@ class Trajectory(Group):
         for i, phase_name in enumerate(self._phases.keys()):
             exp_outs_map[phase_name] = exp_outs[i]
 
-        from ..utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
-        results = TrajectorySimulationResults(traj=self)
+        results = TrajectorySimulationResults(exp_outs_map=exp_outs_map)
 
-        print('Recording Results...', end='')
-        results.record_results(exp_outs_map)
-        print('Done')
+        if record:
+            if record_file is None:
+                traj_name = self.pathname.split('.')[-1]
+                if not traj_name:
+                    traj_name = 'traj'
+                record_file = '{0}_sim.db'.format(traj_name)
+            print('Recording Results to {0}...'.format(record_file), end='')
+            results.record_results(self, exp_outs_map, filename=record_file)
+            print('Done')
 
         return results
 

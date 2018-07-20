@@ -42,7 +42,8 @@ class PhaseSimulationResults(object):
         self.state_options = state_options
         self.control_options = control_options
         self.design_parameter_options = design_parameter_options
-        self.outputs = {}
+        self.outputs = {'indep': {}, 'states': {}, 'controls': {}, 'control_rates': {},
+                        'design_parameters': {}, 'ode': {}}
         self.units = {}
 
         if isinstance(filepath, str):
@@ -69,6 +70,7 @@ class PhaseSimulationResults(object):
         ode_init_kwargs : dict or None
             A dictionary of keyword arguments with which ode_class should be instantiated.
         """
+        print('phase simulation record results')
         init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
 
         p = Problem(model=Group())
@@ -98,24 +100,27 @@ class PhaseSimulationResults(object):
             p.model.connect('controls:{0}'.format(name),
                             ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
                             src_indices=np.arange(nn, dtype=int))
+
+            rate_units = get_rate_units(units, self.time_options['units'], deriv=1)
+            ivc.add_output('control_rates:{0}_rate'.format(name),
+                           val=np.zeros((nn,) + options['shape']),
+                           units=rate_units)
             if options['rate_param']:
                 rate_targets = sys_param_options[options['rate_param']]['targets']
-                rate_units = get_rate_units(units, self.time_options['units'], deriv=1)
-                ivc.add_output('control_rates:{0}_rate'.format(name),
-                               val=np.zeros((nn,) + options['shape']),
-                               units=rate_units)
                 p.model.connect('control_rates:{0}_rate'.format(name),
                                 ['ode.{0}'.format(t) for t in rate_targets],
                                 src_indices=np.arange(nn, dtype=int))
+
+            rate2_units = get_rate_units(units, self.time_options['units'], deriv=2)
+            ivc.add_output('control_rates:{0}_rate2'.format(name),
+                           val=np.zeros((nn,) + options['shape']),
+                           units=rate2_units)
             if options['rate2_param']:
                 rate2_targets = sys_param_options[options['rate2_param']]['targets']
-                rate2_units = get_rate_units(units, self.time_options['units'], deriv=2)
-                ivc.add_output('control_rates:{0}_rate2'.format(name),
-                               val=np.zeros((nn,) + options['shape']),
-                               units=rate2_units)
                 p.model.connect('control_rates:{0}_rate2'.format(name),
                                 ['ode.{0}'.format(t) for t in rate2_targets],
                                 src_indices=np.arange(nn, dtype=int))
+
         # Connect design parameters
         for name, options in iteritems(self.design_parameter_options):
             units = options['units']
@@ -142,12 +147,12 @@ class PhaseSimulationResults(object):
         for name, options in iteritems(self.control_options):
             shape = p['controls:{0}'.format(name)].shape
             p['controls:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
-            if options['rate_param']:
-                p['control_rates:{0}_rate'.format(name)] = \
-                    np.reshape(self.get_values('{0}_rate'.format(name)), shape)
-            if options['rate2_param']:
-                p['control_rates:{0}_rate2'.format(name)] = \
-                    np.reshape(self.get_values('{0}_rate2'.format(name)), shape)
+
+            p['control_rates:{0}_rate'.format(name)] = \
+                np.reshape(self.get_values('{0}_rate'.format(name)), shape)
+
+            p['control_rates:{0}_rate2'.format(name)] = \
+                np.reshape(self.get_values('{0}_rate2'.format(name)), shape)
 
         # Assign design parameters
         for name, options in iteritems(self.design_parameter_options):
@@ -176,60 +181,97 @@ class PhaseSimulationResults(object):
         """
         cr = CaseReader(filename)
         case = cr.system_cases.get_case(-1)
+        loaded_outputs = cr.list_outputs(case=case, explicit=True, implicit=True, values=True,
+                                         units=True, shape=True, out_stream=None)
 
-        loaded_outputs = case.outputs._prom2abs['output']
-        for name in loaded_outputs:
-            self.outputs[name] = {}
-            self.outputs[name]['value'] = case.outputs[name]
-            self.outputs[name]['units'] = None
-            self.outputs[name]['shape'] = case.outputs[name].shape[1:]
+        self.outputs = {'indep': {}, 'states': {}, 'controls': {}, 'control_rates': {},
+                        'design_parameters': {}, 'ode': {}}
 
-        # TODO: Get time, state, and control options from the case metadata
-        self.time_options = TimeOptionsDictionary()
-        self.state_options = {}
-        self.control_options = {}
+        for output_name, options in loaded_outputs:
 
-        states = [s.split(':')[-1] for s in loaded_outputs if s.startswith('states:')]
-        controls = [s.split(':')[-1] for s in loaded_outputs if s.startswith('controls:')]
+            if output_name.startswith('inputs.'):
+                output_name = output_name.replace('inputs.', '')
 
-        for s in states:
-            self.state_options[s] = StateOptionsDictionary()
+                if output_name == 'time':
+                    var_type = 'indep'
+                    var_name = 'time'
+                if output_name.startswith('states:'):
+                    var_type = 'states'
+                    var_name = output_name.replace('states:', '', 1)
+                elif output_name.startswith('controls:'):
+                    var_type = 'controls'
+                    var_name = output_name.replace('controls:', '', 1)
+                elif output_name.startswith('control_rates:'):
+                    var_type = 'control_rates'
+                    var_name = output_name.replace('control_rates:', '', 1)
+                elif output_name.startswith('design_parameters:'):
+                    var_type = 'design_parameters'
+                    var_name = output_name.replace('design_parameters:', '', 1)
 
-        for c in controls:
-            self.control_options[c] = ControlOptionsDictionary()
+            elif output_name.startswith('ode.'):
+                var_type = 'ode'
+                var_name = output_name.replace('ode.', '')
 
-    def get_values(self, var, units=None, nodes=None):
+            else:
+                raise RuntimeError('unexpected output in file {1}: {0}'.format(name, filename))
+
+            self.outputs[var_type][var_name] = {}
+            self.outputs[var_type][var_name]['value'] = options['value']
+            self.outputs[var_type][var_name]['units'] = options['units']
+            self.outputs[var_type][var_name]['shape'] = options['shape']
+
+        # cr = CaseReader(filename)
+        # case = cr.system_cases.get_case(-1)
+        #
+        # loaded_outputs = case.outputs._prom2abs['output']
+        # for name in loaded_outputs:
+        #     self.outputs[name] = {}
+        #     self.outputs[name]['value'] = case.outputs[name]
+        #     self.outputs[name]['units'] = None
+        #     self.outputs[name]['shape'] = case.outputs[name].shape[1:]
+        #
+        # # TODO: Get time, state, and control options from the case metadata
+        # self.time_options = TimeOptionsDictionary()
+        # self.state_options = {}
+        # self.control_options = {}
+        #
+        # states = [s.split(':')[-1] for s in loaded_outputs if s.startswith('states:')]
+        # controls = [s.split(':')[-1] for s in loaded_outputs if s.startswith('controls:')]
+        #
+        # for s in states:
+        #     self.state_options[s] = StateOptionsDictionary()
+        #
+        # for c in controls:
+        #     self.control_options[c] = ControlOptionsDictionary()
+
+    def get_values(self, var, units=None):
 
         if units is not None and not valid_units(units):
             raise ValueError('{0} is not a valid set of units.'.format(units))
 
-        if nodes is not None:
-            raise RuntimeWarning('Argument nodes has no meaning for PhaseSimulationResults.get_values '
-                                 'and is included for compatibility with Phase.get_values')
+        var_in_phase = True
 
         if var == 'time':
-            output_path = 'time'
-
-        elif var in self.state_options:
-            output_path = 'states:{0}'.format(var)
-
-        elif var in self.control_options:  # and self.control_options[var]['opt']:
-            output_path = 'controls:{0}'.format(var)
-
-        elif var in self.design_parameter_options:  # and self.design_parameter_options[var]['opt']:
-            output_path = 'design_parameters:{0}'.format(var)
-
-        elif var.endswith('_rate') and var[:-5] in self.control_options:
-            output_path = 'control_rates:{0}'.format(var)
-
-        elif var.endswith('_rate2') and var[:-6] in self.control_options:
-            output_path = 'control_rates:{0}'.format(var)
-
+            var_type = 'indep'
+        elif var in self.outputs['states']:
+            var_type = 'states'
+        elif var in self.outputs['controls']:
+            var_type = 'controls'
+        elif var in self.outputs['design_parameters']:
+            var_type = 'design_parameters'
+        elif var in self.outputs['control_rates']:
+            var_type = 'control_rates'
+        elif var in self.outputs['ode']:
+            var_type = 'ode'
         else:
-            output_path = 'ode.{0}'.format(var)
+            var_in_phase = False
 
-        output = convert_units(self.outputs[output_path]['value'],
-                               self.outputs[output_path]['units'],
+        if not var_in_phase:
+            raise ValueError('Variable "{0}" not found in phase '
+                             'simulation results.'.format(var))
+
+        output = convert_units(self.outputs[var_type][var]['value'],
+                               self.outputs[var_type][var]['units'],
                                units)
 
         return output

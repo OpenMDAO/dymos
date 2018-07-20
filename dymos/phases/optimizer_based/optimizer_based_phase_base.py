@@ -152,8 +152,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
             if not first_seg:
                 for state_name, options in iteritems(self.state_options):
-                    x0[state_name] = seg_out.outputs['states:{0}'.format(state_name)]['value'][-1,
-                                                                                               ...]
+                    x0[state_name] = seg_out.get_values(state_name)[-1, ...]
 
             if not isinstance(times, string_types) and isinstance(times, Iterable):
                 idxs_times_in_seg = np.where(np.logical_and(times > seg_times[0],
@@ -183,10 +182,12 @@ class OptimizerBasedPhaseBase(PhaseBase):
             if first_seg:
                 exp_out.outputs.update(seg_out.outputs)
             else:
-                for var in seg_out.outputs:
-                    exp_out.outputs[var]['value'] = np.concatenate((exp_out.outputs[var]['value'],
-                                                                    seg_out.outputs[var]['value']),
-                                                                   axis=0)
+                for var_type, sub_dict in iteritems(seg_out.outputs):
+                    for var_name, var_data in iteritems(sub_dict):
+                        exp_out.outputs[var_type][var_name]['value'] = \
+                            np.concatenate((exp_out.outputs[var_type][var_name]['value'],
+                                            seg_out.outputs[var_type][var_name]['value']),
+                                           axis=0)
 
             first_seg = False
 
