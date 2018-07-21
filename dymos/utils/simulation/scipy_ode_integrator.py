@@ -289,25 +289,35 @@ class ScipyODEIntegrator(object):
             if prom_name.startswith('time'):
                 var_type = 'indep'
                 name = 'time'
+                shape = (1,)
             elif prom_name.startswith('states:'):
                 var_type = 'states'
                 name = prom_name.replace('states:', '', 1)
+                shape = self.state_options[name]['shape']
 
             elif prom_name.startswith('controls:'):
                 var_type = 'controls'
                 name = prom_name.replace('controls:', '', 1)
+                shape = self.control_options[name]['shape']
 
             elif prom_name.startswith('control_rates:'):
                 var_type = 'control_rates'
                 name = prom_name.replace('control_rates:', '', 1)
+                if name.endswith('_rate'):
+                    control_name = name[:-5]
+                if name.endswith('_rate2'):
+                    control_name = name[:-6]
+                shape = self.control_options[control_name]['shape']
 
             elif prom_name.startswith('design_parameters:'):
                 var_type = 'design_parameters'
                 name = prom_name.replace('design_parameters:', '', 1)
+                shape = self.design_parameter_options[name]['shape']
 
             elif prom_name.startswith('ode.'):
                 var_type = 'ode'
                 name = prom_name.replace('ode.', '', 1)
+                shape = options['shape'] if len(options['shape']) == 1 else options['shape'][1:]
 
             else:
                 # variable not recorded
@@ -319,11 +329,11 @@ class ScipyODEIntegrator(object):
                                     np.atleast_2d(options['value'])),
                                    axis=0)
             else:
+                print(name, options['shape'])
                 results.outputs[var_type][name] = {}
                 results.outputs[var_type][name]['value'] = np.atleast_2d(options['value']).copy()
                 results.outputs[var_type][name]['units'] = options['units']
-                results.outputs[var_type][name]['shape'] = tuple(options['shape'][1:])
-
+                results.outputs[var_type][name]['shape'] = shape
 
     def integrate_times(self, x0_dict, times,
                         integrator='vode', integrator_params=None,

@@ -81,7 +81,7 @@ class PhaseSimulationResults(object):
         p.model.add_subsystem('ode', subsys=ode_sys)
 
         # Connect times
-        ivc.add_output('time', val=np.zeros(nn), units=self.time_options['units'])
+        ivc.add_output('time', val=np.zeros((nn, 1)), units=self.time_options['units'])
         p.model.connect('time', ['ode.{0}'.format(t) for t in self.time_options['targets']])
 
         # Connect states
@@ -137,7 +137,7 @@ class PhaseSimulationResults(object):
         p.model.recording_options['record_outputs'] = True
 
         # Assign times
-        p['time'] = time[:, 0]
+        p['time'] = time
 
         # Assign states
         for name in self.state_options:
@@ -208,17 +208,23 @@ class PhaseSimulationResults(object):
                     var_type = 'design_parameters'
                     var_name = output_name.replace('design_parameters:', '', 1)
 
+                val = options['value']
+
             elif output_name.startswith('ode.'):
                 var_type = 'ode'
                 var_name = output_name.replace('ode.', '')
 
+                if len(options['value'].shape) == 1:
+                    val = options['value'][:, np.newaxis]
+                else:
+                    val = options['value']
             else:
                 raise RuntimeError('unexpected output in file {1}: {0}'.format(name, filename))
 
             self.outputs[var_type][var_name] = {}
-            self.outputs[var_type][var_name]['value'] = options['value']
+            self.outputs[var_type][var_name]['value'] = val
             self.outputs[var_type][var_name]['units'] = options['units']
-            self.outputs[var_type][var_name]['shape'] = options['shape']
+            self.outputs[var_type][var_name]['shape'] = tuple(val.shape[1:])
 
         # cr = CaseReader(filename)
         # case = cr.system_cases.get_case(-1)

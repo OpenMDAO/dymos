@@ -3,21 +3,23 @@ from __future__ import print_function, absolute_import, division
 import os
 import unittest
 
+import numpy as np
+
+from openmdao.utils.assert_utils import assert_rel_error
 
 class TestPhaseSimulationResults(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['brachistochrone_solution.db']:
+        for filename in ['phase_simulation_test_sim.db']:
             if os.path.exists(filename):
                 os.remove(filename)
 
-    def test_returned_and_loaded_equivalent(self):
-        import numpy as np
+    @classmethod
+    def setUpClass(cls):
         import matplotlib
         matplotlib.use('Agg')
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, CaseReader
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from dymos import Phase
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
         from dymos.utils.simulation.phase_simulation_results import PhaseSimulationResults
@@ -37,7 +39,7 @@ class TestPhaseSimulationResults(unittest.TestCase):
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True)
 
-        phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
+        phase.add_control('theta', units='rad', rate_continuity=False, lower=0.001, upper=3.14)
 
         phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -60,15 +62,74 @@ class TestPhaseSimulationResults(unittest.TestCase):
         # Solve for the optimal trajectory
         p.run_driver()
 
-        # Test the results
-        assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
+        cls.exp_out = phase.simulate(times=100, record_file='phase_simulation_test_sim.db')
 
-        exp_out = phase.simulate(times=100)
+        cls.exp_out_loaded = PhaseSimulationResults('phase_simulation_test_sim.db')
 
-        exp_out_loaded = PhaseSimulationResults('phase0_sim.db')
+    def test_returned_and_loaded_equivalent(self):
+        assert_rel_error(self,
+                         self.exp_out.outputs['indep']['time']['value'],
+                         self.exp_out_loaded.outputs['indep']['time']['value'])
 
-        print(exp_out.outputs.keys())
-        print(exp_out_loaded.outputs.keys())
+        for var_type in ('states', 'controls', 'control_rates', 'design_parameters'):
+            exp_var_keys = set(self.exp_out.outputs[var_type].keys())
+            loaded_exp_var_keys = set(self.exp_out_loaded.outputs[var_type].keys())
 
-        for key in exp_out.outputs['indep']['time']:
-            assert_rel_error(self, exp_out.outputs['indep']['time'][key], exp_out_loaded.outputs['indep']['time'][key])
+            self.assertEqual(exp_var_keys, loaded_exp_var_keys)
+
+            for var in exp_var_keys:
+                self.assertEqual(self.exp_out.outputs[var_type][var]['units'],
+                                 self.exp_out_loaded.outputs[var_type][var]['units'])
+
+                constructed_shape = self.exp_out.outputs[var_type][var]['shape']
+                loaded_shape = self.exp_out_loaded.outputs[var_type][var]['shape']
+                self.assertEqual(constructed_shape,
+                                 loaded_shape,
+                                 msg='different shapes returned PhaseSimulationResults vs '
+                                     'loaded PhaseSimulationResults: {0} - loaded shape: {1} - '
+                                     'returned shape: {2}'.format(var, loaded_shape,
+                                                                  constructed_shape))
+                assert_rel_error(self,
+                                 self.exp_out.outputs[var_type][var]['value'],
+                                 self.exp_out_loaded.outputs[var_type][var]['value'])
+
+
+    def test_get_values_equivalent(self):
+
+        for var in ('time', 'x', 'y', 'v', 'theta', 'theta_rate', 'theta_rate2', 'check'):
+            assert_rel_error(self,
+                             self.exp_out.get_values(var),
+                             self.exp_out_loaded.get_values(var))
+
+    def test_convert_units(self):
+
+        units = {'time': 'min',
+                 'x': 'ft',
+                 'y': 'ft',
+                 'v': 'ft/s',
+                 'g': 'ft/s**2',
+                 'theta': 'deg',
+                 'theta_rate': 'deg/s',
+                 'theta_rate2': 'deg/s**2',
+                 'check': 'ft/min'}
+
+        conv = {'time': 1/60.,
+                'x': 3.2808399,
+                'y': 3.2808399,
+                'v': 3.2808399,
+                'g': 3.2808399,
+                'theta': 180.0/np.pi,
+                'theta_rate': 180.0/np.pi,
+                'theta_rate2': 180.0/np.pi,
+                'check': 196.85039370079}
+
+        for var in ('time', 'x', 'y', 'v', 'g', 'theta', 'theta_rate', 'theta_rate2', 'check'):
+            assert_rel_error(self,
+                             self.exp_out.get_values(var, units=units[var]),
+                             self.exp_out.get_values(var) * conv[var],
+                             tolerance=1.0E-8)
+
+            assert_rel_error(self,
+                             self.exp_out_loaded.get_values(var, units=units[var]),
+                             self.exp_out_loaded.get_values(var) * conv[var],
+                             tolerance=1.0E-8)
