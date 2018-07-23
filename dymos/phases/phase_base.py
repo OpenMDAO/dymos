@@ -719,8 +719,8 @@ class PhaseBase(Group):
         -------
         str
             The classification of the given variable, which is one of
-            'time', 'state', 'control', 'control_rate',
-            'control_rate2', or 'rhs'.
+            'time', 'state', 'input_control', 'indep_control', 'control_rate',
+            'control_rate2', 'indep_design_parameter', 'input_design_parameter', or 'ode'.
 
         """
         if var == 'time':
@@ -744,7 +744,7 @@ class PhaseBase(Group):
             if var[:-6] in self.control_options:
                 return 'control_rate2'
         else:
-            return 'rhs'
+            return 'ode'
 
     def setup(self):
         transcription = self.options['transcription']
@@ -1087,7 +1087,7 @@ class PhaseBase(Group):
                            'by phase "{0}" as controls or control rates: {1}. '
                            'The default value will be used.'.format(self.name, unconnected))
 
-    def get_values(self, var, nodes=None):
+    def get_values(self, var, nodes=None, units=None):
         """
         Retrieve the values of the given variable at the given
         subset of nodes.
@@ -1100,6 +1100,8 @@ class PhaseBase(Group):
             or the path to a variable in the ODE system of the phase.
         nodes : str or None
             The name of the node subset or None (default).
+        units : str or None
+            The units in which the returned values are to be provided.
 
         Returns
         -------

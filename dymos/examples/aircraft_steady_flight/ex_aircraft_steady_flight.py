@@ -98,7 +98,8 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     p.run_driver()
 
-    exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500))
+    exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True,
+                             record_file='test_ex_aircraft_steady_flight_rec.db')
 
     plt.plot(phase.get_values('time', nodes='all'), phase.get_values('alt', nodes='all'), 'ro')
     plt.plot(exp_out.get_values('time'), exp_out.get_values('alt'), 'b-')

@@ -70,7 +70,6 @@ class PhaseSimulationResults(object):
         ode_init_kwargs : dict or None
             A dictionary of keyword arguments with which ode_class should be instantiated.
         """
-        print('phase simulation record results')
         init_kwargs = {} if ode_init_kwargs is None else ode_init_kwargs
 
         p = Problem(model=Group())
@@ -130,7 +129,7 @@ class PhaseSimulationResults(object):
                             ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
                             src_indices=np.arange(nn, dtype=int))
 
-        p.setup(check=True)
+        p.setup(check=False)
 
         p.model.add_recorder(SqliteRecorder(filename))
         p.model.recording_options['record_metadata'] = True
@@ -273,6 +272,7 @@ class PhaseSimulationResults(object):
             var_in_phase = False
 
         if not var_in_phase:
+            print(self.outputs['ode'].keys())
             raise ValueError('Variable "{0}" not found in phase '
                              'simulation results.'.format(var))
 

@@ -32,11 +32,6 @@ class TrajectorySimulationResults(object):
 
         self.outputs = {'phases': {}}
 
-        self._phase_names = []
-        self._states = {}
-        self._controls = {}
-        self._design_parameters = {}
-
         if filepath is not None and exp_outs is not None:
             raise RuntimeError('TrajectorySimulationResults should be instantiated with either '
                                'filepath or exp_outs, but not both.')
@@ -44,7 +39,7 @@ class TrajectorySimulationResults(object):
         if filepath:
             self._load_results(filepath)
         elif exp_outs:
-            for phase_name, phase_results in exp_outs:
+            for phase_name, phase_results in iteritems(exp_outs):
                 self.outputs['phases'][phase_name] = {}
                 self.outputs['phases'][phase_name]['indep'] = {}
                 self.outputs['phases'][phase_name]['states'] = {}
@@ -52,12 +47,11 @@ class TrajectorySimulationResults(object):
                 self.outputs['phases'][phase_name]['control_rates'] = {}
                 self.outputs['phases'][phase_name]['design_parameters'] = {}
                 self.outputs['phases'][phase_name]['ode'] = {}
-                self._states[phase_name] = set()
-                self._controls[phase_name] = set()
-                self._design_parameters[phase_name] = set()
 
-                for var_type in ('indep', 'states', 'controls', 'control_rates', 'design_parameters', 'ode'):
-                    self.outputs['phases'][phase_name][var_type].update(phase_results[var_type])
+                for var_type in ('indep', 'states', 'controls', 'control_rates',
+                                 'design_parameters', 'ode'):
+                    pdict = phase_results.outputs[var_type]
+                    self.outputs['phases'][phase_name][var_type].update(pdict)
 
     def record_results(self, traj, exp_outs, filename):
         """
@@ -104,7 +98,7 @@ class TrajectorySimulationResults(object):
             phase_group.add_subsystem('ode', subsys=ode_sys)
 
             # Connect times
-            ivc.add_output('time', val=np.zeros(nn), units=phase.time_options['units'])
+            ivc.add_output('time', val=np.zeros((nn, 1)), units=phase.time_options['units'])
             phase_group.connect('time',
                                 ['ode.{0}'.format(t) for t in phase.time_options['targets']])
 
@@ -167,12 +161,12 @@ class TrajectorySimulationResults(object):
             exp_out = exp_outs[phase_name]
 
             # Assign times
-            p['phases.{0}.time'.format(phase_name)] = exp_out.get_values('time')[:, 0]
-    
+            p['phases.{0}.time'.format(phase_name)] = exp_out.get_values('time')
+
             # Assign states
             for name in phase.state_options:
                 p['phases.{0}.states:{1}'.format(phase_name, name)] = exp_out.get_values(name)
-    
+
             # Assign controls
             for name, options in iteritems(phase.control_options):
                 shape = p['phases.{0}.controls:{1}'.format(phase_name, name)].shape
@@ -185,13 +179,13 @@ class TrajectorySimulationResults(object):
 
                 p['phases.{0}.control_rates:{1}_rate2'.format(phase_name, name)] = \
                     np.reshape(exp_out.get_values('{0}_rate2'.format(name)), shape)
-    
+
             # Assign design parameters
             for name, options in iteritems(phase.design_parameter_options):
                 shape = p['phases.{0}.design_parameters:{1}'.format(phase_name, name)].shape
                 p['phases.{0}.design_parameters:{1}'.format(phase_name, name)] = \
                     np.reshape(exp_out.get_values(name), shape)
-    
+
             # Populate outputs of ODE
             prom2abs_ode_outputs = \
                 phase_groups[phase_name].ode._var_allprocs_prom2abs_list['output']
@@ -203,6 +197,17 @@ class TrajectorySimulationResults(object):
 
         # Run model to record file
         p.run_model()
+
+    def get_phase_names(self):
+        """
+        Retrieve the names of the phases stored in this TrajectorySimulationResults object.
+
+        Returns
+        -------
+        list
+            The names of the phases in the TrajectorySimulationResults
+        """
+        return list(self.outputs['phases'].keys())
 
     def _load_results(self, filename):
         """
@@ -220,9 +225,10 @@ class TrajectorySimulationResults(object):
         loaded_outputs = cr.list_outputs(case=case, explicit=True, implicit=True, values=True,
                                          units=True, shape=True, out_stream=None)
 
-        self._phase_names = set([s[0].split('.')[1] for s in loaded_outputs if s[0].startswith('phases.')])
+        phase_names = set([s[0].split('.')[1] for s in loaded_outputs
+                           if s[0].startswith('phases.')])
 
-        for phase_name in self._phase_names:
+        for phase_name in phase_names:
             self.outputs['phases'][phase_name] = {}
             self.outputs['phases'][phase_name]['indep'] = {}
             self.outputs['phases'][phase_name]['states'] = {}
@@ -230,9 +236,6 @@ class TrajectorySimulationResults(object):
             self.outputs['phases'][phase_name]['control_rates'] = {}
             self.outputs['phases'][phase_name]['design_parameters'] = {}
             self.outputs['phases'][phase_name]['ode'] = {}
-            self._states[phase_name] = set()
-            self._controls[phase_name] = set()
-            self._design_parameters[phase_name] = set()
 
         for name, options in loaded_outputs:
             if name.startswith('phases'):
@@ -248,18 +251,18 @@ class TrajectorySimulationResults(object):
                     if output_name.startswith('states:'):
                         var_type = 'states'
                         var_name = output_name.split(':')[-1]
-                        self._states[phase_name].add(var_name)
+                        # self._states[phase_name].add(var_name)
                     elif output_name.startswith('controls:'):
                         var_type = 'controls'
                         var_name = output_name.split(':')[-1]
-                        self._controls[phase_name].add(var_name)
+                        # self._controls[phase_name].add(var_name)
                     elif output_name.startswith('control_rates:'):
                         var_type = 'control_rates'
                         var_name = output_name.split(':')[-1]
                     elif output_name.startswith('design_parameters:'):
                         var_type = 'design_parameters'
                         var_name = output_name.split(':')[-1]
-                        self._design_parameters[phase_name].add(var_name)
+                        # self._design_parameters[phase_name].add(var_name)
 
                 elif output_name.startswith('ode.'):
                     var_type = 'ode'
@@ -309,7 +312,8 @@ class TrajectorySimulationResults(object):
         if units is not None and not valid_units(units):
             raise ValueError('{0} is not a valid set of units.'.format(units))
 
-        phases = self._phase_names if phases is None else phases
+        phases = self.get_phase_names() if phases is None else phases
+
         return_vals = dict([(phase_name, {}) for phase_name in phases])
 
         var_in_traj = False
@@ -319,15 +323,17 @@ class TrajectorySimulationResults(object):
 
             if var == 'time':
                 var_type = 'indep'
-            elif var in self._states[phase_name]:
+            elif var in self.outputs['phases'][phase_name]['states']:
                 var_type = 'states'
-            elif var in self._controls[phase_name]:
+            elif var in self.outputs['phases'][phase_name]['controls']:
                 var_type = 'controls'
-            elif var in self._design_parameters[phase_name]:
+            elif var in self.outputs['phases'][phase_name]['design_parameters']:
                 var_type = 'design_parameters'
-            elif var.endswith('_rate') and var[:-5] in self._controls[phase_name]:
+            elif var.endswith('_rate') \
+                    and var[:-5] in self.outputs['phases'][phase_name]['controls']:
                 var_type = 'control_rates'
-            elif var.endswith('_rate2') and var[:-6] in self._controls[phase_name]:
+            elif var.endswith('_rate2') \
+                    and var[:-6] in self.outputs['phases'][phase_name]['controls']:
                 var_type = 'control_rates'
             elif var in self.outputs['phases'][phase_name]['ode']:
                 var_type = 'ode'
@@ -346,8 +352,8 @@ class TrajectorySimulationResults(object):
                 output[:] = np.nan
 
             if not var_in_traj:
-                raise ValueError('Variable "{0}" not found in trajectory '
-                                 'simulation results.'.format(var))
+                raise KeyError('Variable "{0}" not found in trajectory '
+                               'simulation results.'.format(var))
 
             return_vals[phase_name] = output
 

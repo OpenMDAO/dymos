@@ -2,25 +2,20 @@ from __future__ import print_function, division, absolute_import
 
 import unittest
 
-import matplotlib
-# matplotlib.use('Agg')
+import numpy as np
+
+from openmdao.api import Problem, pyOptSparseDriver, DirectSolver, SqliteRecorder
+from openmdao.utils.assert_utils import assert_rel_error
+
+from dymos import Phase, Trajectory
+from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
+from dymos.utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
 
 
 class TestTrajectorySimulationResults(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        import numpy as np
-
-        import matplotlib.pyplot as plt
-
-        from openmdao.api import Problem, pyOptSparseDriver, DirectSolver, ScipyOptimizeDriver,\
-            SqliteRecorder
-        from openmdao.utils.assert_utils import assert_rel_error
-
-        from dymos import Phase, Trajectory
-        from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
-        from dymos.utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
 
         traj = Trajectory()
         p = Problem(model=traj)
@@ -148,9 +143,7 @@ class TestTrajectorySimulationResults(unittest.TestCase):
         p.set_val('burn2.controls:u1', value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
         p.set_val('burn2.design_parameters:c', value=1.5)
 
-        p.run_driver()
-
-        # assert_rel_error(self, p.get_val('burn2.states:deltav')[-1], 0.3995, tolerance=1.0E-3)
+        p.run_model()
 
         # Plot results
         cls.exp_out = traj.simulate(times=50)
@@ -161,92 +154,17 @@ class TestTrajectorySimulationResults(unittest.TestCase):
 
         for phase in ('burn1', 'coast', 'burn2'):
             t_returned = self.exp_out.get_values('time')[phase]
-            r_returned = self.exp_out.get_values('time')[phase]
+            r_returned = self.exp_out.get_values('r')[phase]
 
             t_loaded = self.loaded_exp_out.get_values('time')[phase]
             r_loaded = self.loaded_exp_out.get_values('r')[phase]
 
-            self.assertEqual(t_returned, t_loaded)
-            self.assertEqual(r_returned, r_loaded)
+            assert_rel_error(self, t_returned, t_loaded)
+            assert_rel_error(self, r_returned, r_loaded)
 
     def test_nonexistent_var(self):
 
-        with self.assertRaises() as context:
-            foo = self.loaded_exp_out.get_values('foo')
-
-
-        # fig_xy, ax_xy = plt.subplots()
-        # fig_xy.suptitle('Two Burn Orbit Raise Solution')
-        # ax_xy.set_aspect('equal', 'datalim')
-        # theta = np.linspace(0, 2 * np.pi, 100)
-        # ax_xy.plot(1 * np.cos(theta), 1 * np.sin(theta), ls='-', color='gray',
-        #            label='initial orbit')
-        # ax_xy.plot(3 * np.cos(theta), 3 * np.sin(theta), ls='--', color='gray',
-        #            label='final orbit')
-        #
-        # fig_at, ax_at = plt.subplots()
-        # fig_at.suptitle('Thrust/Mass History')
-        #
-        # fig_u1, ax_u1 = plt.subplots()
-        # fig_u1.suptitle('Control History')
-        #
-        # fig_deltav, ax_deltav = plt.subplots()
-        # fig_deltav.suptitle('Delta-V History')
-        #
-        # for (phase, phase_exp_out) in [(burn1, exp_out['burn1']),
-        #                                (coast, exp_out['coast']),
-        #                                (burn2, exp_out['burn2'])]:
-        #     x_imp = phase.get_values('pos_x', nodes='all')
-        #     y_imp = phase.get_values('pos_y', nodes='all')
-        #
-        #     x_exp = phase_exp_out.get_values('pos_x')
-        #     y_exp = phase_exp_out.get_values('pos_y')
-        #
-        #     ax_xy.plot(x_imp, y_imp, 'ro', label='implicit' if phase == burn1 else None)
-        #     ax_xy.plot(x_exp, y_exp, 'b-', label='explicit' if phase == burn1 else None)
-        #
-        #     if phase is not coast:
-        #         theta_imp = phase.get_values('theta', nodes='all', units='rad')
-        #         u_imp = phase.get_values('u1', nodes='all', units='rad')
-        #         at_imp = phase.get_values('accel', nodes='all')
-        #         a_x = at_imp * np.cos(theta_imp + u_imp + np.radians(90))
-        #         a_y = at_imp * np.sin(theta_imp + u_imp + np.radians(90))
-        #         ax_xy.quiver(x_imp, y_imp, 10 * a_x, 10 * a_y, scale=1, angles='xy',
-        #                      scale_units='xy',
-        #                      width=0.002, headwidth=0.1)
-        #
-        #     x_imp = phase.get_values('time', nodes='all')
-        #     y_imp = phase.get_values('accel', nodes='all')
-        #
-        #     x_exp = phase_exp_out.get_values('time')
-        #     y_exp = phase_exp_out.get_values('accel')
-        #
-        #     ax_at.plot(x_imp, y_imp, 'ro', label='implicit')
-        #     ax_at.plot(x_exp, y_exp, 'b-', label='explicit')
-        #
-        #     x_imp = phase.get_values('time', nodes='all')
-        #     y_imp = phase.get_values('u1', nodes='all')
-        #
-        #     x_exp = phase_exp_out.get_values('time')
-        #     y_exp = phase_exp_out.get_values('u1')
-        #
-        #     ax_u1.plot(x_imp, y_imp, 'ro', label='implicit')
-        #     ax_u1.plot(x_exp, y_exp, 'b-', label='explicit')
-        #
-        #     x_imp = phase.get_values('time', nodes='all')
-        #     y_imp = phase.get_values('deltav', nodes='all')
-        #
-        #     x_exp = phase_exp_out.get_values('time')
-        #     y_exp = phase_exp_out.get_values('deltav')
-        #
-        #     ax_deltav.plot(x_imp, y_imp, 'ro', label='implicit')
-        #     ax_deltav.plot(x_exp, y_exp, 'b-', label='explicit')
-        #
-        # ax_xy.set_xlim(-4.5, 4.5)
-        # ax_xy.set_ylim(-4.5, 4.5)
-        # ax_xy.set_xlabel('x (DU)')
-        # ax_xy.set_ylabel('y (DU)')
-        # ax_xy.grid(True)
-        # ax_xy.legend(loc='upper right')
-        #
-        # plt.show()
+        with self.assertRaises(KeyError) as e:
+            self.loaded_exp_out.get_values('foo')
+            self.assertEqual(str(e.exception), 'Variable "foo" not found in trajectory '
+                                               'simulation results.')

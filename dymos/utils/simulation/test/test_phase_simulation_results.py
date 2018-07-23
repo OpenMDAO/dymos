@@ -7,6 +7,7 @@ import numpy as np
 
 from openmdao.utils.assert_utils import assert_rel_error
 
+
 class TestPhaseSimulationResults(unittest.TestCase):
 
     @classmethod
@@ -93,13 +94,20 @@ class TestPhaseSimulationResults(unittest.TestCase):
                                  self.exp_out.outputs[var_type][var]['value'],
                                  self.exp_out_loaded.outputs[var_type][var]['value'])
 
-
     def test_get_values_equivalent(self):
 
         for var in ('time', 'x', 'y', 'v', 'theta', 'theta_rate', 'theta_rate2', 'check'):
             assert_rel_error(self,
                              self.exp_out.get_values(var),
                              self.exp_out_loaded.get_values(var))
+
+    def test_load_invalid_var(self):
+
+        for source in self.exp_out, self.exp_out_loaded:
+            with self.assertRaises(ValueError) as ctx:
+                source.get_values('foo')
+            self.assertEqual(str(ctx.exception),
+                             'Variable "foo" not found in phase simulation results.')
 
     def test_convert_units(self):
 

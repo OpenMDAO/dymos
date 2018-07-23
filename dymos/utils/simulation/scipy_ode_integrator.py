@@ -282,7 +282,8 @@ class ScipyODEIntegrator(object):
             The PhaseSimulationResults object into which results of the integration are
             to be saved.
         """
-        model_outputs = self.prob.model.list_outputs(units=True, shape=True, values=True, out_stream=None)
+        model_outputs = self.prob.model.list_outputs(units=True, shape=True, values=True,
+                                                     implicit=True, explicit=True, out_stream=None)
 
         for output_name, options in model_outputs:
             prom_name = self.prob.model._var_abs2prom['output'][output_name]
@@ -319,9 +320,13 @@ class ScipyODEIntegrator(object):
                 name = prom_name.replace('ode.', '', 1)
                 shape = options['shape'] if len(options['shape']) == 1 else options['shape'][1:]
 
+            elif prom_name.startswith('state_rate_collector.'):
+                # skip this variable since this is just a simulation artifact
+                continue
             else:
-                # variable not recorded
-                return
+                raise RuntimeWarning('Unexpected output encountered during'
+                                     'simulation: {0}'.format(prom_name))
+                continue
 
             if append:
                 results.outputs[var_type][name]['value'] = \
@@ -329,7 +334,6 @@ class ScipyODEIntegrator(object):
                                     np.atleast_2d(options['value'])),
                                    axis=0)
             else:
-                print(name, options['shape'])
                 results.outputs[var_type][name] = {}
                 results.outputs[var_type][name]['value'] = np.atleast_2d(options['value']).copy()
                 results.outputs[var_type][name]['units'] = options['units']

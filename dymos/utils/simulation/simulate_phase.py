@@ -116,7 +116,7 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
 
         if not first_seg:
             for state_name, options in iteritems(state_options):
-                x0[state_name] = seg_out.outputs['states:{0}'.format(state_name)]['value'][-1, ...]
+                x0[state_name] = seg_out.get_values(state_name)[-1, ...]
 
         if not isinstance(times, string_types) and isinstance(times, Iterable):
             idxs_times_in_seg = np.where(np.logical_and(times > seg_times[0],
@@ -143,10 +143,12 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
         if first_seg:
             exp_out.outputs.update(seg_out.outputs)
         else:
-            for var in seg_out.outputs:
-                exp_out.outputs[var]['value'] = np.concatenate((exp_out.outputs[var]['value'],
-                                                                seg_out.outputs[var]['value']),
-                                                               axis=0)
+            for var_type in seg_out.outputs.keys():
+                for var in seg_out.outputs[var_type].keys():
+                    exp_out.outputs[var_type][var]['value'] = \
+                        np.concatenate((exp_out.outputs[var_type][var]['value'],
+                                        seg_out.outputs[var_type][var]['value']),
+                                       axis=0)
         first_seg = False
     # Save
     if record:

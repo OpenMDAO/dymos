@@ -3,12 +3,14 @@ from __future__ import print_function, division, absolute_import
 from collections import Sequence
 import itertools
 import multiprocessing as mp
-from six import iteritems
+from six import iteritems, string_types
 
 try:
     from itertools import izip
 except ImportError:
     izip = zip
+
+import numpy as np
 
 from openmdao.api import Group, ParallelGroup
 
@@ -82,12 +84,27 @@ class Trajectory(Group):
                 p1_controls = set([key for key in p1.control_options])
                 p2_controls = set([key for key in p2.control_options])
 
+                p1_design_parameters = set([key for key in p1.design_parameter_options])
+                p2_design_parameters = set([key for key in p2.design_parameter_options])
+
                 varnames = vars.keys()
                 linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
                 max_varname_length = max(len(name) for name in varnames)
 
+                units_map = {}
+                for var, options in iteritems(vars):
+                    if var in p1_states:
+                        units_map[var] = p1.state_options[var]['units']
+                    elif var in p1_controls:
+                        units_map[var] = p1.control_options[var]['units']
+                    elif var == 'time':
+                        units_map[var] = p1.time_options['units']
+                    else:
+                        units_map[var] = None
+
                 link_comp.add_linkage(name=linkage_name,
-                                      vars=varnames)
+                                      vars=varnames,
+                                      units=units_map)
 
                 for var, options in iteritems(vars):
                     loc1, loc2 = options['locs']
@@ -98,6 +115,8 @@ class Trajectory(Group):
                         source1 = 'controls:{0}{1}'.format(var, loc1)
                     elif var == 'time':
                         source1 = '{0}{1}'.format(var, loc1)
+                    elif var in p1_design_parameters:
+                        source1 = 'design_parameters:{0}'.format(var)
 
                     self.connect('{0}.{1}'.format(phase_name1, source1),
                                  'linkages.{0}_{1}:lhs'.format(linkage_name, var))
@@ -108,6 +127,8 @@ class Trajectory(Group):
                         source2 = 'controls:{0}{1}'.format(var, loc2)
                     elif var == 'time':
                         source2 = '{0}{1}'.format(var, loc2)
+                    elif var in p2_design_parameters:
+                        source2 = 'design_parameters:{0}'.format(var)
 
                     self.connect('{0}.{1}'.format(phase_name2, source2),
                                  'linkages.{0}_{1}:rhs'.format(linkage_name, var))
@@ -117,7 +138,7 @@ class Trajectory(Group):
 
             print('----------------------------')
 
-    def link_phases(self, phases, vars=None, locs=('++', '--')):
+    def link_phases(self, phases, vars=None, locs=('++', '--'), units=0):
         """
         Specifies that phases in the given sequence are to be assume continuity of the given
         variables.
@@ -146,6 +167,12 @@ class Trajectory(Group):
             connected to which location in the second phase.  If the user wishes to specify
             different locations for different phase pairings, those phase pairings must be made
             in separate calls to link_phases.
+        units : int, str, dict of {str: str or None}, or None
+            The units of the linkage residual.  If an integer (default), then automatically
+            determine the units of each variable in the linkage if possible.  Those that cannot
+            be determined to be a time, state, control, design parameter, or control rate will
+            be assumed to have units None.  If given as a dict, it should map the name of each
+            variable in vars to the approprite units.
 
         Examples
         --------
@@ -219,7 +246,7 @@ class Trajectory(Group):
             linked_vars = list(set(implicitly_linked_vars + explicitly_linked_vars))
 
             for var in linked_vars:
-                self._linkages[phase1_name, phase2_name][var] = {'locs': locs}
+                self._linkages[phase1_name, phase2_name][var] = {'locs': locs, 'units': None}
 
     def simulate(self, times='all', num_procs=None, record=True, record_file=None):
         """
@@ -242,8 +269,8 @@ class Trajectory(Group):
         Returns
         -------
         dict of {str: PhaseSimulationResults}
-            A dictionary, keyed by phase name, containing the PhaseSimulationResults object from each
-            phase simulation.
+            A dictionary, keyed by phase name, containing the PhaseSimulationResults object
+            from each phase simulation.
 
         """
 
@@ -288,7 +315,7 @@ class Trajectory(Group):
         for i, phase_name in enumerate(self._phases.keys()):
             exp_outs_map[phase_name] = exp_outs[i]
 
-        results = TrajectorySimulationResults(exp_outs_map=exp_outs_map)
+        results = TrajectorySimulationResults(exp_outs=exp_outs_map)
 
         if record:
             if record_file is None:
@@ -302,5 +329,76 @@ class Trajectory(Group):
 
         return results
 
-    def get_values(self):
-        raise NotImplementedError('Trajectory.get_values has not yet been implemented.')
+    def get_values(self, var, phases=None, nodes='all', units=None, flat=False):
+        """
+        Returns the values of the given variable from the given phases, if provided.
+        If the variable is not present in one ore more phases, it will be returned as
+        numpy.nan at each time step.  If the variable does not exist in any phase within the
+        trajectory, KeyError is raised.
+
+        Parameters
+        ----------
+        var : str
+            The variable whose values are to be returned.
+        phases : Sequence, None
+            The phases from which the values are desired.  If None, included all Phases.
+        units : str, None
+            The units in which the values are desired.
+        nodes : str or dict of {str: str}
+            The node subset for which the values should be provided.  If given as a string,
+            provide the same subset for all phases.  If given as a dictionary, provide a
+            mapping of phase names to node subsets.  If an invalid node subset is requested
+            in one or more phases, a ValueError is raised.
+        flat : bool
+            If False return the values in a dictionary keyed by phase name.  If True,
+            return a single array incorporating values from all phases.
+
+        Returns
+        -------
+        dict or np.array
+            If flat=False, a dictionary of the values of the variable in each phase will be
+            returned, keyed by Phase name.  If the values are not present in a subset of the phases,
+            return numpy.nan at each time point in those phases.
+
+        Raises
+        ------
+        KeyError
+            If the given variable is not found in any phase, a KeyError is raised.
+
+        """
+        phase_names = phases if phases is not None else list(self._phases.keys())
+
+        results = {}
+        time_units = None
+        times = {}
+
+        if isinstance(nodes, string_types):
+            node_map = dict([(phase_name, nodes) for phase_name in phase_names])
+        else:
+            node_map = nodes
+
+        var_in_traj = False
+        for phase_name in phase_names:
+            p = self._phases[phase_name]
+
+            if time_units is None:
+                time_units = p.time_options['units']
+            times[phase_name] = p.get_values('time', nodes=node_map[phase_name], units=time_units)
+
+            try:
+                results[phase_name] = p.get_values(var, nodes=node_map[phase_name], units=units)
+                var_in_traj = True
+            except KeyError:
+                num_nodes = p.grid_data.subset_num_nodes[node_map[phase_name]]
+                results[phase_name] = np.empty((num_nodes, 1))
+                results[phase_name][:, :] = np.nan
+
+        if not var_in_traj:
+            raise KeyError('Variable "{0}" not found in trajectory.'.format(var))
+
+        if flat:
+            time_array = np.concatenate([times[pname] for pname in phase_names])
+            sort_idxs = np.argsort(time_array, axis=0).ravel()
+            results = np.concatenate([results[pname] for pname in phase_names])[sort_idxs, ...]
+
+        return results

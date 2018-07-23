@@ -33,6 +33,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         A dictionary of the default options for controllable inputs of the Phase RHS
 
     """
+
     def simulate(self, times='all', integrator='vode', integrator_params=None,
                  observer=None, direction='forward', record_file=None, record=True,
                  check_setup=False):

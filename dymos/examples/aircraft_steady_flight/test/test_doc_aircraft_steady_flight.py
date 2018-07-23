@@ -93,7 +93,8 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         p.run_driver()
 
-        exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True)
+        exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True,
+                                 record_file='test_doc_aircraft_steady_flight_rec.db')
 
         assert_rel_error(self, phase.get_values('range', units='NM')[-1], 726.7, tolerance=1.0E-2)
 

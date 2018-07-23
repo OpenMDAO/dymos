@@ -379,7 +379,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                     'input_design_parameter': 'input_design_params.design_parameters:{0}_out',
                     'control_rate': 'control_interp_comp.control_rates:{0}',
                     'control_rate2': 'control_interp_comp.control_rates:{0}',
-                    'rhs': ('rhs_disc.{0}', 'rhs_col.{0}')}
+                    'ode': ('rhs_disc.{0}', 'rhs_col.{0}')}
 
         if var_type == 'state':
             # State and RHS values need to be interleaved since disc and col values are not
@@ -418,7 +418,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             output_value = convert_units(op[var_path]['value'], output_units, units)
             output_value = np.repeat(output_value, gd.num_nodes, axis=0)
 
-        elif var_type == 'rhs':
+        elif var_type == 'ode':
             rhs_disc_outputs = dict(self.rhs_disc.list_outputs(out_stream=None, values=True,
                                                                shape=True, units=True))
             rhs_col_outputs = dict(self.rhs_col.list_outputs(out_stream=None, values=True,
