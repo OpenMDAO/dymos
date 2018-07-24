@@ -272,7 +272,6 @@ class PhaseSimulationResults(object):
             var_in_phase = False
 
         if not var_in_phase:
-            print(self.outputs['ode'].keys())
             raise ValueError('Variable "{0}" not found in phase '
                              'simulation results.'.format(var))
 

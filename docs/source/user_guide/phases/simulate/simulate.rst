@@ -71,7 +71,7 @@ PhaseSimulationResults with the filename as its only argument.
 
 .. code-block:: python
 
-    exp_out = PhaseSimulationResults('my_simulation.db')
+    exp_out = load_simulation_results('my_simulation.db')
     print(exp_out.get_values('x'))
 
 

@@ -15,6 +15,7 @@ import numpy as np
 from openmdao.api import Group, ParallelGroup
 
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
+from ..phases.phase_base import PhaseBase
 from ..utils.simulation import simulate_phase_map_unpack
 from ..utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
 
@@ -32,7 +33,9 @@ class Trajectory(Group):
         self._phase_add_kwargs = {}
 
     def initialize(self):
-        # Required metadata
+        """
+        Declare any options for Trajectory.
+        """
         pass
 
     def add_phase(self, name, phase, **kwargs):
@@ -47,18 +50,20 @@ class Trajectory(Group):
             The name of the phase being added.
         phase : dymos Phase object
             The Phase object to be added.
-        min_procs
-        max_procs
-        proc_weight
 
         Returns
         -------
-
+        phase : PhaseBase
+            The Phase object added to the trajectory.
         """
         self._phases[name] = phase
         self._phase_add_kwargs[name] = kwargs
+        return phase
 
     def setup(self):
+        """
+        Setup the Trajectory Group.
+        """
 
         phases_group = self.add_subsystem('phases', subsys=ParallelGroup(), promotes_inputs=['*'],
                                           promotes_outputs=['*'])
@@ -138,7 +143,7 @@ class Trajectory(Group):
 
             print('----------------------------')
 
-    def link_phases(self, phases, vars=None, locs=('++', '--'), units=0):
+    def link_phases(self, phases, vars=None, locs=('++', '--')):
         """
         Specifies that phases in the given sequence are to be assume continuity of the given
         variables.
@@ -185,7 +190,7 @@ class Trajectory(Group):
 
         **Adding an Additional Linkage**
 
-        If we want some control variable, u, to be continuous in value and rate between phase2 and
+        If we want some control variable, u, to be continuous in value between phase2 and
         phase3 only, we could subsequently issue the following:
 
         >>> t.link_phases(['phase2', 'phase3'], vars=['u'])
@@ -193,9 +198,9 @@ class Trajectory(Group):
         **Branching Trajectories**
 
         For a more complex example, consider the case where we have two phases which branch off
-        from the same point, such as the case of a jettisonned stage.  The nominal trajectory
+        from the same point, such as the case of a jettisoned stage.  The nominal trajectory
         consists of the phase sequence ['a', 'b', 'c'].  Let phase ['d'] be the phase that tracks
-        the jettisonned component to its impact with the ground.  The linkages in this case
+        the jettisoned component to its impact with the ground.  The linkages in this case
         would be defined as:
 
         >>> t.link_phases(['a', 'b', 'c'])
@@ -205,7 +210,7 @@ class Trajectory(Group):
 
         Phase linkages assume that, for each pair, the state/control values after any discontinuous
         jump in the first phase ('++') are linked to the state/control values before any
-        discontinous jump in the second phase ('--').  The user can override this behavior, but
+        discontinuous jump in the second phase ('--').  The user can override this behavior, but
         they must specify a pair of location strings for each pair given in `phases`.  For instance,
         in the following example phases 'a' and 'b' have the same initial time and state, but
         phase 'c' follows phase 'b'.  Note since there are three phases provided, there are two

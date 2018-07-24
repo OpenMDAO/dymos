@@ -7,9 +7,8 @@ import numpy as np
 from openmdao.api import Problem, pyOptSparseDriver, DirectSolver, SqliteRecorder
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, Trajectory
+from dymos import Phase, Trajectory, load_simulation_results
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
-from dymos.utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
 
 
 class TestTrajectorySimulationResults(unittest.TestCase):
@@ -148,7 +147,7 @@ class TestTrajectorySimulationResults(unittest.TestCase):
         # Plot results
         cls.exp_out = traj.simulate(times=50)
 
-        cls.loaded_exp_out = TrajectorySimulationResults('traj_sim.db')
+        cls.loaded_exp_out = load_simulation_results('traj_sim.db')
 
     def test_returned_and_loaded_equivalent(self):
 
@@ -161,6 +160,55 @@ class TestTrajectorySimulationResults(unittest.TestCase):
 
             assert_rel_error(self, t_returned, t_loaded)
             assert_rel_error(self, r_returned, r_loaded)
+
+    def test_returned_and_loaded_flattened_equivalent(self):
+
+        for var in ('time', 'r', 'theta', 'u1', 'c'):
+
+            returned = self.exp_out.get_values(var, flat=True)
+            loaded = self.loaded_exp_out.get_values(var, flat=True)
+
+            assert_rel_error(self, returned, loaded)
+
+    def test_return_flattened(self):
+
+        t_flat_returned = self.exp_out.get_values('time', flat=True)
+        r_flat_returned = self.exp_out.get_values('r', flat=True)
+
+        t_flat_loaded = self.loaded_exp_out.get_values('time', flat=True)
+        r_flat_loaded = self.loaded_exp_out.get_values('r', flat=True)
+
+        start_idx = 0
+
+        for phase in ('burn1', 'coast', 'burn2'):
+            t_returned = self.exp_out.get_values('time')[phase]
+            r_returned = self.exp_out.get_values('r')[phase]
+
+            t_loaded = self.loaded_exp_out.get_values('time')[phase]
+            r_loaded = self.loaded_exp_out.get_values('r')[phase]
+
+            num_returned = len(t_returned)
+            num_loaded = len(t_loaded)
+
+            self.assertEqual(num_returned, num_loaded)
+
+            assert_rel_error(self,
+                             t_flat_returned[start_idx: start_idx + num_returned, ...],
+                             t_returned)
+            assert_rel_error(self,
+                             t_flat_loaded[start_idx: start_idx + num_loaded, ...],
+                             t_loaded)
+
+            assert_rel_error(self,
+                             r_flat_returned[start_idx: start_idx + num_returned, ...],
+                             r_returned)
+
+            assert_rel_error(self,
+                             r_flat_loaded[start_idx: start_idx + num_loaded, ...],
+                             r_loaded)
+
+            start_idx += num_returned
+
 
     def test_nonexistent_var(self):
 

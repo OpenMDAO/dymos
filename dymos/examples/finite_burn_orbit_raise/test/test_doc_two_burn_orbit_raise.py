@@ -30,37 +30,38 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         burn1 = Phase('gauss-lobatto',
                       ode_class=FiniteBurnODE,
-                      num_segments=12,
+                      num_segments=10,
                       transcription_order=3,
                       compressed=True)
 
-        traj.add_phase('burn1', burn1)
+        burn1 = traj.add_phase('burn1', burn1)
 
         burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
-        burn1.set_state_options('r', fix_initial=True, fix_final=False)
-        burn1.set_state_options('theta', fix_initial=True, fix_final=False)
-        burn1.set_state_options('vr', fix_initial=True, fix_final=False, defect_scaler=1.0)
-        burn1.set_state_options('vt', fix_initial=True, fix_final=False, defect_scaler=1.0)
+        burn1.set_state_options('r', fix_initial=True, fix_final=False, defect_scaler=100.0)
+        burn1.set_state_options('theta', fix_initial=True, fix_final=False, defect_scaler=100.0)
+        burn1.set_state_options('vr', fix_initial=True, fix_final=False, defect_scaler=100.0)
+        burn1.set_state_options('vt', fix_initial=True, fix_final=False, defect_scaler=100.0)
         burn1.set_state_options('accel', fix_initial=True, fix_final=False)
         burn1.set_state_options('deltav', fix_initial=True, fix_final=False)
-        burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg')
+        burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
+                          scaler=1.0, rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001)
         burn1.add_design_parameter('c', opt=False, val=1.5)
 
         # Second Phase (Coast)
 
         coast = Phase('gauss-lobatto',
                       ode_class=FiniteBurnODE,
-                      num_segments=12,
+                      num_segments=10,
                       transcription_order=3,
                       compressed=True)
 
         traj.add_phase('coast', coast)
 
         coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10)
-        coast.set_state_options('r', fix_initial=False, fix_final=False)
-        coast.set_state_options('theta', fix_initial=False, fix_final=False)
-        coast.set_state_options('vr', fix_initial=False, fix_final=False)
-        coast.set_state_options('vt', fix_initial=False, fix_final=False)
+        coast.set_state_options('r', fix_initial=False, fix_final=False, defect_scaler=100.0)
+        coast.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
+        coast.set_state_options('vr', fix_initial=False, fix_final=False, defect_scaler=100.0)
+        coast.set_state_options('vt', fix_initial=False, fix_final=False, defect_scaler=100.0)
         coast.set_state_options('accel', fix_initial=True, fix_final=True)
         coast.set_state_options('deltav', fix_initial=False, fix_final=False)
         coast.add_control('u1', opt=False, val=0.0, units='deg')
@@ -70,24 +71,24 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         burn2 = Phase('gauss-lobatto',
                       ode_class=FiniteBurnODE,
-                      num_segments=12,
+                      num_segments=10,
                       transcription_order=3,
                       compressed=True)
 
         traj.add_phase('burn2', burn2)
 
         burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), initial_ref=10)
-        burn2.set_state_options('r', fix_initial=False, fix_final=True, defect_scaler=1.0)
-        burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=1.0)
-        burn2.set_state_options('vr', fix_initial=False, fix_final=True, defect_scaler=1.0)
-        burn2.set_state_options('vt', fix_initial=False, fix_final=True, defect_scaler=1.0)
+        burn2.set_state_options('r', fix_initial=False, fix_final=True, defect_scaler=100.0)
+        burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
+        burn2.set_state_options('vr', fix_initial=False, fix_final=True, defect_scaler=100.0)
+        burn2.set_state_options('vt', fix_initial=False, fix_final=True, defect_scaler=100.0)
         burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
         burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          ref0=0, ref=10)
+                          scaler=0.01, rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001)
         burn2.add_design_parameter('c', opt=False, val=1.5)
 
-        burn2.add_objective('deltav', loc='final', scaler=10.0)
+        burn2.add_objective('deltav', loc='final', scaler=1.0)
 
         # Link Phases
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],

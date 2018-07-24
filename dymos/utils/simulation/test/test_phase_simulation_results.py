@@ -21,9 +21,8 @@ class TestPhaseSimulationResults(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
-        from dymos import Phase
+        from dymos import Phase, load_simulation_results
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-        from dymos.utils.simulation.phase_simulation_results import PhaseSimulationResults
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
@@ -65,7 +64,7 @@ class TestPhaseSimulationResults(unittest.TestCase):
 
         cls.exp_out = phase.simulate(times=100, record_file='phase_simulation_test_sim.db')
 
-        cls.exp_out_loaded = PhaseSimulationResults('phase_simulation_test_sim.db')
+        cls.exp_out_loaded = load_simulation_results('phase_simulation_test_sim.db')
 
     def test_returned_and_loaded_equivalent(self):
         assert_rel_error(self,

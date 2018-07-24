@@ -40,16 +40,17 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
                   transcription_order=transcription_order,
                   compressed=compressed)
 
-    traj.add_phase('burn1', burn1)
+    burn1 = traj.add_phase('burn1', burn1)
 
     burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
-    burn1.set_state_options('r', fix_initial=True, fix_final=False)
-    burn1.set_state_options('theta', fix_initial=True, fix_final=False)
-    burn1.set_state_options('vr', fix_initial=True, fix_final=False, defect_scaler=1.0)
-    burn1.set_state_options('vt', fix_initial=True, fix_final=False, defect_scaler=1.0)
+    burn1.set_state_options('r', fix_initial=True, fix_final=False, defect_scaler=100.0)
+    burn1.set_state_options('theta', fix_initial=True, fix_final=False, defect_scaler=100.0)
+    burn1.set_state_options('vr', fix_initial=True, fix_final=False, defect_scaler=100.0)
+    burn1.set_state_options('vt', fix_initial=True, fix_final=False, defect_scaler=100.0)
     burn1.set_state_options('accel', fix_initial=True, fix_final=False)
     burn1.set_state_options('deltav', fix_initial=True, fix_final=False)
-    burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg')
+    burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=1.0,
+                      rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001)
     burn1.add_design_parameter('c', opt=False, val=1.5)
 
     # Second Phase (Coast)
@@ -63,10 +64,10 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     traj.add_phase('coast', coast)
 
     coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10)
-    coast.set_state_options('r', fix_initial=False, fix_final=False)
+    coast.set_state_options('r', fix_initial=False, fix_final=False, defect_scaler=100.0)
     coast.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
-    coast.set_state_options('vr', fix_initial=False, fix_final=False)
-    coast.set_state_options('vt', fix_initial=False, fix_final=False)
+    coast.set_state_options('vr', fix_initial=False, fix_final=False, defect_scaler=100.0)
+    coast.set_state_options('vt', fix_initial=False, fix_final=False, defect_scaler=100.0)
     coast.set_state_options('accel', fix_initial=True, fix_final=True)
     coast.set_state_options('deltav', fix_initial=False, fix_final=False)
     coast.add_control('u1', opt=False, val=0.0, units='deg')
@@ -83,17 +84,17 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     traj.add_phase('burn2', burn2)
 
     burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), initial_ref=10)
-    burn2.set_state_options('r', fix_initial=False, fix_final=True, defect_scaler=1000.0)
-    burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=1.0)
-    burn2.set_state_options('vr', fix_initial=False, fix_final=True, defect_scaler=1.0)
-    burn2.set_state_options('vt', fix_initial=False, fix_final=True, defect_scaler=1.0)
+    burn2.set_state_options('r', fix_initial=False, fix_final=True, defect_scaler=100.0)
+    burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
+    burn2.set_state_options('vr', fix_initial=False, fix_final=True, defect_scaler=100.0)
+    burn2.set_state_options('vt', fix_initial=False, fix_final=True, defect_scaler=100.0)
     burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
     burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
-    burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                      ref0=0, ref=10)
+    burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=0.01,
+                      rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001)
     burn2.add_design_parameter('c', opt=False, val=1.5)
 
-    burn2.add_objective('deltav', loc='final', scaler=10.0)
+    burn2.add_objective('deltav', loc='final', scaler=1.0)
 
     # Link Phases
     traj.link_phases(phases=['burn1', 'coast', 'burn2'],
@@ -178,29 +179,26 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     ax_deltav.set_ylabel('${\Delta}v$ ($DU/TU$)')
     ax_deltav.grid(True)
 
-    t_sol = traj.get_values('time')
-    x_sol = traj.get_values('pos_x')
-    y_sol = traj.get_values('pos_y')
-    dv_sol = traj.get_values('deltav')
-    u1_sol = traj.get_values('u1', units='deg')
+    t_sol = traj.get_values('time', flat=True)
+    x_sol = traj.get_values('pos_x', flat=True)
+    y_sol = traj.get_values('pos_y', flat=True)
+    dv_sol = traj.get_values('deltav', flat=True)
+    u1_sol = traj.get_values('u1', units='deg', flat=True)
 
-    t_exp = exp_out.get_values('time')
-    x_exp = exp_out.get_values('pos_x')
-    y_exp = exp_out.get_values('pos_y')
-    dv_exp = exp_out.get_values('deltav')
-    u1_exp = exp_out.get_values('u1', units='deg')
+    t_exp = exp_out.get_values('time', flat=True)
+    x_exp = exp_out.get_values('pos_x', flat=True)
+    y_exp = exp_out.get_values('pos_y', flat=True)
+    dv_exp = exp_out.get_values('deltav', flat=True)
+    u1_exp = exp_out.get_values('u1', units='deg', flat=True)
 
-    for phase_name in ['burn1', 'coast', 'burn2']:
-        ax_u1.plot(t_sol[phase_name], u1_sol[phase_name], 'ro', ms=3)
-        ax_u1.plot(t_exp[phase_name], u1_exp[phase_name], 'b-')
+    ax_u1.plot(t_sol, u1_sol, 'ro', ms=3)
+    ax_u1.plot(t_exp, u1_exp, 'b-')
 
-        ax_deltav.plot(t_sol[phase_name], dv_sol[phase_name], 'ro', ms=3)
-        ax_deltav.plot(t_exp[phase_name], dv_exp[phase_name], 'b-')
+    ax_deltav.plot(t_sol, dv_sol, 'ro', ms=3)
+    ax_deltav.plot(t_exp, dv_exp, 'b-')
 
-        ax_xy.plot(x_sol[phase_name], y_sol[phase_name], 'ro', ms=3,
-                   label='implicit' if phase_name == 'burn1' else None)
-        ax_xy.plot(x_exp[phase_name], y_exp[phase_name], 'b-',
-                   label='explicit' if phase_name == 'burn1' else None)
+    ax_xy.plot(x_sol, y_sol, 'ro', ms=3, label='implicit')
+    ax_xy.plot(x_exp, y_exp, 'b-', label='explicit')
 
     if show_plots:
         plt.show()
@@ -208,21 +206,5 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     return p
 
 
-if __name__ == '__main__':  # pragma: no cover
-    p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP',
-                                     transcription_order=3, compressed=True, show_plots=True)
-
-    # p.check_totals(compact_print=True)
-
-    totes_mgotes = p.compute_totals()
-
-    from six import iteritems
-    np.set_printoptions(linewidth=1024)
-
-    for pair, jac in iteritems(totes_mgotes):
-        of, wrt = pair
-        # jac = tote[1]
-        if np.linalg.norm(jac) > 0:
-            print(of, wrt, np.linalg.norm(jac))
-
-
+if __name__ == '__main__':
+    two_burn_orbit_raise_problem(optimizer='SNOPT', show_plots=True)

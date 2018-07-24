@@ -318,8 +318,21 @@ class TrajectorySimulationResults(object):
 
         var_in_traj = False
 
+        times = {}
+        time_units = None
+
         for phase_name in phases:
             var_in_phase = True
+
+            # Gather times for the purposes of flattening the returned values
+            # Note the adjustment to the last time, for the purposes of sorting only
+            if time_units is None:
+                time_units = self.outputs['phases'][phase_name]['indep']['time']['units']
+            times[phase_name] = convert_units(
+                self.outputs['phases'][phase_name]['indep']['time']['value'],
+                self.outputs['phases'][phase_name]['indep']['time']['units'],
+                time_units)
+            times[phase_name][-1, ...] -= 1.0E-15
 
             if var == 'time':
                 var_type = 'indep'
@@ -356,5 +369,10 @@ class TrajectorySimulationResults(object):
                                'simulation results.'.format(var))
 
             return_vals[phase_name] = output
+
+        if flat:
+            time_array = np.concatenate([times[pname] for pname in phases])
+            sort_idxs = np.argsort(time_array, axis=0).ravel()
+            return_vals = np.concatenate([return_vals[pname] for pname in phases])[sort_idxs, ...]
 
         return return_vals
