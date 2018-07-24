@@ -17,6 +17,8 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=True, show_plots=False)
 
+        p.check_totals(compact_print=True)
+
         assert_rel_error(self, p.get_val('burn2.states:deltav')[-1], 0.3995, tolerance=2.0E-3)
 
 

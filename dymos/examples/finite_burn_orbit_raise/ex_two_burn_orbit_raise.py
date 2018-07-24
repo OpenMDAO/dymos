@@ -64,7 +64,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
     coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10)
     coast.set_state_options('r', fix_initial=False, fix_final=False)
-    coast.set_state_options('theta', fix_initial=False, fix_final=False)
+    coast.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
     coast.set_state_options('vr', fix_initial=False, fix_final=False)
     coast.set_state_options('vt', fix_initial=False, fix_final=False)
     coast.set_state_options('accel', fix_initial=True, fix_final=True)
@@ -83,7 +83,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     traj.add_phase('burn2', burn2)
 
     burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), initial_ref=10)
-    burn2.set_state_options('r', fix_initial=False, fix_final=True, defect_scaler=1.0)
+    burn2.set_state_options('r', fix_initial=False, fix_final=True, defect_scaler=1000.0)
     burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=1.0)
     burn2.set_state_options('vr', fix_initial=False, fix_final=True, defect_scaler=1.0)
     burn2.set_state_options('vt', fix_initial=False, fix_final=True, defect_scaler=1.0)
@@ -208,6 +208,21 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     return p
 
 
-if __name__ == '__main__':
-    two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP',
-                                 transcription_order=3, compressed=True)
+if __name__ == '__main__':  # pragma: no cover
+    p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP',
+                                     transcription_order=3, compressed=True, show_plots=True)
+
+    # p.check_totals(compact_print=True)
+
+    totes_mgotes = p.compute_totals()
+
+    from six import iteritems
+    np.set_printoptions(linewidth=1024)
+
+    for pair, jac in iteritems(totes_mgotes):
+        of, wrt = pair
+        # jac = tote[1]
+        if np.linalg.norm(jac) > 0:
+            print(of, wrt, np.linalg.norm(jac))
+
+
