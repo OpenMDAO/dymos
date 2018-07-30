@@ -21,7 +21,7 @@ class TestBrachistochroneExample(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    def run_asserts(self, p, transcription):
+    def run_asserts(self, p):
         t_initial = p.model.phase0.get_values('time')[0]
         tf = p.model.phase0.get_values('time')[-1]
 
@@ -51,11 +51,30 @@ class TestBrachistochroneExample(unittest.TestCase):
 
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
-    @parameterized.expand(product(
-        ['gauss-lobatto', 'radau-ps'],
-    ))
-    def test_ex_brachistochrone(self, transcription='radau-ps'):
+    def test_ex_brachistochrone_radau_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
-        p = ex_brachistochrone.brachistochrone_min_time(transcription=transcription)
-        self.run_asserts(p, transcription)
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
+                                                        compressed=True)
+        self.run_asserts(p)
+        self.tearDown()
+
+    def test_ex_brachistochrone_radau_uncompressed(self):
+        ex_brachistochrone.SHOW_PLOTS = True
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
+                                                        compressed=False)
+        self.run_asserts(p)
+        self.tearDown()
+
+    def test_ex_brachistochrone_gl_compressed(self):
+        ex_brachistochrone.SHOW_PLOTS = True
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
+                                                        compressed=True)
+        self.run_asserts(p)
+        self.tearDown()
+
+    def test_ex_brachistochrone_gl_uncompressed(self):
+        ex_brachistochrone.SHOW_PLOTS = True
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
+                                                        compressed=False)
+        self.run_asserts(p)
         self.tearDown()

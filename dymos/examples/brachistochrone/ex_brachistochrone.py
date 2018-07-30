@@ -11,7 +11,7 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver,
 from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-OPTIMIZER = 'SlSQP'
+OPTIMIZER = 'SLSQP'
 SHOW_PLOTS = True
 
 
@@ -64,7 +64,7 @@ def brachistochrone_min_time(
     p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
     p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
     p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-    p['phase0.controls:theta'] = phase.interpolate(ys=[0, 100], nodes='control_input')
+    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
     p['phase0.design_parameters:g'] = 9.80665
 
     p.run_model()
