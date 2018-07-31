@@ -235,7 +235,8 @@ class Trajectory(Group):
         phase_pairs = zip(a, b)
 
         for phase1_name, phase2_name in phase_pairs:
-            self._linkages[phase1_name, phase2_name] = {}
+            if (phase1_name, phase2_name) not in self._linkages:
+                self._linkages[phase1_name, phase2_name] = {}
 
             explicitly_linked_vars = [var for var in _vars if var != '*']
 
