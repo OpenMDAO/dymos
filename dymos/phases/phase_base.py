@@ -23,6 +23,7 @@ from dymos.phases.options import ControlOptionsDictionary, DesignParameterOption
 from dymos.phases.components import ControlInterpComp
 from dymos.phases.grid_data import GridData
 from dymos.ode_options import ODEOptions
+from dymos.utils.constants import INF_BOUND
 from dymos.utils.misc import get_rate_units
 from dymos.utils.misc import CoerceDesvar
 
@@ -295,8 +296,8 @@ class PhaseBase(Group):
         if units != 0:
             self.control_options[name]['units'] = units
 
-    def add_design_parameter(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
-                             scaler=None, adder=None, ref=None, ref0=None):
+    def add_design_parameter(self, name, val=0.0, units=0, opt=True, input=False,
+                             lower=None, upper=None, scaler=None, adder=None, ref=None, ref0=None):
         """
         Declares that a parameter of the ODE is to potentially be used as an optimal control.
 
@@ -828,18 +829,26 @@ class PhaseBase(Group):
         self.add_subsystem('time', time_comp, promotes_outputs=['time'], promotes_inputs=externals)
 
         if not (self.time_options['input_initial'] or self.time_options['fix_initial']):
+            lb, ub = self.time_options['initial_bounds']
+            lb = -INF_BOUND if lb is None else lb
+            ub = -INF_BOUND if ub is None else ub
+
             self.add_design_var('t_initial',
-                                lower=self.time_options['initial_bounds'][0],
-                                upper=self.time_options['initial_bounds'][1],
+                                lower=lb,
+                                upper=ub,
                                 scaler=self.time_options['initial_scaler'],
                                 adder=self.time_options['initial_adder'],
                                 ref0=self.time_options['initial_ref0'],
                                 ref=self.time_options['initial_ref'])
 
         if not (self.time_options['input_duration'] or self.time_options['fix_duration']):
+            lb, ub = self.time_options['duration_bounds']
+            lb = -INF_BOUND if lb is None else lb
+            ub = -INF_BOUND if ub is None else ub
+
             self.add_design_var('t_duration',
-                                lower=self.time_options['duration_bounds'][0],
-                                upper=self.time_options['duration_bounds'][1],
+                                lower=lb,
+                                upper=ub,
                                 scaler=self.time_options['duration_scaler'],
                                 adder=self.time_options['duration_adder'],
                                 ref0=self.time_options['duration_ref0'],
@@ -878,9 +887,12 @@ class PhaseBase(Group):
                     coerce_desvar = CoerceDesvar(grid_data.subset_num_nodes['control_disc'],
                                                  desvar_indices, options)
 
+                    lb = -INF_BOUND if coerce_desvar('lower') is None else coerce_desvar('lower')
+                    ub = INF_BOUND if coerce_desvar('upper') is None else coerce_desvar('upper')
+
                     self.add_design_var(name='controls:{0}'.format(name),
-                                        lower=coerce_desvar('lower'),
-                                        upper=coerce_desvar('upper'),
+                                        lower=lb,
+                                        upper=ub,
                                         scaler=coerce_desvar('scaler'),
                                         adder=coerce_desvar('adder'),
                                         ref0=coerce_desvar('ref0'),
@@ -924,9 +936,12 @@ class PhaseBase(Group):
             if options['opt']:
                 num_input_nodes = 1
 
+                lb = -INF_BOUND if options['lower'] is None else options['lower']
+                ub = INF_BOUND if options['upper'] is None else options['upper']
+
                 self.add_design_var(name='design_parameters:{0}'.format(name),
-                                    lower=options['lower'],
-                                    upper=options['upper'],
+                                    lower=lb,
+                                    upper=ub,
                                     scaler=options['scaler'],
                                     adder=options['adder'],
                                     ref0=options['ref0'],

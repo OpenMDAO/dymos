@@ -1,5 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
+import os
 import unittest
 
 import numpy as np
@@ -13,8 +14,7 @@ from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
 class TestTrajectorySimulationResults(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
+    def instantiate_problem(self, idx):
 
         traj = Trajectory()
         p = Problem(model=traj)
@@ -97,7 +97,8 @@ class TestTrajectorySimulationResults(unittest.TestCase):
         p.model.options['assembled_jac_type'] = 'csc'
         p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-        p.driver.add_recorder(SqliteRecorder('two_burn_orbit_raise_example.db'))
+        rec_file = 'two_burn_orbit_raise_example_{0}.db'.format(idx)
+        p.driver.add_recorder(SqliteRecorder(rec_file))
 
         p.setup(check=True)
 
@@ -145,47 +146,65 @@ class TestTrajectorySimulationResults(unittest.TestCase):
         p.run_model()
 
         # Plot results
-        cls.exp_out = traj.simulate(times=50)
+        sim_rec_file = 'traj_sim_{0}.db'.format(idx)
+        exp_out = traj.simulate(times=50, record_file=sim_rec_file)
 
-        cls.loaded_exp_out = load_simulation_results('traj_sim.db')
+        loaded_exp_out = load_simulation_results(sim_rec_file)
+
+        return exp_out, loaded_exp_out, rec_file, sim_rec_file
+
+    def cleanup(self, filenames):
+        for f in filenames:
+            if os.path.exists(f):
+                os.remove(f)
 
     def test_returned_and_loaded_equivalent(self):
 
-        for phase in ('burn1', 'coast', 'burn2'):
-            t_returned = self.exp_out.get_values('time')[phase]
-            r_returned = self.exp_out.get_values('r')[phase]
+        exp_out, loaded_exp_out, rec_file, sim_rec_file = self.instantiate_problem(0)
 
-            t_loaded = self.loaded_exp_out.get_values('time')[phase]
-            r_loaded = self.loaded_exp_out.get_values('r')[phase]
+        for phase in ('burn1', 'coast', 'burn2'):
+            t_returned = exp_out.get_values('time')[phase]
+            r_returned = exp_out.get_values('r')[phase]
+
+            t_loaded = loaded_exp_out.get_values('time')[phase]
+            r_loaded = loaded_exp_out.get_values('r')[phase]
 
             assert_rel_error(self, t_returned, t_loaded)
             assert_rel_error(self, r_returned, r_loaded)
 
+        self.cleanup([rec_file, sim_rec_file])
+
     def test_returned_and_loaded_flattened_equivalent(self):
+
+        exp_out, loaded_exp_out, rec_file, sim_rec_file = self.instantiate_problem(1)
 
         for var in ('time', 'r', 'theta', 'u1', 'c'):
 
-            returned = self.exp_out.get_values(var, flat=True)
-            loaded = self.loaded_exp_out.get_values(var, flat=True)
+            returned = exp_out.get_values(var, flat=True)
+            loaded = loaded_exp_out.get_values(var, flat=True)
 
             assert_rel_error(self, returned, loaded)
 
+        self.cleanup([rec_file, sim_rec_file])
+
     def test_return_flattened(self):
 
-        t_flat_returned = self.exp_out.get_values('time', flat=True)
-        r_flat_returned = self.exp_out.get_values('r', flat=True)
+        exp_out, loaded_exp_out, rec_file, sim_rec_file = self.instantiate_problem(2)
 
-        t_flat_loaded = self.loaded_exp_out.get_values('time', flat=True)
-        r_flat_loaded = self.loaded_exp_out.get_values('r', flat=True)
+        t_flat_returned = exp_out.get_values('time', flat=True)
+        r_flat_returned = exp_out.get_values('r', flat=True)
+
+        t_flat_loaded = loaded_exp_out.get_values('time', flat=True)
+        r_flat_loaded = loaded_exp_out.get_values('r', flat=True)
 
         start_idx = 0
 
         for phase in ('burn1', 'coast', 'burn2'):
-            t_returned = self.exp_out.get_values('time')[phase]
-            r_returned = self.exp_out.get_values('r')[phase]
+            t_returned = exp_out.get_values('time')[phase]
+            r_returned = exp_out.get_values('r')[phase]
 
-            t_loaded = self.loaded_exp_out.get_values('time')[phase]
-            r_loaded = self.loaded_exp_out.get_values('r')[phase]
+            t_loaded = loaded_exp_out.get_values('time')[phase]
+            r_loaded = loaded_exp_out.get_values('r')[phase]
 
             num_returned = len(t_returned)
             num_loaded = len(t_loaded)
@@ -209,10 +228,15 @@ class TestTrajectorySimulationResults(unittest.TestCase):
 
             start_idx += num_returned
 
+        self.cleanup([rec_file, sim_rec_file])
 
     def test_nonexistent_var(self):
 
+        exp_out, loaded_exp_out, rec_file, sim_rec_file = self.instantiate_problem(3)
+
         with self.assertRaises(KeyError) as e:
-            self.loaded_exp_out.get_values('foo')
+            loaded_exp_out.get_values('foo')
             self.assertEqual(str(e.exception), 'Variable "foo" not found in trajectory '
                                                'simulation results.')
+
+        self.cleanup([rec_file, sim_rec_file])

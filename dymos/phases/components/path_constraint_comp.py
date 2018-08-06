@@ -4,6 +4,7 @@ import numpy as np
 from openmdao.api import ExplicitComponent
 
 from dymos.phases.grid_data import GridData
+from dymos.utils.constants import INF_BOUND
 
 
 class PathConstraintCompBase(ExplicitComponent):
@@ -72,7 +73,8 @@ class PathConstraintCompBase(ExplicitComponent):
         """
         src_all = var_class in ['time', 'indep_control', 'input_control', 'control_rate',
                                 'control_rate2']
-
+        lower = -INF_BOUND if upper is not None and lower is None else lower
+        upper = INF_BOUND if lower is not None and upper is None else upper
         kwargs = {'shape': shape, 'units': units, 'res_units': res_units, 'desc': desc,
                   'lower': lower, 'upper': upper, 'equals': equals, 'scaler': scaler,
                   'adder': adder, 'ref': ref, 'ref0': ref0, 'linear': linear, 'src_all': src_all,

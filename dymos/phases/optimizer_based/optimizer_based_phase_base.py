@@ -7,6 +7,7 @@ from dymos.phases.optimizer_based.components import CollocationComp, StateInterp
 from dymos.phases.components import EndpointConditionsComp
 from dymos.phases.phase_base import PhaseBase
 from dymos.utils.interpolate import LagrangeBarycentricInterpolant
+from dymos.utils.constants import INF_BOUND
 from dymos.utils.misc import CoerceDesvar
 from dymos.utils.simulation import ScipyODEIntegrator, PhaseSimulationResults, \
     StdOutObserver, ProgressBarObserver
@@ -316,12 +317,12 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                                         options)
 
                     lb = np.zeros_like(desvar_indices, dtype=float)
-                    lb[:] = coerce_desvar_option('lower') \
-                        if coerce_desvar_option('lower') is not None else np.finfo(float).min
+                    lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                        coerce_desvar_option('lower')
 
                     ub = np.zeros_like(desvar_indices, dtype=float)
-                    ub[:] = coerce_desvar_option('upper') \
-                        if coerce_desvar_option('upper') is not None else np.finfo(float).max
+                    ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                        coerce_desvar_option('upper')
 
                     if options['initial_bounds'] is not None:
                         lb[0] = options['initial_bounds'][0]

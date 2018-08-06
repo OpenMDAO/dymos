@@ -1,5 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
+import os
 import unittest
 
 import matplotlib
@@ -7,6 +8,13 @@ matplotlib.use('Agg')
 
 
 class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
+
+    @classmethod
+    def tearDownClass(cls):
+        for filename in ['coloring.json', 'two_burn_orbit_raise_example_for_docs.db', 'SLSQP.out',
+                         'SNOPT_print.out', 'SNOPT_summary.out']:
+            if os.path.exists(filename):
+                os.remove(filename)
 
     def test_two_burn_orbit_raise_for_docs(self):
         import numpy as np
@@ -23,8 +31,8 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         p = Problem(model=traj)
 
         p.driver = pyOptSparseDriver()
-        p.driver.options['dynamic_simul_derivs'] = False
-        p.driver.opt_settings['ACC'] = 1.0E-6
+        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver.options['dynamic_simul_derivs'] = True
 
         # First Phase (burn)
 

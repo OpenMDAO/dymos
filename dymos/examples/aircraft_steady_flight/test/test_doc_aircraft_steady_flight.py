@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division
 
+import os
 import unittest
 
 import matplotlib
@@ -7,6 +8,12 @@ matplotlib.use('Agg')
 
 
 class TestSteadyAircraftFlightForDocs(unittest.TestCase):
+
+    @classmethod
+    def tearDownClass(cls):
+        for filename in ['coloring.json', 'test_doc_aircraft_steady_flight_rec.db', 'SLSQP.out']:
+            if os.path.exists(filename):
+                os.remove(filename)
 
     def test_steady_aircraft_for_docs(self):
         import numpy as np
@@ -43,7 +50,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0),
+        phase.set_time_options(fix_initial=True,
                                duration_bounds=(300, 10000),
                                duration_ref=3600)
 

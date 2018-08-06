@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, pyOptSparseDriver, DirectSolver, SqliteRecorder, \
@@ -14,7 +14,7 @@ from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
 
 def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP',
-                                 transcription_order=3, compressed=True, show_plots=True):
+                                 transcription_order=3, compressed=True, show_plots=False):
 
     traj = Trajectory()
     p = Problem(model=traj)
@@ -30,7 +30,6 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     else:
         p.driver = pyOptSparseDriver()
         p.driver.options['dynamic_simul_derivs'] = True
-        p.driver.opt_settings['ACC'] = 1.0E-6
 
     # First Phase (burn)
 
@@ -94,7 +93,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
                       rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001)
     burn2.add_design_parameter('c', opt=False, val=1.5)
 
-    burn2.add_objective('deltav', loc='final', scaler=1.0)
+    burn2.add_objective('deltav', loc='final', scaler=100.0)
 
     # Link Phases
     traj.link_phases(phases=['burn1', 'coast', 'burn2'],
@@ -104,7 +103,14 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     # Finish Problem Setup
 
     p.model.options['assembled_jac_type'] = 'csc'
-    p.model.linear_solver = DirectSolver(assemble_jac=True)
+    from openmdao.api import PETScKrylov, ScipyKrylov
+    # p.model.linear_solver = DirectSolver(assemble_jac=True)
+    p.model.linear_solver = ScipyKrylov(assemble_jac=True)
+    p.model.linear_solver.precon = DirectSolver(assemble_jac=True)
+    p.model.linear_solver.maxiter = 2
+    # burn1.linear_solver = DirectSolver(assemble_jac=True)
+    # coast.linear_solver = DirectSolver(assemble_jac=True)
+    # burn2.linear_solver = DirectSolver(assemble_jac=True)
 
     p.driver.add_recorder(SqliteRecorder('two_burn_orbit_raise_example.db'))
 
@@ -207,4 +213,4 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
 
 if __name__ == '__main__':
-    two_burn_orbit_raise_problem(optimizer='SNOPT', show_plots=True)
+    two_burn_orbit_raise_problem(optimizer='SLSQP', show_plots=True)

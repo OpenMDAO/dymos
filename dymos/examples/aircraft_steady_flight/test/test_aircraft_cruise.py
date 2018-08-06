@@ -56,7 +56,7 @@ class TestAircraftCruise(unittest.TestCase):
                                duration_ref=3600)
 
         phase.set_state_options('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
-                                defect_scaler=1.0E-1)
+                                defect_scaler=0.01)
         phase.set_state_options('mass_fuel', fix_final=True, upper=20000.0, lower=0.0,
                                 scaler=1.0E-4, defect_scaler=1.0E-2)
 
@@ -99,3 +99,7 @@ class TestAircraftCruise(unittest.TestCase):
         range = phase.get_values('range', units='m')
 
         assert_rel_error(self, range, tas*time, tolerance=1.0E-9)
+
+
+if __name__ == '__main__':
+    unittest.main()

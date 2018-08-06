@@ -12,12 +12,12 @@ from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 OPTIMIZER = 'SLSQP'
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 
 def brachistochrone_min_time(
         transcription='gauss-lobatto', num_segments=8, transcription_order=3, run_driver=True,
-        top_level_jacobian='csc', compressed=True):
+        top_level_jacobian='csc', compressed=True, sim_record='brach_min_time_sim.db'):
     p = Problem(model=Group())
 
     if OPTIMIZER == 'SNOPT':
@@ -73,8 +73,7 @@ def brachistochrone_min_time(
 
     # Plot results
     if SHOW_PLOTS:
-        exp_out = phase.simulate(times=np.linspace(
-            p['phase0.t_initial'], p['phase0.t_initial'] + p['phase0.t_duration'], 50))
+        exp_out = phase.simulate(times=50, record_file=sim_record)
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
