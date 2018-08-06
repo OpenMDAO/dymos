@@ -80,11 +80,11 @@ install:
 
 # The script for the default test stage
 script:
-  - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
+# - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
 
 # The after_success job for the default test stage
 after_success:
-  - coveralls
+#  - coveralls
 
 stages:
   - test
