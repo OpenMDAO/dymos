@@ -47,9 +47,9 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.githubpages',
               #'sphinxcontrib.bibtex',
               'numpydoc',
-              'openmdao.docs.exts.embed_code',
-              'openmdao.docs.exts.embed_options']
-
+              #'openmdao.docs.exts.embed_code',
+              #'openmdao.docs.exts.embed_options']
+              ]
 numpydoc_show_class_members = False
 # directories for which to generate sourcedocs
 packages = [
