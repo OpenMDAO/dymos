@@ -98,8 +98,8 @@ def convert_to_ascii(s):
         Character s converted to ascii (for 2.7) or unicode (Python 3.x)
 
     """
-    if isinstance(s, unicode):
-        if sys.version_info[0] < 3:
+    if sys.version_info[0] < 3:
+        if isinstance(s, unicode):
             return s.encode('ascii')
         else:
             return s
