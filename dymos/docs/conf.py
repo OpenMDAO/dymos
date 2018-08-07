@@ -19,35 +19,54 @@
 import os
 import sys
 import openmdao
+import sphinxcontrib
+from openmdao.docs.utils.generate_sourcedocs import generate_docs
+from openmdao.docs.exts import embed_code, embed_options
+from openmdao.docs.utils.patch import do_monkeypatch
+from numpydoc.docscrape import NumpyDocString, Reader
 
 openmdao_path = os.path.split(os.path.abspath(openmdao.__file__))[0]
 
+do_monkeypatch()
+
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.join(openmdao_path, 'docs', '_exts'))
 
 # -- General configuration ------------------------------------------------
-
-# If your documentation needs a minimal Sphinx version, state it here.
-#
-# needs_sphinx = '1.0'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc',
+              'sphinx.ext.autosummary',
               'sphinx.ext.doctest',
               'sphinx.ext.coverage',
               'sphinx.ext.mathjax',
               'sphinx.ext.viewcode',
-              'sphinx.ext.githubpages', #,
-              'sphinxcontrib.bibtex',
-              #'numpydoc',
-              'embed_code',
-              'embed_options']
-              #'embed_compare',
-              #'embed_shell_cmd',
-              #'embed_bibtex']
+              'sphinx.ext.githubpages',
+              #'sphinxcontrib.bibtex',
+              'numpydoc',
+              'openmdao.docs.exts.embed_code',
+              'openmdao.docs.exts.embed_options']
+
+numpydoc_show_class_members = False
+# directories for which to generate sourcedocs
+packages = [
+    'examples.aircraft_steady_flight',
+    'examples.brachistochrone',
+    'examples.double_integrator',
+    'examples.min_time_climb',
+    'examples.ssto',
+    'models.atmosphere',
+    'models.eom',
+    'phases.components',
+    'phases.optimizer_based',
+    'examples',
+    'models',
+    'phases',
+]
+
+generate_docs("..", "../..", packages, project_name='dymos')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

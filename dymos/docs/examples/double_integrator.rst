@@ -31,7 +31,7 @@ in the control.
 -------------------------------------------
 
 .. embed-code::
-    ../dymos/examples/double_integrator/double_integrator_ode.py
+    ../../dymos/examples/double_integrator/double_integrator_ode.py
     :layout: code
 
 2. Building and running the problem

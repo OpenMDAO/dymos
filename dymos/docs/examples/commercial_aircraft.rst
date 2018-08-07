@@ -364,7 +364,7 @@ Finally, fuel burn rate is:
 ----------------------------------
 
 .. embed-code::
-    ../dymos/examples/aircraft_steady_flight/aircraft_ode.py
+    ../../dymos/examples/aircraft_steady_flight/aircraft_ode.py
     :layout: code
 
 In this case the system has only two integrated states: `range` and `mass_fuel`.  There are six parameters.

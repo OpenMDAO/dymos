@@ -29,6 +29,16 @@ Table of Contents
     examples/examples
 
 
+Source Docs
+===========
+
+.. toctree::
+    :maxdepth: 1
+    :titlesonly:
+
+    _srcdocs/index.rst
+
+
 Indices and tables
 ==================
 

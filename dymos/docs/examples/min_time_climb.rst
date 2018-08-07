@@ -7,7 +7,7 @@ It finds the angle-of-attack history required to accelerate a supersonic interce
 ground level, Mach 0.4 to an altitude of 20 km and Mach 1.0.
 
 .. embed-code::
-    source/examples/figures/min_time_climb_fbd.py
+    examples/figures/min_time_climb_fbd.py
     :layout: plot
 
 The vehicle dynamics are given by
@@ -40,7 +40,7 @@ and the final conditions are
 ----------------------------------------
 
 .. embed-code::
-    ../dymos/examples/min_time_climb/min_time_climb_ode.py
+    ../../dymos/examples/min_time_climb/min_time_climb_ode.py
     :layout: code
 
 

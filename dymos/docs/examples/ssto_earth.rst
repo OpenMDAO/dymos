@@ -7,7 +7,7 @@ This example is based on the "Time-Optimal Launch of a Titan II" example given i
 the time required to reach orbit insertion under constant thrust.
 
 .. embed-code::
-    source/examples/figures/ssto_fbd.py
+    examples/figures/ssto_fbd.py
     :layout: plot
 
 The vehicle dynamics are given by
@@ -63,25 +63,25 @@ The eom component computes the state rates.
 ex_ssto_earth.py
 ----------------------
 .. embed-code::
-    ../dymos/examples/ssto/ex_ssto_earth.py
+    ../../dymos/examples/ssto/ex_ssto_earth.py
     :layout: code
 
 launch_vehicle_2d_eom_comp.py
 ------------------------------
 .. embed-code::
-    ../dymos/examples/ssto/launch_vehicle_2d_eom_comp.py
+    ../../dymos/examples/ssto/launch_vehicle_2d_eom_comp.py
     :layout: code
 
 log_atmosphere_comp.py
 ------------------------
 .. embed-code::
-    ../dymos/examples/ssto/log_atmosphere_comp.py
+    ../../dymos/examples/ssto/log_atmosphere_comp.py
     :layout: code
 
 launch_vehicle_ode.py
 ----------------------
 .. embed-code::
-    ../dymos/examples/ssto/launch_vehicle_ode.py
+    ../../dymos/examples/ssto/launch_vehicle_ode.py
     :layout: code
 
 References

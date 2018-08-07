@@ -92,7 +92,7 @@ in the same segment), OTIS computes that there are 7794 nonzero elements in the 
 non-conservative sparsity pattern calculated by OpenMDAO gives 4393 nonzero elements.
 
 .. embed-code::
-    source/examples/figures/simul_derivs_perf_chart.py
+    examples/figures/simul_derivs_perf_chart.py
     :layout: plot
 
 General Performance Tips Using Dymos
