@@ -103,14 +103,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     # Finish Problem Setup
 
     p.model.options['assembled_jac_type'] = 'csc'
-    from openmdao.api import PETScKrylov, ScipyKrylov
-    # p.model.linear_solver = DirectSolver(assemble_jac=True)
-    p.model.linear_solver = ScipyKrylov(assemble_jac=True)
-    p.model.linear_solver.precon = DirectSolver(assemble_jac=True)
-    p.model.linear_solver.maxiter = 2
-    # burn1.linear_solver = DirectSolver(assemble_jac=True)
-    # coast.linear_solver = DirectSolver(assemble_jac=True)
-    # burn2.linear_solver = DirectSolver(assemble_jac=True)
+    p.model.linear_solver = DirectSolver(assemble_jac=True)
 
     p.driver.add_recorder(SqliteRecorder('two_burn_orbit_raise_example.db'))
 
