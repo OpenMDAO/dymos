@@ -16,4 +16,4 @@ SSTO Earth Ascent example, but the atmospheric model returns a density of zero
 
 References
 ----------
-.. [Longuski2016] Longuski, James M., José J. Guzmán, and John E. Prussing. Optimal control with aerospace applications. Springer, 2016.
+[Longuski2016] Longuski, James M., José J. Guzmán, and John E. Prussing. Optimal control with aerospace applications. Springer, 2016.

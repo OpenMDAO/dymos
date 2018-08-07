@@ -358,12 +358,6 @@ class GridData(object):
         """
         Compute the matrices mapping values at some nodes to values and derivatives at new nodes.
 
-        The values are mapped using the equation:
-        .. math:: x_{eval} = \left[ L \right] x_{given}
-
-        And the derivatives are mapped with the equation:
-        .. math:: \dot{x}_{eval} = \left[ D \right] x_{given} \frac{d \tau}{dt}
-
         Parameters
         ----------
         given_set_name : str
@@ -403,14 +397,6 @@ class GridData(object):
     def phase_hermite_matrices(self, given_set_name, eval_set_name):
         """
         Compute the matrices mapping values at some nodes to values and derivatives at new nodes.
-
-        The equation for Hermite interpolation of the values is:
-        .. math:: x_{eval} = \left[ A_i \right] x_{given}
-                             + \frac{dt}{d\tau} \left[ B_i \right] \dot{x}_{given}
-
-        Hermite interpolation of the derivatives is performed as:
-        .. math:: \dot{x}_{eval} = \frac{d\tau}{dt} \left[ A_d \right] x_{given}
-                                   + \left[ B_d \right] \dot{x}_{given}
 
         Parameters
         ----------
