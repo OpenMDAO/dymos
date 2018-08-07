@@ -169,7 +169,7 @@ class TestTrajectory(unittest.TestCase):
         for var in ('time', 'r', 'theta', 'deltav', 'u1', 'pos_x', 'pos_y'):
             traj_out = self.traj.get_values(var, nodes=nodes_map, flat=True)
             phase_outs = [self.traj._phases[p].get_values(var, nodes=nodes_map[p])
-                              for p in ('burn1', 'coast', 'burn2')]
+                          for p in ('burn1', 'coast', 'burn2')]
             assert_rel_error(self, traj_out, np.concatenate(phase_outs))
 
     def test_get_values_nonexistent_var(self):

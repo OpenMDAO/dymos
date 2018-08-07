@@ -1,6 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
 from six import iteritems
+import sys
 
 import numpy as np
 
@@ -8,8 +9,30 @@ from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder, CaseReade
 from openmdao.utils.units import valid_units, convert_units
 
 from dymos.utils.misc import get_rate_units
-from dymos.phases.options import TimeOptionsDictionary, StateOptionsDictionary, \
-    ControlOptionsDictionary
+
+
+def _convert_to_ascii(s):
+    """
+    Workaround to convert loaded unicode strings to ascii for Python 2.7.
+
+    Parameters
+    ----------
+    s : str or unicode
+        Character string to be converted.
+
+    Returns
+    -------
+    str or unicode
+        Character s converted to ascii (for 2.7) or unicode (Python 3.x)
+
+    """
+    if isinstance(s, unicode):
+        if sys.version_info[0] < 3:
+            return s.encode('ascii')
+        else:
+            return s
+    else:
+        return s
 
 
 class PhaseSimulationResults(object):
@@ -218,36 +241,13 @@ class PhaseSimulationResults(object):
                 else:
                     val = options['value']
             else:
-                raise RuntimeError('unexpected output in file {1}: {0}'.format(name, filename))
+                raise RuntimeError('unexpected output in file {1}: {0}'.format(output_name,
+                                                                               filename))
 
             self.outputs[var_type][var_name] = {}
             self.outputs[var_type][var_name]['value'] = val
-            self.outputs[var_type][var_name]['units'] = options['units']
+            self.outputs[var_type][var_name]['units'] = _convert_to_ascii(options['units'])
             self.outputs[var_type][var_name]['shape'] = tuple(val.shape[1:])
-
-        # cr = CaseReader(filename)
-        # case = cr.system_cases.get_case(-1)
-        #
-        # loaded_outputs = case.outputs._prom2abs['output']
-        # for name in loaded_outputs:
-        #     self.outputs[name] = {}
-        #     self.outputs[name]['value'] = case.outputs[name]
-        #     self.outputs[name]['units'] = None
-        #     self.outputs[name]['shape'] = case.outputs[name].shape[1:]
-        #
-        # # TODO: Get time, state, and control options from the case metadata
-        # self.time_options = TimeOptionsDictionary()
-        # self.state_options = {}
-        # self.control_options = {}
-        #
-        # states = [s.split(':')[-1] for s in loaded_outputs if s.startswith('states:')]
-        # controls = [s.split(':')[-1] for s in loaded_outputs if s.startswith('controls:')]
-        #
-        # for s in states:
-        #     self.state_options[s] = StateOptionsDictionary()
-        #
-        # for c in controls:
-        #     self.control_options[c] = ControlOptionsDictionary()
 
     def get_values(self, var, units=None):
 

@@ -136,6 +136,8 @@ class TestPhaseSimulationResults(unittest.TestCase):
                              self.exp_out.get_values(var) * conv[var],
                              tolerance=1.0E-8)
 
+            a = self.exp_out_loaded.get_values(var, units=units[var])
+
             assert_rel_error(self,
                              self.exp_out_loaded.get_values(var, units=units[var]),
                              self.exp_out_loaded.get_values(var) * conv[var],
