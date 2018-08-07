@@ -20,18 +20,20 @@ import os
 import sys
 import openmdao
 import sphinxcontrib
-#from openmdao.docs._utils.generate_sourcedocs import generate_docs
+from openmdao.docs._utils.generate_sourcedocs import generate_docs
 #from openmdao.docs._exts import embed_code, embed_options
-#from openmdao.docs._utils.patch import do_monkeypatch
+from openmdao.docs._utils.patch import do_monkeypatch
 from numpydoc.docscrape import NumpyDocString, Reader
 
 openmdao_path = os.path.split(os.path.abspath(openmdao.__file__))[0]
 
-#do_monkeypatch()
+do_monkeypatch()
 
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, openmdao_path)
+sys.path.insert(0, os.path.join(openmdao_path, 'docs', '_exts'))
+sys.path.insert(0, os.path.join(openmdao_path, 'docs', '_utils'))
+
 
 # -- General configuration ------------------------------------------------
 
@@ -47,9 +49,9 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.githubpages',
               #'sphinxcontrib.bibtex',
               'numpydoc',
-              #'openmdao.docs.exts.embed_code',
-              #'openmdao.docs.exts.embed_options']
-              ]
+              'embed_code',
+              'embed_options',]
+
 numpydoc_show_class_members = False
 # directories for which to generate sourcedocs
 packages = [
@@ -67,7 +69,7 @@ packages = [
     'phases',
 ]
 
-#generate_docs("..", "../..", packages, project_name='dymos')
+generate_docs("..", "../..", packages, project_name='dymos')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
