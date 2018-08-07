@@ -20,9 +20,9 @@ import os
 import sys
 import openmdao
 import sphinxcontrib
-from openmdao.docs.utils.generate_sourcedocs import generate_docs
-from openmdao.docs.exts import embed_code, embed_options
-from openmdao.docs.utils.patch import do_monkeypatch
+from openmdao.docs._utils.generate_sourcedocs import generate_docs
+from openmdao.docs._exts import embed_code, embed_options
+from openmdao.docs._utils.patch import do_monkeypatch
 from numpydoc.docscrape import NumpyDocString, Reader
 
 openmdao_path = os.path.split(os.path.abspath(openmdao.__file__))[0]

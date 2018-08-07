@@ -72,7 +72,7 @@ install:
 # The script for the default test stage
 script:
 - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos;
-- travis-sphinx build --source=docs/source;
+- travis-sphinx build --source=dymos/docs;
 
 # The after_success job for the default test stage
 after_success:
