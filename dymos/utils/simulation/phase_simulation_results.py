@@ -8,31 +8,7 @@ import numpy as np
 from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder, CaseReader
 from openmdao.utils.units import valid_units, convert_units
 
-from dymos.utils.misc import get_rate_units
-
-
-def _convert_to_ascii(s):
-    """
-    Workaround to convert loaded unicode strings to ascii for Python 2.7.
-
-    Parameters
-    ----------
-    s : str or unicode
-        Character string to be converted.
-
-    Returns
-    -------
-    str or unicode
-        Character s converted to ascii (for 2.7) or unicode (Python 3.x)
-
-    """
-    if isinstance(s, unicode):
-        if sys.version_info[0] < 3:
-            return s.encode('ascii')
-        else:
-            return s
-    else:
-        return s
+from dymos.utils.misc import get_rate_units, convert_to_ascii
 
 
 class PhaseSimulationResults(object):
@@ -246,7 +222,7 @@ class PhaseSimulationResults(object):
 
             self.outputs[var_type][var_name] = {}
             self.outputs[var_type][var_name]['value'] = val
-            self.outputs[var_type][var_name]['units'] = _convert_to_ascii(options['units'])
+            self.outputs[var_type][var_name]['units'] = convert_to_ascii(options['units'])
             self.outputs[var_type][var_name]['shape'] = tuple(val.shape[1:])
 
     def get_values(self, var, units=None):

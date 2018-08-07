@@ -7,7 +7,7 @@ import numpy as np
 from openmdao.api import Problem, Group, ParallelGroup, IndepVarComp, SqliteRecorder, CaseReader
 from openmdao.utils.units import valid_units, convert_units
 
-from dymos.utils.misc import get_rate_units
+from dymos.utils.misc import get_rate_units, convert_to_ascii
 
 
 class TrajectorySimulationResults(object):
@@ -251,18 +251,15 @@ class TrajectorySimulationResults(object):
                     if output_name.startswith('states:'):
                         var_type = 'states'
                         var_name = output_name.split(':')[-1]
-                        # self._states[phase_name].add(var_name)
                     elif output_name.startswith('controls:'):
                         var_type = 'controls'
                         var_name = output_name.split(':')[-1]
-                        # self._controls[phase_name].add(var_name)
                     elif output_name.startswith('control_rates:'):
                         var_type = 'control_rates'
                         var_name = output_name.split(':')[-1]
                     elif output_name.startswith('design_parameters:'):
                         var_type = 'design_parameters'
                         var_name = output_name.split(':')[-1]
-                        # self._design_parameters[phase_name].add(var_name)
 
                 elif output_name.startswith('ode.'):
                     var_type = 'ode'
@@ -274,7 +271,8 @@ class TrajectorySimulationResults(object):
 
                 self.outputs['phases'][phase_name][var_type][var_name] = {}
                 self.outputs['phases'][phase_name][var_type][var_name]['value'] = options['value']
-                self.outputs['phases'][phase_name][var_type][var_name]['units'] = options['units']
+                self.outputs['phases'][phase_name][var_type][var_name]['units'] = \
+                    convert_to_ascii(options['units'])
                 self.outputs['phases'][phase_name][var_type][var_name]['shape'] = options['shape']
 
     def get_values(self, var, phases=None, units=None, flat=False):
@@ -328,8 +326,6 @@ class TrajectorySimulationResults(object):
             # Note the adjustment to the last time, for the purposes of sorting only
             if time_units is None:
                 time_units = self.outputs['phases'][phase_name]['indep']['time']['units']
-            print('converting units - ', phase_name)
-            print(self.outputs['phases'][phase_name]['indep']['time']['units'], time_units)
             times[phase_name] = convert_units(
                 self.outputs['phases'][phase_name]['indep']['time']['value'],
                 self.outputs['phases'][phase_name]['indep']['time']['units'],

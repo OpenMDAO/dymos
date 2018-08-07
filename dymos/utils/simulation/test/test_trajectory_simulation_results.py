@@ -5,7 +5,7 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, pyOptSparseDriver, DirectSolver, SqliteRecorder
+from openmdao.api import Problem, DirectSolver, SqliteRecorder
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos import Phase, Trajectory, load_simulation_results
@@ -18,11 +18,6 @@ class TestTrajectorySimulationResults(unittest.TestCase):
 
         traj = Trajectory()
         p = Problem(model=traj)
-
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
-        p.driver.opt_settings['ACC'] = 1.0E-9
 
         # First Phase (burn)
 
