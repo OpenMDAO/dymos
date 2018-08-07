@@ -156,9 +156,9 @@ class TestTrajectory(unittest.TestCase):
 
         for p in ('burn1', 'coast', 'burn2'):
             for var in ('time', 'r', 'theta', 'deltav', 'u1', 'pos_x', 'pos_y'):
-                traj_exp_out = self.traj.get_values(var, nodes=nodes_map)
-                phase_exp_out = self.traj._phases[p].get_values(var, nodes=nodes_map[p])
-                assert_rel_error(self, traj_exp_out[p], phase_exp_out)
+                traj_out = self.traj.get_values(var, nodes=nodes_map)
+                phase_out = self.traj._phases[p].get_values(var, nodes=nodes_map[p])
+                assert_rel_error(self, traj_out[p], phase_out)
 
     def test_get_values_flattened(self):
         """
@@ -167,10 +167,10 @@ class TestTrajectory(unittest.TestCase):
         nodes_map = {'burn1': 'all', 'coast': 'control_input', 'burn2': 'col'}
 
         for var in ('time', 'r', 'theta', 'deltav', 'u1', 'pos_x', 'pos_y'):
-            traj_exp_out = self.traj.get_values(var, nodes=nodes_map, flat=True)
-            phase_exp_outs = [self.traj._phases[p].get_values(var, nodes=nodes_map[p])
+            traj_out = self.traj.get_values(var, nodes=nodes_map, flat=True)
+            phase_outs = [self.traj._phases[p].get_values(var, nodes=nodes_map[p])
                               for p in ('burn1', 'coast', 'burn2')]
-            assert_rel_error(self, traj_exp_out, np.concatenate(phase_exp_outs))
+            assert_rel_error(self, traj_out, np.concatenate(phase_outs))
 
     def test_get_values_nonexistent_var(self):
         """

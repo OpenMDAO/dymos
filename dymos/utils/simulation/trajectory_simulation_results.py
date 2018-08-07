@@ -328,6 +328,8 @@ class TrajectorySimulationResults(object):
             # Note the adjustment to the last time, for the purposes of sorting only
             if time_units is None:
                 time_units = self.outputs['phases'][phase_name]['indep']['time']['units']
+            print('converting units - ', phase_name)
+            print(self.outputs['phases'][phase_name]['indep']['time']['units'], time_units)
             times[phase_name] = convert_units(
                 self.outputs['phases'][phase_name]['indep']['time']['value'],
                 self.outputs['phases'][phase_name]['indep']['time']['units'],
