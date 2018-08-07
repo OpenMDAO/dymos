@@ -48,6 +48,7 @@ class CollocationComp(ExplicitComponent):
             units = options['units']
 
             rate_units = get_rate_units(units, time_units)
+
             var_names = self.var_names[state_name]
 
             self.add_input(

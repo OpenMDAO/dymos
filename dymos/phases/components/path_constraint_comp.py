@@ -4,6 +4,7 @@ import numpy as np
 from openmdao.api import ExplicitComponent
 
 from dymos.phases.grid_data import GridData
+from dymos.utils.constants import INF_BOUND
 
 
 class PathConstraintCompBase(ExplicitComponent):
@@ -26,7 +27,8 @@ class PathConstraintCompBase(ExplicitComponent):
             name of the variable in this component's namespace.
         var_class : str
             The 'class' of the variable as given by phase.classify_var.  One of 'time', 'state',
-            'control', 'control_rate', 'control_rate2', or 'rhs'.
+            'indep_control', 'input_control', 'indep_design_parameter', 'input_design_parameter',
+            'control_rate', 'control_rate2', or 'ode'.
         val : float or list or tuple or ndarray
             The initial value of the variable being added in user-defined units. Default is 1.0.
         shape : int or tuple or list or None
@@ -71,7 +73,8 @@ class PathConstraintCompBase(ExplicitComponent):
         """
         src_all = var_class in ['time', 'indep_control', 'input_control', 'control_rate',
                                 'control_rate2']
-
+        lower = -INF_BOUND if upper is not None and lower is None else lower
+        upper = INF_BOUND if lower is not None and upper is None else upper
         kwargs = {'shape': shape, 'units': units, 'res_units': res_units, 'desc': desc,
                   'lower': lower, 'upper': upper, 'equals': equals, 'scaler': scaler,
                   'adder': adder, 'ref': ref, 'ref0': ref0, 'linear': linear, 'src_all': src_all,

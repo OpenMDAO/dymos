@@ -7,7 +7,7 @@ import numpy as np
 from dymos.utils.simulation.components.control_interpolation_comp import ControlInterpolationComp
 from dymos.utils.simulation.components.state_rate_collector_comp import StateRateCollectorComp
 from dymos.utils.simulation.progress_bar_observer import ProgressBarObserver
-from dymos.utils.simulation.simulation_results import SimulationResults
+from dymos.utils.simulation.phase_simulation_results import PhaseSimulationResults
 from dymos.utils.simulation.std_out_observer import StdOutObserver
 from openmdao.core.analysis_error import AnalysisError
 from openmdao.core.group import Group
@@ -271,6 +271,74 @@ class ScipyODEIntegrator(object):
         xdot = self._pack_state_rate_vec()
         return xdot
 
+    def _store_results(self, results, append=False):
+        """
+        Save the outputs of the integrators problem object into the given PhaseSimulationResults
+        instance.
+
+        Parameters
+        ----------
+        results : PhaseSimulationResults
+            The PhaseSimulationResults object into which results of the integration are
+            to be saved.
+        """
+        model_outputs = self.prob.model.list_outputs(units=True, shape=True, values=True,
+                                                     implicit=True, explicit=True, out_stream=None)
+
+        for output_name, options in model_outputs:
+            prom_name = self.prob.model._var_abs2prom['output'][output_name]
+            if prom_name.startswith('time'):
+                var_type = 'indep'
+                name = 'time'
+                shape = (1,)
+            elif prom_name.startswith('states:'):
+                var_type = 'states'
+                name = prom_name.replace('states:', '', 1)
+                shape = self.state_options[name]['shape']
+
+            elif prom_name.startswith('controls:'):
+                var_type = 'controls'
+                name = prom_name.replace('controls:', '', 1)
+                shape = self.control_options[name]['shape']
+
+            elif prom_name.startswith('control_rates:'):
+                var_type = 'control_rates'
+                name = prom_name.replace('control_rates:', '', 1)
+                if name.endswith('_rate'):
+                    control_name = name[:-5]
+                if name.endswith('_rate2'):
+                    control_name = name[:-6]
+                shape = self.control_options[control_name]['shape']
+
+            elif prom_name.startswith('design_parameters:'):
+                var_type = 'design_parameters'
+                name = prom_name.replace('design_parameters:', '', 1)
+                shape = self.design_parameter_options[name]['shape']
+
+            elif prom_name.startswith('ode.'):
+                var_type = 'ode'
+                name = prom_name.replace('ode.', '', 1)
+                shape = options['shape'] if len(options['shape']) == 1 else options['shape'][1:]
+
+            elif prom_name.startswith('state_rate_collector.'):
+                # skip this variable since this is just a simulation artifact
+                continue
+            else:
+                raise RuntimeWarning('Unexpected output encountered during'
+                                     'simulation: {0}'.format(prom_name))
+                continue
+
+            if append:
+                results.outputs[var_type][name]['value'] = \
+                    np.concatenate((results.outputs[var_type][name]['value'],
+                                    np.atleast_2d(options['value'])),
+                                   axis=0)
+            else:
+                results.outputs[var_type][name] = {}
+                results.outputs[var_type][name]['value'] = np.atleast_2d(options['value']).copy()
+                results.outputs[var_type][name]['units'] = options['units']
+                results.outputs[var_type][name]['shape'] = shape
+
     def integrate_times(self, x0_dict, times,
                         integrator='vode', integrator_params=None,
                         observer=None):
@@ -289,10 +357,10 @@ class ScipyODEIntegrator(object):
         integrator : str
             The integrator to be used by scipy.ode.  This is one of:
             vode, zvode, lsoda, dopri5, or dopri853.
-        integrator_params : dict
+        integrator_params : dict, None
             Parameters specific to the chosen integrator.  See the Scipy
             documentation for details.
-        observer : callable, str, or None
+        observer : callable, str, None
             A callable function to be called at the specified timesteps in
             `integrate_times`.  This can be used to record the integrated trajectory.
             If 'default', a StdOutObserver will be used, which outputs all variables
@@ -301,7 +369,7 @@ class ScipyODEIntegrator(object):
 
         Returns
         -------
-        dict
+        PhaseSimulationResults
             A dictionary of variables in the RHS and their values at the given times.
 
         """
@@ -329,17 +397,12 @@ class ScipyODEIntegrator(object):
         self._f_ode(solver.t, solver.y)
 
         # Prepare the output dictionary
-        results = SimulationResults(time_options=self.time_options,
-                                    state_options=self.state_options,
-                                    control_options=self.control_options)
+        results = PhaseSimulationResults(time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options,
+                                         design_parameter_options=self.design_parameter_options)
 
-        model_outputs = self.prob.model.list_outputs(units=True, shape=True, out_stream=None)
-
-        for output_name, options in model_outputs:
-            prom_name = self.prob.model._var_abs2prom['output'][output_name]
-            results.outputs[prom_name] = {}
-            results.outputs[prom_name]['value'] = np.atleast_2d(self.prob[prom_name]).copy()
-            results.outputs[prom_name]['units'] = options['units']
+        self._store_results(results)
 
         if _observer:
             _observer(solver.t, solver.y, self.prob)
@@ -353,10 +416,8 @@ class ScipyODEIntegrator(object):
             except AnalysisError:
                 terminate = True
 
-            for var in results.outputs:
-                results.outputs[var]['value'] = np.concatenate((results.outputs[var]['value'],
-                                                                np.atleast_2d(self.prob[var])),
-                                                               axis=0)
+            self._store_results(results, append=True)
+
             if _observer:
                 _observer(solver.t, solver.y, self.prob)
 

@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division
 
+import os
 import unittest
 
 import matplotlib
@@ -12,6 +13,12 @@ from dymos.examples.aircraft_steady_flight.ex_aircraft_steady_flight import \
 
 
 class TestExSteadyAircraftFlight(unittest.TestCase):
+
+    @classmethod
+    def tearDownClass(cls):
+        for filename in ['coloring.json', 'test_ex_aircraft_steady_flight_rec.db', 'SLSQP.out']:
+            if os.path.exists(filename):
+                os.remove(filename)
 
     def test_ex_aircraft_steady_flight(self):
         p = ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps')

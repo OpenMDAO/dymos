@@ -55,11 +55,11 @@ class TestPathConstraintCompGL(unittest.TestCase):
 
         self.p.model.add_subsystem('path_constraints', subsys=path_comp)
 
-        path_comp._add_path_constraint('a', var_class='rhs',
+        path_comp._add_path_constraint('a', var_class='ode',
                                        shape=(1,), lower=0, upper=10, units='m')
-        path_comp._add_path_constraint('b', var_class='rhs',
+        path_comp._add_path_constraint('b', var_class='ode',
                                        shape=(3,), lower=0, upper=10, units='s')
-        path_comp._add_path_constraint('c', var_class='rhs',
+        path_comp._add_path_constraint('c', var_class='ode',
                                        shape=(3, 3), lower=0, upper=10, units='kg')
 
         path_comp._add_path_constraint('a_ctrl', var_class='time',
@@ -170,7 +170,7 @@ class TestPathConstraintCompRadau(unittest.TestCase):
 
         self.p.model.add_subsystem('path_constraints', subsys=path_comp)
 
-        path_comp._add_path_constraint('a', var_class='rhs', shape=(1,),
+        path_comp._add_path_constraint('a', var_class='ode', shape=(1,),
                                        lower=0, upper=10, units='m')
         path_comp._add_path_constraint('b', var_class='input_control', shape=(3,),
                                        lower=0, upper=10, units='s')

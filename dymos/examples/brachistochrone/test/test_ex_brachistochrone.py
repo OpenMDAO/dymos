@@ -54,27 +54,39 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_ex_brachistochrone_radau_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        compressed=True)
+                                                        compressed=True,
+                                                        sim_record='ex_brach_radau_compressed.db')
         self.run_asserts(p)
         self.tearDown()
+        if os.path.exists('ex_brach_radau_compressed.db'):
+            os.remove('ex_brach_radau_compressed.db')
 
     def test_ex_brachistochrone_radau_uncompressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        compressed=False)
+                                                        compressed=False,
+                                                        sim_record='ex_brach_radau_uncompressed.db')
         self.run_asserts(p)
         self.tearDown()
+        if os.path.exists('ex_brach_radau_uncompressed.db'):
+            os.remove('ex_brach_radau_uncompressed.db')
 
     def test_ex_brachistochrone_gl_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        compressed=True)
+                                                        compressed=True,
+                                                        sim_record='ex_brach_gl_compressed.db')
         self.run_asserts(p)
         self.tearDown()
+        if os.path.exists('ex_brach_gl_compressed.db'):
+            os.remove('ex_brach_gl_compressed.db')
 
     def test_ex_brachistochrone_gl_uncompressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        compressed=False)
+                                                        compressed=False,
+                                                        sim_record='ex_brach_gl_compressed.db')
         self.run_asserts(p)
         self.tearDown()
+        if os.path.exists('ex_brach_gl_compressed.db'):
+            os.remove('ex_brach_gl_compressed.db')

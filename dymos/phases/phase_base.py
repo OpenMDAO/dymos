@@ -23,6 +23,7 @@ from dymos.phases.options import ControlOptionsDictionary, DesignParameterOption
 from dymos.phases.components import ControlInterpComp
 from dymos.phases.grid_data import GridData
 from dymos.ode_options import ODEOptions
+from dymos.utils.constants import INF_BOUND
 from dymos.utils.misc import get_rate_units
 from dymos.utils.misc import CoerceDesvar
 
@@ -71,7 +72,6 @@ class PhaseBase(Group):
         self.time_options['targets'] = self.ode_options._time_options['targets']
 
     def initialize(self):
-        # Required metadata
         self.options.declare('num_segments', types=int, desc='Number of segments')
         self.options.declare('ode_class',
                              desc='System defining the ODE')
@@ -79,16 +79,13 @@ class PhaseBase(Group):
                              desc='Keyword arguments provided when initializing the ODE System')
         self.options.declare('transcription', values=['gauss-lobatto', 'radau-ps'],
                              desc='Transcription technique of the optimal control problem.')
-
-        # Optional metadata
-        self.options.declare(
-            'segment_ends', default=None, types=Iterable, allow_none=True,
-            desc='Iterable of locations of segment ends or None for equally spaced segments')
-        self.options.declare(
-            'transcription_order', default=3, types=(int, Iterable),
-            desc='Order of the transcription')
-        self.options.declare(
-            'compressed', default=True, types=bool, desc='Use compressed transcription')
+        self.options.declare('segment_ends', default=None, types=Iterable, allow_none=True,
+                             desc='Iterable of locations of segment ends or None for equally'
+                                  'spaced segments')
+        self.options.declare('transcription_order', default=3, types=(int, Iterable),
+                             desc='Order of the transcription')
+        self.options.declare('compressed', default=True, types=bool,
+                             desc='Use compressed transcription')
 
     def set_state_options(self, name, units=_unspecified, val=1.0,
                           fix_initial=False, fix_final=False, initial_bounds=None,
@@ -299,9 +296,8 @@ class PhaseBase(Group):
         if units != 0:
             self.control_options[name]['units'] = units
 
-    def add_design_parameter(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
-                             scaler=None, adder=None, ref=None, ref0=None, rate_param=None,
-                             rate2_param=None):
+    def add_design_parameter(self, name, val=0.0, units=0, opt=True, input=False,
+                             lower=None, upper=None, scaler=None, adder=None, ref=None, ref0=None):
         """
         Declares that a parameter of the ODE is to potentially be used as an optimal control.
 
@@ -332,14 +328,6 @@ class PhaseBase(Group):
             The zero-reference value of the control at the nodes of the phase.
         ref : float or ndarray
             The unit-reference value of the control at the nodes of the phase
-        rate_param : None or str
-            The name of the parameter in the ODE to which the first time-derivative
-            of the control value is connected. Rates of design parameters are always zero,
-            but this is included for consistency with dynamic controls.
-        rate2_param : None or str
-            The name of the parameter in the ODE to which the second time-derivative
-            of the control value is connected. Rates of design parameters are always zero,
-            but this is included for consistency with dynamic controls.
 
         """
         if name in self.control_options:
@@ -732,8 +720,8 @@ class PhaseBase(Group):
         -------
         str
             The classification of the given variable, which is one of
-            'time', 'state', 'control', 'control_rate',
-            'control_rate2', or 'rhs'.
+            'time', 'state', 'input_control', 'indep_control', 'control_rate',
+            'control_rate2', 'indep_design_parameter', 'input_design_parameter', or 'ode'.
 
         """
         if var == 'time':
@@ -757,7 +745,7 @@ class PhaseBase(Group):
             if var[:-6] in self.control_options:
                 return 'control_rate2'
         else:
-            return 'rhs'
+            return 'ode'
 
     def setup(self):
         transcription = self.options['transcription']
@@ -841,18 +829,26 @@ class PhaseBase(Group):
         self.add_subsystem('time', time_comp, promotes_outputs=['time'], promotes_inputs=externals)
 
         if not (self.time_options['input_initial'] or self.time_options['fix_initial']):
+            lb, ub = self.time_options['initial_bounds']
+            lb = -INF_BOUND if lb is None else lb
+            ub = -INF_BOUND if ub is None else ub
+
             self.add_design_var('t_initial',
-                                lower=self.time_options['initial_bounds'][0],
-                                upper=self.time_options['initial_bounds'][1],
+                                lower=lb,
+                                upper=ub,
                                 scaler=self.time_options['initial_scaler'],
                                 adder=self.time_options['initial_adder'],
                                 ref0=self.time_options['initial_ref0'],
                                 ref=self.time_options['initial_ref'])
 
         if not (self.time_options['input_duration'] or self.time_options['fix_duration']):
+            lb, ub = self.time_options['duration_bounds']
+            lb = -INF_BOUND if lb is None else lb
+            ub = -INF_BOUND if ub is None else ub
+
             self.add_design_var('t_duration',
-                                lower=self.time_options['duration_bounds'][0],
-                                upper=self.time_options['duration_bounds'][1],
+                                lower=lb,
+                                upper=ub,
                                 scaler=self.time_options['duration_scaler'],
                                 adder=self.time_options['duration_adder'],
                                 ref0=self.time_options['duration_ref0'],
@@ -891,9 +887,12 @@ class PhaseBase(Group):
                     coerce_desvar = CoerceDesvar(grid_data.subset_num_nodes['control_disc'],
                                                  desvar_indices, options)
 
+                    lb = -INF_BOUND if coerce_desvar('lower') is None else coerce_desvar('lower')
+                    ub = INF_BOUND if coerce_desvar('upper') is None else coerce_desvar('upper')
+
                     self.add_design_var(name='controls:{0}'.format(name),
-                                        lower=coerce_desvar('lower'),
-                                        upper=coerce_desvar('upper'),
+                                        lower=lb,
+                                        upper=ub,
                                         scaler=coerce_desvar('scaler'),
                                         adder=coerce_desvar('adder'),
                                         ref0=coerce_desvar('ref0'),
@@ -937,9 +936,12 @@ class PhaseBase(Group):
             if options['opt']:
                 num_input_nodes = 1
 
+                lb = -INF_BOUND if options['lower'] is None else options['lower']
+                ub = INF_BOUND if options['upper'] is None else options['upper']
+
                 self.add_design_var(name='design_parameters:{0}'.format(name),
-                                    lower=options['lower'],
-                                    upper=options['upper'],
+                                    lower=lb,
+                                    upper=ub,
                                     scaler=options['scaler'],
                                     adder=options['adder'],
                                     ref0=options['ref0'],
@@ -1100,7 +1102,7 @@ class PhaseBase(Group):
                            'by phase "{0}" as controls or control rates: {1}. '
                            'The default value will be used.'.format(self.name, unconnected))
 
-    def get_values(self, var, nodes=None):
+    def get_values(self, var, nodes=None, units=None):
         """
         Retrieve the values of the given variable at the given
         subset of nodes.
@@ -1113,6 +1115,8 @@ class PhaseBase(Group):
             or the path to a variable in the ODE system of the phase.
         nodes : str or None
             The name of the node subset or None (default).
+        units : str or None
+            The units in which the returned values are to be provided.
 
         Returns
         -------

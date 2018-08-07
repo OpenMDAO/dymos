@@ -15,4 +15,5 @@ problems.
     optimal_control
     defining_odes
     phases/phases
+    trajectories/trajectories
 

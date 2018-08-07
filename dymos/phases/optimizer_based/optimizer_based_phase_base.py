@@ -7,8 +7,9 @@ from dymos.phases.optimizer_based.components import CollocationComp, StateInterp
 from dymos.phases.components import EndpointConditionsComp
 from dymos.phases.phase_base import PhaseBase
 from dymos.utils.interpolate import LagrangeBarycentricInterpolant
+from dymos.utils.constants import INF_BOUND
 from dymos.utils.misc import CoerceDesvar
-from dymos.utils.simulation import ScipyODEIntegrator, SimulationResults, \
+from dymos.utils.simulation import ScipyODEIntegrator, PhaseSimulationResults, \
     StdOutObserver, ProgressBarObserver
 from openmdao.api import IndepVarComp
 from six import string_types, iteritems
@@ -33,6 +34,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         A dictionary of the default options for controllable inputs of the Phase RHS
 
     """
+
     def simulate(self, times='all', integrator='vode', integrator_params=None,
                  observer=None, direction='forward', record_file=None, record=True,
                  check_setup=False):
@@ -75,7 +77,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         Returns
         -------
-        results : SimulationResults object
+        results : PhaseSimulationResults object
         """
         if not self.state_options:
             msg = 'Phase has no states, nothing to simulate. \n' \
@@ -87,6 +89,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
                   'Call run_model() or run_driver() on the containing problem to populate outputs' \
                   ' before simulating the phase.'
             raise RuntimeError(msg)
+
+        if isinstance(times, int):
+            t0 = self._outputs['time.time'][0]
+            tf = self._outputs['time.time'][-1]
+            times = np.linspace(t0, tf, times)
 
         rhs_integrator = ScipyODEIntegrator(ode_class=self.options['ode_class'],
                                             ode_init_kwargs=self.options['ode_init_kwargs'],
@@ -112,10 +119,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         rhs_integrator.setup(check=check_setup)
 
-        exp_out = SimulationResults(time_options=self.time_options,
-                                    state_options=self.state_options,
-                                    control_options=self.control_options,
-                                    design_parameter_options=self.design_parameter_options)
+        exp_out = PhaseSimulationResults(time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options,
+                                         design_parameter_options=self.design_parameter_options)
 
         seg_sequence = range(gd.num_segments)
         if direction == 'reverse':
@@ -147,8 +154,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
             if not first_seg:
                 for state_name, options in iteritems(self.state_options):
-                    x0[state_name] = seg_out.outputs['states:{0}'.format(state_name)]['value'][-1,
-                                                                                               ...]
+                    x0[state_name] = seg_out.get_values(state_name)[-1, ...]
 
             if not isinstance(times, string_types) and isinstance(times, Iterable):
                 idxs_times_in_seg = np.where(np.logical_and(times > seg_times[0],
@@ -178,10 +184,12 @@ class OptimizerBasedPhaseBase(PhaseBase):
             if first_seg:
                 exp_out.outputs.update(seg_out.outputs)
             else:
-                for var in seg_out.outputs:
-                    exp_out.outputs[var]['value'] = np.concatenate((exp_out.outputs[var]['value'],
-                                                                    seg_out.outputs[var]['value']),
-                                                                   axis=0)
+                for var_type, sub_dict in iteritems(seg_out.outputs):
+                    for var_name, var_data in iteritems(sub_dict):
+                        exp_out.outputs[var_type][var_name]['value'] = \
+                            np.concatenate((exp_out.outputs[var_type][var_name]['value'],
+                                            seg_out.outputs[var_type][var_name]['value']),
+                                           axis=0)
 
             first_seg = False
 
@@ -309,12 +317,12 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                                         options)
 
                     lb = np.zeros_like(desvar_indices, dtype=float)
-                    lb[:] = coerce_desvar_option('lower') \
-                        if coerce_desvar_option('lower') is not None else np.finfo(float).min
+                    lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                        coerce_desvar_option('lower')
 
                     ub = np.zeros_like(desvar_indices, dtype=float)
-                    ub[:] = coerce_desvar_option('upper') \
-                        if coerce_desvar_option('upper') is not None else np.finfo(float).max
+                    ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                        coerce_desvar_option('upper')
 
                     if options['initial_bounds'] is not None:
                         lb[0] = options['initial_bounds'][0]
