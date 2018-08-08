@@ -14,14 +14,13 @@ from dymos import Phase, load_simulation_results
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 OPTIMIZER = 'SLSQP'
-SHOW_PLOTS = False
 
 
 class TestSimulateRecording(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['phase0_sim.db', 'brachistochrone_sim.db']:
+        for filename in ['phase0_sim.db', 'brachistochrone_sim.db', 'coloring.json']:
             if os.path.exists(filename):
                 os.remove(filename)
 

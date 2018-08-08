@@ -1,7 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
 import os
-import sys
 import unittest
 import warnings
 
@@ -36,31 +35,18 @@ class TestPhaseTimeOptions(unittest.TestCase):
                         ' phase "phase0": duration_bounds, duration_scaler, ' \
                         'duration_adder, duration_ref, duration_ref0'
 
-        if sys.version_info >= (3, 3):
-            with self.assertWarns(RuntimeWarning) as ctx:
-                phase.set_time_options(fix_initial=True, fix_duration=True,
-                                       initial_bounds=(1.0, 5.0), initial_adder=0.0,
-                                       initial_scaler=1.0, initial_ref0=0.0,
-                                       initial_ref=1.0, duration_bounds=(1.0, 5.0),
-                                       duration_adder=0.0, duration_scaler=1.0, duration_ref0=0.0,
-                                       duration_ref=1.0)
-                self.assertEqual(len(ctx.warnings), 2,
-                                 msg='set_time_options failed to raise two warnings')
-                self.assertEqual(str(ctx.warnings[0].message), expected_msg0)
-                self.assertEqual(str(ctx.warnings[1].message), expected_msg1)
-        else:
-            with warnings.catch_warnings(record=True) as ctx:
-                warnings.simplefilter('always')
-                phase.set_time_options(fix_initial=True, fix_duration=True,
-                                       initial_bounds=(1.0, 5.0), initial_adder=0.0,
-                                       initial_scaler=1.0, initial_ref0=0.0,
-                                       initial_ref=1.0, duration_bounds=(1.0, 5.0),
-                                       duration_adder=0.0, duration_scaler=1.0,
-                                       duration_ref0=0.0, duration_ref=1.0)
-                self.assertEqual(len(ctx), 2,
-                                 msg='set_time_options failed to raise two warnings')
-                self.assertEqual(str(ctx[0].message), expected_msg0)
-                self.assertEqual(str(ctx[1].message), expected_msg1)
+        with warnings.catch_warnings(record=True) as ctx:
+            warnings.simplefilter('always')
+            phase.set_time_options(fix_initial=True, fix_duration=True,
+                                   initial_bounds=(1.0, 5.0), initial_adder=0.0,
+                                   initial_scaler=1.0, initial_ref0=0.0,
+                                   initial_ref=1.0, duration_bounds=(1.0, 5.0),
+                                   duration_adder=0.0, duration_scaler=1.0,
+                                   duration_ref0=0.0, duration_ref=1.0)
+            self.assertEqual(len(ctx), 2,
+                             msg='set_time_options failed to raise two warnings')
+            self.assertEqual(str(ctx[0].message), expected_msg0)
+            self.assertEqual(str(ctx[1].message), expected_msg1)
 
 
 if __name__ == '__main__':
