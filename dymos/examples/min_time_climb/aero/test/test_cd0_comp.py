@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 from openmdao.api import Problem, Group, IndepVarComp
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.examples.min_time_climb.aero.cd0_comp import CD0Comp
 
@@ -14,7 +14,7 @@ assert_almost_equal = np.testing.assert_almost_equal
 import matplotlib
 matplotlib.use('Agg')
 
-SHOW_PLOTS = False
+SHOW_PLOTS = True
 
 
 class TestCD0Comp(unittest.TestCase):
@@ -66,11 +66,10 @@ class TestCD0Comp(unittest.TestCase):
         p['mach'] = np.linspace(0, 1.14, n)
 
         p.run_model()
-        np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False)
-        for comp in cpd:
-            for (var, wrt) in cpd[comp]:
-                assert_almost_equal(cpd[comp][var, wrt]['rel error'], 0.0, decimal=4)
+
+        cpd = p.check_partials(compact_print=False, out_stream=None)
+        assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+
 
 if __name__ == '__main__':
     unittest.main()
