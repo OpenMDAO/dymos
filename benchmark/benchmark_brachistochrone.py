@@ -65,8 +65,7 @@ class BenchmarkBrachistochrone(unittest.TestCase):
                                                         num_segments=30,
                                                         transcription_order=3,
                                                         compressed=True,
-                                                        dynamic_simul_derivs=False,
-                                                        color_file=None)
+                                                        dynamic_simul_derivs=False)
         self.run_asserts(p)
 
     def benchmark_gl_30_3_color_simul_compressed_snopt(self):
@@ -96,6 +95,5 @@ class BenchmarkBrachistochrone(unittest.TestCase):
                                                         num_segments=30,
                                                         transcription_order=3,
                                                         compressed=True,
-                                                        dynamic_simul_derivs=False,
-                                                        color_file=None)
+                                                        dynamic_simul_derivs=False)
         self.run_asserts(p)

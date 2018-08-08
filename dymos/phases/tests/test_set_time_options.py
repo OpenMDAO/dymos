@@ -35,11 +35,11 @@ class TestPhaseTimeOptions(unittest.TestCase):
                                    duration_adder=0.0, duration_scaler=1.0, duration_ref0=0.0,
                                    duration_ref=1.0)
             expected_msg0 = 'Phase time options have no effect because fix_initial=True for ' \
-                           'phase "phase0": initial_bounds, initial_scaler, initial_adder, ' \
-                           'initial_ref, initial_ref0'
+                            'phase "phase0": initial_bounds, initial_scaler, initial_adder, ' \
+                            'initial_ref, initial_ref0'
             expected_msg1 = 'Phase time options have no effect because fix_duration=True for ' \
-                           'phase "phase0": duration_bounds, duration_scaler, duration_adder, ' \
-                           'duration_ref, duration_ref0'
+                            'phase "phase0": duration_bounds, duration_scaler, duration_adder, ' \
+                            'duration_ref, duration_ref0'
             self.assertEqual(len(ctx.warnings), 2, 'set_time_options failed to raise two warnings')
             self.assertEqual(str(ctx.warnings[0].message), expected_msg0)
             self.assertEqual(str(ctx.warnings[1].message), expected_msg1)
