@@ -53,7 +53,8 @@ extensions = ['sphinx.ext.autodoc',
               'embed_options',]
 
 numpydoc_show_class_members = False
-# directories for which to generate sourcedocs
+
+# packages for which to generate sourcedocs
 packages = [
     'examples.aircraft_steady_flight',
     'examples.brachistochrone',

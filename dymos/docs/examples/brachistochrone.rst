@@ -5,9 +5,7 @@ Brachistochrone: A simple optimal control example
 We seek to find the optimal shape of a wire between two points (A and B) such that a bead sliding
 without friction along the wire moves from point A to point B in minimum time.
 
-.. embed-code::
-    docs/examples/figures/brachistochrone_fbd.py
-    :layout: plot
+
 
 We minimize the final time, :math:`t_f`, by varying the dynamic control, :math:`\theta`, subject to the dynamics:
 
