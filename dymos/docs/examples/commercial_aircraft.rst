@@ -363,9 +363,7 @@ Finally, fuel burn rate is:
 1. The ODE System: aircraft_ode.py
 ----------------------------------
 
-.. embed-code::
-    ../examples/aircraft_steady_flight/aircraft_ode.py
-    :layout: code
+
 
 In this case the system has only two integrated states: `range` and `mass_fuel`.  There are six parameters.
 Two of them, `alt` and `climb_rate`, will be varied dynamically in the phase, and the other four,
