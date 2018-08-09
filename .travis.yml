@@ -41,6 +41,7 @@ install:
 #- export ROOT_DIR=$(pwd)
 - pip install numpy==1.14.1
 - pip install scipy==1.0.0
+- pip install mpi4py
 - pip install matplotlib
 - pip install nose
 - pip install networkx
