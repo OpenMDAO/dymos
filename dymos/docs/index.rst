@@ -27,6 +27,8 @@ Table of Contents
 
     user_guide/user_guide
     examples/examples
+    references/references.rst
+
 
 
 Source Docs
