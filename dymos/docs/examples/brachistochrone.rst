@@ -6,10 +6,6 @@ We seek to find the optimal shape of a wire between two points (A and B) such th
 without friction along the wire moves from point A to point B in minimum time.
 
 
-.. embed-code::
-    examples/figures/brachistochrone_fbd.py
-    :layout: plot
-
 We minimize the final time, :math:`t_f`, by varying the dynamic control, :math:`\theta`, subject to the dynamics:
 
 .. math ::
