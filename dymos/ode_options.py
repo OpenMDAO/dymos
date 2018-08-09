@@ -42,8 +42,8 @@ class _ODEStateOptionsDictionary(OptionsDictionary):
 
 class _ODEParameterOptionsDictionary(OptionsDictionary):
     """
-    OptionsDictionary for States at the ODE level.  Note this does not include things that affect
-    design variables or defect constraints.  Those options are set at the Phase level.
+    OptionsDictionary for parameters at the ODE level.  Note this does not include things that
+    affect design variables or defect constraints.  Those options are set at the Phase level.
     """
     def __init__(self, read_only=False):
         super(_ODEParameterOptionsDictionary, self).__init__(read_only)

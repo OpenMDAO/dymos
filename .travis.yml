@@ -35,10 +35,6 @@ install:
 - conda install --yes python=$PY numpy scipy nose sphinx mock swig pip;
 - pip install --upgrade pip
 - sudo apt-get install gfortran
-#- export CWD=$(pwd)
-#- cd ${CWD}
-#- cd ..
-#- export ROOT_DIR=$(pwd)
 - pip install numpy==1.14.1
 - pip install scipy==1.0.0
 - pip install mpi4py
@@ -68,6 +64,7 @@ install:
 - pip install -e .;
 - cd ..;
 
+# install dymos itself in developer mode.
 - pip install -e .;
 
 # The script for the default test stage

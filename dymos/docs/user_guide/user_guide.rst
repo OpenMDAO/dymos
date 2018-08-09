@@ -15,5 +15,5 @@ problems.
     optimal_control
     defining_odes
     phases/phases
-    phases/transcriptions/general_linear_methods.rst
-
+    phases/transcriptions/general_linear_methods
+    trajectories

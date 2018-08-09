@@ -9,19 +9,21 @@ from dymos import Phase
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 
 SHOW_PLOTS = True
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
-                   transcription_order=3, top_level_jacobian='csc',
+                   transcription_order=3, top_level_jacobian='csc', simul_derivs=True,
                    force_alloc_complex=False):
 
     p = Problem(model=Group())
 
     p.driver = pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
+    if simul_derivs:
+        p.driver.options['dynamic_simul_derivs'] = True
 
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 1000
@@ -31,7 +33,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Function precision'] = 1.0E-6
         p.driver.opt_settings['Linesearch tolerance'] = 0.10
         p.driver.opt_settings['Major step limit'] = 0.5
-        p.driver.opt_settings['Verify level'] = 3
+        # p.driver.opt_settings['Verify level'] = 3
 
     phase = Phase(transcription,
                   ode_class=MinTimeClimbODE,
@@ -77,7 +79,6 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final')
 
-    p.driver.options['dynamic_simul_derivs'] = True
     p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
     p.model.linear_solver = DirectSolver(assemble_jac=True)
 
@@ -130,5 +131,5 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 if __name__ == '__main__':
     SHOW_PLOTS = False
     p = min_time_climb(
-        optimizer='SLSQP', num_seg=15, transcription='gauss-lobatto', transcription_order=3,
-        force_alloc_complex=False)
+        optimizer='SNOPT', num_seg=50, transcription='gauss-lobatto', transcription_order=3,
+        force_alloc_complex=False, simul_derivs=True)

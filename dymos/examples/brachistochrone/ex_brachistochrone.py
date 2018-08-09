@@ -1,7 +1,5 @@
 from __future__ import print_function, division, absolute_import
 
-import numpy as np
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -11,26 +9,26 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver,
 from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-OPTIMIZER = 'SLSQP'
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 
-def brachistochrone_min_time(
-        transcription='gauss-lobatto', num_segments=8, transcription_order=3, run_driver=True,
-        top_level_jacobian='csc', compressed=True):
+def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
+                             run_driver=True, top_level_jacobian='csc', compressed=True,
+                             sim_record='brach_min_time_sim.db', optimizer='SLSQP',
+                             dynamic_simul_derivs=True):
     p = Problem(model=Group())
 
-    if OPTIMIZER == 'SNOPT':
+    if optimizer == 'SNOPT':
         p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = OPTIMIZER
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.options['optimizer'] = optimizer
         p.driver.opt_settings['Major iterations limit'] = 100
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         p.driver.opt_settings['iSumm'] = 6
     else:
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+
+    p.driver.options['dynamic_simul_derivs'] = dynamic_simul_derivs
 
     phase = Phase(transcription,
                   ode_class=BrachistochroneODE,
@@ -73,8 +71,7 @@ def brachistochrone_min_time(
 
     # Plot results
     if SHOW_PLOTS:
-        exp_out = phase.simulate(times=np.linspace(
-            p['phase0.t_initial'], p['phase0.t_initial'] + p['phase0.t_duration'], 50))
+        exp_out = phase.simulate(times=50, record_file=sim_record)
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')

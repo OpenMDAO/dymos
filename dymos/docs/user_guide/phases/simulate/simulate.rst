@@ -67,11 +67,11 @@ Example:  Loading simulation results from recorded data
 
 Note that the simulate method can also save an OpenMDAO recording file of the explicitly integrated
 solution.  We can load data from a previous explicit simulation by instantiating the
-SimulationResults with the filename as its only argument.
+PhaseSimulationResults with the filename as its only argument.
 
 .. code-block:: python
 
-    exp_out = SimulationResults('my_simulation.db')
+    exp_out = load_simulation_results('my_simulation.db')
     print(exp_out.get_values('x'))
 
 

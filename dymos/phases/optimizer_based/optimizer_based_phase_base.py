@@ -7,9 +7,10 @@ from dymos.phases.optimizer_based.components import CollocationComp, StateInterp
 from dymos.phases.components import EndpointConditionsComp
 from dymos.phases.phase_base import PhaseBase
 from dymos.utils.interpolate import LagrangeBarycentricInterpolant
+from dymos.utils.constants import INF_BOUND
 from dymos.utils.misc import CoerceDesvar
-from dymos.utils.simulation import ScipyODEIntegrator, SimulationResults, \
-    StdOutObserver, ProgressBarObserver
+from dymos.utils.simulation import ScipyODEIntegrator, PhaseSimulationResults, \
+    StdOutObserver, ProgressBarObserver, simulate_phase
 from openmdao.api import IndepVarComp
 from six import string_types, iteritems
 
@@ -33,9 +34,9 @@ class OptimizerBasedPhaseBase(PhaseBase):
         A dictionary of the default options for controllable inputs of the Phase RHS
 
     """
+
     def simulate(self, times='all', integrator='vode', integrator_params=None,
-                 observer=None, direction='forward', record_file=None, record=True,
-                 check_setup=False):
+                 observer=None, record_file=None, record=True):
         """
         Integrate the current phase using the current values of time, states, and controls.
 
@@ -60,12 +61,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
             If 'stdout', a StdOutObserver will be used, which outputs all variables
             in the model to standard output by default.
             If None, no observer will be called.
-        direction : str
-            The direction of the integration.  If 'forward' (the default) then the integration
-            begins with the initial conditions at the start of the phase and propagates forward
-            to the end of the phase.  If 'reverse', the integration begins with the final values
-            of time, states, and controls in the phase and propagates backwards to the start of
-            the phase.
         record_file : str or None
             A string given the name of the recorded file to which the results of the explicit
             simulation should be saved.  If None, automatically save to '<phase_name>_sim.db'.
@@ -75,123 +70,40 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         Returns
         -------
-        results : SimulationResults object
+        results : PhaseSimulationResults object
         """
-        if not self.state_options:
-            msg = 'Phase has no states, nothing to simulate. \n' \
-                  'Call run_model() on the containing problem instead.'
-            raise RuntimeError(msg)
 
-        if self._outputs is None:
-            msg = 'Unable to obtain initial state values.\n' \
-                  'Call run_model() or run_driver() on the containing problem to populate outputs' \
-                  ' before simulating the phase.'
-            raise RuntimeError(msg)
-
-        rhs_integrator = ScipyODEIntegrator(ode_class=self.options['ode_class'],
-                                            ode_init_kwargs=self.options['ode_init_kwargs'],
-                                            time_options=self.time_options,
-                                            state_options=self.state_options,
-                                            control_options=self.control_options,
-                                            design_parameter_options=self.design_parameter_options)
-
-        if observer == 'default':
-            observer = StdOutObserver(rhs_integrator)
-        elif observer == 'progress-bar':
-            observer = ProgressBarObserver(rhs_integrator, t0=self._outputs['time.time'][0],
-                                           tf=self._outputs['time.time'][-1])
-
-        gd = self.grid_data
-
-        x0 = {}
-
-        x0_idx = 0 if direction == 'forward' else -1
-
+        ode_class = self.options['ode_class']
+        ode_init_kwargs = self.options['ode_init_kwargs']
+        time_values = self.get_values('time').ravel()
+        state_values = {}
+        control_values = {}
+        design_parameter_values = {}
         for state_name, options in iteritems(self.state_options):
-            x0[state_name] = self._outputs['states:{0}'.format(state_name)][x0_idx, ...]
+            state_values[state_name] = self.get_values(state_name, nodes='all')
+        for control_name, options in iteritems(self.control_options):
+            control_values[control_name] = self.get_values(control_name, nodes='all')
+        for dp_name, options in iteritems(self.design_parameter_options):
+            design_parameter_values[dp_name] = self.get_values(dp_name, nodes='all')
 
-        rhs_integrator.setup(check=check_setup)
-
-        exp_out = SimulationResults(time_options=self.time_options,
-                                    state_options=self.state_options,
-                                    control_options=self.control_options,
-                                    design_parameter_options=self.design_parameter_options)
-
-        seg_sequence = range(gd.num_segments)
-        if direction == 'reverse':
-            seg_sequence = reversed(seg_sequence)
-
-        for param_name, options in iteritems(self.design_parameter_options):
-            if options['opt']:
-                val = self._outputs['design_parameters:{0}'.format(param_name)]
-            else:
-                val = self._outputs['design_parameters:{0}_out'.format(param_name)]
-            rhs_integrator.set_design_param_value(param_name, val[0, ...], options['units'])
-
-        first_seg = True
-        for seg_i in seg_sequence:
-            seg_idxs = gd.segment_indices[seg_i, :]
-
-            seg_times = self._outputs['time.time'][seg_idxs[0]:seg_idxs[1]]
-
-            for control_name, options in iteritems(self.control_options):
-
-                control_vals = self._outputs['control_interp_comp.'
-                                             'control_values:{0}'.format(control_name)]
-
-                # if options['dynamic']:
-                interp = LagrangeBarycentricInterpolant(gd.node_stau[seg_idxs[0]:seg_idxs[1]])
-                ctrl_vals = control_vals[seg_idxs[0]:seg_idxs[1]].ravel()
-                interp.setup(x0=seg_times[0], xf=seg_times[-1], f_j=ctrl_vals)
-                rhs_integrator.set_interpolant(control_name, interp)
-
-            if not first_seg:
-                for state_name, options in iteritems(self.state_options):
-                    x0[state_name] = seg_out.outputs['states:{0}'.format(state_name)]['value'][-1,
-                                                                                               ...]
-
-            if not isinstance(times, string_types) and isinstance(times, Iterable):
-                idxs_times_in_seg = np.where(np.logical_and(times > seg_times[0],
-                                                            times < seg_times[-1]))[0]
-                t_out = np.zeros(len(idxs_times_in_seg) + 2, dtype=float)
-                t_out[1:-1] = times[idxs_times_in_seg]
-                t_out[0] = seg_times[0]
-                t_out[-1] = seg_times[-1]
-            elif times in ('disc', 'state_disc'):
-                t_out = seg_times[::2]
-            elif times == 'all':
-                t_out = seg_times
-            elif times == 'col':
-                t_out = seg_times[1::2]
-            else:
-                raise ValueError('Invalid value for option times. '
-                                 'Must be \'disc\', \'all\', \'col\', or Iterable')
-
-            if direction == 'reverse':
-                t_out = t_out[::-1]
-
-            seg_out = rhs_integrator.integrate_times(x0, t_out,
-                                                     integrator=integrator,
-                                                     integrator_params=integrator_params,
-                                                     observer=observer)
-
-            if first_seg:
-                exp_out.outputs.update(seg_out.outputs)
-            else:
-                for var in seg_out.outputs:
-                    exp_out.outputs[var]['value'] = np.concatenate((exp_out.outputs[var]['value'],
-                                                                    seg_out.outputs[var]['value']),
-                                                                   axis=0)
-
-            first_seg = False
-
-        # Save
-        if record:
-            phase_name = self.pathname.split('.')[0]
-            filepath = record_file if record_file else '{0}_sim.db'.format(phase_name)
-
-            exp_out.record_results(filepath, self.options['ode_class'],
-                                   self.options['ode_init_kwargs'])
+        exp_out = simulate_phase(self.name,
+                                 ode_class=ode_class,
+                                 time_options=self.time_options,
+                                 state_options=self.state_options,
+                                 control_options=self.control_options,
+                                 design_parameter_options=self.design_parameter_options,
+                                 time_values=time_values,
+                                 state_values=state_values,
+                                 control_values=control_values,
+                                 design_parameter_values=design_parameter_values,
+                                 ode_init_kwargs=ode_init_kwargs,
+                                 grid_data=self.grid_data,
+                                 times=times,
+                                 record=record,
+                                 record_file=record_file,
+                                 observer=observer,
+                                 integrator=integrator,
+                                 integrator_params=integrator_params)
 
         return exp_out
 
@@ -309,12 +221,12 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                                         options)
 
                     lb = np.zeros_like(desvar_indices, dtype=float)
-                    lb[:] = coerce_desvar_option('lower') \
-                        if coerce_desvar_option('lower') is not None else np.finfo(float).min
+                    lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                        coerce_desvar_option('lower')
 
                     ub = np.zeros_like(desvar_indices, dtype=float)
-                    ub[:] = coerce_desvar_option('upper') \
-                        if coerce_desvar_option('upper') is not None else np.finfo(float).max
+                    ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                        coerce_desvar_option('upper')
 
                     if options['initial_bounds'] is not None:
                         lb[0] = options['initial_bounds'][0]

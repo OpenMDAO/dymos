@@ -10,19 +10,17 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver, \
     CaseReader
 
-from dymos import Phase
-from dymos.utils.simulation import SimulationResults
+from dymos import Phase, load_simulation_results
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 OPTIMIZER = 'SLSQP'
-SHOW_PLOTS = False
 
 
 class TestSimulateRecording(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['phase0_sim.db', 'brachistochrone_sim.db']:
+        for filename in ['phase0_sim.db', 'brachistochrone_sim.db', 'coloring.json']:
             if os.path.exists(filename):
                 os.remove(filename)
 
@@ -38,6 +36,7 @@ class TestSimulateRecording(unittest.TestCase):
             p.driver.opt_settings['Verify level'] = 3
         else:
             p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase(transcription,
                       ode_class=BrachistochroneODE,
@@ -59,10 +58,6 @@ class TestSimulateRecording(unittest.TestCase):
 
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
-
-        p.model.linear_solver = DirectSolver()
-
-        p.setup()
 
         p.setup()
 
@@ -90,7 +85,7 @@ class TestSimulateRecording(unittest.TestCase):
                 _var = var
             assert_almost_equal(last_case.outputs[var].ravel(), exp_out.get_values(_var).ravel())
 
-        loaded_exp_out = SimulationResults('phase0_sim.db')
+        loaded_exp_out = load_simulation_results('phase0_sim.db')
 
         for var in ['time', 'x', 'y', 'v', 'theta']:
             assert_almost_equal(exp_out.get_values(var).ravel(),
@@ -149,7 +144,7 @@ class TestSimulateRecording(unittest.TestCase):
                                                    50),
                                  record_file='brachistochrone_sim.db')
 
-        loaded_exp_out = SimulationResults('brachistochrone_sim.db')
+        loaded_exp_out = load_simulation_results('brachistochrone_sim.db')
 
         for var in ['time', 'x', 'y', 'v', 'theta']:
             assert_almost_equal(exp_out.get_values(var).ravel(),

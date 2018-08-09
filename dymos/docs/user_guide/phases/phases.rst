@@ -4,7 +4,7 @@ Phases of a Trajectory
 
 |project| uses the concept of *phases* to support intermediate boundary constraints and path constraints on variables in the system.
 Each phase represents the trajectory of a dynamical system, and may be subject to different equations of motion, force models, and constraints.
-Multiple phases may be assembled to form one or more trajectories by enforcing compatibilty constraints between them.
+Multiple phases may be assembled to form one or more trajectories by enforcing compatibility constraints between them.
 
 For implicit and explicit phases, the equations-of-motion or process equations are defined via an ordinary differential equation.
 
