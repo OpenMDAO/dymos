@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, Arc
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-def get_angle_plot(line1, line2, radius = 1, color = None, origin = (0, 0),
-                   len_x_axis = 1, len_y_axis = 1):
+
+def get_angle_plot(line1, line2, radius=1, color=None, origin=(0, 0),
+                   len_x_axis=1, len_y_axis=1):
 
     l1xy = line1.get_xydata()
     # Angle between line1 and x-axis
@@ -28,8 +29,9 @@ def get_angle_plot(line1, line2, radius = 1, color = None, origin = (0, 0),
     angle = theta2 - theta1
 
     if color is None:
-        color = line1.get_color() # Uses the color of line 1 if color parameter is not passed.
-    return Arc(origin, len_x_axis * radius, len_y_axis * radius, 0, theta1, theta2, color=color) #, label =str(angle) + u"\u00b0")
+        color = line1.get_color()  # Uses the color of line 1 if color parameter is not passed.
+    return Arc(origin, len_x_axis * radius, len_y_axis * radius, 0, theta1, theta2, color=color)
+    # , label =str(angle) + u"\u00b0")
 
 
 def min_time_climb_fbd(include_drag=True):
@@ -77,7 +79,7 @@ def min_time_climb_fbd(include_drag=True):
     # Draw and label the gravity vector
     L = 0.2
     gvec = FancyArrowPatch((x, y), (x, y-L), arrowstyle='->', mutation_scale=10)
-    lv_line = plt.Line2D((x, x), (y, y-L), visible=False) # Local vertical
+    lv_line = plt.Line2D((x, x), (y, y-L), visible=False)  # Local vertical
     ax.add_patch(gvec)
     plt.text(x-0.05, y-L, 'g')
 
@@ -85,7 +87,7 @@ def min_time_climb_fbd(include_drag=True):
     dx = 0.3
     dy = dy_dx * dx
     vvec = FancyArrowPatch((x, y), (x+dx, y+dy), arrowstyle='->', mutation_scale=10)
-    vvec_line = plt.Line2D((x,x+dx), (y,y+dy), visible=False)
+    vvec_line = plt.Line2D((x, x+dx), (y, y+dy), visible=False)
     ax.add_patch(vvec)
     plt.text(x+dx, y+dy, 'v')
 
@@ -93,7 +95,7 @@ def min_time_climb_fbd(include_drag=True):
     dx = -0.2
     dy = dy_dx * dx
     dvec = FancyArrowPatch((x, y), (x+dx, y+dy), arrowstyle='->', mutation_scale=10)
-    dvec_line = plt.Line2D((x,x+dx), (y,y+dy), visible=False)
+    dvec_line = plt.Line2D((x, x+dx), (y, y+dy), visible=False)
     ax.add_patch(dvec)
     plt.text(x+dx, y+dy+0.05, 'D')
 
@@ -102,7 +104,7 @@ def min_time_climb_fbd(include_drag=True):
     dx = -0.05
     dy = dy_dx * dx
     dvec = FancyArrowPatch((x, y), (x+dx, y+dy), arrowstyle='->', mutation_scale=10)
-    dvec_line = plt.Line2D((x,x+dx), (y,y+dy), visible=False)
+    dvec_line = plt.Line2D((x, x+dx), (y, y+dy), visible=False)
     ax.add_patch(dvec)
     plt.text(x+dx, y+dy+0.05, 'L')
 

@@ -5,6 +5,7 @@ from pyxdsm.XDSM import XDSM
 from openmdao.api import Problem
 from dymos.examples.ssto.launch_vehicle_linear_tangent_ode import LaunchVehicleLinearTangentODE
 
+
 def main():
     p = Problem()
     p.model = LaunchVehicleLinearTangentODE(num_nodes=1)
@@ -33,8 +34,6 @@ def main():
     xdsm = XDSM()
     xdsm.from_openmdao_group(p.model, var_map=var_map)
     xdsm.write('ssto_linear_tangent_xdsm', build=True, cleanup=True)
-
-
 
 
 if __name__ == '__main__':

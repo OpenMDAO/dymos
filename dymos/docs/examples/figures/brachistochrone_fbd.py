@@ -5,8 +5,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, Arc
 
-def get_angle_plot(line1, line2, radius = 1, color = None, origin = (0, 0),
-                   len_x_axis = 1, len_y_axis = 1):
+
+def get_angle_plot(line1, line2, radius=1, color=None, origin=(0, 0),
+                   len_x_axis=1, len_y_axis=1):
 
     l1xy = line1.get_xydata()
     # Angle between line1 and x-axis
@@ -26,8 +27,9 @@ def get_angle_plot(line1, line2, radius = 1, color = None, origin = (0, 0),
     angle = theta2 - theta1
 
     if color is None:
-        color = line1.get_color() # Uses the color of line 1 if color parameter is not passed.
-    return Arc(origin, len_x_axis * radius, len_y_axis * radius, 0, theta1, theta2, color=color) #, label =str(angle) + u"\u00b0")
+        color = line1.get_color()  # Uses the color of line 1 if color parameter is not passed.
+    return Arc(origin, len_x_axis * radius, len_y_axis * radius, 0, theta1, theta2, color=color)
+    # label =str(angle) + u"\u00b0")
 
 
 def brachistochrone_fbd():
@@ -70,7 +72,7 @@ def brachistochrone_fbd():
 
     # Draw and label the gravity vector
     gvec = FancyArrowPatch((x, y), (x, y-2), arrowstyle='->', mutation_scale=10)
-    lv_line = plt.Line2D((x, x), (y, y -2), visible=False) # Local vertical
+    lv_line = plt.Line2D((x, x), (y, y-2), visible=False)  # Local vertical
     ax.add_patch(gvec)
     plt.text(x - 0.5, y-1, 'g')
 

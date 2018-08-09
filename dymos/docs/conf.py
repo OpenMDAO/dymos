@@ -21,7 +21,7 @@ import sys
 import openmdao
 import sphinxcontrib
 from openmdao.docs._utils.generate_sourcedocs import generate_docs
-#from openmdao.docs._exts import embed_code, embed_options
+# from openmdao.docs._exts import embed_code, embed_options
 from openmdao.docs._utils.patch import do_monkeypatch
 from numpydoc.docscrape import NumpyDocString, Reader
 
@@ -47,10 +47,10 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.viewcode',
               'sphinx.ext.githubpages',
-              #'sphinxcontrib.bibtex',
+              # 'sphinxcontrib.bibtex',
               'numpydoc',
               'embed_code',
-              'embed_options',]
+              'embed_options', ]
 
 numpydoc_show_class_members = False
 
@@ -125,8 +125,8 @@ rst_epilog = """
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
-html_theme = 'bizstyle' #'alabaster'
+
+html_theme = 'bizstyle'  # 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -195,6 +195,3 @@ texinfo_documents = [
      author, 'dymos', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-

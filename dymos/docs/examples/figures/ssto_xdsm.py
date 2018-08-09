@@ -5,6 +5,7 @@ from pyxdsm.XDSM import XDSM
 from openmdao.api import Problem
 from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
+
 def main():
     p = Problem()
     p.model = LaunchVehicleODE(num_nodes=1)
@@ -30,8 +31,6 @@ def main():
     xdsm = XDSM()
     xdsm.from_openmdao_group(p.model, var_map=var_map)
     xdsm.write('ssto_xdsm', build=True, cleanup=True)
-
-
 
 
 if __name__ == '__main__':

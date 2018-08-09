@@ -9,7 +9,8 @@ from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 p = Problem(model=Group())
-phase = Phase('radau-ps', ode_class=BrachistochroneODE, num_segments=4, transcription_order=[3, 5, 3, 5])
+phase = Phase('radau-ps', ode_class=BrachistochroneODE, num_segments=4,
+              transcription_order=[3, 5, 3, 5])
 p.model.add_subsystem('phase0', phase)
 
 p.setup()
@@ -23,11 +24,11 @@ t_all = phase.get_values('time', nodes='all')
 
 
 def f(x):
-    return np.sin(x) / x  + 1
+    return np.sin(x) / x + 1
 
 
 def fu(x):
-    return (np.cos(x) * x - np.sin(x))/ x**2
+    return (np.cos(x) * x - np.sin(x))/x**2
 
 
 def plot_01():
@@ -120,6 +121,7 @@ def plot_02():
 
     plt.savefig('02_nodes.png')
 
+
 def plot_03():
 
     fig, axes = plt.subplots(2, 1)
@@ -128,11 +130,11 @@ def plot_03():
         ax = axes[i]
 
         x = np.linspace(1, 10, 100)
-        if i==0:
+        if i == 0:
             # Plot the state time history
             y = f(x)
             ax.plot(t_disc, f(t_disc), 'bo')
-        elif i==1:
+        elif i == 1:
             y = fu(x)
             ax.plot(t_all, fu(t_all), 'rs')
 
@@ -142,7 +144,8 @@ def plot_03():
         # Plot the segment boundaries
         segends = np.linspace(1, 10, 5)
         for j in range(len(segends)):
-            ax.plot((segends[j], segends[j]), (y_min, y_max), linestyle='--', color='gray', zorder=-100)
+            ax.plot((segends[j], segends[j]), (y_min, y_max), linestyle='--', color='gray',
+                    zorder=-100)
             # if i > 0:
             #     # ax.annotate('', xy=(segends[i], 0.05), xytext=(segends[i-1], 0.05),
             #     #             arrowprops=dict(arrowstyle='<->'))
@@ -158,7 +161,7 @@ def plot_03():
 
         # Set the labels
         ax.set_xlabel('time')
-        if i==0:
+        if i == 0:
             ax.set_ylabel('state value')
         else:
             ax.set_ylabel('control value')
@@ -176,6 +179,7 @@ def plot_03():
 
     plt.savefig('03_inputs.png')
 
+
 def plot_04():
 
     fig, axes = plt.subplots(2, 1)
@@ -184,7 +188,7 @@ def plot_04():
         ax = axes[i]
 
         x = np.linspace(1, 10, 100)
-        if i==0:
+        if i == 0:
             # Plot the state time history
             y = f(x)
             # ax.plot(x, y, 'b-')
@@ -192,7 +196,7 @@ def plot_04():
             f_disc = f(t_disc)
             f_all = f(t_all)
             df_dx_disc = fu(t_disc)
-            #ax.plot(x, y, 'b-')
+            # ax.plot(x, y, 'b-')
             ax.plot(t_all, f_all, 'bo')
 
             # for j in range(len(t_disc)):
@@ -200,7 +204,7 @@ def plot_04():
             #     ax.plot((t_disc[j]-dx, t_disc[j]+dx),
             #             (f_disc[j]-dx*df_dx_disc[j], f_disc[j]+dx*df_dx_disc[j]), 'r--')
 
-        elif i==1:
+        elif i == 1:
             y = fu(x)
             ax.plot(x, y, 'r-')
             ax.plot(t_all, fu(t_all), 'rs')
@@ -211,7 +215,8 @@ def plot_04():
         # Plot the segment boundaries
         segends = np.linspace(1, 10, 5)
         for j in range(len(segends)):
-            ax.plot((segends[j], segends[j]), (y_min, y_max), linestyle='--', color='gray', zorder=-100)
+            ax.plot((segends[j], segends[j]), (y_min, y_max), linestyle='--', color='gray',
+                    zorder=-100)
             # if i > 0:
             #     # ax.annotate('', xy=(segends[i], 0.05), xytext=(segends[i-1], 0.05),
             #     #             arrowprops=dict(arrowstyle='<->'))
@@ -227,7 +232,7 @@ def plot_04():
 
         # Set the labels
         ax.set_xlabel('time')
-        if i==0:
+        if i == 0:
             ax.set_ylabel('state value')
         else:
             ax.set_ylabel('control value')
@@ -245,6 +250,7 @@ def plot_04():
 
     plt.savefig('04_control_rate_interpolation.png')
 
+
 def plot_05():
 
     fig, axes = plt.subplots(2, 1)
@@ -253,7 +259,7 @@ def plot_05():
         ax = axes[i]
 
         x = np.linspace(1, 10, 100)
-        if i==0:
+        if i == 0:
             # Plot the state time history
             y = f(x)
             ax.plot(x, y, 'b-')
@@ -261,7 +267,7 @@ def plot_05():
             f_disc = f(t_disc)
             f_all = f(t_all)
             df_dx_disc = fu(t_disc)
-            #ax.plot(x, y, 'b-')
+            # ax.plot(x, y, 'b-')
             ax.plot(t_all, f_all, 'bo')
 
             for j in range(len(t_disc)):
@@ -269,7 +275,7 @@ def plot_05():
                 ax.plot((t_disc[j]-dx, t_disc[j]+dx),
                         (f_disc[j]-dx*df_dx_disc[j], f_disc[j]+dx*df_dx_disc[j]), 'r--')
 
-        elif i==1:
+        elif i == 1:
             y = fu(x)
             ax.plot(x, y, 'r-')
             ax.plot(t_all, fu(t_all), 'rs')
@@ -280,7 +286,8 @@ def plot_05():
         # Plot the segment boundaries
         segends = np.linspace(1, 10, 5)
         for j in range(len(segends)):
-            ax.plot((segends[j], segends[j]), (y_min, y_max), linestyle='--', color='gray', zorder=-100)
+            ax.plot((segends[j], segends[j]), (y_min, y_max), linestyle='--', color='gray',
+                    zorder=-100)
             # if i > 0:
             #     # ax.annotate('', xy=(segends[i], 0.05), xytext=(segends[i-1], 0.05),
             #     #             arrowprops=dict(arrowstyle='<->'))
@@ -296,7 +303,7 @@ def plot_05():
 
         # Set the labels
         ax.set_xlabel('time')
-        if i==0:
+        if i == 0:
             ax.set_ylabel('state value')
         else:
             ax.set_ylabel('control value')
@@ -314,6 +321,7 @@ def plot_05():
 
     plt.savefig('05_state_rate_interpolation.png')
 
+
 def plot_06():
 
     fig, axes = plt.subplots(2, 1)
@@ -322,7 +330,7 @@ def plot_06():
         ax = axes[i]
 
         x = np.linspace(1, 10, 100)
-        if i==0:
+        if i == 0:
             # Plot the state time history
             y = f(x)
             ax.plot(x, y, 'b-')
@@ -331,7 +339,7 @@ def plot_06():
             f_all = f(t_all)
             df_dx_col_approx = fu(t_col)
             df_dx_col_computed = -0.5 * fu(t_col)
-            #ax.plot(x, y, 'b-')
+            # ax.plot(x, y, 'b-')
             ax.plot(t_all, f_all, 'bo')
 
             for j in range(len(t_col)):
@@ -339,9 +347,10 @@ def plot_06():
                 ax.plot((t_col[j]-dx, t_col[j]+dx),
                         (f_col[j]-dx*df_dx_col_approx[j], f_col[j]+dx*df_dx_col_approx[j]), 'r--')
                 ax.plot((t_col[j]-dx, t_col[j]+dx),
-                        (f_col[j]-dx*df_dx_col_computed[j], f_col[j]+dx*df_dx_col_computed[j]), 'k--')
+                        (f_col[j]-dx*df_dx_col_computed[j], f_col[j]+dx*df_dx_col_computed[j]),
+                        'k--')
 
-        elif i==1:
+        elif i == 1:
             y = fu(x)
             ax.plot(x, y, 'r-')
             ax.plot(t_all, fu(t_all), 'rs')
@@ -352,7 +361,8 @@ def plot_06():
         # Plot the segment boundaries
         segends = np.linspace(1, 10, 5)
         for j in range(len(segends)):
-            ax.plot((segends[j], segends[j]), (y_min, y_max), linestyle='--', color='gray', zorder=-100)
+            ax.plot((segends[j], segends[j]), (y_min, y_max), linestyle='--', color='gray',
+                    zorder=-100)
             # if i > 0:
             #     # ax.annotate('', xy=(segends[i], 0.05), xytext=(segends[i-1], 0.05),
             #     #             arrowprops=dict(arrowstyle='<->'))
@@ -368,7 +378,7 @@ def plot_06():
 
         # Set the labels
         ax.set_xlabel('time')
-        if i==0:
+        if i == 0:
             ax.set_ylabel('state value')
         else:
             ax.set_ylabel('control value')
