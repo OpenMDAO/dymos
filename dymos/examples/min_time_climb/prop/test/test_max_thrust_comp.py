@@ -9,8 +9,6 @@ from openmdao.api import Problem, Group, IndepVarComp
 
 from dymos.examples.min_time_climb.prop.max_thrust_comp import MaxThrustComp, THR_DATA, _LBF2N
 
-SHOW_PLOTS = False
-
 
 class TestBrysonThrustComp(unittest.TestCase):
 

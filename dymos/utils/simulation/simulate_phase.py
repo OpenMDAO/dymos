@@ -18,7 +18,7 @@ from ..interpolate import LagrangeBarycentricInterpolant
 def simulate_phase(phase_name, ode_class, time_options, state_options, control_options,
                    design_parameter_options, time_values, state_values, control_values,
                    design_parameter_values, ode_init_kwargs, grid_data, times, record=True,
-                   record_file=None):
+                   record_file=None, observer=None, integrator='vode', integrator_params=None):
     """
     Provides a way of simulating a phase that can be called in a multiprocessing pool.
 
@@ -60,6 +60,14 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
     record_file : str, optional
         If given, provides the file path for the recorded simulation.  Defaults to
         '<phase_name>_sim.db'.
+    observer : callable, None
+        The observer function used to monitor the explicit simulation.
+    integrator : str
+        The integrator to be used by scipy.ode.  This is one of:
+        'vode', 'lsoda', 'dopri5', or 'dopri853'.
+    integrator_params : dict
+        Parameters specific to the chosen integrator.  See the scipy.integrate.ode
+        documentation for details.
 
     Returns
     -------
@@ -106,7 +114,7 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
     for seg_i in seg_sequence:
         seg_idxs = grid_data.segment_indices[seg_i, :]
 
-        seg_times = time_values[seg_idxs[0]:seg_idxs[1]]
+        seg_times = time_values[seg_idxs[0]:seg_idxs[1]].ravel()
 
         for control_name, options in iteritems(control_options):
             interp = LagrangeBarycentricInterpolant(grid_data.node_stau[seg_idxs[0]:seg_idxs[1]])
@@ -136,9 +144,9 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
                              'Must be \'disc\', \'all\', \'col\', or Iterable')
 
         seg_out = rhs_integrator.integrate_times(x0, t_out,
-                                                 integrator='vode',
-                                                 integrator_params=None,
-                                                 observer=None)
+                                                 integrator=integrator,
+                                                 integrator_params=integrator_params,
+                                                 observer=observer)
 
         if first_seg:
             exp_out.outputs.update(seg_out.outputs)
