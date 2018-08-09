@@ -31,7 +31,9 @@ and the final conditions are
 1. The ODE System: brachistochrone_ode.py
 -----------------------------------------
 
-
+.. embed-code::
+    ../../dymos/examples/brachistochrone/brachistochrone_ode.py
+    :layout: code
 
 There are a few things to note about the ODE system.  First, it is just a standard OpenMDAO system,
 in this case an :code:`ExplicitComponent`.  The :code:`declare_time`, :code:`declare_state`, and
