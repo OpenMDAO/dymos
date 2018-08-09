@@ -7,7 +7,7 @@ without friction along the wire moves from point A to point B in minimum time.
 
 
 .. embed-code::
-    docs/examples/figures/brachistochrone_fbd.py
+    dymos/docs/examples/figures/brachistochrone_fbd.py
     :layout: plot
 
 We minimize the final time, :math:`t_f`, by varying the dynamic control, :math:`\theta`, subject to the dynamics:
