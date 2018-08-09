@@ -45,11 +45,11 @@ class BoundaryConstraintComp(ExplicitComponent):
 
             # self._vars.append((input_name, output_name, kwargs['shape']))
 
-            input_kwargs = {k: kwargs[k] for k in ('units', 'shape', 'desc', 'var_set')}
+            input_kwargs = {k: kwargs[k] for k in ('units', 'shape', 'desc')}
             input_kwargs['shape'] = tuple([2] + list(input_kwargs['shape']))
             self.add_input(input_name, **input_kwargs)
 
-            output_kwargs = {k: kwargs[k] for k in ('units', 'shape', 'desc', 'var_set')}
+            output_kwargs = {k: kwargs[k] for k in ('units', 'shape', 'desc')}
             self.add_output(output_name, **output_kwargs)
 
             constraint_kwargs = {k: kwargs.get(k, None)
@@ -68,11 +68,11 @@ class BoundaryConstraintComp(ExplicitComponent):
                                           'initial_constraint': '',
                                           'final_constraint': output_name,
                                           'shape': kwargs['shape']}
-                input_kwargs = {k: kwargs[k] for k in ('units', 'shape', 'desc', 'var_set')}
+                input_kwargs = {k: kwargs[k] for k in ('units', 'shape', 'desc')}
                 input_kwargs['shape'] = tuple([2] + list(input_kwargs['shape']))
                 self.add_input(input_name, **input_kwargs)
 
-            output_kwargs = {k: kwargs[k] for k in ('units', 'shape', 'desc', 'var_set')}
+            output_kwargs = {k: kwargs[k] for k in ('units', 'shape', 'desc')}
             self.add_output(output_name, **output_kwargs)
 
             constraint_kwargs = {k: kwargs.get(k, None)
@@ -113,7 +113,7 @@ class BoundaryConstraintComp(ExplicitComponent):
     def _add_initial_constraint(self, name, shape=(1,), units=None, res_units=None, desc='',
                                 lower=None, upper=None, equals=None,
                                 scaler=None, adder=None, ref=1.0, ref0=0.0,
-                                linear=False, res_ref=1.0, var_set=0, distributed=False):
+                                linear=False, res_ref=1.0, distributed=False):
         """
         Add an initial constraint to this component
 
@@ -160,9 +160,6 @@ class BoundaryConstraintComp(ExplicitComponent):
         res_ref : float
             Scaling parameter. The value in the user-defined res_units of this output's residual
             when the scaled value is 1. Default is 1.
-        var_set : hashable object
-            For advanced users only. ID or color for this variable, relevant for reconfigurability.
-            Default is 0.
         distributed : bool
             If True, this variable is distributed across multiple processes.
         """
@@ -171,13 +168,13 @@ class BoundaryConstraintComp(ExplicitComponent):
         kwargs = {'shape': shape, 'units': units, 'res_units': res_units, 'desc': desc,
                   'lower': lower, 'upper': upper, 'equals': equals,
                   'scaler': scaler, 'adder': adder, 'ref': ref, 'ref0': ref0, 'linear': linear,
-                  'res_ref': res_ref, 'var_set': var_set, 'distributed': distributed}
+                  'res_ref': res_ref, 'distributed': distributed}
         self._initial_constraints.append((name, kwargs))
 
     def _add_final_constraint(self, name, shape=(1,), units=None, res_units=None, desc='',
                               lower=None, upper=None, equals=None,
                               scaler=None, adder=None, ref=None, ref0=None,
-                              linear=False, res_ref=1.0, var_set=0, distributed=False):
+                              linear=False, res_ref=1.0, distributed=False):
         """
         Add a final constraint to this component
 
@@ -224,9 +221,6 @@ class BoundaryConstraintComp(ExplicitComponent):
         res_ref : float
             Scaling parameter. The value in the user-defined res_units of this output's residual
             when the scaled value is 1. Default is 1.
-        var_set : hashable object
-            For advanced users only. ID or color for this variable, relevant for reconfigurability.
-            Default is 0.
         distributed : bool
             If True, this variable is distributed across multiple processes.
         """
@@ -235,5 +229,5 @@ class BoundaryConstraintComp(ExplicitComponent):
         kwargs = {'shape': shape, 'units': units, 'res_units': res_units, 'desc': desc,
                   'lower': lower, 'upper': upper, 'equals': equals,
                   'scaler': scaler, 'adder': adder, 'ref': ref, 'ref0': ref0, 'linear': linear,
-                  'res_ref': res_ref, 'var_set': var_set, 'distributed': distributed}
+                  'res_ref': res_ref, 'distributed': distributed}
         self._final_constraints.append((name, kwargs))
