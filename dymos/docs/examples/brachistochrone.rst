@@ -5,10 +5,7 @@ Brachistochrone: A simple optimal control example
 We seek to find the optimal shape of a wire between two points (A and B) such that a bead sliding
 without friction along the wire moves from point A to point B in minimum time.
 
-..
-.. embed-code::
-    ./figures/brachistochrone_fbd.py
-    :layout: plot
+
 
 We minimize the final time, :math:`t_f`, by varying the dynamic control, :math:`\theta`, subject to the dynamics:
 
@@ -34,9 +31,7 @@ and the final conditions are
 1. The ODE System: brachistochrone_ode.py
 -----------------------------------------
 
-.. embed-code::
-    ../../dymos/examples/brachistochrone/brachistochrone_ode.py
-    :layout: code
+
 
 There are a few things to note about the ODE system.  First, it is just a standard OpenMDAO system,
 in this case an :code:`ExplicitComponent`.  The :code:`declare_time`, :code:`declare_state`, and
