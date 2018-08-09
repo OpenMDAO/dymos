@@ -30,7 +30,8 @@ in the control.
 1. The ODE System: double_integrator_ode.py
 -------------------------------------------
 
-.. embed-code::
+..  comment block until we fix an embed bug
+    embed-code::
     ../../dymos/examples/double_integrator/double_integrator_ode.py
     :layout: code
 

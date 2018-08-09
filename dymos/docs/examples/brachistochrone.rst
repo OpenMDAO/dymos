@@ -6,7 +6,8 @@ We seek to find the optimal shape of a wire between two points (A and B) such th
 without friction along the wire moves from point A to point B in minimum time.
 
 
-.. embed-code::
+..  comment block until we fix an embed bug
+    embed-code::
     dymos/docs/examples/figures/brachistochrone_fbd.py
     :layout: plot
 
@@ -34,7 +35,10 @@ and the final conditions are
 1. The ODE System: brachistochrone_ode.py
 -----------------------------------------
 
-
+..  comment block until we fix an embed bug
+    embed-code::
+    examples/brachistochrone/brachistochrone_ode.py
+    :layout: code
 
 There are a few things to note about the ODE system.  First, it is just a standard OpenMDAO system,
 in this case an :code:`ExplicitComponent`.  The :code:`declare_time`, :code:`declare_state`, and
