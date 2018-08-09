@@ -9,7 +9,7 @@ os:
 
 env:
   - PY=2.7
-  - PY=3.6
+  - PY=3.6 UPLOAD_DOCS=1
 
 language: generic
 
@@ -30,6 +30,9 @@ before_install:
 - chmod +x miniconda.sh;
 - ./miniconda.sh -b  -p /home/travis/miniconda;
 - export PATH=/home/travis/miniconda/bin:$PATH;
+- if  [ "$TRAVIS_REPO_SLUG" = "OpenMDAO/dymos" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    MASTER_BUILD=1;
+  fi
 
 install:
 - conda install --yes python=$PY numpy scipy nose sphinx mock swig pip;
@@ -67,12 +70,12 @@ install:
 # install dymos itself in developer mode.
 - pip install -e .;
 
-# The script for the default test stage
 script:
 - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos;
 - travis-sphinx build --source=dymos/docs;
 
-# The after_success job for the default test stage
 after_success:
-- travis-sphinx deploy;
+- if [ "$MASTER_BUILD" ] && [ "$UPLOAD_DOCS" ]; then
+    travis-sphinx deploy;
+  fi
 - coveralls;
