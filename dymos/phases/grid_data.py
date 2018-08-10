@@ -6,7 +6,6 @@ from six import iteritems
 
 from scipy.linalg import block_diag
 
-from dymos.utils.lg import lg
 from dymos.utils.lgl import lgl
 from dymos.utils.lgr import lgr
 from dymos.utils.hermite import hermite_matrices
@@ -19,7 +18,7 @@ def gauss_lobatto_subsets(n, first_seg=False, compressed=False):
 
     Parameters
     ----------
-    num_nodes : int
+    n : int
         The total number of nodes in the Gauss-Lobatto segment.  Must be
         an odd number.
     first_seg : bool
@@ -70,7 +69,7 @@ def radau_pseudospectral_subsets(n, first_seg=False, compressed=False):
 
     Parameters
     ----------
-    num_nodes : int
+    n : int
         The total number of nodes in the Radau Pseudospectral segment (including right endpoint).
     first_seg : bool
         True if the subset requested is for the first segment in a phase.
@@ -371,6 +370,21 @@ class GridData(object):
             Matrix that yields the values at the new nodes.
         ndarray[num_eval_set, num_given_set]
             Matrix that yields the time derivatives at the new nodes.
+
+        Notes
+        -----
+        The values are mapped using the equation:
+
+        .. math::
+
+            x_{eval} = \\left[ L \\right] x_{given}
+
+        And the derivatives are mapped with the equation:
+
+        .. math::
+
+            \\dot{x}_{eval} = \\left[ D \\right] x_{given} \\frac{d \\tau}{dt}
+
         """
         L_blocks = []
         D_blocks = []
@@ -419,6 +433,22 @@ class GridData(object):
         ndarray[num_eval_set, num_given_set]
             Matrix that maps derivatives at given nodes to derivatives at eval nodes.
             This is A_d in the equations above.
+
+        Notes
+        -----
+        The equation for Hermite interpolation of the values is:
+
+        .. math::
+
+            x_{eval} = \\left[ A_i \\right] x_{given}
+                             + \\frac{dt}{d\\tau} \\left[ B_i \\right] \\dot{x}_{given}
+
+        Hermite interpolation of the derivatives is performed as:
+
+        .. math::
+
+            \\dot{x}_{eval} = \\frac{d\\tau}{dt} \\left[ A_d \\right] x_{given}
+                                   + \\left[ B_d \\right] \\dot{x}_{given}
         """
         Ai_list = []
         Bi_list = []

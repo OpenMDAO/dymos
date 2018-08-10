@@ -6,8 +6,6 @@ def hermite_matrices(x_given, x_eval):
     Return the interpolation matrices (A_i and B_i) and differentiation matrices (A_d and B_d)
     for a Hermite polynomial at the given nodes.
 
-    .. math:: x_i = \left[ A_i \right] x_c + \frac{dt}{dtau} \left[ B_i \right] f_c
-
     Parameters
     ----------
     x_given : ndarray[:]
@@ -29,6 +27,12 @@ def hermite_matrices(x_given, x_eval):
     B_d : np.array
         An num_disc_nodes-1 x num_disc_nodes matrix used for the differentiation of state values
         at the collocation LGL nodes.
+
+    Notes
+    -----
+    .. math::
+        x_i = \\left[ A_i\\right] x_c + \\frac{dt}{dtau} \\left[ B_i \\right] f_c
+
     """
     tau_disc = x_given
     """ Array of the discretization nodes. """
