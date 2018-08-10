@@ -16,7 +16,7 @@ class PathConstraintCompBase(ExplicitComponent):
 
     def _add_path_constraint(self, name, var_class, shape=(1,), units=None, res_units=None, desc='',
                              lower=None, upper=None, equals=None, scaler=None, adder=None,
-                             ref=None, ref0=None, linear=False, res_ref=1.0, var_set=0, type_=None,
+                             ref=None, ref0=None, linear=False, res_ref=1.0, type_=None,
                              distributed=False):
         """
         Add a final constraint to this component
@@ -63,9 +63,6 @@ class PathConstraintCompBase(ExplicitComponent):
         res_ref : float
             Scaling parameter. The value in the user-defined res_units of this output's residual
             when the scaled value is 1. Default is 1.
-        var_set : hashable object
-            For advanced users only. ID or color for this variable, relevant for reconfigurability.
-            Default is 0.
         type_ : str
             One of 'state', 'indep_control', 'input_control', 'control_rate', 'control_rate2'.
         distributed : bool
@@ -78,8 +75,7 @@ class PathConstraintCompBase(ExplicitComponent):
         kwargs = {'shape': shape, 'units': units, 'res_units': res_units, 'desc': desc,
                   'lower': lower, 'upper': upper, 'equals': equals, 'scaler': scaler,
                   'adder': adder, 'ref': ref, 'ref0': ref0, 'linear': linear, 'src_all': src_all,
-                  'res_ref': res_ref, 'var_set': var_set, 'distributed': distributed,
-                  'type_': type_}
+                  'res_ref': res_ref, 'distributed': distributed, 'type_': type_}
         self._path_constraints.append((name, kwargs))
 
 
@@ -95,7 +91,7 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
         num_state_disc_nodes = grid_data.subset_num_nodes['state_disc']
         num_col_nodes = grid_data.subset_num_nodes['col']
         for (name, kwargs) in self._path_constraints:
-            input_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
+            input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             shape = kwargs['shape']
             if kwargs['src_all']:
                 all_input_name = 'all_values:{0}'.format(name)
@@ -117,7 +113,7 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
                                **input_kwargs)
 
             output_name = 'path:{0}'.format(name)
-            output_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
+            output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             output_kwargs['shape'] = (num_nodes,) + shape
             self.add_output(output_name, **output_kwargs)
 
@@ -206,14 +202,14 @@ class RadauPathConstraintComp(PathConstraintCompBase):
 
         for (name, kwargs) in self._path_constraints:
 
-            input_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
+            input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             input_name = 'all_values:{0}'.format(name)
             self.add_input(input_name,
                            shape=(num_nodes,) + kwargs['shape'],
                            **input_kwargs)
 
             output_name = 'path:{0}'.format(name)
-            output_kwargs = {k: kwargs[k] for k in ('units', 'desc', 'var_set')}
+            output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             output_kwargs['shape'] = (num_nodes,) + kwargs['shape']
             self.add_output(output_name, **output_kwargs)
 
