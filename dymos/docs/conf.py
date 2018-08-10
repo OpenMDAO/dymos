@@ -60,18 +60,23 @@ numpydoc_show_class_members = False
 
 # packages for which to generate sourcedocs
 packages = [
+    'examples',
     'examples.aircraft_steady_flight',
     'examples.brachistochrone',
     'examples.double_integrator',
+    'examples.finite_burn_orbit_raise',
     'examples.min_time_climb',
     'examples.ssto',
+    'models',
     'models.atmosphere',
     'models.eom',
+    'phases',
     'phases.components',
     'phases.optimizer_based',
-    'examples',
-    'models',
-    'phases',
+    'trajectory',
+    'utils',
+    'utils.simulation',
+    'utils.simulation.components',
 ]
 
 generate_docs("..", "../..", packages, project_name='dymos')
