@@ -8,20 +8,6 @@ class LagrangeBarycentricInterpolant(object):
     LagrangeBarycentricInterpolant interpolates values and first derivatives
     of set of data using barycentric interpolation of a Lagrange Polynomial.
 
-    The Barycentric formula is given in Eq. 3.3 of [1]_ as
-
-    .. math::
-
-        p(x) = l(x) \Sum \frac{w_j f_j}{x-x_j}
-
-    where l(x) is
-
-    .. math::
-        l(x) = (x-x_0)(x-x_1)(x-x_2)...
-
-    The singularity in the denominator of p(x) at x = x_n is cancelled
-    by the the term (x-x_n) in l(x).
-
     Parameters
     ----------
     nodes : sequence
@@ -49,11 +35,27 @@ class LagrangeBarycentricInterpolant(object):
         Half the span from x0 to xf.  The ratio of x-space to
         internal tau-space.
 
+    Notes
+    -----
+    The Barycentric formula is given in Eq. 3.3 of [1]_ as
+
+    .. math::
+
+        p(x) = l(x) \\Sum \\frac{w_j f_j}{x-x_j}
+
+    where l(x) is
+
+    .. math::
+
+        l(x) = (x-x_0)(x-x_1)(x-x_2)...
+
+    The singularity in the denominator of p(x) at x = x_n is cancelled
+    by the the term (x-x_n) in l(x).
+
     References
     ----------
     .. [1] Berrut, Jean-Paul, and Lloyd N. Trefethen.
        "Barycentric lagrange interpolation." Siam Review 46.3 (2004): 501-517.
-
 
     """
 
@@ -107,6 +109,7 @@ class LagrangeBarycentricInterpolant(object):
 
         :param x: The independent variable to be converted to $\tau$.
         :return: The equivalent value of $\tau$ given x.
+
         """
         return -1.0 + (x - self.x0) / self.dx_dtau
 

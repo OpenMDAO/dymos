@@ -9,7 +9,7 @@ os:
 
 env:
   - PY=2.7
-  - PY=3.6
+  - PY=3.6 UPLOAD_DOCS=0 # change back to 1 once embed-code bug is fixed
 
 language: generic
 
@@ -25,97 +25,57 @@ addons:
     - openmpi-bin
 
 before_install:
-- sudo apt-get install gfortran
-- wget "https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh" -O miniconda.sh
-- chmod +x miniconda.sh
+- if [ "$PY" = "2.7" ];  then wget "https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh" -O miniconda.sh; fi
+- if [ "$PY" = "3.6" ];  then wget "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" -O miniconda.sh; fi
+- chmod +x miniconda.sh;
 - ./miniconda.sh -b  -p /home/travis/miniconda;
-- PATHPREFIX="/home/travis/miniconda/bin";
-- export PATH=$PATHPREFIX:$PATH
-- export CWD=$(pwd)
-- cd ${CWD}
-- cd ..
-- export ROOT_DIR=$(pwd)
-- conda create --yes -n test_env python=$PY swig sphinx
-- source activate test_env
+- export PATH=/home/travis/miniconda/bin:$PATH;
+- if  [ "$TRAVIS_REPO_SLUG" = "OpenMDAO/dymos" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    MASTER_BUILD=1;
+  fi
+
+install:
+- conda install --yes python=$PY numpy scipy nose sphinx mock swig pip;
 - pip install --upgrade pip
+- sudo apt-get install gfortran
 - pip install numpy==1.14.1
 - pip install scipy==1.0.0
+- pip install mpi4py
 - pip install matplotlib
 - pip install nose
-- pip install mock
-- pip install pip
 - pip install networkx
 - pip install testflo
 - pip install pyyaml
 - pip install coveralls
+- pip install --user travis-sphinx;
 
-install:
 # install pyoptsparse
-- cd ${ROOT_DIR};
-- git clone https://github.com/mdolab/pyoptsparse.git ./pyoptsparse.git;
-- cd pyoptsparse.git;
-# get SNOPT source, securely, if SNOPT_LOCATION is set.
-#- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-#    cd pyoptsparse/pySNOPT/source;
-#    scp -r "$SNOPT_LOCATION" .;
-#    cd ../../..;
-#  fi
-# return to building pyoptsparse
-- python setup.py build install;
+- git clone https://github.com/OpenMDAO/pyoptsparse.git;
+- cd pyoptsparse;
+- python setup.py install;
+- cd ..;
 
 # install MBI
-- cd ${ROOT_DIR};
-- git clone https://github.com/OpenMDAO/MBI.git ./MBI.git;
-- cd MBI.git;
+- git clone https://github.com/OpenMDAO/MBI.git;
+- cd MBI;
 - python setup.py build install;
+- cd ..;
 
 # install OpenMDAO in developer mode so we have access to its sphinx extensions
-- cd ${ROOT_DIR};
-- git clone https://github.com/OpenMDAO/OpenMDAO.git ./OpenMDAO.git;
-- cd OpenMDAO.git;
-- pip install -e .
+- git clone https://github.com/OpenMDAO/OpenMDAO.git;
+- cd OpenMDAO;
+- pip install -e .;
+- cd ..;
 
-- cd ${CWD};
-- pip install -e .
+# install dymos itself in developer mode.
+- pip install -e .;
 
-# The script for the default test stage
 script:
-  - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos
+- testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos;
+- travis-sphinx build --source=dymos/docs;
 
-# The after_success job for the default test stage
 after_success:
-  - coveralls
-
-stages:
-  - test
-  - build_docs
-
-jobs:
-  include:
-    - stage: build and upload github pages
-      env:
-          - PY=3.6
-      script:
-        - echo building sphinx documentation
-        - git config --global user.email "travis@travis-ci.org"
-        - git config --global user.name "Travis CI"
-        - git checkout -b doc_build
-        - cd ${CWD}/docs
-        - make clean
-        - make html
-        - git add -A build
-        - git commit -m 'rebuilt docs'
-      after_success:
-        - cd ..
-        - git clean -f
-        - git checkout -b gh-pages
-        - git rm -rf .
-        - git clean -fdx
-        - touch .nojekyll
-        - git checkout doc_build docs/build/html
-        - mv ./docs/build/html/* ./
-        - rm -rf ./docs
-        - git add -A .
-        - git commit -m 'updating documentation - build ${TRAVIS_BUILD_NUMBER}'
-        - git remote add origin-pages https://${GITHUB_TOKEN}@github.com/OpenMDAO/dymos.git > /dev/null 2>&1
-        - test ["$TRAVIS_REPO_SLUG" = "OpenMDAO/dymos"] && [$TRAVIS_PULL_REQUEST" = "false"]  && [git push -f --quiet origin-pages gh-pages]
+- if [ "$MASTER_BUILD" ] && [ "$UPLOAD_DOCS" ]; then
+    travis-sphinx deploy;
+  fi
+- coveralls;

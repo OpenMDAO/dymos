@@ -10,19 +10,16 @@ class StandardAtmosphereGroup(Group):
     """
     Model of the 1976 Standard Atmosphere.
 
-    Inputs
-    ------
+    Attributes
+    ----------
     h : m
-        Altitude above sea-level
-
-    Outputs
-    -------
+        Altitude above sea-level, input
     pres : Pa
-        Atmospheric Pressure
+        Atmospheric Pressure, output
     temp : K
-        Atmospheric Temperature
+        Atmospheric Temperature, output
     rho : kg/m**3
-        Atmospheric Density
+        Atmospheric Density, output
 
     """
     def initialize(self):

@@ -5,12 +5,7 @@ import numpy as np
 
 def lgr(n, include_endpoint=False, tol=1.0E-15):
     """
-    Returns the Legendre-Gauss-Radau nodes and weights for a Jacobi
-    Polynomial with n abscissae.  The LGR nodes are the roots of
-
-    .. math::
-
-        (P_N(x)+P_{N+1}(x))/(x+1).
+    Returns the Legendre-Gauss-Radau nodes and weights for a Jacobi Polynomial with n abscissae.
 
     Parameters
     ----------
@@ -30,13 +25,21 @@ def lgr(n, include_endpoint=False, tol=1.0E-15):
     w : numpy.array
         An array of the corresponding LGR weights at the nodes in x.
 
+    Notes
+    -----
+    The LGR nodes are the roots of
+
+        .. math::
+            (P_N(x)+P_{N+1}(x))/(x+1).
+
+
     References
     ----------
-       C. Canuto, M. Y. Hussaini, A. Quarteroni, T. A. Tang, "Spectral Methods
-       in Fluid Dynamics," Section 2.3. Springer-Verlag 1987
+    C. Canuto, M. Y. Hussaini, A. Quarteroni, T. A. Tang, "Spectral Methods
+    in Fluid Dynamics," Section 2.3. Springer-Verlag 1987
 
-       F. B. Hildebrand , "Introduction to Numerical Analysis," Section 8.11
-       Dover 1987
+    F. B. Hildebrand , "Introduction to Numerical Analysis," Section 8.11
+    Dover 1987
 
     The nodes are on the range [-1, 1).
 
@@ -66,7 +69,6 @@ def lgr(n, include_endpoint=False, tol=1.0E-15):
     LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
     NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
     """
     n1 = n
     n = n - 1

@@ -16,19 +16,24 @@ class ControlInterpComp(ExplicitComponent):
     Compute the approximated control values and rates given the values of a control at all nodes,
     given values at the control discretization nodes.
 
-    .. math:: u = \left[ L \right] u_d
+    Notes
+    -----
+    .. math::
 
-    .. math:: \dot{u} = \frac{d\tau_s}{dt} \left[ D \right] u_d
+        u = \\left[ L \\right] u_d
 
-    .. math:: \ddot{u} = \left( \frac{d\tau_s}{dt} \right)^2 \left[ D_2 \right] u_d
+        \\dot{u} = \\frac{d\\tau_s}{dt} \\left[ D \\right] u_d
 
-    where :math:`u_d` are the values of the control at the control discretization nodes,
+        \\ddot{u} = \\left( \\frac{d\\tau_s}{dt} \\right)^2 \\left[ D_2 \\right] u_d
+
+    where
+    :math:`u_d` are the values of the control at the control discretization nodes,
     :math:`u` are the values of the control at all nodes,
-    :math:`\dot{u}` are the time-derivatives of the control at all nodes,
-    :math:`\ddot{u}` are the second time-derivatives of the control at all nodes,
+    :math:`\\dot{u}` are the time-derivatives of the control at all nodes,
+    :math:`\\ddot{u}` are the second time-derivatives of the control at all nodes,
     :math:`L` is the Lagrange interpolation matrix,
     :math:`D` is the Lagrange differentiation matrix,
-    and :math:`\frac{d\tau_s}{dt}` is the ratio of segment duration in segment tau space
+    and :math:`\\frac{d\\tau_s}{dt}` is the ratio of segment duration in segment tau space
     [-1 1] to segment duration in time.
     """
 
