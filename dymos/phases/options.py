@@ -270,8 +270,15 @@ class StateOptionsDictionary(OptionsDictionary):
         self.declare(name='defect_scaler',
                      types=(Iterable, Number), default=1.0,
                      allow_none=True,
-                     desc='Scaler of the state variable defect at the collocation nodes. This '
+                     desc='Scaler of the state variable defects at the collocation nodes. This '
                           'option is invalid if opt=False.')
+
+        self.declare(name='defect_ref',
+                     types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='Unit-reference value of the state defects at the collocation nodes. This'
+                          ' option is invalid if opt=False.  If provide, this option overrides'
+                          ' defect_scaler.')
 
         self.declare(name='continuity', types=(bool, dict), default=True,
                      desc='Enforce continuity of state values at segment boundaries. This '
