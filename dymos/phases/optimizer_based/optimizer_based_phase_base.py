@@ -256,7 +256,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
         Setup the Collocation and Continuity components as necessary.
         """
         grid_data = self.grid_data
-        compressed = self.options['compressed']
         num_seg = grid_data.num_segments
 
         time_units = self.time_options['units']

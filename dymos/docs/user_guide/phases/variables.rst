@@ -52,6 +52,14 @@ phase method `set_state_options`.  The following options are valid:
     _ForDocs
     state_options
 
+The Radau Pseudospectral and Gauss Lobatto phases types in |project| use differential defects to
+approximate the evolution of the state variables with respect to time.  In addition to scaling
+the state values, scaling the defect constraints correctly is important to good performance of
+the collocation algorithms.  This is accomplished with the `defect_scaler` or `defect_ref` options.
+As the name implies, `defect_scaler` is multiplied by the defect value to provide the defect
+constraint value to the optimizer.  Alternatively, the user can specify `defect_ref`.  If provided,
+`defect_ref` overrides `defect_scaler` and is the value of the defect seen as `1` by the optimizer.
+
 
 Controls and Design Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
