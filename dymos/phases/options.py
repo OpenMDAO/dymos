@@ -133,6 +133,10 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
                           'for the optimization problem.  If False, allow the '
                           'control to be connected externally.')
 
+        self.declare(name='input_value', types=bool, default=False,
+                     desc='If True, the value of this design parameter is expected to be '
+                          'connected to an external output source.')
+
         self.declare(name='targets', types=Iterable, default=[],
                      desc='Used to store target information for ShootingPhase.  Should not be'
                           'set by the user in add_design_parameter.')

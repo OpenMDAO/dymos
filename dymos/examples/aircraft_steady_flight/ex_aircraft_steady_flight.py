@@ -4,10 +4,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+
 import numpy as np
 
-from openmdao.api import Problem, Group, ScipyOptimizeDriver, pyOptSparseDriver, DirectSolver, \
-    IndepVarComp, SqliteRecorder
+from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, IndepVarComp
 
 from dymos import Phase
 
@@ -67,9 +67,9 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     phase.add_control('mach', units=None, opt=False, lower=0.8, upper=0.8, ref=1.0)
 
-    phase.add_design_parameter('S', units='m**2', opt=False)
-    phase.add_design_parameter('mass_empty', units='kg', opt=False)
-    phase.add_design_parameter('mass_payload', units='kg', opt=False)
+    phase.add_design_parameter('S', units='m**2', opt=False, input_value=True)
+    phase.add_design_parameter('mass_empty', units='kg', opt=False, input_value=True)
+    phase.add_design_parameter('mass_payload', units='kg', opt=False, input_value=True)
 
     phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
     phase.add_path_constraint('alt_rate', units='ft/min', lower=-3000, upper=3000, ref=3000)

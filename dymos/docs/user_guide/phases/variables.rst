@@ -84,26 +84,16 @@ a phase is `add_control`. Valid options for controls and design parameters are a
     _ForDocs
     design_parameter_options
 
-Like states, *dynamic* controls are modeled as polynomials.  When
+Like states, *dynamic* controls are modeled as polynomials within each segment.  When
 transcribed to a nonlinear programming problem, a dynamic control is given a unique value at each
 node within the phase.  Design parameters are modeled as a singular value that is broadcast to all
 nodes in the phase before the ODE function is evaluated.  If you can parameterize your problem in
 such a way that static controls can be used, performance may be significantly better due to the
-size of the NLP problem being much smaller.
+size of the NLP problem being much smaller, despite the fact that they reduce the *sparsity* of
+the jacobian matrix of the resulting optimal control problem.
 
 .. note::
     The order of a dynamic control polynomial in a segment is one less than the state
     transcription order (i.e. a dynamic control in a phase with `transcription_order=3` will
     be represented by a second-order polynomial.
-
-Example: Solving the Linear Tangent Launch Vehicle Problem
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The following problem demonstrates the use of |project| to solve for the minimum time for a single
-stage launch vehicle to reach lunar orbit from the surface of the moon.  Optimal control theory
-dictates that the tangent of the pitch angle of the thrust vector varies linearly with time.
-Therefore, rather than using a dynamic control to specify the thrust angle at each instance in
-time, we can instead specify two paramters (`a` and `b`) as design parameters.  These parameters
-dictate the slope and intercept of the tangent of the thrust angle w.r.t. time.
-
 

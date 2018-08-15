@@ -44,6 +44,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         # Pass design parameters in externally from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
+        assumptions.add_output('mach', val=0.8, units=None)
         assumptions.add_output('S', val=427.8, units='m**2')
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
@@ -67,15 +68,15 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
                           rate2_continuity=True, rate2_continuity_scaler=1.0, ref=1.0,
                           fix_initial=True, fix_final=True)
 
-        phase.add_control('mach', units=None, opt=False)
-
-        phase.add_design_parameter('S', units='m**2', opt=False)
-        phase.add_design_parameter('mass_empty', units='kg', opt=False)
-        phase.add_design_parameter('mass_payload', units='kg', opt=False)
+        phase.add_design_parameter('mach', units=None, input_value=True)
+        phase.add_design_parameter('S', units='m**2', input_value=True)
+        phase.add_design_parameter('mass_empty', units='kg', input_value=True)
+        phase.add_design_parameter('mass_payload', units='kg', input_value=True)
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
         phase.add_path_constraint('alt_rate', units='ft/min', lower=-3000, upper=3000, ref=3000)
 
+        p.model.connect('assumptions.mach', 'phase0.design_parameters:mach')
         p.model.connect('assumptions.S', 'phase0.design_parameters:S')
         p.model.connect('assumptions.mass_empty', 'phase0.design_parameters:mass_empty')
         p.model.connect('assumptions.mass_payload', 'phase0.design_parameters:mass_payload')
@@ -91,9 +92,9 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         p['phase0.states:range'] = phase.interpolate(ys=(0, 1000.0), nodes='state_input')
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(30000, 0), nodes='state_input')
 
-        p['phase0.controls:mach'][:] = 0.8
         p['phase0.controls:alt'][:] = 10.0
 
+        p['assumptions.mach'][:] = 0.8
         p['assumptions.S'] = 427.8
         p['assumptions.mass_empty'] = 0.15E6
         p['assumptions.mass_payload'] = 84.02869 * 400

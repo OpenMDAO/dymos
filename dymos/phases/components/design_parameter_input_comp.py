@@ -28,7 +28,7 @@ class DesignParameterInputComp(ExplicitComponent):
 
     def setup(self):
         for param_name, options in iteritems(self.options['design_parameter_options']):
-            if options['opt']:
+            if not options['input_value']:
                 # Ignore this control if it is an optimal control
                 continue
             self._input_design_parameters.append(param_name)

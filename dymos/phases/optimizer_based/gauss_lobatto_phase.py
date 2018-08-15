@@ -104,7 +104,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             map_indices_to_disc = np.zeros(self.grid_data.subset_num_nodes['state_disc'], dtype=int)
             map_indices_to_col = np.zeros(self.grid_data.subset_num_nodes['col'], dtype=int)
 
-            if options['opt']:
+            if not options['input_value']:
                 src_name = 'design_parameters:{0}'.format(name)
             else:
                 src_name = 'design_parameters:{0}_out'.format(name)
