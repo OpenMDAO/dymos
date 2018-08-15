@@ -2,8 +2,6 @@ from __future__ import print_function, division, absolute_import
 
 import unittest
 
-import numpy as np
-
 from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, \
     pyOptSparseDriver, ScipyOptimizeDriver
 from openmdao.utils.assert_utils import assert_rel_error
@@ -64,9 +62,9 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase.add_control('mach', units=None, opt=False)
 
-        phase.add_design_parameter('S', units='m**2', opt=False)
-        phase.add_design_parameter('mass_empty', units='kg', opt=False)
-        phase.add_design_parameter('mass_payload', units='kg', opt=False)
+        phase.add_design_parameter('S', units='m**2', input_value=True)
+        phase.add_design_parameter('mass_empty', units='kg', input_value=True)
+        phase.add_design_parameter('mass_payload', units='kg', input_value=True)
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
 
