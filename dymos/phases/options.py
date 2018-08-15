@@ -138,8 +138,7 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
                           'connected to an external output source.')
 
         self.declare(name='targets', types=Iterable, default=[],
-                     desc='Used to store target information for ShootingPhase.  Should not be'
-                          'set by the user in add_design_parameter.')
+                     desc='Used to store target information on a per-phase basis for trajectories.')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the design parameter in the phase.')

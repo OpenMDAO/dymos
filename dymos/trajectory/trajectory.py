@@ -16,6 +16,7 @@ from openmdao.api import Group, ParallelGroup
 
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
 from ..phases.phase_base import PhaseBase
+from ..phases.options import DesignParameterOptionsDictionary
 from ..utils.simulation import simulate_phase_map_unpack
 from ..utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
 
@@ -28,6 +29,7 @@ class Trajectory(Group):
     def __init__(self, **kwargs):
         super(Trajectory, self).__init__(**kwargs)
 
+        self.design_parameter_options = {}
         self._linkages = {}
         self._phases = {}
         self._phase_add_kwargs = {}
@@ -59,6 +61,99 @@ class Trajectory(Group):
         self._phases[name] = phase
         self._phase_add_kwargs[name] = kwargs
         return phase
+
+    def add_design_parameter(self, name, targets=None, val=0.0, units=0, shape=(1,), opt=True,
+                             input_value=False, lower=None, upper=None, scaler=None, adder=None,
+                             ref=None, ref0=None):
+        """
+        Add a design parameter (static control) to the trajectory.
+
+        Parameters
+        ----------
+        name : str
+            Name of the design parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        targets : dict or None
+            If None, then the design parameter will be connected to the controllable parameter
+            in the ODE of each phase.  For each phase where no such controllable parameter exists,
+            a warning will be issued.  If targets is given as a dict, the dict should provide
+            the relevant phase names as keys, each associated with the respective controllable
+            parameteter as a value.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        opt : bool
+            If True (default) the value(s) of this design parameter will be design variables in
+            the optimization problem, in the path
+            'traj_name.indep_design_params.design_parameters:name'.  If False, the this design
+            parameter will still be owned by an IndepVarComp in the phase, but it will not be a
+            design variable in the optimization.
+        input_value : bool
+            If True, this design parameter will be connected to an external source outside of
+            the phase.  Providing input_value=True makes all optimization settings irrelevant and
+            overrides opt to False.
+        lower : float or ndarray
+            The lower bound of the design parameter value.
+        upper : float or ndarray
+            The upper bound of the design parameter value.
+        scaler : float or ndarray
+            The scaler of the design parameter value for the optimizer.
+        adder : float or ndarray
+            The adder of the design parameter value for the optimizer.
+        ref0 : float or ndarray
+            The zero-reference value of the design parameter for the optimizer.
+        ref : float or ndarray
+            The unit-reference value of the design parameter for the optimizer.
+
+        """
+        if name in self.control_options:
+            raise ValueError('{0} has already been added as a control.'.format(name))
+        if name in self.design_parameter_options:
+            raise ValueError('{0} has already been added as a design parameter.'.format(name))
+
+        self.design_parameter_options[name] = DesignParameterOptionsDictionary()
+
+        if name in self.ode_options._parameters:
+            ode_param_info = self.ode_options._parameters[name]
+            self.design_parameter_options[name]['units'] = ode_param_info['units']
+            self.design_parameter_options[name]['shape'] = ode_param_info['shape']
+        else:
+            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
+            raise ValueError(err_msg)
+
+        # Don't allow the user to provide desvar options if the design parameter is not a desvar
+        if input_value or not opt:
+            illegal_options = []
+            if lower is not None:
+                illegal_options.append('lower')
+            if upper is not None:
+                illegal_options.append('upper')
+            if scaler is not None:
+                illegal_options.append('scaler')
+            if adder is not None:
+                illegal_options.append('adder')
+            if ref is not None:
+                illegal_options.append('ref')
+            if ref0 is not None:
+                illegal_options.append('ref0')
+            if illegal_options:
+                msg = 'Invalid options for non-optimal/input design parameter "{0}":'.format(name) \
+                      + ', '.join(illegal_options)
+                warnings.warn(msg, RuntimeWarning)
+
+        self.design_parameter_options[name]['val'] = val
+        self.design_parameter_options[name]['opt'] = False if input_value else opt
+        self.design_parameter_options[name]['input_value'] = input_value
+        self.design_parameter_options[name]['lower'] = lower
+        self.design_parameter_options[name]['upper'] = upper
+        self.design_parameter_options[name]['scaler'] = scaler
+        self.design_parameter_options[name]['adder'] = adder
+        self.design_parameter_options[name]['ref'] = ref
+        self.design_parameter_options[name]['ref0'] = ref0
+
+        if units != 0:
+            self.design_parameter_options[name]['units'] = units
 
     def setup(self):
         """

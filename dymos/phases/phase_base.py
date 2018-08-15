@@ -303,39 +303,38 @@ class PhaseBase(Group):
     def add_design_parameter(self, name, val=0.0, units=0, opt=True, input_value=False,
                              lower=None, upper=None, scaler=None, adder=None, ref=None, ref0=None):
         """
-        Declares that a parameter of the ODE is to potentially be used as an optimal control.
+        Add a design parameter (static control variable) to the phase.
 
         Parameters
         ----------
         name : str
-            Name of the controllable parameter in the ODE.
+            Name of the design parameter.
         val : float or ndarray
-            Default value of the control at all nodes.  If val scalar and the control
-            is dynamic it will be broadcast.
+            Default value of the design parameter at all nodes.
         units : str or None or 0
-            Units in which the control variable is defined.  If 0, use the units declared
+            Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         opt : bool
-            If True (default) the value(s) of this control will be design variables in
+            If True (default) the value(s) of this design parameter will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
             If False, the this design parameter will still be owned by an IndepVarComp in the phase,
-            but it will not be a design parameter.
+            but it will not be a design variable in the optimization.
         input_value : bool
             If True, this design parameter will be connected to an external source outside of
             the phase.  Providing input_value=True makes all optimization settings irrelevant and
             overrides opt to False.
         lower : float or ndarray
-            The lower bound of the control at the nodes of the phase.
+            The lower bound of the design parameter value.
         upper : float or ndarray
-            The upper bound of the control at the nodes of the phase.
+            The upper bound of the design parameter value.
         scaler : float or ndarray
-            The scaler of the control value at the nodes of the phase.
+            The scaler of the design parameter value for the optimizer.
         adder : float or ndarray
-            The adder of the control value at the nodes of the phase.
+            The adder of the design parameter value for the optimizer.
         ref0 : float or ndarray
-            The zero-reference value of the control at the nodes of the phase.
+            The zero-reference value of the design parameter for the optimizer.
         ref : float or ndarray
-            The unit-reference value of the control at the nodes of the phase
+            The unit-reference value of the design parameter for the optimizer.
 
         """
         if name in self.control_options:
