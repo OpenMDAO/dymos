@@ -90,7 +90,7 @@ class PhaseBase(Group):
     def set_state_options(self, name, units=_unspecified, val=1.0,
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
-                          ref=None, ref0=None, defect_scaler=1.0):
+                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -126,6 +126,9 @@ class PhaseBase(Group):
             The unit-reference value of the state at the nodes of the phase
         defect_scaler : float or ndarray (1.0)
             The scaler of the state defect at the collocation nodes of the phase.
+        defect_ref : float or ndarray (1.0)
+            The unit-reference value of the state defect at the collocation nodes of the phase. If
+            provided, this value overrides defect_scaler.
 
         """
         if units is not _unspecified:
@@ -142,6 +145,7 @@ class PhaseBase(Group):
         self.state_options[name]['ref'] = ref
         self.state_options[name]['ref0'] = ref0
         self.state_options[name]['defect_scaler'] = defect_scaler
+        self.state_options[name]['defect_ref'] = defect_ref
 
     def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,
@@ -296,7 +300,7 @@ class PhaseBase(Group):
         if units != 0:
             self.control_options[name]['units'] = units
 
-    def add_design_parameter(self, name, val=0.0, units=0, opt=True, input=False,
+    def add_design_parameter(self, name, val=0.0, units=0, opt=True, input_value=False,
                              lower=None, upper=None, scaler=None, adder=None, ref=None, ref0=None):
         """
         Declares that a parameter of the ODE is to potentially be used as an optimal control.
@@ -314,8 +318,12 @@ class PhaseBase(Group):
         opt : bool
             If True (default) the value(s) of this control will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the this control will exist as a promoted input to control_interp_comp where
-            it may be connected to an external source, if desired.
+            If False, the this design parameter will still be owned by an IndepVarComp in the phase,
+            but it will not be a design parameter.
+        input_value : bool
+            If True, this design parameter will be connected to an external source outside of
+            the phase.  Providing input_value=True makes all optimization settings irrelevant and
+            overrides opt to False.
         lower : float or ndarray
             The lower bound of the control at the nodes of the phase.
         upper : float or ndarray
@@ -346,7 +354,7 @@ class PhaseBase(Group):
             raise ValueError(err_msg)
 
         # Don't allow the user to provide desvar options if the design parameter is not a desvar
-        if not opt:
+        if input_value or not opt:
             illegal_options = []
             if lower is not None:
                 illegal_options.append('lower')
@@ -361,11 +369,13 @@ class PhaseBase(Group):
             if ref0 is not None:
                 illegal_options.append('ref0')
             if illegal_options:
-                msg = 'Invalid options for non-optimal control:' + ', '.join(illegal_options)
+                msg = 'Invalid options for non-optimal/input design parameter "{0}":'.format(name) \
+                      + ', '.join(illegal_options)
                 warnings.warn(msg, RuntimeWarning)
 
         self.design_parameter_options[name]['val'] = val
-        self.design_parameter_options[name]['opt'] = opt
+        self.design_parameter_options[name]['opt'] = False if input_value else opt
+        self.design_parameter_options[name]['input_value'] = input_value
         self.design_parameter_options[name]['lower'] = lower
         self.design_parameter_options[name]['upper'] = upper
         self.design_parameter_options[name]['scaler'] = scaler
@@ -734,10 +744,10 @@ class PhaseBase(Group):
             else:
                 return 'input_control'
         elif var in self.design_parameter_options:
-            if self.design_parameter_options[var]['opt']:
-                return 'indep_design_parameter'
-            else:
+            if self.design_parameter_options[var]['input_value']:
                 return 'input_design_parameter'
+            else:
+                return 'indep_design_parameter'
         elif var.endswith('_rate'):
             if var[:-5] in self.control_options:
                 return 'control_rate'
@@ -911,16 +921,16 @@ class PhaseBase(Group):
         Adds an IndepVarComp if necessary and issues appropriate connections based
         on transcription.
         """
-        opt_design_params = [name for (name, opts) in iteritems(self.design_parameter_options)
-                             if opts['opt']]
+        input_design_params = [name for (name, opts) in iteritems(self.design_parameter_options)
+                               if opts['input_value']]
 
-        num_opt_design_params = len(opt_design_params)
+        num_design_params = len(self.design_parameter_options)
 
-        num_input_design_params = len(self.design_parameter_options) - num_opt_design_params
+        num_input_design_params = len(input_design_params)
 
         grid_data = self.grid_data
 
-        if num_opt_design_params > 0:
+        if num_input_design_params < num_design_params:
             indep = self.add_subsystem('indep_design_params', subsys=IndepVarComp(),
                                        promotes_outputs=['*'])
 
@@ -934,8 +944,6 @@ class PhaseBase(Group):
 
         for name, options in iteritems(self.design_parameter_options):
             if options['opt']:
-                num_input_nodes = 1
-
                 lb = -INF_BOUND if options['lower'] is None else options['lower']
                 ub = INF_BOUND if options['upper'] is None else options['upper']
 
@@ -947,9 +955,10 @@ class PhaseBase(Group):
                                     ref0=options['ref0'],
                                     ref=options['ref'])
 
+            if not options['input_value']:
                 indep.add_output(name='design_parameters:{0}'.format(name),
                                  val=options['val'],
-                                 shape=(num_input_nodes, np.prod(options['shape'])),
+                                 shape=(1, np.prod(options['shape'])),
                                  units=options['units'])
 
     def _setup_rhs(self):

@@ -71,7 +71,9 @@ class CollocationComp(ExplicitComponent):
                 desc='Interior defects of state {0}'.format(state_name),
                 units=units)
 
-            if 'defect_scaler' in options:
+            if 'defect_ref' in options and options['defect_ref'] is not None:
+                def_scl = 1.0 / options['defect_ref']
+            elif 'defect_scaler' in options:
                 def_scl = options['defect_scaler']
             else:
                 def_scl = 1.0

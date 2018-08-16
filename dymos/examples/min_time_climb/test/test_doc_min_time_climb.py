@@ -28,7 +28,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
 
         phase = Phase('gauss-lobatto',
                       ode_class=MinTimeClimbODE,
-                      num_segments=15,
+                      num_segments=12,
                       compressed=True,
                       transcription_order=3)
 
@@ -38,19 +38,19 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
                                duration_ref=100.0)
 
         phase.set_state_options('r', fix_initial=True, lower=0, upper=1.0E6,
-                                scaler=1.0E-3, defect_scaler=1.0E-2, units='m')
+                                ref=1.0E3, defect_ref=1000.0, units='m')
 
         phase.set_state_options('h', fix_initial=True, lower=0, upper=20000.0,
-                                scaler=1.0E-3, defect_scaler=1.0E-3, units='m')
+                                ref=1.0E2, defect_ref=100.0, units='m')
 
         phase.set_state_options('v', fix_initial=True, lower=10.0,
-                                scaler=1.0E-2, defect_scaler=1.0E-2, units='m/s')
+                                ref=1.0E2, defect_ref=0.1, units='m/s')
 
         phase.set_state_options('gam', fix_initial=True, lower=-1.5, upper=1.5,
                                 ref=1.0, defect_scaler=1.0, units='rad')
 
         phase.set_state_options('m', fix_initial=True, lower=10.0, upper=1.0E5,
-                                scaler=1.0E-3, defect_scaler=1.0E-3)
+                                ref=1.0E3, defect_ref=0.1)
 
         rate_continuity = True
 
@@ -95,7 +95,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         # Test the results
         assert_rel_error(self, p.model.phase0.get_values('time')[-1], 321.0, tolerance=2)
 
-        exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 100))
+        exp_out = phase.simulate(times=50)
 
         fig, axes = plt.subplots(2, 1, sharex=True)
 

@@ -80,7 +80,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
             map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
 
-            if options['opt']:
+            if not options['input_value']:
                 src_name = 'design_parameters:{0}'.format(name)
             else:
                 src_name = 'design_parameters:{0}_out'.format(name)

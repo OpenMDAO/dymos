@@ -52,6 +52,14 @@ phase method `set_state_options`.  The following options are valid:
     _ForDocs
     state_options
 
+The Radau Pseudospectral and Gauss Lobatto phases types in |project| use differential defects to
+approximate the evolution of the state variables with respect to time.  In addition to scaling
+the state values, scaling the defect constraints correctly is important to good performance of
+the collocation algorithms.  This is accomplished with the `defect_scaler` or `defect_ref` options.
+As the name implies, `defect_scaler` is multiplied by the defect value to provide the defect
+constraint value to the optimizer.  Alternatively, the user can specify `defect_ref`.  If provided,
+`defect_ref` overrides `defect_scaler` and is the value of the defect seen as `1` by the optimizer.
+
 
 Controls and Design Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -84,26 +92,16 @@ a phase is `add_control`. Valid options for controls and design parameters are a
     _ForDocs
     design_parameter_options
 
-Like states, *dynamic* controls are modeled as polynomials.  When
+Like states, *dynamic* controls are modeled as polynomials within each segment.  When
 transcribed to a nonlinear programming problem, a dynamic control is given a unique value at each
 node within the phase.  Design parameters are modeled as a singular value that is broadcast to all
 nodes in the phase before the ODE function is evaluated.  If you can parameterize your problem in
 such a way that static controls can be used, performance may be significantly better due to the
-size of the NLP problem being much smaller.
+size of the NLP problem being much smaller, despite the fact that they reduce the *sparsity* of
+the jacobian matrix of the resulting optimal control problem.
 
 .. note::
     The order of a dynamic control polynomial in a segment is one less than the state
     transcription order (i.e. a dynamic control in a phase with `transcription_order=3` will
     be represented by a second-order polynomial.
-
-Example: Solving the Linear Tangent Launch Vehicle Problem
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The following problem demonstrates the use of |project| to solve for the minimum time for a single
-stage launch vehicle to reach lunar orbit from the surface of the moon.  Optimal control theory
-dictates that the tangent of the pitch angle of the thrust vector varies linearly with time.
-Therefore, rather than using a dynamic control to specify the thrust angle at each instance in
-time, we can instead specify two paramters (`a` and `b`) as design parameters.  These parameters
-dictate the slope and intercept of the tangent of the thrust angle w.r.t. time.
-
 

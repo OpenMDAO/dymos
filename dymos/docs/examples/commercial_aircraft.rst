@@ -376,7 +376,9 @@ parameters.  More details on the various models involved can be found in the exa
 2. Building and running the problem
 -----------------------------------
 
-In the following code we define and solve the optimal control problem:
+In the following code we define and solve the optimal control problem.  Note that we demonstrate
+the use of externally-connected design parameters in this case.  The four design parameters have
+`input_value = True`, and are connected to a source provided by the `assumptions` IndepVarComp.
 
 .. embed-code::
     dymos.examples.aircraft_steady_flight.test.test_doc_aircraft_steady_flight.TestSteadyAircraftFlightForDocs.test_steady_aircraft_for_docs

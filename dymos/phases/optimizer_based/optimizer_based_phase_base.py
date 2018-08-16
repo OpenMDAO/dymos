@@ -115,19 +115,25 @@ class OptimizerBasedPhaseBase(PhaseBase):
         num_opt_controls = len([name for (name, options) in iteritems(self.control_options)
                                 if options['opt']])
 
+        num_design_params = len(self.design_parameter_options)
+
         num_opt_design_params = len([name for (name, options) in
                                      iteritems(self.design_parameter_options) if options['opt']])
 
         num_input_design_params = len([name for (name, options) in
                                        iteritems(self.design_parameter_options)
-                                       if not options['opt']])
+                                       if options['input_value']])
 
         num_controls = len(self.control_options)
 
-        indep_controls = ['indep_controls'] if num_opt_controls > 0 else []
-        indep_design_params = ['indep_design_params'] if num_opt_design_params > 0 else []
-        input_design_params = ['input_design_params'] if num_input_design_params > 0 else []
-        control_interp_comp = ['control_interp_comp'] if num_controls > 0 else []
+        indep_controls = ['indep_controls'] \
+            if num_opt_controls > 0 else []
+        indep_design_params = ['indep_design_params'] \
+            if num_input_design_params < num_design_params else []
+        input_design_params = ['input_design_params'] \
+            if num_input_design_params > 0 else []
+        control_interp_comp = ['control_interp_comp'] \
+            if num_controls > 0 else []
 
         order = self._time_extents + indep_controls + \
             indep_design_params + input_design_params + \
@@ -250,7 +256,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
         Setup the Collocation and Continuity components as necessary.
         """
         grid_data = self.grid_data
-        compressed = self.options['compressed']
         num_seg = grid_data.num_segments
 
         time_units = self.time_options['units']

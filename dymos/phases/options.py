@@ -133,6 +133,10 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
                           'for the optimization problem.  If False, allow the '
                           'control to be connected externally.')
 
+        self.declare(name='input_value', types=bool, default=False,
+                     desc='If True, the value of this design parameter is expected to be '
+                          'connected to an external output source.')
+
         self.declare(name='targets', types=Iterable, default=[],
                      desc='Used to store target information for ShootingPhase.  Should not be'
                           'set by the user in add_design_parameter.')
@@ -266,8 +270,15 @@ class StateOptionsDictionary(OptionsDictionary):
         self.declare(name='defect_scaler',
                      types=(Iterable, Number), default=1.0,
                      allow_none=True,
-                     desc='Scaler of the state variable defect at the collocation nodes. This '
+                     desc='Scaler of the state variable defects at the collocation nodes. This '
                           'option is invalid if opt=False.')
+
+        self.declare(name='defect_ref',
+                     types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='Unit-reference value of the state defects at the collocation nodes. This'
+                          ' option is invalid if opt=False.  If provide, this option overrides'
+                          ' defect_scaler.')
 
         self.declare(name='continuity', types=(bool, dict), default=True,
                      desc='Enforce continuity of state values at segment boundaries. This '
