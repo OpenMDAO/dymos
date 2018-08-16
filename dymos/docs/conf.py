@@ -24,11 +24,11 @@ from numpydoc.docscrape import NumpyDocString, Reader
 
 openmdao_path = os.path.split(os.path.abspath(openmdao.__file__))[0]
 
-from openmdao.docutils import do_monkeypatch, generate_docs, embed_code, embed_options
+import openmdao.docutils
 #sys.path.insert(0, os.path.join(openmdao_path, 'docs', '_exts'))
 #sys.path.insert(0, os.path.join(openmdao_path, 'docs', '_utils'))
 
-do_monkeypatch()
+openmdao.docutils.do_monkeypatch()
 
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('.'))
@@ -47,8 +47,8 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.githubpages',
               # 'sphinxcontrib.bibtex',
               'numpydoc',
-              'embed_code',
-              'embed_options', ]
+              'openmdao.docutils.embed_code',
+              'openmdao.docutils.embed_options', ]
 
 numpydoc_show_class_members = False
 
@@ -73,7 +73,7 @@ packages = [
     'utils.simulation.components',
 ]
 
-generate_docs("..", "../..", packages, project_name='dymos')
+openmdao.docutils.generate_docs("..", "../..", packages, project_name='dymos')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
