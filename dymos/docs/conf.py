@@ -24,16 +24,9 @@ from numpydoc.docscrape import NumpyDocString, Reader
 
 openmdao_path = os.path.split(os.path.abspath(openmdao.__file__))[0]
 
-from openmdao.docs._utils.patch import do_monkeypatch
-from openmdao.docs._utils.generate_sourcedocs import generate_docs
-sys.path.insert(0, os.path.join(openmdao_path, 'docs', '_exts'))
-sys.path.insert(0, os.path.join(openmdao_path, 'docs', '_utils'))
-
-# Will switch to these lines once OpenMDAO adds these to their API
-# from openmdao.docs.utils.generate_sourcedocs import generate_docs
-# from openmdao.docs.utils.patch import do_monkeypatch
-# sys.path.insert(0, os.path.join(openmdao_path, 'docs', 'exts'))
-# sys.path.insert(0, os.path.join(openmdao_path, 'docs', 'utils'))
+from openmdao.docutils import do_monkeypatch, generate_docs, embed_code, embed_options
+#sys.path.insert(0, os.path.join(openmdao_path, 'docs', '_exts'))
+#sys.path.insert(0, os.path.join(openmdao_path, 'docs', '_utils'))
 
 do_monkeypatch()
 
