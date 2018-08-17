@@ -7,6 +7,7 @@ from dymos.examples.min_time_climb.aero.dynamic_pressure_comp import DynamicPres
 from dymos.examples.min_time_climb.aero.lift_drag_force_comp import LiftDragForceComp
 from dymos.models.atmosphere import StandardAtmosphereGroup
 from dymos.models.eom import FlightPathEOM2D
+from .kinetic_energy_comp import KineticEnergyComp
 
 
 
@@ -14,13 +15,13 @@ from dymos.models.eom import FlightPathEOM2D
 @declare_state(name='r', rate_source='eom.r_dot', units='m')
 @declare_state(name='h', rate_source='eom.h_dot', targets=['atmos.h'], units='m')
 @declare_state(name='gam', rate_source='eom.gam_dot', targets=['eom.gam'], units='rad')
-@declare_state(name='v', rate_source='eom.v_dot', targets=['dynamic_pressure.v', 'eom.v'],
-               units='m/s')
+@declare_state(name='v', rate_source='eom.v_dot',
+               targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'], units='m/s')
 @declare_parameter(name='CD', targets=['aero.CD'], units=None)
 @declare_parameter(name='CL', targets=['aero.CL'], units=None)
 @declare_parameter(name='T', targets=['eom.T'], units='N')
 @declare_parameter(name='alpha', targets=['eom.alpha'], units='deg')
-@declare_parameter(name='m', targets=['eom.m'], units='kg')
+@declare_parameter(name='m', targets=['eom.m', 'kinetic_energy.m'], units='kg')
 @declare_parameter(name='S', targets=['aero.S'], units='m**2')
 class CannonballODE(Group):
 
@@ -29,6 +30,9 @@ class CannonballODE(Group):
 
     def setup(self):
         nn = self.options['num_nodes']
+
+        self.add_subsystem(name='kinetic_energy',
+                           subsys=KineticEnergyComp(num_nodes=nn))
 
         self.add_subsystem(name='atmos',
                            subsys=StandardAtmosphereGroup(num_nodes=nn))

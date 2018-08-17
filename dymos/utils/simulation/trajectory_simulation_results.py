@@ -46,10 +46,11 @@ class TrajectorySimulationResults(object):
                 self.outputs['phases'][phase_name]['controls'] = {}
                 self.outputs['phases'][phase_name]['control_rates'] = {}
                 self.outputs['phases'][phase_name]['design_parameters'] = {}
+                self.outputs['phases'][phase_name]['traj_design_parameters'] = {}
                 self.outputs['phases'][phase_name]['ode'] = {}
 
                 for var_type in ('indep', 'states', 'controls', 'control_rates',
-                                 'design_parameters', 'ode'):
+                                 'design_parameters', 'traj_design_parameters', 'ode'):
                     pdict = phase_results.outputs[var_type]
                     self.outputs['phases'][phase_name][var_type].update(pdict)
 
@@ -82,14 +83,6 @@ class TrajectorySimulationResults(object):
         traj_group = p.model.add_subsystem('phases', ParallelGroup())
 
         phase_groups = {}
-
-        # Add trajectory design parameters
-        if traj.design_parameter_options:
-            ivc = traj_group.add_subsystem('inputs', subsys=IndepVarComp(), promotes_outputs=['*'])
-        for name, options in iteritems(traj.design_parameter_options):
-            units = options['units']
-            ivc.add_output('traj_design_parameters:{0}'.format(name),
-                           val=np.zeros(options['shape']), units=units)
 
         for phase_name, phase in iteritems(traj._phases):
             ode_class = phase.options['ode_class']
@@ -162,10 +155,13 @@ class TrajectorySimulationResults(object):
             for name, options in iteritems(traj.design_parameter_options):
                 param_name = name if options['targets'] is None else options['targets'][phase_name]
                 if param_name in sys_param_options:
-                    traj_group.connect('traj_design_parameters:{0}'.format(name),
-                                       ['{0}.ode.{1}'.format(phase_name, t) for t in
-                                        sys_param_options[param_name]['targets']],
-                                       src_indices=np.zeros(nn, dtype=int))
+                    units = options['units']
+                    ivc.add_output('traj_design_parameters:{0}'.format(name),
+                                   val=np.zeros((nn,) + options['shape']), units=units)
+                    phase_group.connect('traj_design_parameters:{0}'.format(name),
+                                        ['ode.{0}'.format(t) for t in
+                                         sys_param_options[param_name]['targets']],
+                                        src_indices=np.zeros(nn, dtype=int))
 
         p.setup(check=True)
 
@@ -201,6 +197,12 @@ class TrajectorySimulationResults(object):
             for name, options in iteritems(phase.design_parameter_options):
                 shape = p['phases.{0}.design_parameters:{1}'.format(phase_name, name)].shape
                 p['phases.{0}.design_parameters:{1}'.format(phase_name, name)] = \
+                    np.reshape(exp_out.get_values(name), shape)
+
+            # Assign trajectory design parameters
+            for name, options in iteritems(traj.design_parameter_options):
+                shape = p['phases.{0}.traj_design_parameters:{1}'.format(phase_name, name)].shape
+                p['phases.{0}.traj_design_parameters:{1}'.format(phase_name, name)] = \
                     np.reshape(exp_out.get_values(name), shape)
 
             # Populate outputs of ODE
@@ -252,6 +254,7 @@ class TrajectorySimulationResults(object):
             self.outputs['phases'][phase_name]['controls'] = {}
             self.outputs['phases'][phase_name]['control_rates'] = {}
             self.outputs['phases'][phase_name]['design_parameters'] = {}
+            self.outputs['phases'][phase_name]['traj_design_parameters'] = {}
             self.outputs['phases'][phase_name]['ode'] = {}
 
         for name, options in loaded_outputs:
@@ -276,6 +279,9 @@ class TrajectorySimulationResults(object):
                         var_name = output_name.split(':')[-1]
                     elif output_name.startswith('design_parameters:'):
                         var_type = 'design_parameters'
+                        var_name = output_name.split(':')[-1]
+                    elif output_name.startswith('traj_design_parameters:'):
+                        var_type = 'traj_design_parameters'
                         var_name = output_name.split(':')[-1]
 
                 elif output_name.startswith('ode.'):
@@ -357,6 +363,8 @@ class TrajectorySimulationResults(object):
                 var_type = 'controls'
             elif var in self.outputs['phases'][phase_name]['design_parameters']:
                 var_type = 'design_parameters'
+            elif var in self.outputs['phases'][phase_name]['traj_design_parameters']:
+                var_type = 'traj_design_parameters'
             elif var.endswith('_rate') \
                     and var[:-5] in self.outputs['phases'][phase_name]['controls']:
                 var_type = 'control_rates'
