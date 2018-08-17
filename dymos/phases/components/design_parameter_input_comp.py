@@ -14,10 +14,6 @@ class DesignParameterInputComp(ExplicitComponent):
     external source.
     """
     def initialize(self):
-        self.options.declare(name='num_nodes',
-                             types=int,
-                             desc='The number of nodes in the phase')
-
         self.options.declare(name='design_parameter_options',
                              types=dict,
                              desc='Dictionary of options for the design parameters')

@@ -137,7 +137,7 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
                      desc='If True, the value of this design parameter is expected to be '
                           'connected to an external output source.')
 
-        self.declare(name='targets', types=Iterable, default=[],
+        self.declare(name='targets', types=Iterable, default=[], allow_none=True,
                      desc='Used to store target information on a per-phase basis for trajectories.')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),

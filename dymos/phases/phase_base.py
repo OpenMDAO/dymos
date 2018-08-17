@@ -757,19 +757,11 @@ class PhaseBase(Group):
             return 'ode'
 
     def setup(self):
-        transcription = self.options['transcription']
-        num_segments = self.options['num_segments']
         transcription_order = self.options['transcription_order']
-        segment_ends = self.options['segment_ends']
-        compressed = self.options['compressed']
 
         if np.any(np.asarray(transcription_order) < 3):
             raise ValueError('Given transcription order ({0}) is less than '
                              'the minimum allowed value (3)'.format(transcription_order))
-
-        self.grid_data = GridData(num_segments=num_segments, transcription=transcription,
-                                  transcription_order=transcription_order,
-                                  segment_ends=segment_ends, compressed=compressed)
 
         self._time_extents = self._setup_time()
 
@@ -796,8 +788,6 @@ class PhaseBase(Group):
         self._setup_endpoint_conditions()
         self._setup_boundary_constraints()
         self._setup_path_constraints()
-
-        self._check_unprovided_controls()
 
     def _setup_time(self):
         """
@@ -934,9 +924,8 @@ class PhaseBase(Group):
                                        promotes_outputs=['*'])
 
         if num_input_design_params > 0:
-            passthru = DesignParameterInputComp(
-                num_nodes=grid_data.num_nodes,
-                design_parameter_options=self.design_parameter_options)
+            passthru = \
+                DesignParameterInputComp(design_parameter_options=self.design_parameter_options)
 
             self.add_subsystem('input_design_params', subsys=passthru, promotes_inputs=['*'],
                                promotes_outputs=['*'])
@@ -959,6 +948,19 @@ class PhaseBase(Group):
                                  val=options['val'],
                                  shape=(1, np.prod(options['shape'])),
                                  units=options['units'])
+
+    def _get_design_parameter_connections(self, name):
+        """
+        Returns a list containing tuples of each path and related indices to which the
+        given design variable name is to be connected.
+
+        Returns
+        -------
+        connection_info : list of (paths, indices)
+            A list containing a tuple of target paths and corresponding src_indices to which the
+            given design variable is to be connected.
+        """
+        raise NotImplementedError()
 
     def _setup_rhs(self):
         raise NotImplementedError()
@@ -1084,31 +1086,6 @@ class PhaseBase(Group):
     def _setup_path_constraints(self):
         raise NotImplementedError('_setup_path_constraints has not been implemented '
                                   'for this phase type')
-
-    def _check_unprovided_controls(self):
-        logger = get_logger('check_config', use_format=True)
-        unconnected = []
-        ode_options = self.options['ode_class'].ode_options
-        ode_parameters = ode_options._parameters.copy()
-
-        for p in ode_parameters:
-            p_is_connected = False
-            for control_name, options in iteritems(self.control_options):
-                if control_name == p:
-                    p_is_connected = True
-                if options['rate_param'] == p:
-                    p_is_connected = True
-                if options['rate2_param'] == p:
-                    p_is_connected = True
-            for param_name, options in iteritems(self.design_parameter_options):
-                if param_name == p:
-                    p_is_connected = True
-            if not p_is_connected:
-                unconnected.append(p)
-        if unconnected:
-            logger.warning('The following ODE parameters are not provided '
-                           'by phase "{0}" as controls or control rates: {1}. '
-                           'The default value will be used.'.format(self.name, unconnected))
 
     def get_values(self, var, nodes=None, units=None):
         """

@@ -83,6 +83,14 @@ class TrajectorySimulationResults(object):
 
         phase_groups = {}
 
+        # Add trajectory design parameters
+        if traj.design_parameter_options:
+            ivc = traj_group.add_subsystem('inputs', subsys=IndepVarComp(), promotes_outputs=['*'])
+        for name, options in iteritems(traj.design_parameter_options):
+            units = options['units']
+            ivc.add_output('traj_design_parameters:{0}'.format(name),
+                           val=np.zeros(options['shape']), units=units)
+
         for phase_name, phase in iteritems(traj._phases):
             ode_class = phase.options['ode_class']
             init_kwargs = phase.options['ode_init_kwargs']
@@ -149,6 +157,15 @@ class TrajectorySimulationResults(object):
                                     ['ode.{0}'.format(t) for t in
                                      sys_param_options[name]['targets']],
                                     src_indices=np.arange(nn, dtype=int))
+
+            # Connect trajectory design parameters
+            for name, options in iteritems(traj.design_parameter_options):
+                param_name = name if options['targets'] is None else options['targets'][phase_name]
+                if param_name in sys_param_options:
+                    traj_group.connect('traj_design_parameters:{0}'.format(name),
+                                       ['{0}.ode.{1}'.format(phase_name, t) for t in
+                                        sys_param_options[param_name]['targets']],
+                                       src_indices=np.zeros(nn, dtype=int))
 
         p.setup(check=True)
 

@@ -4,6 +4,7 @@ import numpy as np
 from openmdao.utils.units import convert_units, valid_units
 from six import iteritems
 
+from ..grid_data import GridData
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
 from ..components import RadauPathConstraintComp, RadauPSContinuityComp
 from ...utils.misc import get_rate_units
@@ -13,6 +14,21 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
     """
     RadauPseudospectralPhase implements Legendre-Gauss-Radau
     pseudospectral transcription for solving optimal control problems.
+
+    Parameters
+    ----------
+    num_segments : int
+        The number of segments in the Phase
+    transcription_order : int
+        Order of transcription of the state variables within each segment.
+    segment_ends : Iterable or None
+        Iterable of locations of the segment ends in unnormalized space.  If None, segments
+        will be equally distributed in the phase.
+    compressed : bool
+        If True, "compress" the transcription but providing only a single, shared value for
+        states and controls at segment boundaries.
+    **kwargs
+        Additional options to be sent to the phase initialization as options.
 
     Attributes
     ----------
@@ -29,8 +45,23 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         A dictionary of the default options for controllable inputs of the Phase RHS
 
     """
-    def __init__(self, **kwargs):
-        super(RadauPseudospectralPhase, self).__init__(**kwargs)
+
+    def __init__(self, num_segments, transcription_order=3, segment_ends=None, compressed=True,
+                 **kwargs):
+        kwgs = kwargs.copy()
+        kwgs.update({'num_segments': num_segments, 'transcription_order': transcription_order,
+                    'segment_ends': segment_ends, 'compressed': compressed})
+
+        super(RadauPseudospectralPhase, self).__init__(**kwgs)
+
+        # Pluck out the kwargs needed to initialize grid_data, potentially needed prior to setup.
+        num_segments = num_segments
+        transcription_order = transcription_order
+        segment_ends = segment_ends
+        compressed = compressed
+        self.grid_data = GridData(num_segments=num_segments, transcription='radau-ps',
+                                  transcription_order=transcription_order,
+                                  segment_ends=segment_ends, compressed=compressed)
 
     def initialize(self, **kwargs):
         super(RadauPseudospectralPhase, self).initialize(**kwargs)
@@ -49,13 +80,6 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         super(RadauPseudospectralPhase, self)._setup_controls()
 
         for name, options in iteritems(self.control_options):
-
-            map_indices_to_all = self.grid_data.input_maps['dynamic_control_input_to_disc']
-
-            if options['opt']:
-                control_src_name = 'controls:{0}'.format(name)
-            else:
-                control_src_name = 'controls:{0}_out'.format(name)
 
             if name in self.ode_options._parameters:
                 targets = self.ode_options._parameters[name]['targets']
@@ -90,6 +114,28 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 self.connect(src_name,
                              ['rhs_all.{0}'.format(t) for t in targets],
                              src_indices=map_indices_to_all)
+
+    def _get_design_parameter_connections(self, name):
+        """
+        Returns a list containing tuples of each path and related indices to which the
+        given design variable name is to be connected.
+
+        Returns
+        -------
+        connection_info : list of (paths, indices)
+            A list containing a tuple of target paths and corresponding src_indices to which the
+            given design variable is to be connected.
+        """
+        connection_info = []
+        map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+
+        if name in self.ode_options._parameters:
+            targets = self.ode_options._parameters[name]['targets']
+
+            rhs_all_tgts = ['rhs_all.{0}'.format(t) for t in targets]
+            connection_info.append((rhs_all_tgts, map_indices_to_all))
+
+        return connection_info
 
     def _setup_path_constraints(self):
         """

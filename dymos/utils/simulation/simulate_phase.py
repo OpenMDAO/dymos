@@ -16,8 +16,10 @@ from ..interpolate import LagrangeBarycentricInterpolant
 
 
 def simulate_phase(phase_name, ode_class, time_options, state_options, control_options,
-                   design_parameter_options, time_values, state_values, control_values,
-                   design_parameter_values, ode_init_kwargs, grid_data, times, record=True,
+                   design_parameter_options, traj_design_parameter_options,
+                   time_values, state_values, control_values, design_parameter_values,
+                   traj_design_parameter_values,
+                   ode_init_kwargs, grid_data, times, record=True,
                    record_file=None, observer=None, integrator='vode', integrator_params=None):
     """
     Provides a way of simulating a phase that can be called in a multiprocessing pool.
@@ -36,6 +38,8 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
         The control options for the phase being simulated.
     design_parameter_options : OptionsDictionary
         The design parameter options for the phase being simulated.
+    traj_design_parameter_options : OptionsDictionary or None
+        The design parameter options for the trajectory containing the simulated phase, or None.
     time_values : ndarray
         The time values from the phase being simulated.
     state_values : dict of {str : ndarray}
@@ -46,6 +50,9 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
         nodes of the given phase.
     design_parameter_values : dict of {str : ndarray}
         A dictionary keyed by design parameter name containing the values of all design parameters.
+    traj_design_parameter_values : dict of {str : ndarray}
+        A dictionary keyed by design parameter name containing the values of all design parameters
+        managed by the trajectory containing the simulated phase.
     ode_init_kwargs : dict
         Keyword initialization arguments for the ODE class.
     grid_data : GridData
@@ -85,11 +92,13 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
     if isinstance(times, int):
         times = np.linspace(time_values[0], time_values[-1], times)
 
-    rhs_integrator = ScipyODEIntegrator(ode_class=ode_class,
+    rhs_integrator = ScipyODEIntegrator(phase_name=phase_name,
+                                        ode_class=ode_class,
                                         time_options=time_options,
                                         state_options=state_options,
                                         control_options=control_options,
                                         design_parameter_options=design_parameter_options,
+                                        traj_design_parameter_options=traj_design_parameter_options,
                                         ode_init_kwargs=ode_init_kwargs)
 
     x0 = {}
@@ -106,6 +115,12 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
 
     seg_sequence = range(grid_data.num_segments)
 
+    # Set the values of the trajectory design parameters
+    for param_name, options in iteritems(traj_design_parameter_options):
+        val = traj_design_parameter_values[param_name][phase_name]
+        rhs_integrator.set_traj_design_param_value(param_name, val[0, ...], options['units'])
+
+    # Set the values of the phase design parameters
     for param_name, options in iteritems(design_parameter_options):
         val = design_parameter_values[param_name]
         rhs_integrator.set_design_param_value(param_name, val[0, ...], options['units'])
@@ -161,7 +176,7 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
     # Save
     if record:
         filepath = record_file if record_file else '{0}_sim.db'.format(phase_name)
-        exp_out.record_results(filepath, ode_class, ode_init_kwargs)
+        exp_out.record_results(phase_name, filepath, ode_class, ode_init_kwargs)
     print(phase_name, 'simulation complete')
 
     return exp_out

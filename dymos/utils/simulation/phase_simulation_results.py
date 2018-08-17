@@ -22,33 +22,40 @@ class PhaseSimulationResults(object):
     ----------
     filepath : str or None
         A filepath from which PhaseSimulationResults are to be loaded.
-    time_options : dymos.TimeOptionsDictionary or None
+    time_options : {str: TimeOptionsDictionary} or None
         The options dictionary for the phase tied to this instance of simulation results.  If
         being loaded from a file, this is not needed at instantiation.
-    state_options : dict of dymos.StateOptionsDictionary or None
+    state_options : dict of {str: StateOptionsDictionary} or None
         The options dictionary for the phase tied to this instance of simulation results.  If
         being loaded from a file, this is not needed at instantiation.
-    control_options : dict of dymos.ControlOptionsDictionary or None
+    control_options : dict of {str: ControlOptionsDictionary} or None
         The options dictionary for the phase tied to this instance of simulation results.  If
         being loaded from a file, this is not needed at instantiation.
-    design_parameter_options : dict of dymos.DesignParameterOptionsDictionary or None
+    design_parameter_options : dict of {str: DesignParameterOptionsDictionary} or None
+        The options dictionary for the phase tied to this instance of simulation results.  If
+        being loaded from a file, this is not needed at instantiation.
+    design_parameter_options : dict of {str: DesignParameterOptionsDictionary} or None
         The options dictionary for the phase tied to this instance of simulation results.  If
         being loaded from a file, this is not needed at instantiation.
     """
-    def __init__(self, filepath=None, time_options=None, state_options=None, control_options=None,
-                 design_parameter_options=None):
-        self.time_options = time_options
-        self.state_options = state_options
-        self.control_options = control_options
-        self.design_parameter_options = design_parameter_options
+    def __init__(self, filepath=None, time_options=None, state_options=None,
+                 control_options=None, design_parameter_options=None,
+                 traj_design_parameter_options=None):
+        self.time_options = {} if time_options is None else time_options
+        self.state_options = {} if state_options is None else state_options
+        self.control_options = {} if control_options is None else control_options
+        self.design_parameter_options = {} if design_parameter_options is None else \
+            design_parameter_options
+        self.traj_design_parameter_options = {} if traj_design_parameter_options is None else \
+            traj_design_parameter_options
         self.outputs = {'indep': {}, 'states': {}, 'controls': {}, 'control_rates': {},
-                        'design_parameters': {}, 'ode': {}}
+                        'design_parameters': {}, 'traj_design_parameters': {}, 'ode': {}}
         self.units = {}
 
         if isinstance(filepath, str):
             self._load_results(filepath)
 
-    def record_results(self, filename, ode_class, ode_init_kwargs=None):
+    def record_results(self, phase_name, filename, ode_class, ode_init_kwargs=None):
         """
         Record the outputs to the given filename.  This is done by instantiating a new
         problem with an IndepVarComp for the time, states, controls, and control rates, as
@@ -61,6 +68,8 @@ class PhaseSimulationResults(object):
 
         Parameters
         ----------
+        phase_name : str
+            The name of the phase whose simulation results are being recorded.
         filename : str
             The filename to which the recording should be saved.
         ode_class : openmdao.System
@@ -128,6 +137,17 @@ class PhaseSimulationResults(object):
                             ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
                             src_indices=np.arange(nn, dtype=int))
 
+        # Connect trajectory design parameters
+        for name, options in iteritems(self.traj_design_parameter_options):
+            units = options['units']
+            ivc.add_output('traj_design_parameters:{0}'.format(name),
+                           val=np.zeros((nn,) + options['shape']), units=units)
+            param_name = name if options['targets'] is None else \
+                options['targets'].get(phase_name, None)
+            p.model.connect('traj_design_parameters:{0}'.format(name),
+                            ['ode.{0}'.format(t) for t in sys_param_options[param_name]['targets']],
+                            src_indices=np.arange(nn, dtype=int))
+
         p.setup(check=False)
 
         p.model.add_recorder(SqliteRecorder(filename))
@@ -157,6 +177,11 @@ class PhaseSimulationResults(object):
             shape = p['design_parameters:{0}'.format(name)].shape
             p['design_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
 
+        # Assign trajectory design parameters
+        for name, options in iteritems(self.traj_design_parameter_options):
+            shape = p['traj_design_parameters:{0}'.format(name)].shape
+            p['traj_design_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
+
         # Populate outputs of ODE
         prom2abs_ode_outputs = p.model.ode._var_allprocs_prom2abs_list['output']
         for prom_name, abs_name in iteritems(prom2abs_ode_outputs):
@@ -183,7 +208,7 @@ class PhaseSimulationResults(object):
                                          units=True, shape=True, out_stream=None)
 
         self.outputs = {'indep': {}, 'states': {}, 'controls': {}, 'control_rates': {},
-                        'design_parameters': {}, 'ode': {}}
+                        'design_parameters': {}, 'traj_design_parameters': {}, 'ode': {}}
 
         for output_name, options in loaded_outputs:
 
@@ -205,6 +230,9 @@ class PhaseSimulationResults(object):
                 elif output_name.startswith('design_parameters:'):
                     var_type = 'design_parameters'
                     var_name = output_name.replace('design_parameters:', '', 1)
+                elif output_name.startswith('traj_design_parameters:'):
+                    var_type = 'traj_design_parameters'
+                    var_name = output_name.replace('traj_design_parameters:', '', 1)
 
                 val = options['value']
 
@@ -240,6 +268,8 @@ class PhaseSimulationResults(object):
             var_type = 'controls'
         elif var in self.outputs['design_parameters']:
             var_type = 'design_parameters'
+        elif var in self.outputs['traj_design_parameters']:
+            var_type = 'traj_design_parameters'
         elif var in self.outputs['control_rates']:
             var_type = 'control_rates'
         elif var in self.outputs['ode']:

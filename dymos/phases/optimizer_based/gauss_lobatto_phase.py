@@ -6,6 +6,7 @@ import numpy as np
 
 from openmdao.utils.units import convert_units, valid_units
 
+from ..grid_data import GridData
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
 from ..components import GaussLobattoPathConstraintComp, GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
@@ -15,6 +16,21 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
     """
     GaussLobattoPhase implements GaussLobatto transcription
     for solving optimal control problems.
+
+    Parameters
+    ----------
+    num_segments : int
+        The number of segments in the Phase
+    transcription_order : int
+        Order of transcription of the state variables within each segment.
+    segment_ends : Iterable or None
+        Iterable of locations of the segment ends in unnormalized space.  If None, segments
+        will be equally distributed in the phase.
+    compressed : bool
+        If True, "compress" the transcription but providing only a single, shared value for
+        states and controls at segment boundaries.
+    **kwargs
+        Additional options to be sent to the phase initialization as options.
 
     Attributes
     ----------
@@ -32,8 +48,22 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
     """
 
-    def __init__(self, **kwargs):
-        super(GaussLobattoPhase, self).__init__(**kwargs)
+    def __init__(self, num_segments, transcription_order=3, segment_ends=None, compressed=True,
+                 **kwargs):
+        kwgs = kwargs.copy()
+        kwgs.update({'num_segments': num_segments, 'transcription_order': transcription_order,
+                    'segment_ends': segment_ends, 'compressed': compressed})
+
+        super(GaussLobattoPhase, self).__init__(**kwgs)
+
+        # Pluck out the kwargs needed to initialize grid_data, potentially needed prior to setup.
+        num_segments = num_segments
+        transcription_order = transcription_order
+        segment_ends = segment_ends
+        compressed = compressed
+        self.grid_data = GridData(num_segments=num_segments, transcription='gauss-lobatto',
+                                  transcription_order=transcription_order,
+                                  segment_ends=segment_ends, compressed=compressed)
 
     def initialize(self, **kwargs):
         super(GaussLobattoPhase, self).initialize(**kwargs)
@@ -118,6 +148,32 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                 self.connect(src_name,
                              ['rhs_col.{0}'.format(t) for t in targets],
                              src_indices=map_indices_to_col)
+
+    def _get_design_parameter_connections(self, name):
+        """
+        Returns a list containing tuples of each path and related indices to which the
+        given design variable name is to be connected.
+
+        Returns
+        -------
+        connection_info : list of (paths, indices)
+            A list containing a tuple of target paths and corresponding src_indices to which the
+            given design variable is to be connected.
+        """
+        connection_info = []
+        map_indices_to_disc = np.zeros(self.grid_data.subset_num_nodes['state_disc'], dtype=int)
+        map_indices_to_col = np.zeros(self.grid_data.subset_num_nodes['col'], dtype=int)
+
+        if name in self.ode_options._parameters:
+            targets = self.ode_options._parameters[name]['targets']
+
+            rhs_disc_tgts = ['rhs_disc.{0}'.format(t) for t in targets]
+            connection_info.append((rhs_disc_tgts, map_indices_to_disc))
+
+            rhs_col_tgts = ['rhs_col.{0}'.format(t) for t in targets]
+            connection_info.append((rhs_col_tgts, map_indices_to_col))
+
+        return connection_info
 
     def _setup_path_constraints(self):
         """
