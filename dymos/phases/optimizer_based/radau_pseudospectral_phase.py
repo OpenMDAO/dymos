@@ -97,25 +97,25 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 self.connect('control_rates:{0}_rate2'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
-    def _setup_design_parameters(self):
-        super(RadauPseudospectralPhase, self)._setup_design_parameters()
+    # def _setup_design_parameters(self):
+    #     super(RadauPseudospectralPhase, self)._setup_design_parameters()
+    #
+    #     for name, options in iteritems(self.design_parameter_options):
+    #
+    #         map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+    #
+    #         if not options['input_value']:
+    #             src_name = 'design_parameters:{0}'.format(name)
+    #         else:
+    #             src_name = 'design_parameters:{0}_out'.format(name)
+    #
+    #         if name in self.ode_options._parameters:
+    #             targets = self.ode_options._parameters[name]['targets']
+    #             self.connect(src_name,
+    #                          ['rhs_all.{0}'.format(t) for t in targets],
+    #                          src_indices=map_indices_to_all)
 
-        for name, options in iteritems(self.design_parameter_options):
-
-            map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-
-            if not options['input_value']:
-                src_name = 'design_parameters:{0}'.format(name)
-            else:
-                src_name = 'design_parameters:{0}_out'.format(name)
-
-            if name in self.ode_options._parameters:
-                targets = self.ode_options._parameters[name]['targets']
-                self.connect(src_name,
-                             ['rhs_all.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_all)
-
-    def _get_design_parameter_connections(self, name):
+    def _get_parameter_connections(self, name):
         """
         Returns a list containing tuples of each path and related indices to which the
         given design variable name is to be connected.
@@ -392,7 +392,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                     'state': 'indep_states.states:{0}',
                     'indep_control': 'control_interp_comp.control_values:{0}',
                     'input_control': 'control_interp_comp.control_values:{0}',
-                    'indep_design_parameter': 'indep_design_params.design_parameters:{0}',
+                    'indep_design_parameter': 'design_params.design_parameters:{0}',
                     'input_design_parameter': 'input_design_params.design_parameters:{0}_out',
                     'control_rate': 'control_interp_comp.control_rates:{0}',
                     'control_rate2': 'control_interp_comp.control_rates:{0}',

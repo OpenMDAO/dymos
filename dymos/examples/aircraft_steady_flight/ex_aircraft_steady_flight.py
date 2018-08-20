@@ -14,10 +14,6 @@ from dymos import Phase
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 from dymos.utils.lgl import lgl
 
-# Demonstrates:
-# 1. Externally sourced controls (S)
-# 2. Externally computed objective (cost)
-
 
 def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     p = Problem(model=Group())
@@ -26,7 +22,6 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     p.driver.options['dynamic_simul_derivs'] = True
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 1000
-        p.driver.opt_settings['Major step limit'] = 0.1
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         p.driver.opt_settings["Linesearch tolerance"] = 0.10
@@ -67,16 +62,16 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     phase.add_control('mach', units=None, opt=False, lower=0.8, upper=0.8, ref=1.0)
 
-    phase.add_design_parameter('S', units='m**2', opt=False, input_value=True)
-    phase.add_design_parameter('mass_empty', units='kg', opt=False, input_value=True)
-    phase.add_design_parameter('mass_payload', units='kg', opt=False, input_value=True)
+    phase.add_input_parameter('S', units='m**2')
+    phase.add_input_parameter('mass_empty', units='kg')
+    phase.add_input_parameter('mass_payload', units='kg')
 
     phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
     phase.add_path_constraint('alt_rate', units='ft/min', lower=-3000, upper=3000, ref=3000)
 
-    p.model.connect('assumptions.S', 'phase0.design_parameters:S')
-    p.model.connect('assumptions.mass_empty', 'phase0.design_parameters:mass_empty')
-    p.model.connect('assumptions.mass_payload', 'phase0.design_parameters:mass_payload')
+    p.model.connect('assumptions.S', 'phase0.input_parameters:S')
+    p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
+    p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
 
     phase.add_objective('range', loc='final', ref=-1.0)
 
@@ -97,6 +92,8 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     p['assumptions.mass_payload'] = 84.02869 * 400
 
     p.run_driver()
+
+    exit(0)
 
     exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True,
                              record_file='test_ex_aircraft_steady_flight_rec.db')
@@ -186,4 +183,4 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
 
 if __name__ == '__main__':
-    ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps')
+    ex_aircraft_steady_flight(optimizer='SNOPT', transcription='radau-ps')

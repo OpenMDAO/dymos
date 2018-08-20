@@ -127,29 +127,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
         return num_dynamic
 
-    def _setup_design_parameters(self):
-        super(GaussLobattoPhase, self)._setup_design_parameters()
-
-        for name, options in iteritems(self.design_parameter_options):
-            map_indices_to_disc = np.zeros(self.grid_data.subset_num_nodes['state_disc'], dtype=int)
-            map_indices_to_col = np.zeros(self.grid_data.subset_num_nodes['col'], dtype=int)
-
-            if not options['input_value']:
-                src_name = 'design_parameters:{0}'.format(name)
-            else:
-                src_name = 'design_parameters:{0}_out'.format(name)
-
-            if name in self.ode_options._parameters:
-                targets = self.ode_options._parameters[name]['targets']
-                self.connect(src_name,
-                             ['rhs_disc.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_disc)
-
-                self.connect(src_name,
-                             ['rhs_col.{0}'.format(t) for t in targets],
-                             src_indices=map_indices_to_col)
-
-    def _get_design_parameter_connections(self, name):
+    def _get_parameter_connections(self, name):
         """
         Returns a list containing tuples of each path and related indices to which the
         given design variable name is to be connected.
@@ -300,7 +278,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
             self.connect(
                 'rhs_disc.{0}'.format(options['rate_source']),
-                'state_interp.staterate_disc:{0}'.format(name))
+                'state_interp.statersate_disc:{0}'.format(name))
 
     def _setup_defects(self):
         super(GaussLobattoPhase, self)._setup_defects()
@@ -431,7 +409,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                     'state': ('indep_states.states:{0}', 'state_interp.state_col:{0}'),
                     'indep_control': 'control_interp_comp.control_values:{0}',
                     'input_control': 'control_interp_comp.control_values:{0}',
-                    'indep_design_parameter': 'indep_design_params.design_parameters:{0}',
+                    'indep_design_parameter': 'design_params.design_parameters:{0}',
                     'input_design_parameter': 'input_design_params.design_parameters:{0}_out',
                     'control_rate': 'control_interp_comp.control_rates:{0}',
                     'control_rate2': 'control_interp_comp.control_rates:{0}',

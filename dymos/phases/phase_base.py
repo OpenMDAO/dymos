@@ -13,13 +13,11 @@ from openmdao.api import Group, IndepVarComp
 from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
-from openmdao.utils.logger_utils import get_logger
-
 from dymos.phases.components import BoundaryConstraintComp
-from dymos.phases.components import DesignParameterInputComp
+from dymos.phases.components import InputParameterComp
 from dymos.phases.components import TimeComp
 from dymos.phases.options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
-    StateOptionsDictionary, TimeOptionsDictionary
+    InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary
 from dymos.phases.components import ControlInterpComp
 from dymos.phases.grid_data import GridData
 from dymos.ode_options import ODEOptions
@@ -39,6 +37,7 @@ class PhaseBase(Group):
         self.state_options = {}
         self.control_options = {}
         self.design_parameter_options = {}
+        self.input_parameter_options = {}
         self.time_options = TimeOptionsDictionary()
         self._boundary_constraints = {}
         self._path_constraints = {}
@@ -300,7 +299,7 @@ class PhaseBase(Group):
         if units != 0:
             self.control_options[name]['units'] = units
 
-    def add_design_parameter(self, name, val=0.0, units=0, opt=True, input_value=False,
+    def add_design_parameter(self, name, val=0.0, units=0, opt=True,
                              lower=None, upper=None, scaler=None, adder=None, ref=None, ref0=None):
         """
         Add a design parameter (static control variable) to the phase.
@@ -319,10 +318,6 @@ class PhaseBase(Group):
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
             If False, the this design parameter will still be owned by an IndepVarComp in the phase,
             but it will not be a design variable in the optimization.
-        input_value : bool
-            If True, this design parameter will be connected to an external source outside of
-            the phase.  Providing input_value=True makes all optimization settings irrelevant and
-            overrides opt to False.
         lower : float or ndarray
             The lower bound of the design parameter value.
         upper : float or ndarray
@@ -353,7 +348,7 @@ class PhaseBase(Group):
             raise ValueError(err_msg)
 
         # Don't allow the user to provide desvar options if the design parameter is not a desvar
-        if input_value or not opt:
+        if not opt:
             illegal_options = []
             if lower is not None:
                 illegal_options.append('lower')
@@ -373,8 +368,7 @@ class PhaseBase(Group):
                 warnings.warn(msg, RuntimeWarning)
 
         self.design_parameter_options[name]['val'] = val
-        self.design_parameter_options[name]['opt'] = False if input_value else opt
-        self.design_parameter_options[name]['input_value'] = input_value
+        self.design_parameter_options[name]['opt'] = opt
         self.design_parameter_options[name]['lower'] = lower
         self.design_parameter_options[name]['upper'] = upper
         self.design_parameter_options[name]['scaler'] = scaler
@@ -384,6 +378,43 @@ class PhaseBase(Group):
 
         if units != 0:
             self.design_parameter_options[name]['units'] = units
+
+    def add_input_parameter(self, name, val=0.0, units=0):
+        """
+        Add a design parameter (static control variable) to the phase.
+
+        Parameters
+        ----------
+        name : str
+            Name of the design parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+
+        """
+        if name in self.control_options:
+            raise ValueError('{0} has already been added as a control.'.format(name))
+        if name in self.design_parameter_options:
+            raise ValueError('{0} has already been added as a design parameter.'.format(name))
+        if name in self.input_parameter_options:
+            raise ValueError('{0} has already been added as an input parameter.'.format(name))
+
+        self.input_parameter_options[name] = InputParameterOptionsDictionary()
+
+        if name in self.ode_options._parameters:
+            ode_param_info = self.ode_options._parameters[name]
+            self.input_parameter_options[name]['units'] = ode_param_info['units']
+            self.input_parameter_options[name]['shape'] = ode_param_info['shape']
+        else:
+            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
+            raise ValueError(err_msg)
+
+        self.input_parameter_options[name]['val'] = val
+
+        if units != 0:
+            self.input_parameter_options[name]['units'] = units
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None, lower=None,
                                 upper=None, equals=None, scaler=None, adder=None,
@@ -778,6 +809,9 @@ class PhaseBase(Group):
                                promotes_outputs=['control_rates:*'])
             self.connect('time.dt_dstau', 'control_interp_comp.dt_dstau')
 
+        if self.input_parameter_options:
+            self._setup_input_parameters()
+
         if self.design_parameter_options:
             self._setup_design_parameters()
 
@@ -910,32 +944,18 @@ class PhaseBase(Group):
         Adds an IndepVarComp if necessary and issues appropriate connections based
         on transcription.
         """
-        input_design_params = [name for (name, opts) in iteritems(self.design_parameter_options)
-                               if opts['input_value']]
-
-        num_design_params = len(self.design_parameter_options)
-
-        num_input_design_params = len(input_design_params)
-
-        grid_data = self.grid_data
-
-        if num_input_design_params < num_design_params:
-            indep = self.add_subsystem('indep_design_params', subsys=IndepVarComp(),
+        if self.design_parameter_options:
+            indep = self.add_subsystem('design_params', subsys=IndepVarComp(),
                                        promotes_outputs=['*'])
 
-        if num_input_design_params > 0:
-            passthru = \
-                DesignParameterInputComp(design_parameter_options=self.design_parameter_options)
-
-            self.add_subsystem('input_design_params', subsys=passthru, promotes_inputs=['*'],
-                               promotes_outputs=['*'])
-
         for name, options in iteritems(self.design_parameter_options):
+            src_name = 'design_parameters:{0}'.format(name)
+
             if options['opt']:
                 lb = -INF_BOUND if options['lower'] is None else options['lower']
                 ub = INF_BOUND if options['upper'] is None else options['upper']
 
-                self.add_design_var(name='design_parameters:{0}'.format(name),
+                self.add_design_var(name=src_name,
                                     lower=lb,
                                     upper=ub,
                                     scaler=options['scaler'],
@@ -943,16 +963,36 @@ class PhaseBase(Group):
                                     ref0=options['ref0'],
                                     ref=options['ref'])
 
-            if not options['input_value']:
-                indep.add_output(name='design_parameters:{0}'.format(name),
-                                 val=options['val'],
-                                 shape=(1, np.prod(options['shape'])),
-                                 units=options['units'])
+            indep.add_output(name=src_name,
+                             val=options['val'],
+                             shape=(1, np.prod(options['shape'])),
+                             units=options['units'])
 
-    def _get_design_parameter_connections(self, name):
+            for tgts, src_idxs in self._get_parameter_connections(name):
+                self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
+
+    def _setup_input_parameters(self):
+        """
+        Adds a InputParameterComp to allow input parameters to be connected from sources
+        external to the phase.
+        """
+        if self.input_parameter_options:
+            passthru = \
+                InputParameterComp(input_parameter_options=self.input_parameter_options)
+
+            self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
+                               promotes_outputs=['*'])
+
+        for name, options in iteritems(self.input_parameter_options):
+            src_name = 'input_parameters:{0}_out'.format(name)
+
+            for tgts, src_idxs in self._get_parameter_connections(name):
+                self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
+
+    def _get_parameter_connections(self, name):
         """
         Returns a list containing tuples of each path and related indices to which the
-        given design variable name is to be connected.
+        given parameter name is to be connected.
 
         Returns
         -------

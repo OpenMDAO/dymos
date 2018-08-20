@@ -163,9 +163,9 @@ class ScipyODEIntegrator(object):
                                   ['ode.{0}'.format(tgt) for tgt in rate2_targets])
 
         if self.design_parameter_options:
-            ivc = model.add_subsystem('indep_design_params', IndepVarComp(), promotes_outputs=['*'])
+            ivc = model.add_subsystem('design_params', IndepVarComp(), promotes_outputs=['*'])
 
-            order += ['indep_design_params']
+            order += ['design_params']
 
             for name, options in iteritems(self.design_parameter_options):
                 ivc.add_output('design_parameters:{0}'.format(name), val=np.zeros(options['shape']),

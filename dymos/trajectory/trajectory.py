@@ -19,7 +19,7 @@ from openmdao.utils.units import convert_units
 from ..utils.constants import INF_BOUND
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
 from ..phases.phase_base import PhaseBase
-from ..phases.components.design_parameter_input_comp import DesignParameterInputComp
+from ..phases.components.input_parameter_comp import InputParameterComp
 from ..phases.options import DesignParameterOptionsDictionary
 from ..utils.simulation import simulate_phase_map_unpack
 from ..utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
@@ -90,7 +90,7 @@ class Trajectory(Group):
         opt : bool
             If True (default) the value(s) of this design parameter will be design variables in
             the optimization problem, in the path
-            'traj_name.indep_design_params.design_parameters:name'.  If False, the this design
+            'traj_name.design_params.design_parameters:name'.  If False, the this design
             parameter will still be owned by an IndepVarComp in the phase, but it will not be a
             design variable in the optimization.
         input_value : bool
@@ -163,14 +163,14 @@ class Trajectory(Group):
         num_input_design_params = len(input_design_params)
 
         if num_input_design_params < num_design_params:
-            indep = self.add_subsystem('indep_design_params', subsys=IndepVarComp(),
+            indep = self.add_subsystem('design_params', subsys=IndepVarComp(),
                                        promotes_outputs=['*'])
 
         if num_input_design_params > 0:
             passthru = \
-                DesignParameterInputComp(design_parameter_options=self.design_parameter_options)
+                InputParameterComp(design_parameter_options=self.design_parameter_options)
 
-            self.add_subsystem('input_design_params', subsys=passthru, promotes_inputs=['*'],
+            self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
                                promotes_outputs=['*'])
 
         for name, options in iteritems(self.design_parameter_options):
@@ -203,7 +203,7 @@ class Trajectory(Group):
                 tgt_param_name = target_params.get(phase_name, None) \
                     if isinstance(target_params, dict) else name
                 if tgt_param_name:
-                    for tgts, src_idxs in phs._get_design_parameter_connections(tgt_param_name):
+                    for tgts, src_idxs in phs._get_parameter_connections(tgt_param_name):
                         self.connect(src_name,
                                      ['{0}.{1}'.format(phase_name, t) for t in tgts],
                                      src_indices=src_idxs)
@@ -557,7 +557,7 @@ class Trajectory(Group):
             if self.design_parameter_options[var]['input_value']:
                 var_path = var_prefix + 'input_design_params.design_parameters:{0}_out'.format(var)
             else:
-                var_path = var_prefix + 'indep_design_params.design_parameters:{0}'.format(var)
+                var_path = var_prefix + 'design_params.design_parameters:{0}'.format(var)
 
             output_units = op[var_path]['units']
             output_value = convert_units(op[var_path]['value'], output_units, units)

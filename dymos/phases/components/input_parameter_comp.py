@@ -6,32 +6,30 @@ from six import iteritems
 from openmdao.api import ExplicitComponent
 
 
-class DesignParameterInputComp(ExplicitComponent):
+class InputParameterComp(ExplicitComponent):
     """
-    The DesignParameterInputComp handles design parameters in the phase for which `opt==False`.
+    The InputParameterComp handles input parameters for phases and trajectories.
 
     This component makes the values of the design parameter available to be connected to an
     external source.
     """
     def initialize(self):
-        self.options.declare(name='design_parameter_options',
+        self.options.declare(name='input_parameter_options',
                              types=dict,
-                             desc='Dictionary of options for the design parameters')
+                             desc='Dictionary of options for the input parameters')
 
         self._input_design_parameters = []
         self._output_names = {}
         self._input_names = {}
 
     def setup(self):
-        for param_name, options in iteritems(self.options['design_parameter_options']):
-            if not options['input_value']:
-                # Ignore this control if it is an optimal control
-                continue
-            self._input_design_parameters.append(param_name)
-            self._input_names[param_name] = 'design_parameters:{0}'.format(param_name)
-            self._output_names[param_name] = 'design_parameters:{0}_out'.format(param_name)
+        for param_name, options in iteritems(self.options['input_parameter_options']):
 
-            n = 1  # the design parameter effectively has a value at a single node
+            self._input_design_parameters.append(param_name)
+            self._input_names[param_name] = 'input_parameters:{0}'.format(param_name)
+            self._output_names[param_name] = 'input_parameters:{0}_out'.format(param_name)
+
+            n = 1
 
             shape = (n,) + options['shape']
             units = options['units']

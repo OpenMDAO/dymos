@@ -53,7 +53,8 @@ def two_phase_cannonball_problem(transcription='radau-ps', optimizer='SLSQP',
     ascent.set_state_options('v', fix_initial=False, fix_final=False)
 
     # Limit the muzzle energy
-    ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', upper=400000, lower=0, ref=400000)
+    ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='kg*m**2/s**2',
+                                   upper=400000, lower=0, ref=100000)
 
     # Second Phase (descent)
     descent = Phase(transcription,
