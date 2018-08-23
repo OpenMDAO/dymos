@@ -392,8 +392,10 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                     'state': 'indep_states.states:{0}',
                     'indep_control': 'control_interp_comp.control_values:{0}',
                     'input_control': 'control_interp_comp.control_values:{0}',
-                    'indep_design_parameter': 'design_params.design_parameters:{0}',
-                    'input_design_parameter': 'input_design_params.design_parameters:{0}_out',
+                    'design_parameter': 'design_params.design_parameters:{0}',
+                    'input_parameter': 'input_params.input_parameters:{0}_out',
+                    'traj_design_parameter': 'traj_design_params.traj_design_parameters:{0}',
+                    'traj_input_parameter': 'traj_input_params.traj_input_parameters:{0}_out',
                     'control_rate': 'control_interp_comp.control_rates:{0}',
                     'control_rate2': 'control_interp_comp.control_rates:{0}',
                     'ode': 'rhs_all.{0}'}
@@ -411,7 +413,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             vals = op[var_path]['value']
             output_value = convert_units(vals, output_units, units)
 
-        elif var_type in ('input_design_parameter', 'indep_design_parameter'):
+        elif var_type in ('design_parameter', 'input_parameter', 'traj_design_parameter',
+                          'traj_input_parameter'):
             var_path = var_prefix + path_map[var_type].format(var)
             output_units = op[var_path]['units']
 

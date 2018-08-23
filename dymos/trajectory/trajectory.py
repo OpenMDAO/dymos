@@ -20,7 +20,7 @@ from ..utils.constants import INF_BOUND
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
 from ..phases.phase_base import PhaseBase
 from ..phases.components.input_parameter_comp import InputParameterComp
-from ..phases.options import DesignParameterOptionsDictionary
+from ..phases.options import DesignParameterOptionsDictionary, InputParameterOptionsDictionary
 from ..utils.simulation import simulate_phase_map_unpack
 from ..utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
 
@@ -33,6 +33,7 @@ class Trajectory(Group):
     def __init__(self, **kwargs):
         super(Trajectory, self).__init__(**kwargs)
 
+        self.input_parameter_options = {}
         self.design_parameter_options = {}
         self._linkages = {}
         self._phases = {}
@@ -66,8 +67,39 @@ class Trajectory(Group):
         self._phase_add_kwargs[name] = kwargs
         return phase
 
+    def add_input_parameter(self, name, targets=None, val=0.0, units=0):
+        """
+        Add a design parameter (static control) to the trajectory.
+
+        Parameters
+        ----------
+        name : str
+            Name of the design parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        targets : dict or None
+            If None, then the design parameter will be connected to the controllable parameter
+            in the ODE of each phase.  For each phase where no such controllable parameter exists,
+            a warning will be issued.  If targets is given as a dict, the dict should provide
+            the relevant phase names as keys, each associated with the respective controllable
+            parameteter as a value.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        """
+        if name in self.input_parameter_options:
+            raise ValueError('{0} has already been added as an input parameter.'.format(name))
+
+        self.input_parameter_options[name] = InputParameterOptionsDictionary()
+
+        self.input_parameter_options[name]['val'] = val
+        self.input_parameter_options[name]['targets'] = targets
+
+        if units != 0:
+            self.input_parameter_options[name]['units'] = units
+
     def add_design_parameter(self, name, targets=None, val=0.0, units=0, opt=True,
-                             input_value=False, lower=None, upper=None, scaler=None, adder=None,
+                             lower=None, upper=None, scaler=None, adder=None,
                              ref=None, ref0=None):
         """
         Add a design parameter (static control) to the trajectory.
@@ -93,10 +125,6 @@ class Trajectory(Group):
             'traj_name.design_params.design_parameters:name'.  If False, the this design
             parameter will still be owned by an IndepVarComp in the phase, but it will not be a
             design variable in the optimization.
-        input_value : bool
-            If True, this design parameter will be connected to an external source outside of
-            the phase.  Providing input_value=True makes all optimization settings irrelevant and
-            overrides opt to False.
         lower : float or ndarray
             The lower bound of the design parameter value.
         upper : float or ndarray
@@ -117,7 +145,7 @@ class Trajectory(Group):
         self.design_parameter_options[name] = DesignParameterOptionsDictionary()
 
         # Don't allow the user to provide desvar options if the design parameter is not a desvar
-        if input_value or not opt:
+        if not opt:
             illegal_options = []
             if lower is not None:
                 illegal_options.append('lower')
@@ -137,8 +165,7 @@ class Trajectory(Group):
                 warnings.warn(msg, RuntimeWarning)
 
         self.design_parameter_options[name]['val'] = val
-        self.design_parameter_options[name]['opt'] = False if input_value else opt
-        self.design_parameter_options[name]['input_value'] = input_value
+        self.design_parameter_options[name]['opt'] = opt
         self.design_parameter_options[name]['targets'] = targets
         self.design_parameter_options[name]['lower'] = lower
         self.design_parameter_options[name]['upper'] = upper
@@ -150,28 +177,40 @@ class Trajectory(Group):
         if units != 0:
             self.design_parameter_options[name]['units'] = units
 
+    def _setup_input_parameters(self):
+        """
+        Adds an IndepVarComp if necessary and issues appropriate connections based
+        on transcription.
+        """
+        if self.input_parameter_options:
+            passthru = InputParameterComp(input_parameter_options=self.input_parameter_options)
+
+            self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
+                               promotes_outputs=['*'])
+
+        for name, options in iteritems(self.input_parameter_options):
+
+            # Connect the input parameter to its target in each phase
+            src_name = 'input_parameters:{0}_out'.format(name)
+
+            target_params = options['targets']
+            for phase_name, phs in iteritems(self._phases):
+                tgt_param_name = target_params.get(phase_name, None) \
+                    if isinstance(target_params, dict) else name
+                if tgt_param_name:
+                    for tgts, src_idxs in phs._get_parameter_connections(tgt_param_name):
+                        self.connect(src_name,
+                                     ['{0}.{1}'.format(phase_name, t) for t in tgts],
+                                     src_indices=src_idxs)
+
     def _setup_design_parameters(self):
         """
         Adds an IndepVarComp if necessary and issues appropriate connections based
         on transcription.
         """
-        input_design_params = [name for (name, opts) in iteritems(self.design_parameter_options)
-                               if opts['input_value']]
-
-        num_design_params = len(self.design_parameter_options)
-
-        num_input_design_params = len(input_design_params)
-
-        if num_input_design_params < num_design_params:
+        if self.design_parameter_options:
             indep = self.add_subsystem('design_params', subsys=IndepVarComp(),
                                        promotes_outputs=['*'])
-
-        if num_input_design_params > 0:
-            passthru = \
-                InputParameterComp(design_parameter_options=self.design_parameter_options)
-
-            self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
-                               promotes_outputs=['*'])
 
         for name, options in iteritems(self.design_parameter_options):
             if options['opt']:
@@ -186,17 +225,13 @@ class Trajectory(Group):
                                     ref0=options['ref0'],
                                     ref=options['ref'])
 
-            if not options['input_value']:
-                indep.add_output(name='design_parameters:{0}'.format(name),
-                                 val=options['val'],
-                                 shape=(1, np.prod(options['shape'])),
-                                 units=options['units'])
+            indep.add_output(name='design_parameters:{0}'.format(name),
+                             val=options['val'],
+                             shape=(1, np.prod(options['shape'])),
+                             units=options['units'])
 
             # Connect the design parameter to its target in each phase
-            if not options['input_value']:
-                src_name = 'design_parameters:{0}'.format(name)
-            else:
-                src_name = 'design_parameters:{0}_out'.format(name)
+            src_name = 'design_parameters:{0}'.format(name)
 
             target_params = options['targets']
             for phase_name, phs in iteritems(self._phases):
@@ -288,6 +323,9 @@ class Trajectory(Group):
 
         if self.design_parameter_options:
             self._setup_design_parameters()
+
+        if self.input_parameter_options:
+            self._setup_input_parameters()
 
         phases_group = self.add_subsystem('phases', subsys=ParallelGroup(), promotes_inputs=['*'],
                                           promotes_outputs=['*'])
@@ -448,6 +486,10 @@ class Trajectory(Group):
         for name, options in iteritems(self.design_parameter_options):
             traj_design_parameter_values[name] = self.get_values(name)
 
+        traj_input_parameter_values = {}
+        for name, options in iteritems(self.input_parameter_options):
+            traj_input_parameter_values[name] = self.get_values(name)
+
         for phase_name, phase in iteritems(self._phases):
             ode_class = phase.options['ode_class']
             ode_init_kwargs = phase.options['ode_init_kwargs']
@@ -455,18 +497,23 @@ class Trajectory(Group):
             state_values = {}
             control_values = {}
             design_parameter_values = {}
+            input_parameter_values = {}
             for state_name, options in iteritems(phase.state_options):
                 state_values[state_name] = phase.get_values(state_name, nodes='all')
             for control_name, options in iteritems(phase.control_options):
                 control_values[control_name] = phase.get_values(control_name, nodes='all')
             for dp_name, options in iteritems(phase.design_parameter_options):
                 design_parameter_values[dp_name] = phase.get_values(dp_name, nodes='all')
+            for ip_name, options in iteritems(phase.input_parameter_options):
+                input_parameter_values[dp_name] = phase.get_values(ip_name, nodes='all')
 
             data.append((phase_name, ode_class, phase.time_options, phase.state_options,
                          phase.control_options, phase.design_parameter_options,
-                         self.design_parameter_options, time_values,
+                         phase.input_parameter_options, self.design_parameter_options,
+                         self.input_parameter_options, time_values,
                          state_values, control_values, design_parameter_values,
-                         traj_design_parameter_values, ode_init_kwargs,
+                         input_parameter_values, traj_design_parameter_values,
+                         traj_input_parameter_values, ode_init_kwargs,
                          phase.grid_data, times_dict[phase_name], False, None))
 
         num_procs = mp.cpu_count() if num_procs is None else num_procs
@@ -554,10 +601,25 @@ class Trajectory(Group):
 
             var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
 
-            if self.design_parameter_options[var]['input_value']:
-                var_path = var_prefix + 'input_design_params.design_parameters:{0}_out'.format(var)
-            else:
-                var_path = var_prefix + 'design_params.design_parameters:{0}'.format(var)
+            var_path = var_prefix + 'design_params.design_parameters:{0}'.format(var)
+
+            output_units = op[var_path]['units']
+            output_value = convert_units(op[var_path]['value'], output_units, units)
+
+            for phase_name in phase_names:
+                p = self._phases[phase_name]
+                gd = p.grid_data
+                results[phase_name] = np.repeat(output_value, gd.num_nodes, axis=0)
+
+        elif var in self.input_parameter_options:
+            var_in_traj = True
+
+            op = dict(self.list_outputs(explicit=True, values=True, units=True, shape=True,
+                                        out_stream=None))
+
+            var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
+
+            var_path = var_prefix + 'input_params.input_parameters:{0}_out'.format(var)
 
             output_units = op[var_path]['units']
             output_value = convert_units(op[var_path]['value'], output_units, units)

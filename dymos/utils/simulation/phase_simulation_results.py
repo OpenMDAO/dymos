@@ -39,17 +39,22 @@ class PhaseSimulationResults(object):
         being loaded from a file, this is not needed at instantiation.
     """
     def __init__(self, filepath=None, time_options=None, state_options=None,
-                 control_options=None, design_parameter_options=None,
-                 traj_design_parameter_options=None):
+                 control_options=None, design_parameter_options=None, input_parameter_options=None,
+                 traj_design_parameter_options=None, traj_input_parameter_options=None):
         self.time_options = {} if time_options is None else time_options
         self.state_options = {} if state_options is None else state_options
         self.control_options = {} if control_options is None else control_options
         self.design_parameter_options = {} if design_parameter_options is None else \
             design_parameter_options
+        self.input_parameter_options = {} if input_parameter_options is None else \
+            input_parameter_options
         self.traj_design_parameter_options = {} if traj_design_parameter_options is None else \
             traj_design_parameter_options
+        self.traj_input_parameter_options = {} if traj_input_parameter_options is None else \
+            traj_input_parameter_options
         self.outputs = {'indep': {}, 'states': {}, 'controls': {}, 'control_rates': {},
-                        'design_parameters': {}, 'traj_design_parameters': {}, 'ode': {}}
+                        'design_parameters': {}, 'input_parameters': {},
+                        'traj_design_parameters': {}, 'traj_input_parameters': {}, 'ode': {}}
         self.units = {}
 
         if isinstance(filepath, str):
@@ -137,6 +142,15 @@ class PhaseSimulationResults(object):
                             ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
                             src_indices=np.arange(nn, dtype=int))
 
+        # Connect input parameters
+        for name, options in iteritems(self.input_parameter_options):
+            units = options['units']
+            ivc.add_output('input_parameters:{0}'.format(name),
+                           val=np.zeros((nn,) + options['shape']), units=units)
+            p.model.connect('input_parameters:{0}'.format(name),
+                            ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
+                            src_indices=np.arange(nn, dtype=int))
+
         # Connect trajectory design parameters
         for name, options in iteritems(self.traj_design_parameter_options):
             units = options['units']
@@ -145,6 +159,17 @@ class PhaseSimulationResults(object):
             param_name = name if options['targets'] is None else \
                 options['targets'].get(phase_name, None)
             p.model.connect('traj_design_parameters:{0}'.format(name),
+                            ['ode.{0}'.format(t) for t in sys_param_options[param_name]['targets']],
+                            src_indices=np.arange(nn, dtype=int))
+
+        # Connect trajectory input parameters
+        for name, options in iteritems(self.traj_design_parameter_options):
+            units = options['units']
+            ivc.add_output('traj_input_parameters:{0}'.format(name),
+                           val=np.zeros((nn,) + options['shape']), units=units)
+            param_name = name if options['targets'] is None else \
+                options['targets'].get(phase_name, None)
+            p.model.connect('traj_input_parameters:{0}'.format(name),
                             ['ode.{0}'.format(t) for t in sys_param_options[param_name]['targets']],
                             src_indices=np.arange(nn, dtype=int))
 
@@ -177,10 +202,20 @@ class PhaseSimulationResults(object):
             shape = p['design_parameters:{0}'.format(name)].shape
             p['design_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
 
+        # Assign input parameters
+        for name, options in iteritems(self.input_parameter_options):
+            shape = p['input_parameters:{0}'.format(name)].shape
+            p['input_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
+
         # Assign trajectory design parameters
         for name, options in iteritems(self.traj_design_parameter_options):
             shape = p['traj_design_parameters:{0}'.format(name)].shape
             p['traj_design_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
+
+        # Assign trajectory design parameters
+        for name, options in iteritems(self.traj_input_parameter_options):
+            shape = p['traj_input_parameters:{0}'.format(name)].shape
+            p['traj_input_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
 
         # Populate outputs of ODE
         prom2abs_ode_outputs = p.model.ode._var_allprocs_prom2abs_list['output']
@@ -268,8 +303,12 @@ class PhaseSimulationResults(object):
             var_type = 'controls'
         elif var in self.outputs['design_parameters']:
             var_type = 'design_parameters'
+        elif var in self.outputs['input_parameters']:
+            var_type = 'input_parameters'
         elif var in self.outputs['traj_design_parameters']:
             var_type = 'traj_design_parameters'
+        elif var in self.outputs['traj_input_parameters']:
+            var_type = 'traj_input_parameters'
         elif var in self.outputs['control_rates']:
             var_type = 'control_rates'
         elif var in self.outputs['ode']:

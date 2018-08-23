@@ -82,9 +82,9 @@ def two_phase_cannonball_problem(transcription='radau-ps', optimizer='SLSQP',
     traj.add_design_parameter('alpha', val=0.0, units='deg', opt=False)
 
     # Add externally-provided design parameters to the trajectory.
-    traj.add_design_parameter('mass', targets={'ascent': 'm', 'descent': 'm'},
-                              val=1.0, units='kg', input_value=True)
-    traj.add_design_parameter('S', val=0.005, units='m**2', input_value=True)
+    traj.add_input_parameter('mass', targets={'ascent': 'm', 'descent': 'm'},
+                              val=1.0, units='kg')
+    traj.add_input_parameter('S', val=0.005, units='m**2')
 
     # Link Phases (link time and all state variables)
     traj.link_phases(phases=['ascent', 'descent'], vars=['*'])
@@ -93,8 +93,8 @@ def two_phase_cannonball_problem(transcription='radau-ps', optimizer='SLSQP',
     p.model.connect('external_params.radius', 'size_comp.radius')
     p.model.connect('external_params.dens', 'size_comp.dens')
 
-    p.model.connect('size_comp.mass', 'traj.design_parameters:mass')
-    p.model.connect('size_comp.S', 'traj.design_parameters:S')
+    p.model.connect('size_comp.mass', 'traj.input_parameters:mass')
+    p.model.connect('size_comp.S', 'traj.input_parameters:S')
 
     # Finish Problem Setup
     p.model.options['assembled_jac_type'] = 'csc'

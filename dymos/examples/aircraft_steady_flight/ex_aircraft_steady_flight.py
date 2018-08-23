@@ -1,7 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -60,7 +60,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
                       rate2_continuity=True, rate2_continuity_scaler=1.0, ref=1.0,
                       fix_initial=True, fix_final=True)
 
-    phase.add_control('mach', units=None, opt=False, lower=0.8, upper=0.8, ref=1.0)
+    phase.add_control('mach', units=None, opt=False)
 
     phase.add_input_parameter('S', units='m**2')
     phase.add_input_parameter('mass_empty', units='kg')
@@ -92,8 +92,6 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     p['assumptions.mass_payload'] = 84.02869 * 400
 
     p.run_driver()
-
-    exit(0)
 
     exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True,
                              record_file='test_ex_aircraft_steady_flight_rec.db')

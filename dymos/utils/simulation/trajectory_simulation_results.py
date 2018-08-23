@@ -46,11 +46,14 @@ class TrajectorySimulationResults(object):
                 self.outputs['phases'][phase_name]['controls'] = {}
                 self.outputs['phases'][phase_name]['control_rates'] = {}
                 self.outputs['phases'][phase_name]['design_parameters'] = {}
+                self.outputs['phases'][phase_name]['input_parameters'] = {}
                 self.outputs['phases'][phase_name]['traj_design_parameters'] = {}
+                self.outputs['phases'][phase_name]['traj_input_parameters'] = {}
                 self.outputs['phases'][phase_name]['ode'] = {}
 
                 for var_type in ('indep', 'states', 'controls', 'control_rates',
-                                 'design_parameters', 'traj_design_parameters', 'ode'):
+                                 'design_parameters', 'input_parameters',
+                                 'traj_design_parameters', 'traj_input_parameters', 'ode'):
                     pdict = phase_results.outputs[var_type]
                     self.outputs['phases'][phase_name][var_type].update(pdict)
 
@@ -199,10 +202,22 @@ class TrajectorySimulationResults(object):
                 p['phases.{0}.design_parameters:{1}'.format(phase_name, name)] = \
                     np.reshape(exp_out.get_values(name), shape)
 
+            # Assign input parameters
+            for name, options in iteritems(phase.input_parameter_options):
+                shape = p['phases.{0}.input_parameters:{1}'.format(phase_name, name)].shape
+                p['phases.{0}.input_parameters:{1}'.format(phase_name, name)] = \
+                    np.reshape(exp_out.get_values(name), shape)
+
             # Assign trajectory design parameters
             for name, options in iteritems(traj.design_parameter_options):
                 shape = p['phases.{0}.traj_design_parameters:{1}'.format(phase_name, name)].shape
                 p['phases.{0}.traj_design_parameters:{1}'.format(phase_name, name)] = \
+                    np.reshape(exp_out.get_values(name), shape)
+
+            # Assign trajectory design parameters
+            for name, options in iteritems(traj.input_parameter_options):
+                shape = p['phases.{0}.traj_input_parameters:{1}'.format(phase_name, name)].shape
+                p['phases.{0}.traj_input_parameters:{1}'.format(phase_name, name)] = \
                     np.reshape(exp_out.get_values(name), shape)
 
             # Populate outputs of ODE
@@ -254,7 +269,9 @@ class TrajectorySimulationResults(object):
             self.outputs['phases'][phase_name]['controls'] = {}
             self.outputs['phases'][phase_name]['control_rates'] = {}
             self.outputs['phases'][phase_name]['design_parameters'] = {}
+            self.outputs['phases'][phase_name]['input_parameters'] = {}
             self.outputs['phases'][phase_name]['traj_design_parameters'] = {}
+            self.outputs['phases'][phase_name]['traj_input_parameters'] = {}
             self.outputs['phases'][phase_name]['ode'] = {}
 
         for name, options in loaded_outputs:
@@ -363,8 +380,12 @@ class TrajectorySimulationResults(object):
                 var_type = 'controls'
             elif var in self.outputs['phases'][phase_name]['design_parameters']:
                 var_type = 'design_parameters'
+            elif var in self.outputs['phases'][phase_name]['input_parameters']:
+                var_type = 'input_parameters'
             elif var in self.outputs['phases'][phase_name]['traj_design_parameters']:
                 var_type = 'traj_design_parameters'
+            elif var in self.outputs['phases'][phase_name]['traj_input_parameters']:
+                var_type = 'traj_input_parameters'
             elif var.endswith('_rate') \
                     and var[:-5] in self.outputs['phases'][phase_name]['controls']:
                 var_type = 'control_rates'

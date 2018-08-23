@@ -761,7 +761,7 @@ class PhaseBase(Group):
         str
             The classification of the given variable, which is one of
             'time', 'state', 'input_control', 'indep_control', 'control_rate',
-            'control_rate2', 'indep_design_parameter', 'input_design_parameter', or 'ode'.
+            'control_rate2', 'design_parameter', 'input_parameter', or 'ode'.
 
         """
         if var == 'time':
@@ -774,10 +774,9 @@ class PhaseBase(Group):
             else:
                 return 'input_control'
         elif var in self.design_parameter_options:
-            if self.design_parameter_options[var]['input_value']:
-                return 'input_design_parameter'
-            else:
-                return 'indep_design_parameter'
+            return 'design_parameter'
+        elif var in self.input_parameter_options:
+            return 'input_parameter'
         elif var.endswith('_rate'):
             if var[:-5] in self.control_options:
                 return 'control_rate'
@@ -1058,20 +1057,20 @@ class PhaseBase(Group):
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = False
                 constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
-            elif var_type == 'indep_design_parameter':
+            elif var_type == 'design_parameter':
                 control_shape = self.design_parameter_options[var]['shape']
                 control_units = self.design_parameter_options[var]['units']
                 options['shape'] = control_shape if con_shape is None else con_shape
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
                 constraint_path = 'design_parameters:{0}'.format(var)
-            elif var_type == 'input_design_parameter':
-                control_shape = self.design_parameter_options[var]['shape']
-                control_units = self.design_parameter_options[var]['units']
+            elif var_type == 'input_parameter':
+                control_shape = self.input_parameter_options[var]['shape']
+                control_units = self.input_parameter_options[var]['units']
                 options['shape'] = control_shape if con_shape is None else con_shape
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = False
-                constraint_path = 'design_parameters:{0}_out'.format(var)
+                constraint_path = 'input_parameters:{0}_out'.format(var)
             elif var_type == 'control_rate':
                 control_var = var[:-5]
                 control_shape = self.control_options[control_var]['shape']
