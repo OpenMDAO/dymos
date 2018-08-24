@@ -154,6 +154,16 @@ class TrajectorySimulationResults(object):
                                      sys_param_options[name]['targets']],
                                     src_indices=np.arange(nn, dtype=int))
 
+            # Connect input parameters
+            for name, options in iteritems(phase.input_parameter_options):
+                units = options['units']
+                ivc.add_output('input_parameters:{0}'.format(name),
+                               val=np.zeros((nn,) + options['shape']), units=units)
+                phase_group.connect('input_parameters:{0}'.format(name),
+                                    ['ode.{0}'.format(t) for t in
+                                     sys_param_options[name]['targets']],
+                                    src_indices=np.arange(nn, dtype=int))
+
             # Connect trajectory design parameters
             for name, options in iteritems(traj.design_parameter_options):
                 param_name = name if options['targets'] is None else options['targets'][phase_name]
@@ -162,6 +172,18 @@ class TrajectorySimulationResults(object):
                     ivc.add_output('traj_design_parameters:{0}'.format(name),
                                    val=np.zeros((nn,) + options['shape']), units=units)
                     phase_group.connect('traj_design_parameters:{0}'.format(name),
+                                        ['ode.{0}'.format(t) for t in
+                                         sys_param_options[param_name]['targets']],
+                                        src_indices=np.zeros(nn, dtype=int))
+
+            # Connect trajectory design parameters
+            for name, options in iteritems(traj.input_parameter_options):
+                param_name = name if options['targets'] is None else options['targets'][phase_name]
+                if param_name in sys_param_options:
+                    units = options['units']
+                    ivc.add_output('traj_input_parameters:{0}'.format(name),
+                                   val=np.zeros((nn,) + options['shape']), units=units)
+                    phase_group.connect('traj_input_parameters:{0}'.format(name),
                                         ['ode.{0}'.format(t) for t in
                                          sys_param_options[param_name]['targets']],
                                         src_indices=np.zeros(nn, dtype=int))
@@ -297,8 +319,14 @@ class TrajectorySimulationResults(object):
                     elif output_name.startswith('design_parameters:'):
                         var_type = 'design_parameters'
                         var_name = output_name.split(':')[-1]
+                    elif output_name.startswith('input_parameters:'):
+                        var_type = 'input_parameters'
+                        var_name = output_name.split(':')[-1]
                     elif output_name.startswith('traj_design_parameters:'):
                         var_type = 'traj_design_parameters'
+                        var_name = output_name.split(':')[-1]
+                    elif output_name.startswith('traj_input_parameters:'):
+                        var_type = 'traj_input_parameters'
                         var_name = output_name.split(':')[-1]
 
                 elif output_name.startswith('ode.'):
@@ -409,6 +437,8 @@ class TrajectorySimulationResults(object):
                 output[:] = np.nan
 
             if not var_in_traj:
+                print(var)
+                print(self.outputs['phases'][phase_name]['traj_input_parameters'])
                 raise KeyError('Variable "{0}" not found in trajectory '
                                'simulation results.'.format(var))
 

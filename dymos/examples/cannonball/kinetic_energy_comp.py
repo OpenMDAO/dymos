@@ -17,7 +17,7 @@ class KineticEnergyComp(ExplicitComponent):
         self.add_input(name='v', val=np.ones(nn), desc='cannonball speed', units='m/s')
         self.add_input(name='m', val=np.ones(nn), desc='cannonball mass', units='kg')
 
-        self.add_output(name='ke', shape=(nn,), desc='kinetic energy', units='kg*m**2/s**2')
+        self.add_output(name='ke', shape=(nn,), desc='kinetic energy', units='J')
 
         ar = np.arange(nn)
 

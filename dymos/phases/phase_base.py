@@ -218,6 +218,8 @@ class PhaseBase(Group):
             raise ValueError('{0} has already been added as a control.'.format(name))
         if name in self.design_parameter_options:
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
+        if name in self.input_parameter_options:
+            raise ValueError('{0} has already been added as an input parameter.'.format(name))
 
         self.control_options[name] = ControlOptionsDictionary()
 
@@ -264,7 +266,7 @@ class PhaseBase(Group):
             if rate_continuity is not None:
                 illegal_options.append('rate_continuity')
             if illegal_options:
-                msg = 'Invalid options for non-optimal control {0}:'.format(name) + \
+                msg = 'Invalid options for non-optimal control "{0}":'.format(name) + \
                       ', '.join(illegal_options)
                 warnings.warn(msg, RuntimeWarning)
 
@@ -336,6 +338,8 @@ class PhaseBase(Group):
             raise ValueError('{0} has already been added as a control.'.format(name))
         if name in self.design_parameter_options:
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
+        if name in self.input_parameter_options:
+            raise ValueError('{0} has already been added as an input parameter.'.format(name))
 
         self.design_parameter_options[name] = DesignParameterOptionsDictionary()
 
@@ -363,7 +367,7 @@ class PhaseBase(Group):
             if ref0 is not None:
                 illegal_options.append('ref0')
             if illegal_options:
-                msg = 'Invalid options for non-optimal/input design parameter "{0}":'.format(name) \
+                msg = 'Invalid options for non-optimal design parameter "{0}":'.format(name) \
                       + ', '.join(illegal_options)
                 warnings.warn(msg, RuntimeWarning)
 
@@ -457,8 +461,8 @@ class PhaseBase(Group):
             Set to True if constraint is linear. Default is False.
         """
         if loc not in ['initial', 'final']:
-            raise ValueError('invalid boundary constraint location ({0}). must be '
-                             '"initial" or "final"'.format(loc))
+            raise ValueError('Invalid boundary constraint location "{0}". Must be '
+                             '"initial" or "final".'.format(loc))
 
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
