@@ -243,7 +243,8 @@ class PhaseSimulationResults(object):
                                          units=True, shape=True, out_stream=None)
 
         self.outputs = {'indep': {}, 'states': {}, 'controls': {}, 'control_rates': {},
-                        'design_parameters': {}, 'traj_design_parameters': {}, 'ode': {}}
+                        'design_parameters': {}, 'input_parameters': {},
+                        'traj_design_parameters': {}, 'traj_input_parameters': {}, 'ode': {}}
 
         for output_name, options in loaded_outputs:
 

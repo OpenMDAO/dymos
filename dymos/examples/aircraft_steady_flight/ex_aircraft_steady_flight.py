@@ -1,7 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 

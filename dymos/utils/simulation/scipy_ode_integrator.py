@@ -531,12 +531,14 @@ class ScipyODEIntegrator(object):
         self._f_ode(solver.t, solver.y)
 
         # Prepare the output dictionary
-        results = PhaseSimulationResults(time_options=self.time_options,
-            state_options=self.state_options, control_options=self.control_options,
-            design_parameter_options=self.design_parameter_options,
-            input_parameter_options=self.input_parameter_options,
-            traj_design_parameter_options=self.traj_design_parameter_options,
-            traj_input_parameter_options=self.traj_input_parameter_options)
+        results = \
+            PhaseSimulationResults(time_options=self.time_options,
+                                   state_options=self.state_options,
+                                   control_options=self.control_options,
+                                   design_parameter_options=self.design_parameter_options,
+                                   input_parameter_options=self.input_parameter_options,
+                                   traj_design_parameter_options=self.traj_design_parameter_options,
+                                   traj_input_parameter_options=self.traj_input_parameter_options)
 
         self._store_results(results)
 

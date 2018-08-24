@@ -634,7 +634,8 @@ class Trajectory(Group):
 
                 if time_units is None:
                     time_units = p.time_options['units']
-                times[phase_name] = p.get_values('time', nodes=node_map[phase_name], units=time_units)
+                times[phase_name] = p.get_values('time', nodes=node_map[phase_name],
+                                                 units=time_units)
 
                 try:
                     results[phase_name] = p.get_values(var, nodes=node_map[phase_name], units=units)

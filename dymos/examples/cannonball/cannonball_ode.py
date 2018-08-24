@@ -10,7 +10,6 @@ from dymos.models.eom import FlightPathEOM2D
 from .kinetic_energy_comp import KineticEnergyComp
 
 
-
 @declare_time(units='s')
 @declare_state(name='r', rate_source='eom.r_dot', units='m')
 @declare_state(name='h', rate_source='eom.h_dot', targets=['atmos.h'], units='m')
@@ -51,4 +50,3 @@ class CannonballODE(Group):
 
         self.connect('aero.f_drag', 'eom.D')
         self.connect('aero.f_lift', 'eom.L')
-
