@@ -354,6 +354,10 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         elif var_type == 'control_rate2':
             control_name = name[:-6]
             obj_path = 'control_rates:{0}_rate2'.format(control_name)
+        elif var_type == 'design_parameter':
+            obj_path = 'design_parameters:{0}'.format(name)
+        elif var_type == 'input_parameter':
+            obj_path = 'input_parameters:{0}_out'.format(name)
         else:
             # Failed to find variable, assume it is in the RHS
             obj_path = 'rhs_disc.{0}'.format(name)
