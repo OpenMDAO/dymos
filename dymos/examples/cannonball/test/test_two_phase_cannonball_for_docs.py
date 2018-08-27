@@ -7,14 +7,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, SqliteRecorder,\
-    pyOptSparseDriver
-
-from dymos import Phase, Trajectory, load_simulation_results
-from dymos.examples.cannonball.cannonball_ode import CannonballODE
-
-from dymos.examples.cannonball.size_comp import CannonballSizeComp
-
 
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
@@ -26,6 +18,14 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                 os.remove(filename)
 
     def test_two_phase_cannonball_for_docs(self):
+        from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, SqliteRecorder, \
+            pyOptSparseDriver
+        from openmdao.utils.assert_utils import assert_rel_error
+
+        from dymos import Phase, Trajectory, load_simulation_results
+        from dymos.examples.cannonball.cannonball_ode import CannonballODE
+
+        from dymos.examples.cannonball.size_comp import CannonballSizeComp
 
         p = Problem(model=Group())
 
@@ -63,7 +63,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         # Limit the muzzle energy
         ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
-                                       upper=400000, lower=0, ref=100000)
+                                       upper=300000, lower=0, ref=100000)
 
         # Second Phase (descent)
         descent = Phase('gauss-lobatto',
@@ -143,13 +143,16 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45], nodes='state_input'),
                   units='deg')
 
-        p.run_model()
-
         p.run_driver()
+
+        assert_rel_error(self, traj.get_values('r')['descent'][-1], 1.108222E4, tolerance=1.0E-2)
 
         exp_out = traj.simulate(times=100, record_file='ex_two_phase_cannonball_sim.db')
 
         exp_out_loaded = load_simulation_results('ex_two_phase_cannonball_sim.db')
+
+        print('optimal radius: {0:6.4f} m '.format(p.get_val('external_params.radius', units='m')[0]))
+        print('cannonball mass: {0:6.4f} kg '.format(p.get_val('size_comp.mass', units='kg')[0]))
 
         fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(8, 6))
 
