@@ -133,13 +133,8 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
                           'for the optimization problem.  If False, allow the '
                           'control to be connected externally.')
 
-        self.declare(name='input_value', types=bool, default=False,
-                     desc='If True, the value of this design parameter is expected to be '
-                          'connected to an external output source.')
-
-        self.declare(name='targets', types=Iterable, default=[],
-                     desc='Used to store target information for ShootingPhase.  Should not be'
-                          'set by the user in add_design_parameter.')
+        self.declare(name='targets', types=Iterable, default=[], allow_none=True,
+                     desc='Used to store target information on a per-phase basis for trajectories.')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the design parameter in the phase.')
@@ -176,6 +171,33 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
                      allow_none=True,
                      desc='The unit-reference value of the design parameter. This '
                           'option is invalid if opt=False.')
+
+
+class InputParameterOptionsDictionary(OptionsDictionary):
+    """
+    An OptionsDictionary specific to input parameters.
+    """
+
+    def __init__(self, read_only=False):
+        super(InputParameterOptionsDictionary, self).__init__(read_only)
+
+        self.declare(name='name', types=string_types,
+                     desc='The name of ODE system parameter to be set via design parameter.')
+
+        self.declare(name='units', types=string_types, default=None,
+                     allow_none=True, desc='The units in which the design parameter is defined.')
+
+        self.declare(name='desc', types=string_types, default='',
+                     desc='The description of the design parameter.')
+
+        self.declare(name='targets', types=Iterable, default=[], allow_none=True,
+                     desc='Used to store target information on a per-phase basis for trajectories.')
+
+        self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
+                     desc='The default value of the design parameter in the phase.')
+
+        self.declare(name='shape', types=Iterable, default=(1,),
+                     desc='The shape of the design parameter.')
 
 
 class StateOptionsDictionary(OptionsDictionary):

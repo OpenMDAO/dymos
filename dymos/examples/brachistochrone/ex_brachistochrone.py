@@ -9,7 +9,7 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver,
 from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-SHOW_PLOTS = False
+SHOW_PLOTS = True
 
 
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
@@ -113,5 +113,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 
 if __name__ == '__main__':
-    brachistochrone_min_time(transcription='radau-ps', num_segments=20, run_driver=True,
-                             top_level_jacobian='csc', transcription_order=3, compressed=False)
+    brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10, run_driver=True,
+                             top_level_jacobian='csc', transcription_order=3, compressed=True,
+                             optimizer='SNOPT')

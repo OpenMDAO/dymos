@@ -44,3 +44,11 @@ Commercial Aircraft - Differential Inclusion
   :titlesonly:
 
   commercial_aircraft
+
+Multi-Phase Cannonball Design Optimization
+------------------------------------------
+.. toctree::
+  :maxdepth: 1
+  :titlesonly:
+
+  multi_phase_cannonball

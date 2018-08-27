@@ -62,15 +62,15 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase.add_control('mach', units=None, opt=False)
 
-        phase.add_design_parameter('S', units='m**2', input_value=True)
-        phase.add_design_parameter('mass_empty', units='kg', input_value=True)
-        phase.add_design_parameter('mass_payload', units='kg', input_value=True)
+        phase.add_input_parameter('S', units='m**2')
+        phase.add_input_parameter('mass_empty', units='kg')
+        phase.add_input_parameter('mass_payload', units='kg')
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
 
-        p.model.connect('assumptions.S', 'phase0.design_parameters:S')
-        p.model.connect('assumptions.mass_empty', 'phase0.design_parameters:mass_empty')
-        p.model.connect('assumptions.mass_payload', 'phase0.design_parameters:mass_payload')
+        p.model.connect('assumptions.S', 'phase0.input_parameters:S')
+        p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
+        p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
 
         phase.add_objective('time', loc='final', ref=3600)
 

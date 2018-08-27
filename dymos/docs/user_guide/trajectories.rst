@@ -74,6 +74,9 @@ invoked, it will perform a simulation of each Phase in the trajectory in paralle
 Loading Simulation Results from a File
 --------------------------------------
 
+The |project| function `load_simulation_results`, when provided a file name, will determine whether
+the filename contains a phase simulation or a trajectory simulation, and load it appropriately.
+
 .. toctree::
     :maxdepth: 2
     :titlesonly:

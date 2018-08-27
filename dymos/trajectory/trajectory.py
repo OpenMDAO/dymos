@@ -4,6 +4,7 @@ from collections import Sequence
 import itertools
 import multiprocessing as mp
 from six import iteritems, string_types
+import warnings
 
 try:
     from itertools import izip
@@ -12,10 +13,14 @@ except ImportError:
 
 import numpy as np
 
-from openmdao.api import Group, ParallelGroup
+from openmdao.api import Group, ParallelGroup, IndepVarComp
+from openmdao.utils.units import convert_units
 
+from ..utils.constants import INF_BOUND
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
 from ..phases.phase_base import PhaseBase
+from ..phases.components.input_parameter_comp import InputParameterComp
+from ..phases.options import DesignParameterOptionsDictionary, InputParameterOptionsDictionary
 from ..utils.simulation import simulate_phase_map_unpack
 from ..utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
 
@@ -28,6 +33,8 @@ class Trajectory(Group):
     def __init__(self, **kwargs):
         super(Trajectory, self).__init__(**kwargs)
 
+        self.input_parameter_options = {}
+        self.design_parameter_options = {}
         self._linkages = {}
         self._phases = {}
         self._phase_add_kwargs = {}
@@ -60,10 +67,265 @@ class Trajectory(Group):
         self._phase_add_kwargs[name] = kwargs
         return phase
 
+    def add_input_parameter(self, name, targets=None, val=0.0, units=0):
+        """
+        Add a design parameter (static control) to the trajectory.
+
+        Parameters
+        ----------
+        name : str
+            Name of the design parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        targets : dict or None
+            If None, then the design parameter will be connected to the controllable parameter
+            in the ODE of each phase.  For each phase where no such controllable parameter exists,
+            a warning will be issued.  If targets is given as a dict, the dict should provide
+            the relevant phase names as keys, each associated with the respective controllable
+            parameteter as a value.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        """
+        if name in self.input_parameter_options:
+            raise ValueError('{0} has already been added as an input parameter.'.format(name))
+
+        self.input_parameter_options[name] = InputParameterOptionsDictionary()
+
+        self.input_parameter_options[name]['val'] = val
+        self.input_parameter_options[name]['targets'] = targets
+
+        if units != 0:
+            self.input_parameter_options[name]['units'] = units
+
+    def add_design_parameter(self, name, targets=None, val=0.0, units=0, opt=True,
+                             lower=None, upper=None, scaler=None, adder=None,
+                             ref=None, ref0=None):
+        """
+        Add a design parameter (static control) to the trajectory.
+
+        Parameters
+        ----------
+        name : str
+            Name of the design parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        targets : dict or None
+            If None, then the design parameter will be connected to the controllable parameter
+            in the ODE of each phase.  For each phase where no such controllable parameter exists,
+            a warning will be issued.  If targets is given as a dict, the dict should provide
+            the relevant phase names as keys, each associated with the respective controllable
+            parameteter as a value.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        opt : bool
+            If True (default) the value(s) of this design parameter will be design variables in
+            the optimization problem, in the path
+            'traj_name.design_params.design_parameters:name'.  If False, the this design
+            parameter will still be owned by an IndepVarComp in the phase, but it will not be a
+            design variable in the optimization.
+        lower : float or ndarray
+            The lower bound of the design parameter value.
+        upper : float or ndarray
+            The upper bound of the design parameter value.
+        scaler : float or ndarray
+            The scaler of the design parameter value for the optimizer.
+        adder : float or ndarray
+            The adder of the design parameter value for the optimizer.
+        ref0 : float or ndarray
+            The zero-reference value of the design parameter for the optimizer.
+        ref : float or ndarray
+            The unit-reference value of the design parameter for the optimizer.
+
+        """
+        if name in self.design_parameter_options:
+            raise ValueError('{0} has already been added as a design parameter.'.format(name))
+
+        self.design_parameter_options[name] = DesignParameterOptionsDictionary()
+
+        # Don't allow the user to provide desvar options if the design parameter is not a desvar
+        if not opt:
+            illegal_options = []
+            if lower is not None:
+                illegal_options.append('lower')
+            if upper is not None:
+                illegal_options.append('upper')
+            if scaler is not None:
+                illegal_options.append('scaler')
+            if adder is not None:
+                illegal_options.append('adder')
+            if ref is not None:
+                illegal_options.append('ref')
+            if ref0 is not None:
+                illegal_options.append('ref0')
+            if illegal_options:
+                msg = 'Invalid options for non-optimal/input design parameter "{0}":'.format(name) \
+                      + ', '.join(illegal_options)
+                warnings.warn(msg, RuntimeWarning)
+
+        self.design_parameter_options[name]['val'] = val
+        self.design_parameter_options[name]['opt'] = opt
+        self.design_parameter_options[name]['targets'] = targets
+        self.design_parameter_options[name]['lower'] = lower
+        self.design_parameter_options[name]['upper'] = upper
+        self.design_parameter_options[name]['scaler'] = scaler
+        self.design_parameter_options[name]['adder'] = adder
+        self.design_parameter_options[name]['ref'] = ref
+        self.design_parameter_options[name]['ref0'] = ref0
+
+        if units != 0:
+            self.design_parameter_options[name]['units'] = units
+
+    def _setup_input_parameters(self):
+        """
+        Adds an IndepVarComp if necessary and issues appropriate connections based
+        on transcription.
+        """
+        if self.input_parameter_options:
+            passthru = InputParameterComp(input_parameter_options=self.input_parameter_options)
+
+            self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
+                               promotes_outputs=['*'])
+
+        for name, options in iteritems(self.input_parameter_options):
+
+            # Connect the input parameter to its target in each phase
+            src_name = 'input_parameters:{0}_out'.format(name)
+
+            target_params = options['targets']
+            for phase_name, phs in iteritems(self._phases):
+                tgt_param_name = target_params.get(phase_name, None) \
+                    if isinstance(target_params, dict) else name
+                if tgt_param_name:
+                    for tgts, src_idxs in phs._get_parameter_connections(tgt_param_name):
+                        self.connect(src_name,
+                                     ['{0}.{1}'.format(phase_name, t) for t in tgts],
+                                     src_indices=src_idxs)
+
+    def _setup_design_parameters(self):
+        """
+        Adds an IndepVarComp if necessary and issues appropriate connections based
+        on transcription.
+        """
+        if self.design_parameter_options:
+            indep = self.add_subsystem('design_params', subsys=IndepVarComp(),
+                                       promotes_outputs=['*'])
+
+        for name, options in iteritems(self.design_parameter_options):
+            if options['opt']:
+                lb = -INF_BOUND if options['lower'] is None else options['lower']
+                ub = INF_BOUND if options['upper'] is None else options['upper']
+
+                self.add_design_var(name='design_parameters:{0}'.format(name),
+                                    lower=lb,
+                                    upper=ub,
+                                    scaler=options['scaler'],
+                                    adder=options['adder'],
+                                    ref0=options['ref0'],
+                                    ref=options['ref'])
+
+            indep.add_output(name='design_parameters:{0}'.format(name),
+                             val=options['val'],
+                             shape=(1, np.prod(options['shape'])),
+                             units=options['units'])
+
+            # Connect the design parameter to its target in each phase
+            src_name = 'design_parameters:{0}'.format(name)
+
+            target_params = options['targets']
+            for phase_name, phs in iteritems(self._phases):
+                tgt_param_name = target_params.get(phase_name, None) \
+                    if isinstance(target_params, dict) else name
+                if tgt_param_name:
+                    for tgts, src_idxs in phs._get_parameter_connections(tgt_param_name):
+                        self.connect(src_name,
+                                     ['{0}.{1}'.format(phase_name, t) for t in tgts],
+                                     src_indices=src_idxs)
+
+    def _setup_linkages(self):
+        link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
+
+        print('--- Linkage Report [{0}] ---'.format(self.pathname))
+
+        for pair, vars in iteritems(self._linkages):
+            phase_name1, phase_name2 = pair
+            p1 = self._phases[phase_name1]
+            p2 = self._phases[phase_name2]
+
+            print('  ', phase_name1, '   ', phase_name2)
+
+            p1_states = set([key for key in p1.state_options])
+            p2_states = set([key for key in p2.state_options])
+
+            p1_controls = set([key for key in p1.control_options])
+            p2_controls = set([key for key in p2.control_options])
+
+            p1_design_parameters = set([key for key in p1.design_parameter_options])
+            p2_design_parameters = set([key for key in p2.design_parameter_options])
+
+            varnames = vars.keys()
+            linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
+            max_varname_length = max(len(name) for name in varnames)
+
+            units_map = {}
+            for var, options in iteritems(vars):
+                if var in p1_states:
+                    units_map[var] = p1.state_options[var]['units']
+                elif var in p1_controls:
+                    units_map[var] = p1.control_options[var]['units']
+                elif var == 'time':
+                    units_map[var] = p1.time_options['units']
+                else:
+                    units_map[var] = None
+
+            link_comp.add_linkage(name=linkage_name,
+                                  vars=varnames,
+                                  units=units_map)
+
+            for var, options in iteritems(vars):
+                loc1, loc2 = options['locs']
+
+                if var in p1_states:
+                    source1 = 'states:{0}{1}'.format(var, loc1)
+                elif var in p1_controls:
+                    source1 = 'controls:{0}{1}'.format(var, loc1)
+                elif var == 'time':
+                    source1 = '{0}{1}'.format(var, loc1)
+                elif var in p1_design_parameters:
+                    source1 = 'design_parameters:{0}'.format(var)
+
+                self.connect('{0}.{1}'.format(phase_name1, source1),
+                             'linkages.{0}_{1}:lhs'.format(linkage_name, var))
+
+                if var in p2_states:
+                    source2 = 'states:{0}{1}'.format(var, loc2)
+                elif var in p2_controls:
+                    source2 = 'controls:{0}{1}'.format(var, loc2)
+                elif var == 'time':
+                    source2 = '{0}{1}'.format(var, loc2)
+                elif var in p2_design_parameters:
+                    source2 = 'design_parameters:{0}'.format(var)
+
+                self.connect('{0}.{1}'.format(phase_name2, source2),
+                             'linkages.{0}_{1}:rhs'.format(linkage_name, var))
+
+                print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
+                                                              max_varname_length + 9))
+
+        print('----------------------------')
+
     def setup(self):
         """
         Setup the Trajectory Group.
         """
+        super(Trajectory, self).setup()
+
+        if self.design_parameter_options:
+            self._setup_design_parameters()
+
+        if self.input_parameter_options:
+            self._setup_input_parameters()
 
         phases_group = self.add_subsystem('phases', subsys=ParallelGroup(), promotes_inputs=['*'],
                                           promotes_outputs=['*'])
@@ -71,77 +333,8 @@ class Trajectory(Group):
         for name, phs in iteritems(self._phases):
             phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
 
-        print('--- Linkage Report [{0}] ---'.format(self.pathname))
-
         if self._linkages:
-            link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
-
-            for pair, vars in iteritems(self._linkages):
-                phase_name1, phase_name2 = pair
-                p1 = self._phases[phase_name1]
-                p2 = self._phases[phase_name2]
-
-                print('  ', phase_name1, '   ', phase_name2)
-
-                p1_states = set([key for key in p1.state_options])
-                p2_states = set([key for key in p2.state_options])
-
-                p1_controls = set([key for key in p1.control_options])
-                p2_controls = set([key for key in p2.control_options])
-
-                p1_design_parameters = set([key for key in p1.design_parameter_options])
-                p2_design_parameters = set([key for key in p2.design_parameter_options])
-
-                varnames = vars.keys()
-                linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
-                max_varname_length = max(len(name) for name in varnames)
-
-                units_map = {}
-                for var, options in iteritems(vars):
-                    if var in p1_states:
-                        units_map[var] = p1.state_options[var]['units']
-                    elif var in p1_controls:
-                        units_map[var] = p1.control_options[var]['units']
-                    elif var == 'time':
-                        units_map[var] = p1.time_options['units']
-                    else:
-                        units_map[var] = None
-
-                link_comp.add_linkage(name=linkage_name,
-                                      vars=varnames,
-                                      units=units_map)
-
-                for var, options in iteritems(vars):
-                    loc1, loc2 = options['locs']
-
-                    if var in p1_states:
-                        source1 = 'states:{0}{1}'.format(var, loc1)
-                    elif var in p1_controls:
-                        source1 = 'controls:{0}{1}'.format(var, loc1)
-                    elif var == 'time':
-                        source1 = '{0}{1}'.format(var, loc1)
-                    elif var in p1_design_parameters:
-                        source1 = 'design_parameters:{0}'.format(var)
-
-                    self.connect('{0}.{1}'.format(phase_name1, source1),
-                                 'linkages.{0}_{1}:lhs'.format(linkage_name, var))
-
-                    if var in p2_states:
-                        source2 = 'states:{0}{1}'.format(var, loc2)
-                    elif var in p2_controls:
-                        source2 = 'controls:{0}{1}'.format(var, loc2)
-                    elif var == 'time':
-                        source2 = '{0}{1}'.format(var, loc2)
-                    elif var in p2_design_parameters:
-                        source2 = 'design_parameters:{0}'.format(var)
-
-                    self.connect('{0}.{1}'.format(phase_name2, source2),
-                                 'linkages.{0}_{1}:rhs'.format(linkage_name, var))
-
-                    print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
-                                                                  max_varname_length+9))
-
-            print('----------------------------')
+            self._setup_linkages()
 
     def link_phases(self, phases, vars=None, locs=('++', '--')):
         """
@@ -289,6 +482,14 @@ class Trajectory(Group):
 
         data = []
 
+        traj_design_parameter_values = {}
+        for name, options in iteritems(self.design_parameter_options):
+            traj_design_parameter_values[name] = self.get_values(name)
+
+        traj_input_parameter_values = {}
+        for name, options in iteritems(self.input_parameter_options):
+            traj_input_parameter_values[name] = self.get_values(name)
+
         for phase_name, phase in iteritems(self._phases):
             ode_class = phase.options['ode_class']
             ode_init_kwargs = phase.options['ode_init_kwargs']
@@ -296,16 +497,23 @@ class Trajectory(Group):
             state_values = {}
             control_values = {}
             design_parameter_values = {}
+            input_parameter_values = {}
             for state_name, options in iteritems(phase.state_options):
                 state_values[state_name] = phase.get_values(state_name, nodes='all')
             for control_name, options in iteritems(phase.control_options):
                 control_values[control_name] = phase.get_values(control_name, nodes='all')
             for dp_name, options in iteritems(phase.design_parameter_options):
                 design_parameter_values[dp_name] = phase.get_values(dp_name, nodes='all')
+            for ip_name, options in iteritems(phase.input_parameter_options):
+                input_parameter_values[dp_name] = phase.get_values(ip_name, nodes='all')
 
             data.append((phase_name, ode_class, phase.time_options, phase.state_options,
-                         phase.control_options, phase.design_parameter_options, time_values,
-                         state_values, control_values, design_parameter_values, ode_init_kwargs,
+                         phase.control_options, phase.design_parameter_options,
+                         phase.input_parameter_options, self.design_parameter_options,
+                         self.input_parameter_options, time_values,
+                         state_values, control_values, design_parameter_values,
+                         input_parameter_values, traj_design_parameter_values,
+                         traj_input_parameter_values, ode_init_kwargs,
                          phase.grid_data, times_dict[phase_name], False, None))
 
         num_procs = mp.cpu_count() if num_procs is None else num_procs
@@ -384,20 +592,58 @@ class Trajectory(Group):
             node_map = nodes
 
         var_in_traj = False
-        for phase_name in phase_names:
-            p = self._phases[phase_name]
 
-            if time_units is None:
-                time_units = p.time_options['units']
-            times[phase_name] = p.get_values('time', nodes=node_map[phase_name], units=time_units)
+        if var in self.design_parameter_options:
+            var_in_traj = True
 
-            try:
-                results[phase_name] = p.get_values(var, nodes=node_map[phase_name], units=units)
-                var_in_traj = True
-            except KeyError:
-                num_nodes = p.grid_data.subset_num_nodes[node_map[phase_name]]
-                results[phase_name] = np.empty((num_nodes, 1))
-                results[phase_name][:, :] = np.nan
+            op = dict(self.list_outputs(explicit=True, values=True, units=True, shape=True,
+                                        out_stream=None))
+
+            var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
+
+            var_path = var_prefix + 'design_params.design_parameters:{0}'.format(var)
+
+            output_units = op[var_path]['units']
+            output_value = convert_units(op[var_path]['value'], output_units, units)
+
+            for phase_name in phase_names:
+                p = self._phases[phase_name]
+                gd = p.grid_data
+                results[phase_name] = np.repeat(output_value, gd.num_nodes, axis=0)
+
+        elif var in self.input_parameter_options:
+            var_in_traj = True
+
+            op = dict(self.list_outputs(explicit=True, values=True, units=True, shape=True,
+                                        out_stream=None))
+
+            var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
+
+            var_path = var_prefix + 'input_params.input_parameters:{0}_out'.format(var)
+
+            output_units = op[var_path]['units']
+            output_value = convert_units(op[var_path]['value'], output_units, units)
+
+            for phase_name in phase_names:
+                p = self._phases[phase_name]
+                gd = p.grid_data
+                results[phase_name] = np.repeat(output_value, gd.num_nodes, axis=0)
+        else:
+            for phase_name in phase_names:
+                p = self._phases[phase_name]
+
+                if time_units is None:
+                    time_units = p.time_options['units']
+                times[phase_name] = p.get_values('time', nodes=node_map[phase_name],
+                                                 units=time_units)
+
+                try:
+                    results[phase_name] = p.get_values(var, nodes=node_map[phase_name], units=units)
+                    var_in_traj = True
+                except KeyError:
+                    num_nodes = p.grid_data.subset_num_nodes[node_map[phase_name]]
+                    results[phase_name] = np.empty((num_nodes, 1))
+                    results[phase_name][:, :] = np.nan
 
         if not var_in_traj:
             raise KeyError('Variable "{0}" not found in trajectory.'.format(var))

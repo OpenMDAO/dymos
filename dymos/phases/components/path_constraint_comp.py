@@ -27,7 +27,7 @@ class PathConstraintCompBase(ExplicitComponent):
             name of the variable in this component's namespace.
         var_class : str
             The 'class' of the variable as given by phase.classify_var.  One of 'time', 'state',
-            'indep_control', 'input_control', 'indep_design_parameter', 'input_design_parameter',
+            'indep_control', 'input_control', 'design_parameter', 'input_parameter',
             'control_rate', 'control_rate2', or 'ode'.
         val : float or list or tuple or ndarray
             The initial value of the variable being added in user-defined units. Default is 1.0.
