@@ -151,8 +151,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         exp_out_loaded = load_simulation_results('ex_two_phase_cannonball_sim.db')
 
-        print('optimal radius: {0:6.4f} m '.format(p.get_val('external_params.radius', units='m')[0]))
-        print('cannonball mass: {0:6.4f} kg '.format(p.get_val('size_comp.mass', units='kg')[0]))
+        print('optimal radius: {0:6.4f} m '.format(p.get_val('external_params.radius',
+                                                             units='m')[0]))
+        print('cannonball mass: {0:6.4f} kg '.format(p.get_val('size_comp.mass',
+                                                               units='kg')[0]))
 
         fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(8, 6))
 

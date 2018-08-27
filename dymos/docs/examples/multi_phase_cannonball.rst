@@ -55,7 +55,7 @@ Thus, if we increase the size of the cannonball, the ballistic coefficient
 will increase, meaning the cannonball overcome air resistance more easily and thus carry more distance.
 
 However, making the cannonball larger also increases its mass.  Our cannon can impart the cannonball
-with, at most, 400 kJ of kinetic energy.  So making the cannonball larger will decrease the
+with, at most, 300 kJ of kinetic energy.  So making the cannonball larger will decrease the
 initial velocity, and thus negatively impact its range.
 
 We therefore have a design that affects the objective in competing ways.  We cannot make the
