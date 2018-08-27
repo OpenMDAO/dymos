@@ -539,6 +539,45 @@ class PhaseBase(Group):
         self._path_constraints[name]['linear'] = linear
         self._path_constraints[name]['units'] = units
 
+    def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
+                      adder=None, scaler=None, parallel_deriv_color=None,
+                      vectorize_derivs=False):
+        """
+        Allows the user to add an objective in the phase.  If name is not a state,
+        control, control rate, or 'time', then this is assumed to be the path of the variable
+        to be constrained in the RHS.
+
+        Parameters
+        ----------
+        name : str
+            Name of the objective variable.  This should be one of 'time', a state or control
+            variable, or the path to an output from the top level of the RHS.
+        loc : str
+            Where in the phase the objective is to be evaluated.  Valid
+            options are 'initial' and 'final'.  The default is 'final'.
+        index : int, optional
+            If variable is an array at each point in time, this indicates which index is to be
+            used as the objective, assuming C-ordered flattening.
+        shape : int, optional
+            The shape of the objective variable, at a point in time
+        ref : float or ndarray, optional
+            Value of response variable that scales to 1.0 in the driver.
+        ref0 : float or ndarray, optional
+            Value of response variable that scales to 0.0 in the driver.
+        adder : float or ndarray, optional
+            Value to add to the model value to get the scaled value. Adder
+            is first in precedence.
+        scaler : float or ndarray, optional
+            value to multiply the model value to get the scaled value. Scaler
+            is second in precedence.
+        parallel_deriv_color : string
+            If specified, this design var will be grouped for parallel derivative
+            calculations with other variables sharing the same parallel_deriv_color.
+        vectorize_derivs : bool
+            If True, vectorize derivative calculations.
+        """
+        raise NotImplementedError('This class does not implement add_objective')
+
     def _add_objective(self, obj_path, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                        adder=None, scaler=None, parallel_deriv_color=None, vectorize_derivs=False):
         """
