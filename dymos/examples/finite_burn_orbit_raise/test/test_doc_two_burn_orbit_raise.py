@@ -34,6 +34,8 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.options['dynamic_simul_derivs'] = True
 
+        traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU')
+
         # First Phase (burn)
 
         burn1 = Phase('gauss-lobatto',
@@ -52,8 +54,8 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         burn1.set_state_options('accel', fix_initial=True, fix_final=False)
         burn1.set_state_options('deltav', fix_initial=True, fix_final=False)
         burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=1.0, rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001)
-        burn1.add_design_parameter('c', opt=False, val=1.5)
+                          scaler=1.0, rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
+                          lower=-30, upper=30)
 
         # Second Phase (Coast)
 
@@ -73,7 +75,6 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         coast.set_state_options('accel', fix_initial=True, fix_final=True)
         coast.set_state_options('deltav', fix_initial=False, fix_final=False)
         coast.add_control('u1', opt=False, val=0.0, units='deg')
-        coast.add_design_parameter('c', opt=False, val=1.5)
 
         # Third Phase (burn)
 
@@ -93,8 +94,8 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
         burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=0.01, rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001)
-        burn2.add_design_parameter('c', opt=False, val=1.5)
+                          scaler=0.01, rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
+                          lower=-30, upper=30)
 
         burn2.add_objective('deltav', loc='final', scaler=1.0)
 
@@ -113,6 +114,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         p.setup(check=True)
 
         # Set Initial Guesses
+        p.set_val('design_parameters:c', value=1.5)
 
         p.set_val('burn1.t_initial', value=0.0)
         p.set_val('burn1.t_duration', value=2.25)
@@ -126,7 +128,6 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
                   value=burn1.interpolate(ys=[0, 0.1], nodes='state_input'), )
         p.set_val('burn1.controls:u1',
                   value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
-        p.set_val('burn1.design_parameters:c', value=1.5)
 
         p.set_val('coast.t_initial', value=2.25)
         p.set_val('coast.t_duration', value=3.0)
@@ -138,7 +139,6 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         p.set_val('coast.states:vt', value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
         p.set_val('coast.states:accel', value=coast.interpolate(ys=[0, 0], nodes='state_input'))
         p.set_val('coast.controls:u1', value=coast.interpolate(ys=[0, 0], nodes='control_input'))
-        p.set_val('coast.design_parameters:c', value=1.5)
 
         p.set_val('burn2.t_initial', value=5.25)
         p.set_val('burn2.t_duration', value=1.75)
@@ -152,7 +152,6 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         p.set_val('burn2.states:deltav',
                   value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
         p.set_val('burn2.controls:u1', value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
-        p.set_val('burn2.design_parameters:c', value=1.5)
 
         p.run_driver()
 
