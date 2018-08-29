@@ -4,7 +4,7 @@ import os
 import unittest
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -63,7 +63,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         # Limit the muzzle energy
         ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
-                                       upper=300000, lower=0, ref=100000)
+                                       upper=400000, lower=0, ref=100000)
 
         # Second Phase (descent)
         descent = Phase('gauss-lobatto',
@@ -121,7 +121,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.set_val('external_params.radius', 0.05, units='m')
         p.set_val('external_params.dens', 7.87, units='g/cm**3')
 
-        p.set_val('traj.design_parameters:CD', 0.1)
+        p.set_val('traj.design_parameters:CD', 0.5)
         p.set_val('traj.design_parameters:CL', 0.0)
         p.set_val('traj.design_parameters:T', 0.0)
 
@@ -145,16 +145,19 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, traj.get_values('r')['descent'][-1], 1.108222E4, tolerance=1.0E-2)
+        assert_rel_error(self, traj.get_values('r')['descent'][-1], 3191.83945861, tolerance=1.0E-2)
 
         exp_out = traj.simulate(times=100, record_file='ex_two_phase_cannonball_sim.db')
 
-        exp_out_loaded = load_simulation_results('ex_two_phase_cannonball_sim.db')
+        # exp_out_loaded = load_simulation_results('ex_two_phase_cannonball_sim.db')
 
         print('optimal radius: {0:6.4f} m '.format(p.get_val('external_params.radius',
                                                              units='m')[0]))
         print('cannonball mass: {0:6.4f} kg '.format(p.get_val('size_comp.mass',
                                                                units='kg')[0]))
+
+        print(traj.get_values('mass'))
+        print(exp_out.get_values('mass'))
 
         fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(8, 6))
 
@@ -195,13 +198,13 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                      exp_out.get_values('kinetic_energy.ke')['descent'],
                      'r--')
 
-        axes[1].plot(exp_out_loaded.get_values('time')['ascent'],
-                     exp_out_loaded.get_values('kinetic_energy.ke')['ascent'],
-                     'b--')
-
-        axes[1].plot(exp_out_loaded.get_values('time')['descent'],
-                     exp_out_loaded.get_values('kinetic_energy.ke')['descent'],
-                     'r--')
+        # axes[1].plot(exp_out_loaded.get_values('time')['ascent'],
+        #              exp_out_loaded.get_values('kinetic_energy.ke')['ascent'],
+        #              'b--')
+        #
+        # axes[1].plot(exp_out_loaded.get_values('time')['descent'],
+        #              exp_out_loaded.get_values('kinetic_energy.ke')['descent'],
+        #              'r--')
 
         axes[1].set_xlabel('time (s)')
         axes[1].set_ylabel(r'kinetic energy (J)')

@@ -49,8 +49,9 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SNOPT
     burn1.set_state_options('vt', fix_initial=True, fix_final=False, defect_scaler=100.0)
     burn1.set_state_options('accel', fix_initial=True, fix_final=False)
     burn1.set_state_options('deltav', fix_initial=True, fix_final=False)
-    burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=1.0,
-                      rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001)
+    burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=0.01,
+                      rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
+                      lower=-30, upper=30)
 
     # Second Phase (Coast)
 
@@ -89,7 +90,8 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SNOPT
     burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
     burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
     burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=0.01,
-                      rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001)
+                      rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
+                      lower=-30, upper=30)
 
     burn2.add_objective('deltav', loc='final', scaler=100.0)
 

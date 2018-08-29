@@ -127,15 +127,15 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
 
     seg_sequence = range(grid_data.num_segments)
 
-    # Set the values of the trajectory design parameters
-    for param_name, options in iteritems(traj_design_parameter_options):
-        val = traj_design_parameter_values[param_name][phase_name]
-        rhs_integrator.set_traj_design_param_value(param_name, val[0, ...], options['units'])
-
-    # Set the values of the trajectory input parameters
-    for param_name, options in iteritems(traj_input_parameter_options):
-        val = traj_input_parameter_values[param_name][phase_name]
-        rhs_integrator.set_traj_input_param_value(param_name, val[0, ...], options['units'])
+    # # Set the values of the trajectory design parameters
+    # for param_name, options in iteritems(traj_design_parameter_options):
+    #     val = traj_design_parameter_values[param_name][phase_name]
+    #     rhs_integrator.set_traj_design_param_value(param_name, val[0, ...], options['units'])
+    #
+    # # Set the values of the trajectory input parameters
+    # for param_name, options in iteritems(traj_input_parameter_options):
+    #     val = traj_input_parameter_values[param_name][phase_name]
+    #     rhs_integrator.set_traj_input_param_value(param_name, val[0, ...], options['units'])
 
     # Set the values of the phase design parameters
     for param_name, options in iteritems(design_parameter_options):

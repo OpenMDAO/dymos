@@ -198,10 +198,10 @@ class Trajectory(Group):
                 tgt_param_name = target_params.get(phase_name, None) \
                     if isinstance(target_params, dict) else name
                 if tgt_param_name:
-                    for tgts, src_idxs in phs._get_parameter_connections(tgt_param_name):
-                        self.connect(src_name,
-                                     ['{0}.{1}'.format(phase_name, t) for t in tgts],
-                                     src_indices=src_idxs)
+                    phs.add_input_parameter(name, val=options['val'],
+                                            units=options['units'], target_param=tgt_param_name)
+                    self.connect(src_name,
+                                 '{0}.input_parameters:{1}'.format(phase_name, name))
 
     def _setup_design_parameters(self):
         """
@@ -238,10 +238,10 @@ class Trajectory(Group):
                 tgt_param_name = target_params.get(phase_name, None) \
                     if isinstance(target_params, dict) else name
                 if tgt_param_name:
-                    for tgts, src_idxs in phs._get_parameter_connections(tgt_param_name):
-                        self.connect(src_name,
-                                     ['{0}.{1}'.format(phase_name, t) for t in tgts],
-                                     src_indices=src_idxs)
+                    phs.add_input_parameter(tgt_param_name, val=options['val'],
+                                            units=options['units'])
+                    self.connect(src_name,
+                                 '{0}.input_parameters:{1}'.format(phase_name, tgt_param_name))
 
     def _setup_linkages(self):
         link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
@@ -482,13 +482,20 @@ class Trajectory(Group):
 
         data = []
 
+        op = dict(self.list_outputs(explicit=True, values=True, units=True, shape=True,
+                                    out_stream=None))
+        var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
+
+
         traj_design_parameter_values = {}
         for name, options in iteritems(self.design_parameter_options):
-            traj_design_parameter_values[name] = self.get_values(name)
+            var_path = var_prefix + 'design_params.design_parameters:{0}'.format(name)
+            traj_design_parameter_values[name] = op[var_path]['value']
 
         traj_input_parameter_values = {}
         for name, options in iteritems(self.input_parameter_options):
-            traj_input_parameter_values[name] = self.get_values(name)
+            var_path = var_prefix + 'input_params.input_parameters:{0}_out'.format(name)
+            traj_input_parameter_values[name] = op[var_path]['value']
 
         for phase_name, phase in iteritems(self._phases):
             ode_class = phase.options['ode_class']
@@ -505,7 +512,7 @@ class Trajectory(Group):
             for dp_name, options in iteritems(phase.design_parameter_options):
                 design_parameter_values[dp_name] = phase.get_values(dp_name, nodes='all')
             for ip_name, options in iteritems(phase.input_parameter_options):
-                input_parameter_values[dp_name] = phase.get_values(ip_name, nodes='all')
+                input_parameter_values[ip_name] = phase.get_values(ip_name, nodes='all')
 
             data.append((phase_name, ode_class, phase.time_options, phase.state_options,
                          phase.control_options, phase.design_parameter_options,
@@ -529,7 +536,9 @@ class Trajectory(Group):
         for i, phase_name in enumerate(self._phases.keys()):
             exp_outs_map[phase_name] = exp_outs[i]
 
-        results = TrajectorySimulationResults(exp_outs=exp_outs_map)
+        results = TrajectorySimulationResults(design_parameter_values=traj_design_parameter_values,
+                                              input_parameter_values=traj_input_parameter_values,
+                                              exp_outs=exp_outs_map)
 
         if record:
             if record_file is None:
@@ -538,7 +547,10 @@ class Trajectory(Group):
                     traj_name = 'traj'
                 record_file = '{0}_sim.db'.format(traj_name)
             print('Recording Results to {0}...'.format(record_file), end='')
-            results.record_results(self, exp_outs_map, filename=record_file)
+            results.record_results(self, exp_outs_map,
+                                   traj_design_param_values=traj_design_parameter_values,
+                                   traj_input_param_values=traj_input_parameter_values,
+                                   filename=record_file)
             print('Done')
 
         return results

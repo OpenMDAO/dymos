@@ -9,6 +9,7 @@ from openmdao.utils.general_utils import set_pyoptsparse_opt
 from dymos.examples.finite_burn_orbit_raise.ex_two_burn_orbit_raise import \
     two_burn_orbit_raise_problem
 
+
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
     @classmethod

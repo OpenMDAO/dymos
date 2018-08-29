@@ -195,37 +195,37 @@ class ScipyODEIntegrator(object):
                     model.connect('input_parameters:{0}'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in targets])
 
-        if self.traj_design_parameter_options:
-            ivc = model.add_subsystem('traj_design_params', IndepVarComp(), promotes_outputs=['*'])
-
-            order += ['traj_design_params']
-
-            for name, options in iteritems(self.traj_design_parameter_options):
-                ivc.add_output('traj_design_parameters:{0}'.format(name),
-                               val=np.ones(options['shape']),
-                               units=options['units'])
-                param_name = name if options['targets'] is None else \
-                    options['targets'].get(self.phase_name, None)
-                if param_name in self.ode_options._parameters:
-                    targets = self.ode_options._parameters[param_name]['targets']
-                    model.connect('traj_design_parameters:{0}'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in targets])
-
-        if self.traj_input_parameter_options:
-            ivc = model.add_subsystem('traj_input_params', IndepVarComp(), promotes_outputs=['*'])
-
-            order += ['traj_input_params']
-
-            for name, options in iteritems(self.traj_input_parameter_options):
-                ivc.add_output('traj_input_parameters:{0}'.format(name),
-                               val=np.ones(options['shape']),
-                               units=options['units'])
-                param_name = name if options['targets'] is None else \
-                    options['targets'].get(self.phase_name, None)
-                if param_name in self.ode_options._parameters:
-                    targets = self.ode_options._parameters[param_name]['targets']
-                    model.connect('traj_input_parameters:{0}'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in targets])
+        # if self.traj_design_parameter_options:
+        #     ivc = model.add_subsystem('traj_design_params', IndepVarComp(), promotes_outputs=['*'])
+        #
+        #     order += ['traj_design_params']
+        #
+        #     for name, options in iteritems(self.traj_design_parameter_options):
+        #         ivc.add_output('traj_design_parameters:{0}'.format(name),
+        #                        val=np.ones(options['shape']),
+        #                        units=options['units'])
+        #         param_name = name if options['targets'] is None else \
+        #             options['targets'].get(self.phase_name, None)
+        #         if param_name in self.ode_options._parameters:
+        #             targets = self.ode_options._parameters[param_name]['targets']
+        #             model.connect('traj_design_parameters:{0}'.format(name),
+        #                           ['ode.{0}'.format(tgt) for tgt in targets])
+        #
+        # if self.traj_input_parameter_options:
+        #     ivc = model.add_subsystem('traj_input_params', IndepVarComp(), promotes_outputs=['*'])
+        #
+        #     order += ['traj_input_params']
+        #
+        #     for name, options in iteritems(self.traj_input_parameter_options):
+        #         ivc.add_output('traj_input_parameters:{0}'.format(name),
+        #                        val=np.ones(options['shape']),
+        #                        units=options['units'])
+        #         param_name = name if options['targets'] is None else \
+        #             options['targets'].get(self.phase_name, None)
+        #         if param_name in self.ode_options._parameters:
+        #             targets = self.ode_options._parameters[param_name]['targets']
+        #             model.connect('traj_input_parameters:{0}'.format(name),
+        #                           ['ode.{0}'.format(tgt) for tgt in targets])
 
         order += ['ode', 'state_rate_collector']
         model.set_order(order)
@@ -280,37 +280,37 @@ class ScipyODEIntegrator(object):
         """
         self.prob.set_val('input_parameters:{0}'.format(name), val, units)
 
-    def set_traj_design_param_value(self, name, val, units=None):
-        """
-        Sets the values of trajectory design params in the problem, once self.prob has been setup.
-
-        Parameters
-        ----------
-        name : str
-            The name of the design parameter whose value is being set
-        val : float or ndarray
-            The value of the design parameter
-        units : str or None
-            The units in which the design parameter value is set.
-
-        """
-        self.prob.set_val('traj_design_parameters:{0}'.format(name), val, units)
-
-    def set_traj_input_param_value(self, name, val, units=None):
-        """
-        Sets the values of trajectory design params in the problem, once self.prob has been setup.
-
-        Parameters
-        ----------
-        name : str
-            The name of the design parameter whose value is being set
-        val : float or ndarray
-            The value of the design parameter
-        units : str or None
-            The units in which the design parameter value is set.
-
-        """
-        self.prob.set_val('traj_input_parameters:{0}'.format(name), val, units)
+    # def set_traj_design_param_value(self, name, val, units=None):
+    #     """
+    #     Sets the values of trajectory design params in the problem, once self.prob has been setup.
+    #
+    #     Parameters
+    #     ----------
+    #     name : str
+    #         The name of the design parameter whose value is being set
+    #     val : float or ndarray
+    #         The value of the design parameter
+    #     units : str or None
+    #         The units in which the design parameter value is set.
+    #
+    #     """
+    #     self.prob.set_val('traj_design_parameters:{0}'.format(name), val, units)
+    #
+    # def set_traj_input_param_value(self, name, val, units=None):
+    #     """
+    #     Sets the values of trajectory design params in the problem, once self.prob has been setup.
+    #
+    #     Parameters
+    #     ----------
+    #     name : str
+    #         The name of the design parameter whose value is being set
+    #     val : float or ndarray
+    #         The value of the design parameter
+    #     units : str or None
+    #         The units in which the design parameter value is set.
+    #
+    #     """
+    #     self.prob.set_val('traj_input_parameters:{0}'.format(name), val, units)
 
     def _unpack_state_vec(self, x):
         """
