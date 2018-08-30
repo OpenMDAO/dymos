@@ -65,25 +65,25 @@ The eom component computes the state rates.
 ex_ssto_earth.py
 ----------------------
 .. embed-code::
-    ../../dymos/examples/ssto/ex_ssto_earth.py
+    dymos.examples.ssto.ex_ssto_earth
     :layout: code
 
 launch_vehicle_2d_eom_comp.py
 ------------------------------
 .. embed-code::
-    ../../dymos/examples/ssto/launch_vehicle_2d_eom_comp.py
+    dymos.examples.ssto.launch_vehicle_2d_eom_comp
     :layout: code
 
 log_atmosphere_comp.py
 ------------------------
 .. embed-code::
-    ../../dymos/examples/ssto/log_atmosphere_comp.py
+    dymos.examples.ssto.log_atmosphere_comp
     :layout: code
 
 launch_vehicle_ode.py
 ----------------------
 .. embed-code::
-    ../../dymos/examples/ssto/launch_vehicle_ode.py
+    dymos.examples.ssto.launch_vehicle_ode
     :layout: code
 
 References
