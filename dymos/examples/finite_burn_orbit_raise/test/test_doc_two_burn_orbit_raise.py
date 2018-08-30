@@ -23,21 +23,18 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         from openmdao.api import Problem, pyOptSparseDriver, DirectSolver, SqliteRecorder
         from openmdao.utils.assert_utils import assert_rel_error
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         from dymos import Phase, Trajectory
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
-
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
 
         traj = Trajectory()
         p = Problem(model=traj)
 
         p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver.options['optimizer'] = 'SLSQP'
         p.driver.options['dynamic_simul_derivs'] = True
 
-        traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU')
+        traj.add_design_parameter('c', opt=False, val=1.5)
 
         # First Phase (burn)
 
@@ -57,7 +54,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         burn1.set_state_options('accel', fix_initial=True, fix_final=False)
         burn1.set_state_options('deltav', fix_initial=True, fix_final=False)
         burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=1.0, rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
+                          scaler=0.01, rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
                           lower=-30, upper=30)
 
         # Second Phase (Coast)
