@@ -52,3 +52,11 @@ Multi-Phase Cannonball Design Optimization
   :titlesonly:
 
   multi_phase_cannonball
+
+Two Burn Orbit Raise
+--------------------
+.. toctree::
+  :maxdepth: 1
+  :titlesonly:
+
+  two_burn_orbit_raise

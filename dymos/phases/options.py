@@ -182,7 +182,9 @@ class InputParameterOptionsDictionary(OptionsDictionary):
         super(InputParameterOptionsDictionary, self).__init__(read_only)
 
         self.declare(name='name', types=string_types,
-                     desc='The name of ODE system parameter to be set via design parameter.')
+                     desc='The name of ODE system parameter to be set via input parameter, or'
+                          'an alias.  If an alias is provided, then "target_param" should provide'
+                          'the ODE system parameter name.')
 
         self.declare(name='units', types=string_types, default=None,
                      allow_none=True, desc='The units in which the design parameter is defined.')
@@ -192,6 +194,9 @@ class InputParameterOptionsDictionary(OptionsDictionary):
 
         self.declare(name='targets', types=Iterable, default=[], allow_none=True,
                      desc='Used to store target information on a per-phase basis for trajectories.')
+
+        self.declare(name='target_param', types=string_types, default=None, allow_none=True,
+                     desc='The name of the ODE system parameter to be set via input parameter.')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the design parameter in the phase.')

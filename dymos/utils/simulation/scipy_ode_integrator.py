@@ -9,8 +9,6 @@ from dymos.utils.simulation.components.state_rate_collector_comp import StateRat
 from dymos.utils.simulation.progress_bar_observer import ProgressBarObserver
 from dymos.utils.simulation.phase_simulation_results import PhaseSimulationResults
 from dymos.utils.simulation.std_out_observer import StdOutObserver
-from dymos.phases.options import TimeOptionsDictionary, StateOptionsDictionary,\
-    ControlOptionsDictionary, DesignParameterOptionsDictionary
 from openmdao.core.analysis_error import AnalysisError
 from openmdao.core.group import Group
 from openmdao.core.indepvarcomp import IndepVarComp
@@ -47,16 +45,11 @@ class ScipyODEIntegrator(object):
         The design parameter options for the phase being simulated.
     input_parameter_options : dict of {str: InputParameterOptionsDictionary}
         The input parameter options for the phase being simulated.
-    traj_design_parameter_options : dict of {str: DesignParameterOptionsDictionary}
-        The design parameter options for the trajectory containing the phase being simulated.
-    traj_input_parameter_options : dict of {str: InputParameterOptionsDictionary}
-        The input parameter options for the trajectory containing the phase being simulated.
     ode_init_kwargs : dict
         Keyword argument dictionary passed to the ODE at initialization.
     """
     def __init__(self, phase_name, ode_class, time_options, state_options, control_options,
                  design_parameter_options, input_parameter_options,
-                 traj_design_parameter_options=None, traj_input_parameter_options=None,
                  ode_init_kwargs=None):
 
         self.phase_name = phase_name
@@ -75,8 +68,6 @@ class ScipyODEIntegrator(object):
         self.control_options = control_options
         self.design_parameter_options = design_parameter_options
         self.input_parameter_options = input_parameter_options
-        self.traj_design_parameter_options = traj_design_parameter_options
-        self.traj_input_parameter_options = traj_input_parameter_options
 
         pos = 0
 
@@ -190,41 +181,9 @@ class ScipyODEIntegrator(object):
             for name, options in iteritems(self.input_parameter_options):
                 ivc.add_output('input_parameters:{0}'.format(name), val=np.zeros(options['shape']),
                                units=options['units'])
-                if name in self.ode_options._parameters:
-                    targets = self.ode_options._parameters[name]['targets']
+                if options['target_param'] in self.ode_options._parameters:
+                    targets = self.ode_options._parameters[options['target_param']]['targets']
                     model.connect('input_parameters:{0}'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in targets])
-
-        if self.traj_design_parameter_options:
-            ivc = model.add_subsystem('traj_design_params', IndepVarComp(), promotes_outputs=['*'])
-
-            order += ['traj_design_params']
-
-            for name, options in iteritems(self.traj_design_parameter_options):
-                ivc.add_output('traj_design_parameters:{0}'.format(name),
-                               val=np.ones(options['shape']),
-                               units=options['units'])
-                param_name = name if options['targets'] is None else \
-                    options['targets'].get(self.phase_name, None)
-                if param_name in self.ode_options._parameters:
-                    targets = self.ode_options._parameters[param_name]['targets']
-                    model.connect('traj_design_parameters:{0}'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in targets])
-
-        if self.traj_input_parameter_options:
-            ivc = model.add_subsystem('traj_input_params', IndepVarComp(), promotes_outputs=['*'])
-
-            order += ['traj_input_params']
-
-            for name, options in iteritems(self.traj_input_parameter_options):
-                ivc.add_output('traj_input_parameters:{0}'.format(name),
-                               val=np.ones(options['shape']),
-                               units=options['units'])
-                param_name = name if options['targets'] is None else \
-                    options['targets'].get(self.phase_name, None)
-                if param_name in self.ode_options._parameters:
-                    targets = self.ode_options._parameters[param_name]['targets']
-                    model.connect('traj_input_parameters:{0}'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in targets])
 
         order += ['ode', 'state_rate_collector']
@@ -279,38 +238,6 @@ class ScipyODEIntegrator(object):
 
         """
         self.prob.set_val('input_parameters:{0}'.format(name), val, units)
-
-    def set_traj_design_param_value(self, name, val, units=None):
-        """
-        Sets the values of trajectory design params in the problem, once self.prob has been setup.
-
-        Parameters
-        ----------
-        name : str
-            The name of the design parameter whose value is being set
-        val : float or ndarray
-            The value of the design parameter
-        units : str or None
-            The units in which the design parameter value is set.
-
-        """
-        self.prob.set_val('traj_design_parameters:{0}'.format(name), val, units)
-
-    def set_traj_input_param_value(self, name, val, units=None):
-        """
-        Sets the values of trajectory design params in the problem, once self.prob has been setup.
-
-        Parameters
-        ----------
-        name : str
-            The name of the design parameter whose value is being set
-        val : float or ndarray
-            The value of the design parameter
-        units : str or None
-            The units in which the design parameter value is set.
-
-        """
-        self.prob.set_val('traj_input_parameters:{0}'.format(name), val, units)
 
     def _unpack_state_vec(self, x):
         """
@@ -439,16 +366,6 @@ class ScipyODEIntegrator(object):
                 name = prom_name.replace('input_parameters:', '', 1)
                 shape = self.input_parameter_options[name]['shape']
 
-            elif prom_name.startswith('traj_design_parameters:'):
-                var_type = 'traj_design_parameters'
-                name = prom_name.replace('traj_design_parameters:', '', 1)
-                shape = self.traj_design_parameter_options[name]['shape']
-
-            elif prom_name.startswith('traj_input_parameters:'):
-                var_type = 'traj_input_parameters'
-                name = prom_name.replace('traj_input_parameters:', '', 1)
-                shape = self.traj_input_parameter_options[name]['shape']
-
             elif prom_name.startswith('ode.'):
                 var_type = 'ode'
                 name = prom_name.replace('ode.', '', 1)
@@ -536,9 +453,7 @@ class ScipyODEIntegrator(object):
                                    state_options=self.state_options,
                                    control_options=self.control_options,
                                    design_parameter_options=self.design_parameter_options,
-                                   input_parameter_options=self.input_parameter_options,
-                                   traj_design_parameter_options=self.traj_design_parameter_options,
-                                   traj_input_parameter_options=self.traj_input_parameter_options)
+                                   input_parameter_options=self.input_parameter_options)
 
         self._store_results(results)
 

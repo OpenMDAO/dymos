@@ -47,6 +47,27 @@ case is somewhat unusual in that the thrust acceleration is modeled as a state v
 needs to be zero in the coast phase, but continuous between `burn1` and `burn2`, assuming no mass
 was jettisoned during the coast and that the thrust magnitude doesn't change.
 
+Trajectory Design Parameters and Input Parameters
+-------------------------------------------------
+Often times, there are parameters which apply to the entirety of a trajectory that potentially
+need to be optimized.  If we implemented these as design parameters within each phase individually,
+we would need some constraints to ensure that they held the same value within each phase.  To avoid
+this complexity, |project| Trajectory objects support their own Design Parameters and Input Parameters.
+
+Like their Phase-based counterparts, Trajectory design parameters produce an output which can be used
+as a design variable to provide an optimal solution.  Similarly, input parameters provide an input
+at the trajectory level which maybe be connected to some output external to the trajectory.
+
+When using Trajectory Design and Input parameters, their values are connected to each phase as an
+Input Parameter within the Phase.  Because ODEs in different phases may have different names
+for parameters (e.g. 'mass', 'm', 'm_total', etc) Dymos allows the user to specify the targeted
+ODE parameters on a phase-by-phase basis.
+
+<EXAMPLE OF TARGETS>
+
+If a phase exists within the Trajectory that doesn't utilize the trajectory
+design/input parameters, it is simply ignored for the purposes of that phase.
+
 Retrieving the Solution
 -----------------------
 

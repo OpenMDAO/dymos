@@ -415,8 +415,6 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                     'input_control': 'control_interp_comp.control_values:{0}',
                     'design_parameter': 'design_params.design_parameters:{0}',
                     'input_parameter': 'input_params.input_parameters:{0}_out',
-                    'traj_design_parameter': 'traj_design_params.traj_design_parameters:{0}',
-                    'traj_input_parameter': 'traj_input_params.traj_input_parameters:{0}_out',
                     'control_rate': 'control_interp_comp.control_rates:{0}',
                     'control_rate2': 'control_interp_comp.control_rates:{0}',
                     'ode': ('rhs_disc.{0}', 'rhs_col.{0}')}

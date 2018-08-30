@@ -198,10 +198,10 @@ class Trajectory(Group):
                 tgt_param_name = target_params.get(phase_name, None) \
                     if isinstance(target_params, dict) else name
                 if tgt_param_name:
-                    for tgts, src_idxs in phs._get_parameter_connections(tgt_param_name):
-                        self.connect(src_name,
-                                     ['{0}.{1}'.format(phase_name, t) for t in tgts],
-                                     src_indices=src_idxs)
+                    phs.add_input_parameter(tgt_param_name, val=options['val'],
+                                            units=options['units'], alias=name)
+                    self.connect(src_name,
+                                 '{0}.input_parameters:{1}'.format(phase_name, name))
 
     def _setup_design_parameters(self):
         """
@@ -238,10 +238,10 @@ class Trajectory(Group):
                 tgt_param_name = target_params.get(phase_name, None) \
                     if isinstance(target_params, dict) else name
                 if tgt_param_name:
-                    for tgts, src_idxs in phs._get_parameter_connections(tgt_param_name):
-                        self.connect(src_name,
-                                     ['{0}.{1}'.format(phase_name, t) for t in tgts],
-                                     src_indices=src_idxs)
+                    phs.add_input_parameter(tgt_param_name, val=options['val'],
+                                            units=options['units'])
+                    self.connect(src_name,
+                                 '{0}.input_parameters:{1}'.format(phase_name, tgt_param_name))
 
     def _setup_linkages(self):
         link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
@@ -482,14 +482,6 @@ class Trajectory(Group):
 
         data = []
 
-        traj_design_parameter_values = {}
-        for name, options in iteritems(self.design_parameter_options):
-            traj_design_parameter_values[name] = self.get_values(name)
-
-        traj_input_parameter_values = {}
-        for name, options in iteritems(self.input_parameter_options):
-            traj_input_parameter_values[name] = self.get_values(name)
-
         for phase_name, phase in iteritems(self._phases):
             ode_class = phase.options['ode_class']
             ode_init_kwargs = phase.options['ode_init_kwargs']
@@ -505,15 +497,13 @@ class Trajectory(Group):
             for dp_name, options in iteritems(phase.design_parameter_options):
                 design_parameter_values[dp_name] = phase.get_values(dp_name, nodes='all')
             for ip_name, options in iteritems(phase.input_parameter_options):
-                input_parameter_values[dp_name] = phase.get_values(ip_name, nodes='all')
+                input_parameter_values[ip_name] = phase.get_values(ip_name, nodes='all')
 
             data.append((phase_name, ode_class, phase.time_options, phase.state_options,
                          phase.control_options, phase.design_parameter_options,
-                         phase.input_parameter_options, self.design_parameter_options,
-                         self.input_parameter_options, time_values,
+                         phase.input_parameter_options, time_values,
                          state_values, control_values, design_parameter_values,
-                         input_parameter_values, traj_design_parameter_values,
-                         traj_input_parameter_values, ode_init_kwargs,
+                         input_parameter_values, ode_init_kwargs,
                          phase.grid_data, times_dict[phase_name], False, None))
 
         num_procs = mp.cpu_count() if num_procs is None else num_procs
@@ -593,57 +583,21 @@ class Trajectory(Group):
 
         var_in_traj = False
 
-        if var in self.design_parameter_options:
-            var_in_traj = True
+        for phase_name in phase_names:
+            p = self._phases[phase_name]
 
-            op = dict(self.list_outputs(explicit=True, values=True, units=True, shape=True,
-                                        out_stream=None))
+            if time_units is None:
+                time_units = p.time_options['units']
+            times[phase_name] = p.get_values('time', nodes=node_map[phase_name],
+                                             units=time_units)
 
-            var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
-
-            var_path = var_prefix + 'design_params.design_parameters:{0}'.format(var)
-
-            output_units = op[var_path]['units']
-            output_value = convert_units(op[var_path]['value'], output_units, units)
-
-            for phase_name in phase_names:
-                p = self._phases[phase_name]
-                gd = p.grid_data
-                results[phase_name] = np.repeat(output_value, gd.num_nodes, axis=0)
-
-        elif var in self.input_parameter_options:
-            var_in_traj = True
-
-            op = dict(self.list_outputs(explicit=True, values=True, units=True, shape=True,
-                                        out_stream=None))
-
-            var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
-
-            var_path = var_prefix + 'input_params.input_parameters:{0}_out'.format(var)
-
-            output_units = op[var_path]['units']
-            output_value = convert_units(op[var_path]['value'], output_units, units)
-
-            for phase_name in phase_names:
-                p = self._phases[phase_name]
-                gd = p.grid_data
-                results[phase_name] = np.repeat(output_value, gd.num_nodes, axis=0)
-        else:
-            for phase_name in phase_names:
-                p = self._phases[phase_name]
-
-                if time_units is None:
-                    time_units = p.time_options['units']
-                times[phase_name] = p.get_values('time', nodes=node_map[phase_name],
-                                                 units=time_units)
-
-                try:
-                    results[phase_name] = p.get_values(var, nodes=node_map[phase_name], units=units)
-                    var_in_traj = True
-                except KeyError:
-                    num_nodes = p.grid_data.subset_num_nodes[node_map[phase_name]]
-                    results[phase_name] = np.empty((num_nodes, 1))
-                    results[phase_name][:, :] = np.nan
+            try:
+                results[phase_name] = p.get_values(var, nodes=node_map[phase_name], units=units)
+                var_in_traj = True
+            except KeyError:
+                num_nodes = p.grid_data.subset_num_nodes[node_map[phase_name]]
+                results[phase_name] = np.empty((num_nodes, 1))
+                results[phase_name][:, :] = np.nan
 
         if not var_in_traj:
             raise KeyError('Variable "{0}" not found in trajectory.'.format(var))

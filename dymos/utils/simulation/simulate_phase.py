@@ -16,11 +16,11 @@ from ..interpolate import LagrangeBarycentricInterpolant
 
 
 def simulate_phase(phase_name, ode_class, time_options, state_options, control_options,
-                   design_parameter_options, input_parameter_options, traj_design_parameter_options,
-                   traj_input_parameter_options, time_values, state_values, control_values,
-                   design_parameter_values, input_parameter_values, traj_design_parameter_values,
-                   traj_input_parameter_values, ode_init_kwargs, grid_data, times, record=True,
-                   record_file=None, observer=None, integrator='vode', integrator_params=None):
+                   design_parameter_options, input_parameter_options,
+                   time_values, state_values, control_values,
+                   design_parameter_values, input_parameter_values, ode_init_kwargs, grid_data,
+                   times, record=True, record_file=None, observer=None, integrator='vode',
+                   integrator_params=None):
     """
     Provides a way of simulating a phase that can be called in a multiprocessing pool.
 
@@ -40,10 +40,6 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
         The design parameter options for the phase being simulated.
     input_parameter_options : OptionsDictionary
         The input parameter options for the phase being simulated.
-    traj_design_parameter_options : OptionsDictionary or None
-        The design parameter options for the trajectory containing the simulated phase, or None.
-    traj_input_parameter_options : OptionsDictionary or None
-        The input parameter options for the trajectory containing the simulated phase, or None.
     time_values : ndarray
         The time values from the phase being simulated.
     state_values : dict of {str : ndarray}
@@ -56,12 +52,6 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
         A dictionary keyed by design parameter name containing the values of all design parameters.
     input_parameter_values : dict of {str : ndarray}
         A dictionary keyed by design parameter name containing the values of all input parameters.
-    traj_design_parameter_values : dict of {str : ndarray}
-        A dictionary keyed by design parameter name containing the values of all design parameters
-        managed by the trajectory containing the simulated phase.
-    traj_input_parameter_values : dict of {str : ndarray}
-        A dictionary keyed by input parameter name containing the values of all input parameters
-        managed by the trajectory containing the simulated phase.
     ode_init_kwargs : dict
         Keyword initialization arguments for the ODE class.
     grid_data : GridData
@@ -108,8 +98,6 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
                                         control_options=control_options,
                                         design_parameter_options=design_parameter_options,
                                         input_parameter_options=input_parameter_options,
-                                        traj_design_parameter_options=traj_design_parameter_options,
-                                        traj_input_parameter_options=traj_input_parameter_options,
                                         ode_init_kwargs=ode_init_kwargs)
 
     x0 = {}
@@ -126,16 +114,6 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
                                      input_parameter_options=input_parameter_options)
 
     seg_sequence = range(grid_data.num_segments)
-
-    # Set the values of the trajectory design parameters
-    for param_name, options in iteritems(traj_design_parameter_options):
-        val = traj_design_parameter_values[param_name][phase_name]
-        rhs_integrator.set_traj_design_param_value(param_name, val[0, ...], options['units'])
-
-    # Set the values of the trajectory input parameters
-    for param_name, options in iteritems(traj_input_parameter_options):
-        val = traj_input_parameter_values[param_name][phase_name]
-        rhs_integrator.set_traj_input_param_value(param_name, val[0, ...], options['units'])
 
     # Set the values of the phase design parameters
     for param_name, options in iteritems(design_parameter_options):
