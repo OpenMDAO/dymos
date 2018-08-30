@@ -132,6 +132,8 @@ def min_time_climb_fbd(include_drag=True):
     ax.add_patch(gamma_plot)
     ax.text(x+0.25, y+0.08, r'$\alpha$')
 
+    plt.savefig('min_time_climb_fbd.png')
+
     plt.show()
 
 

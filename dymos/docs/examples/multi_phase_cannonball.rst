@@ -12,11 +12,6 @@ This problem demonstrates the use of two phases to capture the state of the syst
 in the trajectory.  Here, we have the first phase (ascent) terminate when the flight path
 angle reaches zero (apogee).  The descent phase follows until the cannonball impacts the ground.
 
-..  comment block until we fix an embed bug
-    embed-code::
-    examples/figures/min_time_climb_fbd.py
-    :layout: plot
-
 The dynamics are given by
 
 .. math ::
