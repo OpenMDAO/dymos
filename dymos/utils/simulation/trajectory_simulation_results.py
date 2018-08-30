@@ -28,8 +28,7 @@ class TrajectorySimulationResults(object):
         A dictionary of PhaseSimulationResults for each phase within the trajectory, keyed by
         phase name.
     """
-    def __init__(self, filepath=None, design_parameter_values=None, input_parameter_values=None,
-                 exp_outs=None):
+    def __init__(self, filepath=None, exp_outs=None):
 
         self.outputs = {'phases': {}}
 
@@ -40,8 +39,6 @@ class TrajectorySimulationResults(object):
         if filepath:
             self._load_results(filepath)
         elif exp_outs:
-            self.outputs['traj_design_parameters'] = design_parameter_values.copy()
-            self.outputs['traj_input_parameters'] = input_parameter_values.copy()
             for phase_name, phase_results in iteritems(exp_outs):
                 self.outputs['phases'][phase_name] = {}
                 self.outputs['phases'][phase_name]['indep'] = {}
@@ -57,8 +54,7 @@ class TrajectorySimulationResults(object):
                     pdict = phase_results.outputs[var_type]
                     self.outputs['phases'][phase_name][var_type].update(pdict)
 
-    def record_results(self, traj, exp_outs, traj_design_param_values, traj_input_param_values,
-                       filename):
+    def record_results(self, traj, exp_outs, filename):
         """
         Record the outputs to the given filename.  This is done by instantiating a new
         problem with an IndepVarComp for the time, states, controls, and control rates, as
@@ -75,10 +71,6 @@ class TrajectorySimulationResults(object):
             The Trajectory whose simulated results are to be recorded.
         exp_outs : dict of {str : PhaseSimulationResults}.
             A dictionary of {phase_name : PhaseSimulationResults} for each phase to be recorded
-        traj_design_param_values : dict of {str : np.array}.
-            A dictionary of {param name : value} for the trajectory design parameters.
-        traj_design_param_values : dict of {str : np.array}.
-            A dictionary of {param name : value} for the trajectory input parameters.
         filename : str
             The filename to which the recording should be saved.
         """
@@ -90,19 +82,6 @@ class TrajectorySimulationResults(object):
         p = Problem(model=Group())
 
         traj_group = p.model.add_subsystem('phases', ParallelGroup())
-
-        traj_params_ivc = p.model.add_subsystem('traj_parameters',
-                                                IndepVarComp(),
-                                                promotes_outputs=['*'])
-
-        for dp_name, options in iteritems(traj.design_parameter_options):
-            print(dp_name)
-            traj_params_ivc.add_output('traj_design_parameters:{0}'.format(dp_name),
-                                       val=np.zeros(options['shape']), units=options['units'])
-
-        for ip_name, options in iteritems(traj.input_parameter_options):
-            traj_params_ivc.add_output('traj_input_parameters:{0}'.format(ip_name),
-                                       val=np.zeros(options['shape']), units=options['units'])
 
         phase_groups = {}
 
@@ -183,30 +162,6 @@ class TrajectorySimulationResults(object):
                                     sys_param_options[options['target_param']]['targets']],
                                     src_indices=np.arange(nn, dtype=int))
 
-            # # Connect trajectory design parameters
-            # for name, options in iteritems(traj.design_parameter_options):
-            #     param_name = name if options['targets'] is None else options['targets'][phase_name]
-            #     if param_name in sys_param_options:
-            #         units = options['units']
-            #         ivc.add_output('traj_design_parameters:{0}'.format(name),
-            #                        val=np.zeros((nn,) + options['shape']), units=units)
-            #         phase_group.connect('traj_design_parameters:{0}'.format(name),
-            #                             ['ode.{0}'.format(t) for t in
-            #                              sys_param_options[param_name]['targets']],
-            #                             src_indices=np.zeros(nn, dtype=int))
-            #
-            # # Connect trajectory design parameters
-            # for name, options in iteritems(traj.input_parameter_options):
-            #     param_name = name if options['targets'] is None else options['targets'][phase_name]
-            #     if param_name in sys_param_options:
-            #         units = options['units']
-            #         ivc.add_output('traj_input_parameters:{0}'.format(name),
-            #                        val=np.zeros((nn,) + options['shape']), units=units)
-            #         phase_group.connect('traj_input_parameters:{0}'.format(name),
-            #                             ['ode.{0}'.format(t) for t in
-            #                              sys_param_options[param_name]['targets']],
-            #                             src_indices=np.zeros(nn, dtype=int))
-
         p.setup(check=True)
 
         p.model.add_recorder(SqliteRecorder(filename))
@@ -214,14 +169,6 @@ class TrajectorySimulationResults(object):
         p.model.recording_options['record_outputs'] = True
 
         # Assign values
-
-        # Assign trajectory design parameters
-        for name, options in iteritems(traj.design_parameter_options):
-            p['traj_design_parameters:{0}'.format(name)][...] = traj_design_param_values[name]
-
-        # Assign trajectory design parameters
-        for name, options in iteritems(traj.input_parameter_options):
-            p['traj_input_parameters:{0}'.format(name)][...] = traj_input_param_values[name]
 
         for phase_name, phase in iteritems(traj._phases):
             exp_out = exp_outs[phase_name]
@@ -257,18 +204,6 @@ class TrajectorySimulationResults(object):
                 shape = p['phases.{0}.input_parameters:{1}'.format(phase_name, name)].shape
                 p['phases.{0}.input_parameters:{1}'.format(phase_name, name)] = \
                     np.reshape(exp_out.get_values(name), shape)
-
-            # # Assign trajectory design parameters
-            # for name, options in iteritems(traj.design_parameter_options):
-            #     shape = p['phases.{0}.traj_design_parameters:{1}'.format(phase_name, name)].shape
-            #     p['phases.{0}.traj_design_parameters:{1}'.format(phase_name, name)] = \
-            #         np.reshape(exp_out.get_values(name), shape)
-            #
-            # # Assign trajectory design parameters
-            # for name, options in iteritems(traj.input_parameter_options):
-            #     shape = p['phases.{0}.traj_input_parameters:{1}'.format(phase_name, name)].shape
-            #     p['phases.{0}.traj_input_parameters:{1}'.format(phase_name, name)] = \
-            #         np.reshape(exp_out.get_values(name), shape)
 
             # Populate outputs of ODE
             prom2abs_ode_outputs = \
@@ -312,8 +247,6 @@ class TrajectorySimulationResults(object):
         phase_names = set([s[0].split('.')[1] for s in loaded_outputs
                            if s[0].startswith('phases.')])
 
-        self.outputs['traj_design_parameters'] = {}
-        self.outputs['traj_input_parameters'] = {}
         for phase_name in phase_names:
             self.outputs['phases'][phase_name] = {}
             self.outputs['phases'][phase_name]['indep'] = {}
@@ -349,12 +282,6 @@ class TrajectorySimulationResults(object):
                         var_name = output_name.split(':')[-1]
                     elif output_name.startswith('input_parameters:'):
                         var_type = 'input_parameters'
-                        var_name = output_name.split(':')[-1]
-                    elif output_name.startswith('traj_design_parameters:'):
-                        var_type = 'traj_design_parameters'
-                        var_name = output_name.split(':')[-1]
-                    elif output_name.startswith('traj_input_parameters:'):
-                        var_type = 'traj_input_parameters'
                         var_name = output_name.split(':')[-1]
 
                 elif output_name.startswith('ode.'):
@@ -461,9 +388,6 @@ class TrajectorySimulationResults(object):
                 output[:] = np.nan
 
             if not var_in_traj:
-                print(var)
-                print(self.outputs['traj_input_parameters'])
-                print(self.outputs['traj_design_parameters'])
                 raise KeyError('Variable "{0}" not found in trajectory '
                                'simulation results.'.format(var))
 

@@ -47,7 +47,7 @@ before the trajectory.
 We assume our cannon can shoot a cannonball with some fixed kinetic energy and that
 our cannonball is made of solid iron.  The volume (and mass) of the cannonball is proportional
 to its radius cubed, while the cross-sectional area is proportional to its radius squared.
-Thus, if we increase the size of the cannonball, the ballistic coefficient
+If we increase the size of the cannonball, the ballistic coefficient
 
 .. math ::
     BC = \frac{m}{C_D A}
@@ -55,14 +55,13 @@ Thus, if we increase the size of the cannonball, the ballistic coefficient
 will increase, meaning the cannonball overcome air resistance more easily and thus carry more distance.
 
 However, making the cannonball larger also increases its mass.  Our cannon can impart the cannonball
-with, at most, 300 kJ of kinetic energy.  So making the cannonball larger will decrease the
+with, at most, 400 kJ of kinetic energy.  So making the cannonball larger will decrease the
 initial velocity, and thus negatively impact its range.
 
 We therefore have a design that affects the objective in competing ways.  We cannot make the
 cannonball too large, as it will be too heavy to shoot.  We also cannot make the cannonball too
 small, as it will be more susceptible to air resistance.  Somewhere in between is the sweet spot
 that provides the maximum range cannonball.
-
 
 Building and running the problem
 --------------------------------

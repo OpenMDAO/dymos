@@ -4,7 +4,7 @@ import os
 import unittest
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -155,9 +155,6 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                                                              units='m')[0]))
         print('cannonball mass: {0:6.4f} kg '.format(p.get_val('size_comp.mass',
                                                                units='kg')[0]))
-
-        print(traj.get_values('mass'))
-        print(exp_out.get_values('mass'))
 
         fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(8, 6))
 

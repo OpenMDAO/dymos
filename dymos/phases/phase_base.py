@@ -383,26 +383,24 @@ class PhaseBase(Group):
         if units != 0:
             self.design_parameter_options[name]['units'] = units
 
-    def add_input_parameter(self, name, val=0.0, units=0, target_param=None):
+    def add_input_parameter(self, name, val=0.0, units=0, alias=None):
         """
         Add a design parameter (static control variable) to the phase.
 
         Parameters
         ----------
         name : str
-            Name of the design parameter.
+            Name of the ODE parameter to be controlled via this input parameter.
         val : float or ndarray
             Default value of the design parameter at all nodes.
         units : str or None or 0
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
-        target_param : str or None
-            If provided, specifies the name of the ODE parameter to which this input parameter
-            is to be connected.  This allows trajectories to pass in input and design parameters
-            whose names are potentially different from those in the phase/ODE.
+        alias : str or None
+            If provided, specifies the alternative name by which this input parameter is to be
+            referenced.
 
         """
-        param_name = name if target_param is None else target_param
 
         if name in self.control_options:
             raise ValueError('{0} has already been added as a control.'.format(name))
@@ -410,28 +408,30 @@ class PhaseBase(Group):
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
         if name in self.input_parameter_options:
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
-        if target_param in self.control_options:
+        if alias in self.control_options:
             raise ValueError('{0} has already been added as a control.'.format(name))
-        if target_param in self.design_parameter_options:
+        if alias in self.design_parameter_options:
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
-        if target_param in self.input_parameter_options:
+        if alias in self.input_parameter_options:
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
 
-        self.input_parameter_options[name] = InputParameterOptionsDictionary()
+        ip_name = name if alias is None else alias
 
-        if param_name in self.ode_options._parameters:
-            ode_param_info = self.ode_options._parameters[param_name]
-            self.input_parameter_options[name]['units'] = ode_param_info['units']
-            self.input_parameter_options[name]['shape'] = ode_param_info['shape']
+        self.input_parameter_options[ip_name] = InputParameterOptionsDictionary()
+
+        if name in self.ode_options._parameters:
+            ode_param_info = self.ode_options._parameters[name]
+            self.input_parameter_options[ip_name]['units'] = ode_param_info['units']
+            self.input_parameter_options[ip_name]['shape'] = ode_param_info['shape']
         else:
-            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(param_name)
+            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
             raise ValueError(err_msg)
 
-        self.input_parameter_options[name]['val'] = val
-        self.input_parameter_options[name]['target_param'] = param_name
+        self.input_parameter_options[ip_name]['val'] = val
+        self.input_parameter_options[ip_name]['target_param'] = name
 
         if units != 0:
-            self.input_parameter_options[name]['units'] = units
+            self.input_parameter_options[ip_name]['units'] = units
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None, lower=None,
                                 upper=None, equals=None, scaler=None, adder=None,

@@ -39,8 +39,7 @@ class PhaseSimulationResults(object):
         being loaded from a file, this is not needed at instantiation.
     """
     def __init__(self, filepath=None, time_options=None, state_options=None,
-                 control_options=None, design_parameter_options=None, input_parameter_options=None,
-                 traj_design_parameter_options=None, traj_input_parameter_options=None):
+                 control_options=None, design_parameter_options=None, input_parameter_options=None):
         self.time_options = {} if time_options is None else time_options
         self.state_options = {} if state_options is None else state_options
         self.control_options = {} if control_options is None else control_options
@@ -48,13 +47,8 @@ class PhaseSimulationResults(object):
             design_parameter_options
         self.input_parameter_options = {} if input_parameter_options is None else \
             input_parameter_options
-        self.traj_design_parameter_options = {} if traj_design_parameter_options is None else \
-            traj_design_parameter_options
-        self.traj_input_parameter_options = {} if traj_input_parameter_options is None else \
-            traj_input_parameter_options
         self.outputs = {'indep': {}, 'states': {}, 'controls': {}, 'control_rates': {},
-                        'design_parameters': {}, 'input_parameters': {},
-                        'traj_design_parameters': {}, 'traj_input_parameters': {}, 'ode': {}}
+                        'design_parameters': {}, 'input_parameters': {}, 'ode': {}}
         self.units = {}
 
         if isinstance(filepath, str):
@@ -151,28 +145,6 @@ class PhaseSimulationResults(object):
                             ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
                             src_indices=np.arange(nn, dtype=int))
 
-        # Connect trajectory design parameters
-        for name, options in iteritems(self.traj_design_parameter_options):
-            units = options['units']
-            ivc.add_output('traj_design_parameters:{0}'.format(name),
-                           val=np.zeros((nn,) + options['shape']), units=units)
-            param_name = name if options['targets'] is None else \
-                options['targets'].get(phase_name, None)
-            p.model.connect('traj_design_parameters:{0}'.format(name),
-                            ['ode.{0}'.format(t) for t in sys_param_options[param_name]['targets']],
-                            src_indices=np.arange(nn, dtype=int))
-
-        # Connect trajectory input parameters
-        for name, options in iteritems(self.traj_design_parameter_options):
-            units = options['units']
-            ivc.add_output('traj_input_parameters:{0}'.format(name),
-                           val=np.zeros((nn,) + options['shape']), units=units)
-            param_name = name if options['targets'] is None else \
-                options['targets'].get(phase_name, None)
-            p.model.connect('traj_input_parameters:{0}'.format(name),
-                            ['ode.{0}'.format(t) for t in sys_param_options[param_name]['targets']],
-                            src_indices=np.arange(nn, dtype=int))
-
         p.setup(check=False)
 
         p.model.add_recorder(SqliteRecorder(filename))
@@ -207,16 +179,6 @@ class PhaseSimulationResults(object):
             shape = p['input_parameters:{0}'.format(name)].shape
             p['input_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
 
-        # Assign trajectory design parameters
-        for name, options in iteritems(self.traj_design_parameter_options):
-            shape = p['traj_design_parameters:{0}'.format(name)].shape
-            p['traj_design_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
-
-        # Assign trajectory design parameters
-        for name, options in iteritems(self.traj_input_parameter_options):
-            shape = p['traj_input_parameters:{0}'.format(name)].shape
-            p['traj_input_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
-
         # Populate outputs of ODE
         prom2abs_ode_outputs = p.model.ode._var_allprocs_prom2abs_list['output']
         for prom_name, abs_name in iteritems(prom2abs_ode_outputs):
@@ -243,8 +205,7 @@ class PhaseSimulationResults(object):
                                          units=True, shape=True, out_stream=None)
 
         self.outputs = {'indep': {}, 'states': {}, 'controls': {}, 'control_rates': {},
-                        'design_parameters': {}, 'input_parameters': {},
-                        'traj_design_parameters': {}, 'traj_input_parameters': {}, 'ode': {}}
+                        'design_parameters': {}, 'input_parameters': {}, 'ode': {}}
 
         for output_name, options in loaded_outputs:
 
@@ -266,9 +227,9 @@ class PhaseSimulationResults(object):
                 elif output_name.startswith('design_parameters:'):
                     var_type = 'design_parameters'
                     var_name = output_name.replace('design_parameters:', '', 1)
-                elif output_name.startswith('traj_design_parameters:'):
-                    var_type = 'traj_design_parameters'
-                    var_name = output_name.replace('traj_design_parameters:', '', 1)
+                # elif output_name.startswith('traj_design_parameters:'):
+                #     var_type = 'traj_design_parameters'
+                #     var_name = output_name.replace('traj_design_parameters:', '', 1)
 
                 val = options['value']
 
@@ -306,10 +267,6 @@ class PhaseSimulationResults(object):
             var_type = 'design_parameters'
         elif var in self.outputs['input_parameters']:
             var_type = 'input_parameters'
-        elif var in self.outputs['traj_design_parameters']:
-            var_type = 'traj_design_parameters'
-        elif var in self.outputs['traj_input_parameters']:
-            var_type = 'traj_input_parameters'
         elif var in self.outputs['control_rates']:
             var_type = 'control_rates'
         elif var in self.outputs['ode']:

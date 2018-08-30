@@ -23,15 +23,18 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         from openmdao.api import Problem, pyOptSparseDriver, DirectSolver, SqliteRecorder
         from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         from dymos import Phase, Trajectory
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
+
+        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
 
         traj = Trajectory()
         p = Problem(model=traj)
 
         p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver.options['optimizer'] = 'SNOPT'
         p.driver.options['dynamic_simul_derivs'] = True
 
         traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU')
