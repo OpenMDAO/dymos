@@ -33,40 +33,35 @@ Component and Group Definitions
 
 linear_tangent_guidance_comp.py
 -------------------------------
-..  comment block until we fix an embed bug
-    embed-code::
-    ../../dymos/examples/ssto/linear_tangent_guidance_comp.py
+.. embed-code::
+    dymos.examples.ssto.linear_tangent_guidance_comp
     :layout: code
 
 launch_vehicle_2d_eom_comp.py
 -----------------------------
-..  comment block until we fix an embed bug
-    embed-code::
-    ../../dymos/examples/ssto/launch_vehicle_2d_eom_comp.py
+.. embed-code::
+    dymos.examples.ssto.launch_vehicle_2d_eom_comp
     :layout: code
 
 launch_vehicle_ode.py
 ---------------------
-..  comment block until we fix an embed bug
-    embed-code::
-    ../../dymos/examples/ssto/launch_vehicle_ode.py
+.. embed-code::
+    dymos.examples.ssto.launch_vehicle_ode
     :layout: code
 
 ------------------
 Problem Definition
 ------------------
 
-..  comment block until we fix an embed bug
-    embed-code::
-    ../../dymos/examples/ssto/ex_ssto_moon_linear_tangent.py
+.. embed-code::
+    dymos.examples.ssto.ex_ssto_moon_linear_tangent
     :layout: code
 
 -------------------
 Run Script
 -------------------
 
-..  comment block until we fix an embed bug
-    embed-code::
+.. embed-code::
     dymos.examples.ssto.test.test_ex_ssto_moon_linear_tangent.TestExampleSSTOMoonLinearTangent.test_plot
     :layout: code, output, plot
 

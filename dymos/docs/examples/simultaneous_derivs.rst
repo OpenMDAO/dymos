@@ -91,10 +91,10 @@ Using a conservative sparsity pattern (assuming any variable in a segment can im
 in the same segment), OTIS computes that there are 7794 nonzero elements in the Jacobian.  The
 non-conservative sparsity pattern calculated by OpenMDAO gives 4393 nonzero elements.
 
-..  comment block until we fix an embed bug
-    embed-code::
-    examples/figures/simul_derivs_perf_chart.py
-    :layout: plot
+.. image:: figures/simul_derivs_perf_chart.png
+   :scale: 100 %
+   :alt: Performance of Dymos vs. OTIS in solving the brachistochrone problem.
+   :align: center
 
 General Performance Tips Using Dymos
 ====================================
