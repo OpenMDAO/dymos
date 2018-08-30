@@ -583,57 +583,21 @@ class Trajectory(Group):
 
         var_in_traj = False
 
-        if var in self.design_parameter_options:
-            var_in_traj = True
+        for phase_name in phase_names:
+            p = self._phases[phase_name]
 
-            op = dict(self.list_outputs(explicit=True, values=True, units=True, shape=True,
-                                        out_stream=None))
+            if time_units is None:
+                time_units = p.time_options['units']
+            times[phase_name] = p.get_values('time', nodes=node_map[phase_name],
+                                             units=time_units)
 
-            var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
-
-            var_path = var_prefix + 'design_params.design_parameters:{0}'.format(var)
-
-            output_units = op[var_path]['units']
-            output_value = convert_units(op[var_path]['value'], output_units, units)
-
-            for phase_name in phase_names:
-                p = self._phases[phase_name]
-                gd = p.grid_data
-                results[phase_name] = np.repeat(output_value, gd.num_nodes, axis=0)
-
-        elif var in self.input_parameter_options:
-            var_in_traj = True
-
-            op = dict(self.list_outputs(explicit=True, values=True, units=True, shape=True,
-                                        out_stream=None))
-
-            var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
-
-            var_path = var_prefix + 'input_params.input_parameters:{0}_out'.format(var)
-
-            output_units = op[var_path]['units']
-            output_value = convert_units(op[var_path]['value'], output_units, units)
-
-            for phase_name in phase_names:
-                p = self._phases[phase_name]
-                gd = p.grid_data
-                results[phase_name] = np.repeat(output_value, gd.num_nodes, axis=0)
-        else:
-            for phase_name in phase_names:
-                p = self._phases[phase_name]
-
-                if time_units is None:
-                    time_units = p.time_options['units']
-                times[phase_name] = p.get_values('time', nodes=node_map[phase_name],
-                                                 units=time_units)
-
-                try:
-                    results[phase_name] = p.get_values(var, nodes=node_map[phase_name], units=units)
-                    var_in_traj = True
-                except KeyError:
-                    num_nodes = p.grid_data.subset_num_nodes[node_map[phase_name]]
-                    results[phase_name] = np.empty((num_nodes, 1))
-                    results[phase_name][:, :] = np.nan
+            try:
+                results[phase_name] = p.get_values(var, nodes=node_map[phase_name], units=units)
+                var_in_traj = True
+            except KeyError:
+                num_nodes = p.grid_data.subset_num_nodes[node_map[phase_name]]
+                results[phase_name] = np.empty((num_nodes, 1))
+                results[phase_name][:, :] = np.nan
 
         if not var_in_traj:
             raise KeyError('Variable "{0}" not found in trajectory.'.format(var))
