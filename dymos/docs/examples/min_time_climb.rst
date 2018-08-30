@@ -6,10 +6,11 @@ This example is based on the "A/C Min Time to Climb" example given in chapter 4 
 It finds the angle-of-attack history required to accelerate a supersonic interceptor from near
 ground level, Mach 0.4 to an altitude of 20 km and Mach 1.0.
 
-..  comment block until we fix an embed bug
-    embed-code::
-    examples/figures/min_time_climb_fbd.py
-    :layout: plot
+..  image:: figures/min_time_climb_fbd.png
+   :scale: 100 %
+   :alt: The free-body-diagram of the min-time-climb problem.
+   :align: center
+
 
 The vehicle dynamics are given by
 
@@ -40,9 +41,8 @@ and the final conditions are
 1. The ODE System: min_time_climb_ode.py
 ----------------------------------------
 
-..  comment block until we fix an embed bug
-    embed-code::
-    ../../dymos/examples/min_time_climb/min_time_climb_ode.py
+..  embed-code::
+    dymos.examples.min_time_climb.min_time_climb_ode
     :layout: code
 
 

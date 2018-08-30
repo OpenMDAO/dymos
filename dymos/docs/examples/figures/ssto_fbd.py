@@ -115,6 +115,8 @@ def ssto_fbd(include_drag=True):
     ax.add_patch(gamma_plot)
     ax.text(x+0.26, y+0.06, r'$\gamma$')
 
+    plt.savefig('ssto_fbd.png')
+
     plt.show()
 
 

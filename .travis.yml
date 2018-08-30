@@ -10,7 +10,7 @@ os:
 
 env:
   - PY=2.7
-  - PY=3.6 UPLOAD_DOCS=0 # change back to 1 once embed-code bug is fixed
+  - PY=3.6 UPLOAD_DOCS=1
 
 language: generic
 

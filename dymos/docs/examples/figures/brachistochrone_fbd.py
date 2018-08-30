@@ -103,6 +103,8 @@ def brachistochrone_fbd():
     ax.add_patch(yhat)
     plt.text(x+dx/2.0-0.5, y+dy/2.0-0.5, 'y')
 
+    plt.savefig('brachistochrone_fbd.png')
+
     plt.show()
 
 

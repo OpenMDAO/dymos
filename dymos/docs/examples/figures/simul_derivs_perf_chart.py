@@ -44,6 +44,9 @@ def simul_derivs_perf_chart():
 
     plt.tight_layout()
     plt.grid()
+
+    plt.savefig('simul_derivs_perf_chart.png')
+
     plt.show()
 
 

@@ -6,10 +6,11 @@ This example is based on the "Time-Optimal Launch of a Titan II" example given i
 [Longuski2016]_.  It finds the pitch profile for a single-stage-to-orbit launch vehicle that minimizes
 the time required to reach orbit insertion under constant thrust.
 
-..  comment block until we fix an embed bug
-    embed-code::
-    examples/figures/ssto_fbd.py
-    :layout: plot
+..  image:: figures/ssto_fbd.png
+   :scale: 100 %
+   :alt: The free-body-diagram of the single-stage-to-orbit problem.
+   :align: center
+
 
 The vehicle dynamics are given by
 
@@ -63,29 +64,25 @@ The eom component computes the state rates.
 
 ex_ssto_earth.py
 ----------------------
-..  comment block until we fix an embed bug
-    embed-code::
+.. embed-code::
     ../../dymos/examples/ssto/ex_ssto_earth.py
     :layout: code
 
 launch_vehicle_2d_eom_comp.py
 ------------------------------
-..  comment block until we fix an embed bug
-    embed-code::
+.. embed-code::
     ../../dymos/examples/ssto/launch_vehicle_2d_eom_comp.py
     :layout: code
 
 log_atmosphere_comp.py
 ------------------------
-..  comment block until we fix an embed bug
-    embed-code::
+.. embed-code::
     ../../dymos/examples/ssto/log_atmosphere_comp.py
     :layout: code
 
 launch_vehicle_ode.py
 ----------------------
-..  comment block until we fix an embed bug
-    embed-code::
+.. embed-code::
     ../../dymos/examples/ssto/launch_vehicle_ode.py
     :layout: code
 
