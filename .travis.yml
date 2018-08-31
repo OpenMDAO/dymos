@@ -102,7 +102,7 @@ install:
   fi
 
 # install pyoptsparse
-# get SNOPT from supersecret location /home/openmdao/snopt_source/pySNOPT/source
+# get SNOPT from supersecret location
 - if [ "$NOT_CACHED_PYOPTSPARSE" ]; then
     git clone https://github.com/OpenMDAO/pyoptsparse.git;
     cd pyoptsparse;
