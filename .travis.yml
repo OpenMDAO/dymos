@@ -24,37 +24,98 @@ addons:
     - liblapack-dev
     - libopenmpi-dev
     - openmpi-bin
+    ssh_known_hosts:
+    - web543.webfaction.com
+
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/pyoptsparse
+    - $HOME/miniconda
+    - $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse
 
 before_install:
+# Check for existence of files to determine if cache exists
+# If the dir doesn't exist, but is slated to be cached later,
+# Travis unhelpfully creates it, which then causes "dir already exists"
+# errors when you go to actually install the thing, so we must non-intuitively
+# delete the file before re-creating it later.
+- if [ -f $HOME/miniconda/bin/python$PY ]; then
+    echo "cached miniconda found -- nothing to do";
+  else
+    NOT_CACHED_CONDA=1;
+    rm -rf $HOME/miniconda;
+  fi
+
+- if [ -d $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse ]; then
+    echo "cached pyoptsparse found -- nothing to do";
+  else
+    NOT_CACHED_PYOPTSPARSE=1;
+    rm -rf $HOME/pyoptsparse
+    rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse;
+  fi
+
+- if [ -f $HOME/.cache/pip ]; then
+    echo "cached pip found -- nothing to do";
+  else
+    NOT_CACHED_PIP=1;
+    rm -rf $HOME/.cache/pip;
+  fi
+
+install:
+# get key decrypted, placed, chmodded, and added for passwordless access to WebFaction
+- if [ "$MASTER_BUILD" ]; then
+    openssl aes-256-cbc -K $encrypted_4548f0b84c7d_key -iv $encrypted_4548f0b84c7d_iv -in travis_deploy_rsa.enc -out /tmp/travis_deploy_rsa -d
+    eval "$(ssh-agent -s)";
+    chmod 600 /tmp/travis_deploy_rsa;
+    ssh-add /tmp/travis_deploy_rsa;
+    echo -e "Host web543.webfaction.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+  fi
+
 - if [ "$PY" = "2.7" ];  then wget "https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh" -O miniconda.sh; fi
 - if [ "$PY" = "3.6" ];  then wget "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" -O miniconda.sh; fi
-- chmod +x miniconda.sh;
-- ./miniconda.sh -b  -p /home/travis/miniconda;
-- export PATH=/home/travis/miniconda/bin:$PATH;
+
+- if [ "$NOT_CACHED_CONDA" ]; then
+    chmod +x miniconda.sh;
+    ./miniconda.sh -b  -p /home/travis/miniconda;
+    export PATH=/home/travis/miniconda/bin:$PATH;
+    conda install --yes python=$PY numpy scipy nose sphinx mock swig pip;
+  fi
+
 - if  [ "$TRAVIS_REPO_SLUG" = "OpenMDAO/dymos" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
     MASTER_BUILD=1;
   fi
 
-install:
-- conda install --yes python=$PY numpy scipy nose sphinx mock swig pip;
-- pip install --upgrade pip
 - sudo apt-get install gfortran
-- pip install numpy==1.14.1
-- pip install scipy==1.0.0
-- pip install mpi4py
-- pip install matplotlib
-- pip install nose
-- pip install networkx
-- pip install testflo
-- pip install pyyaml
-- pip install coveralls
-- pip install --user travis-sphinx;
+- if [ "$NOT_CACHED_PIP" ]; then
+    pip install --upgrade pip;
+    pip install numpy==1.14.1;
+    pip install scipy==1.0.0;
+    pip install mpi4py;
+    pip install matplotlib;
+    pip install nose;
+    pip install networkx;
+    pip install testflo;
+    pip install pyyaml;
+    pip install coveralls;
+    pip install --user travis-sphinx;
+  fi
 
 # install pyoptsparse
-- git clone https://github.com/OpenMDAO/pyoptsparse.git;
-- cd pyoptsparse;
-- python setup.py install;
-- cd ..;
+# get SNOPT from supersecret location
+- if [ "$NOT_CACHED_PYOPTSPARSE" ]; then
+    git clone https://github.com/OpenMDAO/pyoptsparse.git;
+    cd pyoptsparse;
+    if [ "$MASTER_BUILD" ]; then
+      cd pyoptsparse/pySNOPT/source;
+      scp -r "$SNOPT_LOCATION" .;
+      cd ../../..;
+    fi
+
+    python setup.py install;
+    cd ..;
+  fi
 
 # install MBI
 - git clone https://github.com/OpenMDAO/MBI.git;
