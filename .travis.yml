@@ -41,11 +41,21 @@ before_install:
 # Travis unhelpfully creates it, which then causes "dir already exists"
 # errors when you go to actually install the thing, so we must non-intuitively
 # delete the file before re-creating it later.
+<<<<<<< HEAD
 - if [ -f $HOME/anaconda/bin/python$PY ]; then
     echo "cached anaconda found -- nothing to do";
   else
     NOT_CACHED_CONDA=1;
     rm -rf $HOME/anaconda;
+  fi
+
+- if [ -d $HOME/anaconda/lib/python$PY/site-packages/pyoptsparse ]; then
+=======
+- if [ -f $HOME/miniconda/bin/python$PY ]; then
+    echo "cached miniconda found -- nothing to do";
+  else
+    NOT_CACHED_CONDA=1;
+    rm -rf $HOME/miniconda;
   fi
 
 - if [ -d $HOME/anaconda/lib/python$PY/site-packages/pyoptsparse ]; then
@@ -65,7 +75,7 @@ before_install:
 
 install:
 # get key decrypted, placed, chmodded, and added for passwordless access to WebFaction
-- if [ "$encrypted_4548f0b84c7d_key" ]; then
+- if [ "$MASTER_BUILD" ]; then
     openssl aes-256-cbc -K $encrypted_4548f0b84c7d_key -iv $encrypted_4548f0b84c7d_iv -in travis_deploy_rsa.enc -out /tmp/travis_deploy_rsa -d
     eval "$(ssh-agent -s)";
     chmod 600 /tmp/travis_deploy_rsa;
