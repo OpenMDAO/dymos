@@ -107,7 +107,7 @@ install:
 - if [ "$NOT_CACHED_PYOPTSPARSE" ]; then
     git clone https://github.com/OpenMDAO/pyoptsparse.git;
     cd pyoptsparse;
-    if [ "$MASTER_BUILD" ]; then
+    if [ "$SNOPT_LOCATION" ]; then
       cd pyoptsparse/pySNOPT/source;
       scp -r "$SNOPT_LOCATION" .;
       cd ../../..;
