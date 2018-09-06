@@ -100,13 +100,13 @@ State Options:
         targets: ['v']
         shape: (1,)
         units: m/s
-    y
-        rate_source: ydot
+    x
+        rate_source: xdot
         targets: []
         shape: (1,)
         units: m
-    x
-        rate_source: xdot
+    y
+        rate_source: ydot
         targets: []
         shape: (1,)
         units: m
