@@ -7,7 +7,7 @@ from matplotlib.patches import FancyArrowPatch, Arc
 
 
 def get_angle_plot(line1, line2, radius=1, color=None, origin=(0, 0),
-                   len_x_axis=1, len_y_axis=1):
+                   len_x_axis=1, len_y_axis=1):  # pragma: no cover
 
     l1xy = line1.get_xydata()
     # Angle between line1 and x-axis
@@ -32,7 +32,7 @@ def get_angle_plot(line1, line2, radius=1, color=None, origin=(0, 0),
     # label =str(angle) + u"\u00b0")
 
 
-def brachistochrone_fbd():
+def brachistochrone_fbd():  # pragma: no cover
     fig, ax = plt.subplots(1, 1, figsize=(5, 5))
     ax.axis('off')
 
@@ -108,5 +108,5 @@ def brachistochrone_fbd():
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     brachistochrone_fbd()

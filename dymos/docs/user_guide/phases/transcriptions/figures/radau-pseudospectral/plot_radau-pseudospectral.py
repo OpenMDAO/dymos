@@ -23,15 +23,15 @@ t_col = phase.get_values('time', nodes='col')
 t_all = phase.get_values('time', nodes='all')
 
 
-def f(x):
+def f(x):  # pragma: no cover
     return np.sin(x) / x + 1
 
 
-def fu(x):
+def fu(x):  # pragma: no cover
     return (np.cos(x) * x - np.sin(x))/x**2
 
 
-def plot_01():
+def plot_01():  # pragma: no cover
 
     fig, axes = plt.subplots(1, 1)
 
@@ -76,7 +76,7 @@ def plot_01():
     plt.savefig('01_segments.png')
 
 
-def plot_02():
+def plot_02():  # pragma: no cover
 
     fig, axes = plt.subplots(1, 1)
 
@@ -122,7 +122,7 @@ def plot_02():
     plt.savefig('02_nodes.png')
 
 
-def plot_03():
+def plot_03():  # pragma: no cover
 
     fig, axes = plt.subplots(2, 1)
 
@@ -180,7 +180,7 @@ def plot_03():
     plt.savefig('03_inputs.png')
 
 
-def plot_04():
+def plot_04():  # pragma: no cover
 
     fig, axes = plt.subplots(2, 1)
 
@@ -251,7 +251,7 @@ def plot_04():
     plt.savefig('04_control_rate_interpolation.png')
 
 
-def plot_05():
+def plot_05():  # pragma: no cover
 
     fig, axes = plt.subplots(2, 1)
 
@@ -322,7 +322,7 @@ def plot_05():
     plt.savefig('05_state_rate_interpolation.png')
 
 
-def plot_06():
+def plot_06():  # pragma: no cover
 
     fig, axes = plt.subplots(2, 1)
 
@@ -397,7 +397,7 @@ def plot_06():
     plt.savefig('06_ode_eval_all.png')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     plot_01()
     plot_02()
     plot_03()

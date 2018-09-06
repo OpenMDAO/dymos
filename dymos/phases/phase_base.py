@@ -554,7 +554,7 @@ class PhaseBase(Group):
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
-                      vectorize_derivs=False):  # pragma: no cover
+                      vectorize_derivs=False):
         """
         Allows the user to add an objective in the phase.  If name is not a state,
         control, control rate, or 'time', then this is assumed to be the path of the variable
@@ -1044,7 +1044,7 @@ class PhaseBase(Group):
             for tgts, src_idxs in self._get_parameter_connections(options['target_param']):
                 self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
 
-    def _get_parameter_connections(self, name):  # pragma: no cover
+    def _get_parameter_connections(self, name):
         """
         Returns a list containing tuples of each path and related indices to which the
         given parameter name is to be connected.
@@ -1057,16 +1057,16 @@ class PhaseBase(Group):
         """
         raise NotImplementedError()
 
-    def _setup_rhs(self):  # pragma: no cover
+    def _setup_rhs(self):
         raise NotImplementedError()
 
-    def _setup_defects(self):  # pragma: no cover
+    def _setup_defects(self):
         raise NotImplementedError()
 
-    def _setup_states(self):  # pragma: no cover
+    def _setup_states(self):
         raise NotImplementedError()
 
-    def _setup_endpoint_conditions(self):  # pragma: no cover
+    def _setup_endpoint_conditions(self):
         raise NotImplementedError()
 
     def _setup_boundary_constraints(self):
@@ -1178,11 +1178,11 @@ class PhaseBase(Group):
                          'boundary_constraints.boundary_values:{0}'.format(con_name),
                          src_indices=src_idxs, flat_src_indices=True)
 
-    def _setup_path_constraints(self):  # pragma: no cover
+    def _setup_path_constraints(self):
         raise NotImplementedError('_setup_path_constraints has not been implemented '
                                   'for this phase type')
 
-    def get_values(self, var, nodes=None, units=None):  # pragma: no cover
+    def get_values(self, var, nodes=None, units=None):
         """
         Retrieve the values of the given variable at the given
         subset of nodes.
@@ -1206,7 +1206,7 @@ class PhaseBase(Group):
         """
         raise NotImplementedError('get_values has not been implemented for this class.')
 
-    def set_values(self, var, value, nodes=None, kind='linear', axis=0):  # pragma: no cover
+    def set_values(self, var, value, nodes=None, kind='linear', axis=0):
         """
         Retrieve the values of the given variable at the given
         subset of nodes.
@@ -1245,7 +1245,7 @@ class PhaseBase(Group):
         ys :  ndarray
             Array of control/state/parameter values.
         nodes : str or None
-            The name of the node subset.
+            The name of the node subset or None (default).
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
             One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
