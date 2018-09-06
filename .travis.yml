@@ -65,7 +65,7 @@ before_install:
 
 install:
 # get key decrypted, placed, chmodded, and added for passwordless access to WebFaction
-- if [ "$MASTER_BUILD" ]; then
+- if [ "$encrypted_4548f0b84c7d_key" ]; then
     openssl aes-256-cbc -K $encrypted_4548f0b84c7d_key -iv $encrypted_4548f0b84c7d_iv -in travis_deploy_rsa.enc -out /tmp/travis_deploy_rsa -d
     eval "$(ssh-agent -s)";
     chmod 600 /tmp/travis_deploy_rsa;
@@ -73,8 +73,8 @@ install:
     echo -e "Host web543.webfaction.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
   fi
 
-- if [ "$PY" = "2.7" ];  then wget "https://repo.anaconda.com/archive/Anaconda2-5.2.0-Linux-x86_64.sh" -O anaconda.sh; fi
-- if [ "$PY" = "3.6" ];  then wget "https://repo.anaconda.com/archive/Anaconda3-5.2.0-Linux-x86_64.sh" -O anaconda.sh; fi
+- if [ "$PY" = "2.7" ];  then wget -q "https://repo.anaconda.com/archive/Anaconda2-5.2.0-Linux-x86_64.sh" -O anaconda.sh; fi
+- if [ "$PY" = "3.6" ];  then wget -q "https://repo.anaconda.com/archive/Anaconda3-5.2.0-Linux-x86_64.sh" -O anaconda.sh; fi
 
 - if [ "$NOT_CACHED_CONDA" ]; then
     chmod +x anaconda.sh;
