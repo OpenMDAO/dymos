@@ -32,8 +32,8 @@ cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/pyoptsparse
-    - $HOME/miniconda
-    - $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse
+    - $HOME/anaconda
+    - $HOME/anaconda/lib/python$PY/site-packages/pyoptsparse
 
 before_install:
 # Check for existence of files to determine if cache exists
@@ -41,19 +41,19 @@ before_install:
 # Travis unhelpfully creates it, which then causes "dir already exists"
 # errors when you go to actually install the thing, so we must non-intuitively
 # delete the file before re-creating it later.
-- if [ -f $HOME/miniconda/bin/python$PY ]; then
-    echo "cached miniconda found -- nothing to do";
+- if [ -f $HOME/anaconda/bin/python$PY ]; then
+    echo "cached anaconda found -- nothing to do";
   else
     NOT_CACHED_CONDA=1;
-    rm -rf $HOME/miniconda;
+    rm -rf $HOME/anaconda;
   fi
 
-- if [ -d $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse ]; then
+- if [ -d $HOME/anaconda/lib/python$PY/site-packages/pyoptsparse ]; then
     echo "cached pyoptsparse found -- nothing to do";
   else
     NOT_CACHED_PYOPTSPARSE=1;
     rm -rf $HOME/pyoptsparse
-    rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse;
+    rm -rf $HOME/anaconda/lib/python$PY/site-packages/pyoptsparse;
   fi
 
 - if [ -f $HOME/.cache/pip ]; then
@@ -73,13 +73,13 @@ install:
     echo -e "Host web543.webfaction.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
   fi
 
-- if [ "$PY" = "2.7" ];  then wget "https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh" -O miniconda.sh; fi
-- if [ "$PY" = "3.6" ];  then wget "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" -O miniconda.sh; fi
+- if [ "$PY" = "2.7" ];  then wget "https://repo.anaconda.com/archive/Anaconda2-5.2.0-Linux-x86_64.sh" -O anaconda.sh; fi
+- if [ "$PY" = "3.6" ];  then wget "https://repo.anaconda.com/archive/Anaconda3-5.2.0-Linux-x86_64.sh" -O anaconda.sh; fi
 
 - if [ "$NOT_CACHED_CONDA" ]; then
-    chmod +x miniconda.sh;
-    ./miniconda.sh -b  -p /home/travis/miniconda;
-    export PATH=/home/travis/miniconda/bin:$PATH;
+    chmod +x anaconda.sh;
+    ./anaconda.sh -b  -p /home/travis/anaconda;
+    export PATH=/home/travis/anaconda/bin:$PATH;
     conda install --yes python=$PY numpy scipy nose sphinx mock swig pip;
   fi
 
