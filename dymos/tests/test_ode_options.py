@@ -78,6 +78,47 @@ class TestODEOptions(unittest.TestCase):
         self.assertEqual(B.ode_options._parameters['theta']['targets'], ['theta'])
         self.assertEqual(B.ode_options._parameters['theta']['units'], 'rad')
 
+    def test_str(self):
+
+        @declare_time(units='s', targets=['foo', 'bar'])
+        @declare_state('x', rate_source='xdot', units='m')
+        @declare_state('y', rate_source='ydot', units='m')
+        @declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
+        @declare_parameter('theta', targets=['theta'], units='rad')
+        @declare_parameter('g', units='m/s**2', targets=['g'], dynamic=False)
+        class B(_BrachistochroneODE):
+            pass
+
+        s = str(B.ode_options)
+
+        expected = """Time Options:
+    targets: ['foo', 'bar']
+    units: s
+State Options:
+    v
+        rate_source: vdot
+        targets: ['v']
+        shape: (1,)
+        units: m/s
+    y
+        rate_source: ydot
+        targets: []
+        shape: (1,)
+        units: m
+    x
+        rate_source: xdot
+        targets: []
+        shape: (1,)
+        units: m
+Parameter Options:
+    theta
+        targets: ['theta']
+        shape: (1,)
+        dynamic: True
+        units: rad"""
+
+        self.assertEqual(s, expected)
+
 
 if __name__ == "__main__":
     unittest.main()

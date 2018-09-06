@@ -554,7 +554,7 @@ class PhaseBase(Group):
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
-                      vectorize_derivs=False):
+                      vectorize_derivs=False):  # pragma: no cover
         """
         Allows the user to add an objective in the phase.  If name is not a state,
         control, control rate, or 'time', then this is assumed to be the path of the variable
@@ -1044,7 +1044,7 @@ class PhaseBase(Group):
             for tgts, src_idxs in self._get_parameter_connections(options['target_param']):
                 self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
 
-    def _get_parameter_connections(self, name):
+    def _get_parameter_connections(self, name):  # pragma: no cover
         """
         Returns a list containing tuples of each path and related indices to which the
         given parameter name is to be connected.
@@ -1057,16 +1057,16 @@ class PhaseBase(Group):
         """
         raise NotImplementedError()
 
-    def _setup_rhs(self):
+    def _setup_rhs(self):  # pragma: no cover
         raise NotImplementedError()
 
-    def _setup_defects(self):
+    def _setup_defects(self):  # pragma: no cover
         raise NotImplementedError()
 
-    def _setup_states(self):
+    def _setup_states(self):  # pragma: no cover
         raise NotImplementedError()
 
-    def _setup_endpoint_conditions(self):
+    def _setup_endpoint_conditions(self):  # pragma: no cover
         raise NotImplementedError()
 
     def _setup_boundary_constraints(self):
@@ -1178,11 +1178,11 @@ class PhaseBase(Group):
                          'boundary_constraints.boundary_values:{0}'.format(con_name),
                          src_indices=src_idxs, flat_src_indices=True)
 
-    def _setup_path_constraints(self):
+    def _setup_path_constraints(self):  # pragma: no cover
         raise NotImplementedError('_setup_path_constraints has not been implemented '
                                   'for this phase type')
 
-    def get_values(self, var, nodes=None, units=None):
+    def get_values(self, var, nodes=None, units=None):  # pragma: no cover
         """
         Retrieve the values of the given variable at the given
         subset of nodes.
@@ -1206,7 +1206,7 @@ class PhaseBase(Group):
         """
         raise NotImplementedError('get_values has not been implemented for this class.')
 
-    def set_values(self, var, value, nodes=None, kind='linear', axis=0):
+    def set_values(self, var, value, nodes=None, kind='linear', axis=0):  # pragma: no cover
         """
         Retrieve the values of the given variable at the given
         subset of nodes.
@@ -1234,10 +1234,9 @@ class PhaseBase(Group):
         """
         raise NotImplementedError('set_values has not been implemented for this class.')
 
-    def interpolate(self, xs=None, ys=None, nodes=None, kind='linear', axis=0):
+    def interpolate(self, xs=None, ys=None, nodes='all', kind='linear', axis=0):
         """
-        Return an array of values on [a,b] linearly interpolated to the
-        input nodes of the phase.
+        Return an array of values on interpolated to the given node subset of the phase.
 
         Parameters
         ----------
@@ -1246,7 +1245,7 @@ class PhaseBase(Group):
         ys :  ndarray
             Array of control/state/parameter values.
         nodes : str or None
-            The name of the node subset or None (default).
+            The name of the node subset.
         kind : str
             Specifies the kind of interpolation, as per the scipy.interpolate package.
             One of ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'
@@ -1263,9 +1262,6 @@ class PhaseBase(Group):
         np.array
             The values of y interpolated at nodes of the specified type.
         """
-        if nodes is None:
-            nodes = 'all'
-
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
         if nodes not in ('col', 'disc', 'all', 'state_disc', 'state_input', 'control_disc',

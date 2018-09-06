@@ -360,6 +360,8 @@ class ODEOptions(object):
                  '\n        units: {units}'.format(name=param, targets=options['targets'],
                                                    shape=options['shape'], units=options['units'])
 
+        return s
+
 
 class _ForDocs(object):  # pragma: no cover
     """
