@@ -1234,10 +1234,9 @@ class PhaseBase(Group):
         """
         raise NotImplementedError('set_values has not been implemented for this class.')
 
-    def interpolate(self, xs=None, ys=None, nodes=None, kind='linear', axis=0):
+    def interpolate(self, xs=None, ys=None, nodes='all', kind='linear', axis=0):
         """
-        Return an array of values on [a,b] linearly interpolated to the
-        input nodes of the phase.
+        Return an array of values on interpolated to the given node subset of the phase.
 
         Parameters
         ----------
@@ -1263,9 +1262,6 @@ class PhaseBase(Group):
         np.array
             The values of y interpolated at nodes of the specified type.
         """
-        if nodes is None:
-            nodes = 'all'
-
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
         if nodes not in ('col', 'disc', 'all', 'state_disc', 'state_input', 'control_disc',

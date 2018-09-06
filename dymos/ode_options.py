@@ -336,12 +336,14 @@ class ODEOptions(object):
         self._parameters[name] = options
 
     def __str__(self):
+
         s = 'Time Options:\n    targets: {0}\n    units: {1}'.format(self._time_options['targets'],
                                                                      self._time_options['units'])
         if self._states:
             s += '\nState Options:'
 
-        for state, options in iteritems(self._states):
+        for state in sorted(self._states):
+            options = self._states[state]
             s += '\n    {name}' \
                  '\n        rate_source: {rate_source}' \
                  '\n        targets: {targets}' \
@@ -352,13 +354,16 @@ class ODEOptions(object):
         if self._parameters:
             s += '\nParameter Options:'
 
-        for param, options in iteritems(self._parameters):
+        for param in sorted(self._parameters):
+            options = self._parameters[param]
             s += '\n    {name}' \
                  '\n        targets: {targets}' \
                  '\n        shape: {shape}' \
                  '\n        dynamic: True' \
                  '\n        units: {units}'.format(name=param, targets=options['targets'],
                                                    shape=options['shape'], units=options['units'])
+
+        return s
 
 
 class _ForDocs(object):  # pragma: no cover
