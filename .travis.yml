@@ -73,8 +73,8 @@ install:
     echo -e "Host web543.webfaction.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
   fi
 
-- if [ "$PY" = "2.7" ];  then wget "https://repo.anaconda.com/archive/Anaconda2-5.2.0-Linux-x86_64.sh" -O anaconda.sh; fi
-- if [ "$PY" = "3.6" ];  then wget "https://repo.anaconda.com/archive/Anaconda3-5.2.0-Linux-x86_64.sh" -O anaconda.sh; fi
+- if [ "$PY" = "2.7" ];  then wget -q "https://repo.anaconda.com/archive/Anaconda2-5.2.0-Linux-x86_64.sh" -O anaconda.sh; fi
+- if [ "$PY" = "3.6" ];  then wget -q "https://repo.anaconda.com/archive/Anaconda3-5.2.0-Linux-x86_64.sh" -O anaconda.sh; fi
 
 - if [ "$NOT_CACHED_CONDA" ]; then
     chmod +x anaconda.sh;
