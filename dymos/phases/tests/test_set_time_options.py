@@ -222,6 +222,8 @@ class TestPhaseTimeOptions(unittest.TestCase):
             p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
             p['phase0.design_parameters:g'] = 9.80665
 
+            p.run_driver()
+
             self.assertTrue(p.driver.result.success,
                             msg='Brachistochrone with outbounded times has failed')
 
