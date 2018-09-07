@@ -919,7 +919,7 @@ class PhaseBase(Group):
         if not (self.time_options['input_initial'] or self.time_options['fix_initial']):
             lb, ub = self.time_options['initial_bounds']
             lb = -INF_BOUND if lb is None else lb
-            ub = -INF_BOUND if ub is None else ub
+            ub = INF_BOUND if ub is None else ub
 
             self.add_design_var('t_initial',
                                 lower=lb,
@@ -932,7 +932,7 @@ class PhaseBase(Group):
         if not (self.time_options['input_duration'] or self.time_options['fix_duration']):
             lb, ub = self.time_options['duration_bounds']
             lb = -INF_BOUND if lb is None else lb
-            ub = -INF_BOUND if ub is None else ub
+            ub = INF_BOUND if ub is None else ub
 
             self.add_design_var('t_duration',
                                 lower=lb,
