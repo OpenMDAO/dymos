@@ -29,11 +29,10 @@ addons:
 
 cache:
   apt: true
+  timeout: 300
   directories:
     - $HOME/.cache/pip
-    - $HOME/pyoptsparse
-    - $HOME/anaconda
-    - $HOME/anaconda/lib/python$PY/site-packages/pyoptsparse
+    - $HOME/miniconda
 
 before_install:
 # Check for existence of files to determine if cache exists
@@ -41,26 +40,16 @@ before_install:
 # Travis unhelpfully creates it, which then causes "dir already exists"
 # errors when you go to actually install the thing, so we must non-intuitively
 # delete the file before re-creating it later.
-- if [ -f $HOME/anaconda/bin/python$PY ]; then
-    echo "cached anaconda found -- nothing to do";
+- if [ -f $HOME/miniconda/envs/PY$PY ]; then
+    echo "cached miniconda environment found";
+    CACHED_ENV=1;
   else
-    NOT_CACHED_CONDA=1;
-    rm -rf $HOME/anaconda;
+    echo "cached miniconda environment not found";
+    rm -rf $HOME/miniconda;
   fi
 
-- if [ -d $HOME/anaconda/lib/python$PY/site-packages/pyoptsparse ]; then
-    echo "cached pyoptsparse found -- nothing to do";
-  else
-    NOT_CACHED_PYOPTSPARSE=1;
-    rm -rf $HOME/pyoptsparse
-    rm -rf $HOME/anaconda/lib/python$PY/site-packages/pyoptsparse;
-  fi
-
-- if [ -f $HOME/.cache/pip ]; then
-    echo "cached pip found -- nothing to do";
-  else
-    NOT_CACHED_PIP=1;
-    rm -rf $HOME/.cache/pip;
+- if  [ "$TRAVIS_REPO_SLUG" = "OpenMDAO/dymos" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    MASTER_BUILD=1;
   fi
 
 install:
@@ -73,22 +62,24 @@ install:
     echo -e "Host web543.webfaction.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
   fi
 
-- if [ "$PY" = "2.7" ];  then wget -q "https://repo.anaconda.com/archive/Anaconda2-5.2.0-Linux-x86_64.sh" -O anaconda.sh; fi
-- if [ "$PY" = "3.6" ];  then wget -q "https://repo.anaconda.com/archive/Anaconda3-5.2.0-Linux-x86_64.sh" -O anaconda.sh; fi
+# if we have a cached miniconda environment then just activate the cached one, otherwise, build one
+- if [ "$CACHED_ENV" ]; then
+    echo "Using cached environment..."
+    export PATH=$HOME/miniconda/bin:$PATH;
+    source $HOME/miniconda/bin/activate PY$PY;
+  else
+    echo "Building python environment...";
+    wget "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-4.5.11-Linux-x86_64.sh" -O miniconda.sh;
+    chmod +x miniconda.sh;
+    ./miniconda.sh -b  -p $HOME/miniconda;
+    export PATH=$HOME/miniconda/bin:$PATH;
 
-- if [ "$NOT_CACHED_CONDA" ]; then
-    chmod +x anaconda.sh;
-    ./anaconda.sh -b  -p /home/travis/anaconda;
-    export PATH=/home/travis/anaconda/bin:$PATH;
-    conda install --yes python=$PY numpy scipy nose sphinx mock swig pip;
-  fi
+    conda create --yes -n PY$PY python=$PY;
+    source $HOME/miniconda/bin/activate PY$PY;
 
-- if  [ "$TRAVIS_REPO_SLUG" = "OpenMDAO/dymos" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    MASTER_BUILD=1;
-  fi
+    conda install --yes cython sphinx mock swig pip;
+    sudo apt-get install gfortran
 
-- sudo apt-get install gfortran
-- if [ "$NOT_CACHED_PIP" ]; then
     pip install --upgrade pip;
     pip install numpy==1.14.1;
     pip install scipy==1.0.0;
@@ -100,28 +91,23 @@ install:
     pip install pyyaml;
     pip install coveralls;
     pip install --user travis-sphinx;
-  fi
 
-# install pyoptsparse
-# get SNOPT from supersecret location
-- if [ "$NOT_CACHED_PYOPTSPARSE" ]; then
     git clone https://github.com/OpenMDAO/pyoptsparse.git;
     cd pyoptsparse;
-    if [ "$MASTER_BUILD" ]; then
-      cd pyoptsparse/pySNOPT/source;
-      scp -r "$SNOPT_LOCATION" .;
-      cd ../../..;
-    fi
 
+    if [ "$SNOPT_LOCATION" ] && [ "${PY:0:1}" = "3" ]; then
+      cd pyoptsparse/pySNOPT;
+      scp -rv "$SNOPT_LOCATION" .;
+      cd ../..;
+    fi
     python setup.py install;
     cd ..;
-  fi
 
-# install MBI
-- git clone https://github.com/OpenMDAO/MBI.git;
-- cd MBI;
-- python setup.py build install;
-- cd ..;
+    git clone https://github.com/OpenMDAO/MBI.git;
+    cd MBI;
+    python setup.py build install;
+    cd ..;
+  fi
 
 # install OpenMDAO in developer mode so we have access to its sphinx extensions
 - git clone https://github.com/OpenMDAO/OpenMDAO.git;
@@ -131,6 +117,9 @@ install:
 
 # install dymos itself in developer mode.
 - pip install -e .;
+
+# display summary of installed packages and their versions
+- conda list
 
 script:
 - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos;
