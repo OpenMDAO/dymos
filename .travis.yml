@@ -92,6 +92,16 @@ install:
     pip install coveralls;
     pip install --user travis-sphinx;
 
+    git clone https://github.com/OpenMDAO/pyoptsparse.git;
+    cd pyoptsparse;
+
+    python setup.py install;
+    cd ..;
+
+    git clone https://github.com/OpenMDAO/MBI.git;
+    cd MBI;
+    python setup.py build install;
+    cd ..;
   fi
 
 # install OpenMDAO in developer mode so we have access to its sphinx extensions
