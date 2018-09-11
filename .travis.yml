@@ -78,7 +78,7 @@ install:
     source $HOME/miniconda/bin/activate PY$PY;
 
     conda install --yes cython sphinx mock swig pip;
-    sudo apt-get install gfortran
+    sudo apt-get install gfortran;
 
     pip install --upgrade pip;
     pip install numpy==1.14.1;
