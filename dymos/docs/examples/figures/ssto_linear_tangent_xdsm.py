@@ -6,7 +6,7 @@ from openmdao.api import Problem
 from dymos.examples.ssto.launch_vehicle_linear_tangent_ode import LaunchVehicleLinearTangentODE
 
 
-def main():
+def main():  # pragma: no cover
     p = Problem()
     p.model = LaunchVehicleLinearTangentODE(num_nodes=1)
     p.setup()
@@ -36,5 +36,5 @@ def main():
     xdsm.write('ssto_linear_tangent_xdsm', build=True, cleanup=True)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

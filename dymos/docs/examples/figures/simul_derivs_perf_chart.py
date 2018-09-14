@@ -1,6 +1,6 @@
 
 
-def simul_derivs_perf_chart():
+def simul_derivs_perf_chart():  # pragma: no cover
     import numpy as np
     import matplotlib
     matplotlib.use('Agg')
@@ -50,5 +50,5 @@ def simul_derivs_perf_chart():
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     simul_derivs_perf_chart()
