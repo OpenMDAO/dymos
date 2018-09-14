@@ -1,8 +1,12 @@
 
 from __future__ import absolute_import, division, print_function
 
+import os
 import itertools
 import unittest
+from shutil import rmtree
+from tempfile import mkdtemp
+import errno
 
 import numpy as np
 from numpy.testing import assert_almost_equal
@@ -16,6 +20,20 @@ SHOW_PLOTS = False
 
 
 class TestExampleMinTimeClimb(unittest.TestCase):
+
+    def setUp(self):
+        self.orig_dir = os.getcwd()
+        self.temp_dir = mkdtemp()
+        os.chdir(self.temp_dir)
+
+    def tearDown(self):
+        os.chdir(self.orig_dir)
+        try:
+            rmtree(self.temp_dir)
+        except OSError as e:
+            # If directory already deleted, keep going
+            if e.errno not in (errno.ENOENT, errno.EACCES, errno.EPERM):
+                raise e
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription

@@ -1,5 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
+import os
 import unittest
 
 from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, \
@@ -9,7 +10,7 @@ from openmdao.utils.assert_utils import assert_rel_error
 from dymos import Phase
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
-optimizer = 'SLSQP'
+optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
 
 try:
     import MBI
