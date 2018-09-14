@@ -58,7 +58,6 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
 
     coast.add_design_parameter('u1', opt=False, val=0.0, units='deg')
 
-
     # Third Phase (burn)
 
     burn2 = Phase(transcription,
@@ -77,8 +76,6 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
     burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
     burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
     burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=0.01)
-                      # rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
-                      #lower=-10, upper=10)
 
     burn2.add_objective('deltav', loc='final', scaler=100.0)
 
@@ -134,40 +131,52 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         p.set_val('traj.burn1.t_initial', value=0.0)
         p.set_val('traj.burn1.t_duration', value=2.25)
         p.set_val('traj.burn1.states:r', value=burn1.interpolate(ys=[1, 1.5], nodes='state_input'))
-        p.set_val('traj.burn1.states:theta', value=burn1.interpolate(ys=[0, 1.7], nodes='state_input'))
+        p.set_val('traj.burn1.states:theta', value=burn1.interpolate(ys=[0, 1.7],
+                  nodes='state_input'))
         p.set_val('traj.burn1.states:vr', value=burn1.interpolate(ys=[0, 0], nodes='state_input'))
         p.set_val('traj.burn1.states:vt', value=burn1.interpolate(ys=[1, 1], nodes='state_input'))
-        p.set_val('traj.burn1.states:accel', value=burn1.interpolate(ys=[0.1, 0], nodes='state_input'))
-        p.set_val('traj.burn1.states:deltav', value=burn1.interpolate(ys=[0, 0.1], nodes='state_input'))
+        p.set_val('traj.burn1.states:accel', value=burn1.interpolate(ys=[0.1, 0],
+                  nodes='state_input'))
+        p.set_val('traj.burn1.states:deltav', value=burn1.interpolate(ys=[0, 0.1],
+                  nodes='state_input'))
         p.set_val('traj.burn1.controls:u1',
-                value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
+                  value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
 
     if coast in p.model.traj.phases._subsystems_myproc:
         p.set_val('traj.coast.t_initial', value=2.25)
         p.set_val('traj.coast.t_duration', value=3.0)
 
-        p.set_val('traj.coast.states:r', value=coast.interpolate(ys=[1.3, 1.5], nodes='state_input'))
+        p.set_val('traj.coast.states:r', value=coast.interpolate(ys=[1.3, 1.5],
+                  nodes='state_input'))
         p.set_val('traj.coast.states:theta',
-                value=coast.interpolate(ys=[2.1767, 1.7], nodes='state_input'))
+                  value=coast.interpolate(ys=[2.1767, 1.7], nodes='state_input'))
 
-        p.set_val('traj.coast.states:vr', value=coast.interpolate(ys=[0.3285, 0], nodes='state_input'))
-        p.set_val('traj.coast.states:vt', value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
-        p.set_val('traj.coast.states:accel', value=coast.interpolate(ys=[0, 0], nodes='state_input'))
-        # p.set_val('traj.coast.controls:u1', value=coast.interpolate(ys=[0, 0], nodes='control_input'))
+        p.set_val('traj.coast.states:vr', value=coast.interpolate(ys=[0.3285, 0],
+                  nodes='state_input'))
+        p.set_val('traj.coast.states:vt', value=coast.interpolate(ys=[0.97, 1],
+                  nodes='state_input'))
+        p.set_val('traj.coast.states:accel', value=coast.interpolate(ys=[0, 0],
+                  nodes='state_input'))
+        # p.set_val('traj.coast.controls:u1', value=coast.interpolate(ys=[0, 0],
+        #           nodes='control_input'))
 
     if burn2 in p.model.traj.phases._subsystems_myproc:
         p.set_val('traj.burn2.t_initial', value=5.25)
         p.set_val('traj.burn2.t_duration', value=1.75)
 
-        p.set_val('traj.burn2.states:r', value=burn2.interpolate(ys=[1, r_target], nodes='state_input'))
-        p.set_val('traj.burn2.states:theta', value=burn2.interpolate(ys=[0, 4.0], nodes='state_input'))
+        p.set_val('traj.burn2.states:r', value=burn2.interpolate(ys=[1, r_target],
+                  nodes='state_input'))
+        p.set_val('traj.burn2.states:theta', value=burn2.interpolate(ys=[0, 4.0],
+                  nodes='state_input'))
         p.set_val('traj.burn2.states:vr', value=burn2.interpolate(ys=[0, 0], nodes='state_input'))
         p.set_val('traj.burn2.states:vt',
-                value=burn2.interpolate(ys=[1, np.sqrt(1 / r_target)], nodes='state_input'))
-        p.set_val('traj.burn2.states:accel', value=burn2.interpolate(ys=[0.1, 0], nodes='state_input'))
+                  value=burn2.interpolate(ys=[1, np.sqrt(1 / r_target)], nodes='state_input'))
+        p.set_val('traj.burn2.states:accel', value=burn2.interpolate(ys=[0.1, 0],
+                  nodes='state_input'))
         p.set_val('traj.burn2.states:deltav',
-                value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
-        p.set_val('traj.burn2.controls:u1', value=burn2.interpolate(ys=[0, 0], nodes='control_input'))
+                  value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
+        p.set_val('traj.burn2.controls:u1', value=burn2.interpolate(ys=[0, 0],
+                  nodes='control_input'))
 
     p.run_driver()
 

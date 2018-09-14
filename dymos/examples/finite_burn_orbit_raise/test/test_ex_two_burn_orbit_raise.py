@@ -37,7 +37,8 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
                                          show_output=False)
 
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_rel_error(self, p.get_val('traj.burn2.states:deltav')[-1], 0.3995, tolerance=2.0E-3)
+            assert_rel_error(self, p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+                             tolerance=2.0E-3)
 
 
 class TestExampleTwoBurnOrbitRaiseMPI(TestExampleTwoBurnOrbitRaise):
