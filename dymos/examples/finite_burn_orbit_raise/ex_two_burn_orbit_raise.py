@@ -96,9 +96,9 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
     p = Problem(model=Group())
 
+    p.driver = pyOptSparseDriver()
+    p.driver.options['optimizer'] = optimizer
     if optimizer == 'SNOPT':
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = optimizer
         p.driver.options['dynamic_simul_derivs'] = True
         p.driver.opt_settings['Major iterations limit'] = 100
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
@@ -106,7 +106,6 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         if show_output:
             p.driver.opt_settings['iSumm'] = 6
     else:
-        p.driver = pyOptSparseDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
@@ -228,5 +227,5 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 if __name__ == '__main__':
     import os
     show = int(os.environ.get('SHOW_PLOTS', 1))
-    p = two_burn_orbit_raise_problem(optimizer='SNOPT', transcription='gauss-lobatto',
+    p = two_burn_orbit_raise_problem(optimizer='SLSQP', transcription='gauss-lobatto',
                                      r_target=3, show_plots=bool(show))
