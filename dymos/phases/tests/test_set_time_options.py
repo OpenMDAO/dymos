@@ -4,7 +4,7 @@ import os
 import unittest
 import warnings
 
-from openmdao.api import Problem, Group, IndepVarComp
+from openmdao.api import Problem, Group, IndepVarComp, ScipyOptimizeDriver, DirectSolver
 
 from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -179,6 +179,54 @@ class TestPhaseTimeOptions(unittest.TestCase):
                          'Phase time options have no effect because fix_duration=True for phase '
                          '"phase0": duration_bounds, duration_scaler, duration_adder, duration_ref,'
                          ' duration_ref0')
+
+    def test_unbounded_time(self):
+            p = Problem(model=Group())
+
+            p.driver = ScipyOptimizeDriver()
+            p.driver.options['dynamic_simul_derivs'] = True
+
+            phase = Phase('gauss-lobatto',
+                          ode_class=BrachistochroneODE,
+                          num_segments=8,
+                          transcription_order=3)
+
+            p.model.add_subsystem('phase0', phase)
+
+            phase.set_time_options(fix_initial=False, fix_duration=False)
+
+            phase.set_state_options('x', fix_initial=True, fix_final=True)
+            phase.set_state_options('y', fix_initial=True, fix_final=True)
+            phase.set_state_options('v', fix_initial=True, fix_final=False)
+
+            phase.add_control('theta', continuity=True, rate_continuity=True,
+                              units='deg', lower=0.01, upper=179.9)
+
+            phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+
+            # Minimize time at the end of the phase
+            phase.add_objective('time', loc='final', scaler=10)
+
+            phase.add_boundary_constraint('time', loc='initial', equals=0)
+
+            p.model.options['assembled_jac_type'] = 'csc'
+            p.model.linear_solver = DirectSolver(assemble_jac=True)
+            p.setup(check=True)
+
+            p['phase0.t_initial'] = 0.0
+            p['phase0.t_duration'] = 2.0
+
+            p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+            p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+            p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+            p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+            p['phase0.design_parameters:g'] = 9.80665
+
+            p.run_driver()
+
+            self.assertTrue(p.driver.result.success,
+                            msg='Brachistochrone with outbounded times has failed')
+
 
 if __name__ == '__main__':
     unittest.main()
