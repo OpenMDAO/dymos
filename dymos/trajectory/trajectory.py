@@ -1,6 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
-from collections import Sequence
+from collections import Sequence, OrderedDict
 import itertools
 import multiprocessing as mp
 from six import iteritems, string_types
@@ -13,8 +13,9 @@ except ImportError:
 
 import numpy as np
 
-from openmdao.api import Group, ParallelGroup, IndepVarComp
+from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver
 from openmdao.utils.units import convert_units
+from openmdao.utils.mpi import MPI
 
 from ..utils.constants import INF_BOUND
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
@@ -35,8 +36,8 @@ class Trajectory(Group):
 
         self.input_parameter_options = {}
         self.design_parameter_options = {}
-        self._linkages = {}
-        self._phases = {}
+        self._linkages = OrderedDict()
+        self._phases = OrderedDict()
         self._phase_add_kwargs = {}
 
     def initialize(self):
@@ -331,7 +332,10 @@ class Trajectory(Group):
                                           promotes_outputs=['*'])
 
         for name, phs in iteritems(self._phases):
-            phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
+            g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
+            # DirectSolvers were moved down into the phases for use with MPI
+            g.options['assembled_jac_type'] = 'csc'
+            g.linear_solver = DirectSolver(assemble_jac=True)
 
         if self._linkages:
             self._setup_linkages()
@@ -429,22 +433,19 @@ class Trajectory(Group):
 
         for phase1_name, phase2_name in phase_pairs:
             if (phase1_name, phase2_name) not in self._linkages:
-                self._linkages[phase1_name, phase2_name] = {}
-
-            explicitly_linked_vars = [var for var in _vars if var != '*']
+                self._linkages[phase1_name, phase2_name] = OrderedDict()
 
             if '*' in _vars:
                 p1_states = set([key for key in self._phases[phase1_name].state_options])
                 p2_states = set([key for key in self._phases[phase2_name].state_options])
-                common_states = p1_states.intersection(p2_states)
-
-                implicitly_linked_vars = ['time'] + list(common_states)
+                implicitly_linked_vars = p1_states.intersection(p2_states)
+                implicitly_linked_vars.add('time')
             else:
-                implicitly_linked_vars = []
+                implicitly_linked_vars = set()
 
-            linked_vars = list(set(implicitly_linked_vars + explicitly_linked_vars))
+            explicitly_linked_vars = [var for var in _vars if var != '*']
 
-            for var in linked_vars:
+            for var in sorted(implicitly_linked_vars.union(explicitly_linked_vars)):
                 self._linkages[phase1_name, phase2_name][var] = {'locs': locs, 'units': None}
 
     def simulate(self, times='all', num_procs=None, record=True, record_file=None):

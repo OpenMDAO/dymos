@@ -1,8 +1,10 @@
 from __future__ import print_function, division, absolute_import
 
 import os
+import sys
 import pep8
 import unittest
+from six import StringIO
 
 import dymos
 
@@ -46,9 +48,15 @@ class TestPep8(unittest.TestCase):
         style = pep8.StyleGuide(ignore=['E201', 'E226', 'E241', 'E402'])
         style.options.max_line_length = 100
 
-        report = style.check_files(pyfiles)
+        save = sys.stdout
+        sys.stdout = msg = StringIO()
+        try:
+            report = style.check_files(pyfiles)
+        finally:
+            sys.stdout = save
 
-        self.assertEqual(report.total_errors, 0, msg='Found pep8 errors')
+        if report.total_errors > 0:
+            self.fail("Found pep8 errors:\n%s" % msg.getvalue())
 
 
 if __name__ == "__main__":
