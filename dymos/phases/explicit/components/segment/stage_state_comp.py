@@ -25,8 +25,6 @@ class StageStateComp(ExplicitComponent):
         num_steps = self.options['num_steps']
         num_stages = rk_methods[method]['num_stages']
 
-        self.a = np.array([0.0, 0.5, 0.5, 1.0])
-
         for state_name, options in iteritems(self.options['state_options']):
             shape = options['shape']
             units = options['units']
@@ -45,12 +43,12 @@ class StageStateComp(ExplicitComponent):
                            units=units)
 
             self.add_input(name=self.var_names[state_name]['k'],
-                           shape=tuple([num_steps] + [num_stages] + list(shape)),
+                           shape=tuple([num_steps, num_stages] + list(shape)),
                            desc='Value of k computed for the previous stage',
                            units=units)
 
             self.add_output(name=self.var_names[state_name]['stage_vals'],
-                            shape=tuple([num_steps] + [num_stages] + list(shape)),
+                            shape=tuple([num_steps, num_stages] + list(shape)),
                             desc='State value at the stages of each step',
                             units=units)
 
@@ -90,18 +88,29 @@ class StageStateComp(ExplicitComponent):
     def compute(self, inputs, outputs):
         method = self.options['method']
         num_steps = self.options['num_steps']
+        num_stages = rk_methods[method]['num_stages']
+        A = np.array([0.0, 0.5, 0.5, 1.0])
 
-        for istep in range(num_steps):
-            for state_name, options in iteritems(self.options['state_options']):
-                y_step = inputs[self.var_names[state_name]['step_vals']]
-                k = inputs[self.var_names[state_name]['k']]
-                outputs[self.var_names[state_name]['stage_vals']][istep, :] = y_step[istep] + np.dot(self.a, k)
+        # N_STEPS = y.shape[0] - 1
+        # K = K_flat.reshape((N_STEPS, 4))
+        # A_vec = np.array([0.0, 0.5, 0.5, 1.0])
+        #
+        # Y = np.zeros((N_STEPS, 4))
+        # for i in range(N_STEPS):
+        #     for j in range(1, 4):
+        #         Y[i, j] = K[i, j - 1] * A_vec[j]
+        #     Y[i] += y[i]
 
-    # def compute_partials(self, inputs, partials):
-    #     A = rk_methods[self.options['method']]['A']
-    #     s = self.options['stage']
-    #
-    #     for state_name, options in iteritems(self.options['state_options']):
-    #         of = self.var_names[state_name]['yf']
-    #         k_name = self.var_names[state_name]['k']
-    #         partials[of, k_name] = A[s - 1, s - 2]
+        for state_name, options in iteritems(self.options['state_options']):
+            y_step = inputs[self.var_names[state_name]['step_vals']]
+            y_stages = outputs[self.var_names[state_name]['stage_vals']]
+            k = inputs[self.var_names[state_name]['k']].reshape(4, 4)
+
+            y_stages[...] = 0.0
+            for istep in range(num_steps):
+                for jstage in range(1, num_stages):
+                    y_stages[istep, jstage] = k[istep, jstage - 1] * A[jstage]
+                y_stages[istep] += y_step[istep]
+
+
+            # \y_stages[...] = y_step[:-1, ...] + np.dot(A, k)
