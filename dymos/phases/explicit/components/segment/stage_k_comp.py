@@ -50,7 +50,6 @@ class StageKComp(ExplicitComponent):
                 desc='RK multiplier k {0} for each step/stage in the segment.'.format(state_name),
                 units=units)
 
-
             ar = np.arange(num_stages * num_steps, dtype=int)
             self.declare_partials(of=self.var_names[state_name]['k'],
                                   wrt=self.var_names[state_name]['f'],
