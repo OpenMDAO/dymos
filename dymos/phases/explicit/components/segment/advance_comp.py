@@ -72,19 +72,17 @@ class AdvanceComp(ExplicitComponent):
                                   val=1.0)
 
     def compute(self, inputs, outputs):
+        num_steps = self.options['num_steps']
         b = rk_methods[self.options['method']]['b']
 
         for state_name, options in iteritems(self.options['state_options']):
-            size = np.prod(options['shape'])
             y0 = inputs[self.var_names[state_name]['y0']]
-            y = outputs[self.var_names[state_name]['y']]
-            k = inputs[self.var_names[state_name]['k']]
-            b = rk_methods[self.options['method']]['b']
+            y = outputs[self.var_names[state_name]['y']].reshape(num_steps + 1)
+            k = inputs[self.var_names[state_name]['k']].reshape((num_steps, 4))
 
-            y[0, ...] = y0
+            y[...] = 0.0
 
-            for istep in range(self.options['num_steps']):
-                dot_product = 0
-                for jstage in range(len(b)):
-                    dot_product += b[jstage] * k[istep, jstage]
-                y[istep + 1] = y[istep] + dot_product
+            np.einsum('j,ij->i', b, k, out=y[1:])
+            np.cumsum(y[1:], out=y[1:])
+
+            y += y0
