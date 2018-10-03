@@ -1,13 +1,13 @@
 from __future__ import print_function, division, absolute_import
 
-from openmdao.api import Group
+from openmdao.api import Group, NonlinearBlockGS, DirectSolver, NewtonSolver
 
 from .stage_state_comp import StageStateComp
 from .stage_time_comp import StageTimeComp
 from .stage_k_comp import StageKComp
 from .advance_comp import AdvanceComp
 
-from dymos.phases.options import TimeOptionsDictionary, StateOptionsDictionary
+from dymos.phases.options import TimeOptionsDictionary
 
 
 class ExplicitSegment(Group):
@@ -60,3 +60,15 @@ class ExplicitSegment(Group):
                            promotes_inputs=['*'],
                            promotes_outputs=['*']
                            )
+
+        self.linear_solver = DirectSolver()
+        self.nonlinear_solver = NonlinearBlockGS()
+        # self.nonlinear_solver = NewtonSolver()
+
+        self.nonlinear_solver.options['atol'] = 1e-14
+        self.nonlinear_solver.options['rtol'] = 1e-14
+        # self.nonlinear_solver.options['solve_subsystems'] = True
+        self.nonlinear_solver.options['err_on_maxiter'] = True
+        # self.nonlinear_solver.options['max_sub_solves'] = 10
+        self.nonlinear_solver.options['maxiter'] = 150
+        self.nonlinear_solver.options['iprint'] = 2
