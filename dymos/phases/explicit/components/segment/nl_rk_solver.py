@@ -71,6 +71,9 @@ class NonlinearRK(NonlinearSolver):
         #       only do this optionally, because it will require an additional
         #       call to ODE which might be expensive
 
+        #TODO: optionally have one more _solve_nonlinear to make sure the whole
+        #      group has the correct values
+
 
 
     def _declare_options(self):
