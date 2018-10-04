@@ -22,6 +22,9 @@ class ExplicitSegment(Group):
                              desc='Keyword arguments provided when initializing the ODE System')
         self.options.declare('state_options', types=dict)
         self.options.declare('time_options', types=TimeOptionsDictionary)
+        self.options.declare('control_options', types=dict, default={})
+        self.options.declare('design_parameter_options', types=dict, default={})
+        self.options.declare('input_parameter_options', types=dict, default={})
         self.options.declare('method', types=str, default='rk4')
 
     def setup(self):

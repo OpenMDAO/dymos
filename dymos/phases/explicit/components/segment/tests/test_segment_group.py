@@ -116,7 +116,7 @@ class TestExplicitSegmentSimpleIntegration(unittest.TestCase):
 
         integrator.setup(check=False)
 
-        seg.nonlinear_solver = NonlinearRK(ODE_integrator=integrator)
+        seg.nonlinear_solver = NonlinearRK()
 
         self.p.run_model()
 

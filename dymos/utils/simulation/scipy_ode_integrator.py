@@ -277,7 +277,7 @@ class ScipyODEIntegrator(object):
                                    'state_rates:{0}_rate'.format(state_name)])
         return self._state_rate_vec
 
-    def _pack_state_vec(self, x_dict):
+    def _pack_state_vec(self, x_dict, index=0):
         """
         Pack the state into a 1D vector for use by scipy.integrate.ode.
 
@@ -291,7 +291,7 @@ class ScipyODEIntegrator(object):
         for state_name, state_options in self.state_options.items():
             pos = state_options['pos']
             size = state_options['size']
-            self._state_vec[pos:pos + size] = np.ravel(x_dict[state_name])
+            self._state_vec[pos:pos + size] = np.ravel(x_dict[state_name][index])
         return self._state_vec
 
     def _f_ode(self, t, x, *args):
