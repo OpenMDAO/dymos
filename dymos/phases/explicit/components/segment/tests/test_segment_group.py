@@ -12,7 +12,8 @@ from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 from dymos import declare_state, declare_time
 from dymos.phases.options import TimeOptionsDictionary
 from dymos.phases.explicit.components.segment.segment_group import ExplicitSegment
-
+from dymos.phases.explicit.components.segment.nl_rk_solver import NonlinearRK
+from dymos.utils.simulation import ScipyODEIntegrator
 
 @declare_time(targets=['t'], units='s')
 @declare_state('y', targets=['y'], rate_source='ydot', units='m')
@@ -61,7 +62,7 @@ class TestExplicitSegmentSimpleIntegration(unittest.TestCase):
         cls.p.model.add_subsystem('segment', seg)
 
         cls.p.model.connect('seg_t0_tf', 'segment.seg_t0_tf')
-        cls.p.model.connect('y_0', ('segment.states:y_0'))
+        cls.p.model.connect('y_0', ('segment.initial_states:y'))
 
         for state_name, options in iteritems(state_opts):
             cls.p.model.connect('segment.stage_ode.{0}'.format(options['rate_source']),
@@ -79,11 +80,45 @@ class TestExplicitSegmentSimpleIntegration(unittest.TestCase):
                             src_indices=np.arange(16, dtype=int),
                             flat_src_indices=True)
 
-        cls.p.setup(check=True, force_alloc_complex=True)
+    def test_results_nlbgs(self):
+        """make sure you get the right answer using the NLBGS solver"""
+        self.p.setup(check=False, force_alloc_complex=True)
+        self.p.model.segment.nonlinear_solver.options['iprint'] = -1
 
-        cls.p.run_model()
+        self.p.run_model()
 
-    def test_results(self):
+        y_expected = np.array([[0.5],
+                               [1.425130208333333],
+                               [2.639602661132812],
+                               [4.006818970044454],
+                               [5.301605229265987]])
+
+        assert_rel_error(self,
+                         self.p['segment.step_states:y'],
+                         y_expected,
+                         tolerance=1.0E-9)
+
+    def test_results_nlrk(self):
+        """make sure you get the right answer using the custom nl_rk solver"""
+
+        self.p.setup(check=False, force_alloc_complex=True)
+
+        seg = self.p.model.segment
+
+        integrator = ScipyODEIntegrator(phase_name='',
+                                        ode_class=seg.options['ode_class'],
+                                        ode_init_kwargs=seg.options['ode_init_kwargs'],
+                                        state_options=seg.options['state_options'],
+                                        time_options=seg.options['time_options'],
+                                        control_options={},
+                                        design_parameter_options={},
+                                        input_parameter_options={})
+
+        integrator.setup(check=False)
+
+        seg.nonlinear_solver = NonlinearRK(ODE_integrator=integrator)
+
+        self.p.run_model()
 
         y_expected = np.array([[0.5],
                                [1.425130208333333],
@@ -98,8 +133,15 @@ class TestExplicitSegmentSimpleIntegration(unittest.TestCase):
 
     def test_partials(self):
 
-        cpd = self.p.check_partials(method='cs', compact_print=True)
+        self.p.setup(check=False, force_alloc_complex=True)
+        self.p.model.segment.nonlinear_solver.options['iprint'] = -1
+
+        self.p.run_model()
+
+        cpd = self.p.check_partials(method='cs', compact_print=True, out_stream=None)
         assert_check_partials(cpd)
 
 
+if __name__ == "__main__":
+    unittest.main()
 
