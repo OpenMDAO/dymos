@@ -8,6 +8,7 @@ from .stage_k_comp import StageKComp
 from .advance_comp import AdvanceComp
 
 from dymos.phases.options import TimeOptionsDictionary
+from dymos.utils.rk_methods import rk_methods
 
 
 class ExplicitSegment(Group):
@@ -29,17 +30,19 @@ class ExplicitSegment(Group):
         time_options = self.options['time_options']
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
-        num_stages = 4
+        method = self.options['method']
+        num_stages = rk_methods[method]['num_stages']
 
         self.add_subsystem('stage_time_comp',
-                           subsys=StageTimeComp(num_steps=4, method='rk4',
+                           subsys=StageTimeComp(num_steps=4, method=method,
                                                 time_options=time_options),
                            promotes_inputs=['*'],
                            promotes_outputs=['*'])
 
         self.add_subsystem('stage_state_comp',
                            subsys=StageStateComp(num_steps=num_steps,
-                                                 state_options=state_options),
+                                                 state_options=state_options,
+                                                 method=method),
                            promotes_inputs=['*'],
                            promotes_outputs=['*'])
 
@@ -48,14 +51,14 @@ class ExplicitSegment(Group):
 
         self.add_subsystem('stage_k_comp',
                            subsys=StageKComp(num_steps=4,
-                                             method='rk4',
+                                             method=method,
                                              time_options=time_options,
                                              state_options=state_options),
                            promotes_inputs=['*'],
                            promotes_outputs=['*'])
 
         self.add_subsystem('advance_comp',
-                           subsys=AdvanceComp(num_steps=4, method='rk4',
+                           subsys=AdvanceComp(num_steps=4, method=method,
                                               state_options=state_options),
                            promotes_inputs=['*'],
                            promotes_outputs=['*']

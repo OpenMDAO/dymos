@@ -33,7 +33,7 @@ class AdvanceComp(ExplicitComponent):
 
             self.var_names[state_name] = {}
             self.var_names[state_name]['k'] = 'k:{0}'.format(state_name)
-            self.var_names[state_name]['y0'] = 'states:{0}_0'.format(state_name)
+            self.var_names[state_name]['y0'] = 'initial_states:{0}'.format(state_name)
             self.var_names[state_name]['y'] = 'step_states:{0}'.format(state_name)
 
             self.add_input(name=self.var_names[state_name]['k'],
