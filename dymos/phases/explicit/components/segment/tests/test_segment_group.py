@@ -13,6 +13,7 @@ from dymos import declare_state, declare_time
 from dymos.phases.options import TimeOptionsDictionary
 from dymos.phases.explicit.components.segment.segment_group import ExplicitSegment
 from dymos.phases.explicit.solvers.nl_rk_solver import NonlinearRK
+from dymos.phases.grid_data import GridData
 from dymos.utils.simulation import ScipyODEIntegrator
 
 @declare_time(targets=['t'], units='s')
@@ -56,8 +57,10 @@ class TestExplicitSegmentSimpleIntegration(unittest.TestCase):
         ivc.add_output('seg_t0_tf', val=np.array([0.0, 2.0]), units='s')
         ivc.add_output('y_0', val=0.5, units='m')
 
-        seg = ExplicitSegment(num_steps=4, method='rk4', state_options=state_opts,
-                              time_options=time_opts, ode_class=TestODE)
+        gd = GridData(num_segments=1, transcription='explicit', transcription_order=4)
+
+        seg = ExplicitSegment(index=0, num_steps=4, method='rk4', state_options=state_opts,
+                              time_options=time_opts, ode_class=TestODE, grid_data=gd)
 
         cls.p.model.add_subsystem('segment', seg)
 
