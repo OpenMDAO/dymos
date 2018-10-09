@@ -12,7 +12,7 @@ from ..optimizer_based.components import CollocationComp, StateInterpComp
 from ..components import EndpointConditionsComp
 from ..phase_base import PhaseBase
 from ...utils.constants import INF_BOUND
-from ...utils.misc import CoerceDesvar
+from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.lagrange import lagrange_matrices
 from ...utils.simulation import simulate_phase
 
@@ -381,6 +381,91 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         self.add_subsystem(name='endpoint_conditions', subsys=endpoint_comp,
                            promotes_outputs=promoted_list)
+
+    def _get_boundary_constraint_src(self, var, loc):
+        # Determine the path to the variable which we will be constraining
+        time_units = self.time_options['units']
+        var_type = self._classify_var(var)
+
+        if var_type == 'time':
+            shape = (1,)
+            units = self.time_units
+            linear = True
+            constraint_path = 'time'
+        elif var_type == 'state':
+            state_shape = self.state_options[var]['shape']
+            state_units = self.state_options[var]['units']
+            shape = state_shape
+            units = state_units
+            linear = True
+            constraint_path = 'states:{0}'.format(var)
+        elif var_type in 'indep_control':
+            control_shape = self.control_options[var]['shape']
+            control_units = self.control_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = True
+            constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+        elif var_type == 'input_control':
+            control_shape = self.control_options[var]['shape']
+            control_units = self.control_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = False
+            constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+        elif var_type == 'design_parameter':
+            control_shape = self.design_parameter_options[var]['shape']
+            control_units = self.design_parameter_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = True
+            constraint_path = 'design_parameters:{0}'.format(var)
+        elif var_type == 'input_parameter':
+            control_shape = self.input_parameter_options[var]['shape']
+            control_units = self.input_parameter_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = False
+            constraint_path = 'input_parameters:{0}_out'.format(var)
+        elif var_type == 'control_rate':
+            control_var = var[:-5]
+            control_shape = self.control_options[control_var]['shape']
+            control_units = self.control_options[control_var]['units']
+            control_rate_units = get_rate_units(control_units, time_units, deriv=1)
+            shape = control_shape
+            units = control_rate_units
+            linear = False
+            constraint_path = 'control_rates:{0}'.format(var)
+        elif var_type == 'control_rate2':
+            control_var = var[:-6]
+            control_shape = self.control_options[control_var]['shape']
+            control_units = self.control_options[control_var]['units']
+            control_rate_units = get_rate_units(control_units, time_units, deriv=2)
+            shape = control_shape
+            units = control_rate_units
+            linear = False
+            constraint_path = 'control_rates:{0}'.format(var)
+        else:
+            # Failed to find variable, assume it is in the RHS
+            if self.options['transcription'] == 'gauss-lobatto':
+                constraint_path = 'rhs_disc.{0}'.format(var)
+            elif self.options['transcription'] == 'radau-ps':
+                constraint_path = 'rhs_all.{0}'.format(var)
+            else:
+                raise ValueError('Invalid transcription')
+            shape = None
+            units = None
+            linear = False
+
+        # Build the correct src_indices regardless of shape
+        size = np.prod(shape)
+
+        if loc == 'initial':
+            src_idxs = np.arange(size, dtype=int).reshape(shape)
+        else:
+            src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
+
+        return constraint_path, src_idxs, shape, units, linear
 
     def interpolate_values(self, var, times):
         """

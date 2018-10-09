@@ -57,10 +57,6 @@ class TestExplicitPhase(unittest.TestCase):
 
         p.run_model()
 
-        print(p['phase0.seg_0.initial_states:y'])
-        print(p['phase0.seg_0.step_states:y'])
-        print(p['phase0.seg_0.t_stage'])
-
         np.set_printoptions(linewidth=1024)
         p.check_partials()
 

@@ -14,7 +14,7 @@ from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
 # from dymos.phases.components import BoundaryConstraintComp
-from dymos.phases.components import BoundaryConstraintComp2
+from dymos.phases.components import BoundaryConstraintComp
 from dymos.phases.components import InputParameterComp
 from dymos.phases.components import TimeComp
 from dymos.phases.options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
@@ -1071,13 +1071,48 @@ class PhaseBase(Group):
     def _setup_endpoint_conditions(self):
         raise NotImplementedError()
 
+    def _get_boundary_constraint_src(self, var, loc):
+        """
+        Get the path of the boundary constraint source within the phase.
+
+        Parameters
+        ----------
+        var : str
+            The variable within the phase whose value is to be constrained at a boundary.
+        loc : str
+            The location of the boundary constraint in the phase.  Must be one of 'initial' or
+            'final'.
+
+        Returns
+        -------
+        src : str
+            The phase-relative path of the boundary constraint source.
+        src_idxs : np.array of int
+            The source indices that of src that provide the boundary constraint values.
+        shape : tuple of int
+            The shape of the variable being boundary-constrained.
+        units : str
+            The units of the output to be boundary-constrained.
+        linear : bool
+            True if this boundary constraint is constrained linearly, otherwise False.
+
+        """
+        raise NotImplementedError('This phase class does not implement '
+                                  '_get_boundary_constraint_src.')
+
     def _setup_boundary_constraints(self, loc):
         """
-        Adds BoundaryConstraintComp if necessary and issues appropriate connections.
+        Adds BoundaryConstraintComp for initial and/or final boundary constraints if necessary
+        and issues appropriate connections.
+
+        Parameters
+        ----------
+        loc : str
+            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
+
         """
         if loc not in ('initial', 'final'):
             raise ValueError('loc must be one of \'initial\' or \'final\'.')
-        transcription = self.options['transcription']
         bc_comp = None
 
         bc_dict = self._initial_boundary_constraints \
@@ -1085,103 +1120,26 @@ class PhaseBase(Group):
 
         if bc_dict:
             bc_comp = self.add_subsystem('{0}_boundary_constraints'.format(loc),
-                                          subsys=BoundaryConstraintComp2(loc=loc))
+                                         subsys=BoundaryConstraintComp(loc=loc))
 
         for var, options in iteritems(bc_dict):
             con_name = options['constraint_name']
-            con_units = options.get('units', None)
-            con_shape = options.get('shape', (1,))
-
-            # Determine the path to the variable which we will be constraining
-            var_type = self._classify_var(var)
-
-            if var_type == 'time':
-                options['shape'] = (1,)
-                options['units'] = self.time_options['units'] if con_units is None else con_units
-                options['linear'] = True
-                constraint_path = 'time'
-            elif var_type == 'state':
-                state_shape = self.state_options[var]['shape']
-                state_units = self.state_options[var]['units']
-                options['shape'] = state_shape if con_shape is None else con_shape
-                options['units'] = state_units if con_units is None else con_units
-                options['linear'] = True
-                constraint_path = 'states:{0}'.format(var)
-            elif var_type in 'indep_control':
-                control_shape = self.control_options[var]['shape']
-                control_units = self.control_options[var]['units']
-                options['shape'] = control_shape if con_shape is None else con_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
-                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
-            elif var_type == 'input_control':
-                control_shape = self.control_options[var]['shape']
-                control_units = self.control_options[var]['units']
-                options['shape'] = control_shape if con_shape is None else con_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = False
-                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
-            elif var_type == 'design_parameter':
-                control_shape = self.design_parameter_options[var]['shape']
-                control_units = self.design_parameter_options[var]['units']
-                options['shape'] = control_shape if con_shape is None else con_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
-                constraint_path = 'design_parameters:{0}'.format(var)
-            elif var_type == 'input_parameter':
-                control_shape = self.input_parameter_options[var]['shape']
-                control_units = self.input_parameter_options[var]['units']
-                options['shape'] = control_shape if con_shape is None else con_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = False
-                constraint_path = 'input_parameters:{0}_out'.format(var)
-            elif var_type == 'control_rate':
-                control_var = var[:-5]
-                control_shape = self.control_options[control_var]['shape']
-                control_units = self.control_options[control_var]['units']
-                control_rate_units = get_rate_units(control_units,
-                                                    self.time_options['units'],
-                                                    deriv=1)
-                options['shape'] = control_shape if con_shape is None else con_shape
-                options['units'] = control_rate_units if con_units is None else con_units
-                constraint_path = 'control_rates:{0}'.format(var)
-            elif var_type == 'control_rate2':
-                control_var = var[:-6]
-                control_shape = self.control_options[control_var]['shape']
-                control_units = self.control_options[control_var]['units']
-                control_rate_units = get_rate_units(control_units,
-                                                    self.time_options['units'],
-                                                    deriv=2)
-                options['shape'] = control_shape if con_shape is None else con_shape
-                options['units'] = control_rate_units if con_units is None else con_units
-                constraint_path = 'control_rates:{0}'.format(var)
-            else:
-                # Failed to find variable, assume it is in the RHS
-                if transcription == 'gauss-lobatto':
-                    constraint_path = 'rhs_disc.{0}'.format(var)
-                elif transcription == 'radau-ps':
-                    constraint_path = 'rhs_all.{0}'.format(var)
-                else:
-                    raise ValueError('Invalid transcription')
-
-                options['shape'] = con_shape
-                options['units'] = con_units
 
             # Constraint options are a copy of options with constraint_name key removed.
             con_options = options.copy()
             con_options.pop('constraint_name')
 
+            src, src_idxs, shape, units, linear = self._get_boundary_constraint_src(var, loc)
+
+            con_units = options.get('units', None)
+            con_shape = options.get('shape', (1,))
+            con_options['shape'] = shape if con_shape is None else con_shape
+            con_options['units'] = units if con_units is None else con_units
+            con_options['linear'] = linear
+
             bc_comp._add_constraint(con_name, **con_options)
 
-            # Build the correct src_indices regardless of shape
-            size = np.prod(options['shape'])
-
-            if loc == 'initial':
-                src_idxs = np.arange(size, dtype=int).reshape(options['shape'])
-            else:
-                src_idxs = np.arange(-size, 0, dtype=int).reshape(options['shape'])
-
-            self.connect(constraint_path,
+            self.connect(src,
                          '{0}_boundary_constraints.{0}_value_in:{1}'.format(loc, con_name),
                          src_indices=src_idxs,
                          flat_src_indices=True)

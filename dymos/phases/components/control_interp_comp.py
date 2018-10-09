@@ -57,7 +57,6 @@ class ControlInterpComp(ExplicitComponent):
 
     def _setup_controls(self):
         control_options = self.options['control_options']
-        gd = self.options['grid_data']
         num_nodes = self.num_nodes
         num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
         time_units = self.options['time_units']

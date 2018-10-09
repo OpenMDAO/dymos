@@ -10,9 +10,9 @@ from openmdao.api import IndepVarComp, ParallelGroup
 from six import iteritems
 
 from .components.segment.explicit_segment import ExplicitSegment
-from dymos.utils.rk_methods import rk_methods
-from dymos.utils.misc import CoerceDesvar
-from dymos.utils.constants import INF_BOUND
+from ...utils.rk_methods import rk_methods
+from ...utils.misc import CoerceDesvar, get_rate_units
+from ...utils.constants import INF_BOUND
 
 
 class ExplicitPhase(PhaseBase):
@@ -331,118 +331,93 @@ class ExplicitPhase(PhaseBase):
 
         return connection_info
 
-    def _setup_boundary_constraints(self):
-        """
-        Adds BoundaryConstraintComp if necessary and issues appropriate connections.
-        """
-        transcription = self.options['transcription']
-        bc_comp = None
-        #
-        # num_ibc = [c for c in self._boundary_constraints if ]
-        #
-        # if self._boundary_constraints:
-        #     bc_comp = self.add_subsystem('boundary_constraints',
-        #                                  subsys=BoundaryConstraintComp())
-        #
-        # for var, options in iteritems(self._boundary_constraints):
-        #     con_name = options['constraint_name']
-        #     con_units = options.get('units', None)
-        #     con_shape = options.get('shape', (1,))
-        #
-        #     # Determine the path to the variable which we will be constraining
-        #     var_type = self._classify_var(var)
-        #
-        #     if var_type == 'time':
-        #         options['shape'] = (1,)
-        #         options['units'] = self.time_options[
-        #             'units'] if con_units is None else con_units
-        #         options['linear'] = True
-        #         constraint_path = 'time'
-        #     elif var_type == 'state':
-        #         state_shape = self.state_options[var]['shape']
-        #         state_units = self.state_options[var]['units']
-        #         options['shape'] = state_shape if con_shape is None else con_shape
-        #         options['units'] = state_units if con_units is None else con_units
-        #         options['linear'] = True
-        #         constraint_path = 'states:{0}'.format(var)
-        #     elif var_type in 'indep_control':
-        #         control_shape = self.control_options[var]['shape']
-        #         control_units = self.control_options[var]['units']
-        #         options['shape'] = control_shape if con_shape is None else con_shape
-        #         options['units'] = control_units if con_units is None else con_units
-        #         options['linear'] = True
-        #         constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
-        #     elif var_type == 'input_control':
-        #         control_shape = self.control_options[var]['shape']
-        #         control_units = self.control_options[var]['units']
-        #         options['shape'] = control_shape if con_shape is None else con_shape
-        #         options['units'] = control_units if con_units is None else con_units
-        #         options['linear'] = False
-        #         constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
-        #     elif var_type == 'design_parameter':
-        #         control_shape = self.design_parameter_options[var]['shape']
-        #         control_units = self.design_parameter_options[var]['units']
-        #         options['shape'] = control_shape if con_shape is None else con_shape
-        #         options['units'] = control_units if con_units is None else con_units
-        #         options['linear'] = True
-        #         constraint_path = 'design_parameters:{0}'.format(var)
-        #     elif var_type == 'input_parameter':
-        #         control_shape = self.input_parameter_options[var]['shape']
-        #         control_units = self.input_parameter_options[var]['units']
-        #         options['shape'] = control_shape if con_shape is None else con_shape
-        #         options['units'] = control_units if con_units is None else con_units
-        #         options['linear'] = False
-        #         constraint_path = 'input_parameters:{0}_out'.format(var)
-        #     elif var_type == 'control_rate':
-        #         control_var = var[:-5]
-        #         control_shape = self.control_options[control_var]['shape']
-        #         control_units = self.control_options[control_var]['units']
-        #         control_rate_units = get_rate_units(control_units,
-        #                                             self.time_options['units'],
-        #                                             deriv=1)
-        #         options['shape'] = control_shape if con_shape is None else con_shape
-        #         options['units'] = control_rate_units if con_units is None else con_units
-        #         constraint_path = 'control_rates:{0}'.format(var)
-        #     elif var_type == 'control_rate2':
-        #         control_var = var[:-6]
-        #         control_shape = self.control_options[control_var]['shape']
-        #         control_units = self.control_options[control_var]['units']
-        #         control_rate_units = get_rate_units(control_units,
-        #                                             self.time_options['units'],
-        #                                             deriv=2)
-        #         options['shape'] = control_shape if con_shape is None else con_shape
-        #         options['units'] = control_rate_units if con_units is None else con_units
-        #         constraint_path = 'control_rates:{0}'.format(var)
-        #     else:
-        #         # Failed to find variable, assume it is in the RHS
-        #         if transcription == 'gauss-lobatto':
-        #             constraint_path = 'rhs_disc.{0}'.format(var)
-        #         elif transcription == 'radau-ps':
-        #             constraint_path = 'rhs_all.{0}'.format(var)
-        #         else:
-        #             raise ValueError('Invalid transcription')
-        #
-        #         options['shape'] = con_shape
-        #         options['units'] = con_units
-        #
-        #     if 'initial' in options:
-        #         options['initial']['units'] = options['units']
-        #         bc_comp._add_initial_constraint(con_name,
-        #                                         **options['initial'])
-        #     if 'final' in options:
-        #         options['final']['units'] = options['units']
-        #         bc_comp._add_final_constraint(con_name,
-        #                                       **options['final'])
-        #
-        #     # Build the correct src_indices regardless of shape
-        #     size = np.prod(options['shape'])
-        #     src_idxs_initial = np.arange(size, dtype=int).reshape(options['shape'])
-        #     src_idxs_final = np.arange(-size, 0, dtype=int).reshape(options['shape'])
-        #     src_idxs = np.stack((src_idxs_initial, src_idxs_final))
-        #
-        #     self.connect(constraint_path,
-        #                  'boundary_constraints.boundary_values:{0}'.format(con_name),
-        #                  src_indices=src_idxs, flat_src_indices=True)
+    def _get_boundary_constraint_src(self, var, loc):
+        # Determine the path to the variable which we will be constraining
+        gd = self.grid_data
+        time_units = self.time_options['units']
+        var_type = self._classify_var(var)
+
+        src_seg = 'seg_{0}'.format(0 if loc == 'initial' else self.grid_data.num_segments - 1)
+
+        if var_type == 'time':
+            shape = (1,)
+            units = self.time_units
+            linear = True
+            constraint_path = '{0}.t_step'.format(src_seg)
+        elif var_type == 'state':
+            state_shape = self.state_options[var]['shape']
+            state_units = self.state_options[var]['units']
+            shape = state_shape
+            units = state_units
+            linear = True
+            constraint_path =  '{0}.step_states:{0}'.format(src_seg, var)
+        elif var_type in 'indep_control':
+            control_shape = self.control_options[var]['shape']
+            control_units = self.control_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = True
+            constraint_path = 'control_values:{0}'.format(var)
+        elif var_type == 'input_control':
+            control_shape = self.control_options[var]['shape']
+            control_units = self.control_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = False
+            constraint_path = 'control_values:{0}'.format(var)
+        elif var_type == 'design_parameter':
+            control_shape = self.design_parameter_options[var]['shape']
+            control_units = self.design_parameter_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = True
+            constraint_path = 'design_parameters:{0}'.format(var)
+        elif var_type == 'input_parameter':
+            control_shape = self.input_parameter_options[var]['shape']
+            control_units = self.input_parameter_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = False
+            constraint_path = 'input_parameters:{0}_out'.format(var)
+        elif var_type == 'control_rate':
+            control_var = var[:-5]
+            control_shape = self.control_options[control_var]['shape']
+            control_units = self.control_options[control_var]['units']
+            control_rate_units = get_rate_units(control_units, time_units, deriv=1)
+            shape = control_shape
+            units = control_rate_units
+            linear = False
+            constraint_path = 'control_rates:{0}'.format(var)
+        elif var_type == 'control_rate2':
+            control_var = var[:-6]
+            control_shape = self.control_options[control_var]['shape']
+            control_units = self.control_options[control_var]['units']
+            control_rate_units = get_rate_units(control_units, time_units, deriv=2)
+            shape = control_shape
+            units = control_rate_units
+            linear = False
+            constraint_path = 'control_rates:{0}'.format(var)
+        else:
+            # Failed to find variable, assume it is in the RHS
+            if self.options['transcription'] == 'gauss-lobatto':
+                constraint_path = 'rhs_disc.{0}'.format(var)
+            elif self.options['transcription'] == 'radau-ps':
+                constraint_path = 'rhs_all.{0}'.format(var)
+            else:
+                raise ValueError('Invalid transcription')
+            shape = None
+            units = None
+            linear = False
+
+        # Build the correct src_indices regardless of shape
+        size = int(np.prod(shape))
+
+        if loc == 'initial':
+            src_idxs = np.arange(size, dtype=int).reshape(shape)
+        else:
+            src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
+
+        return constraint_path, src_idxs, shape, units, linear
 
     # def get_values(self, var, nodes='solution', units=None):
     #     """
