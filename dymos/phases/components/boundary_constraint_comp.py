@@ -10,7 +10,7 @@ from dymos.utils.constants import INF_BOUND
 
 class BoundaryConstraintComp(ExplicitComponent):
 
-    def __init__(self, name=None, val=1.0, **kwargs):
+    def __init__(self):
         """
         Initialize all attributes.
 

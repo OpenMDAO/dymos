@@ -7,6 +7,7 @@ import numpy as np
 from openmdao.api import ExplicitComponent, OptionsDictionary
 
 from dymos.utils.misc import get_rate_units
+from dymos.utils.rk_methods import rk_methods
 
 
 class StageKComp(ExplicitComponent):
@@ -22,7 +23,7 @@ class StageKComp(ExplicitComponent):
     def setup(self):
         time_units = self.options['time_options']['units']
         num_steps = self.options['num_steps']
-        num_stages = 4
+        num_stages = rk_methods[self.options['method']]['num_stages']
 
         self.add_input('h', val=np.ones(num_steps), units=time_units,
                        desc='step size for the RK method')

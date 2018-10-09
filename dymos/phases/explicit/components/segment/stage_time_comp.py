@@ -23,6 +23,7 @@ class StageTimeComp(ExplicitComponent):
         time_options = self.options['time_options']
         method = self.options['method']
         num_stages = rk_methods[method]['num_stages']
+        c = rk_methods[self.options['method']]['c']
 
         self.add_input(name='seg_t0_tf',
                        val=np.array([0.0, 1.0]),
@@ -36,16 +37,34 @@ class StageTimeComp(ExplicitComponent):
 
         self.add_output(name='t_stage',
                         val=np.ones((num_steps, num_stages)),
-                        desc='size of the steps within the segment',
+                        desc='Times at each stage of each step.',
+                        units=time_options['units'])
+
+        self.add_output(name='t_step',
+                        val=np.ones((num_steps + 1,)),
+                        desc='Times at each step.',
                         units=time_options['units'])
 
         self.declare_partials(of='h',
                               wrt='seg_t0_tf',
                               val=np.repeat(np.array([[-1.0, 1.0]]) / num_steps, num_steps, axis=0))
 
+        v = np.zeros((num_steps * num_stages, 2))
+        r = np.repeat(np.arange(num_steps)/num_steps, num_stages)
+        v[:, 1] = np.tile(c / num_steps, num_steps) + r
+        v[:, 0] = v[::-1, 1]
+
         self.declare_partials(of='t_stage',
                               wrt='seg_t0_tf',
-                              method='fd')
+                              val=v)
+
+        v = np.zeros((num_steps + 1, 2))
+        v[:, 1] = np.linspace(0, 1.0, num_steps + 1)
+        v[:, 0] = v[::-1, 1]
+
+        self.declare_partials(of='t_step',
+                              wrt='seg_t0_tf',
+                              val=v)
 
     def compute(self, inputs, outputs):
         num_steps = self.options['num_steps']
@@ -57,5 +76,7 @@ class StageTimeComp(ExplicitComponent):
         t_step_ends = np.linspace(seg_t0, seg_tf, num_steps + 1)
 
         outputs['t_stage'][:, :] = t_step_ends[:-1, np.newaxis] + np.outer(outputs['h'], c)
+
+        outputs['t_step'][:] = t_step_ends
 
 

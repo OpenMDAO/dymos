@@ -7,5 +7,6 @@ from .phases.phase_factory import Phase
 from .phases.components.phase_linkage_comp import PhaseLinkageComp
 from .phases.optimizer_based.gauss_lobatto_phase import GaussLobattoPhase
 from .phases.optimizer_based.radau_pseudospectral_phase import RadauPseudospectralPhase
+from .phases.explicit.explicit_phase import ExplicitPhase
 from .trajectory.trajectory import Trajectory
 from .utils.simulation import load_simulation_results

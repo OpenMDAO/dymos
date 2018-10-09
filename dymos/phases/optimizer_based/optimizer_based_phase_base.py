@@ -142,8 +142,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         if self.grid_data.num_segments > 1:
             order.append('continuity_comp')
-        if getattr(self, 'boundary_constraints', None) is not None:
-            order.append('boundary_constraints')
+        if self._initial_boundary_constraints:
+            order.append('initial_boundary_constraints')
+        if self._final_boundary_constraints:
+            order.append('final_boundary_constraints')
         if getattr(self, 'path_constraints', None) is not None:
             order.append('path_constraints')
         self.set_order(order)

@@ -13,7 +13,8 @@ from openmdao.api import Group, IndepVarComp
 from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
-from dymos.phases.components import BoundaryConstraintComp
+# from dymos.phases.components import BoundaryConstraintComp
+from dymos.phases.components import BoundaryConstraintComp2
 from dymos.phases.components import InputParameterComp
 from dymos.phases.components import TimeComp
 from dymos.phases.options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
@@ -39,7 +40,8 @@ class PhaseBase(Group):
         self.design_parameter_options = {}
         self.input_parameter_options = {}
         self.time_options = TimeOptionsDictionary()
-        self._boundary_constraints = {}
+        self._initial_boundary_constraints = {}
+        self._final_boundary_constraints = {}
         self._path_constraints = {}
         self._objectives = []
         self._ode_controls = {}
@@ -76,7 +78,7 @@ class PhaseBase(Group):
                              desc='System defining the ODE')
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
-        self.options.declare('transcription', values=['gauss-lobatto', 'radau-ps'],
+        self.options.declare('transcription', values=['gauss-lobatto', 'radau-ps', 'explicit'],
                              desc='Transcription technique of the optimal control problem.')
         self.options.declare('segment_ends', default=None, types=Iterable, allow_none=True,
                              desc='Iterable of locations of segment ends or None for equally'
@@ -480,22 +482,21 @@ class PhaseBase(Group):
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
 
-        if name not in self._boundary_constraints:
-            self._boundary_constraints[name] = {}
-            self._boundary_constraints[name]['constraint_name'] = constraint_name
+        bc_dict = self._initial_boundary_constraints \
+            if loc == 'initial' else self._final_boundary_constraints
 
-        if loc not in self._boundary_constraints[name]:
-            self._boundary_constraints[name][loc] = {}
+        bc_dict[name] = {}
+        bc_dict[name]['constraint_name'] = constraint_name
 
-        self._boundary_constraints[name][loc]['lower'] = lower
-        self._boundary_constraints[name][loc]['upper'] = upper
-        self._boundary_constraints[name][loc]['equals'] = equals
-        self._boundary_constraints[name][loc]['scaler'] = scaler
-        self._boundary_constraints[name][loc]['adder'] = adder
-        self._boundary_constraints[name][loc]['ref0'] = ref0
-        self._boundary_constraints[name][loc]['ref'] = ref
-        self._boundary_constraints[name][loc]['linear'] = linear
-        self._boundary_constraints[name][loc]['units'] = units
+        bc_dict[name]['lower'] = lower
+        bc_dict[name]['upper'] = upper
+        bc_dict[name]['equals'] = equals
+        bc_dict[name]['scaler'] = scaler
+        bc_dict[name]['adder'] = adder
+        bc_dict[name]['ref0'] = ref0
+        bc_dict[name]['ref'] = ref
+        bc_dict[name]['linear'] = linear
+        bc_dict[name]['units'] = units
 
     def add_path_constraint(self, name, constraint_name=None, units=None, lower=None,
                             upper=None, equals=None, scaler=None, adder=None,
@@ -875,7 +876,8 @@ class PhaseBase(Group):
         self._setup_states()
 
         self._setup_endpoint_conditions()
-        self._setup_boundary_constraints()
+        self._setup_boundary_constraints('initial')
+        self._setup_boundary_constraints('final')
         self._setup_path_constraints()
 
     def _setup_time(self):
@@ -1069,17 +1071,23 @@ class PhaseBase(Group):
     def _setup_endpoint_conditions(self):
         raise NotImplementedError()
 
-    def _setup_boundary_constraints(self):
+    def _setup_boundary_constraints(self, loc):
         """
         Adds BoundaryConstraintComp if necessary and issues appropriate connections.
         """
+        if loc not in ('initial', 'final'):
+            raise ValueError('loc must be one of \'initial\' or \'final\'.')
         transcription = self.options['transcription']
         bc_comp = None
 
-        if self._boundary_constraints:
-            bc_comp = self.add_subsystem('boundary_constraints', subsys=BoundaryConstraintComp())
+        bc_dict = self._initial_boundary_constraints \
+            if loc == 'initial' else self._final_boundary_constraints
 
-        for var, options in iteritems(self._boundary_constraints):
+        if bc_dict:
+            bc_comp = self.add_subsystem('{0}_boundary_constraints'.format(loc),
+                                          subsys=BoundaryConstraintComp2(loc=loc))
+
+        for var, options in iteritems(bc_dict):
             con_name = options['constraint_name']
             con_units = options.get('units', None)
             con_shape = options.get('shape', (1,))
@@ -1159,24 +1167,24 @@ class PhaseBase(Group):
                 options['shape'] = con_shape
                 options['units'] = con_units
 
-            if 'initial' in options:
-                options['initial']['units'] = options['units']
-                bc_comp._add_initial_constraint(con_name,
-                                                **options['initial'])
-            if 'final' in options:
-                options['final']['units'] = options['units']
-                bc_comp._add_final_constraint(con_name,
-                                              **options['final'])
+            # Constraint options are a copy of options with constraint_name key removed.
+            con_options = options.copy()
+            con_options.pop('constraint_name')
+
+            bc_comp._add_constraint(con_name, **con_options)
 
             # Build the correct src_indices regardless of shape
             size = np.prod(options['shape'])
-            src_idxs_initial = np.arange(size, dtype=int).reshape(options['shape'])
-            src_idxs_final = np.arange(-size, 0, dtype=int).reshape(options['shape'])
-            src_idxs = np.stack((src_idxs_initial, src_idxs_final))
+
+            if loc == 'initial':
+                src_idxs = np.arange(size, dtype=int).reshape(options['shape'])
+            else:
+                src_idxs = np.arange(-size, 0, dtype=int).reshape(options['shape'])
 
             self.connect(constraint_path,
-                         'boundary_constraints.boundary_values:{0}'.format(con_name),
-                         src_indices=src_idxs, flat_src_indices=True)
+                         '{0}_boundary_constraints.{0}_value_in:{1}'.format(loc, con_name),
+                         src_indices=src_idxs,
+                         flat_src_indices=True)
 
     def _setup_path_constraints(self):
         raise NotImplementedError('_setup_path_constraints has not been implemented '

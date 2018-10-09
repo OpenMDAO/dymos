@@ -11,7 +11,7 @@ from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
 from dymos import declare_state, declare_time
 from dymos.phases.options import TimeOptionsDictionary
-from dymos.phases.explicit.components.segment.segment_group import ExplicitSegment
+from dymos.phases.explicit.components.segment.explicit_segment import ExplicitSegment
 from dymos.phases.explicit.solvers.nl_rk_solver import NonlinearRK
 from dymos.phases.grid_data import GridData
 from dymos.utils.simulation import ScipyODEIntegrator
@@ -65,23 +65,23 @@ class TestExplicitSegmentSimpleIntegration(unittest.TestCase):
         cls.p.model.add_subsystem('segment', seg)
 
         cls.p.model.connect('seg_t0_tf', 'segment.seg_t0_tf')
-        cls.p.model.connect('y_0', ('segment.initial_states:y'))
+        cls.p.model.connect('y_0', 'segment.initial_states:y')
 
-        for state_name, options in iteritems(state_opts):
-            cls.p.model.connect('segment.stage_ode.{0}'.format(options['rate_source']),
-                                'segment.state_rates:{0}'.format(state_name),
-                                src_indices=np.arange(16, dtype=int).reshape((4, 4, 1)),
-                                flat_src_indices=True)
+        # for state_name, options in iteritems(state_opts):
+        #     cls.p.model.connect('segment.stage_ode.{0}'.format(options['rate_source']),
+        #                         'segment.state_rates:{0}'.format(state_name),
+        #                         src_indices=np.arange(16, dtype=int).reshape((4, 4, 1)),
+        #                         flat_src_indices=True)
+        #
+        #     cls.p.model.connect('segment.stage_states:{0}'.format(state_name),
+        #                         ['segment.stage_ode.{0}'.format(t) for t in options['targets']],
+        #                         src_indices=np.arange(16, dtype=int),
+        #                         flat_src_indices=True)
 
-            cls.p.model.connect('segment.stage_states:{0}'.format(state_name),
-                                ['segment.stage_ode.{0}'.format(t) for t in options['targets']],
-                                src_indices=np.arange(16, dtype=int),
-                                flat_src_indices=True)
-
-        cls.p.model.connect('segment.t_stage',
-                            ['segment.stage_ode.{0}'.format(t) for t in time_opts['targets']],
-                            src_indices=np.arange(16, dtype=int),
-                            flat_src_indices=True)
+        # cls.p.model.connect('segment.t_stage',
+        #                     ['segment.stage_ode.{0}'.format(t) for t in time_opts['targets']],
+        #                     src_indices=np.arange(16, dtype=int),
+        #                     flat_src_indices=True)
 
     def test_results_nlbgs(self):
         """make sure you get the right answer using the NLBGS solver"""

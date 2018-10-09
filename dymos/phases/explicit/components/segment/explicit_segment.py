@@ -2,13 +2,16 @@ from __future__ import print_function, division, absolute_import
 
 from six import iteritems
 
-from openmdao.api import Group, NonlinearBlockGS, DirectSolver, NewtonSolver
+import numpy as np
+
+from openmdao.api import Group, NonlinearBlockGS, DirectSolver
 
 from .stage_state_comp import StageStateComp
 from .stage_time_comp import StageTimeComp
 from .stage_control_comp import StageControlComp
 from .stage_k_comp import StageKComp
 from .advance_comp import AdvanceComp
+from ...solvers.nl_rk_solver import NonlinearRK
 
 from dymos.phases.options import TimeOptionsDictionary
 from dymos.phases.grid_data import GridData
@@ -46,10 +49,15 @@ class ExplicitSegment(Group):
         num_stages = rk_methods[method]['num_stages']
 
         self.add_subsystem('stage_time_comp',
-                           subsys=StageTimeComp(num_steps=4, method=method,
+                           subsys=StageTimeComp(num_steps=num_steps, method=method,
                                                 time_options=time_options),
                            promotes_inputs=['*'],
                            promotes_outputs=['*'])
+
+        self.connect('t_stage',
+                     ['stage_ode.{0}'.format(t) for t in time_options['targets']],
+                     src_indices=np.arange(num_steps * num_stages, dtype=int),
+                     flat_src_indices=True)
 
         if control_options:
             self.add_subsystem('stage_control_comp',
@@ -57,7 +65,9 @@ class ExplicitSegment(Group):
                                                        num_steps=num_steps,
                                                        control_options=control_options,
                                                        method=method,
-                                                       grid_data=grid_data))
+                                                       grid_data=grid_data),
+                               promotes_inputs=['*'],
+                               promotes_outputs=['*'])
 
             for control_name, options in iteritems(control_options):
 
@@ -89,11 +99,24 @@ class ExplicitSegment(Group):
                            promotes_inputs=['*'],
                            promotes_outputs=['*'])
 
+        for state_name, options in iteritems(state_options):
+            size = np.prod(options['shape'])
+            self.connect('stage_ode.{0}'.format(options['rate_source']),
+                         'state_rates:{0}'.format(state_name),
+                         src_indices=np.arange(num_steps * num_stages * size,
+                                               dtype=int).reshape((num_steps, num_stages, size)),
+                         flat_src_indices=True)
+
+            self.connect('stage_states:{0}'.format(state_name),
+                         ['stage_ode.{0}'.format(t) for t in options['targets']],
+                         src_indices=np.arange(num_steps * num_stages * size, dtype=int),
+                         flat_src_indices=True)
+
         self.add_subsystem('stage_ode', subsys=ode_class(num_nodes=num_steps*num_stages,
                                                          **ode_init_kwargs))
 
         self.add_subsystem('stage_k_comp',
-                           subsys=StageKComp(num_steps=4,
+                           subsys=StageKComp(num_steps=num_steps,
                                              method=method,
                                              time_options=time_options,
                                              state_options=state_options),
@@ -101,7 +124,7 @@ class ExplicitSegment(Group):
                            promotes_outputs=['*'])
 
         self.add_subsystem('advance_comp',
-                           subsys=AdvanceComp(num_steps=4, method=method,
+                           subsys=AdvanceComp(num_steps=num_steps, method=method,
                                               state_options=state_options),
                            promotes_inputs=['*'],
                            promotes_outputs=['*']
@@ -109,12 +132,13 @@ class ExplicitSegment(Group):
 
         self.linear_solver = DirectSolver()
         self.nonlinear_solver = NonlinearBlockGS()
+        self.nonlinear_solver = NonlinearRK()
         # self.nonlinear_solver = NewtonSolver()
 
-        self.nonlinear_solver.options['atol'] = 1e-14
-        self.nonlinear_solver.options['rtol'] = 1e-14
-        # self.nonlinear_solver.options['solve_subsystems'] = True
-        self.nonlinear_solver.options['err_on_maxiter'] = True
-        # self.nonlinear_solver.options['max_sub_solves'] = 10
+        # self.nonlinear_solver.options['atol'] = 1e-14
+        # self.nonlinear_solver.options['rtol'] = 1e-14
+        # # self.nonlinear_solver.options['solve_subsystems'] = True
+        # self.nonlinear_solver.options['err_on_maxiter'] = True
+        # # self.nonlinear_solver.options['max_sub_solves'] = 10
         self.nonlinear_solver.options['maxiter'] = 150
-        self.nonlinear_solver.options['iprint'] = 2
+        # self.nonlinear_solver.options['iprint'] = 2
