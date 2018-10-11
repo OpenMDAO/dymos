@@ -93,7 +93,7 @@ class TestExplicitPhase(unittest.TestCase):
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 1.80160
-        p['phase0.t_duration'] = 2.019620E+00
+        p['phase0.t_duration'] = 2.0
 
         p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
         p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
@@ -128,6 +128,10 @@ class TestExplicitPhase(unittest.TestCase):
         t = p['phase0.seg_0.t_step']
         x = p['phase0.seg_0.step_states:x']
         y = p['phase0.seg_0.step_states:y']
+
+        print(t)
+        print(x)
+        print(y)
 
         import matplotlib.pyplot as plt
         plt.plot(x, y, 'ro')
