@@ -85,8 +85,8 @@ class TestExplicitPhase(unittest.TestCase):
         phase.set_state_options('x', fix_initial=True, fix_final=True)
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True, fix_final=False)
-        # phase.add_control('theta', lower=0.0, upper=180.0, units='deg')
-        phase.add_design_parameter('theta', opt=False, val=45.0, units='deg')
+        phase.add_control('theta', lower=0.0, upper=180.0, units='deg')
+        # phase.add_design_parameter('theta', opt=False, val=45.0, units='deg')
         phase.add_design_parameter('g', opt=False, val=9.80665)
 
         p.setup(check=True, force_alloc_complex=True)
@@ -100,7 +100,7 @@ class TestExplicitPhase(unittest.TestCase):
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
         # p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
         # p['phase0.controls:theta'] = np.array([[1.00000000e-02, 1.73247045e+01, 5.03090394e+01, 8.30730189e+01, 1.00688530e+02]]).T
-        p.set_val('phase0.design_parameters:theta', 45, units='deg')
+        p.set_val('phase0.controls:theta', 45, units='deg')
         p['phase0.design_parameters:g'] = 9.80665
 
         from time import time

@@ -273,8 +273,7 @@ class NonlinearRK(NonlinearSolver):
 
         for isub, subsys in enumerate(system._subsystems_myproc):
             system._transfer('nonlinear', 'fwd', isub)
-            if isub < 2:
-                subsys._solve_nonlinear()
+            subsys._solve_nonlinear()
 
         method = system.options['method']
         num_stages = rk_methods[method]['num_stages']
