@@ -60,6 +60,8 @@ class ExplicitSegment(Group):
                      flat_src_indices=True)
 
         if control_options:
+            ode_parameters = self.options['ode_class'].ode_options._parameters
+
             self.add_subsystem('stage_control_comp',
                                subsys=StageControlComp(index=idx,
                                                        num_steps=num_steps,
@@ -70,27 +72,37 @@ class ExplicitSegment(Group):
                                promotes_outputs=['*'])
 
             for control_name, options in iteritems(control_options):
+                shape = options['shape']
+                size = np.prod(shape)
 
-                if control_name in self.ode_options._parameters:
-                    val_src = 'stage_control_comp.control_values:{0}'
-                    targets = self.ode_options._parameters[control_name]['targets']
+                if control_name in ode_parameters:
+                    val_src = 'stage_control_values:{0}'.format(control_name)
+                    targets = ode_parameters[control_name]['targets']
                     self.connect(val_src,
-                                 ['stage_ode.{0}'.format(t) for t in targets])
+                                 ['stage_ode.{0}'.format(t) for t in targets],
+                                 src_indices=np.arange(num_steps * num_stages * size, dtype=int),
+                                 flat_src_indices=True
+                                 )
 
                 if options['rate_param']:
-                    rate_src = 'stage_control_comp.control_rates:{0}_rate'
-                    targets = self.ode_options._parameters[options['rate_param']]['targets']
+                    rate_src = 'stage_control_rates:{0}_rate'.format(control_name)
+                    targets = ode_parameters[options['rate_param']]['targets']
 
                     self.connect(rate_src,
-                                 ['stage_ode.{0}'.format(t) for t in targets])
-
+                                 ['stage_ode.{0}'.format(t) for t in targets],
+                                 src_indices=np.arange(num_steps * num_stages * size, dtype=int),
+                                 flat_src_indices=True
+                                 )
 
                 if options['rate2_param']:
-                    rate2_src = 'stage_control_comp.control_rates:{0}_rate2'
-                    targets = self.ode_options._parameters[options['rate2_param']]['targets']
+                    rate2_src = 'stage_control_rates:{0}_rate2'.format(control_name)
+                    targets = ode_parameters[options['rate2_param']]['targets']
 
                     self.connect(rate2_src,
-                                 ['rhs_disc.{0}'.format(t) for t in targets])
+                                 ['stage_ode.{0}'.format(t) for t in targets],
+                                 src_indices=np.arange(num_steps * num_stages * size, dtype=int),
+                                 flat_src_indices=True
+                                 )
 
         self.add_subsystem('stage_state_comp',
                            subsys=StageStateComp(num_steps=num_steps,
@@ -133,6 +145,7 @@ class ExplicitSegment(Group):
         self.linear_solver = DirectSolver()
         self.nonlinear_solver = NonlinearBlockGS()
         self.nonlinear_solver = NonlinearRK()
+        # from openmdao.api import NewtonSolver
         # self.nonlinear_solver = NewtonSolver()
 
         # self.nonlinear_solver.options['atol'] = 1e-14

@@ -107,7 +107,6 @@ class StageStateComp(ExplicitComponent):
         for state_name, options in iteritems(self.options['state_options']):
             y_step = inputs[self.var_names[state_name]['step_vals']]
             y_stages = outputs[self.var_names[state_name]['stage_vals']]
-            # k = inputs[self.var_names[state_name]['k']].reshape(num_steps, num_stages, self._state_sizes[state_name])
             k = inputs[self.var_names[state_name]['k']]
 
             # y_stages[...] = 0.0

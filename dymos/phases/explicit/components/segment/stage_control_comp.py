@@ -1,16 +1,18 @@
 from __future__ import print_function, division, absolute_import
 
-from six import iteritems
+from six import iteritems, string_types
 
 import numpy as np
 
+from openmdao.api import ExplicitComponent
+from dymos.phases.grid_data import GridData
 from dymos.phases.components.control_interp_comp import ControlInterpComp
 from dymos.utils.rk_methods import rk_methods
 from dymos.utils.lagrange import lagrange_matrices
 from dymos.utils.misc import get_rate_units
 
 
-class StageControlComp(ControlInterpComp):
+class StageControlComp(ExplicitComponent):
     """
     Computes the values of the states to pass to the ODE for a given stage
     """
@@ -21,6 +23,19 @@ class StageControlComp(ControlInterpComp):
         self.options.declare('index', types=int, desc='The index of this segment in the phase.')
         self.options.declare('method', types=str, default='rk4')
         self.options.declare('num_steps', types=(int,))
+        self.options.declare('control_options', types=dict, desc='Dictionary of options for '
+                                                                 'the dynamic controls')
+        self.options.declare('time_units', default=None, allow_none=True, types=string_types,
+                             desc='Units of time')
+        self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
+
+        # Save the names of the dynamic controls/parameters
+        self._dynamic_names = []
+        self._input_names = {}
+        self._output_val_names = {}
+        self._output_rate_names = {}
+        self._output_rate2_names = {}
+
 
         # Save the names of the dynamic controls/parameters
         self._dynamic_names = []
@@ -54,12 +69,12 @@ class StageControlComp(ControlInterpComp):
 
         for name, options in iteritems(control_options):
             self._input_names[name] = 'disc_controls:{0}'.format(name)
-            self._output_val_names[name] = 'control_values:{0}'.format(name)
-            self._output_rate_names[name] = 'control_rates:{0}_rate'.format(name)
-            self._output_rate2_names[name] = 'control_rates:{0}_rate2'.format(name)
+            self._output_val_names[name] = 'stage_control_values:{0}'.format(name)
+            self._output_rate_names[name] = 'stage_control_rates:{0}_rate'.format(name)
+            self._output_rate2_names[name] = 'stage_control_rates:{0}_rate2'.format(name)
             shape = options['shape']
             input_shape = (num_control_disc_nodes,) + shape
-            output_shape = (num_nodes,) + shape
+            output_shape = (num_steps, num_stages) + shape
 
             units = options['units']
             rate_units = get_rate_units(units, time_units)
@@ -107,13 +122,12 @@ class StageControlComp(ControlInterpComp):
                                   wrt=self._input_names[name],
                                   rows=rs, cols=cs, val=self.val_jacs[name][rs, cs])
 
-            cs = np.tile(np.arange(num_nodes, dtype=int), reps=size)
             rs = np.concatenate([np.arange(0, num_nodes * size, size, dtype=int) + i
                                  for i in range(size)])
 
             self.declare_partials(of=self._output_rate_names[name],
                                   wrt='dt_dstau',
-                                  rows=rs, cols=cs)
+                                  rows=rs, cols=np.zeros_like(rs))
 
             self.declare_partials(of=self._output_rate_names[name],
                                   wrt=self._input_names[name],
@@ -121,7 +135,7 @@ class StageControlComp(ControlInterpComp):
 
             self.declare_partials(of=self._output_rate2_names[name],
                                   wrt='dt_dstau',
-                                  rows=rs, cols=cs)
+                                  rows=rs, cols=np.zeros_like(rs))
 
             self.declare_partials(of=self._output_rate2_names[name],
                                   wrt=self._input_names[name],
@@ -155,3 +169,52 @@ class StageControlComp(ControlInterpComp):
                        desc='Ratio of segment time duration to segment tau duration (2).')
 
         self._setup_controls()
+
+    def compute(self, inputs, outputs):
+        control_options = self.options['control_options']
+
+        for name, options in iteritems(control_options):
+
+            u = inputs[self._input_names[name]]
+
+            a = np.tensordot(self.D, u, axes=(1, 0)).T
+            b = np.tensordot(self.D2, u, axes=(1, 0)).T
+
+            # divide each "row" by dt_dstau or dt_dstau**2
+            outputs[self._output_val_names[name]].flat[:] = np.tensordot(self.L, u, axes=(1, 0)).ravel()
+            outputs[self._output_rate_names[name]].flat[:] = (a / inputs['dt_dstau']).T.ravel()
+            outputs[self._output_rate2_names[name]].flat[:] = (b / inputs['dt_dstau'] ** 2).T.ravel()
+
+    def compute_partials(self, inputs, partials):
+        control_options = self.options['control_options']
+        num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
+
+        for name, options in iteritems(control_options):
+            control_name = self._input_names[name]
+
+            size = self.sizes[name]
+
+            rate_name = self._output_rate_names[name]
+            rate2_name = self._output_rate2_names[name]
+
+            # Unroll matrix-shaped controls into an array at each node
+            u_d = np.reshape(inputs[control_name], (num_input_nodes, size))
+
+            dt_dstau = inputs['dt_dstau']
+            dt_dstau_tile = np.tile(dt_dstau, size)
+
+            partials[rate_name, 'dt_dstau'] = \
+                (-np.dot(self.D, u_d).ravel(order='F') / dt_dstau_tile ** 2)
+
+            partials[rate2_name, 'dt_dstau'] = \
+                -2.0 * (np.dot(self.D2, u_d).ravel(order='F') / dt_dstau_tile ** 3)
+
+            dt_dstau_x_size = np.repeat(dt_dstau, size)[:, np.newaxis]
+
+            r_nz, c_nz = self.rate_jac_rows[name], self.rate_jac_cols[name]
+            partials[rate_name, control_name] = \
+                (self.rate_jacs[name] / dt_dstau_x_size)[r_nz, c_nz]
+
+            r_nz, c_nz = self.rate2_jac_rows[name], self.rate2_jac_cols[name]
+            partials[rate2_name, control_name] = \
+                (self.rate2_jacs[name] / dt_dstau_x_size ** 2)[r_nz, c_nz]

@@ -54,7 +54,7 @@ class StageKComp(ExplicitComponent):
             ar = np.arange(num_stages * num_steps, dtype=int)
             self.declare_partials(of=self.var_names[state_name]['k'],
                                   wrt=self.var_names[state_name]['f'],
-                                  rows=ar, cols=ar)
+                                  method='fd')  # rows=ar, cols=ar)
 
             c = np.repeat(np.arange(num_steps, dtype=int), num_stages * size)
             self.declare_partials(of=self.var_names[state_name]['k'],
@@ -72,8 +72,8 @@ class StageKComp(ExplicitComponent):
         h = inputs['h']
 
         for state_name, options in iteritems(self.options['state_options']):
-            partials[self.var_names[state_name]['k'], self.var_names[state_name]['f']] = \
-                np.repeat(h, self.options['num_steps'])
+            # partials[self.var_names[state_name]['k'], self.var_names[state_name]['f']] = \
+            #     np.repeat(h, self.options['num_steps'])
 
             partials[self.var_names[state_name]['k'], 'h'] = \
                 inputs[self.var_names[state_name]['f']].ravel()

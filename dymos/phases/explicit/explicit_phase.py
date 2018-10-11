@@ -200,7 +200,7 @@ class ExplicitPhase(PhaseBase):
                 i1, i2 = gd.subset_segment_indices['control_input'][iseg]
 
                 self.connect('controls:{0}'.format(name),
-                             'seg_{0}.controls:{1}'.format(iseg, name),
+                             'seg_{0}.disc_controls:{1}'.format(iseg, name),
                              src_indices=np.arange(i1, i1+i2, dtype=int))
 
     def _setup_defects(self):
@@ -239,7 +239,7 @@ class ExplicitPhase(PhaseBase):
             ar = np.arange(size)
 
             jump_comp.add_output('initial_jump:{0}'.format(state_name),
-                                 val=np.zeros(options['shape']),
+                                  val=np.zeros(options['shape']),
                                  units=options['units'],
                                  desc='discontinuity in {0} at the '
                                       'start of the phase'.format(state_name))
@@ -316,15 +316,14 @@ class ExplicitPhase(PhaseBase):
             given design variable is to be connected.
         """
         connection_info = []
-        src_idxs = [0]
         template = 'seg_{0}.stage_ode.{1}'
-        num_stages = rk_methods[self.options['method']]['s']
+        num_stages = rk_methods[self.options['method']]['num_stages']
 
         if name in self.ode_options._parameters:
             ode_tgts = self.ode_options._parameters[name]['targets']
 
             for i in range(self.grid_data.num_segments):
-                num_steps = self.options['grid_data'].num_steps_per_segment[i]
+                num_steps = self.grid_data.num_steps_per_segment[i]
                 num_nodes = num_stages * num_steps
                 src_idxs = [0] * num_nodes
                 connection_info.append(([template.format(i, t) for t in ode_tgts], src_idxs))

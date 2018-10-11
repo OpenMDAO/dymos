@@ -45,9 +45,18 @@ class StageTimeComp(ExplicitComponent):
                         desc='Times at each step.',
                         units=time_options['units'])
 
+        self.add_output(name='dt_dstau',
+                        val=1.0,
+                        desc='Ratio of segment time duration to segment Tau duration (2.0)',
+                        units=time_options['units'])
+
         self.declare_partials(of='h',
                               wrt='seg_t0_tf',
                               val=np.repeat(np.array([[-1.0, 1.0]]) / num_steps, num_steps, axis=0))
+
+        self.declare_partials(of='dt_dstau',
+                              wrt='seg_t0_tf',
+                              val=np.array([-1, 1]))
 
         v = np.zeros((num_steps * num_stages, 2))
         r = np.repeat(np.arange(num_steps)/num_steps, num_stages)
@@ -78,5 +87,7 @@ class StageTimeComp(ExplicitComponent):
         outputs['t_stage'][:, :] = t_step_ends[:-1, np.newaxis] + np.outer(outputs['h'], c)
 
         outputs['t_step'][:] = t_step_ends
+
+        outputs['dt_dstau'] = 0.5 * (seg_tf - seg_t0)
 
 

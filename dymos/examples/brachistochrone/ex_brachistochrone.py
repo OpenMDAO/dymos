@@ -1,7 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
@@ -40,14 +40,15 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-    phase.set_state_options('x', fix_initial=True, fix_final=True)
+    phase.set_state_options('x', fix_initial=True, fix_final=False)
     phase.set_state_options('y', fix_initial=True, fix_final=True)
     phase.set_state_options('v', fix_initial=True, fix_final=False)
 
-    phase.add_control('theta', continuity=True, rate_continuity=True,
-                      units='deg', lower=0.01, upper=179.9)
+    # phase.add_control('theta', continuity=True, rate_continuity=True,
+    #                   units='deg', lower=0.01, upper=179.9)
 
     phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+    phase.add_design_parameter('theta', units='deg', opt=False, val=45)
 
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', scaler=10)
@@ -60,10 +61,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['phase0.t_duration'] = 2.0
 
     p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-    p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+    p['phase0.states:y'] = phase.interpolate(ys=[10, 0], nodes='state_input')
     p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+    # p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
     p['phase0.design_parameters:g'] = 9.80665
+    p['phase0.design_parameters:g'] = 45.0
 
     p.run_model()
     if run_driver:
@@ -90,22 +92,22 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         ax.grid(True)
         ax.legend(loc='upper right')
 
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = phase.get_values('time', nodes='all')
-        y_imp = phase.get_values('theta_rate2', nodes='all')
-
-        x_exp = exp_out.get_values('time')
-        y_exp = exp_out.get_values('theta_rate2')
-
-        ax.plot(x_imp, y_imp, 'ro', label='implicit')
-        ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel('theta rate2 (rad/s**2)')
-        ax.grid(True)
-        ax.legend(loc='lower right')
+        # fig, ax = plt.subplots()
+        # fig.suptitle('Brachistochrone Solution')
+        #
+        # x_imp = phase.get_values('time', nodes='all')
+        # y_imp = phase.get_values('theta_rate2', nodes='all')
+        #
+        # x_exp = exp_out.get_values('time')
+        # y_exp = exp_out.get_values('theta_rate2')
+        #
+        # ax.plot(x_imp, y_imp, 'ro', label='implicit')
+        # ax.plot(x_exp, y_exp, 'b-', label='explicit')
+        #
+        # ax.set_xlabel('time (s)')
+        # ax.set_ylabel('theta rate2 (rad/s**2)')
+        # ax.grid(True)
+        # ax.legend(loc='lower right')
 
         plt.show()
 
