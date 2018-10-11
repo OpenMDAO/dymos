@@ -12,7 +12,7 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 SHOW_PLOTS = True
 
 
-def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
+def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=20, transcription_order=3,
                              run_driver=True, top_level_jacobian='csc', compressed=True,
                              sim_record='brach_min_time_sim.db', optimizer='SLSQP',
                              dynamic_simul_derivs=True):
@@ -38,17 +38,16 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.model.add_subsystem('phase0', phase)
 
-    phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+    phase.set_time_options(fix_initial=True, fix_duration=True)
 
     phase.set_state_options('x', fix_initial=True, fix_final=False)
-    phase.set_state_options('y', fix_initial=True, fix_final=True)
+    phase.set_state_options('y', fix_initial=True, fix_final=False)
     phase.set_state_options('v', fix_initial=True, fix_final=False)
 
-    # phase.add_control('theta', continuity=True, rate_continuity=True,
-    #                   units='deg', lower=0.01, upper=179.9)
+    phase.add_control('theta', opt=False, units='deg')
 
     phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
-    phase.add_design_parameter('theta', units='deg', opt=False, val=45)
+    # phase.add_design_parameter('theta', units='deg', opt=False, val=45)
 
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', scaler=10)
@@ -63,9 +62,9 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
     p['phase0.states:y'] = phase.interpolate(ys=[10, 0], nodes='state_input')
     p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-    # p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
     p['phase0.design_parameters:g'] = 9.80665
-    p['phase0.design_parameters:theta'] = 45.0
+    # p['phase0.design_parameters:theta'] = 45.0
 
     p.run_model()
     if run_driver:
@@ -80,6 +79,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
         x_imp = phase.get_values('x', nodes='all')
         y_imp = phase.get_values('y', nodes='all')
+
+        print('x')
+        print(x_imp)
+        print('y')
+        print(y_imp)
 
         x_exp = exp_out.get_values('x')
         y_exp = exp_out.get_values('y')
@@ -115,6 +119,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 
 if __name__ == '__main__':
-    brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10, run_driver=True,
+    brachistochrone_min_time(transcription='gauss-lobatto', num_segments=20, run_driver=True,
                              top_level_jacobian='csc', transcription_order=3, compressed=True,
                              optimizer='SNOPT')

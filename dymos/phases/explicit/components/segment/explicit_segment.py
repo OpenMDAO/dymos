@@ -144,7 +144,7 @@ class ExplicitSegment(Group):
 
         self.linear_solver = DirectSolver()
         self.nonlinear_solver = NonlinearBlockGS()
-        # self.nonlinear_solver = NonlinearRK()
+        self.nonlinear_solver = NonlinearRK()
         # from openmdao.api import NewtonSolver
         # self.nonlinear_solver = NewtonSolver()
 

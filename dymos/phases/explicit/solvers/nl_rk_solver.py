@@ -363,6 +363,8 @@ class NonlinearRK(NonlinearSolver):
                     system._transfer('nonlinear', 'fwd', isub)
                     subsys._solve_nonlinear()
                     system._check_reconf_update()
+
+            system._apply_nonlinear()
             rec.abs = 0.0
             rec.rel = 0.0
 

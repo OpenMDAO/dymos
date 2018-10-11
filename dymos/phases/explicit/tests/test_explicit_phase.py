@@ -79,7 +79,7 @@ class TestExplicitPhase(unittest.TestCase):
         p = Problem(model=Group())
         phase = p.model.add_subsystem('phase0',
                                       ExplicitPhase(num_segments=1, transcription_order=5,
-                                                    num_steps=20, ode_class=BrachistochroneODE))
+                                                    num_steps=40, ode_class=BrachistochroneODE))
 
         phase.set_time_options(fix_initial=True, fix_duration=False)
         phase.set_state_options('x', fix_initial=True, fix_final=True)
@@ -98,9 +98,9 @@ class TestExplicitPhase(unittest.TestCase):
         p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
         p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        # p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
         # p['phase0.controls:theta'] = np.array([[1.00000000e-02, 1.73247045e+01, 5.03090394e+01, 8.30730189e+01, 1.00688530e+02]]).T
-        p.set_val('phase0.controls:theta', 45, units='deg')
+        # p.set_val('phase0.controls:theta', 45, units='deg')
         p['phase0.design_parameters:g'] = 9.80665
 
         from time import time
@@ -122,7 +122,7 @@ class TestExplicitPhase(unittest.TestCase):
         # print(t)
         # print(y)
 
-        p.model.list_outputs(print_arrays=True, units=False, residuals=True)
+        p.model.list_outputs(print_arrays=False, units=False, residuals=True)
         # p.model.list_inputs(print_arrays=True, units=True)
 
         t = p['phase0.seg_0.t_step']
