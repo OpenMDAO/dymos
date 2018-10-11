@@ -79,7 +79,7 @@ class TestExplicitPhase(unittest.TestCase):
         p = Problem(model=Group())
         phase = p.model.add_subsystem('phase0',
                                       ExplicitPhase(num_segments=1, transcription_order=5,
-                                                    num_steps=10, ode_class=BrachistochroneODE))
+                                                    num_steps=20, ode_class=BrachistochroneODE))
 
         phase.set_time_options(fix_initial=True, fix_duration=False)
         phase.set_state_options('x', fix_initial=True, fix_final=True)
@@ -93,7 +93,7 @@ class TestExplicitPhase(unittest.TestCase):
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 1.80160
-        p['phase0.t_duration'] = 9.428092E+00
+        p['phase0.t_duration'] = 2.019620E+00
 
         p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
         p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
