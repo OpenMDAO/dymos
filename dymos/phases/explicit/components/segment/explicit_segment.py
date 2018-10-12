@@ -66,6 +66,7 @@ class ExplicitSegment(Group):
                                subsys=StageControlComp(index=idx,
                                                        num_steps=num_steps,
                                                        control_options=control_options,
+                                                       time_units=time_options['units'],
                                                        method=method,
                                                        grid_data=grid_data),
                                promotes_inputs=['*'],

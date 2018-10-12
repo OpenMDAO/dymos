@@ -38,7 +38,7 @@ class TestODE(ExplicitComponent):
 
 class TestExplicitPhase(unittest.TestCase):
 
-    def test_simple_integration(self):
+    def test_single_segment_simple_integration(self):
 
         p = Problem(model=Group())
         phase = p.model.add_subsystem('phase0',
@@ -74,7 +74,7 @@ class TestExplicitPhase(unittest.TestCase):
                           5.301605229265987],
                          tolerance=1.0E-12)
 
-    def test_with_controls(self):
+    def test_single_segment_with_controls(self):
 
         p = Problem(model=Group())
         phase = p.model.add_subsystem('phase0',
@@ -86,83 +86,157 @@ class TestExplicitPhase(unittest.TestCase):
         phase.set_state_options('y', fix_initial=True, fix_final=True)
         phase.set_state_options('v', fix_initial=True, fix_final=False)
         phase.add_control('theta', lower=0.0, upper=180.0, units='deg')
-        # phase.add_design_parameter('theta', opt=False, val=45.0, units='deg')
         phase.add_design_parameter('g', opt=False, val=9.80665)
 
         p.setup(check=True, force_alloc_complex=True)
 
         p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 1.80160
         p['phase0.t_duration'] = 2.0
 
         p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
         p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-        # p['phase0.controls:theta'] = np.array([[1.00000000e-02, 1.73247045e+01, 5.03090394e+01, 8.30730189e+01, 1.00688530e+02]]).T
-        # p.set_val('phase0.controls:theta', 45, units='deg')
         p['phase0.design_parameters:g'] = 9.80665
 
-        from time import time
-        st = time()
         p.run_model()
-        # np.set_printoptions(linewidth=1024)
-        # p.check_partials(compact_print=True)
-        print('time:', time() - st)
 
-
-        #
-        # t = phase.get_values('time', nodes='solution').ravel()
-        # x = phase.get_values('x', nodes='solution').ravel()
-        # y = phase.get_values('y', nodes='solution').ravel()
-        #
-        # print(phase.grid_data.num_nodes)
-        # print(phase.grid_data.subset_node_indices['solution'])
-        #
-        # print(t)
-        # print(y)
-
-        p.model.list_outputs(print_arrays=False, units=False, residuals=True)
-        # p.model.list_inputs(print_arrays=True, units=True)
-
-        t = p['phase0.seg_0.t_step']
         x = p['phase0.seg_0.step_states:x']
         y = p['phase0.seg_0.step_states:y']
 
-        print(t)
-        print(x)
-        print(y)
+        assert_rel_error(self, y[-1], 4.2513636, tolerance=1.0E-4)
+        assert_rel_error(self, x[-1], 12.2137034, tolerance=1.0E-4)
 
-        import matplotlib.pyplot as plt
-        plt.plot(x, y, 'ro')
-        plt.show()
+    def test_multiple_segment_single_shooting_simple_integration(self):
 
-        # assert_rel_error(self,
-        #                  t,
-        #                  [0.0, 0.5, 1.0, 1.5, 2.0],
-        #                  tolerance=1.0E-12)
+        p = Problem(model=Group())
+        phase = p.model.add_subsystem('phase0',
+                                      ExplicitPhase(num_segments=2, transcription_order=3,
+                                                    num_steps=2, ode_class=TestODE))
 
-        # op = p.model.list_outputs(print_arrays=True)
-        # print(op)
-        # from openmdao.api import view_model
-        # view_model(p.model)
+        phase.set_time_options(fix_initial=True, fix_duration=True)
+        phase.set_state_options('y', fix_initial=True)
 
-        # xs = []
-        # ys = []
-        #
-        # for i in range(phase.grid_data.num_steps_per_segment[0]):
-        #     ys.append(p['phase0.segments.seg_0.step_{0}.advance.states:y_f'.format(i)].tolist())
-        #     xs.append(p['phase0.segments.seg_0.step_{0}.advance.states:x_f'.format(i)].tolist())
-        #
-        # import matplotlib.pyplot as plt
-        # plt.plot(xs, ys, 'ro')
-        # plt.show()
+        p.setup(check=True, force_alloc_complex=True)
 
-        # assert_rel_error(self,
-        #                  y,
-        #                  [0.5, 1.425130208333333, 2.639602661132812, 4.006818970044454,
-        #                   5.301605229265987],
-        #                  tolerance=1.0E-12)
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 2.0
+
+        p['phase0.states:y'] = 0.5
+
+        p.run_model()
+
+        np.set_printoptions(linewidth=1024)
+        p.check_partials(compact_print=True, method='cs')
+
+        t_0 = p['phase0.seg_0.t_step']
+        y_0 = p['phase0.seg_0.step_states:y']
+
+        assert_rel_error(self,
+                         t_0,
+                         [0.0, 0.5, 1.0],
+                         tolerance=1.0E-12)
+
+        assert_rel_error(self,
+                         y_0[:, 0],
+                         [0.5, 1.425130208333333, 2.639602661132812],
+                         tolerance=1.0E-12)
+
+        t_1 = p['phase0.seg_1.t_step']
+        y_1 = p['phase0.seg_1.step_states:y']
+
+        assert_rel_error(self,
+                         t_1,
+                         [1.0, 1.5, 2.0],
+                         tolerance=1.0E-12)
+
+        assert_rel_error(self,
+                         y_1[:, 0],
+                         [2.639602661132812, 4.006818970044454, 5.301605229265987],
+                         tolerance=1.0E-12)
+
+    def test_multiple_segment_single_shooting_with_controls(self):
+
+        p = Problem(model=Group())
+        phase = p.model.add_subsystem('phase0',
+                                      ExplicitPhase(num_segments=2, transcription_order=5,
+                                                    num_steps=40, ode_class=BrachistochroneODE))
+
+        phase.set_time_options(fix_initial=True, fix_duration=False)
+        phase.set_state_options('x', fix_initial=True, fix_final=True)
+        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('v', fix_initial=True, fix_final=False)
+        phase.add_control('theta', lower=0.0, upper=180.0, units='deg')
+        phase.add_design_parameter('g', opt=False, val=9.80665)
+
+        p.setup(check=True, force_alloc_complex=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 2.0
+
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.design_parameters:g'] = 9.80665
+
+        p.run_model()
+
+        x = p['phase0.seg_1.step_states:x']
+        y = p['phase0.seg_1.step_states:y']
+
+        assert_rel_error(self, y[-1], 4.2513636, tolerance=1.0E-4)
+        assert_rel_error(self, x[-1], 12.2137034, tolerance=1.0E-4)
+
+
+    def test_multiple_segment_hybrid_shooting_simple_integration(self):
+
+        p = Problem(model=Group())
+        phase = p.model.add_subsystem('phase0',
+                                      ExplicitPhase(num_segments=2, transcription_order=3,
+                                                    num_steps=2, ode_class=TestODE,
+                                                    shooting='hybrid'))
+
+        phase.set_time_options(fix_initial=True, fix_duration=True)
+        phase.set_state_options('y', fix_initial=True)
+
+        p.setup(check=True, force_alloc_complex=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 2.0
+
+        p['phase0.states:y'] = 0.5
+
+        p.run_model()
+
+        np.set_printoptions(linewidth=1024)
+        p.check_partials(compact_print=True, method='cs')
+
+        t_0 = p['phase0.seg_0.t_step']
+        y_0 = p['phase0.seg_0.step_states:y']
+
+        assert_rel_error(self,
+                         t_0,
+                         [0.0, 0.5, 1.0],
+                         tolerance=1.0E-12)
+
+        assert_rel_error(self,
+                         y_0[:, 0],
+                         [0.5, 1.425130208333333, 2.639602661132812],
+                         tolerance=1.0E-12)
+
+        t_1 = p['phase0.seg_1.t_step']
+        y_1 = p['phase0.seg_1.step_states:y']
+
+        assert_rel_error(self,
+                         t_1,
+                         [1.0, 1.5, 2.0],
+                         tolerance=1.0E-12)
+
+        assert_rel_error(self,
+                         y_1[:, 0],
+                         [2.639602661132812, 4.006818970044454, 5.301605229265987],
+                         tolerance=1.0E-12)
 
 
 if __name__ == '__main__':

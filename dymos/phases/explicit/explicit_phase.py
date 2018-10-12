@@ -6,10 +6,11 @@ import numpy as np
 from dymos.phases.components import EndpointConditionsComp
 from dymos.phases.phase_base import PhaseBase
 from dymos.phases.grid_data import GridData
-from openmdao.api import IndepVarComp, ParallelGroup
+from openmdao.api import IndepVarComp, Group, ParallelGroup, NonlinearRunOnce, NonlinearBlockJac
 from six import iteritems
 
 from .components.segment.explicit_segment import ExplicitSegment
+from .components.implicit_segment_connection_comp import ImplicitSegmentConnectionComp
 from ...utils.rk_methods import rk_methods
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.constants import INF_BOUND
@@ -59,12 +60,17 @@ class ExplicitPhase(PhaseBase):
         self.options.declare('num_steps', default=10, types=(int, Iterable),
                              desc='Number of steps to take within each segment.')
         self.options.declare('method', default='rk4', values=('rk4',),
-                             desc='The integration method used within the explicit phase.')
+                             desc='The integrator used within the explicit phase.')
+        self.options.declare('shooting', default='single', values=('single', 'multiple', 'hybrid'),
+                             desc='The shooting method used to integrate across the phase.  Single'
+                                  'shooting propagates the state from segment to segment, '
+                                  'serially.  Multiple shooting runs each segment in parallel and'
+                                  'uses an optimizer to enforce state continuity at segment bounds.'
+                                  ' Hybrid propagates the segments in parallel but enforces state '
+                                  'continuity with a nonlinear solver.')
 
     def setup(self):
         super(ExplicitPhase, self).setup()
-
-        transcription = self.options['transcription']
 
         num_opt_controls = len([name for (name, options) in iteritems(self.control_options)
                                 if options['opt']])
@@ -104,12 +110,43 @@ class ExplicitPhase(PhaseBase):
 
     def _setup_rhs(self):
         gd = self.grid_data
+        shooting = self.options['shooting']
 
-        segments_group = self.add_subsystem('segments', subsys=ParallelGroup(),
+        if shooting in ('single', 'hybrid'):
+            group_class = Group
+        else:
+            group_class = ParallelGroup
+
+        segments_group = self.add_subsystem('segments', subsys=group_class(),
                                             promotes_inputs=['*'], promotes_outputs=['*'])
+
+        if shooting in ('single', 'multiple'):
+            segments_group.nonlinear_solver = NonlinearRunOnce()
+        elif shooting == 'hybrid':
+            segments_group.nonlinear_solver = NonlinearBlockJac()
 
         for iseg in range(gd.num_segments):
 
+            # Add a segment connector for each segment pair if in 'single' or 'hybrid' shooting
+            if iseg > 0 and shooting in ('single', 'hybrid'):
+                seg_connect_i = ImplicitSegmentConnectionComp(state_options=self.state_options)
+                con_name = 'connect_{0}_{1}'.format(iseg - 1, iseg)
+                segments_group.add_subsystem(con_name,
+                                             subsys=seg_connect_i)
+
+                for state_name, options in iteritems(self.state_options):
+                    shape = options['shape']
+                    size = int(np.prod(shape))
+                    lhs_src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
+
+                    self.connect('seg_{0}.step_states:{1}'.format(iseg - 1, state_name),
+                                 '{0}.lhs_states:{1}'.format(con_name, state_name),
+                                 src_indices=lhs_src_idxs)
+
+                    self.connect('{0}.rhs_states:{1}'.format(con_name, state_name),
+                                 'seg_{0}.initial_states:{1}'.format(iseg, state_name))
+
+            # Add the segment
             segment_i = ExplicitSegment(index=iseg,
                                         grid_data=self.grid_data,
                                         num_steps=self.options['num_steps'],
@@ -131,6 +168,7 @@ class ExplicitPhase(PhaseBase):
         """
         gd = self.grid_data
         num_state_input_nodes = gd.subset_num_nodes['state_input']
+        shooting = self.options['shooting']
 
         indep = IndepVarComp()
         for name, options in iteritems(self.state_options):
@@ -139,10 +177,11 @@ class ExplicitPhase(PhaseBase):
                              units=options['units'])
 
             for iseg in range(gd.num_segments):
-                i1, i2 = gd.subset_segment_indices['all'][iseg, :]
                 self.connect('states:{0}'.format(name),
                              'seg_{0}.initial_states:{1}'.format(iseg, name),
                              src_indices=gd.subset_node_indices['state_disc'][iseg])
+                if shooting in ('single', 'hybrid'):
+                    break
 
         self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
 
@@ -191,17 +230,13 @@ class ExplicitPhase(PhaseBase):
 
     def _setup_controls(self):
         super(ExplicitPhase, self)._setup_controls()
-
         gd = self.grid_data
-
         for name, options in iteritems(self.control_options):
-
             for iseg in range(gd.num_segments):
-                i1, i2 = gd.subset_segment_indices['control_input'][iseg]
-
-                self.connect('controls:{0}'.format(name),
+                i1, i2 = gd.subset_segment_indices['control_disc'][iseg]
+                self.connect('control_interp_comp.control_values:{0}'.format(name),
                              'seg_{0}.disc_controls:{1}'.format(iseg, name),
-                             src_indices=np.arange(i1, i1+i2, dtype=int))
+                             src_indices=np.arange(i1, i2, dtype=int))
 
     def _setup_defects(self):
         """

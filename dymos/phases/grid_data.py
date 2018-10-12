@@ -14,7 +14,7 @@ from dymos.utils.rk_methods import rk_methods
 
 
 
-def gauss_lobatto_subsets_and_nodes(n, num_steps=1, first_seg=False, compressed=False):
+def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
     """
     Returns the subset dictionary corresponding to the Gauss-Lobatto transcription.
 
@@ -23,8 +23,8 @@ def gauss_lobatto_subsets_and_nodes(n, num_steps=1, first_seg=False, compressed=
     n : int
         The total number of nodes in the Gauss-Lobatto segment.  Must be
         an odd number.
-    first_seg : bool
-        True if the subset requested is for the first segment in a phase.
+    seg_idx : int
+        The index of this segment within its phase.
     compressed : bool
         True if the subset requested is for a phase with compressed transcription.
 
@@ -51,10 +51,10 @@ def gauss_lobatto_subsets_and_nodes(n, num_steps=1, first_seg=False, compressed=
     subsets = {
         'disc': np.arange(0, n, 2, dtype=int),
         'state_disc': np.arange(0, n, 2, dtype=int),
-        'state_input': np.arange(0, n, 2, dtype=int) if not compressed or first_seg
+        'state_input': np.arange(0, n, 2, dtype=int) if not compressed or seg_idx == 0
         else np.arange(2, n, 2, dtype=int),
         'control_disc': np.arange(n, dtype=int),
-        'control_input': np.arange(n, dtype=int) if not compressed or first_seg
+        'control_input': np.arange(n, dtype=int) if not compressed or seg_idx == 0
         else np.arange(1, n, dtype=int),
         'segment_ends': np.array([0, n-1], dtype=int),
         'col': np.arange(1, n, 2, dtype=int),
@@ -65,7 +65,7 @@ def gauss_lobatto_subsets_and_nodes(n, num_steps=1, first_seg=False, compressed=
     return subsets, lgl(n)[0]
 
 
-def radau_pseudospectral_subsets_and_nodes(n, num_steps=1, first_seg=False, compressed=False):
+def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     """
     Returns the subset dictionary corresponding to the Radau Pseudospectral
     transcription.
@@ -74,8 +74,8 @@ def radau_pseudospectral_subsets_and_nodes(n, num_steps=1, first_seg=False, comp
     ----------
     n : int
         The total number of nodes in the Radau Pseudospectral segment (including right endpoint).
-    first_seg : bool
-        True if the subset requested is for the first segment in a phase.
+    seg_idx : int
+        The index of this segment within its phase.
     compressed : bool
         True if the subset requested is for a phase with compressed transcription.
 
@@ -100,7 +100,7 @@ def radau_pseudospectral_subsets_and_nodes(n, num_steps=1, first_seg=False, comp
     node_indices = {
         'disc': np.arange(n + 1, dtype=int),
         'state_disc': np.arange(n + 1 , dtype=int),
-        'state_input': np.arange(n + 1, dtype=int) if not compressed or first_seg
+        'state_input': np.arange(n + 1, dtype=int) if not compressed or seg_idx == 0
         else np.arange(1, n + 1, dtype=int),
         'control_disc': np.arange(n, dtype=int),
         'control_input': np.arange(n, dtype=int),
@@ -112,7 +112,7 @@ def radau_pseudospectral_subsets_and_nodes(n, num_steps=1, first_seg=False, comp
     return node_indices, lgr(n, include_endpoint=True)[0]
 
 
-def explicit_subsets_and_nodes(n, num_steps=1, first_seg=False, compressed=False, method='rk4'):
+def explicit_subsets_and_nodes(n, seg_idx, compressed=False):
     """
     Returns the subset dictionary corresponding to the Runge-Kutta transcription.
 
@@ -120,10 +120,8 @@ def explicit_subsets_and_nodes(n, num_steps=1, first_seg=False, compressed=False
     ----------
     n : int
         The total number of control discretization nodes in the Runge-Kutta segment.
-    num_steps : int
-        The total number of explicit integration steps across the segment.
-    first_seg : bool
-        True if the subset requested is for the first segment in a phase.
+    seg_idx : int
+        The index of this segment within its phase.
     compressed : bool
         True if the subset requested is for a phase with compressed transcription.
 
@@ -148,10 +146,10 @@ def explicit_subsets_and_nodes(n, num_steps=1, first_seg=False, compressed=False
     """
     subsets = {
         'disc': np.arange(0, n, 2, dtype=int),
-        'state_disc': np.zeros((1,), dtype=int),
-        'state_input': np.zeros((1,), dtype=int),
+        'state_disc': np.zeros((1,), dtype=int) if seg_idx == 0 else np.empty((0,), dtype=int),
+        'state_input': np.zeros((1,), dtype=int) if seg_idx == 0 else np.empty((0,), dtype=int),
         'control_disc': np.arange(n, dtype=int),
-        'control_input': np.arange(n, dtype=int) if not compressed or first_seg
+        'control_input': np.arange(n, dtype=int) if not compressed or seg_idx == 0
         else np.arange(1, n, dtype=int),
         'segment_ends': np.array([0, n-1], dtype=int),
         'col': np.arange(1, n, 2, dtype=int),
@@ -340,8 +338,7 @@ class GridData(object):
         ind0 = 0  # index of the first node in the segment
         for iseg in range(num_segments):
             subsets_i, nodes_i = get_subsets_and_nodes(transcription_order[iseg],
-                                                       num_steps=self.num_steps_per_segment[iseg],
-                                                       first_seg=(iseg == 0),
+                                                       seg_idx=iseg,
                                                        compressed=compressed)
 
             if iseg == 0:

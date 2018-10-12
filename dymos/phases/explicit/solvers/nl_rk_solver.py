@@ -36,7 +36,6 @@ def _single_rk4_step2(ode_interface, h, init_time, init_states, controls, contro
     Returns
     -------
     """
-
     num_stages = rk_methods['rk4']['num_stages']
     c = rk_methods['rk4']['c']
     A = rk_methods['rk4']['A']
