@@ -2,10 +2,12 @@ from __future__ import print_function, division, absolute_import
 
 from .optimizer_based.gauss_lobatto_phase import GaussLobattoPhase
 from .optimizer_based.radau_pseudospectral_phase import RadauPseudospectralPhase
+from .explicit.explicit_phase import ExplicitPhase
 
 
 _transcriptions = {'gauss-lobatto': GaussLobattoPhase,
-                   'radau-ps': RadauPseudospectralPhase}
+                   'radau-ps': RadauPseudospectralPhase,
+                   'explicit': ExplicitPhase}
 
 
 def Phase(transcription, **kwargs):

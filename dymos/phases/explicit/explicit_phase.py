@@ -4,7 +4,7 @@ from collections import Iterable
 
 import numpy as np
 from dymos.phases.components import EndpointConditionsComp
-from dymos.phases.phase_base import PhaseBase
+from dymos.phases.phase_base import PhaseBase, _unspecified
 from dymos.phases.grid_data import GridData
 
 from openmdao.api import IndepVarComp, Group, ParallelGroup, NonlinearRunOnce, NonlinearBlockJac, \
@@ -372,6 +372,147 @@ class ExplicitPhase(PhaseBase):
                 connection_info.append(([template.format(i, t) for t in ode_tgts], src_idxs))
 
         return connection_info
+
+    def set_state_options(self, name, units=_unspecified, val=1.0,
+                          fix_initial=False, fix_final=False, initial_bounds=None,
+                          final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
+                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None):
+        """
+        Set options that apply the EOM state variable of the given name.
+
+        Parameters
+        ----------
+        name : str
+            Name of the state variable in the RHS.
+        units : str or None
+            Units in which the state variable is defined.  Internally components may use different
+            units for the state variable, but the IndepVarComp which provides its value will provide
+            it in these units, and collocation defects will use these units.  If units is not
+            specified here then the value as defined in the ODEOptions (@declare_state) will be
+            used.
+        val :  ndarray
+            The default value of the state at the state discretization nodes of the phase.
+        fix_initial : bool(False)
+            If True, omit the first value of the state from the design variables (prevent the
+            optimizer from changing it).
+        fix_final : bool(False)
+            If True, omit the final value of the state from the design variables (prevent the
+            optimizer from changing it).
+        lower : float or ndarray or None (None)
+            The lower bound of the state at the nodes of the phase.
+        upper : float or ndarray or None (None)
+            The upper bound of the state at the nodes of the phase.
+        scaler : float or ndarray or None (None)
+            The scaler of the state value at the nodes of the phase.
+        adder : float or ndarray or None (None)
+            The adder of the state value at the nodes of the phase.
+        ref0 : float or ndarray or None (None)
+            The zero-reference value of the state at the nodes of the phase.
+        ref : float or ndarray or None (None)
+            The unit-reference value of the state at the nodes of the phase
+        defect_scaler : float or ndarray (1.0)
+            The scaler of the state defect at the collocation nodes of the phase.
+        defect_ref : float or ndarray (1.0)
+            The unit-reference value of the state defect at the collocation nodes of the phase. If
+            provided, this value overrides defect_scaler.
+
+        """
+        if fix_final:
+            raise ValueError('fix_final is not a valid option for states in ExplicitPhase. '
+                             'Use a final boundary constraint on the state instead.')
+
+        if units is not _unspecified:
+            self.state_options[name]['units'] = units
+
+        self.state_options[name]['val'] = val
+        self.state_options[name]['fix_initial'] = fix_initial
+        self.state_options[name]['fix_final'] = False
+        self.state_options[name]['initial_bounds'] = initial_bounds
+        self.state_options[name]['final_bounds'] = final_bounds
+        self.state_options[name]['lower'] = lower
+        self.state_options[name]['upper'] = upper
+        self.state_options[name]['scaler'] = scaler
+        self.state_options[name]['adder'] = adder
+        self.state_options[name]['ref'] = ref
+        self.state_options[name]['ref0'] = ref0
+        self.state_options[name]['defect_scaler'] = defect_scaler
+        self.state_options[name]['defect_ref'] = defect_ref
+
+    def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
+                      adder=None, scaler=None, parallel_deriv_color=None,
+                      vectorize_derivs=False):
+        """
+        Allows the user to add an objective in the phase.  If name is not a state,
+        control, control rate, or 'time', then this is assumed to be the path of the variable
+        to be constrained in the RHS.
+
+        Parameters
+        ----------
+        name : str
+            Name of the objective variable.  This should be one of 'time', a state or control
+            variable, or the path to an output from the top level of the RHS.
+        loc : str
+            Where in the phase the objective is to be evaluated.  Valid
+            options are 'initial' and 'final'.  The default is 'final'.
+        index : int, optional
+            If variable is an array at each point in time, this indicates which index is to be
+            used as the objective, assuming C-ordered flattening.
+        shape : int, optional
+            The shape of the objective variable, at a point in time
+        ref : float or ndarray, optional
+            Value of response variable that scales to 1.0 in the driver.
+        ref0 : float or ndarray, optional
+            Value of response variable that scales to 0.0 in the driver.
+        adder : float or ndarray, optional
+            Value to add to the model value to get the scaled value. Adder
+            is first in precedence.
+        scaler : float or ndarray, optional
+            value to multiply the model value to get the scaled value. Scaler
+            is second in precedence.
+        parallel_deriv_color : string
+            If specified, this design var will be grouped for parallel derivative
+            calculations with other variables sharing the same parallel_deriv_color.
+        vectorize_derivs : bool
+            If True, vectorize derivative calculations.
+        """
+        var_type = self._classify_var(name)
+        gd = self.grid_data
+        num_seg = gd.num_segments
+
+        # Determine the path to the variable
+        if var_type == 'time':
+            obj_path = 'time'
+        elif var_type == 'state':
+            if loc == 'initial':
+                obj_path = 'seg_{0}.step_states:{1}'.format(0, name)
+            else:
+                obj_path = 'seg_{0}.step_states:{1}'.format(num_seg + 1, name)
+        elif var_type == 'indep_control':
+            obj_path = 'control_interp_comp.control_values:{0}'.format(name)
+        elif var_type == 'input_control':
+            obj_path = 'control_interp_comp.control_values:{0}'.format(name)
+        elif var_type == 'control_rate':
+            control_name = name[:-5]
+            obj_path = 'control_rates:{0}_rate'.format(control_name)
+        elif var_type == 'control_rate2':
+            control_name = name[:-6]
+            obj_path = 'control_rates:{0}_rate2'.format(control_name)
+        elif var_type == 'design_parameter':
+            obj_path = 'design_parameters:{0}'.format(name)
+        elif var_type == 'input_parameter':
+            obj_path = 'input_parameters:{0}_out'.format(name)
+        else:
+            # Failed to find variable, assume it is in the RHS
+            if loc == 'initial':
+                obj_path = 'seg_{0}.stage_ode.{1}'.format(0, name)
+            else:
+                obj_path = 'seg_{0}.stage_ode.{1}'.format(num_seg + 1, name)
+
+        super(ExplicitPhase, self)._add_objective(obj_path, loc=loc, index=index, shape=shape,
+                                                  ref=ref, ref0=ref0, adder=adder,
+                                                  scaler=scaler,
+                                                  parallel_deriv_color=parallel_deriv_color,
+                                                  vectorize_derivs=vectorize_derivs)
 
     def _get_boundary_constraint_src(self, var, loc):
         # Determine the path to the variable which we will be constraining

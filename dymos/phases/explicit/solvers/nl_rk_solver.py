@@ -61,9 +61,6 @@ def _single_rk4_step2(ode_interface, h, init_time, init_states, controls, contro
         # Set the state values in the ode_interface accordingly
         for state_name in y_stage:
             y_stage[state_name][istage, ...] = init_states[state_name]
-            # for jstage in range(num_stages):
-            #     # print(istage, jstage, A[istage, jstage], k_stage[state_name][jstage, ...])
-            #     y_stage[state_name][istage, ...] += A[istage, jstage] * k_stage[state_name][jstage, ...]
             y_stage[state_name][...] += np.dot(A, k_stage[state_name])
             ode_interface.set_val('states:{0}'.format(state_name), y_stage[state_name][istage, ...])
 

@@ -56,7 +56,7 @@ class StageTimeComp(ExplicitComponent):
 
         self.declare_partials(of='dt_dstau',
                               wrt='seg_t0_tf',
-                              val=np.array([-1, 1]))
+                              val=np.array([-0.5, 0.5]))
 
         v = np.zeros((num_steps * num_stages, 2))
         r = np.repeat(np.arange(num_steps)/num_steps, num_stages)

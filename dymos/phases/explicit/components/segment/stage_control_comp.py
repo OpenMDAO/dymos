@@ -186,8 +186,10 @@ class StageControlComp(ExplicitComponent):
             outputs[self._output_rate2_names[name]].flat[:] = (b / inputs['dt_dstau'] ** 2).T.ravel()
 
     def compute_partials(self, inputs, partials):
+        gd = self.options['grid_data']
         control_options = self.options['control_options']
-        num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
+        idx = self.options['index']
+        num_control_disc_nodes = gd.subset_num_nodes_per_segment['control_disc'][idx]
 
         for name, options in iteritems(control_options):
             control_name = self._input_names[name]
@@ -198,7 +200,7 @@ class StageControlComp(ExplicitComponent):
             rate2_name = self._output_rate2_names[name]
 
             # Unroll matrix-shaped controls into an array at each node
-            u_d = np.reshape(inputs[control_name], (num_input_nodes, size))
+            u_d = np.reshape(inputs[control_name], (num_control_disc_nodes, size))
 
             dt_dstau = inputs['dt_dstau']
             dt_dstau_tile = np.tile(dt_dstau, size)

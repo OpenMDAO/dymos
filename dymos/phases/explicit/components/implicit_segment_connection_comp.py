@@ -22,9 +22,10 @@ class ImplicitSegmentConnectionComp(ImplicitComponent):
             self._vars[state_name] = {}
             lhs_var = self._vars[state_name]['lhs'] = 'lhs_states:{0}'.format(state_name)
             rhs_var = self._vars[state_name]['rhs'] = 'rhs_states:{0}'.format(state_name)
-            self.add_input(lhs_var, val=np.ones(shape), units=units)
+            self.add_input(lhs_var, val=-np.ones(shape), units=units)
             self.add_output(rhs_var, val=np.ones(shape), units=units)
             self.declare_partials(of=rhs_var, wrt=lhs_var, val=-np.ones(shape))
+            self.declare_partials(of=rhs_var, wrt=rhs_var, val=np.ones(shape))
 
     def solve_nonlinear(self, inputs, outputs):
         for state_name, options in iteritems(self.options['state_options']):

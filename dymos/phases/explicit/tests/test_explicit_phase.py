@@ -390,6 +390,8 @@ class TestExplicitPhaseNLBGS(unittest.TestCase):
         x = p['phase0.seg_1.step_states:x']
         y = p['phase0.seg_1.step_states:y']
 
+        print(p['phase0.time'])
+
         assert_rel_error(self, y[-1], 4.2513636, tolerance=1.0E-4)
         assert_rel_error(self, x[-1], 12.2137034, tolerance=1.0E-4)
 
@@ -447,5 +449,30 @@ class TestExplicitPhaseNLBGS(unittest.TestCase):
 
 if __name__ == '__main__':
 
-    T = TestExplicitPhase()
-    T.test_simple_integration()
+    p = Problem(model=Group())
+    phase = p.model.add_subsystem('phase0',
+                                  ExplicitPhase(num_segments=2, transcription_order=5,
+                                                num_steps=40, ode_class=BrachistochroneODE))
+
+    phase.set_time_options(fix_initial=True, fix_duration=False)
+    phase.set_state_options('x', fix_initial=True, fix_final=True)
+    phase.set_state_options('y', fix_initial=True, fix_final=True)
+    phase.set_state_options('v', fix_initial=True, fix_final=False)
+    phase.add_control('theta', lower=0.0, upper=180.0, units='deg')
+    phase.add_design_parameter('g', opt=False, val=9.80665)
+
+    p.setup(check=True, force_alloc_complex=True)
+
+    p['phase0.t_initial'] = 0.0
+    p['phase0.t_duration'] = 2.0
+
+    p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+    p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+    p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+    p['phase0.design_parameters:g'] = 9.80665
+
+    p.run_model()
+
+    x = p['phase0.seg_1.step_states:x']
+    y = p['phase0.seg_1.step_states:y']
