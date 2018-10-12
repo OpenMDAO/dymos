@@ -4,7 +4,7 @@ from six import iteritems
 
 import numpy as np
 
-from openmdao.api import Group, NonlinearBlockGS, DirectSolver
+from openmdao.api import Group, NonlinearBlockGS, NewtonSolver, DirectSolver
 
 from .stage_state_comp import StageStateComp
 from .stage_time_comp import StageTimeComp
@@ -35,6 +35,10 @@ class ExplicitSegment(Group):
         self.options.declare('design_parameter_options', types=dict, default={})
         self.options.declare('input_parameter_options', types=dict, default={})
         self.options.declare('method', types=str, default='rk4')
+        self.options.declare('seg_solver_class', default=NonlinearRK,
+                             values=(NonlinearRK, NonlinearBlockGS, NewtonSolver),
+                             desc='The nonlinear solver class used to converge the numerical '
+                                  'integration of the segment.')
 
     def setup(self):
         idx = self.options['index']
@@ -144,15 +148,5 @@ class ExplicitSegment(Group):
                            )
 
         self.linear_solver = DirectSolver()
-        self.nonlinear_solver = NonlinearBlockGS()
-        self.nonlinear_solver = NonlinearRK()
-        # from openmdao.api import NewtonSolver
-        # self.nonlinear_solver = NewtonSolver()
-
-        # self.nonlinear_solver.options['atol'] = 1e-14
-        # self.nonlinear_solver.options['rtol'] = 1e-14
-        # # self.nonlinear_solver.options['solve_subsystems'] = True
-        # self.nonlinear_solver.options['err_on_maxiter'] = True
-        # # self.nonlinear_solver.options['max_sub_solves'] = 10
+        self.nonlinear_solver = self.options['seg_solver_class']()
         self.nonlinear_solver.options['maxiter'] = 150
-        # self.nonlinear_solver.options['iprint'] = 2

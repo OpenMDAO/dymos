@@ -6,9 +6,12 @@ import numpy as np
 from dymos.phases.components import EndpointConditionsComp
 from dymos.phases.phase_base import PhaseBase
 from dymos.phases.grid_data import GridData
-from openmdao.api import IndepVarComp, Group, ParallelGroup, NonlinearRunOnce, NonlinearBlockJac
+
+from openmdao.api import IndepVarComp, Group, ParallelGroup, NonlinearRunOnce, NonlinearBlockJac, \
+    NonlinearBlockGS, NewtonSolver
 from six import iteritems
 
+from .solvers.nl_rk_solver import NonlinearRK
 from .components.segment.explicit_segment import ExplicitSegment
 from .components.implicit_segment_connection_comp import ImplicitSegmentConnectionComp
 from ...utils.rk_methods import rk_methods
@@ -68,6 +71,10 @@ class ExplicitPhase(PhaseBase):
                                   'uses an optimizer to enforce state continuity at segment bounds.'
                                   ' Hybrid propagates the segments in parallel but enforces state '
                                   'continuity with a nonlinear solver.')
+        self.options.declare('seg_solver_class', default=NonlinearRK,
+                             values=(NonlinearRK, NonlinearBlockGS, NewtonSolver),
+                             desc='The nonlinear solver class used to converge the numerical '
+                                  'integration of the segment.')
 
     def setup(self):
         super(ExplicitPhase, self).setup()
@@ -157,7 +164,8 @@ class ExplicitPhase(PhaseBase):
                                         state_options=self.state_options,
                                         control_options=self.control_options,
                                         design_parameter_options=self.design_parameter_options,
-                                        input_parameter_options=self.input_parameter_options)
+                                        input_parameter_options=self.input_parameter_options,
+                                        seg_solver_class=self.options['seg_solver_class'])
 
             segments_group.add_subsystem('seg_{0}'.format(iseg),
                                          subsys=segment_i)

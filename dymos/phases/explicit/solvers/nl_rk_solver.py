@@ -9,19 +9,20 @@ from six import iteritems
 
 import numpy as np
 
-from openmdao.core.system import System
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.recorders.recording_iteration_stack import Recording
 from openmdao.solvers.solver import NonlinearSolver
 from openmdao.utils.mpi import multi_proc_fail_check
 
-from dymos.utils.simulation import ScipyODEIntegrator
 from dymos.utils.simulation.components.state_rate_collector_comp import StateRateCollectorComp
 from dymos.utils.rk_methods import rk_methods
 from dymos.utils.misc import get_rate_units
 
-def _single_rk4_step2(ode_interface, h, init_time, init_states, controls, control_rates, control_rates2):
+
+def _single_rk4_step2(ode_interface, h, init_time, init_states, controls, control_rates,
+                      control_rates2):
     """
+    Using the given ODE interface to the ODE system, take a single step in time of step length h
 
     Parameters
     ----------
@@ -318,7 +319,7 @@ class NonlinearRK(NonlinearSolver):
         #       call to ODE which might be expensive
 
         #TODO: optionally have one more _solve_nonlinear to make sure the whole
-        with Recording('NLRunOnce', 0, self) as rec:
+        with Recording('NonlinearRK', 0, self) as rec:
             # If this is a parallel group, transfer all at once then run each subsystem.
             if len(system._subsystems_myproc) != len(system._subsystems_allprocs):
                 system._transfer('nonlinear', 'fwd')
