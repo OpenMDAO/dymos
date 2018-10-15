@@ -14,6 +14,7 @@ from dymos.phases.explicit.components.segment.advance_comp import AdvanceComp
 def _f(y, t):
     return y - t**2 + 1
 
+
 class TestKComp(unittest.TestCase):
 
     @classmethod
@@ -40,7 +41,7 @@ class TestKComp(unittest.TestCase):
 
         cls.p.model.add_subsystem('advance_comp', advance_comp)
 
-        cls.p.model.connect('states:y_0', 'advance_comp.states:y_0')
+        cls.p.model.connect('states:y_0', 'advance_comp.initial_states:y')
         cls.p.model.connect('k:y', 'advance_comp.k:y')
 
         cls.p.setup(force_alloc_complex=True)
@@ -65,15 +66,14 @@ class TestKComp(unittest.TestCase):
                                [5.301605229265987]])
 
         assert_rel_error(self,
-                         self.p['advance_comp.states:y'],
+                         self.p['advance_comp.step_states:y'],
                          y_expected,
                          tolerance=1.0E-12)
 
     def test_partials(self):
         np.set_printoptions(linewidth=1024)
-        cpd = self.p.check_partials()
+        cpd = self.p.check_partials(out_stream=None)
         assert_check_partials(cpd)
-
 
 
 if __name__ == '__main__':

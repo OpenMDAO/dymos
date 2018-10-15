@@ -389,7 +389,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         if var_type == 'time':
             shape = (1,)
-            units = self.time_units
+            units = time_units
             linear = True
             constraint_path = 'time'
         elif var_type == 'state':
@@ -453,19 +453,12 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 constraint_path = 'rhs_all.{0}'.format(var)
             else:
                 raise ValueError('Invalid transcription')
-            shape = None
+            # TODO: Account for non-scalar variables here.
+            shape = (1,)
             units = None
             linear = False
 
-        # Build the correct src_indices regardless of shape
-        size = np.prod(shape)
-
-        if loc == 'initial':
-            src_idxs = np.arange(size, dtype=int).reshape(shape)
-        else:
-            src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
-
-        return constraint_path, src_idxs, shape, units, linear
+        return constraint_path, shape, units, linear
 
     def interpolate_values(self, var, times):
         """

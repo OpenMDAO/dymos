@@ -10,8 +10,6 @@ from dymos.utils.lgl import lgl
 from dymos.utils.lgr import lgr
 from dymos.utils.hermite import hermite_matrices
 from dymos.utils.lagrange import lagrange_matrices
-from dymos.utils.rk_methods import rk_methods
-
 
 
 def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
@@ -99,7 +97,7 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     """
     node_indices = {
         'disc': np.arange(n + 1, dtype=int),
-        'state_disc': np.arange(n + 1 , dtype=int),
+        'state_disc': np.arange(n + 1, dtype=int),
         'state_input': np.arange(n + 1, dtype=int) if not compressed or seg_idx == 0
         else np.arange(1, n + 1, dtype=int),
         'control_disc': np.arange(n, dtype=int),
@@ -358,7 +356,8 @@ class GridData(object):
             v0 = segment_ends[iseg]
             v1 = segment_ends[iseg + 1]
             self.node_ptau = np.concatenate((self.node_ptau, v0 + 0.5 * (nodes_i + 1) * (v1 - v0)))
-            self.node_dptau_dstau = np.concatenate((self.node_dptau_dstau, 0.5 * (v1 - v0) * np.ones_like(nodes_i)))
+            self.node_dptau_dstau = np.concatenate((self.node_dptau_dstau,
+                                                    0.5 * (v1 - v0) * np.ones_like(nodes_i)))
 
             self.segment_indices[iseg, 1] = self.segment_indices[iseg, 0] + num_nodes_i
             if iseg < num_segments - 1:
@@ -368,7 +367,8 @@ class GridData(object):
                 if iseg == 0:
                     self.subset_num_nodes[subset_name] = 0
                     self.subset_num_nodes_per_segment[subset_name] = []
-                    self.subset_segment_indices[subset_name] = np.zeros((num_segments, 2), dtype=int)
+                    self.subset_segment_indices[subset_name] = np.zeros((num_segments, 2),
+                                                                        dtype=int)
                     self.subset_node_indices[subset_name] = np.empty(0, dtype=int)
 
                 num_subset_nodes_i = len(subset_idxs_i)
@@ -380,8 +380,8 @@ class GridData(object):
                 self.subset_segment_indices[subset_name][iseg, 0] = subset_ind0[subset_name]
                 self.subset_segment_indices[subset_name][iseg, 1] = subset_ind1[subset_name]
 
-                self.subset_node_indices[subset_name] = np.concatenate((self.subset_node_indices[subset_name],
-                                                                        subset_idxs_i + ind0))
+                self.subset_node_indices[subset_name] = \
+                    np.concatenate((self.subset_node_indices[subset_name], subset_idxs_i + ind0))
                 subset_ind0[subset_name] += num_subset_nodes_i
 
             ind0 += num_nodes_i

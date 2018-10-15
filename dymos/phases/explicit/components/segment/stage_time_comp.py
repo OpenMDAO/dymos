@@ -89,5 +89,3 @@ class StageTimeComp(ExplicitComponent):
         outputs['t_step'][:] = t_step_ends
 
         outputs['dt_dstau'] = 0.5 * (seg_tf - seg_t0)
-
-

@@ -95,11 +95,11 @@ class ExplicitPhase(PhaseBase):
 
         order = order + ['segments']
 
-        # if self.grid_data.num_segments > 1:
-        #     order.append('continuity_comp')
-        if getattr(self, 'boundary_constraints', None) is not None:
-            order.append('boundary_constraints')
-        if getattr(self, 'path_constraints', None) is not None:
+        if self._initial_boundary_constraints:
+            order.append('initial_boundary_constraints')
+        if self._final_boundary_constraints:
+            order.append('final_boundary_constraints')
+        if self._path_constraints:
             order.append('path_constraints')
         self.set_order(order)
 
@@ -282,7 +282,7 @@ class ExplicitPhase(PhaseBase):
             ar = np.arange(size)
 
             jump_comp.add_output('initial_jump:{0}'.format(state_name),
-                                  val=np.zeros(options['shape']),
+                                 val=np.zeros(options['shape']),
                                  units=options['units'],
                                  desc='discontinuity in {0} at the '
                                       'start of the phase'.format(state_name))
@@ -532,8 +532,8 @@ class ExplicitPhase(PhaseBase):
             state_units = self.state_options[var]['units']
             shape = state_shape
             units = state_units
-            linear = True
-            constraint_path =  '{0}.step_states:{0}'.format(src_seg, var)
+            linear = True if loc == 'initial' else False
+            constraint_path = '{0}.step_states:{1}'.format(src_seg, var)
         elif var_type in 'indep_control':
             control_shape = self.control_options[var]['shape']
             control_units = self.control_options[var]['units']
@@ -592,15 +592,7 @@ class ExplicitPhase(PhaseBase):
             units = None
             linear = False
 
-        # Build the correct src_indices regardless of shape
-        size = int(np.prod(shape))
-
-        if loc == 'initial':
-            src_idxs = np.arange(size, dtype=int).reshape(shape)
-        else:
-            src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
-
-        return constraint_path, src_idxs, shape, units, linear
+        return constraint_path, shape, units, linear
 
     # def get_values(self, var, nodes='solution', units=None):
     #     """
@@ -630,7 +622,8 @@ class ExplicitPhase(PhaseBase):
     #
     #     var_type = self._classify_var(var)
     #
-    #     outputs = dict(self.list_outputs(explicit=True, values=True, units=True, shape=True, out_stream=None))
+    #     outputs = dict(self.list_outputs(explicit=True, values=True, units=True,
+    # shape=True, out_stream=None))
     #     inputs = dict(self.list_inputs(values=True, units=True, out_stream=None))
     #
     #     # print('\n'.join([o for o in outputs if 'states:y' in o]))
@@ -673,8 +666,10 @@ class ExplicitPhase(PhaseBase):
     #         step_end_idxs = gd.subset_node_indices['step_ends'][1::2]
     #         for iseg in range(gd.num_segments):
     #             for jstep in range(self.grid_data.num_steps_per_segment[iseg]):
-    #                 advance_units = outputs[path + 'segments.seg_{0}.step_{1}.advance.states:{2}_f'.format(iseg, jstep, var)]['units']
-    #                 val = outputs[path + 'segments.seg_{0}.step_{1}.advance.states:{2}_f'.format(iseg, jstep, var)]['value']
+    #                 advance_units = outputs[path +
+    # 'segments.seg_{0}.step_{1}.advance.states:{2}_f'.format(iseg, jstep, var)]['units']
+    #                 val = outputs[path +
+    # 'segments.seg_{0}.step_{1}.advance.states:{2}_f'.format(iseg, jstep, var)]['value']
     #                 output_value[step_end_idxs[jstep]] = convert_units(val, advance_units, units)
     #
     #     elif var_type in ('input_control', 'indep_control'):

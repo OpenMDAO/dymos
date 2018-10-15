@@ -137,7 +137,6 @@ class StageStateComp(ExplicitComponent):
             #
             # print(y_stages[:, :, 0])
 
-
             # k_ = np.zeros_like(inputs[self.var_names[state_name]['k']])
             # k_[:, 1:, ...] = inputs[self.var_names[state_name]['k']][:, :-1, ...]
             # # print(A)

@@ -17,46 +17,43 @@ class TestBrachistochroneExample(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, \
-            NonlinearBlockGS, pyOptSparseDriver
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
-        p.driver.opt_settings['iSumm'] = 6
+        p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('explicit',
                       ode_class=BrachistochroneODE,
-                      num_segments=2,
-                      num_steps=20,
-                      seg_solver_class=NonlinearBlockGS)
+                      num_segments=4,
+                      transcription_order=3,
+                      num_steps=10)
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
 
         phase.set_state_options('x', fix_initial=True)
         phase.set_state_options('y', fix_initial=True)
         phase.set_state_options('v', fix_initial=True)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_control('theta', units='deg', opt=False)
+        phase.add_control('theta', units='deg', lower=0.01, upper=179.9, ref0=0, ref=180.0)
 
         phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        # phase.add_boundary_constraint('x', loc='final', equals=10)
-        # phase.add_boundary_constraint('y', loc='final', equals=5)
+        phase.add_boundary_constraint('x', loc='final', equals=10)
+        phase.add_boundary_constraint('y', loc='final', equals=5)
 
         # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=10)
+        phase.add_objective('time', loc='final', scaler=1)
 
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = 'csc'
 
-        p.setup(force_alloc_complex=True)
+        p.setup()
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
@@ -67,13 +64,10 @@ class TestBrachistochroneExample(unittest.TestCase):
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
 
         # Solve for the optimal trajectory
-        p.run_model()
-        np.set_printoptions(linewidth=1024)
-
         p.run_driver()
 
-        # # Test the results
-        # assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
+        # Test the results
+        assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
         #
         # # Generate the explicitly simulated trajectory
         # t0 = p['phase0.t_initial']

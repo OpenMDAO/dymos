@@ -14,6 +14,7 @@ from dymos.phases.explicit.components.segment.stage_k_comp import StageKComp
 def _f(y, t):
     return y - t**2 + 1
 
+
 class TestKComp(unittest.TestCase):
 
     @classmethod

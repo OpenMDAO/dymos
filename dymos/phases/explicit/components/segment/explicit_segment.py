@@ -150,3 +150,4 @@ class ExplicitSegment(Group):
         self.linear_solver = DirectSolver()
         self.nonlinear_solver = self.options['seg_solver_class']()
         self.nonlinear_solver.options['maxiter'] = 150
+        self.nonlinear_solver.options['iprint'] = -1

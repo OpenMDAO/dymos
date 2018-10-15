@@ -66,17 +66,21 @@ def _single_rk4_step2(ode_interface, h, init_time, init_states, controls, contro
 
         # Unpack the control vector and set the values in the ode_interface accordingly
         for control_name, val in iteritems(controls):
-            ode_interface.set_val('control_values:{0}'.format(control_name), val[istage, ...])
-            ode_interface.set_val('control_rates:{0}_rate'.format(control_name), control_rates[control_name][istage, ...])
-            ode_interface.set_val('control_rates:{0}_rate2'.format(control_name), control_rates2[control_name][istage, ...])
+            ode_interface.set_val('control_values:{0}'.format(control_name),
+                                  val[istage, ...])
+            ode_interface.set_val('control_rates:{0}_rate'.format(control_name),
+                                  control_rates[control_name][istage, ...])
+            ode_interface.set_val('control_rates:{0}_rate2'.format(control_name),
+                                  control_rates2[control_name][istage, ...])
 
         # Run the ODE
         ode_interface.run_model()
 
         # Extract state rates and compute k for each state, and advance each state
+        rate_template = 'state_rate_collector.state_rates:{0}_rate'
         for name in init_states:
             # Pack the state rate vector from the outputs of ode_interface
-            ydot[name][istage, ...] = ode_interface['state_rate_collector.state_rates:{0}_rate'.format(name)]
+            ydot[name][istage, ...] = ode_interface[rate_template.format(name)]
             k_stage[name][istage, ...] = h * ydot[name][istage, ...]
 
     # Advance states to the end of the step
@@ -113,6 +117,7 @@ class NonlinearRK(NonlinearSolver):
         self.control_options = OrderedDict()
         self.design_parameter_options = design_parameter_options
         self.input_parameter_options = input_parameter_options
+        ode_iface = self.ode_interface
 
         # Make a duplicate copy of state options that includes the position of each state
         # in the state vector
@@ -149,12 +154,12 @@ class NonlinearRK(NonlinearSolver):
         # The Time Comp
         ode_time_units = self.ode_options._time_options['units']
         ode_time_targets = self.ode_options._time_options['targets']
-        self.ode_interface.model.add_subsystem('time_input',
-                                               IndepVarComp('time', val=0.0, units=ode_time_units),
-                                               promotes_outputs=['time'])
+        ode_iface.model.add_subsystem('time_input',
+                                      IndepVarComp('time', val=0.0, units=ode_time_units),
+                                      promotes_outputs=['time'])
 
         if ode_time_targets is not None:
-            self.ode_interface.model.connect('time', ['ode.{0}'.format(tgt) for tgt in ode_time_targets])
+            ode_iface.model.connect('time', ['ode.{0}'.format(tgt) for tgt in ode_time_targets])
 
         # The States Comp
         indep = IndepVarComp()
@@ -163,13 +168,11 @@ class NonlinearRK(NonlinearSolver):
                              shape=(1, np.prod(options['shape'])),
                              units=options['units'])
             if options['targets'] is not None:
-                self.ode_interface.model.connect('states:{0}'.format(name),
-                                                 ['ode.{0}'.format(tgt) for tgt in options['targets']])
-            self.ode_interface.model.connect('ode.{0}'.format(options['rate_source']),
-                                    'state_rate_collector.state_rates_in:{0}_rate'.format(name))
-
-        self.ode_interface.model.add_subsystem('indep_states', subsys=indep,
-                                               promotes_outputs=['*'])
+                ode_iface.model.connect('states:{0}'.format(name),
+                                        ['ode.{0}'.format(tgt) for tgt in options['targets']])
+                ode_iface.model.connect('ode.{0}'.format(options['rate_source']),
+                                        'state_rate_collector.state_rates_in:{0}_rate'.format(name))
+        ode_iface.model.add_subsystem('indep_states', subsys=indep, promotes_outputs=['*'])
 
         # The Controls comp
         if self.control_options:
@@ -187,19 +190,18 @@ class NonlinearRK(NonlinearSolver):
                                  units=get_rate_units(options['units'], time_options['units'],
                                                       deriv=2))
                 if ode_targets:
-                    self.ode_interface.model.connect('control_values:{0}'.format(name),
-                                                     ['ode.{0}'.format(tgt) for tgt in ode_targets])
+                    ode_iface.model.connect('control_values:{0}'.format(name),
+                                            ['ode.{0}'.format(tgt) for tgt in ode_targets])
                 if options['rate_param']:
                     ode_targets = self.ode_options._parameters[options['rate_param']]['targets']
-                    self.ode_interface.model.connect('control_rates:{0}_rate'.format(name),
-                                                     ['ode.{0}'.format(tgt) for tgt in ode_targets])
+                    ode_iface.model.connect('control_rates:{0}_rate'.format(name),
+                                            ['ode.{0}'.format(tgt) for tgt in ode_targets])
                 if options['rate2_param']:
                     ode_targets = self.ode_options._parameters[options['rate2_param']]['targets']
-                    self.ode_interface.model.connect('control_rates:{0}_rate2'.format(name),
-                                                     ['ode.{0}'.format(tgt) for tgt in ode_targets])
+                    ode_iface.model.connect('control_rates:{0}_rate2'.format(name),
+                                            ['ode.{0}'.format(tgt) for tgt in ode_targets])
 
-            self.ode_interface.model.add_subsystem('controls_comp', subsys=indep,
-                                                   promotes_outputs=['*'])
+            ode_iface.model.add_subsystem('controls_comp', subsys=indep, promotes_outputs=['*'])
 
         # The Design parameters comp
         if self.design_parameter_options:
@@ -210,10 +212,9 @@ class NonlinearRK(NonlinearSolver):
                                  shape=(1, np.prod(options['shape'])),
                                  units=options['units'])
                 if ode_targets:
-                    self.ode_interface.model.connect('design_parameters:{0}'.format(name),
-                                                     ['ode.{0}'.format(tgt) for tgt in ode_targets])
-            self.ode_interface.model.add_subsystem('input_param_comp', subsys=indep,
-                                                   promotes_outputs=['*'])
+                    ode_iface.model.connect('design_parameters:{0}'.format(name),
+                                            ['ode.{0}'.format(tgt) for tgt in ode_targets])
+            ode_iface.model.add_subsystem('design_param_comp', subsys=indep, promotes_outputs=['*'])
 
         # The Input parameters comp
         if self.input_parameter_options:
@@ -226,16 +227,15 @@ class NonlinearRK(NonlinearSolver):
                 if ode_targets:
                     self.ode_interface.model.connect('input_parameters:{0}'.format(name),
                                                      ['ode.{0}'.format(tgt) for tgt in ode_targets])
-            self.ode_interface.model.add_subsystem('input_param_comp', subsys=indep,
-                                                   promotes_outputs=['*'])
+            ode_iface.model.add_subsystem('input_param_comp', subsys=indep, promotes_outputs=['*'])
 
         # The ODE system
-        self.ode_interface.model.add_subsystem('ode', subsys=ode_class(num_nodes=1, **ode_init_kwargs))
+        ode_iface.model.add_subsystem('ode', subsys=ode_class(num_nodes=1, **ode_init_kwargs))
 
         # The state rate collector comp
-        self.ode_interface.model.add_subsystem('state_rate_collector',
-                                               StateRateCollectorComp(state_options=self.state_options,
-                                                                 time_units=time_options['units']))
+        state_rate_col_comp = StateRateCollectorComp(state_options=self.state_options,
+                                                     time_units=time_options['units'])
+        self.ode_interface.model.add_subsystem('state_rate_collector', subsys=state_rate_col_comp)
 
         # Setup the ode_interface
         self.ode_interface.setup(check=False)
@@ -296,17 +296,17 @@ class NonlinearRK(NonlinearSolver):
         for i in range(num_steps):
             # Pack the control vector
             for control_name, options in iteritems(self.control_options):
-                u[control_name] = system._outputs['stage_control_values:{0}'.format(control_name)][i, ...]
-                u_rate[control_name] = system._outputs['stage_control_rates:{0}_rate'.format(control_name)][i, ...]
-                u_rate2[control_name] = system._outputs['stage_control_rates:{0}_rate2'.format(control_name)][i, ...]
+                u[control_name] = \
+                    system._outputs['stage_control_values:{0}'.format(control_name)][i, ...]
+                u_rate[control_name] = \
+                    system._outputs['stage_control_rates:{0}_rate'.format(control_name)][i, ...]
+                u_rate2[control_name] = \
+                    system._outputs['stage_control_rates:{0}_rate2'.format(control_name)][i, ...]
 
             k_stage, yn = _single_rk4_step2(self.ode_interface, h[i], t[i], y0, u, u_rate, u_rate2)
 
             # Unpack the output state vector and k vector
             for state_name, options in iteritems(self.state_options):
-                # print(yn[state_name])
-                # print(system._outputs['step_states:{0}'.format(state_name)][i + 1, ...])
-
                 system._outputs['step_states:{0}'.format(state_name)][i + 1, ...] = yn[state_name]
                 y0[state_name] = yn[state_name]
                 system._outputs['k:{0}'.format(state_name)][i, ...] = k_stage[state_name]
@@ -315,7 +315,7 @@ class NonlinearRK(NonlinearSolver):
         #       only do this optionally, because it will require an additional
         #       call to ODE which might be expensive
 
-        #TODO: optionally have one more _solve_nonlinear to make sure the whole
+        # TODO: optionally have one more _solve_nonlinear to make sure the whole
         with Recording('NonlinearRK', 0, self) as rec:
             # If this is a parallel group, transfer all at once then run each subsystem.
             if len(system._subsystems_myproc) != len(system._subsystems_allprocs):

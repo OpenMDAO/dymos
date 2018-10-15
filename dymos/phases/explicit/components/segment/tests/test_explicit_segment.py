@@ -1,8 +1,6 @@
-from __future__ import print_function, division,absolute_import
+from __future__ import print_function, division, absolute_import
 
 import unittest
-
-from six import iteritems
 
 import numpy as np
 
@@ -15,6 +13,7 @@ from dymos.phases.explicit.components.segment.explicit_segment import ExplicitSe
 from dymos.phases.explicit.solvers.nl_rk_solver import NonlinearRK
 from dymos.phases.grid_data import GridData
 from dymos.utils.simulation import ScipyODEIntegrator
+
 
 @declare_time(targets=['t'], units='s')
 @declare_state('y', targets=['y'], rate_source='ydot', units='m')
@@ -147,4 +146,3 @@ class TestExplicitSegmentSimpleIntegration(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

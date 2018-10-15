@@ -6,7 +6,6 @@ import numpy as np
 
 from openmdao.api import ExplicitComponent
 from dymos.phases.grid_data import GridData
-from dymos.phases.components.control_interp_comp import ControlInterpComp
 from dymos.utils.rk_methods import rk_methods
 from dymos.utils.lagrange import lagrange_matrices
 from dymos.utils.misc import get_rate_units
@@ -35,7 +34,6 @@ class StageControlComp(ExplicitComponent):
         self._output_val_names = {}
         self._output_rate_names = {}
         self._output_rate2_names = {}
-
 
         # Save the names of the dynamic controls/parameters
         self._dynamic_names = []
@@ -181,9 +179,14 @@ class StageControlComp(ExplicitComponent):
             b = np.tensordot(self.D2, u, axes=(1, 0)).T
 
             # divide each "row" by dt_dstau or dt_dstau**2
-            outputs[self._output_val_names[name]].flat[:] = np.tensordot(self.L, u, axes=(1, 0)).ravel()
-            outputs[self._output_rate_names[name]].flat[:] = (a / inputs['dt_dstau']).T.ravel()
-            outputs[self._output_rate2_names[name]].flat[:] = (b / inputs['dt_dstau'] ** 2).T.ravel()
+            outputs[self._output_val_names[name]].flat[:] = \
+                np.tensordot(self.L, u, axes=(1, 0)).ravel()
+
+            outputs[self._output_rate_names[name]].flat[:] = \
+                (a / inputs['dt_dstau']).T.ravel()
+
+            outputs[self._output_rate2_names[name]].flat[:] = \
+                (b / inputs['dt_dstau'] ** 2).T.ravel()
 
     def compute_partials(self, inputs, partials):
         gd = self.options['grid_data']

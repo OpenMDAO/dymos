@@ -1129,13 +1129,20 @@ class PhaseBase(Group):
             con_options = options.copy()
             con_options.pop('constraint_name')
 
-            src, src_idxs, shape, units, linear = self._get_boundary_constraint_src(var, loc)
+            src, shape, units, linear = self._get_boundary_constraint_src(var, loc)
 
             con_units = options.get('units', None)
             con_shape = options.get('shape', (1,))
+            con_size = int(np.prod(con_shape))
             con_options['shape'] = shape if con_shape is None else con_shape
             con_options['units'] = units if con_units is None else con_units
             con_options['linear'] = linear
+
+            # Build the correct src_indices regardless of shape
+            if loc == 'initial':
+                src_idxs = np.arange(con_size, dtype=int).reshape(con_shape)
+            else:
+                src_idxs = np.arange(-con_size, 0, dtype=int).reshape(con_shape)
 
             bc_comp._add_constraint(con_name, **con_options)
 

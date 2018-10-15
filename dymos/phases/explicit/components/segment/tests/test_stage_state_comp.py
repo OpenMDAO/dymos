@@ -67,8 +67,9 @@ class TestStageStateComp(unittest.TestCase):
                          tolerance=1.0E-9)
 
     def test_partials(self):
-        cpd = self.p.check_partials()
+        cpd = self.p.check_partials(out_stream=None)
         assert_check_partials(cpd)
+
 
 if __name__ == '__main__':
     unittest.main()

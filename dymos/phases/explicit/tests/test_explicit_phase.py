@@ -58,7 +58,7 @@ class TestExplicitPhaseNLRK(unittest.TestCase):
         p.run_model()
 
         np.set_printoptions(linewidth=1024)
-        p.check_partials(compact_print=True, method='cs')
+        p.check_partials(compact_print=True, method='cs', out_stream=None)
 
         t = p['phase0.seg_0.t_step']
         y = p['phase0.seg_0.step_states:y']
@@ -82,8 +82,8 @@ class TestExplicitPhaseNLRK(unittest.TestCase):
                                                     num_steps=40, ode_class=BrachistochroneODE))
 
         phase.set_time_options(fix_initial=True, fix_duration=False)
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('x', fix_initial=True, fix_final=False)
+        phase.set_state_options('y', fix_initial=True, fix_final=False)
         phase.set_state_options('v', fix_initial=True, fix_final=False)
         phase.add_control('theta', lower=0.0, upper=180.0, units='deg')
         phase.add_design_parameter('g', opt=False, val=9.80665)
@@ -126,7 +126,7 @@ class TestExplicitPhaseNLRK(unittest.TestCase):
 
         p.run_model()
 
-        p.check_partials(compact_print=True, method='cs')
+        p.check_partials(compact_print=True, method='cs', out_stream=None)
 
         t_0 = p['phase0.seg_0.t_step']
         y_0 = p['phase0.seg_0.step_states:y']
@@ -162,8 +162,8 @@ class TestExplicitPhaseNLRK(unittest.TestCase):
                                                     num_steps=40, ode_class=BrachistochroneODE))
 
         phase.set_time_options(fix_initial=True, fix_duration=False)
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('x', fix_initial=True, fix_final=False)
+        phase.set_state_options('y', fix_initial=True, fix_final=False)
         phase.set_state_options('v', fix_initial=True, fix_final=False)
         phase.add_control('theta', lower=0.0, upper=180.0, units='deg')
         phase.add_design_parameter('g', opt=False, val=9.80665)
@@ -187,7 +187,6 @@ class TestExplicitPhaseNLRK(unittest.TestCase):
         assert_rel_error(self, y[-1], 4.2513636, tolerance=1.0E-4)
         assert_rel_error(self, x[-1], 12.2137034, tolerance=1.0E-4)
 
-
     def test_multiple_segment_hybrid_shooting_simple_integration(self):
 
         p = Problem(model=Group())
@@ -209,7 +208,7 @@ class TestExplicitPhaseNLRK(unittest.TestCase):
         p.run_model()
 
         np.set_printoptions(linewidth=1024)
-        p.check_partials(compact_print=True, method='cs')
+        p.check_partials(compact_print=True, method='cs', out_stream=None)
 
         t_0 = p['phase0.seg_0.t_step']
         y_0 = p['phase0.seg_0.step_states:y']
@@ -261,7 +260,7 @@ class TestExplicitPhaseNLBGS(unittest.TestCase):
         p.run_model()
 
         np.set_printoptions(linewidth=1024)
-        p.check_partials(compact_print=True, method='cs')
+        p.check_partials(compact_print=True, method='cs', out_stream=None)
 
         t = p['phase0.seg_0.t_step']
         y = p['phase0.seg_0.step_states:y']
@@ -286,8 +285,8 @@ class TestExplicitPhaseNLBGS(unittest.TestCase):
                                                     seg_solver_class=NonlinearBlockGS))
 
         phase.set_time_options(fix_initial=True, fix_duration=False)
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('x', fix_initial=True, fix_final=False)
+        phase.set_state_options('y', fix_initial=True, fix_final=False)
         phase.set_state_options('v', fix_initial=True, fix_final=False)
         phase.add_control('theta', lower=0.0, upper=180.0, units='deg')
         phase.add_design_parameter('g', opt=False, val=9.80665)
@@ -331,7 +330,7 @@ class TestExplicitPhaseNLBGS(unittest.TestCase):
 
         p.run_model()
 
-        p.check_partials(compact_print=True, method='cs')
+        p.check_partials(compact_print=True, method='cs', out_stream=None)
 
         t_0 = p['phase0.seg_0.t_step']
         y_0 = p['phase0.seg_0.step_states:y']
@@ -368,8 +367,8 @@ class TestExplicitPhaseNLBGS(unittest.TestCase):
                                                     seg_solver_class=NonlinearBlockGS))
 
         phase.set_time_options(fix_initial=True, fix_duration=False)
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('x', fix_initial=True, fix_final=False)
+        phase.set_state_options('y', fix_initial=True, fix_final=False)
         phase.set_state_options('v', fix_initial=True, fix_final=False)
         phase.add_control('theta', lower=0.0, upper=180.0, units='deg')
         phase.add_design_parameter('g', opt=False, val=9.80665)
@@ -395,7 +394,6 @@ class TestExplicitPhaseNLBGS(unittest.TestCase):
         assert_rel_error(self, y[-1], 4.2513636, tolerance=1.0E-4)
         assert_rel_error(self, x[-1], 12.2137034, tolerance=1.0E-4)
 
-
     def test_multiple_segment_hybrid_shooting_simple_integration(self):
 
         p = Problem(model=Group())
@@ -418,7 +416,7 @@ class TestExplicitPhaseNLBGS(unittest.TestCase):
         p.run_model()
 
         np.set_printoptions(linewidth=1024)
-        p.check_partials(compact_print=True, method='cs')
+        p.check_partials(compact_print=True, method='cs', out_stream=None)
 
         t_0 = p['phase0.seg_0.t_step']
         y_0 = p['phase0.seg_0.step_states:y']
@@ -445,34 +443,3 @@ class TestExplicitPhaseNLBGS(unittest.TestCase):
                          y_1[:, 0],
                          [2.639602661132812, 4.006818970044454, 5.301605229265987],
                          tolerance=1.0E-12)
-
-
-if __name__ == '__main__':
-
-    p = Problem(model=Group())
-    phase = p.model.add_subsystem('phase0',
-                                  ExplicitPhase(num_segments=2, transcription_order=5,
-                                                num_steps=40, ode_class=BrachistochroneODE))
-
-    phase.set_time_options(fix_initial=True, fix_duration=False)
-    phase.set_state_options('x', fix_initial=True, fix_final=True)
-    phase.set_state_options('y', fix_initial=True, fix_final=True)
-    phase.set_state_options('v', fix_initial=True, fix_final=False)
-    phase.add_control('theta', lower=0.0, upper=180.0, units='deg')
-    phase.add_design_parameter('g', opt=False, val=9.80665)
-
-    p.setup(check=True, force_alloc_complex=True)
-
-    p['phase0.t_initial'] = 0.0
-    p['phase0.t_duration'] = 2.0
-
-    p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-    p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-    p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-    p['phase0.design_parameters:g'] = 9.80665
-
-    p.run_model()
-
-    x = p['phase0.seg_1.step_states:x']
-    y = p['phase0.seg_1.step_states:y']
