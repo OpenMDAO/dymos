@@ -9,6 +9,7 @@ from dymos.phases.grid_data import GridData
 
 from openmdao.api import IndepVarComp, Group, ParallelGroup, NonlinearRunOnce, NonlinearBlockJac, \
     NonlinearBlockGS, NewtonSolver
+from openmdao.utils.units import convert_units, valid_units
 from six import iteritems
 
 from .solvers.nl_rk_solver import NonlinearRK
@@ -17,6 +18,7 @@ from .components.implicit_segment_connection_comp import ImplicitSegmentConnecti
 from ...utils.rk_methods import rk_methods
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.constants import INF_BOUND
+from ...utils.simulation import simulate_phase
 
 
 class ExplicitPhase(PhaseBase):
@@ -591,114 +593,279 @@ class ExplicitPhase(PhaseBase):
 
         return constraint_path, shape, units, linear
 
-    # def get_values(self, var, nodes='solution', units=None):
-    #     """
-    #     Retrieve the values of the given variable at the given
-    #     subset of nodes.
-    #
-    #     Parameters
-    #     ----------
-    #     var : str
-    #         The variable whose values are to be returned.  This may be
-    #         the name 'time', the name of a state, control, or parameter,
-    #         or the path to a variable in the ODEFunction of the phase.
-    #     nodes : str
-    #         The name of the node subset.
-    #     units : str
-    #         The units in which the values should be expressed.  Must be compatible
-    #         with the corresponding units inside the phase.
-    #
-    #     Returns
-    #     -------
-    #     ndarray
-    #         An array of the values at the requested node subset.  The
-    #         node index is the first dimension of the ndarray.
-    #     """
-    #     gd = self.grid_data
-    #     num_stages = rk_methods[self.options['method']]['s']
-    #
-    #     var_type = self._classify_var(var)
-    #
-    #     outputs = dict(self.list_outputs(explicit=True, values=True, units=True,
-    # shape=True, out_stream=None))
-    #     inputs = dict(self.list_inputs(values=True, units=True, out_stream=None))
-    #
-    #     # print('\n'.join([o for o in outputs if 'states:y' in o]))
-    #
-    #     if units is not None:
-    #         if not valid_units(units):
-    #             raise ValueError('Units {0} is not a valid units identifier'.format(units))
-    #
-    #     path = '{0}.'.format(self.pathname) if self.pathname else ''
-    #
-    #     path_map = {'time': 'time.{0}',
-    #                 'state': 'indep_states.states:{0}',
-    #                 'indep_control': 'control_interp_comp.control_values:{0}',
-    #                 'input_control': 'control_interp_comp.control_values:{0}',
-    #                 'design_parameter': 'design_params.design_parameters:{0}',
-    #                 'input_parameter': 'input_params.input_parameters:{0}_out',
-    #                 'control_rate': 'control_interp_comp.control_rates:{0}',
-    #                 'control_rate2': 'control_interp_comp.control_rates:{0}',
-    #                 'ode': 'rhs_all.{0}'}
-    #
-    #     if var_type == 'state':
-    #         var_path = path + path_map[var_type].format(var)
-    #
-    #         output_value = np.nan * np.ones(gd.subset_num_nodes['all'])
-    #
-    #         tmp = path + 'segments.seg_{0}.step_{1}.ycomp_stage_{2}.states:{3}_{2}'
-    #
-    #         # Populate the stage values
-    #         stage_values = [[[[outputs[tmp.format(iseg, jstep, kstage, var)]['value']
-    #                            for kstage in range(1, num_stages + 1)]
-    #                           for jstep in range(self.grid_data.num_steps_per_segment[iseg])]
-    #                          for iseg in range(self.grid_data.num_segments)]]
-    #         stage_units = outputs[tmp.format(0, 0, 1, var)]['units']
-    #         stage_values = np.asarray(stage_values).ravel()
-    #         output_value[gd.subset_node_indices['stage_nodes']] = convert_units(stage_values,
-    #                                                                             stage_units,
-    #                                                                             units)
-    #
-    #         # Populate the step end values
-    #         step_end_idxs = gd.subset_node_indices['step_ends'][1::2]
-    #         for iseg in range(gd.num_segments):
-    #             for jstep in range(self.grid_data.num_steps_per_segment[iseg]):
-    #                 advance_units = outputs[path +
-    # 'segments.seg_{0}.step_{1}.advance.states:{2}_f'.format(iseg, jstep, var)]['units']
-    #                 val = outputs[path +
-    # 'segments.seg_{0}.step_{1}.advance.states:{2}_f'.format(iseg, jstep, var)]['value']
-    #                 output_value[step_end_idxs[jstep]] = convert_units(val, advance_units, units)
-    #
-    #     elif var_type in ('input_control', 'indep_control'):
-    #         var_path = path + path_map[var_type].format(var)
-    #         output_units = outputs[var_path]['units']
-    #
-    #         vals = outputs[var_path]['value']
-    #         output_value = convert_units(vals, output_units, units)
-    #
-    #     elif var_type in ('design_parameter', 'input_parameter', 'traj_design_parameter',
-    #                       'traj_input_parameter'):
-    #         var_path = path + path_map[var_type].format(var)
-    #         output_units = outputs[var_path]['units']
-    #
-    #         output_value = convert_units(outputs[var_path]['value'], output_units, units)
-    #         output_value = np.repeat(output_value, gd.num_nodes, axis=0)
-    #
-    #     elif var_type == 'ode':
-    #         rhs_all_outputs = dict(self.rhs_all.list_outputs(out_stream=None, values=True,
-    #                                                          shape=True, units=True))
-    #         prom2abs_all = self.rhs_all._var_allprocs_prom2abs_list
-    #         abs_path_all = prom2abs_all['output'][var][0]
-    #         output_value = rhs_all_outputs[abs_path_all]['value']
-    #         output_units = rhs_all_outputs[abs_path_all]['units']
-    #         output_value = convert_units(output_value, output_units, units)
-    #     else:
-    #         var_path = path + path_map[var_type].format(var)
-    #         output_units = outputs[var_path]['units']
-    #         output_value = convert_units(outputs[var_path]['value'], output_units, units)
-    #
-    #     # Always return a column vector
-    #     if len(output_value.shape) == 1:
-    #         output_value = np.reshape(output_value, (gd.num_nodes, 1))
-    #
-    #     return output_value[gd.subset_node_indices[nodes], ...]
+    def simulate(self, times='all', integrator='vode', integrator_params=None,
+                 observer=None, record_file=None, record=True):
+        """
+        Integrate the current phase using the current values of time, states, and controls.
+
+        Parameters
+        ----------
+        times : str or sequence
+            The times at which the observing function will be called, and outputs will be saved.
+            If given as a string, it must be a valid node subset name.
+            If given as a sequence, it directly provides the times at which output is provided,
+            *in addition to the segment boundaries*.
+        integrator : str
+            The integrator to be used by scipy.ode.  This is one of:
+            'vode', 'lsoda', 'dopri5', or 'dopri853'.
+        integrator_params : dict
+            Parameters specific to the chosen integrator.  See the scipy.integrate.ode
+            documentation for details.
+        observer : callable, str, or None
+            A callable function to be called at the specified timesteps in
+            `integrate_times`.  This can be used to record the integrated trajectory.
+            If 'progress-bar', a ProgressBarObserver will be used, which outputs the simulation
+            process to the screen as a ProgressBar.
+            If 'stdout', a StdOutObserver will be used, which outputs all variables
+            in the model to standard output by default.
+            If None, no observer will be called.
+        record_file : str or None
+            A string given the name of the recorded file to which the results of the explicit
+            simulation should be saved.  If None, automatically save to '<phase_name>_sim.db'.
+        record : bool
+            If True (default), save the explicit simulation results to the file specified
+            by record_file.
+
+        Returns
+        -------
+        results : PhaseSimulationResults object
+        """
+
+        ode_class = self.options['ode_class']
+        ode_init_kwargs = self.options['ode_init_kwargs']
+        time_values = self.get_values('time', nodes='all').ravel()
+        state_values = {}
+        control_values = {}
+        design_parameter_values = {}
+        input_parameter_values = {}
+        for state_name, options in iteritems(self.state_options):
+            state_values[state_name] = self.get_values(state_name, nodes='steps')
+        for control_name, options in iteritems(self.control_options):
+            control_values[control_name] = self.get_values(control_name, nodes='all')
+        for dp_name, options in iteritems(self.design_parameter_options):
+            design_parameter_values[dp_name] = self.get_values(dp_name, nodes='all')
+        for ip_name, options in iteritems(self.input_parameter_options):
+            input_parameter_values[ip_name] = self.get_values(ip_name, nodes='all')
+
+        exp_out = simulate_phase(self.name,
+                                 ode_class=ode_class,
+                                 time_options=self.time_options,
+                                 state_options=self.state_options,
+                                 control_options=self.control_options,
+                                 design_parameter_options=self.design_parameter_options,
+                                 input_parameter_options=self.input_parameter_options,
+                                 time_values=time_values,
+                                 state_values=state_values,
+                                 control_values=control_values,
+                                 design_parameter_values=design_parameter_values,
+                                 input_parameter_values=input_parameter_values,
+                                 ode_init_kwargs=ode_init_kwargs,
+                                 grid_data=self.grid_data,
+                                 times=times,
+                                 record=record,
+                                 record_file=record_file,
+                                 observer=observer,
+                                 integrator=integrator,
+                                 integrator_params=integrator_params)
+
+        return exp_out
+
+    def _get_values_steps(self, var, units=None):
+            """
+            Retrieve the values of the given variable at the integrator steps.
+
+            Parameters
+            ----------
+            var : str
+                The variable whose values are to be returned.  This may be
+                the name 'time', the name of a state, control, or parameter,
+                or the path to a variable in the ODEFunction of the phase.
+            nodes : str
+                The name of the node subset.
+            units : str
+                The units in which the values should be expressed.  Must be compatible
+                with the corresponding units inside the phase.
+
+            Returns
+            -------
+            ndarray
+                An array of the values at the requested node subset.  The
+                node index is the first dimension of the ndarray.
+            """
+            gd = self.grid_data
+
+            var_type = self._classify_var(var)
+
+            outputs = dict(self.list_outputs(explicit=True, values=True, units=True,
+                                             shape=True, out_stream=None))
+
+            if units is not None:
+                if not valid_units(units):
+                    raise ValueError('Units {0} is not a valid units identifier'.format(units))
+
+            path = '{0}.'.format(self.pathname) if self.pathname else ''
+
+            path_map = {'time':
+                            'segments.seg_{0}.stage_time_comp.t_step',
+                        'state':
+                            'segments.seg_{0}.advance_comp.step_states:{1}',
+                        'indep_control':
+                            'segments.seg_{0}.stage_control_comp.stage_control_values:{1}',
+                        'input_control':
+                            'segments.seg_{0}.stage_control_comp.stage_control_values:{1}',
+                        'design_parameter':
+                            'design_params.design_parameters:{0}',
+                        'input_parameter':
+                            'input_params.input_parameters:{0}_out',
+                        'control_rate':
+                            'segments.seg_{0}.stage_control_comp.stage_control_rates:{1}',
+                        'control_rate2':
+                            'segments.seg_{0}.stage_control_comp.stage_control_rates:{1}',
+                        'ode':
+                            'segments.seg_{0}.stage_ode.{1}'}
+
+            if var_type == 'time':
+                output_value = []
+                for iseg in range(gd.num_segments):
+                    var_path = path + path_map[var_type].format(iseg)
+                    seg_value = outputs[var_path]['value']
+                    seg_units = outputs[var_path]['units']
+                    output_value.append(convert_units(seg_value, seg_units, units))
+                output_value = np.atleast_2d(np.concatenate(output_value, axis=0)).T
+
+            elif var_type == 'state':
+                output_value = []
+                for iseg in range(gd.num_segments):
+                    var_path = path + path_map[var_type].format(iseg, var)
+                    seg_value = outputs[var_path]['value']
+                    seg_units = outputs[var_path]['units']
+                    output_value.append(convert_units(seg_value, seg_units, units))
+                output_value = np.concatenate(output_value, axis=0)
+
+            elif var_type in ('input_control', 'indep_control', 'control_rate', 'control_rate2'):
+                output_value = []
+                for iseg in range(gd.num_segments):
+                    var_path = path + path_map[var_type].format(iseg, var)
+                    stage_initial_values = outputs[var_path]['value'][:, 0, ...]
+                    stage_final_value = np.atleast_2d(outputs[var_path]['value'][-1, -1, ...])
+                    seg_units = outputs[var_path]['units']
+                    step_values = np.concatenate((stage_initial_values, stage_final_value), axis=0)
+                    output_value.append(convert_units(step_values, seg_units, units))
+                output_value = np.concatenate(output_value, axis=0)
+
+            elif var_type in ('design_parameter', 'input_parameter', 'traj_design_parameter',
+                              'traj_input_parameter'):
+                var_path = path + path_map[var_type].format(var)
+                output_units = outputs[var_path]['units']
+                output_value = convert_units(outputs[var_path]['value'], output_units, units)
+                num_steps = np.sum(gd.num_steps_per_segment)
+                output_value = np.repeat(output_value, num_steps, axis=0)
+
+            elif var_type == 'ode':
+                output_value = []
+                num_stages = rk_methods[self.options['method']]['num_stages']
+                for iseg in range(gd.num_segments):
+                    num_steps = gd.num_steps_per_segment[iseg]
+                    var_path = path + path_map[var_type].format(iseg, var)
+                    reshaped_ode_outputs = np.reshape(outputs[var_path]['value'],
+                                                      (num_steps, num_stages))
+                    stage_initial_values = np.atleast_2d(reshaped_ode_outputs[:, 0, ...]).T
+                    stage_final_value = np.atleast_2d(reshaped_ode_outputs[-1, -1, ...])
+                    seg_units = outputs[var_path]['units']
+                    step_values = np.concatenate((stage_initial_values, stage_final_value), axis=0)
+                    output_value.append(convert_units(step_values, seg_units, units))
+                output_value = np.concatenate(output_value, axis=0)
+            else:
+                var_path = path + path_map[var_type].format(var)
+                output_units = outputs[var_path]['units']
+                output_value = convert_units(outputs[var_path]['value'], output_units, units)
+
+            return output_value
+
+
+    def get_values(self, var, nodes='steps', units=None):
+        """
+        Retrieve the values of the given variable at the given
+        subset of nodes.
+
+        Note that explicit phases allow the solution to be retrieved at the node
+        set "steps", which only exists for explicit phases.
+
+        Parameters
+        ----------
+        var : str
+            The variable whose values are to be returned.  This may be
+            the name 'time', the name of a state, control, or parameter,
+            or the path to a variable in the ODEFunction of the phase.
+        nodes : str
+            The name of the node subset or 'steps' to retrieve values at all integration time steps.
+        units : str
+            The units in which the values should be expressed.  Must be compatible
+            with the corresponding units inside the phase.
+
+        Returns
+        -------
+        ndarray
+            An array of the values at the requested node subset.  The
+            node index is the first dimension of the ndarray.
+
+        Notes
+        -----
+        The values of states and ode output parameters are not available at any node subset other
+        than 'steps' for ExplicitPhase.
+        """
+        if nodes == 'steps':
+            return self._get_values_steps(var, units)
+
+        gd = self.grid_data
+
+        var_type = self._classify_var(var)
+
+        op = dict(self.list_outputs(explicit=True, values=True, units=True, shape=True,
+                                    out_stream=None))
+
+        if units is not None:
+            if not valid_units(units):
+                raise ValueError('Units {0} is not a valid units identifier'.format(units))
+
+        var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
+
+        path_map = {'time': 'time.{0}',
+                    'indep_control': 'control_interp_comp.control_values:{0}',
+                    'input_control': 'control_interp_comp.control_values:{0}',
+                    'design_parameter': 'design_params.design_parameters:{0}',
+                    'input_parameter': 'input_params.input_parameters:{0}_out',
+                    'control_rate': 'control_interp_comp.control_rates:{0}',
+                    'control_rate2': 'control_interp_comp.control_rates:{0}'}
+
+        if var_type == 'state':
+            raise ValueError('get_values can only retrieve state values at steps for ExplicitPhase')
+
+        elif var_type in ('input_control', 'indep_control'):
+            var_path = var_prefix + path_map[var_type].format(var)
+            output_units = op[var_path]['units']
+
+            vals = op[var_path]['value']
+            output_value = convert_units(vals, output_units, units)
+
+        elif var_type in ('design_parameter', 'input_parameter', 'traj_design_parameter',
+                          'traj_input_parameter'):
+            var_path = var_prefix + path_map[var_type].format(var)
+            output_units = op[var_path]['units']
+
+            output_value = convert_units(op[var_path]['value'], output_units, units)
+            output_value = np.repeat(output_value, gd.num_nodes, axis=0)
+
+        elif var_type == 'ode':
+            raise ValueError('get_values can only retrieve ode outputs at steps for ExplicitPhase')
+
+        else:
+            var_path = var_prefix + path_map[var_type].format(var)
+            output_units = op[var_path]['units']
+            output_value = convert_units(op[var_path]['value'], output_units, units)
+
+        # Always return a column vector
+        if len(output_value.shape) == 1:
+            output_value = np.reshape(output_value, (gd.num_nodes, 1))
+
+        return output_value[gd.subset_node_indices[nodes], ...]

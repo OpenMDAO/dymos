@@ -15,7 +15,7 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_brachistochrone_for_docs_explicit(self):
         import numpy as np
         import matplotlib
-        matplotlib.use('Agg')
+        # matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
@@ -69,28 +69,34 @@ class TestBrachistochroneExample(unittest.TestCase):
         # Test the results
         assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
-        p.model.list_outputs(print_arrays=True)
-        #
-        # # Generate the explicitly simulated trajectory
-        # t0 = p['phase0.t_initial']
-        # tf = t0 + p['phase0.t_duration']
-        # exp_out = phase.simulate(times=np.linspace(t0, tf, 50))
-        #
-        # fig, ax = plt.subplots()
-        # fig.suptitle('Brachistochrone Solution')
-        #
-        # x_imp = phase.get_values('x', nodes='all')
-        # y_imp = phase.get_values('y', nodes='all')
-        #
-        # x_exp = exp_out.get_values('x')
-        # y_exp = exp_out.get_values('y')
-        #
-        # ax.plot(x_imp, y_imp, 'ro', label='solution')
-        # ax.plot(x_exp, y_exp, 'b-', label='simulated')
-        #
-        # ax.set_xlabel('x (m)')
-        # ax.set_ylabel('y (m)')
-        # ax.grid(True)
-        # ax.legend(loc='upper right')
-        #
-        # plt.show()
+        # print(phase.get_values('time'))
+        # print(phase.get_values('x'))
+        # print(phase.get_values('theta'))
+        # print(phase.get_values('theta_rate'))
+        # print(phase.get_values('theta_rate2'))
+        # print(phase.get_values('g'))
+        # print(phase.get_values('check'))
+
+        # Generate the explicitly simulated trajectory
+        t0 = p['phase0.t_initial']
+        tf = t0 + p['phase0.t_duration']
+        exp_out = phase.simulate(times=np.linspace(t0, tf, 50))
+
+        fig, ax = plt.subplots()
+        fig.suptitle('Brachistochrone Solution')
+
+        x_imp = phase.get_values('x')
+        y_imp = phase.get_values('y')
+
+        x_exp = exp_out.get_values('x')
+        y_exp = exp_out.get_values('y')
+
+        ax.plot(x_imp, y_imp, 'ro', label='solution')
+        ax.plot(x_exp, y_exp, 'b-', label='simulated')
+
+        ax.set_xlabel('x (m)')
+        ax.set_ylabel('y (m)')
+        ax.grid(True)
+        ax.legend(loc='upper right')
+
+        plt.show()
