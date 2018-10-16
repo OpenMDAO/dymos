@@ -91,9 +91,9 @@ class ExplicitPhase(PhaseBase):
 
         order = self._time_extents + indep_controls + \
             input_params + design_params + \
-            ['indep_states', 'time'] + control_interp_comp + ['indep_jumps', 'endpoint_conditions']
+            ['indep_states', 'time'] + control_interp_comp
 
-        order = order + ['segments']
+        order = order + ['segments', 'indep_jumps', 'initial_conditions', 'final_conditions']
 
         if self._initial_boundary_constraints:
             order.append('initial_boundary_constraints')
@@ -253,6 +253,7 @@ class ExplicitPhase(PhaseBase):
         pass
 
     def _setup_endpoint_conditions(self):
+        num_seg = self.grid_data.num_segments
 
         jump_comp = self.add_subsystem('indep_jumps', subsys=IndepVarComp(),
                                        promotes_outputs=['*'])
@@ -263,19 +264,28 @@ class ExplicitPhase(PhaseBase):
         jump_comp.add_output('final_jump:time', val=0.0, units=self.time_options['units'],
                              desc='discontinuity in time at the end of the phase')
 
-        endpoint_comp = EndpointConditionsComp(time_options=self.time_options,
-                                               state_options=self.state_options,
-                                               control_options=self.control_options)
+        ic_comp = EndpointConditionsComp(loc='initial',
+                                         time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options)
 
-        self.connect('time', 'endpoint_conditions.values:time')
+        self.add_subsystem(name='initial_conditions', subsys=ic_comp, promotes_outputs=['*'])
+
+        fc_comp = EndpointConditionsComp(loc='final',
+                                         time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options)
+
+        self.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
+
+        self.connect('time', 'initial_conditions.initial_value:time')
+        self.connect('time', 'final_conditions.final_value:time')
 
         self.connect('initial_jump:time',
-                     'endpoint_conditions.initial_jump:time')
+                     'initial_conditions.initial_jump:time')
 
         self.connect('final_jump:time',
-                     'endpoint_conditions.final_jump:time')
-
-        promoted_list = ['time--', 'time-+', 'time+-', 'time++']
+                     'final_conditions.final_jump:time')
 
         for state_name, options in iteritems(self.state_options):
             size = np.prod(options['shape'])
@@ -293,21 +303,18 @@ class ExplicitPhase(PhaseBase):
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(state_name))
 
-            self.connect('states:{0}'.format(state_name),
-                         'endpoint_conditions.values:{0}'.format(state_name))
+            self.connect('seg_0.step_states:{0}'.format(state_name),
+                         'initial_conditions.initial_value:{0}'.format(state_name))
+            self.connect('seg_{0}.step_states:{1}'.format(num_seg - 1, state_name),
+                         'final_conditions.final_value:{0}'.format(state_name))
 
             self.connect('initial_jump:{0}'.format(state_name),
-                         'endpoint_conditions.initial_jump:{0}'.format(state_name),
+                         'initial_conditions.initial_jump:{0}'.format(state_name),
                          src_indices=ar, flat_src_indices=True)
 
             self.connect('final_jump:{0}'.format(state_name),
-                         'endpoint_conditions.final_jump:{0}'.format(state_name),
+                         'final_conditions.final_jump:{0}'.format(state_name),
                          src_indices=ar, flat_src_indices=True)
-
-            promoted_list += ['states:{0}--'.format(state_name),
-                              'states:{0}-+'.format(state_name),
-                              'states:{0}+-'.format(state_name),
-                              'states:{0}++'.format(state_name)]
 
         for control_name, options in iteritems(self.control_options):
             size = np.prod(options['shape'])
@@ -326,23 +333,18 @@ class ExplicitPhase(PhaseBase):
                                       'end of the phase'.format(control_name))
 
             self.connect('control_interp_comp.control_values:{0}'.format(control_name),
-                         'endpoint_conditions.values:{0}'.format(control_name))
+                         'initial_conditions.initial_value:{0}'.format(control_name))
+
+            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
+                         'final_conditions.final_value:{0}'.format(control_name))
 
             self.connect('initial_jump:{0}'.format(control_name),
-                         'endpoint_conditions.initial_jump:{0}'.format(control_name),
+                         'initial_conditions.initial_jump:{0}'.format(control_name),
                          src_indices=ar, flat_src_indices=True)
 
             self.connect('final_jump:{0}'.format(control_name),
-                         'endpoint_conditions.final_jump:{0}'.format(control_name),
+                         'final_conditions.final_jump:{0}'.format(control_name),
                          src_indices=ar, flat_src_indices=True)
-
-            promoted_list += ['controls:{0}--'.format(control_name),
-                              'controls:{0}-+'.format(control_name),
-                              'controls:{0}+-'.format(control_name),
-                              'controls:{0}++'.format(control_name)]
-
-        self.add_subsystem(name='endpoint_conditions', subsys=endpoint_comp,
-                           promotes_outputs=promoted_list)
 
     def _setup_path_constraints(self):
         pass
@@ -486,7 +488,7 @@ class ExplicitPhase(PhaseBase):
             if loc == 'initial':
                 obj_path = 'seg_{0}.step_states:{1}'.format(0, name)
             else:
-                obj_path = 'seg_{0}.step_states:{1}'.format(num_seg + 1, name)
+                obj_path = 'seg_{0}.step_states:{1}'.format(num_seg - 1, name)
         elif var_type == 'indep_control':
             obj_path = 'control_interp_comp.control_values:{0}'.format(name)
         elif var_type == 'input_control':
@@ -506,7 +508,7 @@ class ExplicitPhase(PhaseBase):
             if loc == 'initial':
                 obj_path = 'seg_{0}.stage_ode.{1}'.format(0, name)
             else:
-                obj_path = 'seg_{0}.stage_ode.{1}'.format(num_seg + 1, name)
+                obj_path = 'seg_{0}.stage_ode.{1}'.format(num_seg - 1, name)
 
         super(ExplicitPhase, self)._add_objective(obj_path, loc=loc, index=index, shape=shape,
                                                   ref=ref, ref0=ref0, adder=adder,
@@ -516,7 +518,6 @@ class ExplicitPhase(PhaseBase):
 
     def _get_boundary_constraint_src(self, var, loc):
         # Determine the path to the variable which we will be constraining
-        gd = self.grid_data
         time_units = self.time_options['units']
         var_type = self._classify_var(var)
 
@@ -582,12 +583,8 @@ class ExplicitPhase(PhaseBase):
             constraint_path = 'control_rates:{0}'.format(var)
         else:
             # Failed to find variable, assume it is in the RHS
-            if self.options['transcription'] == 'gauss-lobatto':
-                constraint_path = 'rhs_disc.{0}'.format(var)
-            elif self.options['transcription'] == 'radau-ps':
-                constraint_path = 'rhs_all.{0}'.format(var)
-            else:
-                raise ValueError('Invalid transcription')
+            print(var)
+            constraint_path = '{0}.stage_ode.{1}'.format(src_seg, var)
             shape = None
             units = None
             linear = False

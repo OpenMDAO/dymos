@@ -131,7 +131,8 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         order = self._time_extents + indep_controls + \
             input_params + design_params + \
-            ['indep_states', 'time'] + control_interp_comp + ['indep_jumps', 'endpoint_conditions']
+            ['indep_states', 'time'] + control_interp_comp + \
+            ['indep_jumps', 'initial_conditions', 'final_conditions']
 
         if transcription == 'gauss-lobatto':
             order = order + ['rhs_disc', 'state_interp', 'rhs_col', 'collocation_constraint']
@@ -301,19 +302,28 @@ class OptimizerBasedPhaseBase(PhaseBase):
         jump_comp.add_output('final_jump:time', val=0.0, units=self.time_options['units'],
                              desc='discontinuity in time at the end of the phase')
 
-        endpoint_comp = EndpointConditionsComp(time_options=self.time_options,
-                                               state_options=self.state_options,
-                                               control_options=self.control_options)
+        ic_comp = EndpointConditionsComp(loc='initial',
+                                         time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options)
 
-        self.connect('time', 'endpoint_conditions.values:time')
+        self.add_subsystem(name='initial_conditions', subsys=ic_comp, promotes_outputs=['*'])
+
+        fc_comp = EndpointConditionsComp(loc='final',
+                                         time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options)
+
+        self.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
+
+        self.connect('time', 'initial_conditions.initial_value:time')
+        self.connect('time', 'final_conditions.final_value:time')
 
         self.connect('initial_jump:time',
-                     'endpoint_conditions.initial_jump:time')
+                     'initial_conditions.initial_jump:time')
 
         self.connect('final_jump:time',
-                     'endpoint_conditions.final_jump:time')
-
-        promoted_list = ['time--', 'time-+', 'time+-', 'time++']
+                     'final_conditions.final_jump:time')
 
         for state_name, options in iteritems(self.state_options):
             size = np.prod(options['shape'])
@@ -332,20 +342,17 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                       'end of the phase'.format(state_name))
 
             self.connect('states:{0}'.format(state_name),
-                         'endpoint_conditions.values:{0}'.format(state_name))
+                         'initial_conditions.initial_value:{0}'.format(state_name))
+            self.connect('states:{0}'.format(state_name),
+                         'final_conditions.final_value:{0}'.format(state_name))
 
             self.connect('initial_jump:{0}'.format(state_name),
-                         'endpoint_conditions.initial_jump:{0}'.format(state_name),
+                         'initial_conditions.initial_jump:{0}'.format(state_name),
                          src_indices=ar, flat_src_indices=True)
 
             self.connect('final_jump:{0}'.format(state_name),
-                         'endpoint_conditions.final_jump:{0}'.format(state_name),
+                         'final_conditions.final_jump:{0}'.format(state_name),
                          src_indices=ar, flat_src_indices=True)
-
-            promoted_list += ['states:{0}--'.format(state_name),
-                              'states:{0}-+'.format(state_name),
-                              'states:{0}+-'.format(state_name),
-                              'states:{0}++'.format(state_name)]
 
         for control_name, options in iteritems(self.control_options):
             size = np.prod(options['shape'])
@@ -364,23 +371,18 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                       'end of the phase'.format(control_name))
 
             self.connect('control_interp_comp.control_values:{0}'.format(control_name),
-                         'endpoint_conditions.values:{0}'.format(control_name))
+                         'initial_conditions.initial_value:{0}'.format(control_name))
+
+            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
+                         'final_conditions.final_value:{0}'.format(control_name))
 
             self.connect('initial_jump:{0}'.format(control_name),
-                         'endpoint_conditions.initial_jump:{0}'.format(control_name),
+                         'initial_conditions.initial_jump:{0}'.format(control_name),
                          src_indices=ar, flat_src_indices=True)
 
             self.connect('final_jump:{0}'.format(control_name),
-                         'endpoint_conditions.final_jump:{0}'.format(control_name),
+                         'final_conditions.final_jump:{0}'.format(control_name),
                          src_indices=ar, flat_src_indices=True)
-
-            promoted_list += ['controls:{0}--'.format(control_name),
-                              'controls:{0}-+'.format(control_name),
-                              'controls:{0}+-'.format(control_name),
-                              'controls:{0}++'.format(control_name)]
-
-        self.add_subsystem(name='endpoint_conditions', subsys=endpoint_comp,
-                           promotes_outputs=promoted_list)
 
     def _get_boundary_constraint_src(self, var, loc):
         # Determine the path to the variable which we will be constraining
