@@ -15,7 +15,7 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_brachistochrone_for_docs_explicit(self):
         import numpy as np
         import matplotlib
-        # matplotlib.use('Agg')
+        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error

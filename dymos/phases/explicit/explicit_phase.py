@@ -3,7 +3,7 @@ from __future__ import division, print_function, absolute_import
 from collections import Iterable
 
 import numpy as np
-from dymos.phases.components import EndpointConditionsComp
+from dymos.phases.components import EndpointConditionsComp, ExplicitPathConstraintComp
 from dymos.phases.phase_base import PhaseBase, _unspecified
 from dymos.phases.grid_data import GridData
 
@@ -349,7 +349,116 @@ class ExplicitPhase(PhaseBase):
                          src_indices=ar, flat_src_indices=True)
 
     def _setup_path_constraints(self):
-        pass
+        """
+         Add a path constraint component if necessary and issue appropriate connections as
+         part of the setup stack.
+         """
+        path_comp = None
+        gd = self.grid_data
+        time_units = self.time_options['units']
+        num_stages = rk_methods[self.options['method']]['num_stages']
+
+        if self._path_constraints:
+            path_comp = ExplicitPathConstraintComp(grid_data=gd)
+            self.add_subsystem('path_constraints', subsys=path_comp)
+
+        for var, options in iteritems(self._path_constraints):
+            con_units = options.get('units', None)
+            con_name = options['constraint_name']
+
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = self._classify_var(var)
+
+            if var_type == 'time':
+                options['shape'] = (1,)
+                options['units'] = time_units if con_units is None else con_units
+                options['linear'] = True
+                for iseg in range(gd.num_segments):
+                    self.connect(src_name='seg_{0}.t_step',
+                                 tgt_name='path_constraints.all_values:{0}'.format(con_name))
+            elif var_type == 'state':
+                state_shape = self.state_options[var]['shape']
+                state_units = self.state_options[var]['units']
+                options['shape'] = state_shape
+                options['units'] = state_units if con_units is None else con_units
+                options['linear'] = False
+                for iseg in range(gd.num_segments):
+                    src = 'seg_{0}.step_states:{1}'.format(iseg, var)
+                    tgt = 'path_constraints.seg_{0}_values:{1}'.format(iseg, con_name)
+                    self.connect(src_name=src, tgt_name=tgt)
+
+            elif var_type in ('indep_control', 'input_control', 'control_rate', 'control_rate2'):
+                control_shape = self.control_options[var]['shape']
+                control_units = self.control_options[var]['units']
+                options['shape'] = control_shape
+
+                if var_type == 'control_rate':
+                    options['units'] = get_rate_units(control_units, time_units) \
+                        if con_units is None else con_units
+                elif var_type == 'control_rate2':
+                    options['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                        if con_units is None else con_units
+                else:
+                    options['units'] = control_units if con_units is None else con_units
+                options['linear'] = False
+                size = np.prod(options['shape'])
+                for iseg in range(gd.num_segments):
+                    # Get all indices of the source
+                    num_steps = self.grid_data.num_steps_per_segment[iseg]
+                    src_total_size = num_steps * num_stages * size
+                    src_indexer = np.reshape(np.arange(src_total_size, dtype=int),
+                                             newshape=(num_steps, num_stages) + options['shape'])
+                    # Select only the indices that are step values
+                    src_idxs = np.concatenate((src_indexer[:, 0, ...], src_indexer[-1:, -1, ...]),
+                                              axis=0)
+
+                    # Reshape the selected indices to conform with the target shape
+                    tgt_shape = (num_steps + 1,) + options['shape']
+                    src_idxs = np.reshape(src_idxs, tgt_shape)
+
+                    if var_type in ('control_rate', 'control_rate2'):
+                        src = 'seg_{0}.stage_control_rates:{1}'.format(iseg, var).format(iseg, var)
+                    else:
+                        src = 'seg_{0}.stage_control_values:{1}'.format(iseg, var).format(iseg, var)
+
+                    tgt = 'path_constraints.seg_{0}_values:{1}'.format(iseg, con_name)
+
+                    self.connect(src_name=src, tgt_name=tgt,
+                                 src_indices=src_idxs, flat_src_indices=True)
+
+            else:
+                # Failed to find variable, assume it is in the ODE
+                options['linear'] = False
+                # TODO: Be able to path constrain nonscalar ODE variables
+                shape = (1,)
+                size = np.prod(shape)
+                for iseg in range(gd.num_segments):
+                    # Get all indices of the source
+                    num_steps = self.grid_data.num_steps_per_segment[iseg]
+                    src_total_size = num_steps * num_stages * size
+                    src_indexer = np.reshape(np.arange(src_total_size, dtype=int),
+                                             newshape=((num_steps, num_stages) + shape))
+                    # Select only the indices that are step values
+                    src_idxs = np.concatenate((src_indexer[:, 0, ...], src_indexer[-1:, -1, ...]),
+                                              axis=0)
+
+                    # Reshape the selected indices to conform with the target shape
+                    tgt_shape = (num_steps + 1,) + shape
+                    src_idxs = np.reshape(src_idxs, tgt_shape)
+                    print(src_idxs)
+
+                    src = 'seg_{0}.stage_ode.{1}'.format(iseg, var)
+                    tgt = 'path_constraints.seg_{0}_values:{1}'.format(iseg, con_name)
+
+                    self.connect(src_name=src, tgt_name=tgt,
+                                 src_indices=src_idxs, flat_src_indices=True)
+
+            kwargs = options.copy()
+            kwargs.pop('constraint_name', None)
+            path_comp._add_path_constraint(con_name, var_type, **kwargs)
 
     def _get_parameter_connections(self, name):
         """
@@ -585,7 +694,6 @@ class ExplicitPhase(PhaseBase):
             constraint_path = 'control_rates:{0}'.format(var)
         else:
             # Failed to find variable, assume it is in the RHS
-            print(var)
             constraint_path = '{0}.stage_ode.{1}'.format(src_seg, var)
             shape = None
             units = None

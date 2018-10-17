@@ -1,5 +1,7 @@
 from __future__ import division, print_function
 
+from six import iteritems
+
 import numpy as np
 from openmdao.api import ExplicitComponent
 
@@ -242,3 +244,64 @@ class RadauPathConstraintComp(PathConstraintCompBase):
     def compute(self, inputs, outputs):
         for (input_name, output_name, _) in self._vars:
             outputs[output_name] = inputs[input_name]
+
+
+class ExplicitPathConstraintComp(PathConstraintCompBase):
+
+    def setup(self):
+        """
+        Define the independent variables as output variables.
+        """
+        gd = self.options['grid_data']
+        total_num_steps = np.sum(gd.num_steps_per_segment) + gd.num_segments
+        self._vars = {}
+
+        for (name, kwargs) in self._path_constraints:
+
+            self._vars[name] = {'inputs': [],
+                                'output': '',
+                                'dest_indices': []}
+
+            output_name = 'path:{0}'.format(name)
+            output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
+            output_kwargs['shape'] = (total_num_steps,) + kwargs['shape']
+            size = np.prod(kwargs['shape'])
+            self.add_output(output_name, **output_kwargs)
+
+            idx0 = 0
+            for iseg in range(gd.num_segments):
+                num_steps = gd.num_steps_per_segment[iseg]
+                idx1 = idx0 + num_steps + 1
+                input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
+                input_name = 'seg_{0}_values:{1}'.format(iseg, name)
+
+                self.add_input(input_name,
+                               shape=(num_steps + 1,) + kwargs['shape'],
+                               **input_kwargs)
+
+                self._vars[name]['inputs'].append(input_name)
+                self._vars[name]['dest_indices'].append((idx0, idx1))
+
+                ar = np.arange((num_steps + 1) * size, dtype=int)
+
+                self.declare_partials(
+                    of=output_name,
+                    wrt=input_name,
+                    rows=idx0 * size + ar,
+                    cols=ar,
+                    val=1.0)
+
+                idx0 = idx1
+
+            constraint_kwargs = {k: kwargs.get(k, None)
+                                 for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
+                                           'scaler', 'indices', 'linear')}
+            self.add_constraint(output_name, **constraint_kwargs)
+
+            self._vars[name]['output'] = output_name
+
+    def compute(self, inputs, outputs):
+        for name, options in iteritems(self._vars):
+            for i, input_name in  enumerate(options['inputs']):
+                idx0, idx1 = options['dest_indices'][i]
+                outputs[options['output']][idx0:idx1, ...] = inputs[input_name]

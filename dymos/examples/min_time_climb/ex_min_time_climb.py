@@ -15,7 +15,7 @@ SHOW_PLOTS = True
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
-                   transcription_order=3, top_level_jacobian='csc', simul_derivs=True,
+                   transcription_order=3, num_steps=10, top_level_jacobian='csc', simul_derivs=True,
                    force_alloc_complex=False):
 
     p = Problem(model=Group())
@@ -38,6 +38,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase = Phase(transcription,
                   ode_class=MinTimeClimbODE,
                   num_segments=num_seg,
+                  num_steps=num_steps,
                   compressed=True,
                   transcription_order=transcription_order)
 
@@ -85,7 +86,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p.setup(check=True, force_alloc_complex=force_alloc_complex)
 
     p['phase0.t_initial'] = 0.0
-    p['phase0.t_duration'] = 298.46902
+    p['phase0.t_duration'] = 300.0
 
     p['phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='state_input')
     p['phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_input')
@@ -131,5 +132,5 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 if __name__ == '__main__':
     SHOW_PLOTS = False
     p = min_time_climb(
-        optimizer='SNOPT', num_seg=50, transcription='gauss-lobatto', transcription_order=3,
-        force_alloc_complex=False, simul_derivs=True)
+        optimizer='SNOPT', num_seg=5, transcription='explicit', transcription_order=3,
+        num_steps=10, force_alloc_complex=False, simul_derivs=True)
