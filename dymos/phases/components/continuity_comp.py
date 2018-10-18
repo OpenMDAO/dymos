@@ -402,8 +402,9 @@ class ExplicitContinuityComp(ContinuityCompBase):
         num_segments = gd.num_segments
         compressed = gd.compressed
         self.state_vars = {}
+        self._is_multiple_shooting = self.options['shooting'] == 'multiple'
 
-        if self.options['shooting'] != 'multiple' or num_segments <= 1:
+        if not self._is_multiple_shooting or num_segments <= 1:
             return
 
         for state_name, options in iteritems(state_options):
@@ -435,24 +436,27 @@ class ExplicitContinuityComp(ContinuityCompBase):
 
                 # TODO: Partials currently limited to scalar states
                 if iseg == 0:
+                    # First segment
                     r = [0]
                     c = [num_steps]
                     val = -1.0
                 elif iseg == num_segments - 1:
+                    # Last segment
+                    r = [num_segments - 2]
                     c = [0]
-                    r = [1]
                     val = 1.0
                 else:
-                    r = [0, 1]
+                    #
+                    r = [iseg - 1, iseg]
                     c = [0, num_steps]
-                    val = [1, -1]
+                    val = [1.0, -1.0]
 
                 self.declare_partials(of=self.state_vars[state_name]['defect'],
                                       wrt=self.state_vars[state_name]['values'][-1],
                                       rows=r, cols=c, val=val)
 
             # Add the constraint
-            if options['continuity'] and not compressed:
+            if options['continuity']:
                 self.add_constraint(name='defect_states:{0}'.format(state_name),
                                     equals=0.0, scaler=1.0, linear=False)
 
@@ -494,6 +498,9 @@ class ExplicitContinuityComp(ContinuityCompBase):
     def _compute_state_continuity(self, inputs, outputs):
         state_options = self.options['state_options']
         num_segments = self.options['grid_data'].num_segments
+
+        if not self._is_multiple_shooting:
+            return
 
         for i in range(1, num_segments):
             for state_name, options in iteritems(state_options):

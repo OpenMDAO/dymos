@@ -12,7 +12,7 @@ from dymos.utils.hermite import hermite_matrices
 from dymos.utils.lagrange import lagrange_matrices
 
 
-def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
+def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False, *args, **kwargs):
     """
     Returns the subset dictionary corresponding to the Gauss-Lobatto transcription.
 
@@ -63,7 +63,7 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
     return subsets, lgl(n)[0]
 
 
-def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
+def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False, *args, **kwargs):
     """
     Returns the subset dictionary corresponding to the Radau Pseudospectral
     transcription.
@@ -110,7 +110,7 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     return node_indices, lgr(n, include_endpoint=True)[0]
 
 
-def explicit_subsets_and_nodes(n, seg_idx, compressed=False):
+def explicit_subsets_and_nodes(n, seg_idx, compressed=False, shooting='single'):
     """
     Returns the subset dictionary corresponding to the Runge-Kutta transcription.
 
@@ -122,6 +122,8 @@ def explicit_subsets_and_nodes(n, seg_idx, compressed=False):
         The index of this segment within its phase.
     compressed : bool
         True if the subset requested is for a phase with compressed transcription.
+    shooting : str
+        One of the shooting method types for explicit phases ('single', 'hybrid', or 'multiple')
 
     Returns
     -------
@@ -144,8 +146,10 @@ def explicit_subsets_and_nodes(n, seg_idx, compressed=False):
     """
     subsets = {
         'disc': np.arange(0, n, 2, dtype=int),
-        'state_disc': np.zeros((1,), dtype=int) if seg_idx == 0 else np.empty((0,), dtype=int),
-        'state_input': np.zeros((1,), dtype=int) if seg_idx == 0 else np.empty((0,), dtype=int),
+        'state_disc': np.zeros((1,), dtype=int) if seg_idx == 0 or shooting == 'multiple'
+        else np.empty((0,), dtype=int),
+        'state_input': np.zeros((1,), dtype=int) if seg_idx == 0 or shooting == 'multiple'
+        else np.empty((0,), dtype=int),
         'control_disc': np.arange(n, dtype=int),
         'control_input': np.arange(n, dtype=int) if not compressed or seg_idx == 0
         else np.arange(1, n, dtype=int),
@@ -199,7 +203,8 @@ class GridData(object):
     """
 
     def __init__(self, num_segments, transcription, transcription_order=None,
-                 segment_ends=None, compressed=False, num_steps_per_segment=1):
+                 segment_ends=None, compressed=False, num_steps_per_segment=1,
+                 shooting='single'):
         """
         Initialize and compute all attributes.
 
@@ -220,6 +225,9 @@ class GridData(object):
             to the appropriate indices.
         num_steps_per_segment : int or None
             The number of steps to take in each segment, for explicitly integrated phases.
+        shooting : str
+            The type of shooting method to use in explicitly integrated phases, one of 'single',
+            'multiple', or 'hybrid'.
 
         Attributes
         ----------
@@ -337,7 +345,8 @@ class GridData(object):
         for iseg in range(num_segments):
             subsets_i, nodes_i = get_subsets_and_nodes(transcription_order[iseg],
                                                        seg_idx=iseg,
-                                                       compressed=compressed)
+                                                       compressed=compressed,
+                                                       shooting=shooting)
 
             if iseg == 0:
                 subset_names = list(subsets_i.keys())

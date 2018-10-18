@@ -15,6 +15,7 @@ from six import iteritems
 from .solvers.nl_rk_solver import NonlinearRK
 from .components.segment.explicit_segment import ExplicitSegment
 from .components.implicit_segment_connection_comp import ImplicitSegmentConnectionComp
+from ..components.continuity_comp import ExplicitContinuityComp
 from ...utils.rk_methods import rk_methods
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.constants import INF_BOUND
@@ -41,10 +42,11 @@ class ExplicitPhase(PhaseBase):
 
     """
     def __init__(self, num_segments, transcription_order=3, num_steps=10, segment_ends=None,
-                 compressed=True, **kwargs):
+                 compressed=True, shooting='single', **kwargs):
         kwgs = kwargs.copy()
         kwgs.update({'num_segments': num_segments, 'transcription_order': transcription_order,
-                    'segment_ends': segment_ends, 'num_steps': num_steps, 'compressed': compressed})
+                    'segment_ends': segment_ends, 'num_steps': num_steps, 'compressed': compressed,
+                     'shooting': shooting})
 
         super(ExplicitPhase, self).__init__(**kwgs)
 
@@ -57,7 +59,7 @@ class ExplicitPhase(PhaseBase):
         self.grid_data = GridData(num_segments=num_segments, transcription='explicit',
                                   transcription_order=transcription_order,
                                   num_steps_per_segment=num_steps, segment_ends=segment_ends,
-                                  compressed=compressed)
+                                  compressed=compressed, shooting=shooting)
 
     def initialize(self):
         super(ExplicitPhase, self).initialize()
@@ -95,7 +97,9 @@ class ExplicitPhase(PhaseBase):
             input_params + design_params + \
             ['indep_states', 'time'] + control_interp_comp
 
-        order = order + ['segments', 'indep_jumps', 'initial_conditions', 'final_conditions']
+        continuity_comp = ['continuity_comp'] if self.grid_data.num_segments > 1 else []
+        order = order + ['segments'] + continuity_comp + \
+                ['indep_jumps', 'initial_conditions', 'final_conditions']
 
         if self._initial_boundary_constraints:
             order.append('initial_boundary_constraints')
@@ -189,7 +193,7 @@ class ExplicitPhase(PhaseBase):
             for iseg in range(gd.num_segments):
                 self.connect('states:{0}'.format(name),
                              'seg_{0}.initial_states:{1}'.format(iseg, name),
-                             src_indices=gd.subset_node_indices['state_disc'][iseg])
+                             src_indices=[iseg])
                 if shooting in ('single', 'hybrid'):
                     break
 
@@ -252,7 +256,37 @@ class ExplicitPhase(PhaseBase):
         """
         Setup the Collocation and Continuity components as necessary.
         """
-        pass
+        grid_data = self.grid_data
+
+        if grid_data.num_segments > 1:
+            self.add_subsystem('continuity_comp',
+                               ExplicitContinuityComp(grid_data=grid_data,
+                                                      shooting=self.options['shooting'],
+                                                      state_options=self.state_options,
+                                                      control_options=self.control_options,
+                                                      time_units=self.time_options['units']),
+                               promotes_inputs=['t_duration'])
+
+        if self.options['shooting'] == 'multiple':
+            for iseg in range(grid_data.num_segments):
+                for name, options in iteritems(self.state_options):
+                    self.connect('seg_{0}.step_states:{1}'.format(iseg, name),
+                                 'continuity_comp.seg_{0}_states:{1}'.format(iseg, name))
+
+        for name, options in iteritems(self.control_options):
+            control_src_name = 'control_interp_comp.control_values:{0}'.format(name)
+            self.connect(control_src_name,
+                         'continuity_comp.controls:{0}'.format(name),
+                         src_indices=grid_data.subset_node_indices['segment_ends'])
+
+            self.connect('control_rates:{0}_rate'.format(name),
+                         'continuity_comp.control_rates:{}_rate'.format(name),
+                         src_indices=grid_data.subset_node_indices['segment_ends'])
+
+            self.connect('control_rates:{0}_rate2'.format(name),
+                         'continuity_comp.control_rates:{}_rate2'.format(name),
+                         src_indices=grid_data.subset_node_indices['segment_ends'])
+
 
     def _setup_endpoint_conditions(self):
         num_seg = self.grid_data.num_segments
