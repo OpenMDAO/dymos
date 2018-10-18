@@ -31,7 +31,7 @@ class TestStageStateComp(unittest.TestCase):
         ivc.add_output('y', val=0.5 * np.ones(num_steps + 1), units='m')
         ivc.add_output('k:y', val=np.ones((num_steps, 4, 1)), units='m')
 
-        y_comp = StageStateComp(num_steps=4, method='rk4', state_options=state_options)
+        y_comp = StageStateComp(num_steps=num_steps, method='rk4', state_options=state_options)
 
         cls.p.model.add_subsystem('y_comp', y_comp)
 
@@ -67,7 +67,7 @@ class TestStageStateComp(unittest.TestCase):
                          tolerance=1.0E-9)
 
     def test_partials(self):
-        cpd = self.p.check_partials(out_stream=None)
+        cpd = self.p.check_partials(method='cs')
         assert_check_partials(cpd)
 
 

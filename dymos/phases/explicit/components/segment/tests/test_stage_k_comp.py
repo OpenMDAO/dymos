@@ -77,8 +77,8 @@ class TestKComp(unittest.TestCase):
                          tolerance=1.0E-12)
 
     def test_partials(self):
-
-        cpd = self.p.check_partials()
+        cpd = self.p.check_partials(method='cs')
+        assert_check_partials(cpd)
 
 #
 #

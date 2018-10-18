@@ -302,6 +302,6 @@ class ExplicitPathConstraintComp(PathConstraintCompBase):
 
     def compute(self, inputs, outputs):
         for name, options in iteritems(self._vars):
-            for i, input_name in  enumerate(options['inputs']):
+            for i, input_name in enumerate(options['inputs']):
                 idx0, idx1 = options['dest_indices'][i]
                 outputs[options['output']][idx0:idx1, ...] = inputs[input_name]

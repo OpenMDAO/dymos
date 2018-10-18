@@ -15,7 +15,7 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_brachistochrone_for_docs_explicit(self):
         import numpy as np
         import matplotlib
-        matplotlib.use('Agg')
+        # matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
@@ -68,14 +68,6 @@ class TestBrachistochroneExample(unittest.TestCase):
 
         # Test the results
         assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
-
-        # print(phase.get_values('time'))
-        # print(phase.get_values('x'))
-        # print(phase.get_values('theta'))
-        # print(phase.get_values('theta_rate'))
-        # print(phase.get_values('theta_rate2'))
-        # print(phase.get_values('g'))
-        # print(phase.get_values('check'))
 
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']

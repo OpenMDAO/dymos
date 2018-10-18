@@ -448,7 +448,6 @@ class ExplicitPhase(PhaseBase):
                     # Reshape the selected indices to conform with the target shape
                     tgt_shape = (num_steps + 1,) + shape
                     src_idxs = np.reshape(src_idxs, tgt_shape)
-                    print(src_idxs)
 
                     src = 'seg_{0}.stage_ode.{1}'.format(iseg, var)
                     tgt = 'path_constraints.seg_{0}_values:{1}'.format(iseg, con_name)
@@ -813,24 +812,19 @@ class ExplicitPhase(PhaseBase):
 
             path = '{0}.'.format(self.pathname) if self.pathname else ''
 
-            path_map = {'time':
-                            'segments.seg_{0}.stage_time_comp.t_step',
-                        'state':
-                            'segments.seg_{0}.advance_comp.step_states:{1}',
-                        'indep_control':
-                            'segments.seg_{0}.stage_control_comp.stage_control_values:{1}',
-                        'input_control':
-                            'segments.seg_{0}.stage_control_comp.stage_control_values:{1}',
-                        'design_parameter':
-                            'design_params.design_parameters:{0}',
-                        'input_parameter':
-                            'input_params.input_parameters:{0}_out',
-                        'control_rate':
-                            'segments.seg_{0}.stage_control_comp.stage_control_rates:{1}',
-                        'control_rate2':
-                            'segments.seg_{0}.stage_control_comp.stage_control_rates:{1}',
-                        'ode':
-                            'segments.seg_{0}.stage_ode.{1}'}
+            path_map = {'time': 'segments.seg_{0}.stage_time_comp.t_step',
+                        'state': 'segments.seg_{0}.advance_comp.step_states:{1}',
+                        'indep_control': 'segments.seg_{0}.stage_control_comp.'
+                                         'stage_control_values:{1}',
+                        'input_control': 'segments.seg_{0}.stage_control_comp.'
+                                         'stage_control_values:{1}',
+                        'design_parameter': 'design_params.design_parameters:{0}',
+                        'input_parameter': 'input_params.input_parameters:{0}_out',
+                        'control_rate': 'segments.seg_{0}.stage_control_comp.'
+                                        'stage_control_rates:{1}',
+                        'control_rate2': 'segments.seg_{0}.stage_control_comp.'
+                                         'stage_control_rates:{1}',
+                        'ode': 'segments.seg_{0}.stage_ode.{1}'}
 
             if var_type == 'time':
                 output_value = []
@@ -889,7 +883,6 @@ class ExplicitPhase(PhaseBase):
                 output_value = convert_units(outputs[var_path]['value'], output_units, units)
 
             return output_value
-
 
     def get_values(self, var, nodes='steps', units=None):
         """

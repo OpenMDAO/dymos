@@ -155,8 +155,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                                                              units='m')[0]))
         print('cannonball mass: {0:6.4f} kg '.format(p.get_val('size_comp.mass',
                                                                units='kg')[0]))
-        print('launch angle: {0:6.4f} deg '.format(traj.get_values('gam', units='deg')['ascent'][0, 0]))
-        print('maximum range: {0:6.4f} m '.format(traj.get_values('r', units='m')['descent'][-1, 0]))
+        print('launch angle: {0:6.4f} '
+              'deg '.format(traj.get_values('gam', units='deg')['ascent'][0, 0]))
+        print('maximum range: {0:6.4f} '
+              'm '.format(traj.get_values('r', units='m')['descent'][-1, 0]))
 
         fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(8, 6))
 
@@ -179,8 +181,6 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         axes[0].set_xlabel('range (m)')
         axes[0].set_ylabel('altitude (m)')
 
-        # plt.suptitle('Kinetic Energy vs Time')
-
         axes[1].plot(traj.get_values('time')['ascent'],
                      traj.get_values('kinetic_energy.ke')['ascent'],
                      'bo')
@@ -197,18 +197,8 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                      exp_out.get_values('kinetic_energy.ke')['descent'],
                      'r--')
 
-        # axes[1].plot(exp_out_loaded.get_values('time')['ascent'],
-        #              exp_out_loaded.get_values('kinetic_energy.ke')['ascent'],
-        #              'b--')
-        #
-        # axes[1].plot(exp_out_loaded.get_values('time')['descent'],
-        #              exp_out_loaded.get_values('kinetic_energy.ke')['descent'],
-        #              'r--')
-
         axes[1].set_xlabel('time (s)')
         axes[1].set_ylabel(r'kinetic energy (J)')
-
-        # plt.figure()
 
         axes[2].plot(traj.get_values('time')['ascent'],
                      traj.get_values('gam', units='deg')['ascent'],

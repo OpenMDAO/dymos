@@ -51,10 +51,11 @@ class StageKComp(ExplicitComponent):
                 desc='RK multiplier k {0} for each step/stage in the segment.'.format(state_name),
                 units=units)
 
-            ar = np.arange(num_stages * num_steps, dtype=int)
+            ar = np.arange(num_stages * num_steps * size, dtype=int)
             self.declare_partials(of=self.var_names[state_name]['k'],
                                   wrt=self.var_names[state_name]['f'],
-                                  method='fd')  # rows=ar, cols=ar)
+                                  rows=ar,
+                                  cols=ar)
 
             c = np.repeat(np.arange(num_steps, dtype=int), num_stages * size)
             self.declare_partials(of=self.var_names[state_name]['k'],
@@ -70,10 +71,12 @@ class StageKComp(ExplicitComponent):
 
     def compute_partials(self, inputs, partials):
         h = inputs['h']
+        num_stages = rk_methods[self.options['method']]['num_stages']
+
+        d_df = np.repeat(h, num_stages)
 
         for state_name, options in iteritems(self.options['state_options']):
-            # partials[self.var_names[state_name]['k'], self.var_names[state_name]['f']] = \
-            #     np.repeat(h, self.options['num_steps'])
+            partials[self.var_names[state_name]['k'], self.var_names[state_name]['f']] = d_df
 
             partials[self.var_names[state_name]['k'], 'h'] = \
                 inputs[self.var_names[state_name]['f']].ravel()

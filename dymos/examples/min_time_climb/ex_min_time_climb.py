@@ -38,7 +38,6 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase = Phase(transcription,
                   ode_class=MinTimeClimbODE,
                   num_segments=num_seg,
-                  num_steps=num_steps,
                   compressed=True,
                   transcription_order=transcription_order)
 
@@ -132,5 +131,5 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 if __name__ == '__main__':
     SHOW_PLOTS = False
     p = min_time_climb(
-        optimizer='SNOPT', num_seg=5, transcription='explicit', transcription_order=3,
-        num_steps=10, force_alloc_complex=False, simul_derivs=True)
+        optimizer='SNOPT', num_seg=5, transcription='gauss-lobatto', transcription_order=3,
+        force_alloc_complex=False, simul_derivs=True)

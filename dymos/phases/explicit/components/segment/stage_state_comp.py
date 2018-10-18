@@ -3,6 +3,7 @@ from __future__ import print_function, division, absolute_import
 from six import iteritems
 
 import numpy as np
+from scipy.linalg import block_diag
 
 from openmdao.api import ExplicitComponent
 
@@ -25,6 +26,15 @@ class StageStateComp(ExplicitComponent):
         method = self.options['method']
         num_steps = self.options['num_steps']
         num_stages = rk_methods[method]['num_stages']
+        A = rk_methods[method]['A']
+
+        # TODO: These derivatives are incompatible with nonscalar states
+        d_dk = block_diag(*num_steps*[A])
+        r_k, c_k = np.nonzero(d_dk)
+        d_dk_vals = d_dk[r_k, c_k]
+
+        c_s = np.repeat(np.arange(num_steps, dtype=int), num_stages)
+        r_s = np.arange(num_steps * num_stages)
 
         for state_name, options in iteritems(self.options['state_options']):
             shape = options['shape']
@@ -56,104 +66,22 @@ class StageStateComp(ExplicitComponent):
 
             self.declare_partials(of=self.var_names[state_name]['stage_vals'],
                                   wrt=self.var_names[state_name]['step_vals'],
-                                  method='fd')
+                                  rows=r_s, cols=c_s, val=1.0)
 
             self.declare_partials(of=self.var_names[state_name]['stage_vals'],
                                   wrt=self.var_names[state_name]['k'],
-                                  method='fd')
-
-    # def Y_calc_vec(y, K_flat):
-    #     """ given the predicted increments (K),
-    #         compute the predicted stage values (Y)
-    #
-    #         params
-    #         -------
-    #         y: (N+1,) float array
-    #         K: (N, 4) float array
-    #
-    #         returns
-    #         -------
-    #         (N,4) float array
-    #     """
-    #
-    #     N_STEPS = y.shape[0] - 1
-    #     K = K_flat.reshape((N_STEPS, 4))
-    #
-    #     Y = np.zeros((N_STEPS, 4))
-    #     for i in range(N_STEPS):
-    #         K_ = np.zeros(4)
-    #         K_[1:] = K[i, :3]
-    #         Y[i, :] = y[i] + K_ * np.array([0.0, 0.5, 0.5, 1.0])
-    #
-    #     return Y
+                                  rows=r_k, cols=c_k, val=d_dk_vals)
 
     def compute(self, inputs, outputs):
         method = self.options['method']
         num_steps = self.options['num_steps']
-        num_stages = rk_methods[method]['num_stages']
-        # A = np.array([0.0, 0.5, 0.5, 1.0])
         A = rk_methods[method]['A']
-
-        # N_STEPS = y.shape[0] - 1
-        # K = K_flat.reshape((N_STEPS, 4))
-        # A_vec = np.array([0.0, 0.5, 0.5, 1.0])
-        #
-        # Y = np.zeros((N_STEPS, 4))
-        # for i in range(N_STEPS):
-        #     for j in range(1, 4):
-        #         Y[i, j] = K[i, j - 1] * A_vec[j]
-        #     Y[i] += y[i]
 
         for state_name, options in iteritems(self.options['state_options']):
             y_step = inputs[self.var_names[state_name]['step_vals']]
             y_stages = outputs[self.var_names[state_name]['stage_vals']]
             k = inputs[self.var_names[state_name]['k']]
 
-            # y_stages[...] = 0.0
-            # for istep in range(num_steps):
-            #     for jstage in range(1, num_stages):
-            #         y_stages[istep, jstage] = k[istep, jstage - 1] * A[jstage]
-            #     y_stages[istep] += y_step[istep]
-            #
-            # print(y_stages)
-            # # print(y_step[:-1, ...] + np.dot(A, k))
-
-            # y_stages[...] = 0.0
-            # for istep in range(num_steps):
-            #     for jstage in range(1, num_stages):
-            #         y_stages[istep, jstage] = k[istep, jstage - 1] * A[jstage, jstage-1]
-            #     y_stages[istep] += y_step[istep]
-            #
-            # print(y_stages[:, :, 0])
-            #
-            # k_ = np.zeros_like(inputs[self.var_names[state_name]['k']])
-            # k_[:, 1:, ...] = inputs[self.var_names[state_name]['k']][:, :-1, ...]
-            #
-            # y_stages[...] = 0.0
-            # for istep in range(num_steps):
-            #     for jstage in range(1, num_stages):
-            #         y_stages[istep, jstage] = k_[istep, jstage] * A[jstage, jstage-1]
-            #     y_stages[istep] += y_step[istep]
-            #
-            # print(y_stages[:, :, 0])
-
-            # k_ = np.zeros_like(inputs[self.var_names[state_name]['k']])
-            # k_[:, 1:, ...] = inputs[self.var_names[state_name]['k']][:, :-1, ...]
-            # # print(A)
-            # # print(k[:, :, 0])
-            # # print(k_[:, :, 0])
-            # print(y_step[:-1, ...] + np.einsum('nij,nj->ni', A[np.newaxis, :, :], k[:, :, 0]))
-            # print(y_step[:-1, ...])
             np.einsum('nij,njk->nik', A[np.newaxis, :, :], k, out=y_stages)
             for i in range(num_steps):
                 y_stages[i, ...] += y_step[i]
-            # print(y_stages)
-            #
-            # exit(0)
-
-            # np.einsum('nij,nj->ni', A[np.newaxis, :, :], k[:, :, 0], out=y_stages[:, :, 0])
-            # y_stages += y_step[:-1, ...]
-            # print(y_stages)
-            #
-            # exit(0)
-            # y_stages[...] = y_step[:-1, ...] + np.dot(A, k)
