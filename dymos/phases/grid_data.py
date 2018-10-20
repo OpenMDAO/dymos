@@ -12,7 +12,7 @@ from dymos.utils.hermite import hermite_matrices
 from dymos.utils.lagrange import lagrange_matrices
 
 
-def gauss_lobatto_subsets(n, first_seg=False, compressed=False):
+def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False, *args, **kwargs):
     """
     Returns the subset dictionary corresponding to the Gauss-Lobatto transcription.
 
@@ -21,8 +21,8 @@ def gauss_lobatto_subsets(n, first_seg=False, compressed=False):
     n : int
         The total number of nodes in the Gauss-Lobatto segment.  Must be
         an odd number.
-    first_seg : bool
-        True if the subset requested is for the first segment in a phase.
+    seg_idx : int
+        The index of this segment within its phase.
     compressed : bool
         True if the subset requested is for a phase with compressed transcription.
 
@@ -49,20 +49,21 @@ def gauss_lobatto_subsets(n, first_seg=False, compressed=False):
     subsets = {
         'disc': np.arange(0, n, 2, dtype=int),
         'state_disc': np.arange(0, n, 2, dtype=int),
-        'state_input': np.arange(0, n, 2, dtype=int) if not compressed or first_seg
+        'state_input': np.arange(0, n, 2, dtype=int) if not compressed or seg_idx == 0
         else np.arange(2, n, 2, dtype=int),
         'control_disc': np.arange(n, dtype=int),
-        'control_input': np.arange(n, dtype=int) if not compressed or first_seg
+        'control_input': np.arange(n, dtype=int) if not compressed or seg_idx == 0
         else np.arange(1, n, dtype=int),
         'segment_ends': np.array([0, n-1], dtype=int),
         'col': np.arange(1, n, 2, dtype=int),
         'all': np.arange(n, dtype=int),
+        'solution': np.arange(n, dtype=int),
     }
 
-    return subsets
+    return subsets, lgl(n)[0]
 
 
-def radau_pseudospectral_subsets(n, first_seg=False, compressed=False):
+def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False, *args, **kwargs):
     """
     Returns the subset dictionary corresponding to the Radau Pseudospectral
     transcription.
@@ -71,8 +72,8 @@ def radau_pseudospectral_subsets(n, first_seg=False, compressed=False):
     ----------
     n : int
         The total number of nodes in the Radau Pseudospectral segment (including right endpoint).
-    first_seg : bool
-        True if the subset requested is for the first segment in a phase.
+    seg_idx : int
+        The index of this segment within its phase.
     compressed : bool
         True if the subset requested is for a phase with compressed transcription.
 
@@ -95,17 +96,70 @@ def radau_pseudospectral_subsets(n, first_seg=False, compressed=False):
     the same as subset 'control_disc'.
     """
     node_indices = {
-        'disc': np.arange(n),
-        'state_disc': np.arange(n, dtype=int),
-        'state_input': np.arange(n, dtype=int) if not compressed or first_seg
-        else np.arange(1, n, dtype=int),
-        'control_disc': np.arange(n - 1, dtype=int),
-        'control_input': np.arange(n - 1, dtype=int),
-        'segment_ends': np.array([0, n - 1], dtype=int),
-        'col': np.arange(n - 1, dtype=int),
-        'all': np.arange(n, dtype=int),
+        'disc': np.arange(n + 1, dtype=int),
+        'state_disc': np.arange(n + 1, dtype=int),
+        'state_input': np.arange(n + 1, dtype=int) if not compressed or seg_idx == 0
+        else np.arange(1, n + 1, dtype=int),
+        'control_disc': np.arange(n, dtype=int),
+        'control_input': np.arange(n, dtype=int),
+        'segment_ends': np.array([0, n], dtype=int),
+        'col': np.arange(n, dtype=int),
+        'all': np.arange(n + 1, dtype=int),
+        'solution': np.arange(n + 1, dtype=int),
     }
-    return node_indices
+    return node_indices, lgr(n, include_endpoint=True)[0]
+
+
+def explicit_subsets_and_nodes(n, seg_idx, compressed=False, shooting='single'):
+    """
+    Returns the subset dictionary corresponding to the Runge-Kutta transcription.
+
+    Parameters
+    ----------
+    n : int
+        The total number of control discretization nodes in the Runge-Kutta segment.
+    seg_idx : int
+        The index of this segment within its phase.
+    compressed : bool
+        True if the subset requested is for a phase with compressed transcription.
+    shooting : str
+        One of the shooting method types for explicit phases ('single', 'hybrid', or 'multiple')
+
+    Returns
+    -------
+    subsets : dict of {str: np.ndarray}
+        'state_disc' gives the indices of the state discretization nodes
+        'state_input' gives the indices of the state input nodes
+        'control_disc' gives the indices of the control discretization nodes
+        'control_input' gives the indices of the control input nodes
+        'segment_ends' gives the indices of the nodes at the start (even) and end (odd) of a segment
+        'step' gives the indices of the nodes at step boundaries
+        'all' gives all node indices
+    nodes : np.ndarray
+        The location of all nodes on the interval -1, 1.
+
+    Notes
+    -----
+    (subsets, nodes)
+    Subset 'state_input' is the same as subset 'state_disc'.
+
+    """
+    subsets = {
+        'disc': np.arange(0, n, 2, dtype=int),
+        'state_disc': np.zeros((1,), dtype=int) if seg_idx == 0 or shooting == 'multiple'
+        else np.empty((0,), dtype=int),
+        'state_input': np.zeros((1,), dtype=int) if seg_idx == 0 or shooting == 'multiple'
+        else np.empty((0,), dtype=int),
+        'control_disc': np.arange(n, dtype=int),
+        'control_input': np.arange(n, dtype=int) if not compressed or seg_idx == 0
+        else np.arange(1, n, dtype=int),
+        'segment_ends': np.array([0, n-1], dtype=int),
+        'col': np.arange(1, n, 2, dtype=int),
+        'all': np.arange(n, dtype=int),
+        'solution': np.arange(n, dtype=int),
+    }
+
+    return subsets, lgl(n)[0]
 
 
 def make_subset_map(from_subset_idxs, to_subset_idxs):
@@ -149,7 +203,8 @@ class GridData(object):
     """
 
     def __init__(self, num_segments, transcription, transcription_order=None,
-                 segment_ends=None, compressed=False):
+                 segment_ends=None, compressed=False, num_steps_per_segment=1,
+                 shooting='single'):
         """
         Initialize and compute all attributes.
 
@@ -158,7 +213,7 @@ class GridData(object):
         num_segments : int
             The number of segments in the phase.
         transcription : str
-            Case-insensitive transcription scheme (e.g., ('gauss-lobatto', 'radau-ps')).
+            Case-insensitive transcription scheme (e.g., ('gauss-lobatto', 'radau-ps', 'explicit')).
         transcription_order : int or int ndarray[:]
             The order of the state transcription in each segment, as a scalar or a vector.
         segment_ends : Iterable[num_segments + 1] or None
@@ -168,6 +223,11 @@ class GridData(object):
             If the transcription is compressed, then states and controls at shared
             nodes of adjacent segments are only specified once, and then broadcast
             to the appropriate indices.
+        num_steps_per_segment : int or None
+            The number of steps to take in each segment, for explicitly integrated phases.
+        shooting : str
+            The type of shooting method to use in explicitly integrated phases, one of 'single',
+            'multiple', or 'hybrid'.
 
         Attributes
         ----------
@@ -181,6 +241,8 @@ class GridData(object):
             If given as a Iterable, it must be of length (num_segments+1) and it
             must be monotonically increasing.
             If None, then the segments are equally spaced.
+        num_steps_per_segment : int
+            The number of steps to take in each segment of the phase, for explicit phases.
         num_nodes : int
             The total number of nodes in the phase
         node_stau : ndarray
@@ -233,13 +295,15 @@ class GridData(object):
 
         self.num_nodes = 0
 
-        self.node_stau = None
+        self.num_steps_per_segment = 0
 
-        self.node_ptau = None
+        self.node_stau = np.empty(0,)
 
-        self.node_dptau_dstau = None
+        self.node_ptau = np.empty(0,)
 
-        self.segment_indices = None
+        self.node_dptau_dstau = np.empty(0,)
+
+        self.segment_indices = np.empty((num_segments, 2), dtype=int)
 
         self.subset_node_indices = {}
 
@@ -258,13 +322,11 @@ class GridData(object):
 
         # Define get_subsets and node points based on the transcription scheme
         if self.transcription == 'gauss-lobatto':
-            get_subsets = gauss_lobatto_subsets
-            get_points = lgl
+            get_subsets_and_nodes = gauss_lobatto_subsets_and_nodes
         elif self.transcription == 'radau-ps':
-            get_subsets = radau_pseudospectral_subsets
-
-            def get_points(n):
-                return lgr(n, include_endpoint=True)
+            get_subsets_and_nodes = radau_pseudospectral_subsets_and_nodes
+        elif self.transcription == 'explicit':
+            get_subsets_and_nodes = explicit_subsets_and_nodes
         else:
             raise ValueError('Unknown transcription: {0}'.format(transcription))
 
@@ -273,74 +335,65 @@ class GridData(object):
             transcription_order = np.ones(num_segments, int) * transcription_order
         self.transcription_order = transcription_order
 
-        # Determine the list of subset_names
-        subset_names = get_subsets(1).keys()
+        # Make sure num_steps_per_segment is a vector
+        num_steps_per_segment = np.ones(num_segments, int) * num_steps_per_segment
+        self.num_steps_per_segment = num_steps_per_segment
 
-        # Initialize num_nodes and subset_num_nodes
-        self.num_nodes = 0
-        for name in subset_names:
-            self.subset_num_nodes[name] = 0
-            self.subset_num_nodes_per_segment[name] = []
-
-        # Initialize segment_indices and subset_segment_indices
-        self.segment_indices = np.empty((self.num_segments, 2), int)
-        for name in subset_names:
-            self.subset_segment_indices[name] = np.empty((self.num_segments, 2), int)
-
-        # Compute the number of nodes in the phase (total and by subset)
+        # Build up the arrays segment by segment
+        self.segment_indices[0, 0] = 0
+        ind0 = 0  # index of the first node in the segment
         for iseg in range(num_segments):
-            segment_nodes, _ = get_points(transcription_order[iseg])
-            segment_subsets = get_subsets(len(segment_nodes),
-                                          first_seg=iseg == 0,
-                                          compressed=compressed)
+            subsets_i, nodes_i = get_subsets_and_nodes(transcription_order[iseg],
+                                                       seg_idx=iseg,
+                                                       compressed=compressed,
+                                                       shooting=shooting)
 
-            self.num_nodes += len(segment_nodes)
+            if iseg == 0:
+                subset_names = list(subsets_i.keys())
+                subset_ind0 = {name: 0 for name in subset_names}
+                # index of the first node in the segment for each subset
+                subset_ind1 = {name: 0 for name in subset_names}
+                # index of the last node in the segment for each subset
 
-            for name, val in iteritems(segment_subsets):
-                self.subset_num_nodes[name] += len(val)
-                self.subset_num_nodes_per_segment[name].append(len(val))
+            num_nodes_i = len(nodes_i)
+            self.num_nodes += num_nodes_i
 
-        # Now that we know the sizes, allocate arrays
-        self.node_stau = np.empty(self.num_nodes)
-        self.node_ptau = np.empty(self.num_nodes)
-        self.node_dptau_dstau = np.empty(self.num_nodes)
-        for name in subset_names:
-            self.subset_node_indices[name] = np.empty(self.subset_num_nodes[name], int)
+            # Append our nodes in segment tau space
+            self.node_stau = np.concatenate((self.node_stau, nodes_i))
 
-        # Populate the arrays
-        ind0 = 0
-        ind1 = 0
-        subset_ind0 = {name: 0 for name in subset_names}
-        subset_ind1 = {name: 0 for name in subset_names}
-        for iseg in range(num_segments):
-            segment_nodes, _ = get_points(transcription_order[iseg])
-            segment_subsets = get_subsets(len(segment_nodes),
-                                          first_seg=iseg == 0,
-                                          compressed=compressed)
-
-            ind1 += len(segment_nodes)
-            for name in subset_names:
-                subset_ind1[name] += len(segment_subsets[name])
-
-            self.segment_indices[iseg, 0] = ind0
-            self.segment_indices[iseg, 1] = ind1
-            for name in subset_names:
-                self.subset_segment_indices[name][iseg, 0] = subset_ind0[name]
-                self.subset_segment_indices[name][iseg, 1] = subset_ind1[name]
-
+            # Append our nodes in phase tau space
             v0 = segment_ends[iseg]
             v1 = segment_ends[iseg + 1]
-            self.node_stau[ind0:ind1] = segment_nodes
-            self.node_ptau[ind0:ind1] = v0 + 0.5 * (segment_nodes + 1) * (v1 - v0)
-            self.node_dptau_dstau[ind0:ind1] = 0.5 * (v1 - v0)
+            self.node_ptau = np.concatenate((self.node_ptau, v0 + 0.5 * (nodes_i + 1) * (v1 - v0)))
+            self.node_dptau_dstau = np.concatenate((self.node_dptau_dstau,
+                                                    0.5 * (v1 - v0) * np.ones_like(nodes_i)))
 
-            for name in subset_names:
-                self.subset_node_indices[name][subset_ind0[name]:subset_ind1[name]] = \
-                    segment_subsets[name] + ind0
+            self.segment_indices[iseg, 1] = self.segment_indices[iseg, 0] + num_nodes_i
+            if iseg < num_segments - 1:
+                self.segment_indices[iseg + 1, 0] = self.segment_indices[iseg, 1]
 
-            ind0 += len(segment_nodes)
-            for name in subset_names:
-                subset_ind0[name] += len(segment_subsets[name])
+            for subset_name, subset_idxs_i in iteritems(subsets_i):
+                if iseg == 0:
+                    self.subset_num_nodes[subset_name] = 0
+                    self.subset_num_nodes_per_segment[subset_name] = []
+                    self.subset_segment_indices[subset_name] = np.zeros((num_segments, 2),
+                                                                        dtype=int)
+                    self.subset_node_indices[subset_name] = np.empty(0, dtype=int)
+
+                num_subset_nodes_i = len(subset_idxs_i)
+
+                self.subset_num_nodes[subset_name] += num_subset_nodes_i
+                self.subset_num_nodes_per_segment[subset_name].append(num_subset_nodes_i)
+                subset_ind1[subset_name] += num_subset_nodes_i
+
+                self.subset_segment_indices[subset_name][iseg, 0] = subset_ind0[subset_name]
+                self.subset_segment_indices[subset_name][iseg, 1] = subset_ind1[subset_name]
+
+                self.subset_node_indices[subset_name] = \
+                    np.concatenate((self.subset_node_indices[subset_name], subset_idxs_i + ind0))
+                subset_ind0[subset_name] += num_subset_nodes_i
+
+            ind0 += num_nodes_i
 
         state_input_idxs = self.subset_node_indices['state_input']
         state_disc_idxs = self.subset_node_indices['state_disc']

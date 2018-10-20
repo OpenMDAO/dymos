@@ -381,10 +381,10 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.add_design_parameter('g', units='m/s**2', opt=True, val=9.80665)
 
-        phase.add_boundary_constraint('theta', loc='final', lower=90.0, upper=90.0)
-        phase.add_boundary_constraint('theta_rate', loc='final', equals=0.0)
-        phase.add_boundary_constraint('theta_rate2', loc='final', equals=0.0)
-        phase.add_boundary_constraint('g', loc='initial', equals=9.80665)
+        phase.add_boundary_constraint('theta', loc='final', lower=90.0, upper=90.0, units='deg')
+        phase.add_boundary_constraint('theta_rate', loc='final', equals=0.0, units='deg/s')
+        phase.add_boundary_constraint('theta_rate2', loc='final', equals=0.0, units='deg/s**2')
+        phase.add_boundary_constraint('g', loc='initial', equals=9.80665, units='m/s**2')
 
         # Minimize time at the end of the phase
         phase.add_objective('time')

@@ -8,7 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
-class TestTwoPhaseCannonballForDocs(unittest.TestCase):
+class TestTwoPhaseCannonballExplicit(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
@@ -17,9 +17,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    def test_two_phase_cannonball_for_docs(self):
+    def test_two_phase_cannonball_explicit(self):
         from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, SqliteRecorder, \
-            pyOptSparseDriver
+            pyOptSparseDriver, NonlinearBlockGS
         from openmdao.utils.assert_utils import assert_rel_error
 
         from dymos import Phase, Trajectory, load_simulation_results
@@ -30,8 +30,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p = Problem(model=Group())
 
         p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver.options['optimizer'] = 'SNOPT'
         p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.opt_settings['iSumm'] = 6
+        p.driver.opt_settings['Major iterations limit'] = 10
 
         external_params = p.model.add_subsystem('external_params', IndepVarComp())
 
@@ -45,11 +47,14 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', Trajectory())
 
         # First Phase (ascent)
-        ascent = Phase('radau-ps',
+        ascent = Phase('explicit',
                        ode_class=CannonballODE,
-                       num_segments=5,
+                       num_segments=2,
+                       num_steps=10,
                        transcription_order=3,
-                       compressed=True)
+                       compressed=True,
+                       shooting='single',
+                       seg_solver_class=NonlinearBlockGS)
 
         ascent = traj.add_phase('ascent', ascent)
 
@@ -58,19 +63,24 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100), duration_ref=100)
         ascent.set_state_options('r', fix_initial=True, fix_final=False)
         ascent.set_state_options('h', fix_initial=True, fix_final=False)
-        ascent.set_state_options('gam', fix_initial=False, fix_final=True)
+        ascent.set_state_options('gam', fix_initial=False, fix_final=False)
         ascent.set_state_options('v', fix_initial=False, fix_final=False)
+
+        ascent.add_boundary_constraint('gam', loc='final', equals=0.0)
 
         # Limit the muzzle energy
         ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
                                        upper=400000, lower=0, ref=100000)
 
         # Second Phase (descent)
-        descent = Phase('gauss-lobatto',
+        descent = Phase('explicit',
                         ode_class=CannonballODE,
-                        num_segments=5,
+                        num_segments=2,
+                        num_steps=10,
                         transcription_order=3,
-                        compressed=True)
+                        shooting='single',
+                        compressed=True,
+                        seg_solver_class=NonlinearBlockGS)
 
         traj.add_phase('descent', descent)
 
@@ -79,9 +89,11 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100)
         descent.set_state_options('r', fix_initial=False, fix_final=False)
-        descent.set_state_options('h', fix_initial=False, fix_final=True)
+        descent.set_state_options('h', fix_initial=False, fix_final=False)
         descent.set_state_options('gam', fix_initial=False, fix_final=False)
         descent.set_state_options('v', fix_initial=False, fix_final=False)
+
+        descent.add_boundary_constraint('h', loc='final', equals=0.0)
 
         descent.add_objective('r', loc='final', scaler=-1.0)
 
@@ -115,10 +127,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         p.driver.add_recorder(SqliteRecorder('ex_two_phase_cannonball.db'))
 
-        p.setup(check=True)
+        p.setup(check=True, force_alloc_complex=True)
 
         # Set Initial Guesses
-        p.set_val('external_params.radius', 0.05, units='m')
+        p.set_val('external_params.radius', 0.0418, units='m')
         p.set_val('external_params.dens', 7.87, units='g/cm**3')
 
         p.set_val('traj.design_parameters:CD', 0.5)
@@ -126,24 +138,30 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.set_val('traj.design_parameters:T', 0.0)
 
         p.set_val('traj.ascent.t_initial', 0.0)
-        p.set_val('traj.ascent.t_duration', 10.0)
+        p.set_val('traj.ascent.t_duration', 100*1.066529E-01)
 
-        p.set_val('traj.ascent.states:r', ascent.interpolate(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ascent.states:h', ascent.interpolate(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ascent.states:v', ascent.interpolate(ys=[200, 150], nodes='state_input'))
-        p.set_val('traj.ascent.states:gam', ascent.interpolate(ys=[25, 0], nodes='state_input'),
-                  units='deg')
+        p.set_val('traj.ascent.states:r', ascent.interpolate(ys=[0, 100],
+                                                             nodes='state_input'))
+        p.set_val('traj.ascent.states:h', ascent.interpolate(ys=[0, 100],
+                                                             nodes='state_input'))
+        p.set_val('traj.ascent.states:v', ascent.interpolate(ys=[5.761191E+02, 150],
+                                                             nodes='state_input'))
+        p.set_val('traj.ascent.states:gam', ascent.interpolate(ys=[32.0282, 0],
+                                                               nodes='state_input'), units='deg')
 
-        p.set_val('traj.descent.t_initial', 10.0)
-        p.set_val('traj.descent.t_duration', 10.0)
+        p.set_val('traj.descent.t_initial', 100*1.066529E-01)
+        p.set_val('traj.descent.t_duration', 100*1.619769E-01)
 
-        p.set_val('traj.descent.states:r', descent.interpolate(ys=[100, 200], nodes='state_input'))
-        p.set_val('traj.descent.states:h', descent.interpolate(ys=[100, 0], nodes='state_input'))
-        p.set_val('traj.descent.states:v', descent.interpolate(ys=[150, 200], nodes='state_input'))
-        p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45], nodes='state_input'),
-                  units='deg')
-
-        p.run_driver()
+        p.set_val('traj.descent.states:r', descent.interpolate(ys=[2.111144E+03, 200],
+                                                               nodes='state_input'))
+        p.set_val('traj.descent.states:h', descent.interpolate(ys=[9.496352E+02, 0],
+                                                               nodes='state_input'))
+        p.set_val('traj.descent.states:v', descent.interpolate(ys=[1.044448E+02, 200],
+                                                               nodes='state_input'))
+        p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45],
+                                                                 nodes='state_input'), units='deg')
+        # p.run_driver()
+        p.run_model()
 
         assert_rel_error(self, traj.get_values('r')['descent'][-1], 3191.83945861, tolerance=1.0E-2)
 
@@ -155,10 +173,6 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                                                              units='m')[0]))
         print('cannonball mass: {0:6.4f} kg '.format(p.get_val('size_comp.mass',
                                                                units='kg')[0]))
-        print('launch angle: {0:6.4f} '
-              'deg '.format(traj.get_values('gam', units='deg')['ascent'][0, 0]))
-        print('maximum range: {0:6.4f} '
-              'm '.format(traj.get_values('r', units='m')['descent'][-1, 0]))
 
         fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(8, 6))
 
@@ -180,6 +194,8 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         axes[0].set_xlabel('range (m)')
         axes[0].set_ylabel('altitude (m)')
+
+        # plt.suptitle('Kinetic Energy vs Time')
 
         axes[1].plot(traj.get_values('time')['ascent'],
                      traj.get_values('kinetic_energy.ke')['ascent'],

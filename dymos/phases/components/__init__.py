@@ -5,6 +5,7 @@ from .continuity_comp import RadauPSContinuityComp, GaussLobattoContinuityComp
 from .control_interp_comp import ControlInterpComp
 from .input_parameter_comp import InputParameterComp
 from .endpoint_conditions_comp import EndpointConditionsComp
-from .path_constraint_comp import GaussLobattoPathConstraintComp, RadauPathConstraintComp
+from .path_constraint_comp import GaussLobattoPathConstraintComp, RadauPathConstraintComp, \
+    ExplicitPathConstraintComp
 from .phase_linkage_comp import PhaseLinkageComp
 from .time_comp import TimeComp

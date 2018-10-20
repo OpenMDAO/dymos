@@ -492,9 +492,9 @@ class Trajectory(Group):
             design_parameter_values = {}
             input_parameter_values = {}
             for state_name, options in iteritems(phase.state_options):
-                state_values[state_name] = phase.get_values(state_name, nodes='all')
+                state_values[state_name] = phase.get_values(state_name)
             for control_name, options in iteritems(phase.control_options):
-                control_values[control_name] = phase.get_values(control_name, nodes='all')
+                control_values[control_name] = phase.get_values(control_name, nodes='control_disc')
             for dp_name, options in iteritems(phase.design_parameter_options):
                 design_parameter_values[dp_name] = phase.get_values(dp_name, nodes='all')
             for ip_name, options in iteritems(phase.input_parameter_options):
@@ -586,6 +586,9 @@ class Trajectory(Group):
 
         for phase_name in phase_names:
             p = self._phases[phase_name]
+
+            if p.options['transcription'] == 'explicit':
+                node_map[phase_name] = 'steps'
 
             if time_units is None:
                 time_units = p.time_options['units']

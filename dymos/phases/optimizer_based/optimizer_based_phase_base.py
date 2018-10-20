@@ -12,7 +12,7 @@ from ..optimizer_based.components import CollocationComp, StateInterpComp
 from ..components import EndpointConditionsComp
 from ..phase_base import PhaseBase
 from ...utils.constants import INF_BOUND
-from ...utils.misc import CoerceDesvar
+from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.lagrange import lagrange_matrices
 from ...utils.simulation import simulate_phase
 
@@ -131,7 +131,8 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         order = self._time_extents + indep_controls + \
             input_params + design_params + \
-            ['indep_states', 'time'] + control_interp_comp + ['indep_jumps', 'endpoint_conditions']
+            ['indep_states', 'time'] + control_interp_comp + \
+            ['indep_jumps', 'initial_conditions', 'final_conditions']
 
         if transcription == 'gauss-lobatto':
             order = order + ['rhs_disc', 'state_interp', 'rhs_col', 'collocation_constraint']
@@ -142,8 +143,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         if self.grid_data.num_segments > 1:
             order.append('continuity_comp')
-        if getattr(self, 'boundary_constraints', None) is not None:
-            order.append('boundary_constraints')
+        if self._initial_boundary_constraints:
+            order.append('initial_boundary_constraints')
+        if self._final_boundary_constraints:
+            order.append('final_boundary_constraints')
         if getattr(self, 'path_constraints', None) is not None:
             order.append('path_constraints')
         self.set_order(order)
@@ -299,19 +302,28 @@ class OptimizerBasedPhaseBase(PhaseBase):
         jump_comp.add_output('final_jump:time', val=0.0, units=self.time_options['units'],
                              desc='discontinuity in time at the end of the phase')
 
-        endpoint_comp = EndpointConditionsComp(time_options=self.time_options,
-                                               state_options=self.state_options,
-                                               control_options=self.control_options)
+        ic_comp = EndpointConditionsComp(loc='initial',
+                                         time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options)
 
-        self.connect('time', 'endpoint_conditions.values:time')
+        self.add_subsystem(name='initial_conditions', subsys=ic_comp, promotes_outputs=['*'])
+
+        fc_comp = EndpointConditionsComp(loc='final',
+                                         time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options)
+
+        self.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
+
+        self.connect('time', 'initial_conditions.initial_value:time')
+        self.connect('time', 'final_conditions.final_value:time')
 
         self.connect('initial_jump:time',
-                     'endpoint_conditions.initial_jump:time')
+                     'initial_conditions.initial_jump:time')
 
         self.connect('final_jump:time',
-                     'endpoint_conditions.final_jump:time')
-
-        promoted_list = ['time--', 'time-+', 'time+-', 'time++']
+                     'final_conditions.final_jump:time')
 
         for state_name, options in iteritems(self.state_options):
             size = np.prod(options['shape'])
@@ -330,20 +342,17 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                       'end of the phase'.format(state_name))
 
             self.connect('states:{0}'.format(state_name),
-                         'endpoint_conditions.values:{0}'.format(state_name))
+                         'initial_conditions.initial_value:{0}'.format(state_name))
+            self.connect('states:{0}'.format(state_name),
+                         'final_conditions.final_value:{0}'.format(state_name))
 
             self.connect('initial_jump:{0}'.format(state_name),
-                         'endpoint_conditions.initial_jump:{0}'.format(state_name),
+                         'initial_conditions.initial_jump:{0}'.format(state_name),
                          src_indices=ar, flat_src_indices=True)
 
             self.connect('final_jump:{0}'.format(state_name),
-                         'endpoint_conditions.final_jump:{0}'.format(state_name),
+                         'final_conditions.final_jump:{0}'.format(state_name),
                          src_indices=ar, flat_src_indices=True)
-
-            promoted_list += ['states:{0}--'.format(state_name),
-                              'states:{0}-+'.format(state_name),
-                              'states:{0}+-'.format(state_name),
-                              'states:{0}++'.format(state_name)]
 
         for control_name, options in iteritems(self.control_options):
             size = np.prod(options['shape'])
@@ -362,23 +371,96 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                       'end of the phase'.format(control_name))
 
             self.connect('control_interp_comp.control_values:{0}'.format(control_name),
-                         'endpoint_conditions.values:{0}'.format(control_name))
+                         'initial_conditions.initial_value:{0}'.format(control_name))
+
+            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
+                         'final_conditions.final_value:{0}'.format(control_name))
 
             self.connect('initial_jump:{0}'.format(control_name),
-                         'endpoint_conditions.initial_jump:{0}'.format(control_name),
+                         'initial_conditions.initial_jump:{0}'.format(control_name),
                          src_indices=ar, flat_src_indices=True)
 
             self.connect('final_jump:{0}'.format(control_name),
-                         'endpoint_conditions.final_jump:{0}'.format(control_name),
+                         'final_conditions.final_jump:{0}'.format(control_name),
                          src_indices=ar, flat_src_indices=True)
 
-            promoted_list += ['controls:{0}--'.format(control_name),
-                              'controls:{0}-+'.format(control_name),
-                              'controls:{0}+-'.format(control_name),
-                              'controls:{0}++'.format(control_name)]
+    def _get_boundary_constraint_src(self, var, loc):
+        # Determine the path to the variable which we will be constraining
+        time_units = self.time_options['units']
+        var_type = self._classify_var(var)
 
-        self.add_subsystem(name='endpoint_conditions', subsys=endpoint_comp,
-                           promotes_outputs=promoted_list)
+        if var_type == 'time':
+            shape = (1,)
+            units = time_units
+            linear = True
+            constraint_path = 'time'
+        elif var_type == 'state':
+            state_shape = self.state_options[var]['shape']
+            state_units = self.state_options[var]['units']
+            shape = state_shape
+            units = state_units
+            linear = True
+            constraint_path = 'states:{0}'.format(var)
+        elif var_type in 'indep_control':
+            control_shape = self.control_options[var]['shape']
+            control_units = self.control_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = True
+            constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+        elif var_type == 'input_control':
+            control_shape = self.control_options[var]['shape']
+            control_units = self.control_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = False
+            constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+        elif var_type == 'design_parameter':
+            control_shape = self.design_parameter_options[var]['shape']
+            control_units = self.design_parameter_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = True
+            constraint_path = 'design_parameters:{0}'.format(var)
+        elif var_type == 'input_parameter':
+            control_shape = self.input_parameter_options[var]['shape']
+            control_units = self.input_parameter_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = False
+            constraint_path = 'input_parameters:{0}_out'.format(var)
+        elif var_type == 'control_rate':
+            control_var = var[:-5]
+            control_shape = self.control_options[control_var]['shape']
+            control_units = self.control_options[control_var]['units']
+            control_rate_units = get_rate_units(control_units, time_units, deriv=1)
+            shape = control_shape
+            units = control_rate_units
+            linear = False
+            constraint_path = 'control_rates:{0}'.format(var)
+        elif var_type == 'control_rate2':
+            control_var = var[:-6]
+            control_shape = self.control_options[control_var]['shape']
+            control_units = self.control_options[control_var]['units']
+            control_rate_units = get_rate_units(control_units, time_units, deriv=2)
+            shape = control_shape
+            units = control_rate_units
+            linear = False
+            constraint_path = 'control_rates:{0}'.format(var)
+        else:
+            # Failed to find variable, assume it is in the RHS
+            if self.options['transcription'] == 'gauss-lobatto':
+                constraint_path = 'rhs_disc.{0}'.format(var)
+            elif self.options['transcription'] == 'radau-ps':
+                constraint_path = 'rhs_all.{0}'.format(var)
+            else:
+                raise ValueError('Invalid transcription')
+            # TODO: Account for non-scalar variables here.
+            shape = (1,)
+            units = None
+            linear = False
+
+        return constraint_path, shape, units, linear
 
     def interpolate_values(self, var, times):
         """
