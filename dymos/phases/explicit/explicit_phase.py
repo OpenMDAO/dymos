@@ -99,7 +99,7 @@ class ExplicitPhase(PhaseBase):
 
         continuity_comp = ['continuity_comp'] if self.grid_data.num_segments > 1 else []
         order = order + ['segments'] + continuity_comp + \
-                ['indep_jumps', 'initial_conditions', 'final_conditions']
+            ['indep_jumps', 'initial_conditions', 'final_conditions']
 
         if self._initial_boundary_constraints:
             order.append('initial_boundary_constraints')
@@ -256,19 +256,21 @@ class ExplicitPhase(PhaseBase):
         """
         Setup the Collocation and Continuity components as necessary.
         """
-        grid_data = self.grid_data
+        gd = self.grid_data
 
-        if grid_data.num_segments > 1:
-            self.add_subsystem('continuity_comp',
-                               ExplicitContinuityComp(grid_data=grid_data,
-                                                      shooting=self.options['shooting'],
-                                                      state_options=self.state_options,
-                                                      control_options=self.control_options,
-                                                      time_units=self.time_options['units']),
-                               promotes_inputs=['t_duration'])
+        if gd.num_segments < 2:
+            return
+
+        self.add_subsystem('continuity_comp',
+                           ExplicitContinuityComp(grid_data=gd,
+                                                  shooting=self.options['shooting'],
+                                                  state_options=self.state_options,
+                                                  control_options=self.control_options,
+                                                  time_units=self.time_options['units']),
+                           promotes_inputs=['t_duration'])
 
         if self.options['shooting'] == 'multiple':
-            for iseg in range(grid_data.num_segments):
+            for iseg in range(gd.num_segments):
                 for name, options in iteritems(self.state_options):
                     self.connect('seg_{0}.step_states:{1}'.format(iseg, name),
                                  'continuity_comp.seg_{0}_states:{1}'.format(iseg, name))
@@ -277,16 +279,15 @@ class ExplicitPhase(PhaseBase):
             control_src_name = 'control_interp_comp.control_values:{0}'.format(name)
             self.connect(control_src_name,
                          'continuity_comp.controls:{0}'.format(name),
-                         src_indices=grid_data.subset_node_indices['segment_ends'])
+                         src_indices=gd.subset_node_indices['segment_ends'])
 
             self.connect('control_rates:{0}_rate'.format(name),
                          'continuity_comp.control_rates:{}_rate'.format(name),
-                         src_indices=grid_data.subset_node_indices['segment_ends'])
+                         src_indices=gd.subset_node_indices['segment_ends'])
 
             self.connect('control_rates:{0}_rate2'.format(name),
                          'continuity_comp.control_rates:{}_rate2'.format(name),
-                         src_indices=grid_data.subset_node_indices['segment_ends'])
-
+                         src_indices=gd.subset_node_indices['segment_ends'])
 
     def _setup_endpoint_conditions(self):
         num_seg = self.grid_data.num_segments

@@ -53,6 +53,7 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
                        num_steps=10,
                        transcription_order=3,
                        compressed=True,
+                       shooting='single',
                        seg_solver_class=NonlinearBlockGS)
 
         ascent = traj.add_phase('ascent', ascent)
@@ -77,6 +78,7 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
                         num_segments=2,
                         num_steps=10,
                         transcription_order=3,
+                        shooting='single',
                         compressed=True,
                         seg_solver_class=NonlinearBlockGS)
 
@@ -158,7 +160,6 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
                                                                nodes='state_input'))
         p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45],
                                                                  nodes='state_input'), units='deg')
-
         # p.run_driver()
         p.run_model()
 

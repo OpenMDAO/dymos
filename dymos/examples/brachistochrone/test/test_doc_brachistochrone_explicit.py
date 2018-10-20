@@ -17,16 +17,13 @@ class TestBrachistochroneExplicitExample(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, pyOptSparseDriver
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
-        p.driver.opt_settings['iSumm'] = 6
         p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('explicit',
@@ -100,22 +97,18 @@ class TestBrachistochroneExplicitExample(unittest.TestCase):
 
         plt.show()
 
-
     def test_brachistochrone_for_docs_multiple_shooting(self):
         import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, pyOptSparseDriver
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
-        p.driver.opt_settings['iSumm'] = 6
         p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('explicit',
