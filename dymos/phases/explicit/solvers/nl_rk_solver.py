@@ -170,8 +170,11 @@ class NonlinearRK(NonlinearSolver):
             if options['targets'] is not None:
                 ode_iface.model.connect('states:{0}'.format(name),
                                         ['ode.{0}'.format(tgt) for tgt in options['targets']])
-                ode_iface.model.connect('ode.{0}'.format(options['rate_source']),
+
+                rate_path = self._get_rate_source_path(name)
+                ode_iface.model.connect(rate_path,
                                         'state_rate_collector.state_rates_in:{0}_rate'.format(name))
+
         ode_iface.model.add_subsystem('indep_states', subsys=indep, promotes_outputs=['*'])
 
         # The Controls comp
@@ -244,6 +247,30 @@ class NonlinearRK(NonlinearSolver):
         super(NonlinearRK, self)._setup_solvers(system, depth)
 
         self._setup_ode_interface()
+
+    def _get_rate_source_path(self, state_var):
+        var = self.state_options[state_var]['rate_source']
+
+        if var == 'time':
+            rate_path = 'time'
+        elif var in self.state_options:
+            rate_path = 'state'
+        elif var in self.control_options:
+            rate_path = 'control_values:{0}'.format(var)
+        elif var in self.design_parameter_options:
+            rate_path = 'design_parameters:{0}'.format(var)
+        elif var in self.input_parameter_options:
+            rate_path = 'input_parameters:{0}'.format(var)
+        elif var.endswith('_rate'):
+            if var[:-5] in self.control_options:
+                rate_path = 'control_rates:{0}'.format(var)
+        elif var.endswith('_rate2'):
+            if var[:-6] in self.control_options:
+                rate_path = 'control_rates:{0}'.format(var)
+        else:
+            rate_path = 'ode.{0}'.format(var)
+
+        return rate_path
 
     def solve(self):
         """

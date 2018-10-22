@@ -61,30 +61,18 @@ class TestExplicitSegmentSimpleIntegration(unittest.TestCase):
         seg = ExplicitSegment(index=0, num_steps=4, method='rk4', state_options=state_opts,
                               time_options=time_opts, ode_class=TestODE, grid_data=gd)
 
+        # Connect the state rates since this is usually handled at the phase level
+        src_idxs = np.arange(4 * 4, dtype=int).reshape((4, 4, 1))
+        seg.connect('stage_ode.ydot', 'state_rates:y', src_indices=src_idxs, flat_src_indices=True)
+
         cls.p.model.add_subsystem('segment', seg)
 
         cls.p.model.connect('seg_t0_tf', 'segment.seg_t0_tf')
         cls.p.model.connect('y_0', 'segment.initial_states:y')
 
-        # for state_name, options in iteritems(state_opts):
-        #     cls.p.model.connect('segment.stage_ode.{0}'.format(options['rate_source']),
-        #                         'segment.state_rates:{0}'.format(state_name),
-        #                         src_indices=np.arange(16, dtype=int).reshape((4, 4, 1)),
-        #                         flat_src_indices=True)
-        #
-        #     cls.p.model.connect('segment.stage_states:{0}'.format(state_name),
-        #                         ['segment.stage_ode.{0}'.format(t) for t in options['targets']],
-        #                         src_indices=np.arange(16, dtype=int),
-        #                         flat_src_indices=True)
-
-        # cls.p.model.connect('segment.t_stage',
-        #                     ['segment.stage_ode.{0}'.format(t) for t in time_opts['targets']],
-        #                     src_indices=np.arange(16, dtype=int),
-        #                     flat_src_indices=True)
-
     def test_results_nlbgs(self):
         """make sure you get the right answer using the NLBGS solver"""
-        self.p.setup(check=False, force_alloc_complex=True)
+        self.p.setup(check=True, force_alloc_complex=True)
         self.p.model.segment.nonlinear_solver.options['iprint'] = 2
 
         self.p.run_model()

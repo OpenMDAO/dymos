@@ -1059,6 +1059,27 @@ class PhaseBase(Group):
         """
         raise NotImplementedError()
 
+    def _get_rate_source_path(self, state_name, nodes, **kwargs):
+        """
+        Given the name of a variable to be used as a rate source, provide the source connection
+        path for that variable in the Phase.
+
+        Parameters
+        ----------
+        state_name : str
+            The name of the state variable whose source path and indices is desired.
+        nodes : str
+            The name of the node subset from which the rate source is desired.
+
+        Returns
+        -------
+        path : str
+            The full path to the rate source in the system.
+        src_idxs : np.ndarray
+            The source indices in the resulting src that provide the values at the given nodes.
+        """
+        raise NotImplementedError()
+
     def _setup_rhs(self):
         raise NotImplementedError()
 
