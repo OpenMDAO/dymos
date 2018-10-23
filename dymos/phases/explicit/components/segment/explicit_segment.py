@@ -117,13 +117,11 @@ class ExplicitSegment(Group):
                            promotes_outputs=['*'])
 
         for state_name, options in iteritems(state_options):
-            size = np.prod(options['shape'])
-            self.connect('stage_ode.{0}'.format(options['rate_source']),
-                         'state_rates:{0}'.format(state_name),
-                         src_indices=np.arange(num_steps * num_stages * size,
-                                               dtype=int).reshape((num_steps, num_stages, size)),
-                         flat_src_indices=True)
 
+            # Connection of state rates is handled at the phase level so that state rates
+            # that don't come from the ODE can be handled.
+
+            size = np.prod(options['shape'])
             self.connect('stage_states:{0}'.format(state_name),
                          ['stage_ode.{0}'.format(t) for t in options['targets']],
                          src_indices=np.arange(num_steps * num_stages * size, dtype=int),

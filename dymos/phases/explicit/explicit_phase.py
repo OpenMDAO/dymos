@@ -173,8 +173,67 @@ class ExplicitPhase(PhaseBase):
                                         input_parameter_options=self.input_parameter_options,
                                         seg_solver_class=self.options['seg_solver_class'])
 
+            for state_name, options in iteritems(self.state_options):
+                rate_source = options['rate_source']
+                if rate_source in self.design_parameter_options or \
+                        rate_source in self.input_parameter_options:
+                    sys = self
+                    tgt = 'seg_{0}.state_rates:{1}'.format(iseg, state_name)
+                else:
+                    sys = segment_i
+                    tgt = 'state_rates:{1}'.format(iseg, state_name)
+                # Connect the state rate source for each segment
+                rate_path, src_idxs = self._get_rate_source_path(state_name,
+                                                                 nodes=None,
+                                                                 seg_index=iseg)
+                sys.connect(rate_path, tgt, src_indices=src_idxs, flat_src_indices=True)
+
             segments_group.add_subsystem('seg_{0}'.format(iseg),
                                          subsys=segment_i)
+
+    def _get_rate_source_path(self, state_name, nodes, **kwargs):
+        gd = self.grid_data
+        var = self.state_options[state_name]['rate_source']
+        shape = self.state_options[state_name]['shape']
+        var_type = self._classify_var(var)
+        seg_index = kwargs['seg_index']
+        num_steps = gd.num_steps_per_segment[seg_index]
+        num_stages = rk_methods[self.options['method']]['num_stages']
+
+        # Determine the path to the variable
+        if var_type == 'time':
+            rate_path = 't_stage'.format(seg_index)
+            src_idxs = None
+        elif var_type == 'state':
+            rate_path = 'seg_{0}.stage_states:{0}'.format(var)
+        elif var_type == 'indep_control':
+            rate_path = 'stage_control_values:{0}'.format(var)
+            src_idxs = None
+        elif var_type == 'input_control':
+            rate_path = 'stage_control_values:{0}'.format(var)
+            src_idxs = None
+        elif var_type == 'control_rate':
+            rate_path = 'stage_control_rates:{0}'.format(var)
+            src_idxs = None
+        elif var_type == 'control_rate2':
+            rate_path = 'stage_control_rates:{0}'.format(var)
+            src_idxs = None
+        elif var_type == 'design_parameter':
+            rate_path = 'design_parameters:{0}'.format(var)
+            size = np.prod(self.design_parameter_options[var]['shape'])
+            src_idxs = np.zeros(num_steps * num_stages * size, dtype=int)
+        elif var_type == 'input_parameter':
+            rate_path = 'input_parameters:{0}_out'.format(var)
+            size = np.prod(self.input_parameter_options[var]['shape'])
+            src_idxs = np.zeros(num_steps * num_stages * size, dtype=int)
+        else:
+            # Failed to find variable, assume it is in the ODE
+            rate_path = 'stage_ode.{0}'.format(var)
+            state_size = np.prod(shape)
+            size = num_steps * num_stages * state_size
+            src_idxs = np.arange(size, dtype=int).reshape((num_steps, num_stages, state_size))
+
+        return rate_path, src_idxs
 
     def _setup_states(self):
         """
@@ -183,25 +242,28 @@ class ExplicitPhase(PhaseBase):
         gd = self.grid_data
         num_state_input_nodes = gd.subset_num_nodes['state_input']
         shooting = self.options['shooting']
+        num_stages = rk_methods[self.options['method']]['num_stages']
 
         indep = IndepVarComp()
-        for name, options in iteritems(self.state_options):
-            indep.add_output(name='states:{0}'.format(name),
+        for state_name, options in iteritems(self.state_options):
+            size = np.prod(options['shape'])
+            indep.add_output(name='states:{0}'.format(state_name),
                              shape=(num_state_input_nodes, np.prod(options['shape'])),
                              units=options['units'])
 
             for iseg in range(gd.num_segments):
-                self.connect('states:{0}'.format(name),
-                             'seg_{0}.initial_states:{1}'.format(iseg, name),
-                             src_indices=[iseg])
-                if shooting in ('single', 'hybrid'):
-                    break
+                num_steps = gd.num_steps_per_segment[iseg]
+
+                if iseg == 0 or shooting == 'multiple':
+                    self.connect('states:{0}'.format(state_name),
+                                 'seg_{0}.initial_states:{1}'.format(iseg, state_name),
+                                 src_indices=[iseg])
 
         self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
 
         # Add the initial state values as design variables, if necessary
 
-        for name, options in iteritems(self.state_options):
+        for state_name, options in iteritems(self.state_options):
             size = np.prod(options['shape'])
             if options['opt']:
                 desvar_indices = list(range(size * num_state_input_nodes))
@@ -209,7 +271,7 @@ class ExplicitPhase(PhaseBase):
                 if options['fix_initial']:
                     if options['initial_bounds'] is not None:
                         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                                         'initial_bounds for state {0}'.format(name))
+                                         'initial_bounds for state {0}'.format(state_name))
                     if isinstance(options['fix_initial'], Iterable):
                         idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
                         for idx_to_fix in reversed(sorted(idxs_to_fix)):
@@ -233,7 +295,7 @@ class ExplicitPhase(PhaseBase):
                         lb[0] = options['initial_bounds'][0]
                         ub[0] = options['initial_bounds'][-1]
 
-                    self.add_design_var(name='states:{0}'.format(name),
+                    self.add_design_var(name='states:{0}'.format(state_name),
                                         lower=lb,
                                         upper=ub,
                                         scaler=coerce_desvar_option('scaler'),

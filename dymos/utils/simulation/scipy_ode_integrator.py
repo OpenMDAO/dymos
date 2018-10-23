@@ -104,8 +104,6 @@ class ScipyODEIntegrator(object):
             if options['targets'] is not None:
                 self.prob.model.connect('states:{0}'.format(name),
                                         ['ode.{0}'.format(tgt) for tgt in options['targets']])
-            self.prob.model.connect('ode.{0}'.format(options['rate_source']),
-                                    'state_rate_collector.state_rates_in:{0}_rate'.format(name))
 
         self.prob.model.add_subsystem('indep_states', subsys=indep,
                                       promotes_outputs=['*'])
@@ -122,6 +120,30 @@ class ScipyODEIntegrator(object):
 
         # Flag that is set to true if has_controls is called
         self._has_dynamic_controls = False
+
+    def _get_rate_source_path(self, state_var):
+        var = self.state_options[state_var]['rate_source']
+
+        if var == 'time':
+            rate_path = 'time'
+        elif var in self.state_options:
+            rate_path = 'state'
+        elif var in self.control_options:
+            rate_path = 'controls:{0}'.format(var)
+        elif var in self.design_parameter_options:
+            rate_path = 'design_parameters:{0}'.format(var)
+        elif var in self.input_parameter_options:
+            rate_path = 'input_parameters:{0}'.format(var)
+        elif var.endswith('_rate'):
+            if var[:-5] in self.control_options:
+                rate_path = 'control_rates:{0}'.format(var)
+        elif var.endswith('_rate2'):
+            if var[:-6] in self.control_options:
+                rate_path = 'control_rates:{0}'.format(var)
+        else:
+            rate_path = 'ode.{0}'.format(var)
+
+        return rate_path
 
     def setup(self, check=False):
         """
@@ -185,6 +207,10 @@ class ScipyODEIntegrator(object):
                     targets = self.ode_options._parameters[options['target_param']]['targets']
                     model.connect('input_parameters:{0}'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in targets])
+
+        for name, options in iteritems(self.state_options):
+            self.prob.model.connect(self._get_rate_source_path(name),
+                                    'state_rate_collector.state_rates_in:{0}_rate'.format(name))
 
         order += ['ode', 'state_rate_collector']
         model.set_order(order)

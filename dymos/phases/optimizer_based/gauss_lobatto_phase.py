@@ -240,6 +240,48 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             kwargs.pop('constraint_name', None)
             path_comp._add_path_constraint(con_name, var_type, **kwargs)
 
+    def _get_rate_source_path(self, state_name, nodes, **kwargs):
+        gd = self.grid_data
+        var = self.state_options[state_name]['rate_source']
+        var_type = self._classify_var(var)
+
+        # Determine the path to the variable
+        if var_type == 'time':
+            rate_path = 'time'
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'state':
+            rate_path = 'states:{0}'.format(var)
+        elif var_type == 'indep_control':
+            rate_path = 'control_interp_comp.control_values:{0}'.format(var)
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'input_control':
+            rate_path = 'control_interp_comp.control_values:{0}'.format(var)
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'control_rate':
+            control_name = var[:-5]
+            rate_path = 'control_rates:{0}_rate'.format(control_name)
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'control_rate2':
+            control_name = var[:-6]
+            rate_path = 'control_rates:{0}_rate2'.format(control_name)
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'design_parameter':
+            rate_path = 'design_parameters:{0}'.format(var)
+            src_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+        elif var_type == 'input_parameter':
+            rate_path = 'input_parameters:{0}_out'.format(var)
+            src_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+        else:
+            # Failed to find variable, assume it is in the RHS
+            if nodes == 'col':
+                rate_path = 'rhs_col.{0}'.format(var)
+                src_idxs = None
+            elif nodes == 'disc':
+                rate_path = 'rhs_disc.{0}'.format(var)
+                src_idxs = None
+
+        return rate_path, src_idxs
+
     def _setup_rhs(self):
         super(GaussLobattoPhase, self)._setup_rhs()
 
@@ -276,9 +318,11 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                     'state_interp.state_col:{0}'.format(name),
                     ['rhs_col.{0}'.format(tgt) for tgt in options['targets']])
 
-            self.connect(
-                'rhs_disc.{0}'.format(options['rate_source']),
-                'state_interp.staterate_disc:{0}'.format(name))
+            rate_path, src_idxs = self._get_rate_source_path(name, nodes='disc')
+
+            self.connect(rate_path,
+                         'state_interp.staterate_disc:{0}'.format(name),
+                         src_indices=src_idxs)
 
     def _setup_defects(self):
         super(GaussLobattoPhase, self)._setup_defects()
@@ -288,9 +332,11 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             self.connect(
                 'state_interp.staterate_col:%s' % name,
                 'collocation_constraint.f_approx:%s' % name)
-            self.connect(
-                'rhs_col.%s' % options['rate_source'],
-                'collocation_constraint.f_computed:%s' % name)
+
+            rate_path, src_idxs = self._get_rate_source_path(name, nodes='col')
+            self.connect(rate_path,
+                         'collocation_constraint.f_computed:%s' % name,
+                         src_indices=src_idxs)
 
         if grid_data.num_segments > 1:
             self.add_subsystem('continuity_comp',

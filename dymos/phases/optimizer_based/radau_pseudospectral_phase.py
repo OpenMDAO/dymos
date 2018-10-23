@@ -97,24 +97,6 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 self.connect('control_rates:{0}_rate2'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
-    # def _setup_design_parameters(self):
-    #     super(RadauPseudospectralPhase, self)._setup_design_parameters()
-    #
-    #     for name, options in iteritems(self.design_parameter_options):
-    #
-    #         map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-    #
-    #         if not options['input_value']:
-    #             src_name = 'design_parameters:{0}'.format(name)
-    #         else:
-    #             src_name = 'design_parameters:{0}_out'.format(name)
-    #
-    #         if name in self.ode_options._parameters:
-    #             targets = self.ode_options._parameters[name]['targets']
-    #             self.connect(src_name,
-    #                          ['rhs_all.{0}'.format(t) for t in targets],
-    #                          src_indices=map_indices_to_all)
-
     def _get_parameter_connections(self, name):
         """
         Returns a list containing tuples of each path and related indices to which the
@@ -272,9 +254,11 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 'state_interp.staterate_col:{0}'.format(name),
                 'collocation_constraint.f_approx:{0}'.format(name))
 
-            self.connect('rhs_all.{0}'.format(options['rate_source']),
+            rate_src, src_idxs = self._get_rate_source_path(name, nodes='col')
+
+            self.connect(rate_src,
                          'collocation_constraint.f_computed:{0}'.format(name),
-                         src_indices=grid_data.subset_node_indices['col'])
+                         src_indices=src_idxs)
 
         if grid_data.num_segments > 1:
             self.add_subsystem('continuity_comp',
@@ -283,6 +267,44 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                      control_options=self.control_options,
                                                      time_units=self.time_options['units']),
                                promotes_inputs=['t_duration'])
+
+    def _get_rate_source_path(self, state_name, nodes, **kwargs):
+        gd = self.grid_data
+        var = self.state_options[state_name]['rate_source']
+        var_type = self._classify_var(var)
+
+        # Determine the path to the variable
+        if var_type == 'time':
+            rate_path = 'time'
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'state':
+            rate_path = 'states:{0}'.format(var)
+        elif var_type == 'indep_control':
+            rate_path = 'control_interp_comp.control_values:{0}'.format(var)
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'input_control':
+            rate_path = 'control_interp_comp.control_values:{0}'.format(var)
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'control_rate':
+            control_name = var[:-5]
+            rate_path = 'control_rates:{0}_rate'.format(control_name)
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'control_rate2':
+            control_name = var[:-6]
+            rate_path = 'control_rates:{0}_rate2'.format(control_name)
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'design_parameter':
+            rate_path = 'design_parameters:{0}'.format(var)
+            src_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+        elif var_type == 'input_parameter':
+            rate_path = 'input_parameters:{0}_out'.format(var)
+            src_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+        else:
+            # Failed to find variable, assume it is in the ODE
+            rate_path = 'rhs_all.{0}'.format(var)
+            src_idxs = gd.subset_node_indices[nodes]
+
+        return rate_path, src_idxs
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
