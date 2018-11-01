@@ -76,7 +76,8 @@ class TestSimulateRecording(unittest.TestCase):
                                                    50))
 
         cr = CaseReader('phase0_sim.db')
-        last_case = cr.system_cases.get_case(-1)
+        system_cases = cr.list_cases('root')
+        last_case = cr.get_case(system_cases[-1])
 
         for var in ['time', 'states:x', 'states:y', 'states:v', 'controls:theta']:
             if ':' in var:

@@ -79,9 +79,11 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
         assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
 
         cr = CaseReader('brachistochrone_solution.db')
+        system_cases = cr.list_cases('root')
+        case = cr.get_case(system_cases[-1])
 
-        outputs = dict([(o[0], o[1]) for o in cr.list_outputs(units=True, shape=True,
-                                                              out_stream=None)])
+        outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
+                                                                out_stream=None)])
 
         assert_rel_error(self, p['phase0.controls:theta'],
                          outputs['phase0.indep_controls.controls:theta']['value'])

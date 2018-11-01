@@ -200,9 +200,11 @@ class PhaseSimulationResults(object):
             The path of the file from which to load the simulation results.
         """
         cr = CaseReader(filename)
-        case = cr.system_cases.get_case(-1)
-        loaded_outputs = cr.list_outputs(case=case, explicit=True, implicit=True, values=True,
-                                         units=True, shape=True, out_stream=None)
+        system_cases = cr.list_cases('root')
+        case = cr.get_case(system_cases[-1])
+
+        loaded_outputs = case.list_outputs(explicit=True, implicit=True, values=True,
+                                           units=True, shape=True, out_stream=None)
 
         self.outputs = {'indep': {}, 'states': {}, 'controls': {}, 'control_rates': {},
                         'design_parameters': {}, 'input_parameters': {}, 'ode': {}}

@@ -239,10 +239,12 @@ class TrajectorySimulationResults(object):
         """
         cr = CaseReader(filename)
 
-        case = cr.system_cases.get_case(-1)
+        system_cases = cr.list_cases('root')
 
-        loaded_outputs = cr.list_outputs(case=case, explicit=True, implicit=True, values=True,
-                                         units=True, shape=True, out_stream=None)
+        case = cr.get_case(system_cases[-1])
+
+        loaded_outputs = case.list_outputs(explicit=True, implicit=True, values=True,
+                                           units=True, shape=True, out_stream=None)
 
         phase_names = set([s[0].split('.')[1] for s in loaded_outputs
                            if s[0].startswith('phases.')])
