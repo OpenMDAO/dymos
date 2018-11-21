@@ -289,29 +289,12 @@ class ODEOptions(object):
             If True, the parameter has a different value at each time step (dynamic parameter);
             otherwise, the parameter has the same value at all time steps (static parameter).
             A dynamic parameter should have shape (num_nodes, ...) where ... is
-            defined by the shape argument.
-        """
-        if dynamic:
-            self._declare_dynamic_parameter(name, targets, shape=shape, units=units)
-
-    def _declare_dynamic_parameter(self, name, targets, shape=None, units=None):
-        """
-        Declare an input to the ODE.
-
-        Parameters
-        ----------
-        name : str
-            The name of the dynamic parameter.
-        targets : string_types or Iterable or None
-            Paths to inputs in the ODE to which the incoming value of the dynamic parameter
-            needs to be connected.
-        shape : int or tuple or None
-            Shape of the parameter.
-        units : str or None
-            Units of the parameter.
+            defined by the shape argument.  Since the Jacobian shape differs depending on whether
+            or not it is dynamic, it is generally a good idea to declare parameters as dynamic
+            unless there is no chance that they will need to be used as dynamic controls.
         """
         if name in self._parameters:
-            raise ValueError('Dynamic parameter {0} has already been declared.'.format(name))
+            raise ValueError('Parameter {0} has already been declared.'.format(name))
 
         options = _ODEParameterOptionsDictionary()
 
@@ -330,7 +313,7 @@ class ODEOptions(object):
             raise ValueError('shape must be of type int or Iterable or None')
         if units is not None:
             options['units'] = units
-        options['dynamic'] = True
+        options['dynamic'] = dynamic
 
         self._check_targets(name, options['targets'])
         self._parameters[name] = options

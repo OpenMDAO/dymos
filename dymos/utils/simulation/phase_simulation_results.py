@@ -9,6 +9,7 @@ from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder, CaseReade
 from openmdao.utils.units import valid_units, convert_units
 
 from dymos.utils.misc import get_rate_units, convert_to_ascii
+from dymos.utils.indexing import get_src_indices_by_row
 
 
 class PhaseSimulationResults(object):
@@ -129,16 +130,28 @@ class PhaseSimulationResults(object):
 
         # Connect design parameters
         for name, options in iteritems(self.design_parameter_options):
+            shape = options['shape']
             units = options['units']
-            ivc.add_output('design_parameters:{0}'.format(name),
-                           val=np.zeros((nn,) + options['shape']), units=units)
+
+            if options['dynamic']:
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)[0]
+
+            ivc.add_output('design_parameters:{0}'.format(name), shape=shape, units=units)
+
             p.model.connect('design_parameters:{0}'.format(name),
                             ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
-                            src_indices=np.arange(nn, dtype=int))
+                            src_indices=src_idxs, flat_src_indices=True)
 
         # Connect input parameters
         for name, options in iteritems(self.input_parameter_options):
             units = options['units']
+            shape = options['shape']
+            dynamic = options['dynamic']
+
             ivc.add_output('input_parameters:{0}'.format(name),
                            val=np.zeros((nn,) + options['shape']), units=units)
             p.model.connect('input_parameters:{0}'.format(name),
@@ -171,13 +184,11 @@ class PhaseSimulationResults(object):
 
         # Assign design parameters
         for name, options in iteritems(self.design_parameter_options):
-            shape = p['design_parameters:{0}'.format(name)].shape
-            p['design_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
+            p['design_parameters:{0}'.format(name)] = self.get_values(name)[0, ...]
 
         # Assign input parameters
         for name, options in iteritems(self.input_parameter_options):
-            shape = p['input_parameters:{0}'.format(name)].shape
-            p['input_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
+            p['input_parameters:{0}'.format(name)] = self.get_values(name)[0, ...]
 
         # Populate outputs of ODE
         prom2abs_ode_outputs = p.model.ode._var_allprocs_prom2abs_list['output']

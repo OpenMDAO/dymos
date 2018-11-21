@@ -55,7 +55,7 @@ class SpacecraftReorientationODE(ExplicitComponent):
         self.add_output(name='dXdt:w',
                         val=np.zeros((nn, 3)),
                         desc='rate of change of angular velocity',
-                        units='rad/s')
+                        units='rad/s**2')
 
         tmp = np.ones((4, 4), dtype=int)
         np.fill_diagonal(tmp, 0)

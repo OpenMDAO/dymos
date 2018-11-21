@@ -8,6 +8,7 @@ from ..grid_data import GridData
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
 from ..components import RadauPathConstraintComp, RadauPSContinuityComp
 from ...utils.misc import get_rate_units
+from ...utils.indexing import get_src_indices_by_row
 
 
 class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
@@ -109,13 +110,26 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             given design variable is to be connected.
         """
         connection_info = []
-        map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
 
         if name in self.ode_options._parameters:
+            shape = self.ode_options._parameters[name]['shape']
+            dynamic = self.ode_options._parameters[name]['dynamic']
             targets = self.ode_options._parameters[name]['targets']
 
+            if self.ode_options._parameters[name]['dynamic']:
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+
+            if not dynamic:
+                src_idxs = np.squeeze(src_idxs, axis=0)
+            elif shape == (1,):
+                src_idxs = src_idxs.ravel()
+
             rhs_all_tgts = ['rhs_all.{0}'.format(t) for t in targets]
-            connection_info.append((rhs_all_tgts, map_indices_to_all))
+            connection_info.append((rhs_all_tgts, src_idxs))
 
         return connection_info
 
@@ -258,7 +272,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
             self.connect(rate_src,
                          'collocation_constraint.f_computed:{0}'.format(name),
-                         src_indices=src_idxs)
+                         src_indices=src_idxs, flat_src_indices=True)
 
         if grid_data.num_segments > 1:
             self.add_subsystem('continuity_comp',
@@ -271,38 +285,51 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
     def _get_rate_source_path(self, state_name, nodes, **kwargs):
         gd = self.grid_data
         var = self.state_options[state_name]['rate_source']
+        # Note the rate source must be shape-compatible with the state
+        shape = self.state_options[state_name]['shape']
         var_type = self._classify_var(var)
 
         # Determine the path to the variable
         if var_type == 'time':
             rate_path = 'time'
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'state':
             rate_path = 'states:{0}'.format(var)
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'indep_control':
             rate_path = 'control_interp_comp.control_values:{0}'.format(var)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'input_control':
             rate_path = 'control_interp_comp.control_values:{0}'.format(var)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'control_rate':
             control_name = var[:-5]
             rate_path = 'control_rates:{0}_rate'.format(control_name)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'control_rate2':
             control_name = var[:-6]
             rate_path = 'control_rates:{0}_rate2'.format(control_name)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'design_parameter':
             rate_path = 'design_parameters:{0}'.format(var)
-            src_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+            dynamic = self.design_parameter_options[var]['dynamic']
+            if dynamic:
+                node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+            else:
+                node_idxs = np.zeros(1, dtype=int)
         elif var_type == 'input_parameter':
             rate_path = 'input_parameters:{0}_out'.format(var)
-            src_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+            dynamic = self.design_parameter_options[var]['dynamic']
+            if dynamic:
+                node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+            else:
+                node_idxs = np.zeros(1, dtype=int)
         else:
             # Failed to find variable, assume it is in the ODE
             rate_path = 'rhs_all.{0}'.format(var)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
+
+        src_idxs = get_src_indices_by_row(node_idxs, shape=shape)
 
         return rate_path, src_idxs
 

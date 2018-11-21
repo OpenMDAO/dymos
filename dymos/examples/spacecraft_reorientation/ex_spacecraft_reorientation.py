@@ -22,7 +22,7 @@ from dymos.examples.spacecraft_reorientation.spacecraft_reorientation_eom import
 
 
 def spacecraft_reorientation(optimizer='SNOPT', num_seg=20, transcription='radau-ps',
-                             transcription_order=3):
+                             compressed=True, transcription_order=3):
 
     p = Problem(model=Group())
 
@@ -35,7 +35,7 @@ def spacecraft_reorientation(optimizer='SNOPT', num_seg=20, transcription='radau
         p.driver.opt_settings['iSumm'] = 6
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-        p.driver.opt_settings['Function precision'] = 1.0E-6
+        p.driver.opt_settings['Function precision'] = 1.0E-12
         p.driver.opt_settings['Linesearch tolerance'] = 0.10
         p.driver.opt_settings['Major step limit'] = 0.5
         p.driver.opt_settings['Verify level'] = 3
@@ -43,17 +43,17 @@ def spacecraft_reorientation(optimizer='SNOPT', num_seg=20, transcription='radau
     phase = Phase(transcription,
                   ode_class=SpacecraftReorientationODE,
                   num_segments=num_seg,
-                  compressed=True,
+                  compressed=compressed,
                   transcription_order=transcription_order)
 
     p.model.add_subsystem('phase0', phase)
 
-    phase.set_time_options(fix_initial=True, duration_bounds=(5, 50),
-                           duration_ref=50.0)
+    phase.set_time_options(fix_initial=True, duration_bounds=(5, 30),
+                           duration_ref=30.0)
 
-    phase.set_state_options('q', fix_initial=True, fix_final=True)
+    phase.set_state_options('q', fix_initial=True, fix_final=True, defect_ref=1.0)
 
-    phase.set_state_options('w', fix_initial=True, fix_final=True)
+    phase.set_state_options('w', fix_initial=True, fix_final=True, defect_ref=1.0)
 
     phase.add_control('u', lower=-50.0, upper=50.0, ref0=-50, ref=50.0)
 
@@ -70,22 +70,49 @@ def spacecraft_reorientation(optimizer='SNOPT', num_seg=20, transcription='radau
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 40.0
 
-    dangle = np.radians(150)
+    dangle = np.radians(150./2)
 
     q_0 = [0, 0, 0, 1]
     q_f = [np.sin(dangle), 0, 0, np.cos(dangle)]
 
     w_0 = w_f = [0, 0, 0]
 
-    u_0 = u_f = [0, 0, 0]
+    u_0 = [50, 0, 50]
+    u_f = [-50, 50, 0]
 
     p['phase0.states:q'] = phase.interpolate(ys=[q_0, q_f], nodes='state_input')
     p['phase0.states:w'] = phase.interpolate(ys=[w_0, w_f], nodes='state_input')
     p['phase0.controls:u'] = phase.interpolate(ys=[u_0, u_f], nodes='control_input')
-    p['phase0.design_parameters:I'] = [5621., 4547., 2364.]
+    p['phase0.design_parameters:I'][:] = [5621., 4547., 2364.]
 
     p.run_model()
+    p.run_driver()
+
+    return p
 
 
 if __name__ == '__main__':
-    spacecraft_reorientation('SNOPT', num_seg=20, transcription='radau-ps', transcription_order=3)
+    p = spacecraft_reorientation('SNOPT', num_seg=20, compressed=False,
+                                 transcription='radau-ps', transcription_order=5)
+
+    phase = p.model.phase0
+    print(phase.get_values('q'))
+    print(phase.get_values('w'))
+    print(phase.get_values('u'))
+
+    exp_out = phase.simulate()
+
+    import matplotlib.pyplot as plt
+    plt.figure()
+    plt.plot(phase.get_values('time'), phase.get_values('q'), label=['q0', 'q1', 'q2', 'q3'])
+    plt.legend()
+
+    plt.figure()
+    plt.plot(phase.get_values('time'), phase.get_values('w'), label='w')
+    plt.legend()
+
+    plt.figure()
+    plt.plot(phase.get_values('time'), phase.get_values('u'), label='w')
+    plt.legend()
+
+

@@ -62,7 +62,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                             scaler=1.0E-3, defect_scaler=1.0E-3)
 
     phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
-                      continuity=True, rate_continuity=True, rate2_continuity=False)
+                      continuity=True, rate_continuity=True, rate2_continuity=True)
 
     phase.add_design_parameter('S', val=49.2386, units='m**2', opt=False)
     phase.add_design_parameter('Isp', val=1600.0, units='s', opt=False)
@@ -131,5 +131,5 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 if __name__ == '__main__':
     SHOW_PLOTS = False
     p = min_time_climb(
-        optimizer='SNOPT', num_seg=5, transcription='gauss-lobatto', transcription_order=3,
+        optimizer='SNOPT', num_seg=3, transcription='radau-ps', transcription_order=5,
         force_alloc_complex=False, simul_derivs=True)

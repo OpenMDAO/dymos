@@ -133,6 +133,9 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
                           'for the optimization problem.  If False, allow the '
                           'control to be connected externally.')
 
+        self.declare(name='dynamic', types=bool, default=True,
+                     desc='True if this parameter can be used as a dynamic control, else False')
+
         self.declare(name='targets', types=Iterable, default=[], allow_none=True,
                      desc='Used to store target information on a per-phase basis for trajectories.')
 
@@ -191,6 +194,9 @@ class InputParameterOptionsDictionary(OptionsDictionary):
 
         self.declare(name='desc', types=string_types, default='',
                      desc='The description of the design parameter.')
+
+        self.declare(name='dynamic', types=bool, default=True,
+                     desc='True if this parameter can be used as a dynamic control, else False')
 
         self.declare(name='targets', types=Iterable, default=[], allow_none=True,
                      desc='Used to store target information on a per-phase basis for trajectories.')
