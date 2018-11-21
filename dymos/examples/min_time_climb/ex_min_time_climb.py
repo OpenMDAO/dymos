@@ -38,7 +38,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase = Phase(transcription,
                   ode_class=MinTimeClimbODE,
                   num_segments=num_seg,
-                  compressed=True,
+                  compressed=False,
                   transcription_order=transcription_order)
 
     p.model.add_subsystem('phase0', phase)

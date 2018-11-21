@@ -7,11 +7,11 @@ import numpy as np
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.examples.spacecraft_reorientation.spacecraft_reorientation_ode import \
-    SpacecraftReorientationODE
+from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import \
+    BrachistochroneVectorStatesODE
 
 
-class TestSpacecraftReorientationEOM(unittest.TestCase):
+class TestBrachistochroneVectorStatesODE(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -20,18 +20,17 @@ class TestSpacecraftReorientationEOM(unittest.TestCase):
         p = cls.p = Problem(model=Group())
 
         ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
-        ivc.add_output('I', val=np.ones(3), units='kg*m**2')
-        ivc.add_output('q', val=np.zeros((nn, 4)), units=None)
-        ivc.add_output('w', val=np.zeros((nn, 3)), units='rad/s')
-        ivc.add_output('u', val=np.zeros((nn, 3)), units='N*m')
+        ivc.add_output('v', val=np.ones((nn,)), units='m/s')
+        ivc.add_output('g', val=np.zeros((nn,)), units='m/s**2')
+        ivc.add_output('theta', val=np.zeros((nn)), units='rad')
 
-        p.model.add_subsystem('eom', SpacecraftReorientationODE(num_nodes=nn),
+        p.model.add_subsystem('eom', BrachistochroneVectorStatesODE(num_nodes=nn),
                               promotes_inputs=['*'], promotes_outputs=['*'])
         p.setup(check=True, force_alloc_complex=True)
 
-        p['I'] = [5621., 4547., 2364.]
-        p['q'] = np.random.rand(nn, 4)
-        p['w'] = np.random.rand(nn, 3)
+        p['v'] = np.random.rand(nn)
+        p['g'] = np.random.rand(nn)
+        p['theta'] = np.random.rand(nn)
 
         p.run_model()
 

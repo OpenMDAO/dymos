@@ -105,8 +105,7 @@ class PhaseSimulationResults(object):
             ivc.add_output('controls:{0}'.format(name),
                            val=np.zeros((nn,) + options['shape']), units=units)
             p.model.connect('controls:{0}'.format(name),
-                            ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
-                            src_indices=np.arange(nn, dtype=int))
+                            ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']])
 
             rate_units = get_rate_units(units, self.time_options['units'], deriv=1)
             ivc.add_output('control_rates:{0}_rate'.format(name),
@@ -115,8 +114,7 @@ class PhaseSimulationResults(object):
             if options['rate_param']:
                 rate_targets = sys_param_options[options['rate_param']]['targets']
                 p.model.connect('control_rates:{0}_rate'.format(name),
-                                ['ode.{0}'.format(t) for t in rate_targets],
-                                src_indices=np.arange(nn, dtype=int))
+                                ['ode.{0}'.format(t) for t in rate_targets])
 
             rate2_units = get_rate_units(units, self.time_options['units'], deriv=2)
             ivc.add_output('control_rates:{0}_rate2'.format(name),
@@ -125,16 +123,16 @@ class PhaseSimulationResults(object):
             if options['rate2_param']:
                 rate2_targets = sys_param_options[options['rate2_param']]['targets']
                 p.model.connect('control_rates:{0}_rate2'.format(name),
-                                ['ode.{0}'.format(t) for t in rate2_targets],
-                                src_indices=np.arange(nn, dtype=int))
+                                ['ode.{0}'.format(t) for t in rate2_targets])
 
         # Connect design parameters
         for name, options in iteritems(self.design_parameter_options):
             shape = options['shape']
+            size = np.prod(shape)
             units = options['units']
 
             if options['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs_raw = np.zeros(nn, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
             else:
                 src_idxs_raw = np.zeros(1, dtype=int)
@@ -150,13 +148,20 @@ class PhaseSimulationResults(object):
         for name, options in iteritems(self.input_parameter_options):
             units = options['units']
             shape = options['shape']
-            dynamic = options['dynamic']
+            size = np.prod(shape)
 
-            ivc.add_output('input_parameters:{0}'.format(name),
-                           val=np.zeros((nn,) + options['shape']), units=units)
-            p.model.connect('input_parameters:{0}'.format(name),
+            if options['dynamic']:
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)[0]
+
+            ivc.add_output('design_parameters:{0}'.format(name), shape=shape, units=units)
+
+            p.model.connect('design_parameters:{0}'.format(name),
                             ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
-                            src_indices=np.arange(nn, dtype=int))
+                            src_indices=src_idxs, flat_src_indices=True)
 
         p.setup(check=False)
 

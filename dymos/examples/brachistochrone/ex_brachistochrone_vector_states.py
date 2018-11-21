@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
 from dymos import Phase
-from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
+    import BrachistochroneVectorStatesODE
 
 SHOW_PLOTS = True
 
@@ -31,7 +32,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p.driver.options['dynamic_simul_derivs'] = dynamic_simul_derivs
 
     phase = Phase(transcription,
-                  ode_class=BrachistochroneODE,
+                  ode_class=BrachistochroneVectorStatesODE,
                   num_segments=num_segments,
                   transcription_order=transcription_order,
                   compressed=compressed)
@@ -40,8 +41,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-    phase.set_state_options('x', fix_initial=True, fix_final=True)
-    phase.set_state_options('y', fix_initial=True, fix_final=True)
+    phase.set_state_options('pos', fix_initial=True, fix_final=True)
     phase.set_state_options('v', fix_initial=True, fix_final=False)
 
     phase.add_control('theta', continuity=True, rate_continuity=True,
@@ -59,8 +59,10 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 2.0
 
-    p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-    p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+    pos0 = [0, 10]
+    posf = [10, 5]
+
+    p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
     p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
     p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
     p['phase0.design_parameters:g'] = 9.80665
@@ -76,11 +78,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = phase.get_values('x', nodes='all')
-        y_imp = phase.get_values('y', nodes='all')
+        x_imp = phase.get_values('pos', nodes='all')[:, 0]
+        y_imp = phase.get_values('pos', nodes='all')[:, 1]
 
-        x_exp = exp_out.get_values('x')
-        y_exp = exp_out.get_values('y')
+        x_exp = exp_out.get_values('pos')[:, 0]
+        y_exp = exp_out.get_values('pos')[:, 1]
 
         ax.plot(x_imp, y_imp, 'ro', label='implicit')
         ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -113,6 +115,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 
 if __name__ == '__main__':
-    brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10, run_driver=True,
+    brachistochrone_min_time(transcription='radau-ps', num_segments=10, run_driver=True,
                              top_level_jacobian='csc', transcription_order=3, compressed=True,
                              optimizer='SNOPT')

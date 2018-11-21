@@ -31,8 +31,9 @@ class ContinuityCompBase(ExplicitComponent):
         state_options = self.options['state_options']
         num_segend_nodes = self.options['grid_data'].subset_num_nodes['segment_ends']
         num_segments = self.options['grid_data'].num_segments
+        compressed = self.options['grid_data'].compressed
 
-        if num_segments <= 1:
+        if num_segments <= 1 or compressed:
             return
 
         for state_name, options in iteritems(state_options):
@@ -88,6 +89,7 @@ class ContinuityCompBase(ExplicitComponent):
         control_options = self.options['control_options']
         num_segend_nodes = self.options['grid_data'].subset_num_nodes['segment_ends']
         num_segments = self.options['grid_data'].num_segments
+        compressed = self.options['grid_data'].compressed
         time_units = self.options['time_units']
 
         if num_segments <= 1:
@@ -135,23 +137,25 @@ class ContinuityCompBase(ExplicitComponent):
                 ('control_rates:{0}_rate2'.format(control_name),
                  'defect_control_rates:{0}_rate2'.format(control_name))
 
-            self.add_input(
-                name='controls:{0}'.format(control_name),
-                shape=(num_segend_nodes,) + shape,
-                desc='Values of control {0} at discretization nodes'.format(control_name),
-                units=units)
+            if not compressed:
 
-            self.add_output(
-                name='defect_controls:{0}'.format(control_name),
-                val=5*np.ones((num_segments - 1,) + shape),
-                desc='Continuity constraint values for control {0}'.format(control_name),
-                units=units)
+                self.add_input(
+                    name='controls:{0}'.format(control_name),
+                    shape=(num_segend_nodes,) + shape,
+                    desc='Values of control {0} at discretization nodes'.format(control_name),
+                    units=units)
 
-            self.declare_partials(
-                'defect_controls:{0}'.format(control_name),
-                'controls:{0}'.format(control_name),
-                val=vals, rows=rs, cols=cs,
-            )
+                self.add_output(
+                    name='defect_controls:{0}'.format(control_name),
+                    val=5*np.ones((num_segments - 1,) + shape),
+                    desc='Continuity constraint values for control {0}'.format(control_name),
+                    units=units)
+
+                self.declare_partials(
+                    'defect_controls:{0}'.format(control_name),
+                    'controls:{0}'.format(control_name),
+                    val=vals, rows=rs, cols=cs,
+                )
 
             #
             # Setup first derivative continuity
@@ -249,7 +253,7 @@ class ContinuityCompBase(ExplicitComponent):
         state_options = self.options['state_options']
         num_segments = self.options['grid_data'].num_segments
 
-        if num_segments <= 1:
+        if num_segments <= 1 or self.options['grid_data'].compressed:
             return
 
         for state_name, options in iteritems(state_options):
@@ -264,10 +268,12 @@ class ContinuityCompBase(ExplicitComponent):
         dt_dptau = inputs['t_duration'] / 2.0
 
         for name, options in iteritems(control_options):
-            input_name, output_name = self.name_maps[name]['value_names']
-            end_vals = inputs[input_name][1:-1:2, ...]
-            start_vals = inputs[input_name][2:-1:2, ...]
-            outputs[output_name] = start_vals - end_vals
+
+            if not self.options['grid_data'].compressed:
+                input_name, output_name = self.name_maps[name]['value_names']
+                end_vals = inputs[input_name][1:-1:2, ...]
+                start_vals = inputs[input_name][2:-1:2, ...]
+                outputs[output_name] = start_vals - end_vals
 
             input_name, output_name = self.name_maps[name]['rate_names']
             end_vals = inputs[input_name][1:-1:2, ...]

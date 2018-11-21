@@ -7,11 +7,11 @@ import numpy as np
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.examples.spacecraft_reorientation.spacecraft_reorientation_ode import \
-    SpacecraftReorientationODE
+from dymos.examples.spacecraft_reorientation.spacecraft_reorientation_dae import \
+    SpacecraftReorientationDAEEOM
 
 
-class TestSpacecraftReorientationEOM(unittest.TestCase):
+class TestSpacecraftReorientationDAEEOM(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -21,16 +21,18 @@ class TestSpacecraftReorientationEOM(unittest.TestCase):
 
         ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
         ivc.add_output('I', val=np.ones(3), units='kg*m**2')
-        ivc.add_output('q', val=np.zeros((nn, 4)), units=None)
+        ivc.add_output('q02', val=np.zeros((nn, 3)), units=None)
+        ivc.add_output('q3', val=np.zeros((nn)), units=None)
         ivc.add_output('w', val=np.zeros((nn, 3)), units='rad/s')
         ivc.add_output('u', val=np.zeros((nn, 3)), units='N*m')
 
-        p.model.add_subsystem('eom', SpacecraftReorientationODE(num_nodes=nn),
+        p.model.add_subsystem('eom', SpacecraftReorientationDAEEOM(num_nodes=nn),
                               promotes_inputs=['*'], promotes_outputs=['*'])
         p.setup(check=True, force_alloc_complex=True)
 
         p['I'] = [5621., 4547., 2364.]
-        p['q'] = np.random.rand(nn, 4)
+        p['q02'] = np.random.rand(nn, 3)
+        p['q3'] = np.random.rand(nn)
         p['w'] = np.random.rand(nn, 3)
 
         p.run_model()
