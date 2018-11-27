@@ -241,7 +241,6 @@ class ContinuityCompBase(ExplicitComponent):
                                     equals=0.0, scaler=options['rate2_continuity_scaler'],
                                     linear=False)
 
-
     def setup(self):
         self.rate_jac_templates = {}
         self.name_maps = {}
@@ -319,43 +318,13 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
     """
     pass
-    # def _setup_state_continuity(self):
-    #     state_options = self.options['state_options']
-    #     num_segments = self.options['grid_data'].num_segments
-    #     compressed = self.options['grid_data'].compressed
-    #
-    #     if num_segments <= 1:
-    #         return
-    #
-    #     super(GaussLobattoContinuityComp, self)._setup_state_continuity()
-    #
-    #     for state_name, options in iteritems(state_options):
-    #         if options['continuity'] and not compressed:
-    #             self.add_constraint(name='defect_states:{0}'.format(state_name),
-    #                                 equals=0.0, scaler=1.0, linear=True)
+
 
 class RadauPSContinuityComp(ContinuityCompBase):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
     """
     pass
-    # def _setup_state_continuity(self):
-    #     state_options = self.options['state_options']
-    #     num_segments = self.options['grid_data'].num_segments
-    #     compressed = self.options['grid_data'].compressed
-    #
-    #     if num_segments <= 1:
-    #         return
-    #
-    #     super(RadauPSContinuityComp, self)._setup_state_continuity()
-    #
-    #     for state_name, options in iteritems(state_options):
-    #         if options['continuity'] and not compressed:
-    #             self.add_constraint(name='defect_states:{0}'.format(state_name),
-    #                                 equals=0.0, scaler=1.0, linear=True)
-    #             print('continuity constraint added for', state_name)
-    #         else:
-    #             print('no constraint added for', state_name)
 
 
 class ExplicitContinuityComp(ContinuityCompBase):

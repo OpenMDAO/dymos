@@ -339,9 +339,10 @@ class ExplicitPhase(PhaseBase):
 
         for name, options in iteritems(self.control_options):
             control_src_name = 'control_interp_comp.control_values:{0}'.format(name)
-            self.connect(control_src_name,
-                         'continuity_comp.controls:{0}'.format(name),
-                         src_indices=gd.subset_node_indices['segment_ends'])
+            if not self.grid_data.compressed:
+                self.connect(control_src_name,
+                             'continuity_comp.controls:{0}'.format(name),
+                             src_indices=gd.subset_node_indices['segment_ends'])
 
             self.connect('control_rates:{0}_rate'.format(name),
                          'continuity_comp.control_rates:{}_rate'.format(name),

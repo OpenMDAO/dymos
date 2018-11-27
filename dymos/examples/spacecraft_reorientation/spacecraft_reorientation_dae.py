@@ -23,8 +23,8 @@ class SpacecraftReiorientationDAE(Group):
 
         self.add_subsystem('q3_comp',
                            ExecComp('q3 = 1 - q02_mag',
-                                    q02_mag={'value':np.zeros(nn)},
-                                    q3={'value':np.ones(nn)}),
+                                    q02_mag={'value': np.zeros(nn)},
+                                    q3={'value': np.ones(nn)}),
                            promotes_inputs=['q02_mag'], promotes_outputs=['q3'])
 
         self.add_subsystem('eom', SpacecraftReorientationDAEEOM(num_nodes=nn),
@@ -100,7 +100,6 @@ class SpacecraftReorientationDAEEOM(ExplicitComponent):
         template = np.kron(np.eye(nn, dtype=int), tmp)
         rs, cs = np.nonzero(template)
         self.declare_partials('dXdt:q02', 'w', rows=rs, cols=cs, val=5)
-
 
         ar3 = np.arange(3*nn)
         self.declare_partials('dXdt:w', 'u', rows=ar3, cols=ar3)

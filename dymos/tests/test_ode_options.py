@@ -111,6 +111,11 @@ State Options:
         shape: (1,)
         units: m
 Parameter Options:
+    g
+        targets: ['g']
+        shape: (1,)
+        dynamic: True
+        units: m/s**2
     theta
         targets: ['theta']
         shape: (1,)

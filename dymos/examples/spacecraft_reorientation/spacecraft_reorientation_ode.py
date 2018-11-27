@@ -68,7 +68,6 @@ class SpacecraftReorientationODE(ExplicitComponent):
         rs, cs = np.nonzero(template)
         self.declare_partials('dXdt:q', 'w', rows=rs, cols=cs, val=5.0)
 
-
         ar3 = np.arange(3*nn)
         self.declare_partials('dXdt:w', 'u', rows=ar3, cols=ar3)
 

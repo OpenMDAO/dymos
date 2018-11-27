@@ -128,17 +128,18 @@ class PhaseSimulationResults(object):
         # Connect design parameters
         for name, options in iteritems(self.design_parameter_options):
             shape = options['shape']
-            size = np.prod(shape)
             units = options['units']
 
             if options['dynamic']:
                 src_idxs_raw = np.zeros(nn, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                if shape == (1,):
+                    src_idxs = src_idxs.ravel()
             else:
                 src_idxs_raw = np.zeros(1, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)[0]
 
-            ivc.add_output('design_parameters:{0}'.format(name), shape=shape, units=units)
+            ivc.add_output('design_parameters:{0}'.format(name), shape=(nn,) + shape, units=units)
 
             p.model.connect('design_parameters:{0}'.format(name),
                             ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
@@ -146,20 +147,21 @@ class PhaseSimulationResults(object):
 
         # Connect input parameters
         for name, options in iteritems(self.input_parameter_options):
-            units = options['units']
             shape = options['shape']
-            size = np.prod(shape)
+            units = options['units']
 
             if options['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs_raw = np.zeros(nn, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                if shape == (1,):
+                    src_idxs = src_idxs.ravel()
             else:
                 src_idxs_raw = np.zeros(1, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)[0]
 
-            ivc.add_output('design_parameters:{0}'.format(name), shape=shape, units=units)
+            ivc.add_output('input_parameters:{0}'.format(name), shape=(nn,) + shape, units=units)
 
-            p.model.connect('design_parameters:{0}'.format(name),
+            p.model.connect('input_parameters:{0}'.format(name),
                             ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
                             src_indices=src_idxs, flat_src_indices=True)
 
@@ -245,9 +247,9 @@ class PhaseSimulationResults(object):
                 elif output_name.startswith('design_parameters:'):
                     var_type = 'design_parameters'
                     var_name = output_name.replace('design_parameters:', '', 1)
-                # elif output_name.startswith('traj_design_parameters:'):
-                #     var_type = 'traj_design_parameters'
-                #     var_name = output_name.replace('traj_design_parameters:', '', 1)
+                elif output_name.startswith('input_parameters:'):
+                    var_type = 'input_parameters'
+                    var_name = output_name.replace('input_parameters:', '', 1)
 
                 val = options['value']
 

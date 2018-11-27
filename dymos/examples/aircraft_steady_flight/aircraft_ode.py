@@ -18,7 +18,9 @@ from .mass_comp import MassComp
 @declare_state('range', rate_source='range_rate_comp.dXdt:range', units='m')
 @declare_state('mass_fuel', targets=['mass_comp.mass_fuel'],
                rate_source='propulsion.dXdt:mass_fuel', units='kg')
-@declare_parameter('alt', targets=['atmos.h', 'aero.alt', 'propulsion.alt'], units='m')
+@declare_state('alt', targets=['atmos.h', 'aero.alt', 'propulsion.alt'],
+               rate_source='climb_rate', units='m')
+# @declare_parameter('alt', targets=['atmos.h', 'aero.alt', 'propulsion.alt'], units='m')
 @declare_parameter('climb_rate', targets=['gam_comp.climb_rate'], units='m/s')
 @declare_parameter('mach', targets=['tas_comp.mach', 'aero.mach'], units='m/s')
 @declare_parameter('S', targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'], units='m**2')

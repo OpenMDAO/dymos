@@ -100,8 +100,10 @@ if __name__ == '__main__':
 
     import matplotlib.pyplot as plt
     plt.figure()
-    plt.plot(phase.get_values('time'), phase.get_values('q'), marker='o', label=['q0', 'q1', 'q2', 'q3'])
-    plt.plot(exp_out.get_values('time'), exp_out.get_values('q'), label=['q0', 'q1', 'q2', 'q3'])
+    plt.plot(phase.get_values('time'), phase.get_values('q'), marker='o',
+             label=['q0', 'q1', 'q2', 'q3'])
+    plt.plot(exp_out.get_values('time'), exp_out.get_values('q'),
+             label=['q0', 'q1', 'q2', 'q3'])
     plt.legend()
 
     plt.figure()
@@ -114,7 +116,4 @@ if __name__ == '__main__':
     plt.plot(exp_out.get_values('time'), exp_out.get_values('u'), 'b-', label='w')
     plt.legend()
 
-
     plt.show()
-
-

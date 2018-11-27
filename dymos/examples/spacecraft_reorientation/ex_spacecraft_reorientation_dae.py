@@ -51,7 +51,8 @@ def spacecraft_reorientation(optimizer='SNOPT', num_seg=20, transcription='radau
     phase.set_time_options(fix_initial=True, duration_bounds=(5, 50),
                            duration_ref=30.0)
 
-    phase.set_state_options('q02', fix_initial=True, fix_final=True, lower=-1, upper=1, defect_ref=1.0)
+    phase.set_state_options('q02', fix_initial=True, fix_final=True, lower=-1, upper=1,
+                            defect_ref=1.0)
 
     phase.set_state_options('w', fix_initial=True, fix_final=False, defect_ref=1.0)
 
@@ -104,7 +105,8 @@ if __name__ == '__main__':
 
     import matplotlib.pyplot as plt
     plt.figure()
-    plt.plot(phase.get_values('time'), phase.get_values('q02'), marker='o', label=['q0', 'q1', 'q2'])
+    plt.plot(phase.get_values('time'), phase.get_values('q02'), marker='o',
+             label=['q0', 'q1', 'q2'])
     plt.plot(exp_out.get_values('time'), exp_out.get_values('q02'), label=['q0', 'q1', 'q2'])
     plt.plot(phase.get_values('time'), phase.get_values('q3'), 'ro', label='q3')
     plt.plot(exp_out.get_values('time'), exp_out.get_values('q3'), 'r-', label='q3')
@@ -112,7 +114,8 @@ if __name__ == '__main__':
 
     plt.figure()
     plt.plot(phase.get_values('time'), phase.get_values('w'), marker='o', label=['w0', 'w1', 'w2'])
-    plt.plot(exp_out.get_values('time'), exp_out.get_values('w'), linestyle='-', label=['w0', 'w1', 'w2'])
+    plt.plot(exp_out.get_values('time'), exp_out.get_values('w'), linestyle='-',
+             label=['w0', 'w1', 'w2'])
     plt.legend()
 
     plt.figure()
@@ -120,7 +123,4 @@ if __name__ == '__main__':
     plt.plot(exp_out.get_values('time'), exp_out.get_values('u'), 'b-', label='u')
     plt.legend()
 
-
     plt.show()
-
-
