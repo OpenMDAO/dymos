@@ -319,7 +319,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 node_idxs = np.zeros(1, dtype=int)
         elif var_type == 'input_parameter':
             rate_path = 'input_parameters:{0}_out'.format(var)
-            dynamic = self.design_parameter_options[var]['dynamic']
+            dynamic = self.input_parameter_options[var]['dynamic']
             if dynamic:
                 node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
             else:
