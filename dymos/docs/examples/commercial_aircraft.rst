@@ -123,11 +123,11 @@ alt        aircraft altitude               True (10000 ft)     True (10000 ft)
 Dynamic Controls
 ================
 
-=====       ==============================  =========  =================== ===================
-Name        Description                     Optimized  Fixed Initial Value Fixed Final Value
-=====       ==============================  =========  =================== ===================
-climb_rate  aircraft rate of climb          True       False               False
-=====       ==============================  =========  =================== ===================
+=========        ==============================  =========  =================== ===================
+Name             Description                     Optimized  Fixed Initial Value Fixed Final Value
+==========       ==============================  =========  =================== ===================
+climb_rate       aircraft rate of climb          True       False               False
+==========       ==============================  =========  =================== ===================
 
 Design Parameters
 =================
