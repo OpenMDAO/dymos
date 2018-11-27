@@ -47,7 +47,6 @@ class TestAircraftCruise(unittest.TestCase):
         assumptions.add_output('S', val=427.8, units='m**2')
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
-        assumptions.add_output('climb_rate', val=0.0, units='m/s')
 
         p.model.add_subsystem('phase0', phase)
 
@@ -62,8 +61,8 @@ class TestAircraftCruise(unittest.TestCase):
         phase.set_state_options('alt', units='km', fix_initial=True)
 
         phase.add_control('mach', units=None, opt=False)
+        phase.add_control('climb_rate', units='m/s', opt=False)
 
-        phase.add_input_parameter('climb_rate', units='m/s')
         phase.add_input_parameter('S', units='m**2')
         phase.add_input_parameter('mass_empty', units='kg')
         phase.add_input_parameter('mass_payload', units='kg')
@@ -73,7 +72,6 @@ class TestAircraftCruise(unittest.TestCase):
         p.model.connect('assumptions.S', 'phase0.input_parameters:S')
         p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
         p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
-        p.model.connect('assumptions.climb_rate', 'phase0.input_parameters:climb_rate')
 
         phase.add_objective('time', loc='final', ref=3600)
 
@@ -88,6 +86,7 @@ class TestAircraftCruise(unittest.TestCase):
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.594555, 0), nodes='state_input')
         p['phase0.states:alt'] = 5.0
         p['phase0.controls:mach'] = 0.8
+        p['phase0.controls:climb_rate'] = 0.0
 
         p['assumptions.S'] = 427.8
         p['assumptions.mass_empty'] = 0.15E6

@@ -120,10 +120,10 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         plt.figure()
         plt.plot(phase.get_values('time', nodes='all'),
-                 phase.get_values('alt_rate', nodes='all', units='ft/min'),
+                 phase.get_values('climb_rate', nodes='all', units='ft/min'),
                  'ro')
         plt.plot(exp_out.get_values('time'),
-                 exp_out.get_values('alt_rate', units='ft/min'),
+                 exp_out.get_values('climb_rate', units='ft/min'),
                  'b-')
 
         plt.suptitle('Climb Rate vs Time')
