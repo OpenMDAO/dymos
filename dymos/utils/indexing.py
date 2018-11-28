@@ -29,7 +29,7 @@ def get_src_indices_by_row(row_idxs, shape, flat=True):
     """
     if not flat:
         raise NotImplementedError('Currently get_src_indices_by_row only returns '
-                                  'flat source indices')
+                                  'flat source indices.')
 
     num_src_rows = np.max(row_idxs) + 1
     src_shape = (num_src_rows,) + shape
