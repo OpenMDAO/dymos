@@ -47,19 +47,18 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
     p['phase0.controls:u'] = phase.interpolate(ys=[1, -1], nodes='control_input')
 
     p.run_driver()
-    # p.run_model()
 
     return p
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     prob = double_integrator_direct_collocation(transcription='radau-ps', compressed=True)
 
     import matplotlib.pyplot as plt
     plt.plot(prob.model.phase0.get_values('time'), prob.model.phase0.get_values('x'), 'ro')
     plt.plot(prob.model.phase0.get_values('time'), prob.model.phase0.get_values('v'), 'bo')
     plt.plot(prob.model.phase0.get_values('time'), prob.model.phase0.get_values('u'), 'go')
-    
+
     expout = prob.model.phase0.simulate(times=100)
     plt.plot(expout.get_values('time'), expout.get_values('x'), 'r-')
     plt.plot(expout.get_values('time'), expout.get_values('v'), 'b-')
