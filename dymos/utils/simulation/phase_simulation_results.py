@@ -191,11 +191,12 @@ class PhaseSimulationResults(object):
 
         # Assign design parameters
         for name, options in iteritems(self.design_parameter_options):
-            p['design_parameters:{0}'.format(name)] = self.get_values(name)[0, ...]
+            print(self.get_values(name))
+            p['design_parameters:{0}'.format(name)] = self.get_values(name)
 
         # Assign input parameters
         for name, options in iteritems(self.input_parameter_options):
-            p['input_parameters:{0}'.format(name)] = self.get_values(name)[0, ...]
+            p['input_parameters:{0}'.format(name)] = self.get_values(name)
 
         # Populate outputs of ODE
         prom2abs_ode_outputs = p.model.ode._var_allprocs_prom2abs_list['output']
