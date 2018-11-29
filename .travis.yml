@@ -113,7 +113,7 @@ install:
 # install OpenMDAO in developer mode so we have access to its sphinx extensions
 - git clone https://github.com/OpenMDAO/OpenMDAO.git;
 - cd OpenMDAO;
-- pip install -e .;
+- pip install -e .[all];
 - cd ..;
 
 # install dymos itself in developer mode.

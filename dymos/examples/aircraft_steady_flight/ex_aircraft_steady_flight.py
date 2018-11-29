@@ -27,7 +27,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
         p.driver.opt_settings["Linesearch tolerance"] = 0.10
         p.driver.opt_settings['iSumm'] = 6
 
-    num_seg = 15
+    num_seg = 20
     seg_ends, _ = lgl(num_seg + 1)
 
     phase = Phase(transcription,
@@ -53,12 +53,11 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
                             defect_scaler=1.0E-2)
     phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=True,
                             upper=1.5E5, lower=0.0, scaler=1.0E-5, defect_scaler=1.0E-1)
+    phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=True, lower=0.0,
+                            upper=60)
 
-    phase.add_control('alt', units='kft', opt=True, lower=0.0, upper=50.0,
-                      rate_param='climb_rate',
-                      rate_continuity=True, rate_continuity_scaler=1.0,
-                      rate2_continuity=True, rate2_continuity_scaler=1.0, ref=1.0,
-                      fix_initial=True, fix_final=True)
+    phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000, ref0=-3000,
+                      ref=3000)
 
     phase.add_control('mach', units=None, opt=False)
 
@@ -67,7 +66,6 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     phase.add_input_parameter('mass_payload', units='kg')
 
     phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
-    phase.add_path_constraint('alt_rate', units='ft/min', lower=-3000, upper=3000, ref=3000)
 
     p.model.connect('assumptions.S', 'phase0.input_parameters:S')
     p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
@@ -83,9 +81,9 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     p['phase0.t_duration'] = 3600.0
     p['phase0.states:range'] = phase.interpolate(ys=(0, 1000.0), nodes='state_input')
     p['phase0.states:mass_fuel'] = phase.interpolate(ys=(30000, 0), nodes='state_input')
+    p['phase0.states:alt'][:] = 10.0
 
     p['phase0.controls:mach'][:] = 0.8
-    p['phase0.controls:alt'][:] = 10.0
 
     p['assumptions.S'] = 427.8
     p['assumptions.mass_empty'] = 0.15E6
@@ -101,9 +99,9 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     plt.suptitle('altitude vs time')
     plt.figure()
     plt.plot(phase.get_values('time', nodes='all'),
-             phase.get_values('alt_rate', nodes='all', units='ft/min'), 'ro')
-    plt.plot(exp_out.get_values('time'), exp_out.get_values('alt_rate', units='ft/min'), 'b-')
-    plt.suptitle('altitude rate vs time')
+             phase.get_values('climb_rate', nodes='all', units='ft/min'), 'ro')
+    plt.plot(exp_out.get_values('time'), exp_out.get_values('climb_rate', units='ft/min'), 'b-')
+    plt.suptitle('climb rate vs time')
     plt.figure()
     plt.plot(phase.get_values('time', nodes='all'), phase.get_values('mass_fuel', nodes='all'),
              'ro')
@@ -131,10 +129,10 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     print(phase.get_values('alt', nodes='all').T)
 
     print('alt_rate')
-    print(phase.get_values('alt_rate', nodes='all').T)
+    print(phase.get_values('climb_rate', nodes='all').T)
 
-    print('alt_rate2')
-    print(phase.get_values('alt_rate2', nodes='all').T)
+    print('climb_rate_rate')
+    print(phase.get_values('climb_rate_rate', nodes='all').T)
 
     print('range')
     print(phase.get_values('range', nodes='all').T)

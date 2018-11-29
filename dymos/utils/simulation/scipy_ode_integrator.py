@@ -127,7 +127,7 @@ class ScipyODEIntegrator(object):
         if var == 'time':
             rate_path = 'time'
         elif var in self.state_options:
-            rate_path = 'state'
+            rate_path = 'states:{0}'.format(var)
         elif var in self.control_options:
             rate_path = 'controls:{0}'.format(var)
         elif var in self.design_parameter_options:
@@ -303,7 +303,7 @@ class ScipyODEIntegrator(object):
                                    'state_rates:{0}_rate'.format(state_name)])
         return self._state_rate_vec
 
-    def _pack_state_vec(self, x_dict, index=0):
+    def _pack_state_vec(self, x_dict):
         """
         Pack the state into a 1D vector for use by scipy.integrate.ode.
 
@@ -317,7 +317,7 @@ class ScipyODEIntegrator(object):
         for state_name, state_options in self.state_options.items():
             pos = state_options['pos']
             size = state_options['size']
-            self._state_vec[pos:pos + size] = np.ravel(x_dict[state_name][index])
+            self._state_vec[pos:pos + size] = np.ravel(x_dict[state_name])
         return self._state_vec
 
     def _f_ode(self, t, x, *args):

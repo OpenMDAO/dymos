@@ -58,10 +58,10 @@ class TestAircraftCruise(unittest.TestCase):
                                 defect_scaler=0.01)
         phase.set_state_options('mass_fuel', fix_final=True, upper=20000.0, lower=0.0,
                                 scaler=1.0E-4, defect_scaler=1.0E-2)
-
-        phase.add_control('alt', units='km', opt=False, rate_param='climb_rate')
+        phase.set_state_options('alt', units='km', fix_initial=True)
 
         phase.add_control('mach', units=None, opt=False)
+        phase.add_control('climb_rate', units='m/s', opt=False)
 
         phase.add_input_parameter('S', units='m**2')
         phase.add_input_parameter('mass_empty', units='kg')
@@ -84,8 +84,9 @@ class TestAircraftCruise(unittest.TestCase):
         p['phase0.t_duration'] = 1.515132 * 3600.0
         p['phase0.states:range'] = phase.interpolate(ys=(0, 1296.4), nodes='state_input')
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.594555, 0), nodes='state_input')
+        p['phase0.states:alt'] = 5.0
         p['phase0.controls:mach'] = 0.8
-        p['phase0.controls:alt'] = 5.0
+        p['phase0.controls:climb_rate'] = 0.0
 
         p['assumptions.S'] = 427.8
         p['assumptions.mass_empty'] = 0.15E6

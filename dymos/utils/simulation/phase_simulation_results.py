@@ -9,6 +9,7 @@ from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder, CaseReade
 from openmdao.utils.units import valid_units, convert_units
 
 from dymos.utils.misc import get_rate_units, convert_to_ascii
+from dymos.utils.indexing import get_src_indices_by_row
 
 
 class PhaseSimulationResults(object):
@@ -104,8 +105,7 @@ class PhaseSimulationResults(object):
             ivc.add_output('controls:{0}'.format(name),
                            val=np.zeros((nn,) + options['shape']), units=units)
             p.model.connect('controls:{0}'.format(name),
-                            ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
-                            src_indices=np.arange(nn, dtype=int))
+                            ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']])
 
             rate_units = get_rate_units(units, self.time_options['units'], deriv=1)
             ivc.add_output('control_rates:{0}_rate'.format(name),
@@ -114,8 +114,7 @@ class PhaseSimulationResults(object):
             if options['rate_param']:
                 rate_targets = sys_param_options[options['rate_param']]['targets']
                 p.model.connect('control_rates:{0}_rate'.format(name),
-                                ['ode.{0}'.format(t) for t in rate_targets],
-                                src_indices=np.arange(nn, dtype=int))
+                                ['ode.{0}'.format(t) for t in rate_targets])
 
             rate2_units = get_rate_units(units, self.time_options['units'], deriv=2)
             ivc.add_output('control_rates:{0}_rate2'.format(name),
@@ -124,26 +123,47 @@ class PhaseSimulationResults(object):
             if options['rate2_param']:
                 rate2_targets = sys_param_options[options['rate2_param']]['targets']
                 p.model.connect('control_rates:{0}_rate2'.format(name),
-                                ['ode.{0}'.format(t) for t in rate2_targets],
-                                src_indices=np.arange(nn, dtype=int))
+                                ['ode.{0}'.format(t) for t in rate2_targets])
 
         # Connect design parameters
         for name, options in iteritems(self.design_parameter_options):
+            shape = options['shape']
             units = options['units']
-            ivc.add_output('design_parameters:{0}'.format(name),
-                           val=np.zeros((nn,) + options['shape']), units=units)
+
+            if options['dynamic']:
+                src_idxs_raw = np.zeros(nn, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                if shape == (1,):
+                    src_idxs = src_idxs.ravel()
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)[0]
+
+            ivc.add_output('design_parameters:{0}'.format(name), shape=(nn,) + shape, units=units)
+
             p.model.connect('design_parameters:{0}'.format(name),
                             ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
-                            src_indices=np.arange(nn, dtype=int))
+                            src_indices=src_idxs, flat_src_indices=True)
 
         # Connect input parameters
         for name, options in iteritems(self.input_parameter_options):
+            shape = options['shape']
             units = options['units']
-            ivc.add_output('input_parameters:{0}'.format(name),
-                           val=np.zeros((nn,) + options['shape']), units=units)
+
+            if options['dynamic']:
+                src_idxs_raw = np.zeros(nn, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                if shape == (1,):
+                    src_idxs = src_idxs.ravel()
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)[0]
+
+            ivc.add_output('input_parameters:{0}'.format(name), shape=(nn,) + shape, units=units)
+
             p.model.connect('input_parameters:{0}'.format(name),
                             ['ode.{0}'.format(t) for t in sys_param_options[name]['targets']],
-                            src_indices=np.arange(nn, dtype=int))
+                            src_indices=src_idxs, flat_src_indices=True)
 
         p.setup(check=False)
 
@@ -171,13 +191,12 @@ class PhaseSimulationResults(object):
 
         # Assign design parameters
         for name, options in iteritems(self.design_parameter_options):
-            shape = p['design_parameters:{0}'.format(name)].shape
-            p['design_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
+            print(self.get_values(name))
+            p['design_parameters:{0}'.format(name)] = self.get_values(name)
 
         # Assign input parameters
         for name, options in iteritems(self.input_parameter_options):
-            shape = p['input_parameters:{0}'.format(name)].shape
-            p['input_parameters:{0}'.format(name)] = np.reshape(self.get_values(name), shape)
+            p['input_parameters:{0}'.format(name)] = self.get_values(name)
 
         # Populate outputs of ODE
         prom2abs_ode_outputs = p.model.ode._var_allprocs_prom2abs_list['output']
@@ -229,9 +248,9 @@ class PhaseSimulationResults(object):
                 elif output_name.startswith('design_parameters:'):
                     var_type = 'design_parameters'
                     var_name = output_name.replace('design_parameters:', '', 1)
-                # elif output_name.startswith('traj_design_parameters:'):
-                #     var_type = 'traj_design_parameters'
-                #     var_name = output_name.replace('traj_design_parameters:', '', 1)
+                elif output_name.startswith('input_parameters:'):
+                    var_type = 'input_parameters'
+                    var_name = output_name.replace('input_parameters:', '', 1)
 
                 val = options['value']
 

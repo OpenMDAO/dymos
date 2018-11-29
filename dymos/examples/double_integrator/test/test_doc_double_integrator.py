@@ -19,7 +19,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
+        phase = Phase('radau-ps',
                       ode_class=DoubleIntegratorODE,
                       num_segments=20,
                       transcription_order=3,

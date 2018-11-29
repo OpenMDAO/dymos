@@ -9,12 +9,12 @@ from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegra
 def double_integrator_direct_collocation(transcription='gauss-lobatto', top_level_jacobian='csc',
                                          compressed=True):
     p = Problem(model=Group())
-    p.driver = ScipyOptimizeDriver()
+    p.driver = pyOptSparseDriver()
     p.driver.options['dynamic_simul_derivs'] = True
 
     phase = Phase(transcription,
                   ode_class=DoubleIntegratorODE,
-                  num_segments=20,
+                  num_segments=30,
                   transcription_order=3,
                   compressed=compressed)
 
@@ -48,5 +48,17 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
     return p
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     prob = double_integrator_direct_collocation(transcription='radau-ps', compressed=True)
+
+    import matplotlib.pyplot as plt
+    plt.plot(prob.model.phase0.get_values('time'), prob.model.phase0.get_values('x'), 'ro')
+    plt.plot(prob.model.phase0.get_values('time'), prob.model.phase0.get_values('v'), 'bo')
+    plt.plot(prob.model.phase0.get_values('time'), prob.model.phase0.get_values('u'), 'go')
+
+    expout = prob.model.phase0.simulate(times=100)
+    plt.plot(expout.get_values('time'), expout.get_values('x'), 'r-')
+    plt.plot(expout.get_values('time'), expout.get_values('v'), 'b-')
+    plt.plot(expout.get_values('time'), expout.get_values('u'), 'g-')
+
+    plt.show()

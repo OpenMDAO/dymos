@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division
 import os
 import unittest
 
-import matplotlib
-matplotlib.use('Agg')
-
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos.examples.aircraft_steady_flight.ex_aircraft_steady_flight import \

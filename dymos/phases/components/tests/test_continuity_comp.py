@@ -82,8 +82,9 @@ class TestContinuityComp(unittest.TestCase):
         # The sub-indices of state_disc indices that are segment ends
         segment_end_idxs = gd.subset_node_indices['segment_ends']
 
-        self.p.model.connect('x', 'cnty_comp.states:x', src_indices=segment_end_idxs)
-        self.p.model.connect('y', 'cnty_comp.states:y', src_indices=segment_end_idxs)
+        if compressed != 'compressed':
+            self.p.model.connect('x', 'cnty_comp.states:x', src_indices=segment_end_idxs)
+            self.p.model.connect('y', 'cnty_comp.states:y', src_indices=segment_end_idxs)
 
         self.p.model.connect('t_duration', 'cnty_comp.t_duration')
 
@@ -95,8 +96,9 @@ class TestContinuityComp(unittest.TestCase):
         src_idxs_v = np.arange(size_v).reshape((nn,) + control_options['v']['shape'])
         src_idxs_v = src_idxs_v[gd.subset_node_indices['segment_ends'], ...]
 
-        self.p.model.connect('u', 'cnty_comp.controls:u', src_indices=src_idxs_u,
-                             flat_src_indices=True)
+        if compressed != 'compressed':
+            self.p.model.connect('u', 'cnty_comp.controls:u', src_indices=src_idxs_u,
+                                 flat_src_indices=True)
 
         self.p.model.connect('u_rate', 'cnty_comp.control_rates:u_rate', src_indices=src_idxs_u,
                              flat_src_indices=True)
@@ -104,8 +106,9 @@ class TestContinuityComp(unittest.TestCase):
         self.p.model.connect('u_rate2', 'cnty_comp.control_rates:u_rate2', src_indices=src_idxs_u,
                              flat_src_indices=True)
 
-        self.p.model.connect('v', 'cnty_comp.controls:v', src_indices=src_idxs_v,
-                             flat_src_indices=True)
+        if compressed != 'compressed':
+            self.p.model.connect('v', 'cnty_comp.controls:v', src_indices=src_idxs_v,
+                                 flat_src_indices=True)
 
         self.p.model.connect('v_rate', 'cnty_comp.control_rates:v_rate', src_indices=src_idxs_v,
                              flat_src_indices=True)
@@ -126,22 +129,24 @@ class TestContinuityComp(unittest.TestCase):
 
         self.p.run_model()
 
-        for state in ('x', 'y'):
-            expected_val = self.p[state][segment_end_idxs, ...][2::2, ...] - \
-                self.p[state][segment_end_idxs, ...][1:-1:2, ...]
+        if compressed != 'compressed':
+            for state in ('x', 'y'):
+                xpectd = self.p[state][segment_end_idxs, ...][2::2, ...] - \
+                    self.p[state][segment_end_idxs, ...][1:-1:2, ...]
 
-            assert_rel_error(self,
-                             self.p['cnty_comp.defect_states:{0}'.format(state)],
-                             expected_val.reshape((num_seg - 1,) + state_options[state]['shape']))
+                assert_rel_error(self,
+                                 self.p['cnty_comp.defect_states:{0}'.format(state)],
+                                 xpectd.reshape((num_seg - 1,) + state_options[state]['shape']))
 
         for ctrl in ('u', 'v'):
 
-            expected_val = self.p[ctrl][segment_end_idxs, ...][2::2, ...] - \
+            xpectd = self.p[ctrl][segment_end_idxs, ...][2::2, ...] - \
                 self.p[ctrl][segment_end_idxs, ...][1:-1:2, ...]
 
-            assert_rel_error(self,
-                             self.p['cnty_comp.defect_controls:{0}'.format(ctrl)],
-                             expected_val.reshape((num_seg-1,) + control_options[ctrl]['shape']))
+            if compressed != 'compressed':
+                assert_rel_error(self,
+                                 self.p['cnty_comp.defect_controls:{0}'.format(ctrl)],
+                                 xpectd.reshape((num_seg-1,) + control_options[ctrl]['shape']))
 
         np.set_printoptions(linewidth=1024)
         cpd = self.p.check_partials(method='cs', out_stream=None)
@@ -216,8 +221,9 @@ class TestContinuityComp(unittest.TestCase):
         src_idxs_v = np.arange(size_v).reshape((nn,) + control_options['v']['shape'])
         src_idxs_v = src_idxs_v[gd.subset_node_indices['segment_ends'], ...]
 
-        self.p.model.connect('u', 'cnty_comp.controls:u', src_indices=src_idxs_u,
-                             flat_src_indices=True)
+        if compressed != 'compressed':
+            self.p.model.connect('u', 'cnty_comp.controls:u', src_indices=src_idxs_u,
+                                 flat_src_indices=True)
 
         self.p.model.connect('u_rate', 'cnty_comp.control_rates:u_rate', src_indices=src_idxs_u,
                              flat_src_indices=True)
@@ -225,8 +231,9 @@ class TestContinuityComp(unittest.TestCase):
         self.p.model.connect('u_rate2', 'cnty_comp.control_rates:u_rate2', src_indices=src_idxs_u,
                              flat_src_indices=True)
 
-        self.p.model.connect('v', 'cnty_comp.controls:v', src_indices=src_idxs_v,
-                             flat_src_indices=True)
+        if compressed != 'compressed':
+            self.p.model.connect('v', 'cnty_comp.controls:v', src_indices=src_idxs_v,
+                                 flat_src_indices=True)
 
         self.p.model.connect('v_rate', 'cnty_comp.control_rates:v_rate', src_indices=src_idxs_v,
                              flat_src_indices=True)
@@ -249,25 +256,25 @@ class TestContinuityComp(unittest.TestCase):
 
         self.p.run_model()
 
-        for state_name in ('x', 'y'):
-            for i in range(1, num_seg):
-                left_var = 'seg_{0}:{1}'.format(i - 1, state_name)
-                left = self.p[left_var][-1, ...]
-                right_var = 'seg_{0}:{1}'.format(i, state_name)
-                right = self.p[right_var][0, ...]
-                expected_val = right - left
-                assert_rel_error(self,
-                                 self.p['cnty_comp.defect_states:{0}'.format(state_name)][i-1, ...],
-                                 expected_val)
+        if compressed != 'compressed':
+            for state_name in ('x', 'y'):
+                for i in range(1, num_seg):
+                    left_var = 'seg_{0}:{1}'.format(i - 1, state_name)
+                    left = self.p[left_var][-1, ...]
+                    right_var = 'seg_{0}:{1}'.format(i, state_name)
+                    right = self.p[right_var][0, ...]
+                    xpectd = right - left
+                    defect_var = 'cnty_comp.defect_states:{0}'.format(state_name)
+                    assert_rel_error(self, self.p[defect_var][i-1, ...], xpectd)
 
         for ctrl in ('u', 'v'):
-
-            expected_val = self.p[ctrl][segment_end_idxs, ...][2::2, ...] - \
+            xpectd = self.p[ctrl][segment_end_idxs, ...][2::2, ...] - \
                 self.p[ctrl][segment_end_idxs, ...][1:-1:2, ...]
 
-            assert_rel_error(self,
-                             self.p['cnty_comp.defect_controls:{0}'.format(ctrl)],
-                             expected_val.reshape((num_seg-1,) + control_options[ctrl]['shape']))
+            if compressed != 'compressed':
+                assert_rel_error(self,
+                                 self.p['cnty_comp.defect_controls:{0}'.format(ctrl)],
+                                 xpectd.reshape((num_seg-1,) + control_options[ctrl]['shape']))
 
         np.set_printoptions(linewidth=1024)
         cpd = self.p.check_partials(method='cs')

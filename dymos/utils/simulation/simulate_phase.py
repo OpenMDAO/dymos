@@ -132,8 +132,9 @@ def simulate_phase(phase_name, ode_class, time_options, state_options, control_o
         seg_times = time_values[seg_idxs[0]:seg_idxs[1]].ravel()
 
         for control_name, options in iteritems(control_options):
-            interp = LagrangeBarycentricInterpolant(grid_data.node_stau[seg_idxs[0]:seg_idxs[1]])
-            ctrl_vals = control_values[control_name][seg_idxs[0]:seg_idxs[1]].ravel()
+            interp = LagrangeBarycentricInterpolant(grid_data.node_stau[seg_idxs[0]:seg_idxs[1]],
+                                                    options['shape'])
+            ctrl_vals = control_values[control_name][seg_idxs[0]:seg_idxs[1], ...]
             interp.setup(x0=seg_times[0], xf=seg_times[-1], f_j=ctrl_vals)
             rhs_integrator.set_interpolant(control_name, interp)
 

@@ -216,35 +216,39 @@ class PhaseBase(Group):
         The user may override these defaults by specifying them as True or False.
 
         """
+        ode_params = self.ode_options._parameters
         if name in self.control_options:
             raise ValueError('{0} has already been added as a control.'.format(name))
         if name in self.design_parameter_options:
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
         if name in self.input_parameter_options:
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
+        if name in ode_params and not ode_params[name]['dynamic']:
+            raise ValueError('{0} is declared as a static parameter and therefore cannot be '
+                             'used as a dynamic control'.format(name))
 
         self.control_options[name] = ControlOptionsDictionary()
 
-        if name in self.ode_options._parameters:
-            ode_param_info = self.ode_options._parameters[name]
+        if name in ode_params:
+            ode_param_info = ode_params[name]
             self.control_options[name]['units'] = ode_param_info['units']
             self.control_options[name]['shape'] = ode_param_info['shape']
         else:
             rate_used = \
-                rate_param is not None and rate_param in self.ode_options._parameters
+                rate_param is not None and rate_param in ode_params
             rate2_used = \
-                rate2_param is not None and rate2_param in self.ode_options._parameters
+                rate2_param is not None and rate2_param in ode_params
             if not rate_used and not rate2_used:
                 err_msg = '{0} is not a controllable parameter in the ODE system, nor is it ' \
                           'connected to one through its rate or second derivative.'.format(name)
                 raise ValueError(err_msg)
 
         if rate_param is not None:
-            ode_rate_param_info = self.ode_options._parameters[rate_param]
+            ode_rate_param_info = ode_params[rate_param]
             self.control_options[name]['rate_param'] = rate_param
             self.control_options[name]['shape'] = ode_rate_param_info['shape']
         if rate2_param is not None:
-            ode_rate2_param_info = self.ode_options._parameters[rate2_param]
+            ode_rate2_param_info = ode_params[rate2_param]
             self.control_options[name]['rate2_param'] = rate2_param
             self.control_options[name]['shape'] = ode_rate2_param_info['shape']
 
@@ -349,6 +353,7 @@ class PhaseBase(Group):
             ode_param_info = self.ode_options._parameters[name]
             self.design_parameter_options[name]['units'] = ode_param_info['units']
             self.design_parameter_options[name]['shape'] = ode_param_info['shape']
+            self.design_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
         else:
             err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
             raise ValueError(err_msg)
@@ -425,6 +430,7 @@ class PhaseBase(Group):
             ode_param_info = self.ode_options._parameters[name]
             self.input_parameter_options[ip_name]['units'] = ode_param_info['units']
             self.input_parameter_options[ip_name]['shape'] = ode_param_info['shape']
+            self.input_parameter_options[ip_name]['dynamic'] = ode_param_info['dynamic']
         else:
             err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
             raise ValueError(err_msg)
@@ -1020,13 +1026,16 @@ class PhaseBase(Group):
                                     ref0=options['ref0'],
                                     ref=options['ref'])
 
+            _shape = (1,) + options['shape']
+
             indep.add_output(name=src_name,
                              val=options['val'],
-                             shape=(1, np.prod(options['shape'])),
+                             shape=_shape,
                              units=options['units'])
 
             for tgts, src_idxs in self._get_parameter_connections(name):
-                self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
+                self.connect(src_name, [t for t in tgts],
+                             src_indices=src_idxs, flat_src_indices=True)
 
     def _setup_input_parameters(self):
         """
@@ -1260,7 +1269,7 @@ class PhaseBase(Group):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
         if nodes not in ('col', 'disc', 'all', 'state_disc', 'state_input', 'control_disc',
                          'control_input', 'segment_ends'):
-            raise ValueError("nodes must be one of 'col', 'disc', 'all', 'state_disc', "
+            raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
                              "'state_input', 'control_disc', 'control_input', or 'segment_ends'")
         if xs is None:
             if len(ys) != 2:

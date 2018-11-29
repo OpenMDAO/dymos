@@ -6,7 +6,7 @@ import numpy as np
 
 from openmdao.utils.units import convert_units, valid_units
 
-from ..grid_data import GridData
+from ..grid_data import GridData, make_subset_map
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
 from ..components import GaussLobattoPathConstraintComp, GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
@@ -250,7 +250,13 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             rate_path = 'time'
             src_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'state':
-            rate_path = 'states:{0}'.format(var)
+            if nodes == 'col':
+                rate_path = 'state_interp.state_col:{0}'.format(var)
+                src_idxs = None
+            elif nodes == 'state_disc':
+                rate_path = 'states:{0}'.format(var)
+                src_idxs = make_subset_map(gd.subset_node_indices['state_input'],
+                                           gd.subset_node_indices[nodes])
         elif var_type == 'indep_control':
             rate_path = 'control_interp_comp.control_values:{0}'.format(var)
             src_idxs = gd.subset_node_indices[nodes]
@@ -276,7 +282,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             if nodes == 'col':
                 rate_path = 'rhs_col.{0}'.format(var)
                 src_idxs = None
-            elif nodes == 'disc':
+            elif nodes == 'state_disc':
                 rate_path = 'rhs_disc.{0}'.format(var)
                 src_idxs = None
 
@@ -318,7 +324,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                     'state_interp.state_col:{0}'.format(name),
                     ['rhs_col.{0}'.format(tgt) for tgt in options['targets']])
 
-            rate_path, src_idxs = self._get_rate_source_path(name, nodes='disc')
+            rate_path, src_idxs = self._get_rate_source_path(name, nodes='state_disc')
 
             self.connect(rate_path,
                          'state_interp.staterate_disc:{0}'.format(name),

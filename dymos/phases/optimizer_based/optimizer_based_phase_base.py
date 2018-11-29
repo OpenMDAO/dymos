@@ -15,6 +15,7 @@ from ...utils.constants import INF_BOUND
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.lagrange import lagrange_matrices
 from ...utils.simulation import simulate_phase
+from ...utils.indexing import get_src_indices_by_row
 
 
 class OptimizerBasedPhaseBase(PhaseBase):
@@ -267,29 +268,39 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         # Add the continuity constraint component if necessary
         if num_seg > 1:
+            segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+            state_disc_idxs = grid_data.subset_node_indices['state_disc']
 
-            for name, options in iteritems(self.state_options):
-                # The sub-indices of state_disc indices that are segment ends
-                state_disc_idxs = grid_data.subset_node_indices['state_disc']
-                segment_end_idxs = grid_data.subset_node_indices['segment_ends']
-                disc_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
-                self.connect('states:{0}'.format(name),
-                             'continuity_comp.states:{}'.format(name),
-                             src_indices=disc_subidxs)
+            if not self.options['compressed']:
+                state_input_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
+
+                for name, options in iteritems(self.state_options):
+                    shape = options['shape']
+                    flattened_src_idxs = get_src_indices_by_row(state_input_subidxs, shape=shape,
+                                                                flat=True)
+                    self.connect('states:{0}'.format(name),
+                                 'continuity_comp.states:{}'.format(name),
+                                 src_indices=flattened_src_idxs, flat_src_indices=True)
 
             for name, options in iteritems(self.control_options):
                 control_src_name = 'control_interp_comp.control_values:{0}'.format(name)
-                self.connect(control_src_name,
-                             'continuity_comp.controls:{0}'.format(name),
-                             src_indices=grid_data.subset_node_indices['segment_ends'])
+
+                # The sub-indices of control_disc indices that are segment ends
+                segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+                src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
+
+                if not self.options['compressed']:
+                    self.connect(control_src_name,
+                                 'continuity_comp.controls:{0}'.format(name),
+                                 src_indices=src_idxs, flat_src_indices=True)
 
                 self.connect('control_rates:{0}_rate'.format(name),
                              'continuity_comp.control_rates:{}_rate'.format(name),
-                             src_indices=grid_data.subset_node_indices['segment_ends'])
+                             src_indices=src_idxs, flat_src_indices=True)
 
                 self.connect('control_rates:{0}_rate2'.format(name),
                              'continuity_comp.control_rates:{}_rate2'.format(name),
-                             src_indices=grid_data.subset_node_indices['segment_ends'])
+                             src_indices=src_idxs, flat_src_indices=True)
 
     def _setup_endpoint_conditions(self):
 

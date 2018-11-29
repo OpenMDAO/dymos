@@ -62,11 +62,11 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=True,
                                 upper=1.5E5, lower=0.0, scaler=1.0E-5, defect_scaler=1.0E-1)
 
-        phase.add_control('alt', units='kft', opt=True, lower=0.0, upper=50.0,
-                          rate_param='climb_rate',
-                          rate_continuity=True, rate_continuity_scaler=1.0,
-                          rate2_continuity=True, rate2_continuity_scaler=1.0, ref=1.0,
-                          fix_initial=True, fix_final=True)
+        phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=True,
+                                upper=60, lower=0)
+
+        phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
+                          ref0=-3000, ref=3000)
 
         phase.add_input_parameter('mach', units=None)
         phase.add_input_parameter('S', units='m**2')
@@ -74,7 +74,6 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         phase.add_input_parameter('mass_payload', units='kg')
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
-        phase.add_path_constraint('alt_rate', units='ft/min', lower=-3000, upper=3000, ref=3000)
 
         p.model.connect('assumptions.mach', 'phase0.input_parameters:mach')
         p.model.connect('assumptions.S', 'phase0.input_parameters:S')
@@ -91,8 +90,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         p['phase0.t_duration'] = 3600.0
         p['phase0.states:range'] = phase.interpolate(ys=(0, 1000.0), nodes='state_input')
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(30000, 0), nodes='state_input')
-
-        p['phase0.controls:alt'][:] = 10.0
+        p['phase0.states:alt'][:] = 10.0
 
         p['assumptions.mach'][:] = 0.8
         p['assumptions.S'] = 427.8
@@ -122,10 +120,10 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         plt.figure()
         plt.plot(phase.get_values('time', nodes='all'),
-                 phase.get_values('alt_rate', nodes='all', units='ft/min'),
+                 phase.get_values('climb_rate', nodes='all', units='ft/min'),
                  'ro')
         plt.plot(exp_out.get_values('time'),
-                 exp_out.get_values('alt_rate', units='ft/min'),
+                 exp_out.get_values('climb_rate', units='ft/min'),
                  'b-')
 
         plt.suptitle('Climb Rate vs Time')
