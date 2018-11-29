@@ -282,7 +282,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             if nodes == 'col':
                 rate_path = 'rhs_col.{0}'.format(var)
                 src_idxs = None
-            elif nodes == 'disc':
+            elif nodes == 'state_disc':
                 rate_path = 'rhs_disc.{0}'.format(var)
                 src_idxs = None
 
