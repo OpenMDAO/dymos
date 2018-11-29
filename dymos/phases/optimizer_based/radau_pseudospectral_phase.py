@@ -4,7 +4,7 @@ import numpy as np
 from openmdao.utils.units import convert_units, valid_units
 from six import iteritems
 
-from ..grid_data import GridData
+from ..grid_data import GridData, make_subset_map
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
 from ..components import RadauPathConstraintComp, RadauPSContinuityComp
 from ...utils.misc import get_rate_units
@@ -270,6 +270,15 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
             rate_src, src_idxs = self._get_rate_source_path(name, nodes='col')
 
+            # print(rate_src)
+            # print(src_idxs)
+            # print(grid_data.num_segments)
+            # print(grid_data.num_nodes)
+            # print(np.arange(grid_data.subset_num_nodes['state_input'], dtype=int))
+            # print(grid_data.subset_node_indices['state_input'])
+            # print(grid_data.subset_num_nodes['state_disc'])
+            # exit(0)
+
             self.connect(rate_src,
                          'collocation_constraint.f_computed:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
@@ -294,8 +303,12 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             rate_path = 'time'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'state':
-            rate_path = 'states:{0}'.format(var)
-            node_idxs = gd.subset_node_indices[nodes]
+            if self.options['compressed']:
+                rate_path = 'states:{0}'.format(var)
+                node_idxs = np.arange(gd.subset_num_nodes['state_input'] - 1, dtype=int)
+            else:
+                rate_path = 'states:{0}'.format(var)
+                node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'indep_control':
             rate_path = 'control_interp_comp.control_values:{0}'.format(var)
             node_idxs = gd.subset_node_indices[nodes]

@@ -127,7 +127,7 @@ class ScipyODEIntegrator(object):
         if var == 'time':
             rate_path = 'time'
         elif var in self.state_options:
-            rate_path = 'state'
+            rate_path = 'states:{0}'.format(var)
         elif var in self.control_options:
             rate_path = 'controls:{0}'.format(var)
         elif var in self.design_parameter_options:

@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import unittest
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 
 class TestDoubleIntegratorForDocs(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
+        phase = Phase('radau-ps',
                       ode_class=DoubleIntegratorODE,
                       num_segments=20,
                       transcription_order=3,

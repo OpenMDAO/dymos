@@ -48,7 +48,7 @@ class _ODEParameterOptionsDictionary(OptionsDictionary):
     def __init__(self, read_only=False):
         super(_ODEParameterOptionsDictionary, self).__init__(read_only)
         self.declare('name', types=string_types, desc='The name of the parameter.')
-        self.declare('targets', types=Iterable,
+        self.declare('targets', default=[], types=Iterable,
                      desc='Target paths for the parameter, relative to the top-level system.')
         self.declare('shape', default=(1,), types=tuple,
                      desc='The shape of the variable (ignoring the time-dimension along '
