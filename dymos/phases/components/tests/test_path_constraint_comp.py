@@ -24,7 +24,7 @@ class TestPathConstraintCompGL(unittest.TestCase):
                                 segment_ends=[0.0, 3.0, 10.0],
                                 transcription=transcription)
 
-        ndn = gd.subset_num_nodes['disc']
+        ndn = gd.subset_num_nodes['state_disc']
         ncn = gd.subset_num_nodes['col']
         nn = ndn + ncn
 
@@ -104,19 +104,19 @@ class TestPathConstraintCompGL(unittest.TestCase):
         p = self.p
         gd = self.gd
         assert_almost_equal(p['a_disc'],
-                            p['path_constraints.path:a'][gd.subset_node_indices['disc'], ...])
+                            p['path_constraints.path:a'][gd.subset_node_indices['state_disc'], ...])
 
         assert_almost_equal(p['a_col'],
                             p['path_constraints.path:a'][gd.subset_node_indices['col'], ...])
 
         assert_almost_equal(p['b_disc'],
-                            p['path_constraints.path:b'][gd.subset_node_indices['disc'], ...])
+                            p['path_constraints.path:b'][gd.subset_node_indices['state_disc'], ...])
 
         assert_almost_equal(p['b_col'],
                             p['path_constraints.path:b'][gd.subset_node_indices['col'], ...])
 
         assert_almost_equal(p['c_disc'],
-                            p['path_constraints.path:c'][gd.subset_node_indices['disc'], ...])
+                            p['path_constraints.path:c'][gd.subset_node_indices['state_disc'], ...])
 
         assert_almost_equal(p['c_col'],
                             p['path_constraints.path:c'][gd.subset_node_indices['col'], ...])
@@ -147,7 +147,7 @@ class TestPathConstraintCompRadau(unittest.TestCase):
                                 segment_ends=[0.0, 3.0, 10.0],
                                 transcription=transcription)
 
-        ndn = gd.subset_num_nodes['disc']
+        ndn = gd.subset_num_nodes['state_disc']
 
         self.p = Problem(model=Group())
 

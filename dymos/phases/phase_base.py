@@ -1269,7 +1269,7 @@ class PhaseBase(Group):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
         if nodes not in ('col', 'disc', 'all', 'state_disc', 'state_input', 'control_disc',
                          'control_input', 'segment_ends'):
-            raise ValueError("nodes must be one of 'col', 'disc', 'all', 'state_disc', "
+            raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
                              "'state_input', 'control_disc', 'control_input', or 'segment_ends'")
         if xs is None:
             if len(ys) != 2:
