@@ -11,9 +11,6 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', top_leve
     p = Problem(model=Group())
     p.driver = pyOptSparseDriver()
     p.driver.options['dynamic_simul_derivs'] = True
-    p.driver.options['optimizer'] = 'SNOPT'
-    p.driver.opt_settings['iSumm'] = 6
-    p.driver.opt_settings['Major iterations limit'] = 100
 
     phase = Phase(transcription,
                   ode_class=DoubleIntegratorODE,
