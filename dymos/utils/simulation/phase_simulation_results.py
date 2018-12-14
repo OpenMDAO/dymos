@@ -191,7 +191,6 @@ class PhaseSimulationResults(object):
 
         # Assign design parameters
         for name, options in iteritems(self.design_parameter_options):
-            print(self.get_values(name))
             p['design_parameters:{0}'.format(name)] = self.get_values(name)
 
         # Assign input parameters

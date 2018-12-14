@@ -134,12 +134,10 @@ class ScipyODEIntegrator(object):
             rate_path = 'design_parameters:{0}'.format(var)
         elif var in self.input_parameter_options:
             rate_path = 'input_parameters:{0}'.format(var)
-        elif var.endswith('_rate'):
-            if var[:-5] in self.control_options:
-                rate_path = 'control_rates:{0}'.format(var)
-        elif var.endswith('_rate2'):
-            if var[:-6] in self.control_options:
-                rate_path = 'control_rates:{0}'.format(var)
+        elif var.endswith('_rate') and var[:-5] in self.control_options:
+            rate_path = 'control_rates:{0}'.format(var)
+        elif var.endswith('_rate2') and var[:-6] in self.control_options:
+            rate_path = 'control_rates:{0}'.format(var)
         else:
             rate_path = 'ode.{0}'.format(var)
 
