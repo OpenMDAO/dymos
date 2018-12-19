@@ -111,6 +111,7 @@ class TestPhaseSimulationResults(unittest.TestCase):
     def test_convert_units(self):
 
         units = {'time': 'min',
+                 'time_phase': 'min',
                  'x': 'ft',
                  'y': 'ft',
                  'v': 'ft/s',
@@ -121,6 +122,7 @@ class TestPhaseSimulationResults(unittest.TestCase):
                  'check': 'ft/min'}
 
         conv = {'time': 1/60.,
+                'time_phase': 1 / 60.,
                 'x': 3.2808399,
                 'y': 3.2808399,
                 'v': 3.2808399,
@@ -130,7 +132,8 @@ class TestPhaseSimulationResults(unittest.TestCase):
                 'theta_rate2': 180.0/np.pi,
                 'check': 196.85039370079}
 
-        for var in ('time', 'x', 'y', 'v', 'g', 'theta', 'theta_rate', 'theta_rate2', 'check'):
+        for var in ('time', 'time_phase', 'x', 'y', 'v', 'g', 'theta',
+                    'theta_rate', 'theta_rate2', 'check'):
             assert_rel_error(self,
                              self.exp_out.get_values(var, units=units[var]),
                              self.exp_out.get_values(var) * conv[var],

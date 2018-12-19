@@ -16,6 +16,9 @@ class _ODETimeOptionsDictionary(OptionsDictionary):
         super(_ODETimeOptionsDictionary, self).__init__(read_only)
         self.declare('targets', default=[], types=Iterable,
                      desc='Target path(s) for the time variable, relative to the top-level system.')
+        self.declare('time_phase_targets', default=[], types=Iterable,
+                     desc='Target path(s) for the time_phase variable '
+                          '(the current phase elapsed time), relative to the top-level system.')
         self.declare('units', default=None, types=string_types, allow_none=True,
                      desc='Units for time.')
 

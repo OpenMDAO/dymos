@@ -386,6 +386,10 @@ class TimeOptionsDictionary(OptionsDictionary):
         self.declare(name='targets', types=Iterable, allow_none=True, default=None,
                      desc='targets in the ODE to which the integration variable is connected')
 
+        self.declare(name='time_phase_targets', types=Iterable, allow_none=True, default=None,
+                     desc='targets in the ODE to which the elapsed duration of the phase is '
+                          'connected')
+
 
 class _ForDocs(object):  # pragma: no cover
     """

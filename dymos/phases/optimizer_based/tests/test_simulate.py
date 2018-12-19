@@ -79,7 +79,7 @@ class TestSimulateRecording(unittest.TestCase):
         system_cases = cr.list_cases('root')
         last_case = cr.get_case(system_cases[-1])
 
-        for var in ['time', 'states:x', 'states:y', 'states:v', 'controls:theta']:
+        for var in ['time', 'time_phase', 'states:x', 'states:y', 'states:v', 'controls:theta']:
             if ':' in var:
                 _var = var.split(':')[-1]
             else:
@@ -88,7 +88,7 @@ class TestSimulateRecording(unittest.TestCase):
 
         loaded_exp_out = load_simulation_results('phase0_sim.db')
 
-        for var in ['time', 'x', 'y', 'v', 'theta']:
+        for var in ['time', 'time_phase', 'x', 'y', 'v', 'theta']:
             assert_almost_equal(exp_out.get_values(var).ravel(),
                                 loaded_exp_out.get_values(var).ravel())
 
@@ -147,7 +147,7 @@ class TestSimulateRecording(unittest.TestCase):
 
         loaded_exp_out = load_simulation_results('brachistochrone_sim.db')
 
-        for var in ['time', 'x', 'y', 'v', 'theta']:
+        for var in ['time', 'time_phase', 'x', 'y', 'v', 'theta']:
             assert_almost_equal(exp_out.get_values(var).ravel(),
                                 loaded_exp_out.get_values(var).ravel())
 

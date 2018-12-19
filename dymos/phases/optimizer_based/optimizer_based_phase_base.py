@@ -405,6 +405,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
             units = time_units
             linear = True
             constraint_path = 'time'
+        elif var_type == 'time_phase':
+            shape = (1,)
+            units = time_units
+            linear = True
+            constraint_path = 'time_phase'
         elif var_type == 'state':
             state_shape = self.state_options[var]['shape']
             state_units = self.state_options[var]['units']

@@ -270,7 +270,10 @@ class TrajectorySimulationResults(object):
                     if output_name == 'time':
                         var_type = 'indep'
                         var_name = 'time'
-                    if output_name.startswith('states:'):
+                    elif output_name == 'time_phase':
+                        var_type = 'time_phase'
+                        var_name = 'time_phase'
+                    elif output_name.startswith('states:'):
                         var_type = 'states'
                         var_name = output_name.split(':')[-1]
                     elif output_name.startswith('controls:'):
@@ -359,6 +362,8 @@ class TrajectorySimulationResults(object):
 
             if var == 'time':
                 var_type = 'indep'
+            elif var == 'time_phase':
+                var_type = 'time_phase'
             elif var in self.outputs['phases'][phase_name]['states']:
                 var_type = 'states'
             elif var in self.outputs['phases'][phase_name]['controls']:
