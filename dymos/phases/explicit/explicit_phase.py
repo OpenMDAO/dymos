@@ -119,6 +119,7 @@ class ExplicitPhase(PhaseBase):
             seg_end_idxs = seg_idxs[[0, -1]]
             self.connect('time', 'seg_{0}.seg_t0_tf'.format(iseg),
                          src_indices=seg_end_idxs)
+            self.connect('t_initial', 'seg_{0}.t_initial_phase'.format(iseg))
         return comps
 
     def _setup_rhs(self):
@@ -703,7 +704,7 @@ class ExplicitPhase(PhaseBase):
         # Determine the path to the variable
         if var_type == 'time':
             obj_path = 'time'
-        if var_type == 'time_phase':
+        elif var_type == 'time_phase':
             obj_path = 'time_phase'
         elif var_type == 'state':
             if loc == 'initial':
@@ -929,7 +930,7 @@ class ExplicitPhase(PhaseBase):
             path = '{0}.'.format(self.pathname) if self.pathname else ''
 
             path_map = {'time': 'segments.seg_{0}.stage_time_comp.t_step',
-                        'time_phase': 'segments.seg_{0}.stage_time_comp.time_phase',
+                        'time_phase': 'segments.seg_{0}.stage_time_comp.t_phase_step',
                         'state': 'segments.seg_{0}.advance_comp.step_states:{1}',
                         'indep_control': 'segments.seg_{0}.stage_control_comp.'
                                          'stage_control_values:{1}',
@@ -1058,6 +1059,7 @@ class ExplicitPhase(PhaseBase):
         var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
 
         path_map = {'time': 'time.{0}',
+                    'time_phase': 'time.{0}',
                     'indep_control': 'control_interp_comp.control_values:{0}',
                     'input_control': 'control_interp_comp.control_values:{0}',
                     'design_parameter': 'design_params.design_parameters:{0}',

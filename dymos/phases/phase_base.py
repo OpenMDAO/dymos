@@ -831,7 +831,7 @@ class PhaseBase(Group):
         """
         if var == 'time':
             return 'time'
-        if var == 'time_phase':
+        elif var == 'time_phase':
             return 'time_phase'
         elif var in self.state_options:
             return 'state'

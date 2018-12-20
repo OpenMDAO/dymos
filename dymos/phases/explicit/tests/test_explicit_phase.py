@@ -452,10 +452,9 @@ class TestExplicitPhasePathConstraints(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, NonlinearBlockGS
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
-        from dymos.phases.explicit.solvers.nl_rk_solver import NonlinearRK
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
@@ -466,8 +465,7 @@ class TestExplicitPhasePathConstraints(unittest.TestCase):
                       ode_class=BrachistochroneODE,
                       num_segments=4,
                       transcription_order=3,
-                      num_steps=10,
-                      seg_solver_class=NonlinearBlockGS)
+                      num_steps=10)
 
         p.model.add_subsystem('phase0', phase)
 

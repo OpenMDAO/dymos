@@ -27,7 +27,12 @@ class StageTimeComp(ExplicitComponent):
 
         self.add_input(name='seg_t0_tf',
                        val=np.array([0.0, 1.0]),
-                       desc='initial time in the segment',
+                       desc='initial and final time in the segment',
+                       units=time_options['units'])
+
+        self.add_input(name='t_initial_phase',
+                       val=0.0,
+                       desc='initial time of the phase',
                        units=time_options['units'])
 
         self.add_output(name='h',
@@ -38,6 +43,11 @@ class StageTimeComp(ExplicitComponent):
         self.add_output(name='t_stage',
                         val=np.ones((num_steps, num_stages)),
                         desc='Times at each stage of each step.',
+                        units=time_options['units'])
+
+        self.add_output(name='t_phase_stage',
+                        val=np.ones((num_steps, num_stages)),
+                        desc='Phase elapsed time at each stage of each step.',
                         units=time_options['units'])
 
         self.add_output(name='t_step',
@@ -67,6 +77,14 @@ class StageTimeComp(ExplicitComponent):
                               wrt='seg_t0_tf',
                               val=v)
 
+        self.declare_partials(of='t_phase_stage',
+                              wrt='seg_t0_tf',
+                              val=v)
+
+        self.declare_partials(of='t_phase_stage',
+                              wrt='t_initial_phase',
+                              val=-1.0)
+
         v = np.zeros((num_steps + 1, 2))
         v[:, 1] = np.linspace(0, 1.0, num_steps + 1)
         v[:, 0] = v[::-1, 1]
@@ -85,6 +103,8 @@ class StageTimeComp(ExplicitComponent):
         t_step_ends = np.linspace(seg_t0, seg_tf, num_steps + 1)
 
         outputs['t_stage'][:, :] = t_step_ends[:-1, np.newaxis] + np.outer(outputs['h'], c)
+
+        outputs['t_phase_stage'][:, :] = outputs['t_stage'][:, :] - inputs['t_initial_phase']
 
         outputs['t_step'][:] = t_step_ends
 

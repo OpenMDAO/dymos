@@ -75,6 +75,11 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             self.connect('time',
                          ['rhs_all.{0}'.format(t) for t in self.time_options['targets']],
                          src_indices=self.grid_data.subset_node_indices['all'])
+
+        if self.time_options['time_phase_targets']:
+            self.connect('time_phase',
+                         ['rhs_all.{0}'.format(t) for t in self.time_options['time_phase_targets']],
+                         src_indices=self.grid_data.subset_node_indices['all'])
         return comps
 
     def _setup_controls(self):

@@ -63,6 +63,11 @@ class ExplicitSegment(Group):
                      src_indices=np.arange(num_steps * num_stages, dtype=int),
                      flat_src_indices=True)
 
+        self.connect('t_phase_stage',
+                     ['stage_ode.{0}'.format(t) for t in time_options['time_phase_targets']],
+                     src_indices=np.arange(num_steps * num_stages, dtype=int),
+                     flat_src_indices=True)
+
         if control_options:
             ode_parameters = self.options['ode_class'].ode_options._parameters
 

@@ -81,6 +81,15 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                          ['rhs_disc.{0}'.format(t) for t in tgts],
                          src_indices=self.grid_data.subset_node_indices['state_disc'])
 
+        if self.time_options['time_phase_targets']:
+            tgts = self.time_options['time_phase_targets']
+            self.connect('time_phase',
+                         ['rhs_col.{0}'.format(t) for t in tgts],
+                         src_indices=self.grid_data.subset_node_indices['col'])
+            self.connect('time_phase',
+                         ['rhs_disc.{0}'.format(t) for t in tgts],
+                         src_indices=self.grid_data.subset_node_indices['state_disc'])
+
         return comps
 
     def _setup_controls(self):
