@@ -157,19 +157,19 @@ class USatm1976Comp(ExplicitComponent):
 
     def compute(self, inputs, outputs):
 
-        outputs['temp'] = T_interp(inputs['h'])
-        outputs['pres'] = P_interp(inputs['h'])
-        outputs['rho'] = rho_interp(inputs['h'])
-        outputs['drhos_dh'] = rho_interp_deriv(inputs['h'])
+        outputs['temp'] = T_interp(inputs['h'], extrapolate=True)
+        outputs['pres'] = P_interp(inputs['h'], extrapolate=True)
+        outputs['rho'] = rho_interp(inputs['h'], extrapolate=True)
+        outputs['drhos_dh'] = rho_interp_deriv(inputs['h'], extrapolate=True)
 
         outputs['sos'] = np.sqrt(self._K*outputs['temp'])
 
     def compute_partials(self, inputs, partials):
         nn = self.options['num_nodes']
-        partials['temp', 'h'] = T_interp_deriv(inputs['h']).reshape(nn,)[0]
-        partials['pres', 'h'] = P_interp_deriv(inputs['h']).reshape(nn,)[0]
-        partials['rho', 'h'] = rho_interp_deriv(inputs['h']).reshape(nn,)[0]
-        partials['drhos_dh', 'h'] = drho_dh_interp_deriv(inputs['h']).reshape(nn,)[0]
+        partials['temp', 'h'] = T_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
+        partials['pres', 'h'] = P_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
+        partials['rho', 'h'] = rho_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
+        partials['drhos_dh', 'h'] = drho_dh_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
 
-        T = T_interp(inputs['h'])
+        T = T_interp(inputs['h'], extrapolate=True)
         partials['sos', 'h'] = 0.5/np.sqrt(self._K*T)*partials['temp', 'h']
