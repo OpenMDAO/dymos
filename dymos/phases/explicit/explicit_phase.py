@@ -119,6 +119,7 @@ class ExplicitPhase(PhaseBase):
             seg_end_idxs = seg_idxs[[0, -1]]
             self.connect('time', 'seg_{0}.seg_t0_tf'.format(iseg),
                          src_indices=seg_end_idxs)
+            self.connect('t_initial', 'seg_{0}.t_initial_phase'.format(iseg))
         return comps
 
     def _setup_rhs(self):
@@ -203,6 +204,9 @@ class ExplicitPhase(PhaseBase):
         # Determine the path to the variable
         if var_type == 'time':
             rate_path = 't_stage'.format(seg_index)
+            src_idxs = None
+        elif var_type == 'time_phase':
+            rate_path = 'time_phase'.format(seg_index)
             src_idxs = None
         elif var_type == 'state':
             rate_path = 'seg_{0}.stage_states:{0}'.format(var)
@@ -477,6 +481,14 @@ class ExplicitPhase(PhaseBase):
                 for iseg in range(gd.num_segments):
                     self.connect(src_name='seg_{0}.t_step',
                                  tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'time_phase':
+                options['shape'] = (1,)
+                options['units'] = time_units if con_units is None else con_units
+                options['linear'] = True
+                for iseg in range(gd.num_segments):
+                    self.connect(src_name='seg_{0}.time_phase',
+                                 tgt_name='path_constraints.all_values:{0}'.format(con_name))
             elif var_type == 'state':
                 state_shape = self.state_options[var]['shape']
                 state_units = self.state_options[var]['units']
@@ -692,6 +704,8 @@ class ExplicitPhase(PhaseBase):
         # Determine the path to the variable
         if var_type == 'time':
             obj_path = 'time'
+        elif var_type == 'time_phase':
+            obj_path = 'time_phase'
         elif var_type == 'state':
             if loc == 'initial':
                 obj_path = 'seg_{0}.step_states:{1}'.format(0, name)
@@ -736,6 +750,11 @@ class ExplicitPhase(PhaseBase):
             units = self.time_units
             linear = True
             constraint_path = '{0}.t_step'.format(src_seg)
+        elif var_type == 'time_phase':
+            shape = (1,)
+            units = self.time_units
+            linear = True
+            constraint_path = '{0}.time_phase'.format(src_seg)
         elif var_type == 'state':
             state_shape = self.state_options[var]['shape']
             state_units = self.state_options[var]['units']
@@ -911,6 +930,7 @@ class ExplicitPhase(PhaseBase):
             path = '{0}.'.format(self.pathname) if self.pathname else ''
 
             path_map = {'time': 'segments.seg_{0}.stage_time_comp.t_step',
+                        'time_phase': 'segments.seg_{0}.stage_time_comp.t_phase_step',
                         'state': 'segments.seg_{0}.advance_comp.step_states:{1}',
                         'indep_control': 'segments.seg_{0}.stage_control_comp.'
                                          'stage_control_values:{1}',
@@ -925,6 +945,15 @@ class ExplicitPhase(PhaseBase):
                         'ode': 'segments.seg_{0}.stage_ode.{1}'}
 
             if var_type == 'time':
+                output_value = []
+                for iseg in range(gd.num_segments):
+                    var_path = path + path_map[var_type].format(iseg)
+                    seg_value = outputs[var_path]['value']
+                    seg_units = outputs[var_path]['units']
+                    output_value.append(convert_units(seg_value, seg_units, units))
+                output_value = np.atleast_2d(np.concatenate(output_value, axis=0)).T
+
+            elif var_type == 'time_phase':
                 output_value = []
                 for iseg in range(gd.num_segments):
                     var_path = path + path_map[var_type].format(iseg)
@@ -1030,6 +1059,7 @@ class ExplicitPhase(PhaseBase):
         var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
 
         path_map = {'time': 'time.{0}',
+                    'time_phase': 'time.{0}',
                     'indep_control': 'control_interp_comp.control_values:{0}',
                     'input_control': 'control_interp_comp.control_values:{0}',
                     'design_parameter': 'design_params.design_parameters:{0}',

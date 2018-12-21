@@ -26,6 +26,7 @@ class TimeComp(ExplicitComponent):
         self.add_input('t_initial', val=0., units=time_units)
         self.add_input('t_duration', val=1., units=time_units)
         self.add_output('time', units=time_units, shape=len(node_ptau))
+        self.add_output('time_phase', units=time_units, shape=len(node_ptau))
         if self.options['internal']:
             self.add_output('dt_dstau', units=time_units, shape=len(node_ptau))
 
@@ -35,9 +36,8 @@ class TimeComp(ExplicitComponent):
         cs = np.zeros(nn)
 
         self.declare_partials(of='time', wrt='t_initial', rows=rs, cols=cs, val=1.0)
-
         self.declare_partials(of='time', wrt='t_duration', rows=rs, cols=cs, val=1.0)
-
+        self.declare_partials(of='time_phase', wrt='t_duration', rows=rs, cols=cs, val=1.0)
         self.declare_partials(of='dt_dstau', wrt='t_duration', rows=rs, cols=cs, val=1.0)
 
     def compute(self, inputs, outputs):
@@ -48,15 +48,17 @@ class TimeComp(ExplicitComponent):
         t_duration = inputs['t_duration']
 
         outputs['time'][:] = t_initial + 0.5 * (node_ptau + 1) * t_duration
+        outputs['time_phase'][:] = 0.5 * (node_ptau + 1) * t_duration
 
         if self.options['internal']:
             outputs['dt_dstau'][:] = 0.5 * t_duration * node_dptau_dstau
 
-    def compute_partials(self, inputs, jacobian):
+    def compute_partials(self, inputs, partials):
         node_ptau = self.options['grid_data'].node_ptau
         node_dptau_dstau = self.options['grid_data'].node_dptau_dstau
 
-        jacobian['time', 't_duration'] = 0.5 * (node_ptau + 1)
+        partials['time', 't_duration'] = 0.5 * (node_ptau + 1)
+        partials['time_phase', 't_duration'] = partials['time', 't_duration']
 
         if self.options['internal']:
-            jacobian['dt_dstau', 't_duration'] = 0.5 * node_dptau_dstau
+            partials['dt_dstau', 't_duration'] = 0.5 * node_dptau_dstau

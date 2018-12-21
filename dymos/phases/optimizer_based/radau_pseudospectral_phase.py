@@ -75,6 +75,11 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             self.connect('time',
                          ['rhs_all.{0}'.format(t) for t in self.time_options['targets']],
                          src_indices=self.grid_data.subset_node_indices['all'])
+
+        if self.time_options['time_phase_targets']:
+            self.connect('time_phase',
+                         ['rhs_all.{0}'.format(t) for t in self.time_options['time_phase_targets']],
+                         src_indices=self.grid_data.subset_node_indices['all'])
         return comps
 
     def _setup_controls(self):
@@ -161,6 +166,12 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 options['units'] = time_units if con_units is None else con_units
                 options['linear'] = True
                 self.connect(src_name='time',
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+            if var_type == 'time_phase':
+                options['shape'] = (1,)
+                options['units'] = time_units if con_units is None else con_units
+                options['linear'] = True
+                self.connect(src_name='time_phase',
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
             elif var_type == 'state':
                 state_shape = self.state_options[var]['shape']
@@ -302,6 +313,9 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         if var_type == 'time':
             rate_path = 'time'
             node_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'time_phase':
+            rate_path = 'time_phase'
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'state':
             if self.options['compressed']:
                 rate_path = 'states:{0}'.format(var)
@@ -388,6 +402,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         # Determine the path to the variable
         if var_type == 'time':
             obj_path = 'time'
+        elif var_type == 'time_phase':
+            obj_path = 'time_phase'
         elif var_type == 'state':
             obj_path = 'states:{0}'.format(name)
         elif var_type == 'indep_control':
@@ -455,6 +471,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
 
         path_map = {'time': 'time.{0}',
+                    'time_phase': 'time.{0}',
                     'state': 'indep_states.states:{0}',
                     'indep_control': 'control_interp_comp.control_values:{0}',
                     'input_control': 'control_interp_comp.control_values:{0}',

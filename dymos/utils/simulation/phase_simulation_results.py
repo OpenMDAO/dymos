@@ -48,8 +48,9 @@ class PhaseSimulationResults(object):
             design_parameter_options
         self.input_parameter_options = {} if input_parameter_options is None else \
             input_parameter_options
-        self.outputs = {'indep': {}, 'states': {}, 'controls': {}, 'control_rates': {},
-                        'design_parameters': {}, 'input_parameters': {}, 'ode': {}}
+        self.outputs = {'indep': {}, 'time_phase': {}, 'states': {}, 'controls': {},
+                        'control_rates': {}, 'design_parameters': {}, 'input_parameters': {},
+                        'ode': {}}
         self.units = {}
 
         if isinstance(filepath, str):
@@ -82,6 +83,7 @@ class PhaseSimulationResults(object):
 
         p = Problem(model=Group())
         time = self.get_values('time')
+        time_phase = self.get_values('time_phase')
         nn = len(time)
         ode_sys = ode_class(num_nodes=nn, **init_kwargs)
         ivc = p.model.add_subsystem('inputs', subsys=IndepVarComp(), promotes_outputs=['*'])
@@ -89,7 +91,10 @@ class PhaseSimulationResults(object):
 
         # Connect times
         ivc.add_output('time', val=np.zeros((nn, 1)), units=self.time_options['units'])
+        ivc.add_output('time_phase', val=np.zeros((nn, 1)), units=self.time_options['units'])
         p.model.connect('time', ['ode.{0}'.format(t) for t in self.time_options['targets']])
+        p.model.connect('time_phase', ['ode.{0}'.format(t) for t in
+                                       self.time_options['time_phase_targets']])
 
         # Connect states
         for name, options in iteritems(self.state_options):
@@ -173,6 +178,7 @@ class PhaseSimulationResults(object):
 
         # Assign times
         p['time'] = time
+        p['time_phase'] = time_phase
 
         # Assign states
         for name in self.state_options:
@@ -191,7 +197,6 @@ class PhaseSimulationResults(object):
 
         # Assign design parameters
         for name, options in iteritems(self.design_parameter_options):
-            print(self.get_values(name))
             p['design_parameters:{0}'.format(name)] = self.get_values(name)
 
         # Assign input parameters
@@ -225,8 +230,9 @@ class PhaseSimulationResults(object):
         loaded_outputs = case.list_outputs(explicit=True, implicit=True, values=True,
                                            units=True, shape=True, out_stream=None)
 
-        self.outputs = {'indep': {}, 'states': {}, 'controls': {}, 'control_rates': {},
-                        'design_parameters': {}, 'input_parameters': {}, 'ode': {}}
+        self.outputs = {'indep': {}, 'time_phase': {}, 'states': {}, 'controls': {},
+                        'control_rates': {}, 'design_parameters': {}, 'input_parameters': {},
+                        'ode': {}}
 
         for output_name, options in loaded_outputs:
 
@@ -236,6 +242,9 @@ class PhaseSimulationResults(object):
                 if output_name == 'time':
                     var_type = 'indep'
                     var_name = 'time'
+                elif output_name == 'time_phase':
+                    var_type = 'time_phase'
+                    var_name = 'time_phase'
                 if output_name.startswith('states:'):
                     var_type = 'states'
                     var_name = output_name.replace('states:', '', 1)
@@ -280,6 +289,8 @@ class PhaseSimulationResults(object):
 
         if var == 'time':
             var_type = 'indep'
+        elif var == 'time_phase':
+            var_type = 'time_phase'
         elif var in self.outputs['states']:
             var_type = 'states'
         elif var in self.outputs['controls']:

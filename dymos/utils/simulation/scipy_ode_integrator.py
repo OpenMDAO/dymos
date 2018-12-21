@@ -69,6 +69,9 @@ class ScipyODEIntegrator(object):
         self.design_parameter_options = design_parameter_options
         self.input_parameter_options = input_parameter_options
 
+        # Stored initial value of time so that time_phase can be calculated
+        self.t_initial = 0.0
+
         pos = 0
 
         for state, options in iteritems(state_options):
@@ -84,16 +87,20 @@ class ScipyODEIntegrator(object):
         self._state_rate_vec = np.zeros(pos, dtype=float)
 
         # The Time Comp
-        self.prob.model.add_subsystem('time_input',
-                                      IndepVarComp('time',
-                                                   val=0.0,
-                                                   units=self.ode_options._time_options['units']),
-                                      promotes_outputs=['time'])
+        time_ivc = IndepVarComp()
+        time_ivc.add_output('time', val=0.0, units=self.ode_options._time_options['units'])
+        time_ivc.add_output('time_phase', val=0.0, units=self.ode_options._time_options['units'])
+        self.prob.model.add_subsystem('time_input', time_ivc,
+                                      promotes_outputs=['time', 'time_phase'])
 
-        if self.ode_options._time_options['targets'] is not None:
-            self.prob.model.connect('time',
-                                    ['ode.{0}'.format(tgt) for tgt in
-                                     self.ode_options._time_options['targets']])
+        # if self.ode_options._time_options['targets'] is not None:
+        self.prob.model.connect('time',
+                                ['ode.{0}'.format(tgt) for tgt in
+                                 self.ode_options._time_options['targets']])
+        # if self.ode_options._time_options['time_phase_targets'] is not None
+        self.prob.model.connect('time_phase',
+                                ['ode.{0}'.format(tgt) for tgt in
+                                 self.ode_options._time_options['time_phase_targets']])
 
         # The States Comp
         indep = IndepVarComp()
@@ -126,6 +133,8 @@ class ScipyODEIntegrator(object):
 
         if var == 'time':
             rate_path = 'time'
+        elif var == 'time_phase':
+            rate_path = 'time_phase'
         elif var in self.state_options:
             rate_path = 'states:{0}'.format(var)
         elif var in self.control_options:
@@ -134,12 +143,10 @@ class ScipyODEIntegrator(object):
             rate_path = 'design_parameters:{0}'.format(var)
         elif var in self.input_parameter_options:
             rate_path = 'input_parameters:{0}'.format(var)
-        elif var.endswith('_rate'):
-            if var[:-5] in self.control_options:
-                rate_path = 'control_rates:{0}'.format(var)
-        elif var.endswith('_rate2'):
-            if var[:-6] in self.control_options:
-                rate_path = 'control_rates:{0}'.format(var)
+        elif var.endswith('_rate') and var[:-5] in self.control_options:
+            rate_path = 'control_rates:{0}'.format(var)
+        elif var.endswith('_rate2') and var[:-6] in self.control_options:
+            rate_path = 'control_rates:{0}'.format(var)
         else:
             rate_path = 'ode.{0}'.format(var)
 
@@ -338,6 +345,7 @@ class ScipyODEIntegrator(object):
 
         """
         self.prob['time'] = t
+        self.prob['time_phase'] = t - self.t_initial
         self._unpack_state_vec(x)
         self.prob.run_model()
         xdot = self._pack_state_rate_vec()
@@ -359,9 +367,13 @@ class ScipyODEIntegrator(object):
 
         for output_name, options in model_outputs:
             prom_name = self.prob.model._var_abs2prom['output'][output_name]
-            if prom_name.startswith('time'):
+            if prom_name == 'time':
                 var_type = 'indep'
                 name = 'time'
+                shape = (1,)
+            elif prom_name == 'time_phase':
+                var_type = 'time_phase'
+                name = 'time_phase'
                 shape = (1,)
             elif prom_name.startswith('states:'):
                 var_type = 'states'
@@ -416,8 +428,7 @@ class ScipyODEIntegrator(object):
                 results.outputs[var_type][name]['units'] = options['units']
                 results.outputs[var_type][name]['shape'] = shape
 
-    def integrate_times(self, x0_dict, times,
-                        integrator='vode', integrator_params=None,
+    def integrate_times(self, x0_dict, times, integrator='vode', integrator_params=None,
                         observer=None):
         """
         Integrate the RHS with the given initial state, and record the values at the

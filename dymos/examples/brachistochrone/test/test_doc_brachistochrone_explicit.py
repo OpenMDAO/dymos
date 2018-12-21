@@ -52,7 +52,7 @@ class TestBrachistochroneExplicitExample(unittest.TestCase):
         phase.add_boundary_constraint('y', loc='final', equals=5)
 
         # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=1)
+        phase.add_objective('time_phase', loc='final', scaler=1)
 
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = 'csc'
@@ -137,7 +137,7 @@ class TestBrachistochroneExplicitExample(unittest.TestCase):
         phase.add_boundary_constraint('y', loc='final', equals=5)
 
         # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=1)
+        phase.add_objective('time_phase', loc='final', scaler=1)
 
         p.model.linear_solver = DirectSolver(assemble_jac=True)
         p.model.options['assembled_jac_type'] = 'csc'

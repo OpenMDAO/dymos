@@ -71,6 +71,8 @@ class PhaseBase(Group):
         # Integration variable options default to values from the RHS
         self.time_options['units'] = self.ode_options._time_options['units']
         self.time_options['targets'] = self.ode_options._time_options['targets']
+        self.time_options['time_phase_targets'] = \
+            self.ode_options._time_options['time_phase_targets']
 
     def initialize(self):
         self.options.declare('num_segments', types=int, desc='Number of segments')
@@ -829,6 +831,8 @@ class PhaseBase(Group):
         """
         if var == 'time':
             return 'time'
+        elif var == 'time_phase':
+            return 'time_phase'
         elif var in self.state_options:
             return 'state'
         elif var in self.control_options:
@@ -922,7 +926,8 @@ class PhaseBase(Group):
             comps += ['time_extents']
 
         time_comp = TimeComp(grid_data=grid_data, units=time_units)
-        self.add_subsystem('time', time_comp, promotes_outputs=['time'], promotes_inputs=externals)
+        self.add_subsystem('time', time_comp, promotes_outputs=['time', 'time_phase'],
+                           promotes_inputs=externals)
 
         if not (self.time_options['input_initial'] or self.time_options['fix_initial']):
             lb, ub = self.time_options['initial_bounds']

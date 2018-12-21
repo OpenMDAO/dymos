@@ -50,7 +50,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
     # Minimize time at the end of the phase
-    phase.add_objective('time', loc='final', scaler=10)
+    phase.add_objective('time_phase', loc='final', scaler=10)
 
     p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
     p.model.linear_solver = DirectSolver(assemble_jac=True)
@@ -93,10 +93,10 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = phase.get_values('time', nodes='all')
+        x_imp = phase.get_values('time_phase', nodes='all')
         y_imp = phase.get_values('theta_rate2', nodes='all')
 
-        x_exp = exp_out.get_values('time')
+        x_exp = exp_out.get_values('time_phase')
         y_exp = exp_out.get_values('theta_rate2')
 
         ax.plot(x_imp, y_imp, 'ro', label='implicit')

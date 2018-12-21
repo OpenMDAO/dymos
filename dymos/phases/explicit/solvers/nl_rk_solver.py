@@ -253,6 +253,8 @@ class NonlinearRK(NonlinearSolver):
 
         if var == 'time':
             rate_path = 'time'
+        elif var == 'time_phase':
+            var_type = 'time_phase'
         elif var in self.state_options:
             rate_path = 'state'
         elif var in self.control_options:
