@@ -73,7 +73,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         phase.add_input_parameter('mass_empty', units='kg')
         phase.add_input_parameter('mass_payload', units='kg')
 
-        phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
+        phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0)
 
         p.model.connect('assumptions.mach', 'phase0.input_parameters:mach')
         p.model.connect('assumptions.S', 'phase0.input_parameters:S')
