@@ -31,7 +31,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.options['dynamic_simul_derivs'] = True
-
+        p.driver.opt_settings['MAXIT'] = 20
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
 
