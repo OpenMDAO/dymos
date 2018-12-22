@@ -39,7 +39,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
                       ode_class=AircraftODE,
                       num_segments=num_seg,
                       segment_ends=seg_ends,
-                      transcription_order=5,
+                      transcription_order=3,
                       compressed=False)
 
         # Pass design parameters in externally from an external source
@@ -66,7 +66,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
                                 upper=60, lower=0)
 
         phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
-                          ref0=-3000, ref=3000)
+                          ref0=-3000, ref=3000, rate_continuity=True)
 
         phase.add_input_parameter('mach', units=None)
         phase.add_input_parameter('S', units='m**2')
