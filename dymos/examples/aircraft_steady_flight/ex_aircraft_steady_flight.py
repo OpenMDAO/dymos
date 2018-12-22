@@ -1,7 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -27,7 +27,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
         p.driver.opt_settings["Linesearch tolerance"] = 0.10
         p.driver.opt_settings['iSumm'] = 6
 
-    num_seg = 20
+    num_seg = 15
     seg_ends, _ = lgl(num_seg + 1)
 
     phase = Phase(transcription,
@@ -57,7 +57,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
                             upper=60)
 
     phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000, ref0=-3000,
-                      ref=3000)
+                      rate_continuity=True, ref=3000)
 
     phase.add_control('mach', units=None, opt=False)
 
@@ -179,4 +179,4 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
 
 if __name__ == '__main__':
-    ex_aircraft_steady_flight(optimizer='SNOPT', transcription='radau-ps')
+    ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps')
