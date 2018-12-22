@@ -80,7 +80,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
         p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
 
-        phase.add_objective('range', loc='final', ref=-1.0)
+        phase.add_objective('range', loc='final', ref=-0.1)
 
         p.model.linear_solver = DirectSolver(assemble_jac=True)
 
