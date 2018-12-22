@@ -5,6 +5,7 @@ from six import string_types, iteritems
 import numpy as np
 
 from openmdao.utils.options_dictionary import OptionsDictionary
+from openmdao.core.component import _valid_var_name
 
 
 class _ODETimeOptionsDictionary(OptionsDictionary):
@@ -250,6 +251,8 @@ class ODEOptions(object):
         """
         if name in self._states:
             raise ValueError('State {0} has already been declared.'.format(name))
+        if not _valid_var_name(name):
+            raise NameError("'{0}' is not a valid OpenMDAO variable name.".format(name))
 
         options = _ODEStateOptionsDictionary()
 
@@ -298,6 +301,8 @@ class ODEOptions(object):
         """
         if name in self._parameters:
             raise ValueError('Parameter {0} has already been declared.'.format(name))
+        if not _valid_var_name(name):
+            raise NameError("'{0}' is not a valid OpenMDAO variable name.".format(name))
 
         options = _ODEParameterOptionsDictionary()
 
