@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, IndepVarComp
+from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, IndepVarComp, ScipyOptimizeDriver
 
 from dymos import Phase
 
@@ -34,7 +34,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
                   ode_class=AircraftODE,
                   num_segments=num_seg,
                   segment_ends=seg_ends,
-                  transcription_order=5,
+                  transcription_order=3,
                   compressed=False)
 
     # Pass Reference Area from an external source
@@ -65,7 +65,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     phase.add_input_parameter('mass_empty', units='kg')
     phase.add_input_parameter('mass_payload', units='kg')
 
-    phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
+    phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0)
 
     p.model.connect('assumptions.S', 'phase0.input_parameters:S')
     p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
@@ -179,4 +179,4 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
 
 if __name__ == '__main__':
-    ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps')
+    ex_aircraft_steady_flight(optimizer='SNOPT', transcription='radau-ps')
