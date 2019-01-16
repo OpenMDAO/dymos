@@ -75,15 +75,17 @@ class declare_time(object):
     This decorator can be stacked with `declare_state` and `declare_parameter`
     to provide all necessary ODE metadata for system.
     """
-    def __init__(self, targets=None, units=None):
+    def __init__(self, targets=None, time_phase_targets=None, units=None):
         self.targets = targets
+        self.time_phase_targets = time_phase_targets
         self.units = units
 
     def __call__(self, system_class):
         if not hasattr(system_class, 'ode_options'):
             setattr(system_class, 'ode_options', ODEOptions())
 
-        system_class.ode_options.declare_time(targets=self.targets, units=self.units)
+        system_class.ode_options.declare_time(targets=self.targets, time_phase_targets=self.time_phase_targets,
+                                              units=self.units)
         return system_class
 
 
