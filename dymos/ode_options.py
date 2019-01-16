@@ -208,7 +208,7 @@ class ODEOptions(object):
         # If no issues have been found, extend the existing list of targets
         self._target_paths.extend(targets)
 
-    def declare_time(self, targets=None, units=None):
+    def declare_time(self, targets=None, time_phase_targets=None, units=None):
         """
         Specify the targets and units of time or the time-like variable.
 
@@ -226,10 +226,19 @@ class ODEOptions(object):
             self._time_options['targets'] = targets
         elif targets is not None:
             raise ValueError('targets must be of type string_types or Iterable or None')
+
+        if isinstance(time_phase_targets, string_types):
+            self._time_options['time_phase_targets'] = [time_phase_targets]
+        elif isinstance(time_phase_targets, Iterable):
+            self._time_options['time_phase_targets'] = time_phase_targets
+        elif time_phase_targets is not None:
+            raise ValueError('time_phase_targets must be of type string_types or Iterable or None')
+
         if units is not None:
             self._time_options['units'] = units
 
         self._check_targets('time', self._time_options['targets'])
+        self._check_targets('time_phase_targets', self._time_options['time_phase_targets'])
 
     def declare_state(self, name, rate_source, targets=None, shape=None, units=None):
         """
