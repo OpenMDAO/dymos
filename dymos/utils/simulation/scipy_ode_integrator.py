@@ -69,9 +69,6 @@ class ScipyODEIntegrator(object):
         self.design_parameter_options = design_parameter_options
         self.input_parameter_options = input_parameter_options
 
-        # Stored initial value of time so that time_phase can be calculated
-        self.t_initial = 0.0
-
         pos = 0
 
         for state, options in iteritems(state_options):
@@ -89,18 +86,32 @@ class ScipyODEIntegrator(object):
         # The Time Comp
         time_ivc = IndepVarComp()
         time_ivc.add_output('time', val=0.0, units=self.ode_options._time_options['units'])
-        time_ivc.add_output('time_phase', val=0.0, units=self.ode_options._time_options['units'])
+        time_ivc.add_output('time_phase', val=1.0, units=self.ode_options._time_options['units'])
+        time_ivc.add_output('t_initial', val=0.0, units=self.ode_options._time_options['units'])
+        time_ivc.add_output('t_duration', val=1.0, units=self.ode_options._time_options['units'])
         self.prob.model.add_subsystem('time_input', time_ivc,
-                                      promotes_outputs=['time', 'time_phase'])
+                                      promotes_outputs=['time', 'time_phase',
+                                                        't_initial', 't_duration'])
 
-        # if self.ode_options._time_options['targets'] is not None:
-        self.prob.model.connect('time',
-                                ['ode.{0}'.format(tgt) for tgt in
-                                 self.ode_options._time_options['targets']])
-        # if self.ode_options._time_options['time_phase_targets'] is not None
-        self.prob.model.connect('time_phase',
-                                ['ode.{0}'.format(tgt) for tgt in
-                                 self.ode_options._time_options['time_phase_targets']])
+        if self.ode_options._time_options['targets'] is not None:
+            self.prob.model.connect('time',
+                                    ['ode.{0}'.format(tgt) for tgt in
+                                     self.ode_options._time_options['targets']])
+
+        if self.ode_options._time_options['time_phase_targets'] is not None:
+            self.prob.model.connect('time_phase',
+                                    ['ode.{0}'.format(tgt) for tgt in
+                                     self.ode_options._time_options['time_phase_targets']])
+
+        if self.ode_options._time_options['t_initial_targets'] is not None:
+            self.prob.model.connect('t_initial',
+                                    ['ode.{0}'.format(tgt) for tgt in
+                                     self.ode_options._time_options['t_initial_targets']])
+
+        if self.ode_options._time_options['t_duration_targets'] is not None:
+            self.prob.model.connect('t_duration',
+                                    ['ode.{0}'.format(tgt) for tgt in
+                                     self.ode_options._time_options['t_duration_targets']])
 
         # The States Comp
         indep = IndepVarComp()
@@ -240,6 +251,25 @@ class ScipyODEIntegrator(object):
         """
         self._interp_comp.interpolants[name] = interpolant
 
+    def set_time_values(self, t_initial, t_duration, units=None):
+        """
+        Sets the values of t_initial and t_duration for the phase.
+
+        Parameters
+        ----------
+        name : str
+            The name of the design parameter whose value is being set
+        t_initial : float
+            The value of the initial time of the phase.
+        t_duration : float
+            The value of the duration of the phase.
+        units : str or None
+            The units in which the design parameter value is set.
+
+        """
+        self.prob.set_val('t_initial', t_initial, units=units)
+        self.prob.set_val('t_duration', t_duration, units=units)
+
     def set_design_param_value(self, name, val, units=None):
         """
         Sets the values of design parameters in the problem, once self.prob has been setup.
@@ -345,7 +375,7 @@ class ScipyODEIntegrator(object):
 
         """
         self.prob['time'] = t
-        self.prob['time_phase'] = t - self.t_initial
+        self.prob['time_phase'] = t - self.prob['t_initial']
         self._unpack_state_vec(x)
         self.prob.run_model()
         xdot = self._pack_state_rate_vec()
@@ -374,6 +404,14 @@ class ScipyODEIntegrator(object):
             elif prom_name == 'time_phase':
                 var_type = 'time_phase'
                 name = 'time_phase'
+                shape = (1,)
+            elif prom_name == 't_initial':
+                var_type = 't_initial'
+                name = 't_initial'
+                shape = (1,)
+            elif prom_name == 't_duration':
+                var_type = 't_duration'
+                name = 't_duration'
                 shape = (1,)
             elif prom_name.startswith('states:'):
                 var_type = 'states'

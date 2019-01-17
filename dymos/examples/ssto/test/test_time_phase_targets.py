@@ -129,7 +129,8 @@ class TestTimePhaseTargets(unittest.TestCase):
         # Ensure defects are zero
         for state in ['x', 'y', 'vx', 'vy', 'm']:
             assert_rel_error(self, p['phase0.collocation_constraint.defects:{0}'.format(state)],
-                             np.zeros_like(p['phase0.collocation_constraint.defects:{0}'.format(state)]),
+                             np.zeros_like(p['phase0.collocation_constraint.'
+                                             'defects:{0}'.format(state)]),
                              tolerance=1.0E-3)
 
             if not compressed:
@@ -141,8 +142,10 @@ class TestTimePhaseTargets(unittest.TestCase):
         assert_rel_error(self, p['phase0.t_duration'], 481.8, tolerance=1.0E-3)
 
         # Does this case find the same answer as using theta as a dynamic control?
-        assert_rel_error(self, p['phase0.design_parameters:a_ctrl'], [[-0.0082805]], tolerance=1.0E-3)
-        assert_rel_error(self, p['phase0.design_parameters:b_ctrl'], [[2.74740137]], tolerance=1.0E-3)
+        assert_rel_error(self, p['phase0.design_parameters:a_ctrl'], [[-0.0082805]],
+                         tolerance=1.0E-3)
+        assert_rel_error(self, p['phase0.design_parameters:b_ctrl'], [[2.74740137]],
+                         tolerance=1.0E-3)
 
 if __name__ == "__main__":
     unittest.main()

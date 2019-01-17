@@ -48,9 +48,9 @@ class PhaseSimulationResults(object):
             design_parameter_options
         self.input_parameter_options = {} if input_parameter_options is None else \
             input_parameter_options
-        self.outputs = {'indep': {}, 'time_phase': {}, 'states': {}, 'controls': {},
-                        'control_rates': {}, 'design_parameters': {}, 'input_parameters': {},
-                        'ode': {}}
+        self.outputs = {'indep': {}, 'time_phase': {}, 't_initial': {}, 't_duration': {},
+                        'states': {}, 'controls': {}, 'control_rates': {}, 'design_parameters': {},
+                        'input_parameters': {}, 'ode': {}}
         self.units = {}
 
         if isinstance(filepath, str):

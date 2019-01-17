@@ -390,6 +390,14 @@ class TimeOptionsDictionary(OptionsDictionary):
                      desc='targets in the ODE to which the elapsed duration of the phase is '
                           'connected')
 
+        self.declare(name='t_initial_targets', types=Iterable, allow_none=True, default=None,
+                     desc='targets in the ODE to which the initial time of the phase is '
+                          'connected')
+
+        self.declare(name='t_duration_targets', types=Iterable, allow_none=True, default=None,
+                     desc='targets in the ODE to which the total duration of the phase is '
+                          'connected')
+
 
 class _ForDocs(object):  # pragma: no cover
     """

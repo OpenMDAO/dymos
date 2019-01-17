@@ -20,6 +20,12 @@ class _ODETimeOptionsDictionary(OptionsDictionary):
         self.declare('time_phase_targets', default=[], types=Iterable,
                      desc='Target path(s) for the time_phase variable '
                           '(the current phase elapsed time), relative to the top-level system.')
+        self.declare('t_initial_targets', default=[], types=Iterable,
+                     desc='Target path(s) for the t_initial variable '
+                          '(the time at which the phase begins), relative to the top-level system.')
+        self.declare('t_duration_targets', default=[], types=Iterable,
+                     desc='Target path(s) for the t_duration variable '
+                          '(the time duration of the phase), relative to the top-level system.')
         self.declare('units', default=None, types=string_types, allow_none=True,
                      desc='Units for time.')
 
@@ -74,17 +80,35 @@ class declare_time(object):
 
     This decorator can be stacked with `declare_state` and `declare_parameter`
     to provide all necessary ODE metadata for system.
+
+    Parameters
+    ----------
+    targets : sequence of str or None
+        ODE-relative paths to which time should be connected.
+    time_phase_targets : string_types or Iterable or None
+        ODE-relative paths to which time_phase should be connected.
+    t_initial_targets : string_types or Iterable or None
+        ODE-relative paths to which the scalar t_initial should be connected.
+    t_duration_targets : string_types or Iterable or None
+        ODE-relative paths to which the scalar t_duration should be connected.
+
     """
-    def __init__(self, targets=None, time_phase_targets=None, units=None):
+    def __init__(self, targets=None, time_phase_targets=None, t_initial_targets=None,
+                 t_duration_targets=None, units=None):
         self.targets = targets
         self.time_phase_targets = time_phase_targets
+        self.t_initial_targets = t_initial_targets
+        self.t_duration_targets = t_duration_targets
         self.units = units
 
     def __call__(self, system_class):
         if not hasattr(system_class, 'ode_options'):
             setattr(system_class, 'ode_options', ODEOptions())
 
-        system_class.ode_options.declare_time(targets=self.targets, time_phase_targets=self.time_phase_targets,
+        system_class.ode_options.declare_time(targets=self.targets,
+                                              time_phase_targets=self.time_phase_targets,
+                                              t_initial_targets=self.t_initial_targets,
+                                              t_duration_targets=self.t_duration_targets,
                                               units=self.units)
         return system_class
 
@@ -208,7 +232,8 @@ class ODEOptions(object):
         # If no issues have been found, extend the existing list of targets
         self._target_paths.extend(targets)
 
-    def declare_time(self, targets=None, time_phase_targets=None, units=None):
+    def declare_time(self, targets=None, time_phase_targets=None, t_initial_targets=None,
+                     t_duration_targets=None, units=None):
         """
         Specify the targets and units of time or the time-like variable.
 
@@ -217,6 +242,13 @@ class ODEOptions(object):
         targets : string_types or Iterable or None
             Targets for the time or time-like variable within the ODE, or None if no models
             are explicitly time-dependent. Default is None.
+        time_phase_targets : string_types or Iterable or None
+            Targets for the phase elapsed time (or time-like variable) within the ODE.
+            Default is None.
+        t_initial_targets : string_types or Iterable or None
+            Targets for the time or time-like variable within the ODE. Default is None.
+        t_duration_targets : string_types or Iterable or None
+            Targets for the time or time-like variable within the ODE. Default is None.
         units : str or None
             Units for the integration variable within the ODE. Default is None.
         """
@@ -226,6 +258,27 @@ class ODEOptions(object):
             self._time_options['targets'] = targets
         elif targets is not None:
             raise ValueError('targets must be of type string_types or Iterable or None')
+
+        if isinstance(time_phase_targets, string_types):
+            self._time_options['time_phase_targets'] = [time_phase_targets]
+        elif isinstance(time_phase_targets, Iterable):
+            self._time_options['time_phase_targets'] = time_phase_targets
+        elif time_phase_targets is not None:
+            raise ValueError('time_phase_targets must be of type string_types or Iterable or None')
+
+        if isinstance(t_initial_targets, string_types):
+            self._time_options['t_initial_targets'] = [t_initial_targets]
+        elif isinstance(t_initial_targets, Iterable):
+            self._time_options['t_initial_targets'] = t_initial_targets
+        elif t_initial_targets is not None:
+            raise ValueError('t_initial_targets must be of type string_types or Iterable or None')
+
+        if isinstance(t_duration_targets, string_types):
+            self._time_options['t_duration_targets'] = [t_duration_targets]
+        elif isinstance(t_duration_targets, Iterable):
+            self._time_options['t_duration_targets'] = t_duration_targets
+        elif t_duration_targets is not None:
+            raise ValueError('t_duration_targets must be of type string_types or Iterable or None')
 
         if isinstance(time_phase_targets, string_types):
             self._time_options['time_phase_targets'] = [time_phase_targets]
