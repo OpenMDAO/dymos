@@ -549,26 +549,39 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             output_value = np.repeat(output_value, gd.num_nodes, axis=0)
 
         elif var_type == 'ode':
-            rhs_disc_outputs = dict(self.rhs_disc.list_outputs(out_stream=None, values=True,
-                                                               shape=True, units=True))
-            rhs_col_outputs = dict(self.rhs_col.list_outputs(out_stream=None, values=True,
-                                                             shape=True, units=True))
 
             prom2abs_disc = self.rhs_disc._var_allprocs_prom2abs_list
             prom2abs_col = self.rhs_col._var_allprocs_prom2abs_list
 
-            # Is var in prom2abs_disc['output']?
-            abs_path_disc = prom2abs_disc['output'][var][0]
-            abs_path_col = prom2abs_col['output'][var][0]
+            try:
+                # Is var in prom2abs_disc['output']?
+                abs_path_disc = prom2abs_disc['output'][var][0]
+                abs_path_col = prom2abs_col['output'][var][0]
+                rhs_disc_dict = dict(self.rhs_disc.list_outputs(out_stream=None, values=True,
+                                                                shape=True, units=True))
+                rhs_col_dict = dict(self.rhs_col.list_outputs(out_stream=None, values=True,
+                                                              shape=True, units=True))
+            except KeyError:
+                # Is var in prom2abs_disc['input']?
+                try:
+                    abs_path_disc = prom2abs_disc['input'][var][0]
+                    abs_path_col = prom2abs_col['input'][var][0]
+                    rhs_disc_dict = dict(self.rhs_disc.list_inputs(out_stream=None, values=True,
+                                                                   units=True))
+                    rhs_col_dict = dict(self.rhs_col.list_inputs(out_stream=None, values=True,
+                                                                 units=True))
+                except KeyError:
+                    raise KeyError('Variable {0} was not found in the '
+                                   'ODE system for phase {1}'.format(var, self.pathname))
 
-            shape = rhs_disc_outputs[abs_path_disc]['shape'][1:]
-            disc_units = rhs_disc_outputs[abs_path_disc]['units']
-            col_units = rhs_col_outputs[abs_path_col]['units']
+            shape = rhs_disc_dict[abs_path_disc]['value'].shape[1:]
+            disc_units = rhs_disc_dict[abs_path_disc]['units']
+            col_units = rhs_col_dict[abs_path_col]['units']
 
             output_value = np.zeros((gd.num_nodes,) + shape)
 
-            disc_vals = rhs_disc_outputs[abs_path_disc]['value']
-            col_vals = rhs_col_outputs[abs_path_col]['value']
+            disc_vals = rhs_disc_dict[abs_path_disc]['value']
+            col_vals = rhs_col_dict[abs_path_col]['value']
 
             output_value[disc_node_idxs, ...] = convert_units(disc_vals, disc_units, units)
             output_value[col_node_idxs, ...] = convert_units(col_vals, col_units, units)

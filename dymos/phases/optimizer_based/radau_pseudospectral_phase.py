@@ -513,12 +513,29 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             output_value = np.repeat(output_value, gd.num_nodes, axis=0)
 
         elif var_type == 'ode':
-            rhs_all_outputs = dict(self.rhs_all.list_outputs(out_stream=None, values=True,
-                                                             shape=True, units=True))
             prom2abs_all = self.rhs_all._var_allprocs_prom2abs_list
-            abs_path_all = prom2abs_all['output'][var][0]
-            output_value = rhs_all_outputs[abs_path_all]['value']
-            output_units = rhs_all_outputs[abs_path_all]['units']
+
+            print(self.list_inputs())
+
+            try:
+                # Is var in prom2abs_disc['output']?
+                abs_path_all = prom2abs_all['output'][var][0]
+                rhs_all_outputs = dict(self.rhs_all.list_outputs(out_stream=None, values=True,
+                                                                 units=True))
+                output_value = rhs_all_outputs[abs_path_all]['value']
+                output_units = rhs_all_outputs[abs_path_all]['units']
+            except KeyError:
+                # Is var in prom2abs_disc['input']?
+                try:
+                    abs_path_all = prom2abs_all['input'][var][0]
+                    rhs_all_inputs = dict(self.rhs_all.list_inputs(out_stream=None, values=True,
+                                                                  units=True))
+                    output_value = rhs_all_inputs[abs_path_all]['value']
+                    output_units = rhs_all_inputs[abs_path_all]['units']
+                except KeyError:
+                    raise KeyError('Variable {0} was not found in the '
+                                   'ODE system for phase {1}'.format(var, self.pathname))
+
             output_value = convert_units(output_value, output_units, units)
         else:
             var_path = var_prefix + path_map[var_type].format(var)

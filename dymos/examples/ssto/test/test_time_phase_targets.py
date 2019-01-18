@@ -126,6 +126,10 @@ class TestTimePhaseTargets(unittest.TestCase):
 
         p.run_driver()
 
+        exp_out = phase.simulate()
+
+        print(phase.get_values('guidance.time'))
+
         # Ensure defects are zero
         for state in ['x', 'y', 'vx', 'vy', 'm']:
             assert_rel_error(self, p['phase0.collocation_constraint.defects:{0}'.format(state)],

@@ -85,11 +85,11 @@ class declare_time(object):
     ----------
     targets : sequence of str or None
         ODE-relative paths to which time should be connected.
-    time_phase_targets : string_types or Iterable or None
+    time_phase_targets : sequence of str or None
         ODE-relative paths to which time_phase should be connected.
-    t_initial_targets : string_types or Iterable or None
+    t_initial_targets : sequence of str or None
         ODE-relative paths to which the scalar t_initial should be connected.
-    t_duration_targets : string_types or Iterable or None
+    t_duration_targets : sequence of str or None
         ODE-relative paths to which the scalar t_duration should be connected.
 
     """
