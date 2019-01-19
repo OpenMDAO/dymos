@@ -73,6 +73,10 @@ class PhaseBase(Group):
         self.time_options['targets'] = self.ode_options._time_options['targets']
         self.time_options['time_phase_targets'] = \
             self.ode_options._time_options['time_phase_targets']
+        self.time_options['t_initial_targets'] = \
+            self.ode_options._time_options['t_initial_targets']
+        self.time_options['t_duration_targets'] = \
+            self.ode_options._time_options['t_duration_targets']
 
     def initialize(self):
         self.options.declare('num_segments', types=int, desc='Number of segments')

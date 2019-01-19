@@ -71,6 +71,8 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
     def _setup_time(self):
         comps = super(GaussLobattoPhase, self)._setup_time()
+        num_col_nodes = self.grid_data.subset_num_nodes['col']
+        num_disc_nodes = self.grid_data.subset_num_nodes['state_disc']
 
         if self.time_options['targets']:
             tgts = self.time_options['targets']
@@ -94,19 +96,19 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             tgts = self.time_options['t_initial_targets']
             self.connect('t_initial',
                          ['rhs_col.{0}'.format(t) for t in tgts],
-                         src_indices=np.zeros_like(self.grid_data.subset_num_nodes['col']))
+                         src_indices=np.zeros(num_col_nodes, dtype=int))
             self.connect('t_initial',
                          ['rhs_disc.{0}'.format(t) for t in tgts],
-                         src_indices=np.zeros_like(self.grid_data.subset_num_nodes['col']))
+                         src_indices=np.zeros(num_disc_nodes, dtype=int))
 
         if self.time_options['t_duration_targets']:
             tgts = self.time_options['t_duration_targets']
             self.connect('t_duration',
                          ['rhs_col.{0}'.format(t) for t in tgts],
-                         src_indices=np.zeros_like(self.grid_data.subset_num_nodes['col']))
+                         src_indices=np.zeros(num_col_nodes, dtype=int))
             self.connect('t_duration',
                          ['rhs_disc.{0}'.format(t) for t in tgts],
-                         src_indices=np.zeros_like(self.grid_data.subset_num_nodes['col']))
+                         src_indices=np.zeros(num_disc_nodes, dtype=int))
 
         return comps
 
