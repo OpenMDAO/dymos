@@ -571,6 +571,9 @@ class Trajectory(Group):
             If the given variable is not found in any phase, a KeyError is raised.
 
         """
+        if isinstance(phases, str): # allow strings if you just want one phase 
+            phases = [phases]
+            
         phase_names = phases if phases is not None else list(self._phases.keys())
 
         results = {}

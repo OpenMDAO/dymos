@@ -515,8 +515,6 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         elif var_type == 'ode':
             prom2abs_all = self.rhs_all._var_allprocs_prom2abs_list
 
-            print(self.list_inputs())
-
             try:
                 # Is var in prom2abs_disc['output']?
                 abs_path_all = prom2abs_all['output'][var][0]

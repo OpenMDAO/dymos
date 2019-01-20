@@ -338,6 +338,9 @@ class TrajectorySimulationResults(object):
         if units is not None and not valid_units(units):
             raise ValueError('{0} is not a valid set of units.'.format(units))
 
+        if isinstance(phases, str): # allow strings if you just want one phase 
+            phases = [phases]
+            
         phases = self.get_phase_names() if phases is None else phases
 
         return_vals = dict([(phase_name, {}) for phase_name in phases])
