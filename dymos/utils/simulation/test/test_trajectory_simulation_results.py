@@ -225,6 +225,17 @@ class TestTrajectorySimulationResults(unittest.TestCase):
 
         self.cleanup([rec_file, sim_rec_file])
 
+    def test_str_phases_arg(self):
+
+        exp_out, loaded_exp_out, rec_file, sim_rec_file = self.instantiate_problem(2)
+
+        t_flat_returned_str = exp_out.get_values('time', phases="burn1", flat=True)
+        t_flat_returned_list = exp_out.get_values('time', phases=["burn1"], flat=True)
+
+        self.assertTrue(np.all(t_flat_returned_str==t_flat_returned_list))
+
+        self.cleanup([rec_file, sim_rec_file])
+
     def test_nonexistent_var(self):
 
         exp_out, loaded_exp_out, rec_file, sim_rec_file = self.instantiate_problem(3)
@@ -235,3 +246,7 @@ class TestTrajectorySimulationResults(unittest.TestCase):
                                                'simulation results.')
 
         self.cleanup([rec_file, sim_rec_file])
+
+
+if __name__ == "__main__": 
+    unittest.main()
