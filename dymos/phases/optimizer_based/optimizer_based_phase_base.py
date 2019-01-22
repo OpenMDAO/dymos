@@ -150,6 +150,9 @@ class OptimizerBasedPhaseBase(PhaseBase):
             order.append('final_boundary_constraints')
         if getattr(self, 'path_constraints', None) is not None:
             order.append('path_constraints')
+
+        order.append('timeseries')
+
         self.set_order(order)
 
     def _setup_rhs(self):

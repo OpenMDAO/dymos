@@ -43,6 +43,7 @@ class PhaseBase(Group):
         self._initial_boundary_constraints = {}
         self._final_boundary_constraints = {}
         self._path_constraints = {}
+        self._timeseries_outputs = {}
         self._objectives = []
         self._ode_controls = {}
         self.grid_data = None
@@ -561,6 +562,35 @@ class PhaseBase(Group):
         self._path_constraints[name]['linear'] = linear
         self._path_constraints[name]['units'] = units
 
+    def add_timeseries_output(self, name, output_name=None, units=None):
+        r"""
+        Add a path constraint to a variable in the phase.
+
+        Parameters
+        ----------
+        name : string
+            The name of the variable to be used as a timeseries output.  Must be one of
+            'time', 'time_phase', 't_initial', 't_duration', or one of the states, controls,
+            control rates, or parameters in the phase.
+        output_name : string or None
+            The name of the variable as listed in the phase timeseries outputs.  By
+            default this is the last element in `name` when split by dots.  The user may
+            override the constraint name if splitting the path causes name collisions.
+        units : str or None
+            The units in which the boundary constraint is to be applied.  If None, use the
+            units associated with the constrained output.  If provided, must be compatible with
+            the variables units.
+        lower : float or ndarray, optional
+        """
+        if output_name is None:
+            output_name = name.split('.')[-1]
+
+        if name not in self._timeseries_outputs:
+            self._timeseries_outputs[name] = {}
+            self._timeseries_outputs[name]['output_name'] = output_name
+
+        self._timeseries_outputs[name]['units'] = units
+
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
                       vectorize_derivs=False):
@@ -890,6 +920,8 @@ class PhaseBase(Group):
         self._setup_boundary_constraints('final')
         self._setup_path_constraints()
 
+        self._setup_timeseries_outputs()
+
     def _setup_time(self):
         """
         Setup up the time component and time extents for the phase.
@@ -1188,6 +1220,10 @@ class PhaseBase(Group):
 
     def _setup_path_constraints(self):
         raise NotImplementedError('_setup_path_constraints has not been implemented '
+                                  'for this phase type')
+
+    def _setup_timeseries_outputs(self):
+        raise NotImplementedError('_setup_timeseries_outputs has not been implemented '
                                   'for this phase type')
 
     def get_values(self, var, nodes=None, units=None):
