@@ -16,10 +16,12 @@ from .solvers.nl_rk_solver import NonlinearRK
 from .components.segment.explicit_segment import ExplicitSegment
 from .components.implicit_segment_connection_comp import ImplicitSegmentConnectionComp
 from ..components.continuity_comp import ExplicitContinuityComp
+from ..components import ExplicitTimeseriesOutputComp
 from ...utils.rk_methods import rk_methods
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.constants import INF_BOUND
 from ...utils.simulation import simulate_phase
+from ...utils.indexing import get_src_indices_by_row
 
 
 class ExplicitPhase(PhaseBase):
@@ -107,6 +109,7 @@ class ExplicitPhase(PhaseBase):
             order.append('final_boundary_constraints')
         if self._path_constraints:
             order.append('path_constraints')
+        order.append('timeseries')
         self.set_order(order)
 
     def _setup_time(self):
@@ -452,9 +455,9 @@ class ExplicitPhase(PhaseBase):
 
     def _setup_path_constraints(self):
         """
-         Add a path constraint component if necessary and issue appropriate connections as
-         part of the setup stack.
-         """
+        Add a path constraint component if necessary and issue appropriate connections as
+        part of the setup stack.
+        """
         path_comp = None
         gd = self.grid_data
         time_units = self.time_options['units']
@@ -568,6 +571,145 @@ class ExplicitPhase(PhaseBase):
             kwargs = options.copy()
             kwargs.pop('constraint_name', None)
             path_comp._add_path_constraint(con_name, var_type, **kwargs)
+
+    def _setup_timeseries_outputs(self):
+        """
+        Add a path constraint component if necessary and issue appropriate connections as
+        part of the setup stack.
+        """
+        gd = self.grid_data
+        time_units = self.time_options['units']
+        num_stages = rk_methods[self.options['method']]['num_stages']
+
+        timeseries_comp = ExplicitTimeseriesOutputComp(grid_data=gd)
+        self.add_subsystem('timeseries', subsys=timeseries_comp)
+
+        timeseries_comp._add_timeseries_output('time',
+                                               var_class=self._classify_var('time'),
+                                               units=time_units)
+        for iseg in range(gd.num_segments):
+            src = 'seg_{0}.t_step'.format(iseg)
+            tgt = 'timeseries.seg_{0}_values:time'.format(iseg)
+            self.connect(src_name=src, tgt_name=tgt)
+
+        timeseries_comp._add_timeseries_output('time_phase',
+                                               var_class=self._classify_var('time_phase'),
+                                               units=time_units)
+        for iseg in range(gd.num_segments):
+            src = 'seg_{0}.t_phase_step'.format(iseg)
+            tgt = 'timeseries.seg_{0}_values:time_phase'.format(iseg)
+            self.connect(src_name=src, tgt_name=tgt)
+
+        for name, options in iteritems(self.state_options):
+            timeseries_comp._add_timeseries_output('states:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   units=options['units'])
+
+            for iseg in range(gd.num_segments):
+                src = 'seg_{0}.step_states:{1}'.format(iseg, name)
+                tgt = 'timeseries.seg_{0}_values:states:{1}'.format(iseg, name)
+                self.connect(src_name=src, tgt_name=tgt)
+
+        for name, options in iteritems(self.control_options):
+            timeseries_comp._add_timeseries_output('controls:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   units=options['units'])
+
+            timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   units=get_rate_units(options['units'], time_units, deriv=1))
+
+            timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   units=get_rate_units(options['units'], time_units, deriv=2))
+
+            size = np.prod(options['shape'])
+            for iseg in range(gd.num_segments):
+                # Get all indices of the source
+                num_steps = self.grid_data.num_steps_per_segment[iseg]
+                src_total_size = num_steps * num_stages * size
+                src_indexer = np.reshape(np.arange(src_total_size, dtype=int),
+                                         newshape=(num_steps, num_stages) + options['shape'])
+                # Select only the indices that are step values
+                src_idxs = np.concatenate((src_indexer[:, 0, ...], src_indexer[-1:, -1, ...]),
+                                          axis=0)
+
+                # Reshape the selected indices to conform with the target shape
+                tgt_shape = (num_steps + 1,) + options['shape']
+                src_idxs = np.reshape(src_idxs, tgt_shape)
+
+                self.connect(src_name='seg_{0}.stage_control_values:{1}'.format(iseg, name),
+                             tgt_name='timeseries.seg_{0}_values:controls:{1}'.format(iseg, name),
+                             src_indices=src_idxs, flat_src_indices=True)
+
+                self.connect(src_name='seg_{0}.stage_control_rates:{1}_rate'.format(iseg, name),
+                             tgt_name='timeseries.seg_{0}_values:control_rates:{1}_rate'.format(iseg, name),
+                             src_indices=src_idxs, flat_src_indices=True)
+
+                self.connect(src_name='seg_{0}.stage_control_rates:{1}_rate2'.format(iseg, name),
+                             tgt_name='timeseries.seg_{0}_values:control_rates:{1}_rate2'.format(iseg, name),
+                             src_indices=src_idxs, flat_src_indices=True)
+
+        for name, options in iteritems(self.design_parameter_options):
+            units = options['units']
+            size = np.prod(options['shape'])
+            timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
+                                       var_class=self._classify_var(name),
+                                       units=units)
+
+            for iseg in range(gd.num_segments):
+                num_steps = self.grid_data.num_steps_per_segment[iseg]
+                src_total_size = num_steps * size + 1
+
+                if self.ode_options._parameters[name]['dynamic']:
+                    src_idxs_raw = np.zeros(src_total_size, dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                else:
+                    src_idxs_raw = np.zeros(1, dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+
+                self.connect(src_name='design_parameters:{0}'.format(name),
+                             tgt_name='timeseries.seg_{0}_values:design_parameters:{1}'.format(iseg, name),
+                             src_indices=src_idxs, flat_src_indices=True)
+
+        for name, options in iteritems(self.input_parameter_options):
+            units = options['units']
+            size = np.prod(options['shape'])
+            timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
+                                       var_class=self._classify_var(name),
+                                       units=units)
+
+            for iseg in range(gd.num_segments):
+                num_steps = self.grid_data.num_steps_per_segment[iseg]
+                src_total_size = num_steps * size + 1
+
+                if self.ode_options._parameters[name]['dynamic']:
+                    src_idxs_raw = np.zeros(src_total_size, dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                else:
+                    src_idxs_raw = np.zeros(1, dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+
+                self.connect(src_name='input_parameters:{0}'.format(name),
+                             tgt_name='timeseries.seg_{0}_values:input_parameters:{1}'.format(iseg, name),
+                             src_indices=src_idxs, flat_src_indices=True)
+
+        for var, options in iteritems(self._timeseries_outputs):
+            output_name = options['output_name']
+
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = self._classify_var(var)
+
+            # Failed to find variable, assume it is in the RHS
+            self.connect(src_name='seg_{0}.step_states:{1}'.format(iseg, name),
+                         tgt_name='timeseries.seg_{0}_values:states:{1}'.format(output_name))
+
+            kwargs = options.copy()
+            kwargs.pop('output_name', None)
+            timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
 
     def _get_parameter_connections(self, name):
         """

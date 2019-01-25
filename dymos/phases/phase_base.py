@@ -1220,11 +1220,11 @@ class PhaseBase(Group):
 
     def _setup_path_constraints(self):
         raise NotImplementedError('_setup_path_constraints has not been implemented '
-                                  'for this phase type')
+                                  'for phase type {0}'.format(self.__class__))
 
     def _setup_timeseries_outputs(self):
         raise NotImplementedError('_setup_timeseries_outputs has not been implemented '
-                                  'for this phase type')
+                                  'for phase type {0}'.format(self.__class__))
 
     def get_values(self, var, nodes=None, units=None):
         """

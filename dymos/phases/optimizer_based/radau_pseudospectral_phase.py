@@ -248,19 +248,19 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         timeseries_comp._add_timeseries_output('time',
                                                var_class=self._classify_var('time'),
                                                units=time_units)
-        self.connect(src_name='time', tgt_name='timeseries.time_input')
+        self.connect(src_name='time', tgt_name='timeseries.all_values:time')
 
         timeseries_comp._add_timeseries_output('time_phase',
                                                var_class=self._classify_var('time_phase'),
                                                units=time_units)
-        self.connect(src_name='time', tgt_name='timeseries.time_phase_input')
+        self.connect(src_name='time', tgt_name='timeseries.all_values:time_phase')
 
         for name, options in iteritems(self.state_options):
             timeseries_comp._add_timeseries_output('states:{0}'.format(name),
                                                    var_class=self._classify_var(name),
                                                    units=options['units'])
             self.connect(src_name='states:{0}'.format(name),
-                         tgt_name='timeseries.states:{0}_input'.format(name),
+                         tgt_name='timeseries.all_values:states:{0}'.format(name),
                          src_indices=gd.input_maps['state_input_to_disc'])
 
         for name, options in iteritems(self.control_options):
@@ -271,7 +271,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                    var_class=self._classify_var(name),
                                                    units=control_units)
             self.connect(src_name='control_interp_comp.control_values:{0}'.format(name),
-                         tgt_name='timeseries.controls:{0}_input'.format(name))
+                         tgt_name='timeseries.all_values:controls:{0}'.format(name))
 
             # # Control rates
             timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(name),
@@ -280,7 +280,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                                         time_units,
                                                                         deriv=1))
             self.connect(src_name='control_rates:{0}_rate'.format(name),
-                         tgt_name='timeseries.control_rates:{0}_rate_input'.format(name))
+                         tgt_name='timeseries.all_values:control_rates:{0}_rate'.format(name))
 
             # Control second derivatives
             timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(name),
@@ -289,7 +289,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                                         time_units,
                                                                         deriv=2))
             self.connect(src_name='control_rates:{0}_rate2'.format(name),
-                         tgt_name='timeseries.control_rates:{0}_rate2_input'.format(name))
+                         tgt_name='timeseries.all_values:control_rates:{0}_rate2'.format(name))
             
         for name, options in iteritems(self.design_parameter_options):
             units = options['units']
@@ -305,7 +305,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='design_parameters:{0}'.format(name),
-                         tgt_name='timeseries.design_parameters:{0}_input'.format(name),
+                         tgt_name='timeseries.all_values:design_parameters:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in iteritems(self.input_parameter_options):
@@ -322,11 +322,10 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='input_parameters:{0}_out'.format(name),
-                         tgt_name='timeseries.input_parameters:{0}_input'.format(name),
+                         tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
         for var, options in iteritems(self._timeseries_outputs):
-            output_units = options.get('units', None)
             output_name = options['output_name']
 
             # Determine the path to the variable which we will be constraining

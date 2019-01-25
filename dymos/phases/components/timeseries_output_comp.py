@@ -10,6 +10,14 @@ from dymos.utils.constants import INF_BOUND
 
 
 class TimeseriesOutputCompBase(ExplicitComponent):
+    """
+    TimeseriesOutputComp collects variable values from the phase and provides them in chronological
+    order as outputs.  Some phase types don't internally have access to a contiguous array of all
+    values of a given variable in the phase.  For instance, the GaussLobatto pseudospectral has
+    separate arrays of variable values at discretization and collocation nodes.  These values
+    need to be interleaved to provide a time series.  Pseudospectral techniques provide timeseries
+    data at 'all' nodes, while ExplicitPhase provides values at the step boundaries.
+    """
 
     def initialize(self):
         self._timeseries_outputs = []
@@ -40,8 +48,9 @@ class TimeseriesOutputCompBase(ExplicitComponent):
         distributed : bool
             If True, this variable is distributed across multiple processes.
         """
-        src_all = var_class in ['time', 'indep_control', 'input_control', 'control_rate',
-                                'control_rate2']
+        src_all = var_class in ['time', 'time_phase', 'indep_control', 'input_control',
+                                'control_rate', 'control_rate2', 'design_parameter',
+                                'input_parameter']
         kwargs = {'shape': shape, 'units': units, 'desc': desc, 'src_all': src_all,
                   'distributed': distributed}
         self._timeseries_outputs.append((name, kwargs))
@@ -80,7 +89,7 @@ class GaussLobattoTimeseriesOutputComp(TimeseriesOutputCompBase):
                                shape=(num_col_nodes,) + shape,
                                **input_kwargs)
 
-            output_name = 'outputs:{0}'.format(name)
+            output_name = name
             output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             output_kwargs['shape'] = (num_nodes,) + shape
             self.add_output(output_name, **output_kwargs)
@@ -170,22 +179,16 @@ class RadauTimeseriesOutputComp(TimeseriesOutputCompBase):
 
         for (name, kwargs) in self._timeseries_outputs:
 
-            print(name)
-
             input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-            input_name = '{0}_input'.format(name)
+            input_name = 'all_values:{0}'.format(name)
             self.add_input(input_name,
                            shape=(num_nodes,) + kwargs['shape'],
                            **input_kwargs)
-
-            print('added input', input_name)
 
             output_name = name
             output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             output_kwargs['shape'] = (num_nodes,) + kwargs['shape']
             self.add_output(output_name, **output_kwargs)
-
-            print('added output', output_name)
 
             # constraint_kwargs = {k: kwargs.get(k, None)
             #                      for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
@@ -235,7 +238,7 @@ class ExplicitTimeseriesOutputComp(TimeseriesOutputCompBase):
                                 'output': '',
                                 'dest_indices': []}
 
-            output_name = 'outputs:{0}'.format(name)
+            output_name = name
             output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             output_kwargs['shape'] = (total_num_steps,) + kwargs['shape']
             size = np.prod(kwargs['shape'])
