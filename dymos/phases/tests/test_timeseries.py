@@ -77,16 +77,19 @@ class TestTimeseriesOutput(unittest.TestCase):
         for state in ('x', 'y', 'v'):
             assert_rel_error(self,
                              p.get_val('phase0.states:{0}'.format(state)),
-                             p.get_val('phase0.timeseries.states:{0}'.format(state))[state_input_idxs])
+                             p.get_val('phase0.timeseries.states:'
+                                       '{0}'.format(state))[state_input_idxs])
 
             assert_rel_error(self,
                              p.get_val('phase0.state_interp.state_col:{0}'.format(state)),
-                             p.get_val('phase0.timeseries.states:{0}'.format(state))[col_idxs])
+                             p.get_val('phase0.timeseries.states:'
+                                       '{0}'.format(state))[col_idxs])
 
         for control in ('theta',):
             assert_rel_error(self,
                              p.get_val('phase0.controls:{0}'.format(control)),
-                             p.get_val('phase0.timeseries.controls:{0}'.format(control))[control_input_idxs])
+                             p.get_val('phase0.timeseries.controls:'
+                                       '{0}'.format(control))[control_input_idxs])
 
         for dp in ('g',):
             for i in range(gd.subset_num_nodes['all']):
@@ -152,18 +155,21 @@ class TestTimeseriesOutput(unittest.TestCase):
         for state in ('x', 'y', 'v'):
             assert_rel_error(self,
                              p.get_val('phase0.states:{0}'.format(state)),
-                             p.get_val('phase0.timeseries.states:{0}'.format(state))[state_input_idxs])
+                             p.get_val('phase0.timeseries.states:'
+                                       '{0}'.format(state))[state_input_idxs])
 
         for control in ('theta',):
             assert_rel_error(self,
                              p.get_val('phase0.controls:{0}'.format(control)),
-                             p.get_val('phase0.timeseries.controls:{0}'.format(control))[control_input_idxs])
+                             p.get_val('phase0.timeseries.controls:'
+                                       '{0}'.format(control))[control_input_idxs])
 
         for dp in ('g',):
             for i in range(gd.subset_num_nodes['all']):
                 assert_rel_error(self,
                                  p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
-                                 p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))[i])
+                                 p.get_val('phase0.timeseries.design_parameters:'
+                                           '{0}'.format(dp))[i])
 
     def test_timeseries_explicit(self):
         p = Problem(model=Group())
@@ -247,7 +253,8 @@ class TestTimeseriesOutput(unittest.TestCase):
         #     p.get_val('phase0.timeseries.states:{0}'.format(state))[state_input_idxs]
         #     assert_rel_error(self,
         #                      p.get_val('phase0.states:{0}'.format(state)),
-        #                      p.get_val('phase0.timeseries.states:{0}'.format(state))[state_input_idxs])
+        #                      p.get_val('phase0.timeseries.states:'
+        #                                '{0}'.format(state))[state_input_idxs])
         #
         #     step_states = np.empty(0, dtype=float)
         #     for i in range(NUM_SEG):
@@ -258,30 +265,22 @@ class TestTimeseriesOutput(unittest.TestCase):
         #         step_times = np.concatenate((step_times, step_times_segi))
         #
         #         time_phase_segi = p.get_val('phase0.time_phase')[i1:i2]
-        #         step_time_phase_segi = np.linspace(time_phase_segi[0], time_phase_segi[-1], NUM_STEPS+1)
+        #         step_time_phase_segi = np.linspace(time_phase_segi[0],
+        #                                            time_phase_segi[-1], NUM_STEPS+1)
         #         step_time_phases = np.concatenate((step_time_phases, step_time_phase_segi))
 
         # for control in ('theta',):
         #     assert_rel_error(self,
         #                      p.get_val('phase0.controls:{0}'.format(control)),
-        #                      p.get_val('phase0.timeseries.controls:{0}'.format(control))[control_input_idxs])
+        #                      p.get_val('phase0.timeseries.controls:'
+        #                                '{0}'.format(control))[control_input_idxs])
         #
         # for dp in ('g',):
         #     for i in range(gd.subset_num_nodes['all']):
         #         assert_rel_error(self,
         #                          p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
-        #                          p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))[i])
+        #                          p.get_val('phase0.timeseries.design_parameters:'
+        #                                    '{0}'.format(dp))[i])
 
 if __name__ == '__main__':
     unittest.main()
-
-    # p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10, run_driver=True,
-    #                              top_level_jacobian='csc', transcription_order=3, compressed=True,
-    #                              optimizer='SNOPT')
-    #
-    # print(p.get_val('phase0.timeseries.time'))
-    # print(p.get_val('phase0.timeseries.states:x'))
-    # print(p.get_val('phase0.timeseries.states:y'))
-    # print(p.get_val('phase0.timeseries.states:v'))
-    # print(p.get_val('phase0.timeseries.controls:theta'))
-    # print(p.get_val('phase0.timeseries.design_parameters:g'))

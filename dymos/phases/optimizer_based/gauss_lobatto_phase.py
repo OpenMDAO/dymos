@@ -1,5 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
+import warnings
 from six import iteritems
 
 import numpy as np
@@ -576,6 +577,18 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             An array of the values at the requested node subset.  The
             node index is the first dimension of the ndarray.
         """
+        dep_txt = """
+        Method get_values has been deprecated.  To retrieve a values of
+        a variable as a timeseries, access the timeseries outputs of the
+        phase via the standard OpenMDAO get_val method, e.g.:
+        
+        prob.get_val('phase.timeseries.time')
+        prob.get_val('phase.timeseries.states:x')
+        prob.get_val('phase.timeseries.controls:theta')
+        
+        """
+        warnings.warn(dep_txt, DeprecationWarning)
+
         if nodes is None:
             nodes = 'all'
 

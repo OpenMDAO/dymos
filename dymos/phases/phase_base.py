@@ -236,6 +236,7 @@ class PhaseBase(Group):
             ode_param_info = ode_params[name]
             self.control_options[name]['units'] = ode_param_info['units']
             self.control_options[name]['shape'] = ode_param_info['shape']
+            self.control_options[name]['targets'] = ode_param_info['targets']
         else:
             rate_used = \
                 rate_param is not None and rate_param in ode_params
@@ -355,6 +356,7 @@ class PhaseBase(Group):
         if name in self.ode_options._parameters:
             ode_param_info = self.ode_options._parameters[name]
             self.design_parameter_options[name]['units'] = ode_param_info['units']
+            self.design_parameter_options[name]['targets'] = ode_param_info['targets']
             self.design_parameter_options[name]['shape'] = ode_param_info['shape']
             self.design_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
         else:
@@ -432,6 +434,7 @@ class PhaseBase(Group):
         if name in self.ode_options._parameters:
             ode_param_info = self.ode_options._parameters[name]
             self.input_parameter_options[ip_name]['units'] = ode_param_info['units']
+            self.input_parameter_options[ip_name]['targets'] = ode_param_info['targets']
             self.input_parameter_options[ip_name]['shape'] = ode_param_info['shape']
             self.input_parameter_options[ip_name]['dynamic'] = ode_param_info['dynamic']
         else:
