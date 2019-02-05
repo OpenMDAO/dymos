@@ -69,6 +69,8 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
 
+        phase.add_timeseries_output('tas_comp.TAS', units='m/s')
+
         p.model.connect('assumptions.S', 'phase0.input_parameters:S')
         p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
         p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
@@ -94,9 +96,9 @@ class TestAircraftCruise(unittest.TestCase):
 
         p.run_driver()
 
-        tas = phase.get_values('tas_comp.TAS', units='m/s')
-        time = phase.get_values('time', units='s')
-        range = phase.get_values('range', units='m')
+        time = p.get_val('phase0.timeseries.time')
+        tas = p.get_val('phase0.timeseries.TAS', units='km/s')
+        range = p.get_val('phase0.timeseries.states:range')
 
         assert_rel_error(self, range, tas*time, tolerance=1.0E-9)
 

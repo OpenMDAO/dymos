@@ -139,7 +139,6 @@ class SegmentSimulationComp(ExplicitComponent):
         # Setup the control interpolant
         for name, options in iteritems(self.options['control_options']):
             ctrl_vals = inputs['controls:{0}'.format(name)]
-            print(ctrl_vals)
             self.ode_integration_interface.control_interpolants[name].setup(x0=t_eval[0],
                                                                             xf=t_eval[-1],
                                                                             f_j=ctrl_vals)

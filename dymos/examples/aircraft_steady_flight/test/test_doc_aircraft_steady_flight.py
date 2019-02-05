@@ -102,42 +102,44 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True,
                                  record_file='test_doc_aircraft_steady_flight_rec.db')
 
-        assert_rel_error(self, phase.get_values('range', units='NM')[-1], 726.7, tolerance=1.0E-2)
+        time_imp = p.get_val('phase0.timeseries.time', units='s')
+        time_exp = exp_out.get_val('phase0.timeseries.time', units='s')
+
+        range_imp = p.get_val('phase0.timeseries.states:range', units='NM')
+        range_exp = exp_out.get_val('phase0.timeseries.states:range', units='NM')
+
+        alt_imp = p.get_val('phase0.timeseries.states:alt', units='ft')
+        alt_exp = exp_out.get_val('phase0.timeseries.states:alt', units='ft')
+
+        climb_rate_imp = p.get_val('phase0.timeseries.controls:climb_rate', units='ft/min')
+        climb_rate_exp = exp_out.get_val('phase0.timeseries.controls:climb_rate', units='ft/min')
+
+        mass_fuel_imp = p.get_val('phase0.timeseries.states:mass_fuel', units='lbm')
+        mass_fuel_exp = exp_out.get_val('phase0.timeseries.states:mass_fuel', units='lbm')
+
+        assert_rel_error(self, range_imp[-1], 726.7, tolerance=1.0E-2)
 
         plt.figure()
 
-        plt.plot(phase.get_values('time', nodes='all'),
-                 phase.get_values('alt', nodes='all', units='ft'),
-                 'ro')
-
-        plt.plot(exp_out.get_values('time'),
-                 exp_out.get_values('alt', units='ft'),
-                 'b-')
+        plt.plot(time_imp, alt_imp, 'ro')
+        plt.plot(time_exp, alt_exp, 'b-')
 
         plt.suptitle('Altitude vs Time')
         plt.xlabel('Time (s)')
         plt.ylabel('Altitude (ft)')
 
         plt.figure()
-        plt.plot(phase.get_values('time', nodes='all'),
-                 phase.get_values('climb_rate', nodes='all', units='ft/min'),
-                 'ro')
-        plt.plot(exp_out.get_values('time'),
-                 exp_out.get_values('climb_rate', units='ft/min'),
-                 'b-')
+        plt.plot(time_imp, climb_rate_imp, 'ro')
+        plt.plot(time_exp, climb_rate_exp, 'b-')
 
         plt.suptitle('Climb Rate vs Time')
         plt.xlabel('Time (s)')
         plt.ylabel('Climb Rate (ft/min)')
 
         plt.figure()
-        plt.plot(phase.get_values('time', nodes='all'),
-                 phase.get_values('mass_fuel', nodes='all', units='lbm'),
-                 'ro')
+        plt.plot(time_imp, mass_fuel_imp, 'ro')
 
-        plt.plot(exp_out.get_values('time'),
-                 exp_out.get_values('mass_fuel', units='lbm'),
-                 'b-')
+        plt.plot(time_exp, mass_fuel_exp, 'b-')
 
         plt.suptitle('Fuel Mass vs Time')
         plt.xlabel('Time (s)')

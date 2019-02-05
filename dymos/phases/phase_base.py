@@ -1415,7 +1415,7 @@ class PhaseBase(Group):
         # Assign control values at all nodes
         for name, options in iteritems(self.input_parameter_options):
             sim_prob['phase0.input_parameters:{0}'.format(name)] = \
-                op_dict['{0}.input_params.input_parameters:{1}'.format(self.name, name)]['value'][0, ...]
+                op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.name, name)]['value'][0, ...]
 
         print('\nSimulating phase {0}'.format(self.pathname))
         sim_prob.run_model()

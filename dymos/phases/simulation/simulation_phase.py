@@ -190,7 +190,7 @@ class SimulationPhase(Group):
 
             for i in range(num_seg):
                 self.connect(src_name='input_parameters:{0}'.format(name),
-                             tgt_name='segment_{0}.design_parameters:{1}'.format(i, name))
+                             tgt_name='segment_{0}.input_parameters:{1}'.format(i, name))
 
             if options['targets']:
                 self.connect(src_name='input_parameters:{0}'.format(name),
@@ -309,7 +309,7 @@ class SimulationPhase(Group):
                 src_idxs_raw = np.zeros(1, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-            self.connect(src_name='input_parameters:{0}_out'.format(name),
+            self.connect(src_name='input_parameters:{0}'.format(name),
                          tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
