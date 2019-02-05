@@ -9,7 +9,7 @@ import numpy as np
 
 from scipy import interpolate
 
-from openmdao.api import Group, IndepVarComp
+from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder
 from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
@@ -565,7 +565,7 @@ class PhaseBase(Group):
         self._path_constraints[name]['linear'] = linear
         self._path_constraints[name]['units'] = units
 
-    def add_timeseries_output(self, name, output_name=None, units=None):
+    def add_timeseries_output(self, name, output_name=None, units=None, shape=(1,)):
         r"""
         Add a path constraint to a variable in the phase.
 
@@ -583,7 +583,9 @@ class PhaseBase(Group):
             The units in which the boundary constraint is to be applied.  If None, use the
             units associated with the constrained output.  If provided, must be compatible with
             the variables units.
-        lower : float or ndarray, optional
+        shape : tuple
+            The shape of the timeseries output variable.  This must be provided (if not scalar)
+            since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
         """
         if output_name is None:
             output_name = name.split('.')[-1]
@@ -593,6 +595,7 @@ class PhaseBase(Group):
             self._timeseries_outputs[name]['output_name'] = output_name
 
         self._timeseries_outputs[name]['units'] = units
+        self._timeseries_outputs[name]['shape'] = shape
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
@@ -1338,3 +1341,86 @@ class PhaseBase(Group):
         if res.shape[0] == 1:
             res = res.T
         return res
+
+    def simulate(self, times='all', record_file=None, record=True):
+        """
+        Simulate the Phase using scipy.integrate.solve_ivp.
+
+        Parameters
+        ----------
+        times : str or Sequence of float
+            Times at which outputs of the simulation are requested.  If given as a str, it should
+            be one of the node subsets (default is 'all').  If given as a sequence, output will
+            be provided at those times *in addition to times at the boundary of each segment*.
+        record_file : str or None
+            If recording is enabled, the name of the file to which the results will be recorded.
+            If None, use the default filename '<phase_name>_sim.db'.
+        record : bool
+            If True, recording the results of the simulation is enabled.
+
+        Returns
+        -------
+        problem
+            An OpenMDAO Problem in which the simulation is implemented.  This Problem interface
+            can be interrogated to obtain timeseries outputs in the same manner as other Phases
+            to obtain results at the requested times.
+        """
+
+        from .simulation.simulation_phase import SimulationPhase
+        sim_prob = Problem(model=Group())
+
+        op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
+                                                                                 out_stream=None)])
+
+        time = op_dict['{0}.time.time'.format(self.pathname)]['value']
+
+        sim_phase = SimulationPhase(grid_data=self.grid_data,
+                                    time_options=self.time_options,
+                                    state_options=self.state_options,
+                                    control_options=self.control_options,
+                                    design_parameter_options=self.design_parameter_options,
+                                    input_parameter_options=self.input_parameter_options,
+                                    ode_class=self.options['ode_class'],
+                                    ode_init_kwargs=self.options['ode_init_kwargs'],
+                                    times=times,
+                                    t_initial=time[0],
+                                    t_duration=time[-1]-time[0],
+                                    timeseries_outputs=self._timeseries_outputs)
+
+        sim_prob.model.add_subsystem(self.name, sim_phase)
+
+        if record:
+            filename = '{0}_sim.sql'.format(self.name) if record_file is None else record_file
+            rec = SqliteRecorder(filename)
+            sim_prob.model.recording_options['includes']=['*.timeseries.*']
+            sim_prob.model.add_recorder(rec)
+
+        sim_prob.setup(check=True)
+
+        # Assign initial state values
+        for name, options in iteritems(self.state_options):
+            sim_prob['phase0.initial_states:{0}'.format(name)] = \
+                op_dict['{0}.timeseries.states:{1}'.format(self.name, name)]['value'][0, ...]
+
+        # Assign control values at all nodes
+        for name, options in iteritems(self.control_options):
+            sim_prob['phase0.implicit_controls:{0}'.format(name)] = \
+                op_dict['{0}.control_interp_comp.control_values:{1}'.format(self.name, name)]['value']
+
+        # Assign control values at all nodes
+        for name, options in iteritems(self.design_parameter_options):
+            sim_prob['phase0.design_parameters:{0}'.format(name)] = \
+                op_dict['{0}.design_params.design_parameters:{1}'.format(self.name, name)]['value'][0, ...]
+
+        # Assign control values at all nodes
+        for name, options in iteritems(self.input_parameter_options):
+            sim_prob['phase0.input_parameters:{0}'.format(name)] = \
+                op_dict['{0}.input_params.input_parameters:{1}'.format(self.name, name)]['value'][0, ...]
+
+        print('\nSimulating phase {0}'.format(self.pathname))
+        sim_prob.run_model()
+        print('Done simulating phase {0}'.format(self.pathname))
+
+        sim_prob.cleanup()
+
+        return sim_prob

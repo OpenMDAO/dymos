@@ -1,7 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
@@ -76,11 +76,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = phase.get_values('x', nodes='all')
-        y_imp = phase.get_values('y', nodes='all')
+        x_imp = p.get_val('phase0.timeseries.states:x')
+        y_imp = p.get_val('phase0.timeseries.states:y')
 
-        x_exp = exp_out.get_values('x')
-        y_exp = exp_out.get_values('y')
+        x_exp = exp_out.get_val('phase0.timeseries.states:x')
+        y_exp = exp_out.get_val('phase0.timeseries.states:y')
 
         ax.plot(x_imp, y_imp, 'ro', label='implicit')
         ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -93,17 +93,17 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = phase.get_values('time_phase', nodes='all')
-        y_imp = phase.get_values('theta_rate2', nodes='all')
+        x_imp = p.get_val('phase0.timeseries.time_phase')
+        y_imp = p.get_val('phase0.timeseries.controls:theta')
 
-        x_exp = exp_out.get_values('time_phase')
-        y_exp = exp_out.get_values('theta_rate2')
+        x_exp = exp_out.get_val('phase0.timeseries.time_phase')
+        y_exp = exp_out.get_val('phase0.timeseries.controls:theta')
 
         ax.plot(x_imp, y_imp, 'ro', label='implicit')
         ax.plot(x_exp, y_exp, 'b-', label='explicit')
 
         ax.set_xlabel('time (s)')
-        ax.set_ylabel('theta rate2 (rad/s**2)')
+        ax.set_ylabel('theta (rad)')
         ax.grid(True)
         ax.legend(loc='lower right')
 
@@ -116,3 +116,6 @@ if __name__ == '__main__':
     brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10, run_driver=True,
                              top_level_jacobian='csc', transcription_order=3, compressed=True,
                              optimizer='SNOPT')
+    # brachistochrone_min_time(transcription='radau-ps', num_segments=10, run_driver=True,
+    #                          top_level_jacobian='csc', transcription_order=3, compressed=True,
+    #                          optimizer='SNOPT')
