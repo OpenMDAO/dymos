@@ -96,12 +96,11 @@ class SimulationPhase(Group):
 
     def _setup_states(self, ivc):
         gd = self.options['grid_data']
-        nn = gd.subset_num_nodes['all']
         num_seg = gd.num_segments
 
         for name, options in iteritems(self.options['state_options']):
             ivc.add_output('initial_states:{0}'.format(name),
-                           val=options['shape'],
+                           val=np.ones(options['shape']),
                            units=options['units'])
 
             size = np.prod(options['shape'])
@@ -247,7 +246,8 @@ class SimulationPhase(Group):
         for name, options in iteritems(self.options['state_options']):
             timeseries_comp._add_timeseries_output('states:{0}'.format(name),
                                                    var_class='state',
-                                                   units=options['units'])
+                                                   units=options['units'],
+                                                   shape=options['shape'])
             self.connect(src_name='state_mux_comp.states:{0}'.format(name),
                          tgt_name='timeseries.all_values:states:{0}'.format(name))
 

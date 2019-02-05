@@ -143,7 +143,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
@@ -198,7 +198,8 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
+        tf = p.get_val('phase0.time')[-1]
+        assert_rel_error(self, tf, 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']

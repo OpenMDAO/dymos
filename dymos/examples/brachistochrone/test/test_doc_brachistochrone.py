@@ -61,7 +61,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
@@ -71,11 +71,11 @@ class TestBrachistochroneExample(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = phase.get_values('x', nodes='all')
-        y_imp = phase.get_values('y', nodes='all')
+        x_imp = p.get_val('phase0.timeseries.states:x')
+        y_imp = p.get_val('phase0.timeseries.states:y')
 
-        x_exp = exp_out.get_values('x')
-        y_exp = exp_out.get_values('y')
+        x_exp = exp_out.get_val('phase0.timeseries.states:x')
+        y_exp = exp_out.get_val('phase0.timeseries.states:y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')

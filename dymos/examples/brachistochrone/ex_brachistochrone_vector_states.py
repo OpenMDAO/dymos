@@ -78,11 +78,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = phase.get_values('pos', nodes='all')[:, 0]
-        y_imp = phase.get_values('pos', nodes='all')[:, 1]
+        x_imp = p.get_val('phase0.timeseries.states:pos')[:, 0]
+        y_imp = p.get_val('phase0.timeseries.states:pos')[:, 1]
 
-        x_exp = exp_out.get_values('pos')[:, 0]
-        y_exp = exp_out.get_values('pos')[:, 1]
+        x_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 0]
+        y_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 1]
 
         ax.plot(x_imp, y_imp, 'ro', label='implicit')
         ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -95,11 +95,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = phase.get_values('time', nodes='all')
-        y_imp = phase.get_values('theta_rate2', nodes='all')
+        x_imp = p.get_val('phase0.timeseries.time')
+        y_imp = p.get_val('phase0.timeseries.control_rates:theta_rate2')
 
-        x_exp = exp_out.get_values('time')
-        y_exp = exp_out.get_values('theta_rate2')
+        x_exp = exp_out.get_val('phase0.timeseries.time')
+        y_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate2')
 
         ax.plot(x_imp, y_imp, 'ro', label='implicit')
         ax.plot(x_exp, y_exp, 'b-', label='explicit')

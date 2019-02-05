@@ -22,21 +22,22 @@ class TestBrachistochroneExample(unittest.TestCase):
                 os.remove(filename)
 
     def run_asserts(self, p):
-        t_initial = p.model.phase0.get_values('time')[0]
-        tf = p.model.phase0.get_values('time')[-1]
 
-        x0 = p.model.phase0.get_values('x')[0]
-        xf = p.model.phase0.get_values('x')[-1]
+        t_initial = p.get_val('phase0.timeseries.time')[0]
+        tf = p.get_val('phase0.timeseries.time')[-1]
 
-        y0 = p.model.phase0.get_values('y')[0]
-        yf = p.model.phase0.get_values('y')[-1]
+        x0 = p.get_val('phase0.timeseries.states:x')[0]
+        xf = p.get_val('phase0.timeseries.states:x')[-1]
 
-        v0 = p.model.phase0.get_values('v')[0]
-        vf = p.model.phase0.get_values('v')[-1]
+        y0 = p.get_val('phase0.timeseries.states:y')[0]
+        yf = p.get_val('phase0.timeseries.states:y')[-1]
 
-        g = p.model.phase0.get_values('g')
+        v0 = p.get_val('phase0.timeseries.states:v')[0]
+        vf = p.get_val('phase0.timeseries.states:v')[-1]
 
-        thetaf = p.model.phase0.get_values('theta')[-1]
+        g = p.get_val('phase0.timeseries.design_parameters:g')[0]
+
+        thetaf = p.get_val('phase0.timeseries.controls:theta')[-1]
 
         assert_almost_equal(t_initial, 0.0)
         assert_almost_equal(x0, 0.0)

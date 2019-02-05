@@ -116,7 +116,9 @@ class ODEIntegrationInterface(object):
                            shape=(1, np.prod(options['shape'])),
                            units=options['units'])
 
-            model.connect('ode.{0}'.format(options['rate_source']),
+            rate_src = self._get_rate_source_path(name)
+
+            model.connect(rate_src,
                           'state_rate_collector.state_rates_in:{0}_rate'.format(name))
 
             if options['targets'] is not None:
