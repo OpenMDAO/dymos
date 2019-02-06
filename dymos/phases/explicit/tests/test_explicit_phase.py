@@ -514,11 +514,11 @@ class TestExplicitPhasePathConstraints(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = phase.get_values('x')
-        y_imp = phase.get_values('y')
+        x_imp = p.get_val('phase0.timeseries.states:x')
+        y_imp = p.get_val('phase0.timeseries.states:y')
 
-        x_exp = exp_out.get_values('x')
-        y_exp = exp_out.get_values('y')
+        x_exp = exp_out.get_val('phase0.timeseries.states:x')
+        y_exp = exp_out.get_val('phase0.timeseries.states:y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')
@@ -599,11 +599,11 @@ class TestExplicitPhasePathConstraints(unittest.TestCase):
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = phase.get_values('x')
-        y_imp = phase.get_values('y')
+        x_imp = p.get_val('phase0.timeseries.states:x')
+        y_imp = p.get_val('phase0.timeseries.states:y')
 
-        x_exp = exp_out.get_values('x')
-        y_exp = exp_out.get_values('y')
+        x_exp = exp_out.get_val('phase0.timeseries.states:x')
+        y_exp = exp_out.get_val('phase0.timeseries.states:y')
 
         ax.plot(x_imp, y_imp, 'ro', label='solution')
         ax.plot(x_exp, y_exp, 'b-', label='simulated')

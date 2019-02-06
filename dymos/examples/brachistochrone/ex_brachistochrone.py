@@ -1,7 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
@@ -47,7 +47,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     phase.add_control('theta', continuity=True, rate_continuity=True,
                       units='deg', lower=0.01, upper=179.9)
 
-    phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+    phase.add_input_parameter('g', units='m/s**2', val=9.80665)
 
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
@@ -63,7 +63,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
     p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
     p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-    p['phase0.design_parameters:g'] = 9.80665
+    p['phase0.input_parameters:g'] = 9.80665
 
     p.run_model()
     if run_driver:

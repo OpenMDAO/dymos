@@ -13,7 +13,7 @@ except ImportError:
 
 import numpy as np
 
-from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver
+from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Problem, SqliteRecorder
 from openmdao.utils.units import convert_units
 from openmdao.utils.mpi import MPI
 
@@ -448,91 +448,187 @@ class Trajectory(Group):
             for var in sorted(implicitly_linked_vars.union(explicitly_linked_vars)):
                 self._linkages[phase1_name, phase2_name][var] = {'locs': locs, 'units': None}
 
-    def simulate(self, times='all', num_procs=None, record=True, record_file=None):
+    def simulate(self, times='all', record=True, record_file=None, time_units='s'):
         """
-        Simulate all phases in the trajectory using the scipy odeint interface.  If the trajectory
-        has multiple phases, they can be simulated in parallel.
+        Simulate the Trajectory using scipy.integrate.solve_ivp.
 
         Parameters
         ----------
-        times : str, int, ndarray, dict of {str: str}, dict of {str: int}, dict of {str: ndarray}.
-            The times at which outputs are desired, given as a node subset, an integer number of
-            times evenly distributed throughout the phase, or an ndarray of time values.  If more
-            control is desired, times can be passed as a dict keyed by phase name and the associated
-            value being one of the three options above.
-        num_procs : int, None
-            The number of processors that should be used to simulate the phases in the trajectory.
-            If None, then the number is obtained from the multiprocessing.cpu_count function.
+        times : str or Sequence of float
+            Times at which outputs of the simulation are requested.  If given as a str, it should
+            be one of the node subsets (default is 'all').  If given as a sequence, output will
+            be provided at those times *in addition to times at the boundary of each segment*.
+        record_file : str or None
+            If recording is enabled, the name of the file to which the results will be recorded.
+            If None, use the default filename '<phase_name>_sim.db'.
         record : bool
-            If True, record the resulting phase simulations to file.
+            If True, recording the results of the simulation is enabled.
+        time_units : str
+            Units in which times are specified, if numeric.
 
         Returns
         -------
-        dict of {str: PhaseSimulationResults}
-            A dictionary, keyed by phase name, containing the PhaseSimulationResults object
-            from each phase simulation.
-
+        problem
+            An OpenMDAO Problem in which the simulation is implemented.  This Problem interface
+            can be interrogated to obtain timeseries outputs in the same manner as other Phases
+            to obtain results at the requested times.
         """
+        from ..phases.simulation.simulation_trajectory import SimulationTrajectory
+        sim_traj = SimulationTrajectory(phases=self._phases, times=times, time_units=time_units,
+                                        design_parameter_options=self.design_parameter_options,
+                                        input_parameter_options=self.input_parameter_options)
 
-        if isinstance(times, dict):
-            times_dict = times
-        else:
-            times_dict = {}
-            for phase_name in self._phases:
-                times_dict[phase_name] = times
+        sim_prob = Problem(model=Group())
 
-        data = []
-
-        for phase_name, phase in iteritems(self._phases):
-            ode_class = phase.options['ode_class']
-            ode_init_kwargs = phase.options['ode_init_kwargs']
-            time_values = phase.get_values('time')
-            state_values = {}
-            control_values = {}
-            design_parameter_values = {}
-            input_parameter_values = {}
-            for state_name, options in iteritems(phase.state_options):
-                state_values[state_name] = phase.get_values(state_name)
-            for control_name, options in iteritems(phase.control_options):
-                control_values[control_name] = phase.get_values(control_name, nodes='control_disc')
-            for dp_name, options in iteritems(phase.design_parameter_options):
-                design_parameter_values[dp_name] = phase.get_values(dp_name, nodes='all')
-            for ip_name, options in iteritems(phase.input_parameter_options):
-                input_parameter_values[ip_name] = phase.get_values(ip_name, nodes='all')
-
-            data.append((phase_name, ode_class, phase.time_options, phase.state_options,
-                         phase.control_options, phase.design_parameter_options,
-                         phase.input_parameter_options, time_values,
-                         state_values, control_values, design_parameter_values,
-                         input_parameter_values, ode_init_kwargs,
-                         phase.grid_data, times_dict[phase_name], False, None))
-
-        num_procs = mp.cpu_count() if num_procs is None else num_procs
-
-        pool = mp.Pool(processes=num_procs)
-
-        exp_outs = pool.map(simulate_phase_map_unpack, data)
-
-        pool.close()
-        pool.join()
-
-        exp_outs_map = {}
-        for i, phase_name in enumerate(self._phases.keys()):
-            exp_outs_map[phase_name] = exp_outs[i]
-
-        results = TrajectorySimulationResults(exp_outs=exp_outs_map)
+        sim_prob.model.add_subsystem(self.name, sim_traj)
 
         if record:
-            if record_file is None:
-                traj_name = self.pathname.split('.')[-1]
-                if not traj_name:
-                    traj_name = 'traj'
-                record_file = '{0}_sim.db'.format(traj_name)
-            print('Recording Results to {0}...'.format(record_file), end='')
-            results.record_results(self, exp_outs_map, filename=record_file)
-            print('Done')
+            filename = '{0}_sim.sql'.format(self.name) if record_file is None else record_file
+            rec = SqliteRecorder(filename)
+            sim_prob.model.recording_options['includes']=['*.timeseries.*']
+            sim_prob.model.add_recorder(rec)
 
-        return results
+        sim_prob.setup(check=True)
+
+        traj_op_dict = dict([(name, opts) for (name, opts) in self.list_outputs(units=True,
+                                                                                out_stream=None)])
+
+        for phase_name, phs in iteritems(self._phases):
+
+            op_dict = dict([(name, opts) for (name, opts) in phs.list_outputs(units=True,
+                                                                              out_stream=None)])
+
+            phs_prom2abs = phs._var_allprocs_prom2abs_list
+            print(list(op_dict.keys()))
+            print(list(traj_op_dict.keys()))
+            print(self.pathname)
+            print(phs.pathname)
+            print()
+            # Assign initial state values
+            for name, options in iteritems(phs.state_options):
+                op = op_dict['{0}.timeseries.states:{1}'.format(phs.pathname, name)]
+                tgt_var = '{0}.{1}.initial_states:{2}'.format(self.name, phase_name, name)
+                sim_prob[tgt_var] = op['value'][0, ...]
+
+            # Assign control values at all nodes
+            for name, options in iteritems(phs.control_options):
+                op = op_dict['{0}.control_interp_comp.control_values:{1}'.format(phs.pathname, name)]
+                var_name = '{0}.{1}.implicit_controls:{2}'.format(self.name, phase_name, name)
+                sim_prob[var_name] = op['value']
+
+            # Assign design parameter values
+            for name, options in iteritems(phs.design_parameter_options):
+                op = op_dict['{0}.design_params.design_parameters:{1}'.format(phs.pathname, name)]
+                var_name = '{0}.{1}.design_parameters:{2}'.format(self.name, phase_name, name)
+                sim_prob[var_name] = op['value'][0, ...]
+
+            # Assign input parameter values
+            for name, options in iteritems(phs.input_parameter_options):
+                op = op_dict['{0}.input_params.input_parameters:{1}_out'.format(phs.pathname, name)]
+                var_name = '{0}.{1}.input_parameters:{2}'.format(self.name, phase_name, name)
+                sim_prob[var_name] = op['value'][0, ...]
+
+            # Assign trajectory design parameter values
+            for name, options in iteritems(self.design_parameter_options):
+                op = traj_op_dict['{0}.design_params.design_parameters:{1}'.format(self.pathname, name)]
+                var_name = '{0}.{1}.input_parameters:{2}'.format(self.name, phase_name, name)
+                sim_prob[var_name] = op['value'][0, ...]
+
+            # Assign trajectory input parameter values
+            for name, options in iteritems(self.input_parameter_options):
+                op = traj_op_dict['{0}.input_params.input_parameters:{1}_out'.format(phs.pathname, name)]
+                var_name = '{0}.{1}.input_parameters:{2}'.format(self.name, phase_name, name)
+                sim_prob[var_name] = op['value'][0, ...]
+
+            print('\nSimulating phase {0}'.format(self.pathname))
+            sim_prob.run_model()
+            print('Done simulating phase {0}'.format(self.pathname))
+
+    # def simulate(self, times='all', num_procs=None, record=True, record_file=None):
+    #     """
+    #     Simulate all phases in the trajectory using the scipy odeint interface.  If the trajectory
+    #     has multiple phases, they can be simulated in parallel.
+    #
+    #     Parameters
+    #     ----------
+    #     times : str, int, ndarray, dict of {str: str}, dict of {str: int}, dict of {str: ndarray}.
+    #         The times at which outputs are desired, given as a node subset, an integer number of
+    #         times evenly distributed throughout the phase, or an ndarray of time values.  If more
+    #         control is desired, times can be passed as a dict keyed by phase name and the associated
+    #         value being one of the three options above.
+    #     num_procs : int, None
+    #         The number of processors that should be used to simulate the phases in the trajectory.
+    #         If None, then the number is obtained from the multiprocessing.cpu_count function.
+    #     record : bool
+    #         If True, record the resulting phase simulations to file.
+    #
+    #     Returns
+    #     -------
+    #     dict of {str: PhaseSimulationResults}
+    #         A dictionary, keyed by phase name, containing the PhaseSimulationResults object
+    #         from each phase simulation.
+    #
+    #     """
+    #
+    #     if isinstance(times, dict):
+    #         times_dict = times
+    #     else:
+    #         times_dict = {}
+    #         for phase_name in self._phases:
+    #             times_dict[phase_name] = times
+    #
+    #     data = []
+    #
+    #     for phase_name, phase in iteritems(self._phases):
+    #         ode_class = phase.options['ode_class']
+    #         ode_init_kwargs = phase.options['ode_init_kwargs']
+    #         time_values = phase.get_values('time')
+    #         state_values = {}
+    #         control_values = {}
+    #         design_parameter_values = {}
+    #         input_parameter_values = {}
+    #         for state_name, options in iteritems(phase.state_options):
+    #             state_values[state_name] = phase.get_values(state_name)
+    #         for control_name, options in iteritems(phase.control_options):
+    #             control_values[control_name] = phase.get_values(control_name, nodes='control_disc')
+    #         for dp_name, options in iteritems(phase.design_parameter_options):
+    #             design_parameter_values[dp_name] = phase.get_values(dp_name, nodes='all')
+    #         for ip_name, options in iteritems(phase.input_parameter_options):
+    #             input_parameter_values[ip_name] = phase.get_values(ip_name, nodes='all')
+    #
+    #         data.append((phase_name, ode_class, phase.time_options, phase.state_options,
+    #                      phase.control_options, phase.design_parameter_options,
+    #                      phase.input_parameter_options, time_values,
+    #                      state_values, control_values, design_parameter_values,
+    #                      input_parameter_values, ode_init_kwargs,
+    #                      phase.grid_data, times_dict[phase_name], False, None))
+    #
+    #     num_procs = mp.cpu_count() if num_procs is None else num_procs
+    #
+    #     pool = mp.Pool(processes=num_procs)
+    #
+    #     exp_outs = pool.map(simulate_phase_map_unpack, data)
+    #
+    #     pool.close()
+    #     pool.join()
+    #
+    #     exp_outs_map = {}
+    #     for i, phase_name in enumerate(self._phases.keys()):
+    #         exp_outs_map[phase_name] = exp_outs[i]
+    #
+    #     results = TrajectorySimulationResults(exp_outs=exp_outs_map)
+    #
+    #     if record:
+    #         if record_file is None:
+    #             traj_name = self.pathname.split('.')[-1]
+    #             if not traj_name:
+    #                 traj_name = 'traj'
+    #             record_file = '{0}_sim.db'.format(traj_name)
+    #         print('Recording Results to {0}...'.format(record_file), end='')
+    #         results.record_results(self, exp_outs_map, filename=record_file)
+    #         print('Done')
+    #
+    #     return results
 
     def get_values(self, var, phases=None, nodes='all', units=None, flat=False):
         """

@@ -4,7 +4,7 @@ import os
 import unittest
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -166,6 +166,8 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
         assert_rel_error(self, traj.get_values('r')['descent'][-1], 3191.83945861, tolerance=1.0E-2)
 
         exp_out = traj.simulate(times=100, record_file='ex_two_phase_cannonball_sim.db')
+
+        exit(0)
 
         # exp_out_loaded = load_simulation_results('ex_two_phase_cannonball_sim.db')
 

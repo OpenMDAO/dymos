@@ -1342,6 +1342,47 @@ class PhaseBase(Group):
             res = res.T
         return res
 
+    def _init_simulation_phase(self, times):
+        """
+        Return a SimulationPhase initialized based on data from this Phase instance and
+        the given simulation times.
+
+        Parameters
+        ----------
+        times : str or Sequence of float
+            Times at which outputs of the simulation are requested.  If given as a str, it should
+            be one of the node subsets (default is 'all').  If given as a sequence, output will
+            be provided at those times *in addition to times at the boundary of each segment*.
+
+        Returns
+        -------
+        SimulationPhase
+            An instance of SimulationPhase initialized based on data from this Phase and the given
+            times.  This instance has not yet been setup.
+        """
+
+        from .simulation.simulation_phase import SimulationPhase
+
+        op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
+                                                                                 out_stream=None)])
+
+        time = op_dict['{0}.time.time'.format(self.pathname)]['value']
+
+        sim_phase = SimulationPhase(grid_data=self.grid_data,
+                                    time_options=self.time_options,
+                                    state_options=self.state_options,
+                                    control_options=self.control_options,
+                                    design_parameter_options=self.design_parameter_options,
+                                    input_parameter_options=self.input_parameter_options,
+                                    ode_class=self.options['ode_class'],
+                                    ode_init_kwargs=self.options['ode_init_kwargs'],
+                                    times=times,
+                                    t_initial=time[0],
+                                    t_duration=time[-1]-time[0],
+                                    timeseries_outputs=self._timeseries_outputs)
+
+        return sim_phase
+
     def simulate(self, times='all', record_file=None, record=True):
         """
         Simulate the Phase using scipy.integrate.solve_ivp.
@@ -1366,26 +1407,9 @@ class PhaseBase(Group):
             to obtain results at the requested times.
         """
 
-        from .simulation.simulation_phase import SimulationPhase
         sim_prob = Problem(model=Group())
 
-        op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
-                                                                                 out_stream=None)])
-
-        time = op_dict['{0}.time.time'.format(self.pathname)]['value']
-
-        sim_phase = SimulationPhase(grid_data=self.grid_data,
-                                    time_options=self.time_options,
-                                    state_options=self.state_options,
-                                    control_options=self.control_options,
-                                    design_parameter_options=self.design_parameter_options,
-                                    input_parameter_options=self.input_parameter_options,
-                                    ode_class=self.options['ode_class'],
-                                    ode_init_kwargs=self.options['ode_init_kwargs'],
-                                    times=times,
-                                    t_initial=time[0],
-                                    t_duration=time[-1]-time[0],
-                                    timeseries_outputs=self._timeseries_outputs)
+        sim_phase = self._init_simulation_phase(times)
 
         sim_prob.model.add_subsystem(self.name, sim_phase)
 
@@ -1397,25 +1421,27 @@ class PhaseBase(Group):
 
         sim_prob.setup(check=True)
 
+        op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
+                                                                                 out_stream=None)])
         # Assign initial state values
         for name, options in iteritems(self.state_options):
-            sim_prob['phase0.initial_states:{0}'.format(name)] = \
-                op_dict['{0}.timeseries.states:{1}'.format(self.name, name)]['value'][0, ...]
+            op = op_dict['{0}.timeseries.states:{1}'.format(self.name, name)]
+            sim_prob['{0}.initial_states:{1}'.format(self.name, name)] = op['value'][0, ...]
 
         # Assign control values at all nodes
         for name, options in iteritems(self.control_options):
-            sim_prob['phase0.implicit_controls:{0}'.format(name)] = \
-                op_dict['{0}.control_interp_comp.control_values:{1}'.format(self.name, name)]['value']
+            op = op_dict['{0}.control_interp_comp.control_values:{1}'.format(self.name, name)]
+            sim_prob['{0}.implicit_controls:{1}'.format(self.name, name)] = op['value']
 
-        # Assign control values at all nodes
+        # Assign design parameter values
         for name, options in iteritems(self.design_parameter_options):
-            sim_prob['phase0.design_parameters:{0}'.format(name)] = \
-                op_dict['{0}.design_params.design_parameters:{1}'.format(self.name, name)]['value'][0, ...]
+            op = op_dict['{0}.design_params.design_parameters:{1}'.format(self.name, name)]
+            sim_prob['{0}.design_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
 
-        # Assign control values at all nodes
+        # Assign input parameter values
         for name, options in iteritems(self.input_parameter_options):
-            sim_prob['phase0.input_parameters:{0}'.format(name)] = \
-                op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.name, name)]['value'][0, ...]
+            op = op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.name, name)]
+            sim_prob['{0}.input_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
 
         print('\nSimulating phase {0}'.format(self.pathname))
         sim_prob.run_model()
