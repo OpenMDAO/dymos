@@ -21,7 +21,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     p.driver.options['optimizer'] = optimizer
     p.driver.options['dynamic_simul_derivs'] = True
     if optimizer == 'SNOPT':
-        p.driver.opt_settings['Major iterations limit'] = 1000
+        p.driver.opt_settings['Major iterations limit'] = 100 #1000
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         p.driver.opt_settings["Linesearch tolerance"] = 0.10
@@ -47,14 +47,14 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     phase.set_time_options(initial_bounds=(0, 0),
                            duration_bounds=(300, 10000),
-                           duration_ref=3600)
+                           duration_ref=10000)
 
-    phase.set_state_options('range', units='NM', fix_initial=True, fix_final=False, scaler=0.001,
-                            defect_scaler=1.0E-2)
+    phase.set_state_options('range', units='NM', fix_initial=True, fix_final=False, ref=100,
+                            defect_scaler=100)
     phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=True,
-                            upper=1.5E5, lower=0.0, scaler=1.0E-5, defect_scaler=1.0E-1)
+                            upper=1.5E5, lower=0.0, ref=1, defect_ref=1)
     phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=True, lower=0.0,
-                            upper=60)
+                            upper=60, ref=1, defect_ref=1)
 
     phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000, ref0=-3000,
                       rate_continuity=True, ref=3000)
@@ -71,7 +71,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
     p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
 
-    phase.add_objective('range', loc='final', ref=-1.0)
+    phase.add_objective('range', loc='final', ref=1e-2)
 
     p.model.linear_solver = DirectSolver(assemble_jac=True)
 

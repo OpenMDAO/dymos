@@ -124,10 +124,12 @@ USatm1976Data.viscosity = np.array([3.81E-07, 3.78E-07, 3.76E-07, 3.74E-07, 3.72
 T_interp = Akima(USatm1976Data.alt, USatm1976Data.T)
 P_interp = Akima(USatm1976Data.alt, USatm1976Data.P)
 rho_interp = Akima(USatm1976Data.alt, USatm1976Data.rho)
+visc_interp = Akima(USatm1976Data.alt, USatm1976Data.viscosity)
 
 T_interp_deriv = T_interp.derivative(1)
 P_interp_deriv = P_interp.derivative(1)
 rho_interp_deriv = rho_interp.derivative(1)
+visc_interp_deriv = visc_interp.derivative(1)
 drho_dh_interp_deriv = rho_interp.derivative(2)
 
 
@@ -148,11 +150,12 @@ class USatm1976Comp(ExplicitComponent):
         self.add_output('temp', val=1.*np.ones(nn), units='degR')
         self.add_output('pres', val=1.*np.ones(nn), units='psi')
         self.add_output('rho', val=1.*np.ones(nn), units='slug/ft**3')
+        self.add_output('viscosity', val=1.*np.ones(nn), units='lbf*s/ft**2')
         self.add_output('drhos_dh', val=1.*np.ones(nn), units='slug/ft**4')
         self.add_output('sos', val=1*np.ones(nn), units='ft/s')
 
         arange = np.arange(nn)
-        self.declare_partials(['temp', 'pres', 'rho', 'drhos_dh', 'sos'], 'h',
+        self.declare_partials(['temp', 'pres', 'rho', 'viscosity', 'drhos_dh', 'sos'], 'h',
                               rows=arange, cols=arange, val=1.0)
 
     def compute(self, inputs, outputs):
@@ -160,6 +163,7 @@ class USatm1976Comp(ExplicitComponent):
         outputs['temp'] = T_interp(inputs['h'], extrapolate=True)
         outputs['pres'] = P_interp(inputs['h'], extrapolate=True)
         outputs['rho'] = rho_interp(inputs['h'], extrapolate=True)
+        outputs['viscosity'] = visc_interp(inputs['h'], extrapolate=True)
         outputs['drhos_dh'] = rho_interp_deriv(inputs['h'], extrapolate=True)
 
         outputs['sos'] = np.sqrt(self._K*outputs['temp'])
@@ -169,6 +173,7 @@ class USatm1976Comp(ExplicitComponent):
         partials['temp', 'h'] = T_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
         partials['pres', 'h'] = P_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
         partials['rho', 'h'] = rho_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
+        partials['viscosity', 'h'] = visc_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
         partials['drhos_dh', 'h'] = drho_dh_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
 
         T = T_interp(inputs['h'], extrapolate=True)
