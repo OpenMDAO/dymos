@@ -170,11 +170,12 @@ class USatm1976Comp(ExplicitComponent):
 
     def compute_partials(self, inputs, partials):
         nn = self.options['num_nodes']
-        partials['temp', 'h'] = T_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
-        partials['pres', 'h'] = P_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
-        partials['rho', 'h'] = rho_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
-        partials['viscosity', 'h'] = visc_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
-        partials['drhos_dh', 'h'] = drho_dh_interp_deriv(inputs['h'], extrapolate=True).reshape(nn,)[0]
+        H = inputs['h']
+        partials['temp', 'h'] = T_interp_deriv(H, extrapolate=True).reshape(nn,)[0]
+        partials['pres', 'h'] = P_interp_deriv(H, extrapolate=True).reshape(nn,)[0]
+        partials['rho', 'h'] = rho_interp_deriv(H, extrapolate=True).reshape(nn,)[0]
+        partials['viscosity', 'h'] = visc_interp_deriv(H, extrapolate=True).reshape(nn,)[0]
+        partials['drhos_dh', 'h'] = drho_dh_interp_deriv(H, extrapolate=True).reshape(nn,)[0]
 
-        T = T_interp(inputs['h'], extrapolate=True)
+        T = T_interp(H, extrapolate=True)
         partials['sos', 'h'] = 0.5/np.sqrt(self._K*T)*partials['temp', 'h']
