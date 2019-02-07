@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, IndepVarComp, ScipyOptimizeDriver
+from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, 
+from openmdao.api import IndepVarComp, ScipyOptimizeDriver
 
 from dymos import Phase
 
@@ -21,11 +22,14 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     p.driver.options['optimizer'] = optimizer
     p.driver.options['dynamic_simul_derivs'] = True
     if optimizer == 'SNOPT':
-        p.driver.opt_settings['Major iterations limit'] = 100 #1000
+        p.driver.opt_settings['Major iterations limit'] = 20
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         p.driver.opt_settings["Linesearch tolerance"] = 0.10
         p.driver.opt_settings['iSumm'] = 6
+    if optimizer == 'SLSQP':
+        p.driver.opt_settings['MAXIT'] = 50
+
 
     num_seg = 15
     seg_ends, _ = lgl(num_seg + 1)
@@ -47,17 +51,17 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     phase.set_time_options(initial_bounds=(0, 0),
                            duration_bounds=(300, 10000),
-                           duration_ref=10000)
+                           duration_ref=5600)
 
-    phase.set_state_options('range', units='NM', fix_initial=True, fix_final=False, ref=100,
-                            defect_scaler=100)
+    phase.set_state_options('range', units='NM', fix_initial=True, fix_final=False, ref=1e-3,
+                            defect_ref=1e-3)
     phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=True,
-                            upper=1.5E5, lower=0.0, ref=1, defect_ref=1)
+                            upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2)
     phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=True, lower=0.0,
-                            upper=60, ref=1, defect_ref=1)
+                            upper=60, ref=1e-3, defect_ref=1e-3)
 
-    phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000, ref0=-3000,
-                      rate_continuity=True, ref=3000)
+    phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
+                      rate_continuity=True)
 
     phase.add_control('mach', units=None, opt=False)
 
@@ -71,7 +75,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
     p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
 
-    phase.add_objective('range', loc='final', ref=1e-2)
+    phase.add_objective('range', loc='final', ref=-1.0e-4)
 
     p.model.linear_solver = DirectSolver(assemble_jac=True)
 
@@ -79,7 +83,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 3600.0
-    p['phase0.states:range'] = phase.interpolate(ys=(0, 1000.0), nodes='state_input')
+    p['phase0.states:range'] = phase.interpolate(ys=(0, 724.0), nodes='state_input')
     p['phase0.states:mass_fuel'] = phase.interpolate(ys=(30000, 0), nodes='state_input')
     p['phase0.states:alt'][:] = 10.0
 
@@ -93,7 +97,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True,
                              record_file='test_ex_aircraft_steady_flight_rec.db')
-
+    
     plt.plot(phase.get_values('time', nodes='all'), phase.get_values('alt', nodes='all'), 'ro')
     plt.plot(exp_out.get_values('time'), exp_out.get_values('alt'), 'b-')
     plt.suptitle('altitude vs time')
@@ -179,4 +183,4 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
 
 if __name__ == '__main__':
-    ex_aircraft_steady_flight(optimizer='SNOPT', transcription='radau-ps')
+    ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps')
