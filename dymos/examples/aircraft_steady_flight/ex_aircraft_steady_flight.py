@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, 
+from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver 
 from openmdao.api import IndepVarComp, ScipyOptimizeDriver
 
 from dymos import Phase
