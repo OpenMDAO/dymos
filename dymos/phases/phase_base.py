@@ -910,6 +910,8 @@ class PhaseBase(Group):
             return 'design_parameter'
         elif var in self.input_parameter_options:
             return 'input_parameter'
+        elif var in self.traj_parameter_options:
+            return 'traj_parameter'
         elif var.endswith('_rate'):
             if var[:-5] in self.control_options:
                 return 'control_rate'

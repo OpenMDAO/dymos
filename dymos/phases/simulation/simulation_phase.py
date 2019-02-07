@@ -254,7 +254,7 @@ class SimulationPhase(Group):
                            val=np.ones((1,) + options['shape']),
                            units=options['units'])
 
-            src_name = 'input_parameters:{0}_out'.format(name)
+            src_name = 'design_parameters:{0}'.format(name)
 
             for tgts, src_idxs in self._get_parameter_connections(name):
                 self.connect(src_name, [t for t in tgts],
@@ -335,10 +335,15 @@ class SimulationPhase(Group):
     #         for tgts, src_idxs in self._get_parameter_connections(options['target_param']):
     #             self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
 
-    def _get_parameter_connections(self, name, traj_param=False):
+    def _get_parameter_connections(self, name):
         """
         Returns a list containing tuples of each path and related indices to which the
         given design variable name is to be connected.
+
+        Parameters
+        ----------
+        name : str
+            The name of the parameter whose connection info is desired.
 
         Returns
         -------
@@ -347,6 +352,8 @@ class SimulationPhase(Group):
             given design variable is to be connected.
         """
         connection_info = []
+
+        var_class = self._classify_var(name)
 
         ode_options = self.options['ode_class'].ode_options
         gd = self.options['grid_data']
@@ -361,10 +368,14 @@ class SimulationPhase(Group):
             seg_tgts = []
 
             for i in range(num_seg):
-                if traj_param:
+                if var_class == 'traj_parameter':
                     seg_tgt = 'segment_{0}.traj_parameters:{1}'.format(i, name)
-                else:
+                elif var_class == 'design_parameter':
+                    seg_tgt = 'segment_{0}.design_parameters:{1}'.format(i, name)
+                elif var_class == 'input_parameter':
                     seg_tgt = 'segment_{0}.input_parameters:{1}'.format(i, name)
+                else:
+                    raise ValueError('could not find {0} in the parameter types'.format(name))
                 seg_tgts.append(seg_tgt)
             connection_info.append((seg_tgts, None))
 
@@ -383,6 +394,54 @@ class SimulationPhase(Group):
             connection_info.append((ode_tgts, src_idxs))
 
         return connection_info
+
+    def _classify_var(self, var):
+        """
+        Classifies a variable of the given name or path.
+
+        This method searches for it as a time variable, state variable,
+        control variable, or parameter.  If it is not found to be one
+        of those variables, it is assumed to be the path to a variable
+        relative to the top of the ODE system for the phase.
+
+        Parameters
+        ----------
+        var : str
+            The name of the variable to be classified.
+
+        Returns
+        -------
+        str
+            The classification of the given variable, which is one of
+            'time', 'state', 'input_control', 'indep_control', 'control_rate',
+            'control_rate2', 'design_parameter', 'input_parameter', or 'ode'.
+
+        """
+        if var == 'time':
+            return 'time'
+        elif var == 'time_phase':
+            return 'time_phase'
+        elif var in self.state_options:
+            return 'state'
+        elif var in self.control_options:
+            if self.control_options[var]['opt']:
+                return 'indep_control'
+            else:
+                return 'input_control'
+        elif var in self.design_parameter_options:
+            return 'design_parameter'
+        elif var in self.input_parameter_options:
+            return 'input_parameter'
+        elif var in self.traj_parameter_options:
+            return 'traj_parameter'
+        elif var.endswith('_rate'):
+            if var[:-5] in self.control_options:
+                return 'control_rate'
+        elif var.endswith('_rate2'):
+            if var[:-6] in self.control_options:
+                return 'control_rate2'
+        else:
+            return 'ode'
 
     def _setup_segments(self):
         gd = self.options['grid_data']
@@ -502,6 +561,23 @@ class SimulationPhase(Group):
 
             self.connect(src_name='input_parameters:{0}_out'.format(name),
                          tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+        for name, options in iteritems(self.traj_parameter_options):
+            units = options['units']
+            timeseries_comp._add_timeseries_output('traj_parameters:{0}'.format(name),
+                                                   var_class='traj_parameter',
+                                                   units=units)
+
+            if self.options['ode_class'].ode_options._parameters[name]['dynamic']:
+                src_idxs_raw = np.zeros(num_points, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+
+            self.connect(src_name='traj_parameters:{0}_out'.format(name),
+                         tgt_name='timeseries.all_values:traj_parameters:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
         for var, options in iteritems(self.options['timeseries_outputs']):

@@ -4,7 +4,7 @@ import os
 import unittest
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -191,24 +191,24 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
             axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
             axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
 
-        # params = ['CL', 'CD', 'T', 'alpha', 'mass', 'S']
-        # fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
-        # for i, param in enumerate(params):
-        #     p_imp = {
-        #         'ascent': p.get_val('traj.ascent.timeseries.traj_parameters:{0}'.format(param)),
-        #         'descent': p.get_val('traj.descent.timeseries.traj_parameters:{0}'.format(param))}
-        #
-        #     p_exp = {'ascent': exp_out.get_val(
-        #         'traj.ascent.timeseries.input_parameters:{0}'.format(param)),
-        #              'descent': exp_out.get_val(
-        #                  'traj.descent.timeseries.input_parameters:{0}'.format(param))}
-        #
-        #     axes[i].set_ylabel(param)
-        #
-        #     axes[i].plot(time_imp['ascent'], p_imp['ascent'], 'bo')
-        #     axes[i].plot(time_imp['descent'], p_imp['descent'], 'ro')
-        #     axes[i].plot(time_exp['ascent'], p_exp['ascent'], 'b--')
-        #     axes[i].plot(time_exp['descent'], p_exp['descent'], 'r--')
+        params = ['CL', 'CD', 'T', 'alpha', 'm', 'S']
+        fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
+        for i, param in enumerate(params):
+            p_imp = {
+                'ascent': p.get_val('traj.ascent.timeseries.traj_parameters:{0}'.format(param)),
+                'descent': p.get_val('traj.descent.timeseries.traj_parameters:{0}'.format(param))}
+
+            p_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.'
+                                               'traj_parameters:{0}'.format(param)),
+                     'descent': exp_out.get_val('traj.descent.timeseries.'
+                                                'traj_parameters:{0}'.format(param))}
+
+            axes[i].set_ylabel(param)
+
+            axes[i].plot(time_imp['ascent'], p_imp['ascent'], 'bo')
+            axes[i].plot(time_imp['descent'], p_imp['descent'], 'ro')
+            axes[i].plot(time_exp['ascent'], p_exp['ascent'], 'b--')
+            axes[i].plot(time_exp['descent'], p_exp['descent'], 'r--')
 
         # axes[0].set_xlabel('range (m)')
         # axes[0].set_ylabel('altitude (m)')
@@ -228,9 +228,6 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         #
         # plt.plot(time_imp['ascent'], m_imp['ascent'], 'ro')
         # plt.plot(time_exp['descent'], m_exp['descent'], 'b--')
-
-        plt.show()
-        exit(0)
 
         # plt.suptitle('Kinetic Energy vs Time')
 

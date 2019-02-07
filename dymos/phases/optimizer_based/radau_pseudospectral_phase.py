@@ -335,6 +335,23 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                          tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
+        for name, options in iteritems(self.traj_parameter_options):
+            units = options['units']
+            timeseries_comp._add_timeseries_output('traj_parameters:{0}'.format(name),
+                                       var_class=self._classify_var(name),
+                                       units=units)
+
+            if self.ode_options._parameters[name]['dynamic']:
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+
+            self.connect(src_name='traj_parameters:{0}_out'.format(name),
+                         tgt_name='timeseries.all_values:traj_parameters:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
         for var, options in iteritems(self._timeseries_outputs):
             output_name = options['output_name']
 

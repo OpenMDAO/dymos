@@ -50,7 +50,7 @@ class TimeseriesOutputCompBase(ExplicitComponent):
         """
         src_all = var_class in ['time', 'time_phase', 'indep_control', 'input_control',
                                 'control_rate', 'control_rate2', 'design_parameter',
-                                'input_parameter']
+                                'input_parameter', 'traj_parameter']
         kwargs = {'shape': shape, 'units': units, 'desc': desc, 'src_all': src_all,
                   'distributed': distributed}
         self._timeseries_outputs.append((name, kwargs))

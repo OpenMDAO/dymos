@@ -4,7 +4,7 @@ import os
 import unittest
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -12,7 +12,7 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['ex_two_phase_cannonball.db', 'ex_two_phase_cannonball_sim.db',
+        for filename in ['ex_two_phase_cannonball_exp.db', 'ex_two_phase_cannonball_exp_sim.db',
                          'coloring.json']:
             if os.path.exists(filename):
                 os.remove(filename)
@@ -125,7 +125,7 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
         p.model.options['assembled_jac_type'] = 'csc'
         p.model.linear_solver = DirectSolver(assemble_jac=True)
 
-        p.driver.add_recorder(SqliteRecorder('ex_two_phase_cannonball.db'))
+        p.driver.add_recorder(SqliteRecorder('ex_two_phase_cannonball_exp.db'))
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -165,7 +165,7 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
 
         assert_rel_error(self, p.get_val('traj.descent.timeseries.states:r')[-1], 3191.83945861, tolerance=1.0E-2)
 
-        exp_out = traj.simulate(times=100, record_file='ex_two_phase_cannonball_sim.db')
+        exp_out = traj.simulate(times=100, record_file='ex_two_phase_cannonball_exp_sim.db')
 
         print('optimal radius: {0:6.4f} m '.format(p.get_val('external_params.radius',
                                                              units='m')[0]))
@@ -198,22 +198,24 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
                      'descent': exp_out.get_val('traj.descent.timeseries.states:{0}'.format(state))}
 
             axes[i].set_ylabel(state)
+            axes[i].set_xlabel('time')
 
             axes[i].plot(time_imp['ascent'], x_imp['ascent'], 'bo')
             axes[i].plot(time_imp['descent'], x_imp['descent'], 'ro')
             axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
             axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
 
-        params = ['CL', 'CD', 'T', 'alpha', 'mass', 'S']
+        params = ['CL', 'CD', 'T', 'alpha', 'm', 'S']
         fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
         for i, param in enumerate(params):
-            p_imp = {'ascent': p.get_val('traj.ascent.timeseries.input_parameters:{0}'.format(param)),
-                     'descent': p.get_val('traj.descent.timeseries.input_parameters:{0}'.format(param))}
+            p_imp = {'ascent': p.get_val('traj.ascent.timeseries.traj_parameters:{0}'.format(param)),
+                     'descent': p.get_val('traj.descent.timeseries.traj_parameters:{0}'.format(param))}
 
-            p_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.input_parameters:{0}'.format(param)),
-                     'descent': exp_out.get_val('traj.descent.timeseries.input_parameters:{0}'.format(param))}
+            p_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.traj_parameters:{0}'.format(param)),
+                     'descent': exp_out.get_val('traj.descent.timeseries.traj_parameters:{0}'.format(param))}
 
             axes[i].set_ylabel(param)
+            axes[i].set_xlabel('time')
 
             axes[i].plot(time_imp['ascent'], p_imp['ascent'], 'bo')
             axes[i].plot(time_imp['descent'], p_imp['descent'], 'ro')
@@ -240,47 +242,43 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
         # plt.plot(time_imp['ascent'], m_imp['ascent'], 'ro')
         # plt.plot(time_exp['descent'], m_exp['descent'], 'b--')
 
-
-        plt.show()
-        exit(0)
-
         # plt.suptitle('Kinetic Energy vs Time')
-
-        axes[1].plot(traj.get_values('time')['ascent'],
-                     traj.get_values('kinetic_energy.ke')['ascent'],
-                     'bo')
-
-        axes[1].plot(traj.get_values('time')['descent'],
-                     traj.get_values('kinetic_energy.ke')['descent'],
-                     'ro')
-
-        axes[1].plot(exp_out.get_values('time')['ascent'],
-                     exp_out.get_values('kinetic_energy.ke')['ascent'],
-                     'b--')
-
-        axes[1].plot(exp_out.get_values('time')['descent'],
-                     exp_out.get_values('kinetic_energy.ke')['descent'],
-                     'r--')
-
-        axes[1].set_xlabel('time (s)')
-        axes[1].set_ylabel(r'kinetic energy (J)')
-
-        axes[2].plot(traj.get_values('time')['ascent'],
-                     traj.get_values('gam', units='deg')['ascent'],
-                     'bo')
-        axes[2].plot(traj.get_values('time')['descent'],
-                     traj.get_values('gam', units='deg')['descent'],
-                     'ro')
-
-        axes[2].plot(exp_out.get_values('time')['ascent'],
-                     exp_out.get_values('gam', units='deg')['ascent'],
-                     'b--')
-
-        axes[2].plot(exp_out.get_values('time')['descent'],
-                     exp_out.get_values('gam', units='deg')['descent'],
-                     'r--')
-
-        axes[2].set_xlabel('time (s)')
-        axes[2].set_ylabel(r'flight path angle (deg)')
+        #
+        # axes[1].plot(traj.get_values('time')['ascent'],
+        #              traj.get_values('kinetic_energy.ke')['ascent'],
+        #              'bo')
+        #
+        # axes[1].plot(traj.get_values('time')['descent'],
+        #              traj.get_values('kinetic_energy.ke')['descent'],
+        #              'ro')
+        #
+        # axes[1].plot(exp_out.get_values('time')['ascent'],
+        #              exp_out.get_values('kinetic_energy.ke')['ascent'],
+        #              'b--')
+        #
+        # axes[1].plot(exp_out.get_values('time')['descent'],
+        #              exp_out.get_values('kinetic_energy.ke')['descent'],
+        #              'r--')
+        #
+        # axes[1].set_xlabel('time (s)')
+        # axes[1].set_ylabel(r'kinetic energy (J)')
+        #
+        # axes[2].plot(traj.get_values('time')['ascent'],
+        #              traj.get_values('gam', units='deg')['ascent'],
+        #              'bo')
+        # axes[2].plot(traj.get_values('time')['descent'],
+        #              traj.get_values('gam', units='deg')['descent'],
+        #              'ro')
+        #
+        # axes[2].plot(exp_out.get_values('time')['ascent'],
+        #              exp_out.get_values('gam', units='deg')['ascent'],
+        #              'b--')
+        #
+        # axes[2].plot(exp_out.get_values('time')['descent'],
+        #              exp_out.get_values('gam', units='deg')['descent'],
+        #              'r--')
+        #
+        # axes[2].set_xlabel('time (s)')
+        # axes[2].set_ylabel(r'flight path angle (deg)')
 
         plt.show()

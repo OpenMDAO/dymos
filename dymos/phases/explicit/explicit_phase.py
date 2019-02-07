@@ -696,6 +696,28 @@ class ExplicitPhase(PhaseBase):
                              tgt_name='timeseries.seg_{0}_values:input_parameters:{1}'.format(iseg, name),
                              src_indices=src_idxs, flat_src_indices=True)
 
+        for name, options in iteritems(self.traj_parameter_options):
+            units = options['units']
+            size = np.prod(options['shape'])
+            timeseries_comp._add_timeseries_output('traj_parameters:{0}'.format(name),
+                                       var_class=self._classify_var(name),
+                                       units=units)
+
+            for iseg in range(gd.num_segments):
+                num_steps = self.grid_data.num_steps_per_segment[iseg]
+                src_total_size = num_steps * size + 1
+
+                if self.ode_options._parameters[name]['dynamic']:
+                    src_idxs_raw = np.zeros(src_total_size, dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                else:
+                    src_idxs_raw = np.zeros(1, dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+
+                self.connect(src_name='traj_parameters:{0}_out'.format(name),
+                             tgt_name='timeseries.seg_{0}_values:traj_parameters:{1}'.format(iseg, name),
+                             src_indices=src_idxs, flat_src_indices=True)
+
         for var, options in iteritems(self._timeseries_outputs):
             output_name = options['output_name']
 
