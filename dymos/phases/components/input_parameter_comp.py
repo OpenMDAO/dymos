@@ -18,16 +18,21 @@ class InputParameterComp(ExplicitComponent):
                              types=dict,
                              desc='Dictionary of options for the input parameters')
 
+        self.options.declare(name='traj_params', types=bool, default=False,
+                             desc='True if this input parameter comp is for trajectory parameters.')
+
         self._input_design_parameters = []
         self._output_names = {}
         self._input_names = {}
 
     def setup(self):
+        name_prefix = 'traj_parameters' if self.options['traj_params'] else 'input_parameters'
+
         for param_name, options in iteritems(self.options['input_parameter_options']):
 
             self._input_design_parameters.append(param_name)
-            self._input_names[param_name] = 'input_parameters:{0}'.format(param_name)
-            self._output_names[param_name] = 'input_parameters:{0}_out'.format(param_name)
+            self._input_names[param_name] = '{0}:{1}'.format(name_prefix, param_name)
+            self._output_names[param_name] = '{0}:{1}_out'.format(name_prefix, param_name)
 
             n = 1
 

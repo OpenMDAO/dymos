@@ -105,7 +105,7 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
 
         # Add externally-provided design parameters to the trajectory.
         traj.add_input_parameter('mass',
-                                 targets={'ascent': 'm', 'descent': 'm'},
+                                 target_params={'ascent': 'm', 'descent': 'm'},
                                  val=1.0,
                                  units='kg')
 
@@ -160,42 +160,89 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
                                                                nodes='state_input'))
         p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45],
                                                                  nodes='state_input'), units='deg')
-        # p.run_driver()
+
         p.run_model()
 
-        assert_rel_error(self, traj.get_values('r')['descent'][-1], 3191.83945861, tolerance=1.0E-2)
+        assert_rel_error(self, p.get_val('traj.descent.timeseries.states:r')[-1], 3191.83945861, tolerance=1.0E-2)
 
         exp_out = traj.simulate(times=100, record_file='ex_two_phase_cannonball_sim.db')
-
-        exit(0)
-
-        # exp_out_loaded = load_simulation_results('ex_two_phase_cannonball_sim.db')
 
         print('optimal radius: {0:6.4f} m '.format(p.get_val('external_params.radius',
                                                              units='m')[0]))
         print('cannonball mass: {0:6.4f} kg '.format(p.get_val('size_comp.mass',
                                                                units='kg')[0]))
 
-        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(8, 6))
+        fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 6))
 
-        axes[0].plot(traj.get_values('r')['ascent'],
-                     traj.get_values('h')['ascent'],
-                     'bo')
 
-        axes[0].plot(traj.get_values('r')['descent'],
-                     traj.get_values('h')['descent'],
-                     'ro')
+        time_imp = {'ascent': p.get_val('traj.ascent.timeseries.time'),
+                   'descent': p.get_val('traj.descent.timeseries.time')}
 
-        axes[0].plot(exp_out.get_values('r')['ascent'],
-                     exp_out.get_values('h')['ascent'],
-                     'b--')
+        time_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.time'),
+                    'descent': exp_out.get_val('traj.descent.timeseries.time')}
 
-        axes[0].plot(exp_out.get_values('r')['descent'],
-                     exp_out.get_values('h')['descent'],
-                     'r--')
+        # axes[0].plot(r_imp['ascent'], h_imp['ascent'], 'bo')
+        #
+        # axes[0].plot(r_imp['descent'], h_imp['descent'], 'ro')
+        #
+        # axes[0].plot(r_exp['ascent'], h_exp['ascent'], 'b--')
+        #
+        # axes[0].plot(r_exp['descent'], h_exp['descent'], 'r--')
 
-        axes[0].set_xlabel('range (m)')
-        axes[0].set_ylabel('altitude (m)')
+        states = ['r', 'h', 'v', 'gam']
+        for i, state in enumerate(states):
+            x_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:{0}'.format(state)),
+                     'descent': p.get_val('traj.descent.timeseries.states:{0}'.format(state))}
+
+            x_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:{0}'.format(state)),
+                     'descent': exp_out.get_val('traj.descent.timeseries.states:{0}'.format(state))}
+
+            axes[i].set_ylabel(state)
+
+            axes[i].plot(time_imp['ascent'], x_imp['ascent'], 'bo')
+            axes[i].plot(time_imp['descent'], x_imp['descent'], 'ro')
+            axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
+            axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
+
+        params = ['CL', 'CD', 'T', 'alpha', 'mass', 'S']
+        fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
+        for i, param in enumerate(params):
+            p_imp = {'ascent': p.get_val('traj.ascent.timeseries.input_parameters:{0}'.format(param)),
+                     'descent': p.get_val('traj.descent.timeseries.input_parameters:{0}'.format(param))}
+
+            p_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.input_parameters:{0}'.format(param)),
+                     'descent': exp_out.get_val('traj.descent.timeseries.input_parameters:{0}'.format(param))}
+
+            axes[i].set_ylabel(param)
+
+            axes[i].plot(time_imp['ascent'], p_imp['ascent'], 'bo')
+            axes[i].plot(time_imp['descent'], p_imp['descent'], 'ro')
+            axes[i].plot(time_exp['ascent'], p_exp['ascent'], 'b--')
+            axes[i].plot(time_exp['descent'], p_exp['descent'], 'r--')
+
+
+        # axes[0].set_xlabel('range (m)')
+        # axes[0].set_ylabel('altitude (m)')
+        #
+        # p.model.traj.phases.ascent.timeseries.list_outputs(print_arrays=True)
+        # p.model.traj.phases.descent.timeseries.list_outputs(print_arrays=True)
+        # exp_out.model.traj.phases.ascent.timeseries.list_outputs(print_arrays=True)
+        # exp_out.model.traj.phases.descent.timeseries.list_outputs(print_arrays=True)
+
+        # plt.figure()
+        #
+        # m_imp = {'ascent': p.get_val('traj.ascent.timeseries.input_parameters:mass'),
+        #          'descent': p.get_val('traj.descent.timeseries.input_parameters:mass')}
+        #
+        # m_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.input_parameters:mass'),
+        #          'descent': exp_out.get_val('traj.descent.timeseries.input_parameters:mass')}
+        #
+        # plt.plot(time_imp['ascent'], m_imp['ascent'], 'ro')
+        # plt.plot(time_exp['descent'], m_exp['descent'], 'b--')
+
+
+        plt.show()
+        exit(0)
 
         # plt.suptitle('Kinetic Energy vs Time')
 

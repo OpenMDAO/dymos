@@ -14,7 +14,7 @@ from .segment_simulation_comp import SegmentSimulationComp
 from .simulation_state_mux_comp import SimulationStateMuxComp
 from .interp_comp import InterpComp
 from .simulation_timeseries_comp import SimulationTimeseriesOutputComp
-from ..options import InputParameterOptionsDictionary
+from ..options import InputParameterOptionsDictionary, TimeOptionsDictionary
 from ..components import InputParameterComp
 
 
@@ -28,6 +28,16 @@ class SimulationPhase(Group):
     derivatives across the model and should only be used via run_model to verify the accuracy
     of solutions achieved via the other Phase classes.
     """
+    def __init__(self, **kwargs):
+
+        super(SimulationPhase, self).__init__(**kwargs)
+
+        self.state_options = {}
+        self.control_options = {}
+        self.design_parameter_options = {}
+        self.input_parameter_options = {}
+        self.traj_parameter_options = {}
+        self.time_options = TimeOptionsDictionary()
 
     def initialize(self):
         self.options.declare('grid_data', desc='the grid data of the corresponding phase.')
@@ -35,11 +45,12 @@ class SimulationPhase(Group):
                              desc='System defining the ODE')
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
-        self.options.declare('time_options', types=OptionsDictionary)
-        self.options.declare('state_options', types=dict)
-        self.options.declare('control_options', types=dict)
-        self.options.declare('design_parameter_options', types=dict)
-        self.options.declare('input_parameter_options', types=dict)
+        # self.options.declare('time_options', types=OptionsDictionary)
+        # self.options.declare('state_options', types=dict)
+        # self.options.declare('control_options', types=dict)
+        # self.options.declare('design_parameter_options', types=dict)
+        # self.options.declare('input_parameter_options', types=dict)
+        # self.options.declare('traj_parameter_options', types=dict)
         self.options.declare('times', types=(Sequence, np.ndarray, int, str),
                              desc='number of times to include in timeseries output or values of'
                                   'time for timeseries output')
@@ -67,28 +78,61 @@ class SimulationPhase(Group):
         """
         ip_name = name if alias is None else alias
 
-        self.options['input_parameter_options'][ip_name] = InputParameterOptionsDictionary()
+        self.input_parameter_options[ip_name] = InputParameterOptionsDictionary()
 
         if name in self.options['ode_class'].ode_options._parameters:
             ode_param_info = self.options['ode_class'].ode_options._parameters[name]
-            self.options['input_parameter_options'][ip_name]['units'] = ode_param_info['units']
-            self.options['input_parameter_options'][ip_name]['targets'] = ode_param_info['targets']
-            self.options['input_parameter_options'][ip_name]['shape'] = ode_param_info['shape']
-            self.options['input_parameter_options'][ip_name]['dynamic'] = ode_param_info['dynamic']
+            self.input_parameter_options[ip_name]['units'] = ode_param_info['units']
+            self.input_parameter_options[ip_name]['targets'] = ode_param_info['targets']
+            self.input_parameter_options[ip_name]['shape'] = ode_param_info['shape']
+            self.input_parameter_options[ip_name]['dynamic'] = ode_param_info['dynamic']
         else:
             err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
             raise ValueError(err_msg)
 
-        self.options['input_parameter_options'][ip_name]['val'] = val
-        self.options['input_parameter_options'][ip_name]['target_param'] = name
+        self.input_parameter_options[ip_name]['val'] = val
+        self.input_parameter_options[ip_name]['target_param'] = name
 
         if units != 0:
-            self.options['input_parameter_options'][ip_name]['units'] = units
+            self.input_parameter_options[ip_name]['units'] = units
+
+    def _add_traj_parameter(self, name, val=0.0, units=0):
+        """
+        Add an input parameter to the phase that is connected to an input or design parameter
+        in the parent trajectory.
+
+        Parameters
+        ----------
+        name : str
+            Name of the ODE parameter to be controlled via this input parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.        """
+
+        traj_parameter_options = self.traj_parameter_options
+
+        traj_parameter_options[name] = InputParameterOptionsDictionary()
+
+        if name in self.ode_options._parameters:
+            ode_param_info = self.ode_options._parameters[name]
+            traj_parameter_options[name]['units'] = ode_param_info['units']
+            traj_parameter_options[name]['shape'] = ode_param_info['shape']
+            traj_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
+        else:
+            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
+            raise ValueError(err_msg)
+
+        traj_parameter_options[name]['val'] = val
+
+        if units != 0:
+            traj_parameter_options[name]['units'] = units
 
     def _setup_time(self, ivc):
         gd = self.options['grid_data']
         num_seg = gd.num_segments
-        time_units = self.options['time_options']['units']
+        time_units = self.time_options['units']
 
         # Figure out the times at which each segment needs to output data.
         t_initial = self.options['t_initial']
@@ -132,14 +176,14 @@ class SimulationPhase(Group):
                        val=time_vals - time_vals[0],
                        units=time_units)
 
-        if self.options['time_options']['targets']:
-            self.connect('time', ['ode.{0}'.format(tgt) for tgt in self.options['time_options']['targets']])
+        if self.time_options['targets']:
+            self.connect('time', ['ode.{0}'.format(tgt) for tgt in self.time_options['targets']])
 
     def _setup_states(self, ivc):
         gd = self.options['grid_data']
         num_seg = gd.num_segments
 
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in iteritems(self.state_options):
             ivc.add_output('initial_states:{0}'.format(name),
                            val=np.ones(options['shape']),
                            units=options['units'])
@@ -168,7 +212,7 @@ class SimulationPhase(Group):
         nn = gd.subset_num_nodes['all']
         num_seg = gd.num_segments
 
-        for name, options in iteritems(self.options['control_options']):
+        for name, options in iteritems(self.control_options):
             ivc.add_output('implicit_controls:{0}'.format(name),
                            val=np.ones((nn,) + options['shape']),
                            units=options['units'])
@@ -205,63 +249,140 @@ class SimulationPhase(Group):
         num_seg = gd.num_segments
         num_points = sum([len(a) for a in list(self.t_eval_per_seg.values())])
 
-        for name, options in iteritems(self.options['design_parameter_options']):
+        for name, options in iteritems(self.design_parameter_options):
             ivc.add_output('design_parameters:{0}'.format(name),
                            val=np.ones((1,) + options['shape']),
                            units=options['units'])
 
-            for i in range(num_seg):
-                self.connect(src_name='design_parameters:{0}'.format(name),
-                             tgt_name='segment_{0}.design_parameters:{1}'.format(i, name))
+            src_name = 'input_parameters:{0}_out'.format(name)
 
-            if options['targets']:
-                self.connect(src_name='design_parameters:{0}'.format(name),
-                             tgt_name=['ode.{0}'.format(tgt) for tgt in options['targets']],
-                             src_indices=np.zeros(num_points, dtype=int))
+            for tgts, src_idxs in self._get_parameter_connections(name):
+                self.connect(src_name, [t for t in tgts],
+                             src_indices=src_idxs, flat_src_indices=True)
 
-    def _setup_input_parameters(self, ivc):
-        gd = self.options['grid_data']
-        num_seg = gd.num_segments
-        num_points = sum([len(a) for a in list(self.t_eval_per_seg.values())])
+            # for i in range(num_seg):
+            #     self.connect(src_name='design_parameters:{0}'.format(name),
+            #                  tgt_name='segment_{0}.design_parameters:{1}'.format(i, name))
+            #
+            # if options['targets']:
+            #     self.connect(src_name='design_parameters:{0}'.format(name),
+            #                  tgt_name=['ode.{0}'.format(tgt) for tgt in options['targets']],
+            #                  src_indices=np.zeros(num_points, dtype=int))
 
-        if self.options['input_parameter_options']:
+    def _setup_input_parameters(self):
+
+        if self.input_parameter_options:
             passthru = \
-                InputParameterComp(input_parameter_options=self.options['input_parameter_options'])
+                InputParameterComp(input_parameter_options=self.input_parameter_options)
 
             self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
                                promotes_outputs=['*'])
 
-        for name, options in iteritems(self.options['input_parameter_options']):
+        for name, options in iteritems(self.input_parameter_options):
             # ivc.add_output('input_parameters:{0}'.format(name),
             #                val=np.ones((1,) + options['shape']),
             #                units=options['units'])
+            src_name = 'input_parameters:{0}_out'.format(name)
 
-            for i in range(num_seg):
-                self.connect(src_name='input_parameters:{0}_out'.format(name),
-                             tgt_name='segment_{0}.input_parameters:{1}'.format(i, name))
+            for tgts, src_idxs in self._get_parameter_connections(name):
+                self.connect(src_name, [t for t in tgts],
+                             src_indices=src_idxs, flat_src_indices=True)
 
-            if options['targets']:
-                self.connect(src_name='input_parameters:{0}_out'.format(name),
-                             tgt_name=['ode.{0}'.format(tgt) for tgt in options['targets']],
-                             src_indices=np.zeros(num_points, dtype=int))
+    def _setup_traj_parameters(self):
+
+        if self.traj_parameter_options:
+            passthru = \
+                InputParameterComp(
+                    input_parameter_options=self.traj_parameter_options,
+                    traj_params=True)
+
+            self.add_subsystem('traj_params', subsys=passthru, promotes_inputs=['*'],
+                               promotes_outputs=['*'])
+
+        for name, options in iteritems(self.traj_parameter_options):
+            # ivc.add_output('input_parameters:{0}'.format(name),
+            #                val=np.ones((1,) + options['shape']),
+            #                units=options['units'])
+            src_name = 'traj_parameters:{0}_out'.format(name)
+            for tgts, src_idxs in self._get_parameter_connections(name, traj_param=True):
+                self.connect(src_name, [t for t in tgts],
+                             src_indices=src_idxs, flat_src_indices=True)
+
+            # for i in range(num_seg):
+            #     self.connect(src_name='input_parameters:{0}_out'.format(name),
+            #                  tgt_name='segment_{0}.input_parameters:{1}'.format(i, name))
+            #
+            # if options['targets']:
+            #     self.connect(src_name='input_parameters:{0}_out'.format(name),
+            #                  tgt_name=['ode.{0}'.format(tgt) for tgt in options['targets']],
+            #                  src_indices=np.zeros(num_points, dtype=int))
     #
     # def _setup_input_parameters(self):
     #     """
     #     Adds a InputParameterComp to allow input parameters to be connected from sources
     #     external to the phase.
     #     """
-    #     if self.options['input_parameter_options']:
+    #     if self.input_parameter_options:
     #         passthru = \
-    #             InputParameterComp(input_parameter_options=self.options['input_parameter_options'])
+    #             InputParameterComp(input_parameter_options=self.input_parameter_options)
     #
     #         self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
     #                            promotes_outputs=['*'])
     #
-    #     for name, options in iteritems(self.options['input_parameter_options']):
+    #     for name, options in iteritems(self.input_parameter_options):
     #         src_name = 'input_parameters:{0}_out'.format(name)
     #
     #         for tgts, src_idxs in self._get_parameter_connections(options['target_param']):
     #             self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
+
+    def _get_parameter_connections(self, name, traj_param=False):
+        """
+        Returns a list containing tuples of each path and related indices to which the
+        given design variable name is to be connected.
+
+        Returns
+        -------
+        connection_info : list of (paths, indices)
+            A list containing a tuple of target paths and corresponding src_indices to which the
+            given design variable is to be connected.
+        """
+        connection_info = []
+
+        ode_options = self.options['ode_class'].ode_options
+        gd = self.options['grid_data']
+        num_seg = gd.num_segments
+        num_points = sum([len(a) for a in list(self.t_eval_per_seg.values())])
+
+        if name in ode_options._parameters:
+            shape = ode_options._parameters[name]['shape']
+            dynamic = ode_options._parameters[name]['dynamic']
+            targets = ode_options._parameters[name]['targets']
+
+            seg_tgts = []
+
+            for i in range(num_seg):
+                if traj_param:
+                    seg_tgt = 'segment_{0}.traj_parameters:{1}'.format(i, name)
+                else:
+                    seg_tgt = 'segment_{0}.input_parameters:{1}'.format(i, name)
+                seg_tgts.append(seg_tgt)
+            connection_info.append((seg_tgts, None))
+
+            ode_tgts = ['ode.{0}'.format(tgt) for tgt in targets]
+
+            if dynamic:
+                src_idxs_raw = np.zeros(num_points, dtype=int)
+                if shape == (1,):
+                    src_idxs = src_idxs_raw
+                else:
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = None
+
+            connection_info.append((ode_tgts, src_idxs))
+
+        return connection_info
 
     def _setup_segments(self):
         gd = self.options['grid_data']
@@ -275,12 +396,15 @@ class SimulationPhase(Group):
                                                grid_data=self.options['grid_data'],
                                                ode_class=self.options['ode_class'],
                                                ode_init_kwargs=self.options['ode_init_kwargs'],
-                                               time_options=self.options['time_options'],
-                                               state_options=self.options['state_options'],
-                                               control_options=self.options['control_options'],
-                                               design_parameter_options=self.options['design_parameter_options'],
-                                               input_parameter_options=self.options['input_parameter_options'],
                                                t_eval=self.t_eval_per_seg[i])
+
+            seg_i_comp.time_options.update(self.time_options)
+            seg_i_comp.state_options.update(self.state_options)
+            seg_i_comp.control_options.update(self.control_options)
+            seg_i_comp.design_parameter_options.update(self.design_parameter_options)
+            seg_i_comp.input_parameter_options.update(self.input_parameter_options)
+            seg_i_comp.traj_parameter_options.update(self.traj_parameter_options)
+
             segments_group.add_subsystem('segment_{0}'.format(i), subsys=seg_i_comp)
 
     def _setup_ode(self):
@@ -294,7 +418,7 @@ class SimulationPhase(Group):
     def _setup_timeseries_outputs(self):
 
         gd = self.options['grid_data']
-        time_units = self.options['time_options']['units']
+        time_units = self.time_options['units']
         num_points = sum([len(a) for a in list(self.t_eval_per_seg.values())])
         timeseries_comp = SimulationTimeseriesOutputComp(grid_data=gd, num_times=num_points)
         self.add_subsystem('timeseries', subsys=timeseries_comp)
@@ -309,7 +433,7 @@ class SimulationPhase(Group):
                                                units=time_units)
         self.connect(src_name='time_phase', tgt_name='timeseries.all_values:time_phase')
 
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in iteritems(self.state_options):
             timeseries_comp._add_timeseries_output('states:{0}'.format(name),
                                                    var_class='state',
                                                    units=options['units'],
@@ -317,7 +441,7 @@ class SimulationPhase(Group):
             self.connect(src_name='state_mux_comp.states:{0}'.format(name),
                          tgt_name='timeseries.all_values:states:{0}'.format(name))
 
-        for name, options in iteritems(self.options['control_options']):
+        for name, options in iteritems(self.control_options):
             control_units = options['units']
 
             # Control values
@@ -345,7 +469,7 @@ class SimulationPhase(Group):
             self.connect(src_name='interp_comp.control_rates:{0}_rate2'.format(name),
                          tgt_name='timeseries.all_values:control_rates:{0}_rate2'.format(name))
 
-        for name, options in iteritems(self.options['design_parameter_options']):
+        for name, options in iteritems(self.design_parameter_options):
             units = options['units']
             timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
                                                    var_class='design_parameter',
@@ -362,14 +486,14 @@ class SimulationPhase(Group):
                          tgt_name='timeseries.all_values:design_parameters:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
-        for name, options in iteritems(self.options['input_parameter_options']):
+        for name, options in iteritems(self.input_parameter_options):
             units = options['units']
-            target_param = options['target_param']
+            # target_param = options['target_param']
             timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
                                                    var_class='input_parameter',
                                                    units=units)
 
-            if self.options['ode_class'].ode_options._parameters[target_param]['dynamic']:
+            if self.options['ode_class'].ode_options._parameters[name]['dynamic']:
                 src_idxs_raw = np.zeros(num_points, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
             else:
@@ -405,18 +529,19 @@ class SimulationPhase(Group):
         self._setup_states(ivc)
         self._setup_controls(ivc)
         self._setup_design_parameters(ivc)
-        self._setup_input_parameters(ivc)
+        self._setup_input_parameters()
+        self._setup_traj_parameters()
         self._setup_segments()
 
         self.add_subsystem('state_mux_comp',
                            SimulationStateMuxComp(grid_data=self.options['grid_data'],
                                                   times_per_seg=self.t_eval_per_seg,
-                                                  state_options=self.options['state_options']))
+                                                  state_options=self.state_options))
 
-        if self.options['control_options']:
+        if self.control_options:
             self.add_subsystem('interp_comp',
-                               InterpComp(control_options=self.options['control_options'],
-                                          time_units=self.options['time_options']['units'],
+                               InterpComp(control_options=self.control_options,
+                                          time_units=self.time_options['units'],
                                           grid_data=self.options['grid_data'],
                                           t_eval_per_seg=self.t_eval_per_seg,
                                           t_initial=self.options['t_initial'],

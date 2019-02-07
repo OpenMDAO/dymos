@@ -341,13 +341,13 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
         for name, options in iteritems(self.input_parameter_options):
             units = options['units']
-            target_param = options['target_param']
+            target_param = options['target_params']
             timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
                                                    units=units)
 
-            if self.ode_options._parameters[target_param]['dynamic']:
+            if self.ode_options._parameters[name]['dynamic']:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
             else:

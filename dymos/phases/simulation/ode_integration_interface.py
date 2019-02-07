@@ -49,7 +49,7 @@ class ODEIntegrationInterface(object):
         Keyword argument dictionary passed to the ODE at initialization.
     """
     def __init__(self, phase_name, ode_class, time_options, state_options, control_options,
-                 design_parameter_options, input_parameter_options,
+                 design_parameter_options, input_parameter_options, traj_parameter_options,
                  ode_init_kwargs=None):
 
         self.phase_name = phase_name
@@ -61,6 +61,7 @@ class ODEIntegrationInterface(object):
         self.control_options = control_options
         self.design_parameter_options = design_parameter_options
         self.input_parameter_options = input_parameter_options
+        self.traj_parameter_options = traj_parameter_options
         self.control_interpolants = {}
 
         # Stored initial value of time so that time_phase can be calculated
@@ -154,17 +155,28 @@ class ODEIntegrationInterface(object):
             ivc.add_output('design_parameters:{0}'.format(name),
                            shape=np.prod(options['shape']),
                            units=options['units'])
-            if options['targets'] is not None:
+            targets = ode_class.ode_options._parameters[name]['targets']
+            if targets is not None:
                 model.connect('design_parameters:{0}'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in options['targets']])
+                              ['ode.{0}'.format(tgt) for tgt in targets])
 
         for name, options in iteritems(self.input_parameter_options):
             ivc.add_output('input_parameters:{0}'.format(name),
                            shape=options['shape'],
                            units=options['units'])
-            if options['targets'] is not None:
+            targets = ode_class.ode_options._parameters[name]['targets']
+            if targets is not None:
                 model.connect('input_parameters:{0}'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in options['targets']])
+                              ['ode.{0}'.format(tgt) for tgt in targets])
+
+        for name, options in iteritems(self.traj_parameter_options):
+            ivc.add_output('traj_parameters:{0}'.format(name),
+                           shape=options['shape'],
+                           units=options['units'])
+            targets = ode_class.ode_options._parameters[name]['targets']
+            if targets is not None:
+                model.connect('traj_parameters:{0}'.format(name),
+                              ['ode.{0}'.format(tgt) for tgt in targets])
 
         # The ODE System
         model.add_subsystem('ode', subsys=ode_class(num_nodes=1, **ode_init_kwargs))

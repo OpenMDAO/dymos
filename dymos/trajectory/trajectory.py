@@ -2,7 +2,6 @@ from __future__ import print_function, division, absolute_import
 
 from collections import Sequence, OrderedDict
 import itertools
-import multiprocessing as mp
 from six import iteritems, string_types
 import warnings
 
@@ -14,16 +13,13 @@ except ImportError:
 import numpy as np
 
 from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Problem, SqliteRecorder
-from openmdao.utils.units import convert_units
-from openmdao.utils.mpi import MPI
 
 from ..utils.constants import INF_BOUND
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
 from ..phases.phase_base import PhaseBase
 from ..phases.components.input_parameter_comp import InputParameterComp
 from ..phases.options import DesignParameterOptionsDictionary, InputParameterOptionsDictionary
-from ..utils.simulation import simulate_phase_map_unpack
-from ..utils.simulation.trajectory_simulation_results import TrajectorySimulationResults
+from ..phases.simulation.simulation_trajectory import SimulationTrajectory
 
 
 class Trajectory(Group):
@@ -68,7 +64,7 @@ class Trajectory(Group):
         self._phase_add_kwargs[name] = kwargs
         return phase
 
-    def add_input_parameter(self, name, targets=None, val=0.0, units=0):
+    def add_input_parameter(self, name, target_params=None, val=0.0, units=0):
         """
         Add a design parameter (static control) to the trajectory.
 
@@ -94,12 +90,12 @@ class Trajectory(Group):
         self.input_parameter_options[name] = InputParameterOptionsDictionary()
 
         self.input_parameter_options[name]['val'] = val
-        self.input_parameter_options[name]['targets'] = targets
+        self.input_parameter_options[name]['target_params'] = target_params
 
         if units != 0:
             self.input_parameter_options[name]['units'] = units
 
-    def add_design_parameter(self, name, targets=None, val=0.0, units=0, opt=True,
+    def add_design_parameter(self, name, target_params=None, val=0.0, units=0, opt=True,
                              lower=None, upper=None, scaler=None, adder=None,
                              ref=None, ref0=None):
         """
@@ -111,7 +107,7 @@ class Trajectory(Group):
             Name of the design parameter.
         val : float or ndarray
             Default value of the design parameter at all nodes.
-        targets : dict or None
+        target_params : dict or None
             If None, then the design parameter will be connected to the controllable parameter
             in the ODE of each phase.  For each phase where no such controllable parameter exists,
             a warning will be issued.  If targets is given as a dict, the dict should provide
@@ -167,7 +163,7 @@ class Trajectory(Group):
 
         self.design_parameter_options[name]['val'] = val
         self.design_parameter_options[name]['opt'] = opt
-        self.design_parameter_options[name]['targets'] = targets
+        self.design_parameter_options[name]['target_params'] = target_params
         self.design_parameter_options[name]['lower'] = lower
         self.design_parameter_options[name]['upper'] = upper
         self.design_parameter_options[name]['scaler'] = scaler
@@ -194,15 +190,16 @@ class Trajectory(Group):
             # Connect the input parameter to its target in each phase
             src_name = 'input_parameters:{0}_out'.format(name)
 
-            target_params = options['targets']
+            target_params = options['target_params']
             for phase_name, phs in iteritems(self._phases):
                 tgt_param_name = target_params.get(phase_name, None) \
                     if isinstance(target_params, dict) else name
                 if tgt_param_name:
-                    phs.add_input_parameter(tgt_param_name, val=options['val'],
-                                            units=options['units'], alias=name)
-                    self.connect(src_name,
-                                 '{0}.input_parameters:{1}'.format(phase_name, name))
+                    if tgt_param_name not in phs.traj_parameter_options:
+                        phs._add_traj_parameter(tgt_param_name, val=options['val'],
+                                                units=options['units'])
+                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
+                    self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_design_parameters(self):
         """
@@ -234,15 +231,16 @@ class Trajectory(Group):
             # Connect the design parameter to its target in each phase
             src_name = 'design_parameters:{0}'.format(name)
 
-            target_params = options['targets']
+            target_params = options['target_params']
             for phase_name, phs in iteritems(self._phases):
                 tgt_param_name = target_params.get(phase_name, None) \
                     if isinstance(target_params, dict) else name
                 if tgt_param_name:
-                    phs.add_input_parameter(tgt_param_name, val=options['val'],
-                                            units=options['units'])
-                    self.connect(src_name,
-                                 '{0}.input_parameters:{1}'.format(phase_name, tgt_param_name))
+                    if tgt_param_name not in phs.traj_parameter_options:
+                        phs._add_traj_parameter(tgt_param_name, val=options['val'],
+                                                units=options['units'])
+                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
+                    self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_linkages(self):
         link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
@@ -473,10 +471,10 @@ class Trajectory(Group):
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
         """
-        from ..phases.simulation.simulation_trajectory import SimulationTrajectory
-        sim_traj = SimulationTrajectory(phases=self._phases, times=times, time_units=time_units,
-                                        design_parameter_options=self.design_parameter_options,
-                                        input_parameter_options=self.input_parameter_options)
+        sim_traj = SimulationTrajectory(phases=self._phases, times=times, time_units=time_units)
+
+        sim_traj.design_parameter_options.update(self.design_parameter_options)
+        sim_traj.input_parameter_options.update(self.input_parameter_options)
 
         sim_prob = Problem(model=Group())
 
@@ -493,17 +491,23 @@ class Trajectory(Group):
         traj_op_dict = dict([(name, opts) for (name, opts) in self.list_outputs(units=True,
                                                                                 out_stream=None)])
 
+        # Assign trajectory design parameter values
+        for name, options in iteritems(self.design_parameter_options):
+            op = traj_op_dict['{0}.design_params.design_parameters:{1}'.format(self.pathname, name)]
+            var_name = '{0}.design_parameters:{1}'.format(self.name, name)
+            sim_prob[var_name] = op['value'][0, ...]
+
+        # Assign trajectory input parameter values
+        for name, options in iteritems(self.input_parameter_options):
+                op = traj_op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.pathname, name)]
+                var_name = '{0}.input_parameters:{1}'.format(self.name, name)
+                sim_prob[var_name] = op['value'][0, ...]
+
         for phase_name, phs in iteritems(self._phases):
 
             op_dict = dict([(name, opts) for (name, opts) in phs.list_outputs(units=True,
                                                                               out_stream=None)])
 
-            phs_prom2abs = phs._var_allprocs_prom2abs_list
-            print(list(op_dict.keys()))
-            print(list(traj_op_dict.keys()))
-            print(self.pathname)
-            print(phs.pathname)
-            print()
             # Assign initial state values
             for name, options in iteritems(phs.state_options):
                 op = op_dict['{0}.timeseries.states:{1}'.format(phs.pathname, name)]
@@ -528,107 +532,11 @@ class Trajectory(Group):
                 var_name = '{0}.{1}.input_parameters:{2}'.format(self.name, phase_name, name)
                 sim_prob[var_name] = op['value'][0, ...]
 
-            # Assign trajectory design parameter values
-            for name, options in iteritems(self.design_parameter_options):
-                op = traj_op_dict['{0}.design_params.design_parameters:{1}'.format(self.pathname, name)]
-                var_name = '{0}.{1}.input_parameters:{2}'.format(self.name, phase_name, name)
-                sim_prob[var_name] = op['value'][0, ...]
+        print('\nSimulating trajectory {0}'.format(self.pathname))
+        sim_prob.run_model()
+        print('Done simulating phase {0}'.format(self.pathname))
 
-            # Assign trajectory input parameter values
-            for name, options in iteritems(self.input_parameter_options):
-                op = traj_op_dict['{0}.input_params.input_parameters:{1}_out'.format(phs.pathname, name)]
-                var_name = '{0}.{1}.input_parameters:{2}'.format(self.name, phase_name, name)
-                sim_prob[var_name] = op['value'][0, ...]
-
-            print('\nSimulating phase {0}'.format(self.pathname))
-            sim_prob.run_model()
-            print('Done simulating phase {0}'.format(self.pathname))
-
-    # def simulate(self, times='all', num_procs=None, record=True, record_file=None):
-    #     """
-    #     Simulate all phases in the trajectory using the scipy odeint interface.  If the trajectory
-    #     has multiple phases, they can be simulated in parallel.
-    #
-    #     Parameters
-    #     ----------
-    #     times : str, int, ndarray, dict of {str: str}, dict of {str: int}, dict of {str: ndarray}.
-    #         The times at which outputs are desired, given as a node subset, an integer number of
-    #         times evenly distributed throughout the phase, or an ndarray of time values.  If more
-    #         control is desired, times can be passed as a dict keyed by phase name and the associated
-    #         value being one of the three options above.
-    #     num_procs : int, None
-    #         The number of processors that should be used to simulate the phases in the trajectory.
-    #         If None, then the number is obtained from the multiprocessing.cpu_count function.
-    #     record : bool
-    #         If True, record the resulting phase simulations to file.
-    #
-    #     Returns
-    #     -------
-    #     dict of {str: PhaseSimulationResults}
-    #         A dictionary, keyed by phase name, containing the PhaseSimulationResults object
-    #         from each phase simulation.
-    #
-    #     """
-    #
-    #     if isinstance(times, dict):
-    #         times_dict = times
-    #     else:
-    #         times_dict = {}
-    #         for phase_name in self._phases:
-    #             times_dict[phase_name] = times
-    #
-    #     data = []
-    #
-    #     for phase_name, phase in iteritems(self._phases):
-    #         ode_class = phase.options['ode_class']
-    #         ode_init_kwargs = phase.options['ode_init_kwargs']
-    #         time_values = phase.get_values('time')
-    #         state_values = {}
-    #         control_values = {}
-    #         design_parameter_values = {}
-    #         input_parameter_values = {}
-    #         for state_name, options in iteritems(phase.state_options):
-    #             state_values[state_name] = phase.get_values(state_name)
-    #         for control_name, options in iteritems(phase.control_options):
-    #             control_values[control_name] = phase.get_values(control_name, nodes='control_disc')
-    #         for dp_name, options in iteritems(phase.design_parameter_options):
-    #             design_parameter_values[dp_name] = phase.get_values(dp_name, nodes='all')
-    #         for ip_name, options in iteritems(phase.input_parameter_options):
-    #             input_parameter_values[ip_name] = phase.get_values(ip_name, nodes='all')
-    #
-    #         data.append((phase_name, ode_class, phase.time_options, phase.state_options,
-    #                      phase.control_options, phase.design_parameter_options,
-    #                      phase.input_parameter_options, time_values,
-    #                      state_values, control_values, design_parameter_values,
-    #                      input_parameter_values, ode_init_kwargs,
-    #                      phase.grid_data, times_dict[phase_name], False, None))
-    #
-    #     num_procs = mp.cpu_count() if num_procs is None else num_procs
-    #
-    #     pool = mp.Pool(processes=num_procs)
-    #
-    #     exp_outs = pool.map(simulate_phase_map_unpack, data)
-    #
-    #     pool.close()
-    #     pool.join()
-    #
-    #     exp_outs_map = {}
-    #     for i, phase_name in enumerate(self._phases.keys()):
-    #         exp_outs_map[phase_name] = exp_outs[i]
-    #
-    #     results = TrajectorySimulationResults(exp_outs=exp_outs_map)
-    #
-    #     if record:
-    #         if record_file is None:
-    #             traj_name = self.pathname.split('.')[-1]
-    #             if not traj_name:
-    #                 traj_name = 'traj'
-    #             record_file = '{0}_sim.db'.format(traj_name)
-    #         print('Recording Results to {0}...'.format(record_file), end='')
-    #         results.record_results(self, exp_outs_map, filename=record_file)
-    #         print('Done')
-    #
-    #     return results
+        return sim_prob
 
     def get_values(self, var, phases=None, nodes='all', units=None, flat=False):
         """

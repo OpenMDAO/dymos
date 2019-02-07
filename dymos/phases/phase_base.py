@@ -39,6 +39,7 @@ class PhaseBase(Group):
         self.control_options = {}
         self.design_parameter_options = {}
         self.input_parameter_options = {}
+        self.traj_parameter_options = {}
         self.time_options = TimeOptionsDictionary()
         self._initial_boundary_constraints = {}
         self._final_boundary_constraints = {}
@@ -356,7 +357,6 @@ class PhaseBase(Group):
         if name in self.ode_options._parameters:
             ode_param_info = self.ode_options._parameters[name]
             self.design_parameter_options[name]['units'] = ode_param_info['units']
-            self.design_parameter_options[name]['targets'] = ode_param_info['targets']
             self.design_parameter_options[name]['shape'] = ode_param_info['shape']
             self.design_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
         else:
@@ -395,9 +395,9 @@ class PhaseBase(Group):
         if units != 0:
             self.design_parameter_options[name]['units'] = units
 
-    def add_input_parameter(self, name, val=0.0, units=0, alias=None):
+    def add_input_parameter(self, name, val=0.0, units=0):
         """
-        Add a design parameter (static control variable) to the phase.
+        Add an input parameter (static control variable) to the phase.
 
         Parameters
         ----------
@@ -408,10 +408,6 @@ class PhaseBase(Group):
         units : str or None or 0
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
-        alias : str or None
-            If provided, specifies the alternative name by which this input parameter is to be
-            referenced.
-
         """
 
         if name in self.control_options:
@@ -420,32 +416,66 @@ class PhaseBase(Group):
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
         if name in self.input_parameter_options:
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
-        if alias in self.control_options:
-            raise ValueError('{0} has already been added as a control.'.format(name))
-        if alias in self.design_parameter_options:
-            raise ValueError('{0} has already been added as a design parameter.'.format(name))
-        if alias in self.input_parameter_options:
-            raise ValueError('{0} has already been added as an input parameter.'.format(name))
+        if name in self.traj_parameter_options:
+            raise ValueError('{0} has already been added as a trajectory input '
+                             'parameter.'.format(name))
 
-        ip_name = name if alias is None else alias
-
-        self.input_parameter_options[ip_name] = InputParameterOptionsDictionary()
+        self.input_parameter_options[name] = InputParameterOptionsDictionary()
 
         if name in self.ode_options._parameters:
             ode_param_info = self.ode_options._parameters[name]
-            self.input_parameter_options[ip_name]['units'] = ode_param_info['units']
-            self.input_parameter_options[ip_name]['targets'] = ode_param_info['targets']
-            self.input_parameter_options[ip_name]['shape'] = ode_param_info['shape']
-            self.input_parameter_options[ip_name]['dynamic'] = ode_param_info['dynamic']
+            self.input_parameter_options[name]['units'] = ode_param_info['units']
+            self.input_parameter_options[name]['shape'] = ode_param_info['shape']
+            self.input_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
         else:
             err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
             raise ValueError(err_msg)
 
-        self.input_parameter_options[ip_name]['val'] = val
-        self.input_parameter_options[ip_name]['target_param'] = name
+        self.input_parameter_options[name]['val'] = val
 
         if units != 0:
-            self.input_parameter_options[ip_name]['units'] = units
+            self.input_parameter_options[name]['units'] = units
+
+    def _add_traj_parameter(self, name, val=0.0, units=0):
+        """
+        Add an input parameter to the phase that is connected to an input or design parameter
+        in the parent trajectory.
+
+        Parameters
+        ----------
+        name : str
+            Name of the ODE parameter to be controlled via this input parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.        """
+
+        if name in self.control_options:
+            raise ValueError('{0} has already been added as a control.'.format(name))
+        if name in self.design_parameter_options:
+            raise ValueError('{0} has already been added as a design parameter.'.format(name))
+        if name in self.input_parameter_options:
+            raise ValueError('{0} has already been added as an input parameter.'.format(name))
+        if name in self.traj_parameter_options:
+            raise ValueError('{0} has already been added as a trajectory input '
+                             'parameter.'.format(name))
+
+        self.traj_parameter_options[name] = InputParameterOptionsDictionary()
+
+        if name in self.ode_options._parameters:
+            ode_param_info = self.ode_options._parameters[name]
+            self.traj_parameter_options[name]['units'] = ode_param_info['units']
+            self.traj_parameter_options[name]['shape'] = ode_param_info['shape']
+            self.traj_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
+        else:
+            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
+            raise ValueError(err_msg)
+
+        self.traj_parameter_options[name]['val'] = val
+
+        if units != 0:
+            self.traj_parameter_options[name]['units'] = units
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None, lower=None,
                                 upper=None, equals=None, scaler=None, adder=None,
@@ -917,6 +947,9 @@ class PhaseBase(Group):
         if self.design_parameter_options:
             self._setup_design_parameters()
 
+        if self.traj_parameter_options:
+            self._setup_traj_input_parameters()
+
         self._setup_rhs()
         self._setup_defects()
         self._setup_states()
@@ -1095,7 +1128,26 @@ class PhaseBase(Group):
         for name, options in iteritems(self.input_parameter_options):
             src_name = 'input_parameters:{0}_out'.format(name)
 
-            for tgts, src_idxs in self._get_parameter_connections(options['target_param']):
+            for tgts, src_idxs in self._get_parameter_connections(name):
+                self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
+
+    def _setup_traj_input_parameters(self):
+        """
+        Adds a InputParameterComp to allow input parameters to be connected from sources
+        external to the phase.
+        """
+        if self.traj_parameter_options:
+            passthru = \
+                InputParameterComp(input_parameter_options=self.traj_parameter_options,
+                                   traj_params=True)
+
+            self.add_subsystem('traj_params', subsys=passthru, promotes_inputs=['*'],
+                               promotes_outputs=['*'])
+
+        for name, options in iteritems(self.traj_parameter_options):
+            src_name = 'traj_parameters:{0}_out'.format(name)
+
+            for tgts, src_idxs in self._get_parameter_connections(name):
                 self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
 
     def _get_parameter_connections(self, name):
@@ -1369,17 +1421,19 @@ class PhaseBase(Group):
         time = op_dict['{0}.time.time'.format(self.pathname)]['value']
 
         sim_phase = SimulationPhase(grid_data=self.grid_data,
-                                    time_options=self.time_options,
-                                    state_options=self.state_options,
-                                    control_options=self.control_options,
-                                    design_parameter_options=self.design_parameter_options,
-                                    input_parameter_options=self.input_parameter_options,
                                     ode_class=self.options['ode_class'],
                                     ode_init_kwargs=self.options['ode_init_kwargs'],
                                     times=times,
                                     t_initial=time[0],
                                     t_duration=time[-1]-time[0],
                                     timeseries_outputs=self._timeseries_outputs)
+
+        sim_phase.time_options.update(self.time_options)
+        sim_phase.state_options.update(self.state_options)
+        sim_phase.control_options.update(self.control_options)
+        sim_phase.design_parameter_options.update(self.design_parameter_options)
+        sim_phase.input_parameter_options.update(self.input_parameter_options)
+        sim_phase.traj_parameter_options.update(self.traj_parameter_options)
 
         return sim_phase
 

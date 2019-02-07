@@ -8,13 +8,6 @@ from six import iteritems
 
 from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver
 
-from ...utils.indexing import get_src_indices_by_row
-from ...utils.misc import get_rate_units
-from .segment_simulation_comp import SegmentSimulationComp
-from .simulation_state_mux_comp import SimulationStateMuxComp
-from .interp_comp import InterpComp
-from .simulation_timeseries_comp import SimulationTimeseriesOutputComp
-
 
 class SimulationTrajectory(Group):
     """
@@ -26,11 +19,16 @@ class SimulationTrajectory(Group):
     compute derivatives across the model and should only be used via run_model to verify the
     accuracy of solutions achieved via the other Phase classes.
     """
+    def __init__(self, phases, **kwargs):
+        super(SimulationTrajectory, self).__init__(**kwargs)
+
+        # Phases cannot be pickled, so we won't declare them as options.
+        self._phases = phases
+
+        self.design_parameter_options = {}
+        self.input_parameter_options = {}
+
     def initialize(self):
-        self.options.declare('phases', types=dict,
-                             desc='A dictionary of the Phases contained within the Trajectory')
-        self.options.declare('design_parameter_options', types=dict)
-        self.options.declare('input_parameter_options', types=dict)
         self.options.declare('times', types=(Sequence, np.ndarray, int, str),
                              desc='number of times to include in timeseries output or values of'
                                   'time for timeseries output')
@@ -42,7 +40,7 @@ class SimulationTrajectory(Group):
     #     num_seg = gd.num_segments
     #     num_points = sum([len(a) for a in list(self.t_eval_per_seg.values())])
     #
-    #     for name, options in iteritems(self.options['design_parameter_options']):
+    #     for name, options in iteritems(self.design_parameter_options):
     #         ivc.add_output('design_parameters:{0}'.format(name),
     #                        val=np.ones((1,) + options['shape']),
     #                        units=options['units'])
@@ -61,7 +59,7 @@ class SimulationTrajectory(Group):
     #     num_seg = gd.num_segments
     #     num_points = sum([len(a) for a in list(self.t_eval_per_seg.values())])
     #
-    #     for name, options in iteritems(self.options['input_parameter_options']):
+    #     for name, options in iteritems(self.input_parameter_options):
     #         ivc.add_output('input_parameters:{0}'.format(name),
     #                        val=np.ones((1,) + options['shape']),
     #                        units=options['units'])
@@ -80,7 +78,7 @@ class SimulationTrajectory(Group):
         Adds an IndepVarComp if necessary and issues appropriate connections based
         on transcription.
         """
-        for name, options in iteritems(self.options['input_parameter_options']):
+        for name, options in iteritems(self.input_parameter_options):
             ivc.add_output(name='input_parameters:{0}'.format(name),
                            val=options['val'],
                            shape=(1, np.prod(options['shape'])),
@@ -89,23 +87,25 @@ class SimulationTrajectory(Group):
             # Connect the input parameter to its target in each phase
             src_name = 'input_parameters:{0}'.format(name)
 
-            target_params = options['targets']
+            target_params = options['target_params']
             for phase_name, phs in iteritems(self._sim_phases):
                 tgt_param_name = target_params.get(phase_name, None) \
                     if isinstance(target_params, dict) else name
                 if tgt_param_name:
-                    phs.add_input_parameter(tgt_param_name, val=options['val'],
-                                            units=options['units'], alias=name)
-                    self.connect(src_name,
-                                 '{0}.input_parameters:{1}'.format(phase_name, name))
-
+                    # phs.add_input_parameter(tgt_param_name, val=options['val'],
+                    #                         units=options['units'], alias=tgt_param_name)
+                    if tgt_param_name not in phs.traj_parameter_options:
+                        phs._add_traj_parameter(tgt_param_name, val=options['val'],
+                                                units=options['units'])
+                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
+                    self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_design_parameters(self, ivc):
         """
         Adds an IndepVarComp if necessary and issues appropriate connections based
         on transcription.
         """
-        for name, options in iteritems(self.options['design_parameter_options']):
+        for name, options in iteritems(self.design_parameter_options):
             ivc.add_output(name='design_parameters:{0}'.format(name),
                            val=options['val'],
                            shape=(1, np.prod(options['shape'])),
@@ -114,16 +114,19 @@ class SimulationTrajectory(Group):
             # Connect the design parameter to its target in each phase
             src_name = 'design_parameters:{0}'.format(name)
 
-            target_params = options['targets']
+            target_params = options['target_params']
             for phase_name, phs in iteritems(self._sim_phases):
-                tgt_param_name = target_params.get(phase_name, None) \
-                    if isinstance(target_params, dict) else name
-                if tgt_param_name:
-                    phs.add_input_parameter(tgt_param_name, val=options['val'],
-                                            units=options['units'])
-                    self.connect(src_name,
-                                 '{0}.input_parameters:{1}'.format(phase_name, tgt_param_name))
+                if isinstance(target_params, dict):
+                    tgt_param_name = target_params.get(phase_name, None)
+                else:
+                    tgt_param_name = name
 
+                if tgt_param_name:
+                    if tgt_param_name not in phs.traj_parameter_options:
+                        phs._add_traj_parameter(tgt_param_name, val=options['val'],
+                                                units=options['units'])
+                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
+                    self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_phases(self, times_dict):
         phases_group = self.add_subsystem('phases',
@@ -131,7 +134,7 @@ class SimulationTrajectory(Group):
                                           promotes_inputs=['*'],
                                           promotes_outputs=['*'])
 
-        for name, phs in iteritems(self.options['phases']):
+        for name, phs in iteritems(self._phases):
             self._sim_phases[name] = phs._init_simulation_phase(times_dict[name])
             # DirectSolvers were moved down into the phases for use with MPI
             self._sim_phases[name].linear_solver = DirectSolver()
@@ -141,9 +144,11 @@ class SimulationTrajectory(Group):
 
         self._sim_phases = {}
 
+        ivc = self.add_subsystem(name='ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+
         # Get a dictionary that maps times to each phase name
         times = self.options['times']
-        phases = self.options['phases']
+        phases = self._phases
         if isinstance(times, dict):
             times_dict = times
         else:
@@ -167,8 +172,6 @@ class SimulationTrajectory(Group):
                     times_dict[name] = times[np.where(times >= t_initial and times <= t_final)[0]]
 
         self._setup_phases(times_dict)
-
-        ivc = self.add_subsystem(name='ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
 
         self._setup_design_parameters(ivc)
 

@@ -128,10 +128,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
         indep_controls = ['indep_controls'] if num_opt_controls > 0 else []
         design_params = ['design_params'] if self.design_parameter_options else []
         input_params = ['input_params'] if self.input_parameter_options else []
+        traj_params = ['traj_params'] if self.traj_parameter_options else []
         control_interp_comp = ['control_interp_comp'] if num_controls > 0 else []
 
         order = self._time_extents + indep_controls + \
-            input_params + design_params + \
+            input_params + design_params + traj_params + \
             ['indep_states', 'time'] + control_interp_comp + \
             ['indep_jumps', 'initial_conditions', 'final_conditions']
 
