@@ -18,10 +18,10 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
                 os.remove(filename)
 
     def test_ex_aircraft_steady_flight(self):
-        p = ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps')
+        p = ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto')
         phase = p.model.phase0
 
-        assert_rel_error(self, phase.get_values('range', units='NM')[-1], 726.7, tolerance=1.0E-2)
+        assert_rel_error(self, phase.get_values('range', units='NM')[-1], 726.85, tolerance=1.0E-2)
 
 
 if __name__ == '__main__':

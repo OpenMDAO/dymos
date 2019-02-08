@@ -6,7 +6,7 @@ import numpy as np
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos.models.atmosphere import StandardAtmosphereGroup
+from dymos.models.atmosphere.atmos_1976 import USatm1976Comp
 
 assert_almost_equal = np.testing.assert_almost_equal
 
@@ -51,24 +51,31 @@ class TestAtmosphere(unittest.TestCase):
         ivc = p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
         ivc.add_output(name='alt_m', val=reference[:, 0], units='m')
 
-        p.model.add_subsystem('atmos', subsys=StandardAtmosphereGroup(num_nodes=n))
+        p.model.add_subsystem('atmos', subsys=USatm1976Comp(num_nodes=n))
         p.model.connect('alt_m', 'atmos.h')
 
         p.setup()
         p.run_model()
 
         var_map = ['alt_m', 'atmos.temp', 'atmos.pres', 'atmos.rho', 'atmos.sos']
+        var_unit_map = ['m', 'K', 'Pa', 'kg/m**3', 'm/s']
 
         for i in range(1, 5):
             if SHOW_PLOTS:
-                plt.plot(p['alt_m'], p[var_map[i]])
+                # print('i', i, var_map[i], var_unit_map[i])
+                plt.plot(p['alt_m'], p.get_val(var_map[i], units=var_unit_map[i]))
+                plt.title(var_map[i])
                 plt.plot(reference[:, 0], reference[:, i], 'ro')
                 plt.show()
 
-        assert_rel_error(self, p['atmos.temp'], reference[:, 1], tolerance=1.0E-2)
-        assert_rel_error(self, p['atmos.pres'], reference[:, 2], tolerance=1.0E-2)
-        assert_rel_error(self, p['atmos.rho'], reference[:, 3], tolerance=1.0E-2)
-        assert_rel_error(self, p['atmos.sos'], reference[:, 4], tolerance=1.0E-2)
+        assert_rel_error(self, p.get_val('atmos.temp', units='K'),
+                         reference[:, 1], tolerance=1.0E-2)
+        assert_rel_error(self, p.get_val('atmos.pres', units='Pa'),
+                         reference[:, 2], tolerance=1.0E-2)
+        assert_rel_error(self, p.get_val('atmos.rho', units='kg/m**3'),
+                         reference[:, 3], tolerance=1.0E-2)
+        assert_rel_error(self, p.get_val('atmos.sos', units='m/s'),
+                         reference[:, 4], tolerance=1.0E-2)
 
 if __name__ == "__main__":
     unittest.main()

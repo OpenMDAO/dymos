@@ -31,7 +31,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.options['dynamic_simul_derivs'] = True
-
+        # p.driver.opt_settings['MAXIT'] = 20
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
 
@@ -39,7 +39,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
                       ode_class=AircraftODE,
                       num_segments=num_seg,
                       segment_ends=seg_ends,
-                      transcription_order=5,
+                      transcription_order=3,
                       compressed=False)
 
         # Pass design parameters in externally from an external source
@@ -66,21 +66,21 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
                                 upper=60, lower=0)
 
         phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
-                          ref0=-3000, ref=3000)
+                          ref0=-3000, ref=3000, rate_continuity=True)
 
         phase.add_input_parameter('mach', units=None)
         phase.add_input_parameter('S', units='m**2')
         phase.add_input_parameter('mass_empty', units='kg')
         phase.add_input_parameter('mass_payload', units='kg')
 
-        phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
+        phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0)
 
         p.model.connect('assumptions.mach', 'phase0.input_parameters:mach')
         p.model.connect('assumptions.S', 'phase0.input_parameters:S')
         p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
         p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
 
-        phase.add_objective('range', loc='final', ref=-1.0)
+        phase.add_objective('range', loc='final', ref=-0.1)
 
         p.model.linear_solver = DirectSolver(assemble_jac=True)
 
