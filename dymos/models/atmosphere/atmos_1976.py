@@ -44,7 +44,7 @@ USatm1976Data.T = np.array([522.236, 518.67, 515.104, 511.538, 507.972, 504.405,
 # units='psi'
 USatm1976Data.P = np.array([15.2348, 14.6959, 14.1726, 13.6644, 13.1711, 12.6923, 12.2277, 11.777,
                             11.3398, 10.9159, 10.5049, 10.1065, 9.7204, 9.34636, 8.98405, 8.63321,
-                            8.29354, 7.96478, 7.64665, 7.33889, 7.4123, 6.75343, 6.47523, 6.20638,
+                            8.29354, 7.96478, 7.64665, 7.33889, 7.04123, 6.75343, 6.47523, 6.20638,
                             5.94664, 5.69578, 5.45355, 5.21974, 4.9941, 4.77644, 4.56651, 4.36413,
                             4.16906, 3.98112, 3.8001, 3.6258, 3.45803, 3.29661, 3.14191, 2.99447,
                             2.85395, 2.72003, 2.59239, 2.47073, 2.35479, 2.24429, 2.13897, 2.0386,
@@ -156,7 +156,8 @@ class USatm1976Comp(ExplicitComponent):
 
         arange = np.arange(nn)
         self.declare_partials(['temp', 'pres', 'rho', 'viscosity', 'drhos_dh', 'sos'], 'h',
-                              rows=arange, cols=arange, val=1.0)
+                              rows=arange, cols=arange)
+        # self.declare_partials(of='*', wrt='*', method='fd')
 
     def compute(self, inputs, outputs):
 
@@ -178,4 +179,4 @@ class USatm1976Comp(ExplicitComponent):
         partials['drhos_dh', 'h'] = drho_dh_interp_deriv(H, extrapolate=True).reshape(nn,)[0]
 
         T = T_interp(H, extrapolate=True)
-        partials['sos', 'h'] = 0.5/np.sqrt(self._K*T)*partials['temp', 'h']
+        partials['sos', 'h'] = 0.5/np.sqrt(self._K*T)*partials['temp', 'h']*self._K

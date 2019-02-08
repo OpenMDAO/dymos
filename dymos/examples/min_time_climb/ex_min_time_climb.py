@@ -36,7 +36,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase = Phase(transcription,
                   ode_class=MinTimeClimbODE,
                   num_segments=num_seg,
-                  compressed=True,
+                  compressed=False,
                   transcription_order=transcription_order)
 
     p.model.add_subsystem('phase0', phase)
@@ -76,7 +76,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.add_path_constraint(name='alpha', lower=-8, upper=8)
 
     # Minimize time at the end of the phase
-    phase.add_objective('time', loc='final', ref=0.1)
+    phase.add_objective('time', loc='final', ref=10.0)
 
     p.model.linear_solver = DirectSolver()
 
