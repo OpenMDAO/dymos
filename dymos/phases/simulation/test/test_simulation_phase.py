@@ -103,17 +103,18 @@ class TestSimulationPhase(unittest.TestCase):
         sim_prob = Problem(model=Group())
 
         sim_phase = SimulationPhase(grid_data=phase.grid_data,
-                                    time_options=phase.time_options,
-                                    state_options=phase.state_options,
-                                    control_options=phase.control_options,
-                                    design_parameter_options=phase.design_parameter_options,
-                                    input_parameter_options=phase.input_parameter_options,
                                     ode_class=phase.options['ode_class'],
                                     ode_init_kwargs=phase.options['ode_init_kwargs'],
                                     times=np.linspace(0, 1.8, 1000),
                                     t_initial=p.get_val('phase0.t_initial'),
                                     t_duration=p.get_val('phase0.t_duration'),
                                     timeseries_outputs=phase._timeseries_outputs)
+
+        sim_phase.time_options.update(phase.time_options)
+        sim_phase.state_options.update(phase.state_options)
+        sim_phase.control_options.update(phase.control_options)
+        sim_phase.design_parameter_options.update(phase.design_parameter_options)
+        sim_phase.input_parameter_options.update(phase.input_parameter_options)
 
         sim_prob.model.add_subsystem(phase.name, sim_phase)
         sim_prob.setup(check=True)
@@ -127,47 +128,41 @@ class TestSimulationPhase(unittest.TestCase):
 
         sim_prob.run_model()
 
-        # sim_prob.model.list_outputs(values=True, print_arrays=True)
+        # TODO: assert results with interpolation here
+
+        # import matplotlib.pyplot as plt
         #
-        # from openmdao.api import view_model
-        # view_model(sim_prob.model)
-
-        import matplotlib.pyplot as plt
-
-        print(sim_prob.get_val('phase0.timeseries.time').shape)
-        print(sim_prob.get_val('phase0.timeseries.controls:theta').shape)
-
-        plt.figure()
-
-        plt.plot(p.get_val('phase0.timeseries.time', units='s'),
-                 p.get_val('phase0.timeseries.controls:theta'),
-                 'ro')
-
-        plt.plot(sim_prob.get_val('phase0.timeseries.time', units='s'),
-                 sim_prob.get_val('phase0.timeseries.controls:theta'),
-                 'b-')
-
-        plt.figure()
-
-        plt.plot(p.get_val('phase0.timeseries.time', units='s'),
-                 p.get_val('phase0.timeseries.check'),
-                 'ro')
-
-        plt.plot(sim_prob.get_val('phase0.timeseries.time', units='s'),
-                 sim_prob.get_val('phase0.timeseries.check'),
-                 'b-')
-
-        plt.figure()
-
-        plt.plot(p.get_val('phase0.timeseries.states:x', units='m'),
-                 p.get_val('phase0.timeseries.states:y', units='m'),
-                 'ro')
-
-        plt.plot(sim_prob.get_val('phase0.timeseries.states:x', units='m'),
-                 sim_prob.get_val('phase0.timeseries.states:y', units='m'),
-                 'b-')
-
-        plt.show()
+        # plt.figure()
+        #
+        # plt.plot(p.get_val('phase0.timeseries.time', units='s'),
+        #          p.get_val('phase0.timeseries.controls:theta'),
+        #          'ro')
+        #
+        # plt.plot(sim_prob.get_val('phase0.timeseries.time', units='s'),
+        #          sim_prob.get_val('phase0.timeseries.controls:theta'),
+        #          'b-')
+        #
+        # plt.figure()
+        #
+        # plt.plot(p.get_val('phase0.timeseries.time', units='s'),
+        #          p.get_val('phase0.timeseries.check'),
+        #          'ro')
+        #
+        # plt.plot(sim_prob.get_val('phase0.timeseries.time', units='s'),
+        #          sim_prob.get_val('phase0.timeseries.check'),
+        #          'b-')
+        #
+        # plt.figure()
+        #
+        # plt.plot(p.get_val('phase0.timeseries.states:x', units='m'),
+        #          p.get_val('phase0.timeseries.states:y', units='m'),
+        #          'ro')
+        #
+        # plt.plot(sim_prob.get_val('phase0.timeseries.states:x', units='m'),
+        #          sim_prob.get_val('phase0.timeseries.states:y', units='m'),
+        #          'b-')
+        #
+        # plt.show()
 
 
 if __name__ == '__main__':

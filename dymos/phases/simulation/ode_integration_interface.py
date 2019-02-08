@@ -1,11 +1,10 @@
 from __future__ import print_function, division, absolute_import
 
-import sys
 from collections import OrderedDict
 
 import numpy as np
-from dymos.utils.simulation.components.control_interpolation_comp import ControlInterpolationComp
-from dymos.utils.simulation.components.state_rate_collector_comp import StateRateCollectorComp
+from dymos.phases.simulation.control_interpolation_comp import ControlInterpolationComp
+from dymos.phases.simulation.state_rate_collector_comp import StateRateCollectorComp
 from openmdao.core.group import Group
 from openmdao.core.indepvarcomp import IndepVarComp
 from openmdao.core.problem import Problem

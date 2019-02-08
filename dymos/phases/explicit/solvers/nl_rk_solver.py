@@ -14,7 +14,7 @@ from openmdao.recorders.recording_iteration_stack import Recording
 from openmdao.solvers.solver import NonlinearSolver
 from openmdao.utils.mpi import multi_proc_fail_check
 
-from dymos.utils.simulation.components.state_rate_collector_comp import StateRateCollectorComp
+from dymos.phases.simulation.state_rate_collector_comp import StateRateCollectorComp
 from dymos.utils.rk_methods import rk_methods
 from dymos.utils.misc import get_rate_units
 

@@ -14,7 +14,6 @@ from ..phase_base import PhaseBase
 from ...utils.constants import INF_BOUND
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.lagrange import lagrange_matrices
-from ...utils.simulation import simulate_phase
 from ...utils.indexing import get_src_indices_by_row
 
 

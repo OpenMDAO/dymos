@@ -21,7 +21,6 @@ from ..components import ExplicitTimeseriesOutputComp
 from ...utils.rk_methods import rk_methods
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.constants import INF_BOUND
-from ...utils.simulation import simulate_phase
 from ...utils.indexing import get_src_indices_by_row
 
 

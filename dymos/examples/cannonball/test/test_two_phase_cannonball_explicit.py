@@ -22,7 +22,7 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
             pyOptSparseDriver, NonlinearBlockGS
         from openmdao.utils.assert_utils import assert_rel_error
 
-        from dymos import Phase, Trajectory, load_simulation_results
+        from dymos import Phase, Trajectory
         from dymos.examples.cannonball.cannonball_ode import CannonballODE
 
         from dymos.examples.cannonball.size_comp import CannonballSizeComp

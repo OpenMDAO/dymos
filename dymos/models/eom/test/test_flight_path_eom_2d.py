@@ -89,16 +89,20 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         exp_out = phase.simulate(times='all')
 
-        assert_rel_error(self, exp_out.get_values('h', units='km')[-1], 0.0, tolerance=0.001)
-        assert_rel_error(self, exp_out.get_values('r')[-1], v0**2 / g, tolerance=0.001)
-        assert_rel_error(self, exp_out.get_values('gam')[-1], -gam0, tolerance=0.001)
-        assert_rel_error(self, exp_out.get_values('v')[-1], v0, tolerance=0.001)
+        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:h', units='km')[-1], 0.0,
+                         tolerance=0.001)
+        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:r')[-1], v0**2 / g,
+                         tolerance=0.001)
+        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:gam')[-1], -gam0,
+                         tolerance=0.001)
+        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:v')[-1], v0,
+                         tolerance=0.001)
 
     def test_cannonball_max_range(self):
         self.p.setup()
 
         v0 = 100.0
-        gam0 = np.radians(30.0)
+        gam0 = np.radians(45.0)
         g = 9.80665
         t_duration = 10.0
 
@@ -117,10 +121,12 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         exp_out = phase.simulate(times='all')
 
-        assert_rel_error(self, exp_out.get_values('h')[-1], 0.0, tolerance=0.001)
-        assert_rel_error(self, exp_out.get_values('r')[-1], v0**2 / g, tolerance=0.001)
-        assert_rel_error(self, exp_out.get_values('gam')[-1], -np.radians(45), tolerance=0.001)
-        assert_rel_error(self, exp_out.get_values('v')[-1], v0, tolerance=0.001)
+        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:r')[-1], v0**2 / g,
+                         tolerance=0.001)
+        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:gam')[-1], -np.radians(45),
+                         tolerance=0.001)
+        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:v')[-1], v0,
+                         tolerance=0.001)
 
     def test_partials(self):
         self.p.setup(force_alloc_complex=True)
