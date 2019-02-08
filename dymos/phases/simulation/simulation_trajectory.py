@@ -35,44 +35,6 @@ class SimulationTrajectory(Group):
         self.options.declare('time_units', types=(Sequence, np.ndarray, int, str),
                              desc='units of specified times, if numeric.')
 
-    # def _setup_design_parameters(self, ivc):
-    #     gd = self.options['grid_data']
-    #     num_seg = gd.num_segments
-    #     num_points = sum([len(a) for a in list(self.t_eval_per_seg.values())])
-    #
-    #     for name, options in iteritems(self.design_parameter_options):
-    #         ivc.add_output('design_parameters:{0}'.format(name),
-    #                        val=np.ones((1,) + options['shape']),
-    #                        units=options['units'])
-    #
-    #         for i in range(num_seg):
-    #             self.connect(src_name='design_parameters:{0}'.format(name),
-    #                          tgt_name='segment_{0}.design_parameters:{1}'.format(i, name))
-    #
-    #         if options['targets']:
-    #             self.connect(src_name='design_parameters:{0}'.format(name),
-    #                          tgt_name=['ode.{0}'.format(tgt) for tgt in options['targets']],
-    #                          src_indices=np.zeros(num_points, dtype=int))
-    #
-    # def _setup_input_parameters(self, ivc):
-    #     gd = self.options['grid_data']
-    #     num_seg = gd.num_segments
-    #     num_points = sum([len(a) for a in list(self.t_eval_per_seg.values())])
-    #
-    #     for name, options in iteritems(self.input_parameter_options):
-    #         ivc.add_output('input_parameters:{0}'.format(name),
-    #                        val=np.ones((1,) + options['shape']),
-    #                        units=options['units'])
-    #
-    #         for i in range(num_seg):
-    #             self.connect(src_name='input_parameters:{0}'.format(name),
-    #                          tgt_name='segment_{0}.input_parameters:{1}'.format(i, name))
-    #
-    #         if options['targets']:
-    #             self.connect(src_name='input_parameters:{0}'.format(name),
-    #                          tgt_name=['ode.{0}'.format(tgt) for tgt in options['targets']],
-    #                          src_indices=np.zeros(num_points, dtype=int))
-
     def _setup_input_parameters(self, ivc):
         """
         Adds an IndepVarComp if necessary and issues appropriate connections based

@@ -3,9 +3,7 @@ from __future__ import print_function, division, absolute_import
 from six import iteritems
 import numpy as np
 
-from openmdao.api import ExplicitComponent, OptionsDictionary
-
-from ...utils.misc import get_rate_units
+from openmdao.api import ExplicitComponent
 
 
 class SimulationStateMuxComp(ExplicitComponent):
