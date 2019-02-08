@@ -100,8 +100,7 @@ class TestAircraftCruise(unittest.TestCase):
         tas = p.get_val('phase0.timeseries.TAS', units='km/s')
         range = p.get_val('phase0.timeseries.states:range')
 
-        assert_rel_error(self, range, tas*time, tolerance=1.0E-9)
-
+        assert_rel_error(self, range, tas*time, tolerance=1.0E-4)
 
 if __name__ == '__main__':
     unittest.main()

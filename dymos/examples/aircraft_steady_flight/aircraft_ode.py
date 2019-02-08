@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 from openmdao.api import Group, DirectSolver, NewtonSolver, BoundsEnforceLS
 
 from dymos import declare_time, declare_state, declare_parameter
-from dymos.models.atmosphere import StandardAtmosphereGroup
+from dymos.models.atmosphere import USatm1976Comp
 
 from .steady_flight_path_angle_comp import SteadyFlightPathAngleComp
 from .dynamic_pressure_comp import DynamicPressureComp
@@ -41,7 +41,7 @@ class AircraftODE(Group):
         self.connect('mass_comp.W_total', 'flight_equilibrium.W_total')
 
         self.add_subsystem(name='atmos',
-                           subsys=StandardAtmosphereGroup(num_nodes=nn))
+                           subsys=USatm1976Comp(num_nodes=nn))
 
         self.connect('atmos.pres', 'propulsion.pres')
         self.connect('atmos.sos', 'tas_comp.sos')

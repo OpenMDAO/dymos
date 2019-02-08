@@ -140,10 +140,6 @@ class SimulationPhase(Group):
             times = np.unique(times_all[gd.subset_node_indices[self.options['times']]])
         else:
             times = self.options['times']
-            t_final = t_initial + t_duration
-            if np.any(times < t_initial - 1.0E-15) or np.any(times > t_final + 1.0E-15):
-                raise ValueError('simulation times contains one or more values outside of the '
-                                 'range [t_initial, t_initial + t_duration]')
 
         # Now we have the times, bin them into their segments
         times_seg_ends = np.concatenate((times_all[gd.subset_node_indices['segment_ends']][::2],
