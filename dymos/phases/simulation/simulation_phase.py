@@ -292,8 +292,7 @@ class SimulationPhase(Group):
 
         if self.traj_parameter_options:
             passthru = \
-                InputParameterComp(
-                    input_parameter_options=self.traj_parameter_options,
+                InputParameterComp(input_parameter_options=self.traj_parameter_options,
                     traj_params=True)
 
             self.add_subsystem('traj_params', subsys=passthru, promotes_inputs=['*'],
@@ -304,7 +303,7 @@ class SimulationPhase(Group):
             #                val=np.ones((1,) + options['shape']),
             #                units=options['units'])
             src_name = 'traj_parameters:{0}_out'.format(name)
-            for tgts, src_idxs in self._get_parameter_connections(name, traj_param=True):
+            for tgts, src_idxs in self._get_parameter_connections(name):
                 self.connect(src_name, [t for t in tgts],
                              src_indices=src_idxs, flat_src_indices=True)
 

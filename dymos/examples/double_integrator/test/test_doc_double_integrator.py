@@ -60,15 +60,15 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         fig, axes = plt.subplots(3, 1)
         fig.suptitle('Double Integrator Direct Collocation Solution')
 
-        t_imp = phase.get_values('time', nodes='all')
-        x_imp = phase.get_values('x', nodes='all')
-        v_imp = phase.get_values('v', nodes='all')
-        u_imp = phase.get_values('u', nodes='all')
-
-        t_exp = exp_out.get_values('time')
-        x_exp = exp_out.get_values('x')
-        v_exp = exp_out.get_values('v')
-        u_exp = exp_out.get_values('u')
+        t_imp = p.get_val('phase0.timeseries.time')
+        x_imp = p.get_val('phase0.timeseries.states:x')
+        v_imp = p.get_val('phase0.timeseries.states:v')
+        u_imp = p.get_val('phase0.timeseries.controls:u')
+        
+        t_exp = exp_out.get_val('phase0.timeseries.time')
+        x_exp = exp_out.get_val('phase0.timeseries.states:x')
+        v_exp = exp_out.get_val('phase0.timeseries.states:v')
+        u_exp = exp_out.get_val('phase0.timeseries.controls:u')
 
         axes[0].plot(t_imp, x_imp, 'ro', label='implicit')
         axes[0].plot(t_exp, x_exp, 'b-', label='explicit')

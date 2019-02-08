@@ -156,11 +156,11 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         print('cannonball mass: {0:6.4f} kg '.format(p.get_val('size_comp.mass',
                                                                units='kg')[0]))
         print('launch angle: {0:6.4f} '
-              'deg '.format(traj.get_values('gam', units='deg')['ascent'][0, 0]))
+              'deg '.format(p.get_val('traj.ascent.timeseries.states:gam',  units='deg')[0, 0]))
         print('maximum range: {0:6.4f} '
-              'm '.format(traj.get_values('r', units='m')['descent'][-1, 0]))
+              'm '.format(p.get_val('traj.descent.timeseries.states:r')[-1, 0]))
 
-        fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 6))
+        fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
 
         time_imp = {'ascent': p.get_val('traj.ascent.timeseries.time'),
                     'descent': p.get_val('traj.descent.timeseries.time')}
@@ -168,14 +168,30 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         time_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.time'),
                     'descent': exp_out.get_val('traj.descent.timeseries.time')}
 
-        # axes[0].plot(r_imp['ascent'], h_imp['ascent'], 'bo')
-        #
-        # axes[0].plot(r_imp['descent'], h_imp['descent'], 'ro')
-        #
-        # axes[0].plot(r_exp['ascent'], h_exp['ascent'], 'b--')
-        #
-        # axes[0].plot(r_exp['descent'], h_exp['descent'], 'r--')
+        r_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:r'),
+                 'descent': p.get_val('traj.descent.timeseries.states:r')}
 
+        r_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:r'),
+                 'descent': exp_out.get_val('traj.descent.timeseries.states:r')}
+
+        h_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:h'),
+                 'descent': p.get_val('traj.descent.timeseries.states:h')}
+
+        h_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:h'),
+                 'descent': exp_out.get_val('traj.descent.timeseries.states:h')}
+
+        axes.plot(r_imp['ascent'], h_imp['ascent'], 'bo')
+
+        axes.plot(r_imp['descent'], h_imp['descent'], 'ro')
+
+        axes.plot(r_exp['ascent'], h_exp['ascent'], 'b--')
+
+        axes.plot(r_exp['descent'], h_exp['descent'], 'r--')
+
+        axes.set_xlabel('range (m)')
+        axes.set_ylabel('altitude (m)')
+
+        fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 6))
         states = ['r', 'h', 'v', 'gam']
         for i, state in enumerate(states):
             x_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:{0}'.format(state)),
@@ -209,63 +225,5 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
             axes[i].plot(time_imp['descent'], p_imp['descent'], 'ro')
             axes[i].plot(time_exp['ascent'], p_exp['ascent'], 'b--')
             axes[i].plot(time_exp['descent'], p_exp['descent'], 'r--')
-
-        # axes[0].set_xlabel('range (m)')
-        # axes[0].set_ylabel('altitude (m)')
-        #
-        # p.model.traj.phases.ascent.timeseries.list_outputs(print_arrays=True)
-        # p.model.traj.phases.descent.timeseries.list_outputs(print_arrays=True)
-        # exp_out.model.traj.phases.ascent.timeseries.list_outputs(print_arrays=True)
-        # exp_out.model.traj.phases.descent.timeseries.list_outputs(print_arrays=True)
-
-        # plt.figure()
-        #
-        # m_imp = {'ascent': p.get_val('traj.ascent.timeseries.input_parameters:mass'),
-        #          'descent': p.get_val('traj.descent.timeseries.input_parameters:mass')}
-        #
-        # m_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.input_parameters:mass'),
-        #          'descent': exp_out.get_val('traj.descent.timeseries.input_parameters:mass')}
-        #
-        # plt.plot(time_imp['ascent'], m_imp['ascent'], 'ro')
-        # plt.plot(time_exp['descent'], m_exp['descent'], 'b--')
-
-        # plt.suptitle('Kinetic Energy vs Time')
-
-        axes[1].plot(traj.get_values('time')['ascent'],
-                     traj.get_values('kinetic_energy.ke')['ascent'],
-                     'bo')
-
-        axes[1].plot(traj.get_values('time')['descent'],
-                     traj.get_values('kinetic_energy.ke')['descent'],
-                     'ro')
-
-        axes[1].plot(exp_out.get_values('time')['ascent'],
-                     exp_out.get_values('kinetic_energy.ke')['ascent'],
-                     'b--')
-
-        axes[1].plot(exp_out.get_values('time')['descent'],
-                     exp_out.get_values('kinetic_energy.ke')['descent'],
-                     'r--')
-
-        axes[1].set_xlabel('time (s)')
-        axes[1].set_ylabel(r'kinetic energy (J)')
-
-        axes[2].plot(traj.get_values('time')['ascent'],
-                     traj.get_values('gam', units='deg')['ascent'],
-                     'bo')
-        axes[2].plot(traj.get_values('time')['descent'],
-                     traj.get_values('gam', units='deg')['descent'],
-                     'ro')
-
-        axes[2].plot(exp_out.get_values('time')['ascent'],
-                     exp_out.get_values('gam', units='deg')['ascent'],
-                     'b--')
-
-        axes[2].plot(exp_out.get_values('time')['descent'],
-                     exp_out.get_values('gam', units='deg')['descent'],
-                     'r--')
-
-        axes[2].set_xlabel('time (s)')
-        axes[2].set_ylabel(r'flight path angle (deg)')
 
         plt.show()

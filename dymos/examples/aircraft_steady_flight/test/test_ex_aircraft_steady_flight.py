@@ -19,7 +19,7 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
 
     def test_ex_aircraft_steady_flight(self):
         p = ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps')
-        assert_rel_error(self, p.get_values('phase0.timeseries.states:range', units='NM')[-1],
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:range', units='NM')[-1],
                          726.7, tolerance=1.0E-2)
 
 
