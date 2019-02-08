@@ -49,14 +49,14 @@ class ContinuityCompBase(ExplicitComponent):
 
             self.add_input(name='states:{0}'.format(state_name),
                            shape=(num_segend_nodes,) + shape,
-                           desc='Values of state {0} at segment end nodes'.format(
+                           desc='Values of state {0} at discretization nodes'.format(
                                state_name),
                            units=units)
 
             self.add_output(
                 name='defect_states:{0}'.format(state_name),
                 shape=(num_segments - 1,) + shape,
-                desc='Continuity constraint values for state {0}'.format(state_name),
+                desc='Consistency constraint values for state {0}'.format(state_name),
                 units=units)
 
             rs_size1 = np.repeat(np.arange(num_segments - 1, dtype=int), 2)
@@ -77,19 +77,10 @@ class ContinuityCompBase(ExplicitComponent):
                 val=vals, rows=rs, cols=cs,
             )
 
-            #
-            # Add continuity constraint if appropriate
-            #
-
-            if options['continuity'] and not self.options['grid_data'].compressed:
-                self.add_constraint(name='defect_states:{0}'.format(state_name),
-                                    equals=0.0, scaler=1.0, linear=True)
-
     def _setup_control_continuity(self):
         control_options = self.options['control_options']
         num_segend_nodes = self.options['grid_data'].subset_num_nodes['segment_ends']
         num_segments = self.options['grid_data'].num_segments
-        compressed = self.options['grid_data'].compressed
         time_units = self.options['time_units']
 
         if num_segments <= 1:
@@ -137,25 +128,23 @@ class ContinuityCompBase(ExplicitComponent):
                 ('control_rates:{0}_rate2'.format(control_name),
                  'defect_control_rates:{0}_rate2'.format(control_name))
 
-            if not compressed:
+            self.add_input(
+                name='controls:{0}'.format(control_name),
+                shape=(num_segend_nodes,) + shape,
+                desc='Values of control {0} at discretization nodes'.format(control_name),
+                units=units)
 
-                self.add_input(
-                    name='controls:{0}'.format(control_name),
-                    shape=(num_segend_nodes,) + shape,
-                    desc='Values of control {0} at discretization nodes'.format(control_name),
-                    units=units)
+            self.add_output(
+                name='defect_controls:{0}'.format(control_name),
+                val=5*np.ones((num_segments - 1,) + shape),
+                desc='Continuity constraint values for control {0}'.format(control_name),
+                units=units)
 
-                self.add_output(
-                    name='defect_controls:{0}'.format(control_name),
-                    val=5*np.ones((num_segments - 1,) + shape),
-                    desc='Continuity constraint values for control {0}'.format(control_name),
-                    units=units)
-
-                self.declare_partials(
-                    'defect_controls:{0}'.format(control_name),
-                    'controls:{0}'.format(control_name),
-                    val=vals, rows=rs, cols=cs,
-                )
+            self.declare_partials(
+                'defect_controls:{0}'.format(control_name),
+                'controls:{0}'.format(control_name),
+                val=vals, rows=rs, cols=cs,
+            )
 
             #
             # Setup first derivative continuity
@@ -215,32 +204,6 @@ class ContinuityCompBase(ExplicitComponent):
                 't_duration', dependent=True
             )
 
-            #
-            # Apply continuity as necessary
-            #
-
-            if options['continuity'] and not self.options['grid_data'].compressed:
-                self.add_constraint(name='defect_controls:{0}'.format(control_name),
-                                    equals=0.0, scaler=1.0, linear=True)
-
-            #
-            # Setup first derivative continuity
-            #
-
-            if options['rate_continuity']:
-                self.add_constraint(name='defect_control_rates:{0}_rate'.format(control_name),
-                                    equals=0.0, scaler=options['rate_continuity_scaler'],
-                                    linear=False)
-
-            #
-            # Setup second derivative continuity
-            #
-
-            if options['rate2_continuity']:
-                self.add_constraint(name='defect_control_rates:{0}_rate2'.format(control_name),
-                                    equals=0.0, scaler=options['rate2_continuity_scaler'],
-                                    linear=False)
-
     def setup(self):
         self.rate_jac_templates = {}
         self.name_maps = {}
@@ -251,8 +214,9 @@ class ContinuityCompBase(ExplicitComponent):
     def _compute_state_continuity(self, inputs, outputs):
         state_options = self.options['state_options']
         num_segments = self.options['grid_data'].num_segments
+        compressed = self.options['grid_data'].compressed
 
-        if num_segments <= 1 or self.options['grid_data'].compressed:
+        if num_segments <= 1 or compressed:
             return
 
         for state_name, options in iteritems(state_options):
@@ -267,12 +231,10 @@ class ContinuityCompBase(ExplicitComponent):
         dt_dptau = inputs['t_duration'] / 2.0
 
         for name, options in iteritems(control_options):
-
-            if not self.options['grid_data'].compressed:
-                input_name, output_name = self.name_maps[name]['value_names']
-                end_vals = inputs[input_name][1:-1:2, ...]
-                start_vals = inputs[input_name][2:-1:2, ...]
-                outputs[output_name] = start_vals - end_vals
+            input_name, output_name = self.name_maps[name]['value_names']
+            end_vals = inputs[input_name][1:-1:2, ...]
+            start_vals = inputs[input_name][2:-1:2, ...]
+            outputs[output_name] = start_vals - end_vals
 
             input_name, output_name = self.name_maps[name]['rate_names']
             end_vals = inputs[input_name][1:-1:2, ...]
@@ -317,14 +279,109 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
     """
-    pass
+    def _setup_state_continuity(self):
+        state_options = self.options['state_options']
+        num_segments = self.options['grid_data'].num_segments
+        compressed = self.options['grid_data'].compressed
+
+        if num_segments <= 1:
+            return
+
+        super(GaussLobattoContinuityComp, self)._setup_state_continuity()
+
+        for state_name, options in iteritems(state_options):
+            if options['continuity'] and not compressed:
+                self.add_constraint(name='defect_states:{0}'.format(state_name),
+                                    equals=0.0, scaler=1.0, linear=True)
+
+    def _setup_control_continuity(self):
+        control_options = self.options['control_options']
+        num_segments = self.options['grid_data'].num_segments
+        compressed = self.options['grid_data'].compressed
+
+        if num_segments <= 1:
+            # Control value and rate continuity is enforced even with compressed transcription
+            return
+
+        super(GaussLobattoContinuityComp, self)._setup_control_continuity()
+
+        for control_name, options in iteritems(control_options):
+
+            if options['continuity'] and not compressed:
+                self.add_constraint(name='defect_controls:{0}'.format(control_name),
+                                    equals=0.0, scaler=1.0, linear=True)
+
+            #
+            # Setup first derivative continuity
+            #
+
+            if options['rate_continuity']:
+                self.add_constraint(name='defect_control_rates:{0}_rate'.format(control_name),
+                                    equals=0.0, scaler=options['rate_continuity_scaler'],
+                                    linear=False)
+
+            #
+            # Setup second derivative continuity
+            #
+
+            if options['rate2_continuity']:
+                self.add_constraint(name='defect_control_rates:{0}_rate2'.format(control_name),
+                                    equals=0.0, scaler=options['rate2_continuity_scaler'],
+                                    linear=False)
 
 
 class RadauPSContinuityComp(ContinuityCompBase):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
     """
-    pass
+    def _setup_state_continuity(self):
+        state_options = self.options['state_options']
+        num_segments = self.options['grid_data'].num_segments
+        compressed = self.options['grid_data'].compressed
+
+        if num_segments <= 1:
+            return
+
+        super(RadauPSContinuityComp, self)._setup_state_continuity()
+
+        for state_name, options in iteritems(state_options):
+            if options['continuity'] and not compressed:
+                self.add_constraint(name='defect_states:{0}'.format(state_name),
+                                    equals=0.0, scaler=1.0, linear=True)
+
+    def _setup_control_continuity(self):
+        control_options = self.options['control_options']
+        num_segments = self.options['grid_data'].num_segments
+        compressed = self.options['grid_data'].compressed
+
+        if num_segments <= 1:
+            # Control value and rate continuity is enforced even with compressed transcription
+            return
+
+        super(RadauPSContinuityComp, self)._setup_control_continuity()
+
+        for control_name, options in iteritems(control_options):
+            if options['continuity']:
+                self.add_constraint(name='defect_controls:{0}'.format(control_name),
+                                    equals=0.0, scaler=1.0, linear=False)
+
+            #
+            # Setup first derivative continuity
+            #
+
+            if options['rate_continuity']:
+                self.add_constraint(name='defect_control_rates:{0}_rate'.format(control_name),
+                                    equals=0.0, scaler=options['rate_continuity_scaler'],
+                                    linear=False)
+
+            #
+            # Setup second derivative continuity
+            #
+
+            if options['rate2_continuity']:
+                self.add_constraint(name='defect_control_rates:{0}_rate2'.format(control_name),
+                                    equals=0.0, scaler=options['rate2_continuity_scaler'],
+                                    linear=False)
 
 
 class ExplicitContinuityComp(ContinuityCompBase):
@@ -405,40 +462,40 @@ class ExplicitContinuityComp(ContinuityCompBase):
                 self.add_constraint(name='defect_states:{0}'.format(state_name),
                                     equals=0.0, scaler=1.0, linear=False)
 
-    # def _setup_control_continuity(self):
-    #     control_options = self.options['control_options']
-    #     num_segments = self.options['grid_data'].num_segments
-    #     compressed = self.options['grid_data'].compressed
-    #
-    #     if num_segments <= 1:
-    #         # Control value and rate continuity is enforced even with compressed transcription
-    #         return
-    #
-    #     super(ExplicitContinuityComp, self)._setup_control_continuity()
-    #
-    #     for control_name, options in iteritems(control_options):
-    #
-    #         if options['continuity'] and not compressed:
-    #             self.add_constraint(name='defect_controls:{0}'.format(control_name),
-    #                                 equals=0.0, scaler=1.0, linear=True)
-    #
-    #         #
-    #         # Setup first derivative continuity
-    #         #
-    #
-    #         if options['rate_continuity']:
-    #             self.add_constraint(name='defect_control_rates:{0}_rate'.format(control_name),
-    #                                 equals=0.0, scaler=options['rate_continuity_scaler'],
-    #                                 linear=False)
-    #
-    #         #
-    #         # Setup second derivative continuity
-    #         #
-    #
-    #         if options['rate2_continuity']:
-    #             self.add_constraint(name='defect_control_rates:{0}_rate2'.format(control_name),
-    #                                 equals=0.0, scaler=options['rate2_continuity_scaler'],
-    #                                 linear=False)
+    def _setup_control_continuity(self):
+        control_options = self.options['control_options']
+        num_segments = self.options['grid_data'].num_segments
+        compressed = self.options['grid_data'].compressed
+
+        if num_segments <= 1:
+            # Control value and rate continuity is enforced even with compressed transcription
+            return
+
+        super(ExplicitContinuityComp, self)._setup_control_continuity()
+
+        for control_name, options in iteritems(control_options):
+
+            if options['continuity'] and not compressed:
+                self.add_constraint(name='defect_controls:{0}'.format(control_name),
+                                    equals=0.0, scaler=1.0, linear=True)
+
+            #
+            # Setup first derivative continuity
+            #
+
+            if options['rate_continuity']:
+                self.add_constraint(name='defect_control_rates:{0}_rate'.format(control_name),
+                                    equals=0.0, scaler=options['rate_continuity_scaler'],
+                                    linear=False)
+
+            #
+            # Setup second derivative continuity
+            #
+
+            if options['rate2_continuity']:
+                self.add_constraint(name='defect_control_rates:{0}_rate2'.format(control_name),
+                                    equals=0.0, scaler=options['rate2_continuity_scaler'],
+                                    linear=False)
 
     def _compute_state_continuity(self, inputs, outputs):
         state_options = self.options['state_options']

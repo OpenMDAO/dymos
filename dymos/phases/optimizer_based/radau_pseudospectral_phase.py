@@ -413,15 +413,6 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
             rate_src, src_idxs = self._get_rate_source_path(name, nodes='col')
 
-            # print(rate_src)
-            # print(src_idxs)
-            # print(grid_data.num_segments)
-            # print(grid_data.num_nodes)
-            # print(np.arange(grid_data.subset_num_nodes['state_input'], dtype=int))
-            # print(grid_data.subset_node_indices['state_input'])
-            # print(grid_data.subset_num_nodes['state_disc'])
-            # exit(0)
-
             self.connect(rate_src,
                          'collocation_constraint.f_computed:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)

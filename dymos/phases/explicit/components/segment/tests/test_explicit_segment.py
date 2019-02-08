@@ -95,18 +95,6 @@ class TestExplicitSegmentSimpleIntegration(unittest.TestCase):
 
         seg = self.p.model.segment
 
-        integrator = ODEIntegrationInterface(phase_name='',
-                                             ode_class=seg.options['ode_class'],
-                                             ode_init_kwargs=seg.options['ode_init_kwargs'],
-                                             state_options=seg.options['state_options'],
-                                             time_options=seg.options['time_options'],
-                                             control_options={},
-                                             design_parameter_options={},
-                                             input_parameter_options={},
-                                             traj_parameter_options={})
-
-        integrator.setup(check=False)
-
         seg.nonlinear_solver = NonlinearRK()
 
         self.p.run_model()
