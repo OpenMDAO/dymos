@@ -6,10 +6,10 @@ from dymos.phases.grid_data import GridData
 from dymos.utils.misc import get_rate_units
 
 
-class CollocationComp(ExplicitComponent):
+class CollocationDefectComp(ExplicitComponent):
 
     """
-    CollocationComp computes the generalized defect of a segment for implicit collocation.
+    CollocationDefectComp computes the generalized defect of a segment for implicit collocation.
     The defect is the interpolated state derivative at the collocation nodes minus
     the computed state derivative at the collocation nodes.
     """
