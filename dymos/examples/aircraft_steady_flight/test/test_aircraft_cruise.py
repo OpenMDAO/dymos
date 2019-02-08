@@ -99,8 +99,6 @@ class TestAircraftCruise(unittest.TestCase):
         range = phase.get_values('range', units='m')
 
         assert_rel_error(self, range, tas*time, tolerance=1.0E-4)
-        print(assert_rel_error(self, range, tas*time, tolerance=1.0E-4))
-
 
 if __name__ == '__main__':
     unittest.main()
