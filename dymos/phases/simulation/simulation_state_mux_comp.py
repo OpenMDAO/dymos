@@ -47,45 +47,10 @@ class SimulationStateMuxComp(ExplicitComponent):
                             val=np.ones((num_points,) + options['shape']),
                             units=options['units'])
 
-
-        # for (name, kwargs) in self._timeseries_outputs:
-        #
-        #     input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-        #     input_name = 'all_values:{0}'.format(name)
-        #     self.add_input(input_name,
-        #                    shape=(num_nodes,) + kwargs['shape'],
-        #                    **input_kwargs)
-        #
-        #     output_name = name
-        #     output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-        #     output_kwargs['shape'] = (num_nodes,) + kwargs['shape']
-        #     self.add_output(output_name, **output_kwargs)
-        #
-        #     self._vars.append((input_name, output_name, kwargs['shape']))
-        #
-        #     # Setup partials
-        #
-        #     all_shape = (num_nodes,) + kwargs['shape']
-        #     var_size = np.prod(kwargs['shape'])
-        #     all_size = np.prod(all_shape)
-        #
-        #     all_row_starts = gd.subset_node_indices['all'] * var_size
-        #     all_rows = []
-        #     for i in all_row_starts:
-        #         all_rows.extend(range(i, i + var_size))
-        #     all_rows = np.asarray(all_rows, dtype=int)
-        #
-        #     self.declare_partials(
-        #         of=output_name,
-        #         wrt=input_name,
-        #         dependent=True,
-        #         rows=all_rows,
-        #         cols=np.arange(all_size),
-        #         val=1.0)
-
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for name in self._vars:
             input_names = self._vars[name]['inputs']
             output_name = self._vars[name]['output']
 
-            outputs[output_name] = np.concatenate([inputs[input_names[i]] for i in range(len(input_names))])
+            outputs[output_name] = \
+                np.concatenate([inputs[input_names[i]] for i in range(len(input_names))])

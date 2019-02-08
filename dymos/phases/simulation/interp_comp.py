@@ -169,57 +169,6 @@ class InterpComp(ExplicitComponent):
             self.add_output(self._output_rate2_names[name], shape=output_shape,
                             units=rate2_units)
 
-            # size = np.prod(shape)
-            # self.val_jacs[name] = np.zeros((num_output_points, size, num_control_input_nodes, size))
-            # self.rate_jacs[name] = np.zeros((num_output_points, size, num_control_input_nodes, size))
-            # self.rate2_jacs[name] = np.zeros((num_output_points, size, num_control_input_nodes, size))
-            # for i in range(size):
-            #     self.val_jacs[name][:, i, :, i] = self.L
-            #     self.rate_jacs[name][:, i, :, i] = self.D
-            #     self.rate2_jacs[name][:, i, :, i] = self.D2
-            # self.val_jacs[name] = self.val_jacs[name].reshape((num_output_points * size,
-            #                                                   num_control_input_nodes * size),
-            #                                                   order='C')
-            # self.rate_jacs[name] = self.rate_jacs[name].reshape((num_output_points * size,
-            #                                                     num_control_input_nodes * size),
-            #                                                     order='C')
-            # self.rate2_jacs[name] = self.rate2_jacs[name].reshape((num_output_points * size,
-            #                                                       num_control_input_nodes * size),
-            #                                                       order='C')
-            # self.val_jac_rows[name], self.val_jac_cols[name] = \
-            #     np.where(self.val_jacs[name] != 0)
-            # self.rate_jac_rows[name], self.rate_jac_cols[name] = \
-            #     np.where(self.rate_jacs[name] != 0)
-            # self.rate2_jac_rows[name], self.rate2_jac_cols[name] = \
-            #     np.where(self.rate2_jacs[name] != 0)
-            #
-            # self.sizes[name] = size
-            #
-            # rs, cs = self.val_jac_rows[name], self.val_jac_cols[name]
-            # self.declare_partials(of=self._output_val_names[name],
-            #                       wrt=self._input_names[name],
-            #                       rows=rs, cols=cs, val=self.val_jacs[name][rs, cs])
-            #
-            # cs = np.tile(np.arange(num_output_points, dtype=int), reps=size)
-            # rs = np.concatenate([np.arange(0, num_output_points * size, size, dtype=int) + i
-            #                      for i in range(size)])
-            #
-            # self.declare_partials(of=self._output_rate_names[name],
-            #                       wrt='dt_dstau',
-            #                       rows=rs, cols=cs)
-            #
-            # self.declare_partials(of=self._output_rate_names[name],
-            #                       wrt=self._input_names[name],
-            #                       rows=self.rate_jac_rows[name], cols=self.rate_jac_cols[name])
-            #
-            # self.declare_partials(of=self._output_rate2_names[name],
-            #                       wrt='dt_dstau',
-            #                       rows=rs, cols=cs)
-            #
-            # self.declare_partials(of=self._output_rate2_names[name],
-            #                       wrt=self._input_names[name],
-            #                       rows=self.rate2_jac_rows[name], cols=self.rate2_jac_cols[name])
-
     def setup(self):
         num_nodes = self.options['grid_data'].num_nodes
         num_seg = self.options['grid_data'].num_segments
@@ -240,15 +189,6 @@ class InterpComp(ExplicitComponent):
             dt_dstau.extend(num_points_seg_i * [(0.5 * (tf_seg_i - t0_seg_i)).tolist()])
         self.dt_dstau = np.array(dt_dstau)
 
-        # self.val_jacs = {}
-        # self.rate_jacs = {}
-        # self.rate2_jacs = {}
-        # self.val_jac_rows = {}
-        # self.val_jac_cols = {}
-        # self.rate_jac_rows = {}
-        # self.rate_jac_cols = {}
-        # self.rate2_jac_rows = {}
-        # self.rate2_jac_cols = {}
         self.sizes = {}
         self.num_nodes = num_nodes
 
@@ -275,37 +215,3 @@ class InterpComp(ExplicitComponent):
             outputs[self._output_val_names[name]] = np.tensordot(self.L, u, axes=(1, 0))
             outputs[self._output_rate_names[name]] = (a / self.dt_dstau).T
             outputs[self._output_rate2_names[name]] = (b / self.dt_dstau ** 2).T
-
-    # def compute_partials(self, inputs, partials):
-    #     control_options = self.options['control_options']
-    #     num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
-    #
-    #     for name, options in iteritems(control_options):
-    #         control_name = self._input_names[name]
-    #
-    #         size = self.sizes[name]
-    #
-    #         rate_name = self._output_rate_names[name]
-    #         rate2_name = self._output_rate2_names[name]
-    #
-    #         # Unroll matrix-shaped controls into an array at each node
-    #         u_d = np.reshape(inputs[control_name], (num_input_nodes, size))
-    #
-    #         dt_dstau = inputs['dt_dstau']
-    #         dt_dstau_tile = np.tile(dt_dstau, size)
-    #
-    #         partials[rate_name, 'dt_dstau'] = \
-    #             (-np.dot(self.D, u_d).ravel(order='F') / dt_dstau_tile ** 2)
-    #
-    #         partials[rate2_name, 'dt_dstau'] = \
-    #             -2.0 * (np.dot(self.D2, u_d).ravel(order='F') / dt_dstau_tile ** 3)
-    #
-    #         dt_dstau_x_size = np.repeat(dt_dstau, size)[:, np.newaxis]
-    #
-    #         r_nz, c_nz = self.rate_jac_rows[name], self.rate_jac_cols[name]
-    #         partials[rate_name, control_name] = \
-    #             (self.rate_jacs[name] / dt_dstau_x_size)[r_nz, c_nz]
-    #
-    #         r_nz, c_nz = self.rate2_jac_rows[name], self.rate2_jac_cols[name]
-    #         partials[rate2_name, control_name] = \
-    #             (self.rate2_jacs[name] / dt_dstau_x_size ** 2)[r_nz, c_nz]

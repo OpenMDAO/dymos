@@ -55,7 +55,6 @@ p.run_driver()
 
 class TestSimulationPhase(unittest.TestCase):
 
-
     def test_simulate_phase2(self):
         import matplotlib.pyplot as plt
 
@@ -100,9 +99,7 @@ class TestSimulationPhase(unittest.TestCase):
 
         plt.show()
 
-
     def test_simulate_phase_gl(self):
-
         sim_prob = Problem(model=Group())
 
         sim_phase = SimulationPhase(grid_data=phase.grid_data,

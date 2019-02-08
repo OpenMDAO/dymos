@@ -2,7 +2,6 @@ from __future__ import print_function, division, absolute_import
 
 from ..components.timeseries_output_comp import TimeseriesOutputCompBase
 
-import numpy as np
 
 class SimulationTimeseriesOutputComp(TimeseriesOutputCompBase):
     """
@@ -37,7 +36,6 @@ class SimulationTimeseriesOutputComp(TimeseriesOutputCompBase):
 
             # Setup partials
             self.declare_partials(of='*', wrt='*', method='fd')
-
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for (input_name, output_name, _) in self._vars:

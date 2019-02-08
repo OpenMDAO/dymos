@@ -1472,7 +1472,7 @@ class PhaseBase(Group):
         if record:
             filename = '{0}_sim.sql'.format(self.name) if record_file is None else record_file
             rec = SqliteRecorder(filename)
-            sim_prob.model.recording_options['includes']=['*.timeseries.*']
+            sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
             sim_prob.model.add_recorder(rec)
 
         sim_prob.setup(check=True)

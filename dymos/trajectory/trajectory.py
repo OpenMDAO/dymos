@@ -483,7 +483,7 @@ class Trajectory(Group):
         if record:
             filename = '{0}_sim.sql'.format(self.name) if record_file is None else record_file
             rec = SqliteRecorder(filename)
-            sim_prob.model.recording_options['includes']=['*.timeseries.*']
+            sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
             sim_prob.model.add_recorder(rec)
 
         sim_prob.setup(check=True)
@@ -499,7 +499,8 @@ class Trajectory(Group):
 
         # Assign trajectory input parameter values
         for name, options in iteritems(self.input_parameter_options):
-                op = traj_op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.pathname, name)]
+                op = traj_op_dict['{0}.input_params.input_parameters:'
+                                  '{1}_out'.format(self.pathname, name)]
                 var_name = '{0}.input_parameters:{1}'.format(self.name, name)
                 sim_prob[var_name] = op['value'][0, ...]
 
@@ -516,7 +517,8 @@ class Trajectory(Group):
 
             # Assign control values at all nodes
             for name, options in iteritems(phs.control_options):
-                op = op_dict['{0}.control_interp_comp.control_values:{1}'.format(phs.pathname, name)]
+                op = op_dict['{0}.control_interp_comp.control_values:'
+                             '{1}'.format(phs.pathname, name)]
                 var_name = '{0}.{1}.implicit_controls:{2}'.format(self.name, phase_name, name)
                 sim_prob[var_name] = op['value']
 

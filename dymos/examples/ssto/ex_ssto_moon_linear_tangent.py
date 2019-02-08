@@ -76,6 +76,8 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
     p.model.options['assembled_jac_type'] = 'csc'
     p.model.linear_solver = DirectSolver(assemble_jac=True)
 
+    phase.add_timeseries_output('guidance.theta', units='deg')
+
     p.setup(force_alloc_complex=True)
 
     p['phase0.t_initial'] = 0.0

@@ -19,8 +19,6 @@ from .ode_integration_interface import ODEIntegrationInterface
 from ..options import TimeOptionsDictionary
 
 
-
-
 class SegmentSimulationComp(ExplicitComponent):
     """
     SegmentSimulationComp is a component which, given values for time, states, and controls
@@ -131,9 +129,7 @@ class SegmentSimulationComp(ExplicitComponent):
 
         self.declare_partials(of='*', wrt='*', method='fd')
 
-
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
-        gd = self.options['grid_data']
         iface_prob = self.ode_integration_interface.prob
         t_eval = self.options['t_eval']
 

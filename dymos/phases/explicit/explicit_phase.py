@@ -619,11 +619,13 @@ class ExplicitPhase(PhaseBase):
 
             timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(name),
                                                    var_class=self._classify_var(name),
-                                                   units=get_rate_units(options['units'], time_units, deriv=1))
+                                                   units=get_rate_units(options['units'],
+                                                                        time_units, deriv=1))
 
             timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(name),
                                                    var_class=self._classify_var(name),
-                                                   units=get_rate_units(options['units'], time_units, deriv=2))
+                                                   units=get_rate_units(options['units'],
+                                                                        time_units, deriv=2))
 
             size = np.prod(options['shape'])
             for iseg in range(gd.num_segments):
@@ -645,19 +647,21 @@ class ExplicitPhase(PhaseBase):
                              src_indices=src_idxs, flat_src_indices=True)
 
                 self.connect(src_name='seg_{0}.stage_control_rates:{1}_rate'.format(iseg, name),
-                             tgt_name='timeseries.seg_{0}_values:control_rates:{1}_rate'.format(iseg, name),
+                             tgt_name='timeseries.seg_{0}_values:'
+                                      'control_rates:{1}_rate'.format(iseg, name),
                              src_indices=src_idxs, flat_src_indices=True)
 
                 self.connect(src_name='seg_{0}.stage_control_rates:{1}_rate2'.format(iseg, name),
-                             tgt_name='timeseries.seg_{0}_values:control_rates:{1}_rate2'.format(iseg, name),
+                             tgt_name='timeseries.seg_{0}_values:'
+                                      'control_rates:{1}_rate2'.format(iseg, name),
                              src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in iteritems(self.design_parameter_options):
             units = options['units']
             size = np.prod(options['shape'])
             timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
-                                       var_class=self._classify_var(name),
-                                       units=units)
+                                                   var_class=self._classify_var(name),
+                                                   units=units)
 
             for iseg in range(gd.num_segments):
                 num_steps = self.grid_data.num_steps_per_segment[iseg]
@@ -671,15 +675,16 @@ class ExplicitPhase(PhaseBase):
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
                 self.connect(src_name='design_parameters:{0}'.format(name),
-                             tgt_name='timeseries.seg_{0}_values:design_parameters:{1}'.format(iseg, name),
+                             tgt_name='timeseries.seg_{0}_values:'
+                                      'design_parameters:{1}'.format(iseg, name),
                              src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in iteritems(self.input_parameter_options):
             units = options['units']
             size = np.prod(options['shape'])
             timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
-                                       var_class=self._classify_var(name),
-                                       units=units)
+                                                   var_class=self._classify_var(name),
+                                                   units=units)
 
             for iseg in range(gd.num_segments):
                 num_steps = self.grid_data.num_steps_per_segment[iseg]
@@ -693,15 +698,16 @@ class ExplicitPhase(PhaseBase):
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
                 self.connect(src_name='input_parameters:{0}_out'.format(name),
-                             tgt_name='timeseries.seg_{0}_values:input_parameters:{1}'.format(iseg, name),
+                             tgt_name='timeseries.seg_{0}_values:'
+                                      'input_parameters:{1}'.format(iseg, name),
                              src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in iteritems(self.traj_parameter_options):
             units = options['units']
             size = np.prod(options['shape'])
             timeseries_comp._add_timeseries_output('traj_parameters:{0}'.format(name),
-                                       var_class=self._classify_var(name),
-                                       units=units)
+                                                   var_class=self._classify_var(name),
+                                                   units=units)
 
             for iseg in range(gd.num_segments):
                 num_steps = self.grid_data.num_steps_per_segment[iseg]
@@ -715,7 +721,8 @@ class ExplicitPhase(PhaseBase):
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
                 self.connect(src_name='traj_parameters:{0}_out'.format(name),
-                             tgt_name='timeseries.seg_{0}_values:traj_parameters:{1}'.format(iseg, name),
+                             tgt_name='timeseries.seg_{0}_values:'
+                                      'traj_parameters:{1}'.format(iseg, name),
                              src_indices=src_idxs, flat_src_indices=True)
 
         for var, options in iteritems(self._timeseries_outputs):
@@ -1135,7 +1142,7 @@ class ExplicitPhase(PhaseBase):
         Method get_values has been deprecated.  To retrieve a values of
         a variable as a timeseries, access the timeseries outputs of the '
         phase via the standard OpenMDAO get_val method, e.g.:
-        
+
         prob.get_val('phase.timeseries.time')
         prob.get_val('phase.timeseries.states:x')
         prob.get_val('phase.timeseries.controls:theta')

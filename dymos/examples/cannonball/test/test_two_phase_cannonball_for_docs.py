@@ -145,7 +145,8 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p.get_val('traj.descent.states:r')[-1], 3191.83945861, tolerance=1.0E-2)
+        assert_rel_error(self, p.get_val('traj.descent.states:r')[-1],
+                         3191.83945861, tolerance=1.0E-2)
 
         exp_out = traj.simulate(times=100, record_file='ex_two_phase_cannonball_sim.db')
 

@@ -45,19 +45,13 @@ class SimulationPhase(Group):
                              desc='System defining the ODE')
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
-        # self.options.declare('time_options', types=OptionsDictionary)
-        # self.options.declare('state_options', types=dict)
-        # self.options.declare('control_options', types=dict)
-        # self.options.declare('design_parameter_options', types=dict)
-        # self.options.declare('input_parameter_options', types=dict)
-        # self.options.declare('traj_parameter_options', types=dict)
         self.options.declare('times', types=(Sequence, np.ndarray, int, str),
                              desc='number of times to include in timeseries output or values of'
                                   'time for timeseries output')
         self.options.declare('t_initial', desc='initial time of the phase')
         self.options.declare('t_duration', desc='time duration of the phase')
         self.options.declare('timeseries_outputs', types=dict, default={})
-        
+
     def add_input_parameter(self, name, val=0.0, units=0, alias=None):
         """
         Add a design parameter (static control variable) to the phase.
@@ -293,46 +287,16 @@ class SimulationPhase(Group):
         if self.traj_parameter_options:
             passthru = \
                 InputParameterComp(input_parameter_options=self.traj_parameter_options,
-                    traj_params=True)
+                                   traj_params=True)
 
             self.add_subsystem('traj_params', subsys=passthru, promotes_inputs=['*'],
                                promotes_outputs=['*'])
 
         for name, options in iteritems(self.traj_parameter_options):
-            # ivc.add_output('input_parameters:{0}'.format(name),
-            #                val=np.ones((1,) + options['shape']),
-            #                units=options['units'])
             src_name = 'traj_parameters:{0}_out'.format(name)
             for tgts, src_idxs in self._get_parameter_connections(name):
                 self.connect(src_name, [t for t in tgts],
                              src_indices=src_idxs, flat_src_indices=True)
-
-            # for i in range(num_seg):
-            #     self.connect(src_name='input_parameters:{0}_out'.format(name),
-            #                  tgt_name='segment_{0}.input_parameters:{1}'.format(i, name))
-            #
-            # if options['targets']:
-            #     self.connect(src_name='input_parameters:{0}_out'.format(name),
-            #                  tgt_name=['ode.{0}'.format(tgt) for tgt in options['targets']],
-            #                  src_indices=np.zeros(num_points, dtype=int))
-    #
-    # def _setup_input_parameters(self):
-    #     """
-    #     Adds a InputParameterComp to allow input parameters to be connected from sources
-    #     external to the phase.
-    #     """
-    #     if self.input_parameter_options:
-    #         passthru = \
-    #             InputParameterComp(input_parameter_options=self.input_parameter_options)
-    #
-    #         self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
-    #                            promotes_outputs=['*'])
-    #
-    #     for name, options in iteritems(self.input_parameter_options):
-    #         src_name = 'input_parameters:{0}_out'.format(name)
-    #
-    #         for tgts, src_idxs in self._get_parameter_connections(options['target_param']):
-    #             self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
 
     def _get_parameter_connections(self, name):
         """

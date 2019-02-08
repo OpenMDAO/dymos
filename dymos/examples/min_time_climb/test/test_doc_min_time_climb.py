@@ -6,8 +6,6 @@ import unittest
 class TestMinTimeClimbForDocs(unittest.TestCase):
 
     def test_min_time_climb_for_docs_gauss_lobatto(self):
-        import numpy as np
-
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -93,19 +91,28 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.model.phase0.get_values('time')[-1], 321.0, tolerance=2)
+        assert_rel_error(self, p.get_val('phase0.t_duration'), 321.0, tolerance=2)
 
         exp_out = phase.simulate(times=50)
 
         fig, axes = plt.subplots(2, 1, sharex=True)
 
-        axes[0].plot(phase.get_values('time'), phase.get_values('h'), 'ro')
-        axes[0].plot(exp_out.get_values('time'), exp_out.get_values('h'), 'b-')
+        t_sol = p.get_val('phase0.timeseries.time')
+        t_exp = exp_out.get_val('phase0.timeseries.time')
+
+        h_sol = p.get_val('phase0.timeseries.states:h')
+        h_exp = exp_out.get_val('phase0.timeseries.states:h')
+
+        alpha_sol = p.get_val('phase0.timeseries.controls:alpha', units='deg')
+        alpha_exp = exp_out.get_val('phase0.timeseries.controls:alpha', units='deg')
+
+        axes[0].plot(t_sol, h_sol, 'ro')
+        axes[0].plot(t_exp, h_exp, 'b-')
         axes[0].set_xlabel('time (s)')
         axes[0].set_ylabel('altitude (m)')
 
-        axes[1].plot(phase.get_values('time'), phase.get_values('alpha', units='deg'), 'ro')
-        axes[1].plot(exp_out.get_values('time'), exp_out.get_values('alpha', units='deg'), 'b-')
+        axes[1].plot(t_sol, alpha_sol, 'ro')
+        axes[1].plot(t_exp, alpha_exp, 'b-')
         axes[1].set_xlabel('time (s)')
         axes[1].set_ylabel('alpha (deg)')
 

@@ -64,7 +64,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         x_imp = p.get_val('phase0.timeseries.states:x')
         v_imp = p.get_val('phase0.timeseries.states:v')
         u_imp = p.get_val('phase0.timeseries.controls:u')
-        
+
         t_exp = exp_out.get_val('phase0.timeseries.time')
         x_exp = exp_out.get_val('phase0.timeseries.states:x')
         v_exp = exp_out.get_val('phase0.timeseries.states:v')

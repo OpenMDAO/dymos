@@ -99,29 +99,41 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     if SHOW_PLOTS:
         exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 100))
 
+        t_sol = p.get_val('phase0.timeseries.time')
+        t_exp = exp_out.get_val('phase0.timeseries.time')
+
+        h_sol = p.get_val('phase0.timeseries.states:h')
+        h_exp = exp_out.get_val('phase0.timeseries.states:h')
+
+        v_sol = p.get_val('phase0.timeseries.states:v')
+        v_exp = exp_out.get_val('phase0.timeseries.states:v')
+
+        alpha_sol = p.get_val('phase0.timeseries.controls:alpha')
+        alpha_exp = exp_out.get_val('phase0.timeseries.controls:alpha')
+
         import matplotlib.pyplot as plt
-        plt.plot(phase.get_values('time'), phase.get_values('h'), 'ro')
-        plt.plot(exp_out.get_values('time'), exp_out.get_values('h'), 'b-')
+        plt.plot(t_sol, h_sol, 'ro')
+        plt.plot(t_exp, h_exp, 'b-')
         plt.xlabel('time (s)')
         plt.ylabel('altitude (m)')
 
         plt.figure()
-        plt.plot(phase.get_values('v'), phase.get_values('h'), 'ro')
-        plt.plot(exp_out.get_values('v'), exp_out.get_values('h'), 'b-')
+        plt.plot(v_sol, h_sol, 'ro')
+        plt.plot(v_exp, h_exp, 'b-')
         plt.xlabel('airspeed (m/s)')
         plt.ylabel('altitude (m)')
 
         plt.figure()
-        plt.plot(phase.get_values('time'), phase.get_values('alpha'), 'ro')
-        plt.plot(exp_out.get_values('time'), exp_out.get_values('alpha'), 'b-')
+        plt.plot(t_sol, alpha_sol, 'ro')
+        plt.plot(t_exp, alpha_exp, 'b-')
         plt.xlabel('time (s)')
         plt.ylabel('alpha (rad)')
 
-        plt.figure()
-        plt.plot(phase.get_values('time'), phase.get_values('prop.thrust', units='lbf'), 'ro')
-        plt.plot(exp_out.get_values('time'), exp_out.get_values('prop.thrust', units='lbf'), 'b-')
-        plt.xlabel('time (s)')
-        plt.ylabel('thrust (lbf)')
+        # plt.figure()
+        # plt.plot(phase.get_values('time'), phase.get_values('prop.thrust', units='lbf'), 'ro')
+        # plt.plot(exp_out.get_values('time'), exp_out.get_values('prop.thrust', units='lbf'), 'b-')
+        # plt.xlabel('time (s)')
+        # plt.ylabel('thrust (lbf)')
 
         plt.show()
 
@@ -129,7 +141,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
 
 if __name__ == '__main__':
-    SHOW_PLOTS = False
+    SHOW_PLOTS = True
     p = min_time_climb(
-        optimizer='SNOPT', num_seg=3, transcription='radau-ps', transcription_order=5,
+        optimizer='SNOPT', num_seg=10, transcription='radau-ps', transcription_order=5,
         force_alloc_complex=False, simul_derivs=True)

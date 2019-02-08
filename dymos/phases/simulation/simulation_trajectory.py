@@ -176,4 +176,3 @@ class SimulationTrajectory(Group):
         self._setup_design_parameters(ivc)
 
         self._setup_input_parameters(ivc)
-

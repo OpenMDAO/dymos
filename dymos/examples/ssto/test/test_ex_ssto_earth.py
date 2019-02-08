@@ -93,22 +93,33 @@ class TestExampleSSTOEarth(unittest.TestCase):
         ##############################
         # quick check of the results
         ##############################
-        assert_rel_error(self, phase.get_values('y')[-1], 1.85E5, 1e-4)
-        assert_rel_error(self, phase.get_values('vx')[-1], 7796.6961, 1e-4)
-        assert_rel_error(self, phase.get_values('vy')[-1], 0, 1e-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:y')[-1], 1.85E5, 1e-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:vx')[-1], 7796.6961, 1e-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:vy')[-1], 0, 1e-4)
 
         # check if the boundary value constraints were satisfied in the simulation
-        assert_rel_error(self, exp_out.get_values('y')[-1], 1.85E5, 1e-2)
-        assert_rel_error(self, exp_out.get_values('vx')[-1], 7796.6961, 1e-2)
-        # there is a small amount of discretization error here
-        assert_rel_error(self, exp_out.get_values('vy')[-1], 8.55707245, 1e-2)
+        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1], 1.85E5, .02)
+        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:vx')[-1], 7796.6961, .02)
 
         ########################
         # plot the results
         ########################
+        t_imp = p.get_val('phase0.timeseries.time')
+        t_exp = exp_out.get_val('phase0.timeseries.time')
+        x_imp = p.get_val('phase0.timeseries.states:x')
+        x_exp = exp_out.get_val('phase0.timeseries.states:x')
+        y_imp = p.get_val('phase0.timeseries.states:y')
+        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        vx_imp = p.get_val('phase0.timeseries.states:vx')
+        vx_exp = exp_out.get_val('phase0.timeseries.states:vx')
+        vy_imp = p.get_val('phase0.timeseries.states:vy')
+        vy_exp = exp_out.get_val('phase0.timeseries.states:vy')
+        theta_imp = p.get_val('phase0.timeseries.controls:theta', units='deg')
+        theta_exp = exp_out.get_val('phase0.timeseries.controls:theta', units='deg')
+
         plt.figure(facecolor='white')
-        plt.plot(phase.get_values('x'), phase.get_values('y'), 'bo', label='solution')
-        plt.plot(exp_out.get_values('x'), exp_out.get_values('y'), 'r-', label='simulated')
+        plt.plot(x_imp, y_imp, 'bo', label='solution')
+        plt.plot(x_exp, y_exp, 'r-', label='simulated')
         plt.xlabel('x, m')
         plt.ylabel('y, m')
         plt.legend(loc='best', ncol=2)
@@ -118,41 +129,19 @@ class TestExampleSSTOEarth(unittest.TestCase):
         fig.suptitle('results for flat_earth_without_aero')
 
         axarr = fig.add_subplot(3, 1, 1)
-        axarr.plot(phase.get_values('time'),
-                   phase.get_values('theta', units='deg'), 'bo', label='solution')
-        axarr.plot(exp_out.get_values('time'),
-                   exp_out.get_values('theta', units='deg'), 'b-', label='simulated')
+        axarr.plot(t_imp, theta_imp, 'bo', label='solution')
+        axarr.plot(t_exp, theta_exp, 'b-', label='simulated')
 
         axarr.set_xlabel('time, s')
         axarr.set_ylabel(r'$\theta$, deg')
 
-        axarr = fig.add_subplot(3, 1, 2)
-
-        axarr.plot(phase.get_values('x'),
-                   phase.get_values('y'), 'bo', label='$v_x$ solution')
-        axarr.plot(exp_out.get_values('x'),
-                   exp_out.get_values('y'), 'b-', label='$v_x$ simulated')
-
-        axarr.plot(phase.get_values('x'),
-                   phase.get_values('y'), 'ro', label='$v_y$ solution')
-        axarr.plot(exp_out.get_values('x'),
-                   exp_out.get_values('y'), 'r-', label='$v_y$ simulated')
-
-        axarr.set_xlabel('downrange, m')
-        axarr.set_ylabel('altitude, m')
-        axarr.legend(loc='best', ncol=2)
-
         axarr = fig.add_subplot(3, 1, 3)
 
-        axarr.plot(phase.get_values('time'),
-                   phase.get_values('vx'), 'bo', label='$v_x$ solution')
-        axarr.plot(exp_out.get_values('time'),
-                   exp_out.get_values('vx'), 'b-', label='$v_x$ simulated')
+        axarr.plot(t_imp, vx_imp, 'bo', label='$v_x$ solution')
+        axarr.plot(t_exp, vx_exp, 'b-', label='$v_x$ simulated')
 
-        axarr.plot(phase.get_values('time'),
-                   phase.get_values('vy'), 'ro', label='$v_y$ solution')
-        axarr.plot(exp_out.get_values('time'),
-                   exp_out.get_values('vy'), 'r-', label='$v_y$ simulated')
+        axarr.plot(t_imp, vy_imp, 'ro', label='$v_y$ solution')
+        axarr.plot(t_exp, vy_exp, 'r-', label='$v_y$ simulated')
 
         axarr.set_xlabel('time, s')
         axarr.set_ylabel('velocity, m/s')
