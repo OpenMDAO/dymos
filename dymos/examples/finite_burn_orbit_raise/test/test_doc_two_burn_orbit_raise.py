@@ -116,9 +116,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
         # Finish Problem Setup
-
-        p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
 
         p.driver.add_recorder(SqliteRecorder('two_burn_orbit_raise_example_for_docs.db'))
 

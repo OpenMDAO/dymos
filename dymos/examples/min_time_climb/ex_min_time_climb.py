@@ -45,22 +45,23 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                            duration_ref=100.0)
 
     phase.set_state_options('r', fix_initial=True, lower=0, upper=1.0E6,
-                            ref=1.0E3, defect_ref=1.0E3, units='m')
+                            ref=1.0E3, defect_ref=1000.0, units='m')
 
-    phase.set_state_options('h', fix_initial=True, lower=100, upper=20000.0,
-                            ref=1.0E3, defect_ref=1.0E3, units='m')
+    phase.set_state_options('h', fix_initial=True, lower=0, upper=20000.0,
+                            ref=1.0E2, defect_ref=100.0, units='m')
 
     phase.set_state_options('v', fix_initial=True, lower=10.0,
-                            ref=1.0E2, defect_ref=1.0E2, units='m/s')
+                            ref=1.0E2, defect_ref=0.1, units='m/s')
 
     phase.set_state_options('gam', fix_initial=True, lower=-1.5, upper=1.5,
-                            ref=1.0, defect_ref=1.0, units='rad')
+                            ref=1.0, defect_scaler=1.0, units='rad')
 
     phase.set_state_options('m', fix_initial=True, lower=10.0, upper=1.0E5,
-                            ref=1.0E4, defect_ref=1.0E4)
+                            ref=1.0E3, defect_ref=0.1)
 
-    phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0,
-                      continuity=True, rate_continuity=True, scaler=100.0)
+    phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
+                      rate_continuity=True, rate_continuity_scaler=100.0,
+                      rate2_continuity=False)
 
     phase.add_design_parameter('S', val=49.2386, units='m**2', opt=False)
     phase.add_design_parameter('Isp', val=1600.0, units='s', opt=False)
@@ -72,9 +73,10 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     phase.add_path_constraint(name='h', lower=100.0, upper=20000, ref=20000)
     phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.8)
+    phase.add_path_constraint(name='alpha', lower=-8, upper=8)
 
     # Minimize time at the end of the phase
-    phase.add_objective('time', loc='final', ref=1.0)
+    phase.add_objective('time', loc='final')
 
     p.model.linear_solver = DirectSolver()
 

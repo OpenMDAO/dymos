@@ -13,20 +13,20 @@ SHOW_PLOTS = True
 
 
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-                             run_driver=True, top_level_jacobian='csc', compressed=True,
+                             run_driver=True, compressed=True,
                              sim_record='brach_min_time_sim.db', optimizer='SLSQP',
                              dynamic_simul_derivs=True):
     p = Problem(model=Group())
 
-    # if optimizer == 'SNOPT':
-    p.driver = pyOptSparseDriver()
-    p.driver.options['optimizer'] = optimizer
-    #     p.driver.opt_settings['Major iterations limit'] = 100
-    #     p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
-    #     p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-    #     p.driver.opt_settings['iSumm'] = 6
-    # else:
-    #     p.driver = ScipyOptimizeDriver()
+    if optimizer == 'SNOPT':
+        p.driver = pyOptSparseDriver()
+        p.driver.options['optimizer'] = optimizer
+        p.driver.opt_settings['Major iterations limit'] = 100
+        p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
+        p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
+        p.driver.opt_settings['iSumm'] = 6
+    else:
+        p.driver = ScipyOptimizeDriver()
 
     p.driver.options['dynamic_simul_derivs'] = dynamic_simul_derivs
 
@@ -52,8 +52,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
 
-    p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
-    p.model.linear_solver = DirectSolver(assemble_jac=True)
+    p.model.linear_solver = DirectSolver()
     p.setup(check=True)
 
     p['phase0.t_initial'] = 0.0
@@ -114,8 +113,5 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 if __name__ == '__main__':
     brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10, run_driver=True,
-                             top_level_jacobian='csc', transcription_order=3, compressed=True,
+                             transcription_order=3, compressed=True,
                              optimizer='SNOPT')
-    # brachistochrone_min_time(transcription='radau-ps', num_segments=10, run_driver=True,
-    #                          top_level_jacobian='csc', transcription_order=3, compressed=True,
-    #                          optimizer='SNOPT')

@@ -97,9 +97,7 @@ class TestTrajectory(unittest.TestCase):
         cls.traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
         # Finish Problem Setup
-
-        p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
 
         p.model.add_recorder(SqliteRecorder('test_trajectory_rec.db'))
 
@@ -147,35 +145,3 @@ class TestTrajectory(unittest.TestCase):
         p.set_val('burn2.design_parameters:c', value=1.5)
 
         p.run_model()
-
-    def test_get_values_different_nodes(self):
-        """
-        Tests that get_values with various node subsets in each phase works as expected.
-        """
-        nodes_map = {'burn1': 'all', 'coast': 'control_input', 'burn2': 'col'}
-
-        for p in ('burn1', 'coast', 'burn2'):
-            for var in ('time', 'r', 'theta', 'deltav', 'u1', 'pos_x', 'pos_y'):
-                traj_out = self.traj.get_values(var, nodes=nodes_map)
-                phase_out = self.traj._phases[p].get_values(var, nodes=nodes_map[p])
-                assert_rel_error(self, traj_out[p], phase_out)
-
-    def test_get_values_flattened(self):
-        """
-        Tests that get_values with various node subsets in each phase works as expected.
-        """
-        nodes_map = {'burn1': 'all', 'coast': 'control_input', 'burn2': 'col'}
-
-        for var in ('time', 'r', 'theta', 'deltav', 'u1', 'pos_x', 'pos_y'):
-            traj_out = self.traj.get_values(var, nodes=nodes_map, flat=True)
-            phase_outs = [self.traj._phases[p].get_values(var, nodes=nodes_map[p])
-                          for p in ('burn1', 'coast', 'burn2')]
-            assert_rel_error(self, traj_out, np.concatenate(phase_outs))
-
-    def test_get_values_nonexistent_var(self):
-        """
-        Tests that get_values raises the appropriate KeyError when a variable is not found.
-        """
-        with self.assertRaises(KeyError) as e:
-            self.traj.get_values('foo')
-            self.assertEqual(str(e.exception), 'Variable "foo" not found in trajectory.')

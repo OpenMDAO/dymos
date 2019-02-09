@@ -82,7 +82,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         phase.add_objective('range', loc='final', ref=-0.1)
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
 
         p.setup()
 

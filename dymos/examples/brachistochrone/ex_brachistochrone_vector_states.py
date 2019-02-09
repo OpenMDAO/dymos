@@ -14,7 +14,7 @@ SHOW_PLOTS = True
 
 
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-                             run_driver=True, top_level_jacobian='csc', compressed=True,
+                             run_driver=True, compressed=True,
                              sim_record='brach_min_time_sim.db', optimizer='SLSQP',
                              dynamic_simul_derivs=True, force_alloc_complex=False):
     p = Problem(model=Group())
@@ -52,8 +52,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', scaler=10)
 
-    p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
-    p.model.linear_solver = DirectSolver(assemble_jac=True)
+    p.model.linear_solver = DirectSolver()
     p.setup(check=True, force_alloc_complex=force_alloc_complex)
 
     p['phase0.t_initial'] = 0.0
@@ -116,5 +115,4 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 if __name__ == '__main__':
     brachistochrone_min_time(transcription='radau-ps', num_segments=10, run_driver=True,
-                             top_level_jacobian='csc', transcription_order=3, compressed=True,
-                             optimizer='SNOPT')
+                             transcription_order=3, compressed=True, optimizer='SNOPT')

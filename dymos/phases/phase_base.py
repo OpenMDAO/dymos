@@ -1286,30 +1286,6 @@ class PhaseBase(Group):
         raise NotImplementedError('_setup_timeseries_outputs has not been implemented '
                                   'for phase type {0}'.format(self.__class__))
 
-    def get_values(self, var, nodes=None, units=None):
-        """
-        Retrieve the values of the given variable at the given
-        subset of nodes.
-
-        Parameters
-        ----------
-        var : str
-            The variable whose values are to be returned.  This may be
-            the name 'time', the name of a state, control, or parameter,
-            or the path to a variable in the ODE system of the phase.
-        nodes : str or None
-            The name of the node subset or None (default).
-        units : str or None
-            The units in which the returned values are to be provided.
-
-        Returns
-        -------
-        ndarray
-            An array of the values at the requested node subset.  The
-            node index is the first dimension of the ndarray.
-        """
-        raise NotImplementedError('get_values has not been implemented for this class.')
-
     def set_values(self, var, value, nodes=None, kind='linear', axis=0):
         """
         Retrieve the values of the given variable at the given

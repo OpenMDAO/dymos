@@ -38,7 +38,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         # Maximize distance travelled in one second.
         phase.add_objective('x', loc='final', scaler=-1)
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
 
         p.setup(check=True)
 

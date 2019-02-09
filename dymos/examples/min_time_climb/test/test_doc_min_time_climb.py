@@ -50,10 +50,8 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         phase.set_state_options('m', fix_initial=True, lower=10.0, upper=1.0E5,
                                 ref=1.0E3, defect_ref=0.1)
 
-        rate_continuity = True
-
         phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
-                          rate_continuity=rate_continuity, rate_continuity_scaler=100.0,
+                          rate_continuity=True, rate_continuity_scaler=100.0,
                           rate2_continuity=False)
 
         phase.add_design_parameter('S', val=49.2386, units='m**2', opt=False)
@@ -72,8 +70,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         phase.add_objective('time', loc='final')
 
         p.driver.options['dynamic_simul_derivs'] = True
-        p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
 
         p.setup(check=True)
 

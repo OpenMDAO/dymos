@@ -89,5 +89,5 @@ class TestBrachistochroneExample(unittest.TestCase):
                                                         sim_record='ex_brach_gl_compressed.db')
         self.run_asserts(p)
         self.tearDown()
-        if os.path.exists('ex_brach_gl_compressed.db'):
-            os.remove('ex_brach_gl_compressed.db')
+        if os.path.exists('ex_brach_gl_uncompressed.db'):
+            os.remove('ex_brach_gl_uncompressed.db')

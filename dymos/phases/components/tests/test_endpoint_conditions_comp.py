@@ -98,8 +98,7 @@ class TestEndpointConditionComp(unittest.TestCase):
         p.model.connect('phase:initial_jump:theta', 'initial_conditions.initial_jump:theta')
         p.model.connect('phase:final_jump:theta', 'final_conditions.final_jump:theta')
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
-        p.model.options['assembled_jac_type'] = 'dense'
+        p.model.linear_solver = DirectSolver()
 
         p.setup(force_alloc_complex=True)
 
@@ -224,7 +223,7 @@ class TestEndpointConditionComp(unittest.TestCase):
         p.model.connect('phase:initial_jump:cmd', 'initial_conditions.initial_jump:cmd')
         p.model.connect('phase:final_jump:cmd', 'final_conditions.final_jump:cmd')
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
         p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup(force_alloc_complex=True)

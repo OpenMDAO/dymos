@@ -49,7 +49,7 @@ class TestExampleMinTimeClimb(unittest.TestCase):
         phase = p.model.phase0
 
         # Check that time matches to within 1% of an externally verified solution.
-        assert_rel_error(self, phase.get_values('time')[-1], 321.0, tolerance=2)
+        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
 
 if __name__ == '__main__':
     unittest.main()
