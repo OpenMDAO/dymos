@@ -13,9 +13,7 @@ SHOW_PLOTS = True
 
 
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-                             run_driver=True, compressed=True,
-                             sim_record='brach_min_time_sim.db', optimizer='SLSQP',
-                             dynamic_simul_derivs=True):
+                             run_driver=True, compressed=True, optimizer='SLSQP'):
     p = Problem(model=Group())
 
     if optimizer == 'SNOPT':
@@ -28,7 +26,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     else:
         p.driver = ScipyOptimizeDriver()
 
-    p.driver.options['dynamic_simul_derivs'] = dynamic_simul_derivs
+    p.driver.options['dynamic_simul_derivs'] = True
 
     phase = Phase(transcription,
                   ode_class=BrachistochroneODE,
@@ -70,7 +68,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     # Plot results
     if SHOW_PLOTS:
-        exp_out = phase.simulate(times=50, record_file=sim_record)
+        exp_out = phase.simulate(times=50, record=False)
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')

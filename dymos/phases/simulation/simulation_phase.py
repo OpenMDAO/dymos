@@ -152,9 +152,10 @@ class SimulationPhase(Group):
 
         # Finally, make sure t_eval_per_seg contains the segment endpoints.
         time_seg_ends = np.reshape(times_all[gd.subset_node_indices['segment_ends']], (num_seg, 2))
+
         for i in range(num_seg):
-            self.t_eval_per_seg[i] = np.unique(np.concatenate((self.t_eval_per_seg[i],
-                                                               time_seg_ends[i, :])))
+            self.t_eval_per_seg[i] = np.unique(np.concatenate((self.t_eval_per_seg[i].ravel(),
+                                                               time_seg_ends[i, :].ravel())))
 
         time_vals = np.concatenate(list(self.t_eval_per_seg.values()))
 
@@ -231,13 +232,7 @@ class SimulationPhase(Group):
                 self.connect(src_name='interp_comp.control_rates:{0}_rate2'.format(name),
                              tgt_name=['ode.{0}'.format(tgt) for tgt in options['rate2_param']])
 
-            # if options['targets']:
-            #     self.connect('time', ['ode.{0}'.format(tgt) for tgt in options['targets']])
-
     def _setup_design_parameters(self, ivc):
-        gd = self.options['grid_data']
-        num_seg = gd.num_segments
-        num_points = sum([len(a) for a in list(self.t_eval_per_seg.values())])
 
         for name, options in iteritems(self.design_parameter_options):
             ivc.add_output('design_parameters:{0}'.format(name),
@@ -250,15 +245,6 @@ class SimulationPhase(Group):
                 self.connect(src_name, [t for t in tgts],
                              src_indices=src_idxs, flat_src_indices=True)
 
-            # for i in range(num_seg):
-            #     self.connect(src_name='design_parameters:{0}'.format(name),
-            #                  tgt_name='segment_{0}.design_parameters:{1}'.format(i, name))
-            #
-            # if options['targets']:
-            #     self.connect(src_name='design_parameters:{0}'.format(name),
-            #                  tgt_name=['ode.{0}'.format(tgt) for tgt in options['targets']],
-            #                  src_indices=np.zeros(num_points, dtype=int))
-
     def _setup_input_parameters(self):
 
         if self.input_parameter_options:
@@ -269,9 +255,6 @@ class SimulationPhase(Group):
                                promotes_outputs=['*'])
 
         for name, options in iteritems(self.input_parameter_options):
-            # ivc.add_output('input_parameters:{0}'.format(name),
-            #                val=np.ones((1,) + options['shape']),
-            #                units=options['units'])
             src_name = 'input_parameters:{0}_out'.format(name)
 
             for tgts, src_idxs in self._get_parameter_connections(name):

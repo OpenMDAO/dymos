@@ -55,8 +55,7 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_ex_brachistochrone_radau_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        compressed=True,
-                                                        sim_record='ex_brach_radau_compressed.db')
+                                                        compressed=True)
         self.run_asserts(p)
         self.tearDown()
         if os.path.exists('ex_brach_radau_compressed.db'):
@@ -65,8 +64,7 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_ex_brachistochrone_radau_uncompressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        compressed=False,
-                                                        sim_record='ex_brach_radau_uncompressed.db')
+                                                        compressed=False)
         self.run_asserts(p)
         self.tearDown()
         if os.path.exists('ex_brach_radau_uncompressed.db'):
@@ -75,8 +73,7 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_ex_brachistochrone_gl_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        compressed=True,
-                                                        sim_record='ex_brach_gl_compressed.db')
+                                                        compressed=True)
         self.run_asserts(p)
         self.tearDown()
         if os.path.exists('ex_brach_gl_compressed.db'):
@@ -85,8 +82,7 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_ex_brachistochrone_gl_uncompressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        compressed=False,
-                                                        sim_record='ex_brach_gl_compressed.db')
+                                                        compressed=False)
         self.run_asserts(p)
         self.tearDown()
         if os.path.exists('ex_brach_gl_uncompressed.db'):
