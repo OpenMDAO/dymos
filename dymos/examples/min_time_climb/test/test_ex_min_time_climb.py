@@ -37,17 +37,14 @@ class TestExampleMinTimeClimb(unittest.TestCase):
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['csc'],  # jacobian
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
-                                                                          p.args[0],
-                                                                          p.args[1]])
+                                                                          p.args[0]])
     )
-    def test_results(self, transcription='gauss-lobatto', jacobian='csc'):
+    def test_results(self, transcription='gauss-lobatto'):
         p = ex_min_time_climb.min_time_climb(optimizer='SLSQP',
                                              num_seg=12,
                                              transcription_order=3,
-                                             transcription=transcription,
-                                             top_level_jacobian=jacobian)
+                                             transcription=transcription)
 
         phase = p.model.phase0
 

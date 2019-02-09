@@ -130,7 +130,7 @@ T_interp_deriv = T_interp.derivative(1)
 P_interp_deriv = P_interp.derivative(1)
 rho_interp_deriv = rho_interp.derivative(1)
 visc_interp_deriv = visc_interp.derivative(1)
-drho_dh_interp_deriv = rho_interp.derivative(2)
+drho_dh_interp_deriv = rho_interp_deriv.derivative(1)
 
 
 class USatm1976Comp(ExplicitComponent):
@@ -157,26 +157,23 @@ class USatm1976Comp(ExplicitComponent):
         arange = np.arange(nn)
         self.declare_partials(['temp', 'pres', 'rho', 'viscosity', 'drhos_dh', 'sos'], 'h',
                               rows=arange, cols=arange)
-        # self.declare_partials(of='*', wrt='*', method='fd')
 
     def compute(self, inputs, outputs):
-
         outputs['temp'] = T_interp(inputs['h'], extrapolate=True)
         outputs['pres'] = P_interp(inputs['h'], extrapolate=True)
         outputs['rho'] = rho_interp(inputs['h'], extrapolate=True)
         outputs['viscosity'] = visc_interp(inputs['h'], extrapolate=True)
         outputs['drhos_dh'] = rho_interp_deriv(inputs['h'], extrapolate=True)
-
         outputs['sos'] = np.sqrt(self._K*outputs['temp'])
 
     def compute_partials(self, inputs, partials):
         nn = self.options['num_nodes']
         H = inputs['h']
-        partials['temp', 'h'] = T_interp_deriv(H, extrapolate=True).reshape(nn,)[0]
-        partials['pres', 'h'] = P_interp_deriv(H, extrapolate=True).reshape(nn,)[0]
-        partials['rho', 'h'] = rho_interp_deriv(H, extrapolate=True).reshape(nn,)[0]
-        partials['viscosity', 'h'] = visc_interp_deriv(H, extrapolate=True).reshape(nn,)[0]
-        partials['drhos_dh', 'h'] = drho_dh_interp_deriv(H, extrapolate=True).reshape(nn,)[0]
+        partials['temp', 'h'] = T_interp_deriv(H, extrapolate=True)
+        partials['pres', 'h'] = P_interp_deriv(H, extrapolate=True)
+        partials['rho', 'h'] = rho_interp_deriv(H, extrapolate=True)
+        partials['viscosity', 'h'] = visc_interp_deriv(H, extrapolate=True)
+        partials['drhos_dh', 'h'] = drho_dh_interp_deriv(H, extrapolate=True)
 
         T = T_interp(H, extrapolate=True)
-        partials['sos', 'h'] = 0.5/np.sqrt(self._K*T)*partials['temp', 'h']*self._K
+        partials['sos', 'h'] = 0.5/np.sqrt(self._K*T)*partials['temp', 'h'] * self._K
