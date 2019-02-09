@@ -69,8 +69,6 @@ packages = [
     'phases.optimizer_based',
     'trajectory',
     'utils',
-    'utils.simulation',
-    'utils.simulation.components',
 ]
 
 generate_docs("..", "../..", packages, project_name='dymos')
