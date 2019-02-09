@@ -29,7 +29,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         p.driver.opt_settings['Function precision'] = 1.0E-12
-        p.driver.opt_settings['Linesearch tolerance'] = 0.01
+        p.driver.opt_settings['Linesearch tolerance'] = 0.99
         p.driver.opt_settings['Major step limit'] = 0.5
         # p.driver.opt_settings['Verify level'] = 3
 
@@ -93,6 +93,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p['phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_input')
 
     p.run_driver()
+
 
     if SHOW_PLOTS:
         exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 100))
