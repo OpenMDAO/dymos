@@ -258,4 +258,4 @@ if __name__ == '__main__':
     show = int(os.environ.get('SHOW_PLOTS', 1))
     show = True
     p = two_burn_orbit_raise_problem(optimizer='SNOPT', transcription='gauss-lobatto',
-                                     r_target=3, show_plots=bool(show))
+                                     r_target=3, show_plots=bool(show), compressed=False)
