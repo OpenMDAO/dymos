@@ -12,7 +12,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         for filename in ['coloring.json', 'two_burn_orbit_raise_example_for_docs.db', 'SLSQP.out',
-                         'SNOPT_print.out', 'SNOPT_summary.out']:
+                         'SNOPT_print.out', 'SNOPT_summary.out', 'SLSQP.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 
@@ -33,8 +33,8 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         p.model.add_subsystem('traj', traj)
 
         p.driver = pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
-        p.driver.options['optimizer'] = 'SNOPT'
+        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
+        p.driver.options['optimizer'] = 'SLSQP'
         p.driver.options['dynamic_simul_derivs'] = True
 
         traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU')
@@ -50,15 +50,14 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         burn1 = traj.add_phase('burn1', burn1)
 
         burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
-        burn1.set_state_options('r', fix_initial=True, fix_final=False, defect_scaler=100.0)
-        burn1.set_state_options('theta', fix_initial=True, fix_final=False, defect_scaler=100.0)
-        burn1.set_state_options('vr', fix_initial=True, fix_final=False, defect_scaler=100.0)
-        burn1.set_state_options('vt', fix_initial=True, fix_final=False, defect_scaler=100.0)
+        burn1.set_state_options('r', fix_initial=True, fix_final=False)
+        burn1.set_state_options('theta', fix_initial=True, fix_final=False)
+        burn1.set_state_options('vr', fix_initial=True, fix_final=False)
+        burn1.set_state_options('vt', fix_initial=True, fix_final=False)
         burn1.set_state_options('accel', fix_initial=True, fix_final=False)
         burn1.set_state_options('deltav', fix_initial=True, fix_final=False)
         burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=0.01, rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
-                          lower=-30, upper=30)
+                          scaler=0.01, lower=-30, upper=30)
 
         # Second Phase (Coast)
 
@@ -90,15 +89,14 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         traj.add_phase('burn2', burn2)
 
         burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), initial_ref=10)
-        burn2.set_state_options('r', fix_initial=False, fix_final=True, defect_scaler=100.0)
-        burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
-        burn2.set_state_options('vr', fix_initial=False, fix_final=True, defect_scaler=100.0)
-        burn2.set_state_options('vt', fix_initial=False, fix_final=True, defect_scaler=100.0)
+        burn2.set_state_options('r', fix_initial=False, fix_final=True)
+        burn2.set_state_options('theta', fix_initial=False, fix_final=False)
+        burn2.set_state_options('vr', fix_initial=False, fix_final=True)
+        burn2.set_state_options('vt', fix_initial=False, fix_final=True)
         burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
         burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=0.01, rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
-                          lower=-30, upper=30)
+                          scaler=0.01, lower=-30, upper=30)
 
         burn2.add_objective('deltav', loc='final', scaler=1.0)
 
