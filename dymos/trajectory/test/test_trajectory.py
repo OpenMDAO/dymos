@@ -24,7 +24,7 @@ class TestTrajectory(unittest.TestCase):
     def setUpClass(cls):
 
         cls.traj = Trajectory()
-        p = Problem(model=cls.traj)
+        p = cls.p = Problem(model=cls.traj)
 
         # Since we're only testing features like get_values that don't rely on a converged
         # solution, no driver is attached.  We'll just invoke run_model.
@@ -145,3 +145,9 @@ class TestTrajectory(unittest.TestCase):
         p.set_val('burn2.design_parameters:c', value=1.5)
 
         p.run_model()
+
+    def test_linked_phases(self):
+        burn1_accel = self.p.get_val('burn1.states:accel')
+        burn2_accel = self.p.get_val('burn2.states:accel')
+        accel_link_error = self.p.get_val('linkages.burn1|burn2_accel')
+        assert_rel_error(self, accel_link_error, burn2_accel[0]-burn1_accel[-1])
