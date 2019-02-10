@@ -6,8 +6,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, SqliteRecorder
-from openmdao.utils.mpi import MPI
+from openmdao.api import Problem, Group, pyOptSparseDriver, SqliteRecorder
 
 from dymos import Phase, Trajectory
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -79,6 +78,14 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
 
     burn2.add_objective('deltav', loc='final', scaler=100.0)
 
+    burn1.add_timeseries_output('pos_x', units='DU')
+    coast.add_timeseries_output('pos_x', units='DU')
+    burn2.add_timeseries_output('pos_x', units='DU')
+
+    burn1.add_timeseries_output('pos_y', units='DU')
+    coast.add_timeseries_output('pos_y', units='DU')
+    burn2.add_timeseries_output('pos_y', units='DU')
+
     # Link Phases
     traj.link_phases(phases=['burn1', 'coast', 'burn2'],
                      vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
@@ -113,8 +120,6 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
     # Needed to move the direct solver down into the phases for use with MPI.
     #  - After moving down, used fewer iterations (about 30 less)
-    # p.model.options['assembled_jac_type'] = 'csc'
-    # p.model.linear_solver = DirectSolver(assemble_jac=True)
 
     p.driver.add_recorder(SqliteRecorder('two_burn_orbit_raise_example.db'))
 
@@ -182,7 +187,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
     # Plot results
     if show_plots:
-        exp_out = traj.simulate(times=50, num_procs=3)
+        exp_out = traj.simulate(times=50)
 
         fig = plt.figure(figsize=(8, 4))
         fig.suptitle('Two Burn Orbit Raise Solution')
@@ -207,26 +212,41 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         ax_deltav.set_ylabel('${\Delta}v$ ($DU/TU$)')
         ax_deltav.grid(True)
 
-        t_sol = traj.get_values('time', flat=True)
-        x_sol = traj.get_values('pos_x', flat=True)
-        y_sol = traj.get_values('pos_y', flat=True)
-        dv_sol = traj.get_values('deltav', flat=True)
-        u1_sol = traj.get_values('u1', units='deg', flat=True)
+        t_sol = dict((phs, p.get_val('traj.{0}.timeseries.time'.format(phs)))
+                     for phs in ['burn1', 'coast', 'burn2'])
+        x_sol = dict((phs, p.get_val('traj.{0}.timeseries.pos_x'.format(phs)))
+                     for phs in ['burn1', 'coast', 'burn2'])
+        y_sol = dict((phs, p.get_val('traj.{0}.timeseries.pos_y'.format(phs)))
+                     for phs in ['burn1', 'coast', 'burn2'])
+        dv_sol = dict((phs, p.get_val('traj.{0}.timeseries.states:deltav'.format(phs)))
+                      for phs in ['burn1', 'coast', 'burn2'])
+        u1_sol = dict((phs, p.get_val('traj.{0}.timeseries.controls:u1'.format(phs), units='deg'))
+                      for phs in ['burn1', 'burn2'])
 
-        t_exp = exp_out.get_values('time', flat=True)
-        x_exp = exp_out.get_values('pos_x', flat=True)
-        y_exp = exp_out.get_values('pos_y', flat=True)
-        dv_exp = exp_out.get_values('deltav', flat=True)
-        u1_exp = exp_out.get_values('u1', units='deg', flat=True)
+        t_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.time'.format(phs)))
+                     for phs in ['burn1', 'coast', 'burn2'])
+        x_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.pos_x'.format(phs)))
+                     for phs in ['burn1', 'coast', 'burn2'])
+        y_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.pos_y'.format(phs)))
+                     for phs in ['burn1', 'coast', 'burn2'])
+        dv_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.states:deltav'.format(phs)))
+                      for phs in ['burn1', 'coast', 'burn2'])
+        u1_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.controls:u1'.format(phs),
+                                            units='deg'))
+                      for phs in ['burn1', 'burn2'])
 
-        ax_u1.plot(t_sol, u1_sol, 'ro', ms=3)
-        ax_u1.plot(t_exp, u1_exp, 'b-')
+        for phs in ['burn1', 'coast', 'burn2']:
+            try:
+                ax_u1.plot(t_sol[phs], u1_sol[phs], 'ro', ms=3)
+                ax_u1.plot(t_exp[phs], u1_exp[phs], 'b-')
+            except KeyError:
+                pass
 
-        ax_deltav.plot(t_sol, dv_sol, 'ro', ms=3)
-        ax_deltav.plot(t_exp, dv_exp, 'b-')
+            ax_deltav.plot(t_sol[phs], dv_sol[phs], 'ro', ms=3)
+            ax_deltav.plot(t_exp[phs], dv_exp[phs], 'b-')
 
-        ax_xy.plot(x_sol, y_sol, 'ro', ms=3, label='implicit')
-        ax_xy.plot(x_exp, y_exp, 'b-', label='explicit')
+            ax_xy.plot(x_sol[phs], y_sol[phs], 'ro', ms=3, label='implicit')
+            ax_xy.plot(x_exp[phs], y_exp[phs], 'b-', label='explicit')
 
         plt.show()
 
@@ -236,5 +256,6 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 if __name__ == '__main__':
     import os
     show = int(os.environ.get('SHOW_PLOTS', 1))
-    p = two_burn_orbit_raise_problem(optimizer='SLSQP', transcription='gauss-lobatto',
-                                     r_target=3, show_plots=bool(show))
+    show = True
+    p = two_burn_orbit_raise_problem(optimizer='SNOPT', transcription='gauss-lobatto',
+                                     r_target=3, show_plots=bool(show), compressed=False)

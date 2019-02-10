@@ -209,8 +209,7 @@ class TestPhaseTimeOptions(unittest.TestCase):
 
             phase.add_boundary_constraint('time', loc='initial', equals=0)
 
-            p.model.options['assembled_jac_type'] = 'csc'
-            p.model.linear_solver = DirectSolver(assemble_jac=True)
+            p.model.linear_solver = DirectSolver()
             p.setup(check=True)
 
             p['phase0.t_initial'] = 0.0

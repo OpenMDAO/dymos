@@ -1,13 +1,9 @@
 from __future__ import print_function, absolute_import, division
 
-import itertools
 import unittest
 
 import numpy as np
 from numpy.testing import assert_almost_equal
-
-from parameterized import parameterized
-from itertools import product
 
 from openmdao.utils.assert_utils import assert_rel_error
 
@@ -21,7 +17,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
     def test_results_gl_compressed(self):
         p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10, transcription_order=5,
-                                   top_level_jacobian='csc', compressed=True)
+                                   compressed=True)
 
         p.setup(check=True)
 
@@ -47,8 +43,8 @@ class TestExampleSSTOMoon(unittest.TestCase):
         assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)
 
         # Ensure the tangent of theta is (approximately) linear
-        time = p.model.phase0.get_values('time').flatten()
-        tan_theta = np.tan(p.model.phase0.get_values('theta').flatten())
+        time = p.get_val('phase0.timeseries.time').flatten()
+        tan_theta = np.tan(p.get_val('phase0.timeseries.controls:theta').flatten())
 
         coeffs, residuals, _, _, _ = np.polyfit(time, tan_theta, deg=1, full=True)
 
@@ -56,7 +52,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
     def test_results_radau_compressed(self):
         p = ex_ssto_moon.ssto_moon('radau-ps', num_seg=10, transcription_order=5,
-                                   top_level_jacobian='csc', compressed=True)
+                                   compressed=True)
 
         p.setup(check=True)
 
@@ -82,8 +78,8 @@ class TestExampleSSTOMoon(unittest.TestCase):
         assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)
 
         # Ensure the tangent of theta is (approximately) linear
-        time = p.model.phase0.get_values('time').flatten()
-        tan_theta = np.tan(p.model.phase0.get_values('theta').flatten())
+        time = p.get_val('phase0.timeseries.time').flatten()
+        tan_theta = np.tan(p.get_val('phase0.timeseries.controls:theta').flatten())
 
         coeffs, residuals, _, _, _ = np.polyfit(time, tan_theta, deg=1, full=True)
 
@@ -91,7 +87,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
     def test_results_gl_uncompressed(self):
         p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10, transcription_order=5,
-                                   top_level_jacobian='csc', compressed=False)
+                                   compressed=False)
 
         p.setup(check=True)
 
@@ -117,8 +113,8 @@ class TestExampleSSTOMoon(unittest.TestCase):
         assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)
 
         # Ensure the tangent of theta is (approximately) linear
-        time = p.model.phase0.get_values('time').flatten()
-        tan_theta = np.tan(p.model.phase0.get_values('theta').flatten())
+        time = p.get_val('phase0.timeseries.time').flatten()
+        tan_theta = np.tan(p.get_val('phase0.timeseries.controls:theta').flatten())
 
         coeffs, residuals, _, _, _ = np.polyfit(time, tan_theta, deg=1, full=True)
 
@@ -126,7 +122,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
     def test_results_radau_uncompressed(self):
         p = ex_ssto_moon.ssto_moon('radau-ps', num_seg=10, transcription_order=5,
-                                   top_level_jacobian='csc', compressed=False)
+                                   compressed=False)
 
         p.setup(check=True)
 
@@ -152,8 +148,8 @@ class TestExampleSSTOMoon(unittest.TestCase):
         assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)
 
         # Ensure the tangent of theta is (approximately) linear
-        time = p.model.phase0.get_values('time').flatten()
-        tan_theta = np.tan(p.model.phase0.get_values('theta').flatten())
+        time = p.get_val('phase0.timeseries.time').flatten()
+        tan_theta = np.tan(p.get_val('phase0.timeseries.controls:theta').flatten())
 
         coeffs, residuals, _, _, _ = np.polyfit(time, tan_theta, deg=1, full=True)
 
@@ -164,8 +160,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
         import dymos.examples.ssto.ex_ssto_moon as ex_ssto_moon
 
-        p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10,
-                                   transcription_order=5, top_level_jacobian='csc')
+        p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10, transcription_order=5)
 
         p.setup(check=True)
 
@@ -186,15 +181,16 @@ class TestExampleSSTOMoon(unittest.TestCase):
         ##############################
         # quick check of the results
         ##############################
-        assert_rel_error(self, phase.get_values('y')[-1], 1.85E5, 1e-4)
-        assert_rel_error(self, phase.get_values('vx')[-1], 1627.0, 1e-4)
-        assert_rel_error(self, phase.get_values('vy')[-1], 0, 1e-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:y')[-1], 1.85E5, 1e-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:vx')[-1], 1627.0, 1e-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:vy')[-1], 0, 1e-4)
 
         ##############################
         # Plot the trajectory
         ##############################
         plt.figure(facecolor='white')
-        plt.plot(phase.get_values('x'), phase.get_values('y'), 'bo')
+        plt.plot(p.get_val('phase0.timeseries.states:x'),
+                 p.get_val('phase0.timeseries.states:y'), 'bo')
         plt.xlabel('x, m')
         plt.ylabel('y, m')
         plt.grid()
@@ -203,17 +199,17 @@ class TestExampleSSTOMoon(unittest.TestCase):
         fig.suptitle('results for flat_earth_without_aero')
 
         axarr = fig.add_subplot(2, 1, 1)
-        axarr.plot(phase.get_values('time'),
-                   np.degrees(phase.get_values('theta')), 'bo')
+        axarr.plot(p.get_val('phase0.timeseries.time'),
+                   p.get_val('phase0.timeseries.controls:theta', units='deg'), 'bo')
         axarr.set_ylabel(r'$\theta$, deg')
         axarr.axes.get_xaxis().set_visible(False)
 
         axarr = fig.add_subplot(2, 1, 2)
 
-        axarr.plot(phase.get_values('time'),
-                   np.degrees(phase.get_values('vx')), 'bo', label='$v_x$')
-        axarr.plot(phase.get_values('time'),
-                   np.degrees(phase.get_values('vy')), 'ro', label='$v_y$')
+        axarr.plot(p.get_val('phase0.timeseries.time'),
+                   p.get_val('phase0.timeseries.states:vx'), 'bo', label='$v_x$')
+        axarr.plot(p.get_val('phase0.timeseries.time'),
+                   p.get_val('phase0.timeseries.states:vy'), 'ro', label='$v_y$')
         axarr.set_xlabel('time, s')
         axarr.set_ylabel('velocity, m/s')
         axarr.legend(loc='best')

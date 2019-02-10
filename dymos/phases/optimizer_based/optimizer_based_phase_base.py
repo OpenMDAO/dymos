@@ -14,7 +14,6 @@ from ..phase_base import PhaseBase
 from ...utils.constants import INF_BOUND
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.lagrange import lagrange_matrices
-from ...utils.simulation import simulate_phase
 from ...utils.indexing import get_src_indices_by_row
 
 
@@ -37,84 +36,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
         A dictionary of the default options for controllable inputs of the Phase RHS
 
     """
-
-    def simulate(self, times='all', integrator='vode', integrator_params=None,
-                 observer=None, record_file=None, record=True):
-        """
-        Integrate the current phase using the current values of time, states, and controls.
-
-        Parameters
-        ----------
-        times : str or sequence
-            The times at which the observing function will be called, and outputs will be saved.
-            If given as a string, it must be a valid node subset name.
-            If given as a sequence, it directly provides the times at which output is provided,
-            *in addition to the segment boundaries*.
-        integrator : str
-            The integrator to be used by scipy.ode.  This is one of:
-            'vode', 'lsoda', 'dopri5', or 'dopri853'.
-        integrator_params : dict
-            Parameters specific to the chosen integrator.  See the scipy.integrate.ode
-            documentation for details.
-        observer : callable, str, or None
-            A callable function to be called at the specified timesteps in
-            `integrate_times`.  This can be used to record the integrated trajectory.
-            If 'progress-bar', a ProgressBarObserver will be used, which outputs the simulation
-            process to the screen as a ProgressBar.
-            If 'stdout', a StdOutObserver will be used, which outputs all variables
-            in the model to standard output by default.
-            If None, no observer will be called.
-        record_file : str or None
-            A string given the name of the recorded file to which the results of the explicit
-            simulation should be saved.  If None, automatically save to '<phase_name>_sim.db'.
-        record : bool
-            If True (default), save the explicit simulation results to the file specified
-            by record_file.
-
-        Returns
-        -------
-        results : PhaseSimulationResults object
-        """
-
-        ode_class = self.options['ode_class']
-        ode_init_kwargs = self.options['ode_init_kwargs']
-        time_values = self.get_values('time').ravel()
-        state_values = {}
-        control_values = {}
-        design_parameter_values = {}
-        input_parameter_values = {}
-        for state_name, options in iteritems(self.state_options):
-            state_values[state_name] = self.get_values(state_name, nodes='all')
-        for control_name, options in iteritems(self.control_options):
-            control_values[control_name] = self.get_values(control_name, nodes='all')
-        for dp_name, options in iteritems(self.design_parameter_options):
-            design_parameter_values[dp_name] = self.get_values(dp_name, nodes='all')
-        for ip_name, options in iteritems(self.input_parameter_options):
-            input_parameter_values[ip_name] = self.get_values(ip_name, nodes='all')
-
-        exp_out = simulate_phase(self.name,
-                                 ode_class=ode_class,
-                                 time_options=self.time_options,
-                                 state_options=self.state_options,
-                                 control_options=self.control_options,
-                                 design_parameter_options=self.design_parameter_options,
-                                 input_parameter_options=self.input_parameter_options,
-                                 time_values=time_values,
-                                 state_values=state_values,
-                                 control_values=control_values,
-                                 design_parameter_values=design_parameter_values,
-                                 input_parameter_values=input_parameter_values,
-                                 ode_init_kwargs=ode_init_kwargs,
-                                 grid_data=self.grid_data,
-                                 times=times,
-                                 record=record,
-                                 record_file=record_file,
-                                 observer=observer,
-                                 integrator=integrator,
-                                 integrator_params=integrator_params)
-
-        return exp_out
-
     def setup(self):
         super(OptimizerBasedPhaseBase, self).setup()
 
@@ -128,10 +49,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
         indep_controls = ['indep_controls'] if num_opt_controls > 0 else []
         design_params = ['design_params'] if self.design_parameter_options else []
         input_params = ['input_params'] if self.input_parameter_options else []
+        traj_params = ['traj_params'] if self.traj_parameter_options else []
         control_interp_comp = ['control_interp_comp'] if num_controls > 0 else []
 
         order = self._time_extents + indep_controls + \
-            input_params + design_params + \
+            input_params + design_params + traj_params + \
             ['indep_states', 'time'] + control_interp_comp + \
             ['indep_jumps', 'initial_conditions', 'final_conditions']
 
@@ -150,6 +72,9 @@ class OptimizerBasedPhaseBase(PhaseBase):
             order.append('final_boundary_constraints')
         if getattr(self, 'path_constraints', None) is not None:
             order.append('path_constraints')
+
+        order.append('timeseries')
+
         self.set_order(order)
 
     def _setup_rhs(self):
@@ -289,10 +214,9 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 segment_end_idxs = grid_data.subset_node_indices['segment_ends']
                 src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
 
-                if not self.options['compressed']:
-                    self.connect(control_src_name,
-                                 'continuity_comp.controls:{0}'.format(name),
-                                 src_indices=src_idxs, flat_src_indices=True)
+                self.connect(control_src_name,
+                             'continuity_comp.controls:{0}'.format(name),
+                             src_indices=src_idxs, flat_src_indices=True)
 
                 self.connect('control_rates:{0}_rate'.format(name),
                              'continuity_comp.control_rates:{}_rate'.format(name),
@@ -477,130 +401,3 @@ class OptimizerBasedPhaseBase(PhaseBase):
             linear = False
 
         return constraint_path, shape, units, linear
-
-    def interpolate_values(self, var, times):
-        """
-        Interpolate a variable to the requested times within the phase, using the appropriate
-        polynomial basis for each segment.
-
-        Parameters
-        ----------
-        var : str
-            The variable whose solution is to be interpolated.
-        times : sequence
-            The increasing-ordered times at which an interpolation of the given
-            solution is requested. If the times fall beyond the extents of the phase,
-            smooth extrapolation will be performed.
-
-        Returns
-        -------
-        vals : numpy.ndarray
-            Interpolated value of the specified variable at the given times.
-
-        """
-        gd = self.grid_data
-
-        vals_all = self.get_values(var, nodes='all')
-        # The values of the variable at all nodes in the phase
-
-        times_all = self.get_values('time', nodes='all')
-        # The values of time at all nodes in the phase
-
-        seg_bins = np.unique(times_all[gd.subset_node_indices['segment_ends']])
-        # An array of segment end times which provide bins for the given segments
-
-        time_segs = np.clip(np.digitize(times, seg_bins) - 1, 0, gd.num_segments-1)
-        # The segment into which each time in the given times array falls
-
-        res = np.atleast_2d(np.zeros_like(times)).T
-
-        for iseg in range(gd.num_segments):
-            i1, i2 = gd.subset_segment_indices['all'][iseg, :]
-            seg_idxs = gd.subset_node_indices['all'][i1:i2]
-            nodes_given = gd.node_stau[seg_idxs]
-
-            times_idxs_in_seg = np.where(time_segs == iseg)[0]
-
-            times_eval = times[times_idxs_in_seg]
-
-            times_seg = times_all[seg_idxs]
-            t0_seg = times_seg[0]
-            tf_seg = times_seg[-1]
-
-            # put times_eval on [-1, 1]
-            m = 2.0 / (tf_seg - t0_seg)
-            b = 1.0 - (m * tf_seg)
-            nodes_eval = m * times_eval + b
-
-            L, _ = lagrange_matrices(nodes_given, nodes_eval)
-
-            seg_given_vals = vals_all[seg_idxs]
-            seg_interp_vals = np.dot(L, seg_given_vals)
-
-            res[times_idxs_in_seg, ...] = seg_interp_vals
-
-        return res
-
-    def interpolate_rates(self, var, times):
-        """
-        Interpolate the rate of a variable to the requested times within the phase, using
-        the appropriate polynomial basis for each segment.
-
-        Parameters
-        ----------
-        var : str
-            The variable whose solution is to be interpolated.
-        times : sequence
-            The increasing-ordered times at which an interpolation of the given
-            solution is requested. If the times fall beyond the extents of the phase,
-            smooth extrapolation will be performed.
-
-        Returns
-        -------
-        vals : numpy.ndarray
-            Interpolated rate of the specified variable at the given times.
-
-        """
-        gd = self.grid_data
-
-        vals_all = self.get_values(var, nodes='all')
-        # The values of the variable at all nodes in the phase
-
-        times_all = self.get_values('time', nodes='all')
-        # The values of time at all nodes in the phase
-
-        seg_bins = np.unique(times_all[gd.subset_node_indices['segment_ends']])
-        # An array of segment end times which provide bins for the given segments
-
-        time_segs = np.clip(np.digitize(times, seg_bins) - 1, 0, gd.num_segments-1)
-        # The segment into which each time in the given times array falls
-
-        res = np.atleast_2d(np.zeros_like(times)).T
-
-        for iseg in range(gd.num_segments):
-            i1, i2 = gd.subset_segment_indices['all'][iseg, :]
-            seg_idxs = gd.subset_node_indices['all'][i1:i2]
-            nodes_given = gd.node_stau[seg_idxs]
-
-            times_idxs_in_seg = np.where(time_segs == iseg)[0]
-
-            times_eval = times[times_idxs_in_seg]
-
-            times_seg = times_all[seg_idxs]
-            t0_seg = times_seg[0]
-            tf_seg = times_seg[-1]
-            dt_dstau = 0.5 * (tf_seg - t0_seg)
-
-            # put times_eval on [-1, 1]
-            m = 2.0 / (tf_seg - t0_seg)
-            b = 1.0 - (m * tf_seg)
-            nodes_eval = m * times_eval + b
-
-            _, D = lagrange_matrices(nodes_given, nodes_eval)
-
-            seg_given_vals = vals_all[seg_idxs]
-            seg_interp_rates = np.dot(D, seg_given_vals) / dt_dstau
-
-            res[times_idxs_in_seg, ...] = seg_interp_rates
-
-        return res

@@ -6,8 +6,8 @@ from dymos import Phase
 from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
 
-def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP',
-              top_level_jacobian='csc', transcription_order=5, compressed=False):
+def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP', transcription_order=3,
+              compressed=False):
 
     p = Problem(model=Group())
 
@@ -27,7 +27,7 @@ def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP',
                   ode_init_kwargs={'central_body': 'moon'},
                   num_segments=num_seg,
                   compressed=compressed,
-                  transcription_order=3)
+                  transcription_order=transcription_order)
 
     p.model.add_subsystem('phase0', phase)
 
@@ -54,7 +54,6 @@ def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP',
 
     phase.add_objective('time', index=-1, scaler=0.01)
 
-    p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
-    p.model.linear_solver = DirectSolver(assemble_jac=True)
+    p.model.linear_solver = DirectSolver()
 
     return p

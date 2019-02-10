@@ -47,8 +47,7 @@ class TestAircraftODEGroup(unittest.TestCase):
         cls.p.model.connect('climb_rate', ['ode.gam_comp.climb_rate'])
         cls.p.model.connect('S', ('ode.aero.S', 'ode.flight_equilibrium.S', 'ode.propulsion.S'))
 
-        cls.p.model.linear_solver = DirectSolver(assemble_jac=True)
-        cls.p.model.options['assembled_jac_type'] = 'csc'
+        cls.p.model.linear_solver = DirectSolver()
 
         cls.p.setup(check=True)
 

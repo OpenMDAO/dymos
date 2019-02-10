@@ -6,8 +6,6 @@ import unittest
 class TestMinTimeClimbForDocs(unittest.TestCase):
 
     def test_min_time_climb_for_docs_gauss_lobatto(self):
-        import numpy as np
-
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -22,8 +20,6 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
 
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-
-        # Compute sparsity/coloring when run_driver is called
         p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('gauss-lobatto',
@@ -38,24 +34,22 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
                                duration_ref=100.0)
 
         phase.set_state_options('r', fix_initial=True, lower=0, upper=1.0E6,
-                                ref=1.0E3, defect_ref=1000.0, units='m')
+                                ref=1.0E3, defect_ref=1.0E3, units='m')
 
         phase.set_state_options('h', fix_initial=True, lower=0, upper=20000.0,
-                                ref=1.0E2, defect_ref=100.0, units='m')
+                                ref=1.0E2, defect_ref=1.0E2, units='m')
 
         phase.set_state_options('v', fix_initial=True, lower=10.0,
-                                ref=1.0E2, defect_ref=0.1, units='m/s')
+                                ref=1.0E2, defect_ref=1.0E2, units='m/s')
 
         phase.set_state_options('gam', fix_initial=True, lower=-1.5, upper=1.5,
                                 ref=1.0, defect_scaler=1.0, units='rad')
 
         phase.set_state_options('m', fix_initial=True, lower=10.0, upper=1.0E5,
-                                ref=1.0E3, defect_ref=0.1)
-
-        rate_continuity = True
+                                ref=1.0E3, defect_ref=1.0E3)
 
         phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
-                          rate_continuity=rate_continuity, rate_continuity_scaler=100.0,
+                          rate_continuity=True, rate_continuity_scaler=100.0,
                           rate2_continuity=False)
 
         phase.add_design_parameter('S', val=49.2386, units='m**2', opt=False)
@@ -71,11 +65,9 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         phase.add_path_constraint(name='alpha', lower=-8, upper=8)
 
         # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final')
+        phase.add_objective('time', loc='final', ref=1.0)
 
-        p.driver.options['dynamic_simul_derivs'] = True
-        p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
 
         p.setup(check=True)
 
@@ -93,19 +85,28 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.model.phase0.get_values('time')[-1], 321.0, tolerance=2)
+        assert_rel_error(self, p.get_val('phase0.t_duration'), 321.0, tolerance=2)
 
-        exp_out = phase.simulate(times=50)
+        exp_out = phase.simulate(times=50, record=False)
 
         fig, axes = plt.subplots(2, 1, sharex=True)
 
-        axes[0].plot(phase.get_values('time'), phase.get_values('h'), 'ro')
-        axes[0].plot(exp_out.get_values('time'), exp_out.get_values('h'), 'b-')
+        t_sol = p.get_val('phase0.timeseries.time')
+        t_exp = exp_out.get_val('phase0.timeseries.time')
+
+        h_sol = p.get_val('phase0.timeseries.states:h')
+        h_exp = exp_out.get_val('phase0.timeseries.states:h')
+
+        alpha_sol = p.get_val('phase0.timeseries.controls:alpha', units='deg')
+        alpha_exp = exp_out.get_val('phase0.timeseries.controls:alpha', units='deg')
+
+        axes[0].plot(t_sol, h_sol, 'ro')
+        axes[0].plot(t_exp, h_exp, 'b-')
         axes[0].set_xlabel('time (s)')
         axes[0].set_ylabel('altitude (m)')
 
-        axes[1].plot(phase.get_values('time'), phase.get_values('alpha', units='deg'), 'ro')
-        axes[1].plot(exp_out.get_values('time'), exp_out.get_values('alpha', units='deg'), 'b-')
+        axes[1].plot(t_sol, alpha_sol, 'ro')
+        axes[1].plot(t_exp, alpha_exp, 'b-')
         axes[1].set_xlabel('time (s)')
         axes[1].set_ylabel('alpha (deg)')
 

@@ -32,6 +32,10 @@ class MinTimeClimbODE(Group):
                            subsys=USatm1976Comp(num_nodes=nn),
                            promotes_inputs=['h'])
 
+        # self.add_subsystem(name='atmos',
+        #                    subsys=StandardAtmosphereGroup(num_nodes=nn),
+        #                    promotes_inputs=['h'])
+
         self.add_subsystem(name='aero',
                            subsys=AeroGroup(num_nodes=nn),
                            promotes_inputs=['v', 'alpha', 'S'])

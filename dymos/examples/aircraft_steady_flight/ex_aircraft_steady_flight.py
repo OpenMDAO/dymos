@@ -76,7 +76,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     phase.add_objective('range', loc='final', ref=-1.0e-4)
 
-    p.model.linear_solver = DirectSolver(assemble_jac=True)
+    p.model.linear_solver = DirectSolver()
 
     p.setup()
 
@@ -97,84 +97,31 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
     exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True,
                              record_file='test_ex_aircraft_steady_flight_rec.db')
 
-    plt.plot(phase.get_values('time', nodes='all'), phase.get_values('alt', nodes='all'), 'ro')
-    plt.plot(exp_out.get_values('time'), exp_out.get_values('alt'), 'b-')
+    t_imp = p.get_val('phase0.timeseries.time')
+    t_exp = exp_out.get_val('phase0.timeseries.time')
+
+    alt_imp = p.get_val('phase0.timeseries.states:alt')
+    alt_exp = exp_out.get_val('phase0.timeseries.states:alt')
+
+    climb_rate_imp = p.get_val('phase0.timeseries.controls:climb_rate', units='ft/min')
+    climb_rate_exp = exp_out.get_val('phase0.timeseries.controls:climb_rate', units='ft/min')
+
+    mass_fuel_imp = p.get_val('phase0.timeseries.states:mass_fuel', units='kg')
+    mass_fuel_exp = exp_out.get_val('phase0.timeseries.states:mass_fuel', units='kg')
+
+    plt.plot(t_imp, alt_imp, 'ro')
+    plt.plot(t_exp, alt_exp, 'b-')
     plt.suptitle('altitude vs time')
+
     plt.figure()
-    plt.plot(phase.get_values('time', nodes='all'),
-             phase.get_values('climb_rate', nodes='all', units='ft/min'), 'ro')
-    plt.plot(exp_out.get_values('time'), exp_out.get_values('climb_rate', units='ft/min'), 'b-')
+    plt.plot(t_imp, climb_rate_imp, 'ro')
+    plt.plot(t_exp, climb_rate_exp, 'b-')
     plt.suptitle('climb rate vs time')
+
     plt.figure()
-    plt.plot(phase.get_values('time', nodes='all'), phase.get_values('mass_fuel', nodes='all'),
-             'ro')
-    plt.plot(exp_out.get_values('time'), exp_out.get_values('mass_fuel'), 'b-')
+    plt.plot(t_imp, mass_fuel_imp, 'ro')
+    plt.plot(t_exp, mass_fuel_exp, 'b-')
     plt.suptitle('fuel mass vs time')
-    plt.figure()
-    plt.plot(phase.get_values('time', nodes='all'),
-             phase.get_values('propulsion.dXdt:mass_fuel', nodes='all'), 'ro')
-    plt.plot(exp_out.get_values('time'), exp_out.get_values('propulsion.dXdt:mass_fuel'), 'b-')
-    plt.suptitle('fuel mass flow rate vs time')
-    plt.figure()
-    plt.plot(phase.get_values('time', nodes='all'), phase.get_values('mach', nodes='all'), 'ro')
-    plt.plot(exp_out.get_values('time'), exp_out.get_values('mach'), 'b-')
-    plt.suptitle('mach vs time')
-    plt.figure()
-    plt.plot(phase.get_values('time', nodes='all'), phase.get_values('mach_rate', nodes='all'),
-             'ro')
-    plt.plot(exp_out.get_values('time'), exp_out.get_values('mach_rate'), 'b-')
-    plt.suptitle('mach rate vs time')
-
-    print('time')
-    print(phase.get_values('time', nodes='all').T)
-
-    print('alt')
-    print(phase.get_values('alt', nodes='all').T)
-
-    print('alt_rate')
-    print(phase.get_values('climb_rate', nodes='all').T)
-
-    print('climb_rate_rate')
-    print(phase.get_values('climb_rate_rate', nodes='all').T)
-
-    print('range')
-    print(phase.get_values('range', nodes='all').T)
-
-    print('flight path angle')
-    print(phase.get_values('gam_comp.gam').T)
-
-    print('true airspeed')
-    print(phase.get_values('tas_comp.TAS', units='m/s').T)
-
-    print('coef of lift')
-    print(phase.get_values('aero.CL').T)
-
-    print('coef of drag')
-    print(phase.get_values('aero.CD').T)
-
-    print('atmos density')
-    print(phase.get_values('atmos.rho').T)
-
-    print('alpha')
-    print(phase.get_values('flight_equilibrium.alpha', units='rad').T)
-
-    print('coef of thrust')
-    print(phase.get_values('flight_equilibrium.CT').T)
-
-    print('fuel flow rate')
-    print(phase.get_values('propulsion.dXdt:mass_fuel').T)
-
-    print('max_thrust')
-    print(phase.get_values('propulsion.max_thrust', units='N').T)
-
-    print('tau')
-    print(phase.get_values('propulsion.tau').T)
-
-    print('dynamic pressure')
-    print(phase.get_values('q_comp.q', units='Pa').T)
-
-    print('S')
-    print(phase.get_values('S', units='m**2').T)
 
     plt.show()
 

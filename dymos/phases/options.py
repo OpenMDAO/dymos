@@ -136,7 +136,7 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
         self.declare(name='dynamic', types=bool, default=True,
                      desc='True if this parameter can be used as a dynamic control, else False')
 
-        self.declare(name='targets', types=Iterable, default=[], allow_none=True,
+        self.declare(name='target_params', types=dict, default=None, allow_none=True,
                      desc='Used to store target information on a per-phase basis for trajectories.')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
@@ -198,11 +198,8 @@ class InputParameterOptionsDictionary(OptionsDictionary):
         self.declare(name='dynamic', types=bool, default=True,
                      desc='True if this parameter can be used as a dynamic control, else False')
 
-        self.declare(name='targets', types=Iterable, default=[], allow_none=True,
+        self.declare(name='target_params', types=dict, default=None, allow_none=True,
                      desc='Used to store target information on a per-phase basis for trajectories.')
-
-        self.declare(name='target_param', types=string_types, default=None, allow_none=True,
-                     desc='The name of the ODE system parameter to be set via input parameter.')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the design parameter in the phase.')

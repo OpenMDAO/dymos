@@ -48,7 +48,7 @@ class TestStageStateComp(unittest.TestCase):
         assert_rel_error(self, self.p['stage_time_comp.t_stage'], t_stage_expected)
 
     def test_partials(self):
-        cpd = self.p.check_partials(out_stream=None)
+        cpd = self.p.check_partials()
         assert_check_partials(cpd)
 
 if __name__ == '__main__':

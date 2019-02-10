@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division
 import itertools
 import unittest
 
-import numpy as np
 from numpy.testing import assert_almost_equal
 
 import matplotlib
@@ -56,15 +55,17 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
                                                          optimizer='SLSQP')
 
         # quick check of the results
-        assert_rel_error(self, p.model.phase0.get_values('y')[-1], 1.85E5, 1e-4)
-        assert_rel_error(self, p.model.phase0.get_values('vx')[-1], 1627.0, 1e-4)
-        assert_rel_error(self, p.model.phase0.get_values('vy')[-1], 0, 1e-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:y')[-1], 1.85E5, 1e-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:vx')[-1], 1627.0, 1e-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:vy')[-1], 0, 1e-4)
 
         ##############################
         # Plot the trajectory
         ##############################
         plt.figure(facecolor='white')
-        plt.plot(p.model.phase0.get_values('x'), p.model.phase0.get_values('y'), 'bo')
+        plt.plot(p.get_val('phase0.timeseries.states:x'),
+                 p.get_val('phase0.timeseries.states:y'),
+                 'bo')
         plt.xlabel('x, m')
         plt.ylabel('y, m')
         plt.grid()
@@ -73,17 +74,17 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
         fig.suptitle('results for flat_earth_without_aero')
 
         axarr = fig.add_subplot(2, 1, 1)
-        axarr.plot(p.model.phase0.get_values('time'),
-                   np.degrees(p.model.phase0.get_values('guidance.theta')), 'bo')
+        axarr.plot(p.get_val('phase0.timeseries.time'),
+                   p.get_val('phase0.timeseries.theta', units='deg'), 'bo')
         axarr.set_ylabel(r'$\theta$, deg')
         axarr.axes.get_xaxis().set_visible(False)
 
         axarr = fig.add_subplot(2, 1, 2)
 
-        axarr.plot(p.model.phase0.get_values('time'),
-                   np.degrees(p.model.phase0.get_values('vx')), 'bo', label='$v_x$')
-        axarr.plot(p.model.phase0.get_values('time'),
-                   np.degrees(p.model.phase0.get_values('vy')), 'ro', label='$v_y$')
+        axarr.plot(p.get_val('phase0.timeseries.time'),
+                   p.get_val('phase0.timeseries.states:vx'), 'bo', label='$v_x$')
+        axarr.plot(p.get_val('phase0.timeseries.time'),
+                   p.get_val('phase0.timeseries.states:vy'), 'ro', label='$v_y$')
         axarr.set_xlabel('time, s')
         axarr.set_ylabel('velocity, m/s')
         axarr.legend(loc='best')

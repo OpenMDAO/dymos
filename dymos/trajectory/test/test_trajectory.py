@@ -24,7 +24,7 @@ class TestTrajectory(unittest.TestCase):
     def setUpClass(cls):
 
         cls.traj = Trajectory()
-        p = Problem(model=cls.traj)
+        p = cls.p = Problem(model=cls.traj)
 
         # Since we're only testing features like get_values that don't rely on a converged
         # solution, no driver is attached.  We'll just invoke run_model.
@@ -97,9 +97,7 @@ class TestTrajectory(unittest.TestCase):
         cls.traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
         # Finish Problem Setup
-
-        p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
 
         p.model.add_recorder(SqliteRecorder('test_trajectory_rec.db'))
 
@@ -148,34 +146,8 @@ class TestTrajectory(unittest.TestCase):
 
         p.run_model()
 
-    def test_get_values_different_nodes(self):
-        """
-        Tests that get_values with various node subsets in each phase works as expected.
-        """
-        nodes_map = {'burn1': 'all', 'coast': 'control_input', 'burn2': 'col'}
-
-        for p in ('burn1', 'coast', 'burn2'):
-            for var in ('time', 'r', 'theta', 'deltav', 'u1', 'pos_x', 'pos_y'):
-                traj_out = self.traj.get_values(var, nodes=nodes_map)
-                phase_out = self.traj._phases[p].get_values(var, nodes=nodes_map[p])
-                assert_rel_error(self, traj_out[p], phase_out)
-
-    def test_get_values_flattened(self):
-        """
-        Tests that get_values with various node subsets in each phase works as expected.
-        """
-        nodes_map = {'burn1': 'all', 'coast': 'control_input', 'burn2': 'col'}
-
-        for var in ('time', 'r', 'theta', 'deltav', 'u1', 'pos_x', 'pos_y'):
-            traj_out = self.traj.get_values(var, nodes=nodes_map, flat=True)
-            phase_outs = [self.traj._phases[p].get_values(var, nodes=nodes_map[p])
-                          for p in ('burn1', 'coast', 'burn2')]
-            assert_rel_error(self, traj_out, np.concatenate(phase_outs))
-
-    def test_get_values_nonexistent_var(self):
-        """
-        Tests that get_values raises the appropriate KeyError when a variable is not found.
-        """
-        with self.assertRaises(KeyError) as e:
-            self.traj.get_values('foo')
-            self.assertEqual(str(e.exception), 'Variable "foo" not found in trajectory.')
+    def test_linked_phases(self):
+        burn1_accel = self.p.get_val('burn1.states:accel')
+        burn2_accel = self.p.get_val('burn2.states:accel')
+        accel_link_error = self.p.get_val('linkages.burn1|burn2_accel')
+        assert_rel_error(self, accel_link_error, burn2_accel[0]-burn1_accel[-1])

@@ -37,22 +37,17 @@ class TestExampleMinTimeClimb(unittest.TestCase):
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['csc'],  # jacobian
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
-                                                                          p.args[0],
-                                                                          p.args[1]])
+                                                                          p.args[0]])
     )
-    def test_results(self, transcription='gauss-lobatto', jacobian='csc'):
+    def test_results(self, transcription='gauss-lobatto'):
         p = ex_min_time_climb.min_time_climb(optimizer='SLSQP',
                                              num_seg=12,
                                              transcription_order=3,
-                                             transcription=transcription,
-                                             top_level_jacobian=jacobian)
-
-        phase = p.model.phase0
+                                             transcription=transcription)
 
         # Check that time matches to within 1% of an externally verified solution.
-        assert_rel_error(self, phase.get_values('time')[-1], 321.0, tolerance=2)
+        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
 
 if __name__ == '__main__':
     unittest.main()

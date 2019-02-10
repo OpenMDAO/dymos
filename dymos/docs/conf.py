@@ -69,8 +69,6 @@ packages = [
     'phases.optimizer_based',
     'trajectory',
     'utils',
-    'utils.simulation',
-    'utils.simulation.components',
 ]
 
 generate_docs("..", "../..", packages, project_name='dymos')
@@ -97,7 +95,7 @@ author = u'Rob Falck and John Hwang'
 # built documents.
 #
 # The short X.Y version.
-version = u'0.11.1'
+version = u'0.12.0'
 # The full version, including alpha/beta/rc tags.
 release = version
 

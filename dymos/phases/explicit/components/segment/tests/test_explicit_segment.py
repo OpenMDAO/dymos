@@ -12,7 +12,7 @@ from dymos.phases.options import TimeOptionsDictionary
 from dymos.phases.explicit.components.segment.explicit_segment import ExplicitSegment
 from dymos.phases.explicit.solvers.nl_rk_solver import NonlinearRK
 from dymos.phases.grid_data import GridData
-from dymos.utils.simulation import ScipyODEIntegrator
+from dymos.phases.simulation.ode_integration_interface import ODEIntegrationInterface
 
 
 @declare_time(targets=['t'], units='s')
@@ -94,17 +94,6 @@ class TestExplicitSegmentSimpleIntegration(unittest.TestCase):
         self.p.setup(check=False, force_alloc_complex=True)
 
         seg = self.p.model.segment
-
-        integrator = ScipyODEIntegrator(phase_name='',
-                                        ode_class=seg.options['ode_class'],
-                                        ode_init_kwargs=seg.options['ode_init_kwargs'],
-                                        state_options=seg.options['state_options'],
-                                        time_options=seg.options['time_options'],
-                                        control_options={},
-                                        design_parameter_options={},
-                                        input_parameter_options={})
-
-        integrator.setup(check=False)
 
         seg.nonlinear_solver = NonlinearRK()
 

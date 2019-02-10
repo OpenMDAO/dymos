@@ -9,17 +9,23 @@ from dymos.phases.grid_data import GridData
 from dymos.utils.constants import INF_BOUND
 
 
-class PathConstraintCompBase(ExplicitComponent):
+class TimeseriesOutputCompBase(ExplicitComponent):
+    """
+    TimeseriesOutputComp collects variable values from the phase and provides them in chronological
+    order as outputs.  Some phase types don't internally have access to a contiguous array of all
+    values of a given variable in the phase.  For instance, the GaussLobatto pseudospectral has
+    separate arrays of variable values at discretization and collocation nodes.  These values
+    need to be interleaved to provide a time series.  Pseudospectral techniques provide timeseries
+    data at 'all' nodes, while ExplicitPhase provides values at the step boundaries.
+    """
 
     def initialize(self):
-        self._path_constraints = []
+        self._timeseries_outputs = []
         self._vars = []
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
-    def _add_path_constraint(self, name, var_class, shape=(1,), units=None, res_units=None, desc='',
-                             lower=None, upper=None, equals=None, scaler=None, adder=None,
-                             ref=None, ref0=None, linear=False, res_ref=1.0, type_=None,
-                             distributed=False):
+    def _add_timeseries_output(self, name, var_class, shape=(1,), units=None, desc='',
+                               distributed=False):
         """
         Add a final constraint to this component
 
@@ -31,57 +37,26 @@ class PathConstraintCompBase(ExplicitComponent):
             The 'class' of the variable as given by phase.classify_var.  One of 'time', 'state',
             'indep_control', 'input_control', 'design_parameter', 'input_parameter',
             'control_rate', 'control_rate2', or 'ode'.
-        val : float or list or tuple or ndarray
-            The initial value of the variable being added in user-defined units. Default is 1.0.
         shape : int or tuple or list or None
             Shape of this variable, only required if val is not an array.
             Default is None.
         units : str or None
             Units in which the output variables will be provided to the component during execution.
             Default is None, which means it has no units.
-        res_units : str or None
-            Units in which the residuals of this output will be given to the user when requested.
-            Default is None, which means it has no units.
         desc : str
-            description of the variable
-        lower : float or list or tuple or ndarray or None
-            lower bound(s) in user-defined units. It can be (1) a float, (2) an array_like
-            consistent with the shape arg (if given), or (3) an array_like matching the shape of
-            val, if val is array_like. A value of None means this output has no lower bound.
-            Default is None.
-        upper : float or list or tuple or ndarray or None
-            upper bound(s) in user-defined units. It can be (1) a float, (2) an array_like
-            consistent with the shape arg (if given), or (3) an array_like matching the shape of
-            val, if val is array_like. A value of None means this output has no upper bound.
-            Default is None.
-        ref : float
-            Scaling parameter. The value in the user-defined units of this output variable when
-            the scaled value is 1. Default is 1.
-        ref0 : float
-            Scaling parameter. The value in the user-defined units of this output variable when
-            the scaled value is 0. Default is 0.
-        linear : bool
-            True if the *total* derivative of the constrained variable is linear, otherwise False.
-        res_ref : float
-            Scaling parameter. The value in the user-defined res_units of this output's residual
-            when the scaled value is 1. Default is 1.
-        type_ : str
-            One of 'state', 'indep_control', 'input_control', 'control_rate', 'control_rate2'.
+            description of the timeseries output variable.
         distributed : bool
             If True, this variable is distributed across multiple processes.
         """
         src_all = var_class in ['time', 'time_phase', 'indep_control', 'input_control',
-                                'control_rate', 'control_rate2']
-        lower = -INF_BOUND if upper is not None and lower is None else lower
-        upper = INF_BOUND if lower is not None and upper is None else upper
-        kwargs = {'shape': shape, 'units': units, 'res_units': res_units, 'desc': desc,
-                  'lower': lower, 'upper': upper, 'equals': equals, 'scaler': scaler,
-                  'adder': adder, 'ref': ref, 'ref0': ref0, 'linear': linear, 'src_all': src_all,
-                  'res_ref': res_ref, 'distributed': distributed, 'type_': type_}
-        self._path_constraints.append((name, kwargs))
+                                'control_rate', 'control_rate2', 'design_parameter',
+                                'input_parameter', 'traj_parameter']
+        kwargs = {'shape': shape, 'units': units, 'desc': desc, 'src_all': src_all,
+                  'distributed': distributed}
+        self._timeseries_outputs.append((name, kwargs))
 
 
-class GaussLobattoPathConstraintComp(PathConstraintCompBase):
+class GaussLobattoTimeseriesOutputComp(TimeseriesOutputCompBase):
 
     def setup(self):
         """
@@ -92,7 +67,7 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
         num_nodes = grid_data.num_nodes
         num_state_disc_nodes = grid_data.subset_num_nodes['state_disc']
         num_col_nodes = grid_data.subset_num_nodes['col']
-        for (name, kwargs) in self._path_constraints:
+        for (name, kwargs) in self._timeseries_outputs:
             input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             shape = kwargs['shape']
             if kwargs['src_all']:
@@ -114,7 +89,7 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
                                shape=(num_col_nodes,) + shape,
                                **input_kwargs)
 
-            output_name = 'path:{0}'.format(name)
+            output_name = name
             output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             output_kwargs['shape'] = (num_nodes,) + shape
             self.add_output(output_name, **output_kwargs)
@@ -122,10 +97,10 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
             self._vars.append((disc_input_name, col_input_name, all_input_name,
                                kwargs['src_all'], output_name, shape))
 
-            constraint_kwargs = {k: kwargs.get(k, None)
-                                 for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
-                                           'scaler', 'indices', 'linear')}
-            self.add_constraint(output_name, **constraint_kwargs)
+            # constraint_kwargs = {k: kwargs.get(k, None)
+            #                      for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
+            #                                'scaler', 'indices', 'linear')}
+            # self.add_constraint(output_name, **constraint_kwargs)
 
             # Setup partials
             if kwargs['src_all']:
@@ -182,7 +157,7 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
                     cols=np.arange(col_size),
                     val=1.0)
 
-    def compute(self, inputs, outputs):
+    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         disc_indices = self.options['grid_data'].subset_node_indices['state_disc']
         col_indices = self.options['grid_data'].subset_node_indices['col']
         for (disc_input_name, col_input_name, all_inp_name, src_all, output_name, _) in self._vars:
@@ -193,7 +168,7 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
                 outputs[output_name][col_indices] = inputs[col_input_name]
 
 
-class RadauPathConstraintComp(PathConstraintCompBase):
+class RadauTimeseriesOutputComp(TimeseriesOutputCompBase):
 
     def setup(self):
         """
@@ -202,7 +177,7 @@ class RadauPathConstraintComp(PathConstraintCompBase):
         grid_data = self.options['grid_data']
         num_nodes = grid_data.num_nodes
 
-        for (name, kwargs) in self._path_constraints:
+        for (name, kwargs) in self._timeseries_outputs:
 
             input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             input_name = 'all_values:{0}'.format(name)
@@ -210,17 +185,18 @@ class RadauPathConstraintComp(PathConstraintCompBase):
                            shape=(num_nodes,) + kwargs['shape'],
                            **input_kwargs)
 
-            output_name = 'path:{0}'.format(name)
+            output_name = name
             output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             output_kwargs['shape'] = (num_nodes,) + kwargs['shape']
             self.add_output(output_name, **output_kwargs)
 
-            constraint_kwargs = {k: kwargs.get(k, None)
-                                 for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
-                                           'scaler', 'indices', 'linear')}
-            self.add_constraint(output_name, **constraint_kwargs)
+            # constraint_kwargs = {k: kwargs.get(k, None)
+            #                      for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
+            #                                'scaler', 'indices', 'linear')}
+            # self.add_constraint(output_name, **constraint_kwargs)
 
             self._vars.append((input_name, output_name, kwargs['shape']))
+
             # Setup partials
 
             all_shape = (num_nodes,) + kwargs['shape']
@@ -241,12 +217,12 @@ class RadauPathConstraintComp(PathConstraintCompBase):
                 cols=np.arange(all_size),
                 val=1.0)
 
-    def compute(self, inputs, outputs):
+    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for (input_name, output_name, _) in self._vars:
             outputs[output_name] = inputs[input_name]
 
 
-class ExplicitPathConstraintComp(PathConstraintCompBase):
+class ExplicitTimeseriesOutputComp(TimeseriesOutputCompBase):
 
     def setup(self):
         """
@@ -256,13 +232,13 @@ class ExplicitPathConstraintComp(PathConstraintCompBase):
         total_num_steps = np.sum(gd.num_steps_per_segment) + gd.num_segments
         self._vars = {}
 
-        for (name, kwargs) in self._path_constraints:
+        for (name, kwargs) in self._timeseries_outputs:
 
             self._vars[name] = {'inputs': [],
                                 'output': '',
                                 'dest_indices': []}
 
-            output_name = 'path:{0}'.format(name)
+            output_name = name
             output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             output_kwargs['shape'] = (total_num_steps,) + kwargs['shape']
             size = np.prod(kwargs['shape'])
@@ -293,14 +269,14 @@ class ExplicitPathConstraintComp(PathConstraintCompBase):
 
                 idx0 = idx1
 
-            constraint_kwargs = {k: kwargs.get(k, None)
-                                 for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
-                                           'scaler', 'indices', 'linear')}
-            self.add_constraint(output_name, **constraint_kwargs)
+            # constraint_kwargs = {k: kwargs.get(k, None)
+            #                      for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
+            #                                'scaler', 'indices', 'linear')}
+            # self.add_constraint(output_name, **constraint_kwargs)
 
             self._vars[name]['output'] = output_name
 
-    def compute(self, inputs, outputs):
+    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for name, options in iteritems(self._vars):
             for i, input_name in enumerate(options['inputs']):
                 idx0, idx1 = options['dest_indices'][i]

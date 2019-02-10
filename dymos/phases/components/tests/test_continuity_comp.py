@@ -20,7 +20,7 @@ class TestContinuityComp(unittest.TestCase):
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['compressed', 'uncompressed'],  # jacobian
+                          ['compressed', 'uncompressed'],  # compressed
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_continuity_comp',
                                                                           p.args[0],
                                                                           p.args[1]])
@@ -96,9 +96,9 @@ class TestContinuityComp(unittest.TestCase):
         src_idxs_v = np.arange(size_v).reshape((nn,) + control_options['v']['shape'])
         src_idxs_v = src_idxs_v[gd.subset_node_indices['segment_ends'], ...]
 
-        if compressed != 'compressed':
-            self.p.model.connect('u', 'cnty_comp.controls:u', src_indices=src_idxs_u,
-                                 flat_src_indices=True)
+        # if transcription =='radau-ps' or compressed != 'compressed':
+        self.p.model.connect('u', 'cnty_comp.controls:u', src_indices=src_idxs_u,
+                             flat_src_indices=True)
 
         self.p.model.connect('u_rate', 'cnty_comp.control_rates:u_rate', src_indices=src_idxs_u,
                              flat_src_indices=True)
@@ -106,9 +106,9 @@ class TestContinuityComp(unittest.TestCase):
         self.p.model.connect('u_rate2', 'cnty_comp.control_rates:u_rate2', src_indices=src_idxs_u,
                              flat_src_indices=True)
 
-        if compressed != 'compressed':
-            self.p.model.connect('v', 'cnty_comp.controls:v', src_indices=src_idxs_v,
-                                 flat_src_indices=True)
+        # if transcription =='radau-ps' or compressed != 'compressed':
+        self.p.model.connect('v', 'cnty_comp.controls:v', src_indices=src_idxs_v,
+                             flat_src_indices=True)
 
         self.p.model.connect('v_rate', 'cnty_comp.control_rates:v_rate', src_indices=src_idxs_v,
                              flat_src_indices=True)
