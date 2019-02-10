@@ -135,6 +135,8 @@ class TestRKStateAdvanceComp(unittest.TestCase):
 
         p.run_model()
 
+        p.model.list_outputs(print_arrays=True)
+
         assert_rel_error(self,
                          p.get_val('c.final_states:y'),
                          [[1.425130208333333, 2.639602661132812],
