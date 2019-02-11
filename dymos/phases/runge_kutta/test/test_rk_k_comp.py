@@ -4,10 +4,9 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, ExplicitComponent, IndepVarComp
+from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
-from dymos import declare_time, declare_state
 from dymos.phases.runge_kutta.runge_kutta_k_comp import RungeKuttaKComp
 
 
