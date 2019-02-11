@@ -81,8 +81,45 @@ class RungeKuttaStatePredictComp(ExplicitComponent):
             shape = options['shape']
             size = np.prod(options['shape'])
             x0 = inputs[self._var_names[name]['initial']]
+            out_shape = (num_seg, num_stages) + shape
 
-            for i in range(num_seg):
-                k = inputs[self._var_names[name]['k']][i, ...].reshape((num_stages, size))
-                out_shape = (num_stages,) + shape
-                outputs[self._var_names[name]['predicted']][i, ...] = x0 + np.dot(self._A, k).reshape(out_shape)
+            # for i in range(num_seg):
+            #     print('k_shape')
+            #     print(inputs[self._var_names[name]['k']][i, ...].shape)
+            #     k = inputs[self._var_names[name]['k']][i, ...].reshape((num_stages, size))
+            #     out_shape = (num_stages,) + shape
+            #     print('foo')
+            #     outputs[self._var_names[name]['predicted']][i, ...] = x0[i, ...] + np.dot(self._A, k).reshape(out_shape)
+
+            out_shape = (num_seg, num_stages) + shape
+            # Reorder k to (num_stages, num_segments, size) to avoid a for loop
+            # k = np.moveaxis(inputs[self._var_names[name]['k']],
+            #                 [0, 1], [1, 0]).reshape((num_stages, size * num_seg))
+            # Einsum appears to be faster than moveaxis, so we use this implementation instead.
+            k = np.einsum('ab...->ba...',
+                          inputs[self._var_names[name]['k']]).reshape((num_stages, size * num_seg))
+
+            print(x0)
+            #print(np.einsum('ab...->ba...', np.dot(self._A, k).reshape(out_shape)))
+            print(np.dot(self._A, k))
+            print(np.einsum('ab...->ba...', np.dot(self._A, k)))
+            print(np.dot(self._A, k).reshape((num_seg, num_stages) + shape))
+            #print(outputs[self._var_names[name]['predicted']])
+            exit(0)
+            # x0 = inputs[self._var_names[name]['initial']]
+            #
+            # print('k')
+            # k = inputs[self._var_names[name]['k']].reshape((num_stages, num_seg * size))
+            # print(k)
+            # print('k_shape')
+            # print(k.shape)
+            # print('x0 shape')
+            # print(x0.shape)
+            #
+            #
+            # # k = np.swapaxes(inputs[self._var_names[name]['k']], 0, 1).reshape((num_stages, num_seg * size))
+            #
+            # out_shape = (num_seg, num_stages) + shape
+            # foo = np.dot(self._A, k)
+            # print('foo')
+            # outputs[self._var_names[name]['predicted']] = x0 + np.dot(self._A, k).reshape(out_shape)
