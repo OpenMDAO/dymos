@@ -17,8 +17,8 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
     """
 
     def initialize(self):
-        self.options.declare('num_segments', types=int, desc='The number of segments (timesteps)'
-                                                             'in the phase')
+        self.options.declare('num_segments', types=int,
+                             desc='The number of segments (timesteps) in the phase')
 
         self.options.declare('method', default='rk4', values=('rk4',),
                              desc='Specific Runge-Kutta Method to use.')

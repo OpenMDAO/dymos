@@ -83,7 +83,8 @@ class TestRKStateAdvanceComp(unittest.TestCase):
         ivc.add_output('y0', shape=(2,), units='m')
 
         p.model.add_subsystem('c',
-                              RungeKuttaStateAdvanceComp(method='rk4', state_options=state_options))
+                              RungeKuttaStateAdvanceComp(num_segments=2, method='rk4',
+                                                         state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
         p.model.connect('y0', 'c.initial_states:y')
