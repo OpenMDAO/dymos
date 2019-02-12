@@ -55,7 +55,7 @@ class RungeKuttaStatePredictComp(ExplicitComponent):
                            units=units, desc='RK multiplier k for each stage in the segment.')
 
             self.add_output(self._var_names[name]['predicted'],
-                            shape=(num_seg, self._num_stages,) + shape,
+                            shape=(num_seg * self._num_stages,) + shape,
                             units=units,
                             desc='The predicted values of the state at the ODE evaluation points.')
 
@@ -76,34 +76,18 @@ class RungeKuttaStatePredictComp(ExplicitComponent):
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         #
-        # Note:  To accommodate states of dimension 2 or more, k is flattened to (num_segments * num_stage, size)
-        #        prior to the matrix vector product, and then reshaped back to the appropriate one.
+        # Note:  To accommodate states of dimension 2 or more, k is flattened to
+        # (num_segments * num_stage, size) prior to the matrix vector product,
+        # and then reshaped back to the appropriate one.  This is complicated by the fact that
+        # we need k in (num_stages, num_segments, size) for the matrix multiply to work out.
+        # See below for the steps taken.
         #
         num_seg = self.options['num_segments']
         num_stages = self._num_stages
         for name, options in iteritems(self.options['state_options']):
             shape = options['shape']
-            size = np.prod(options['shape'])
+            size = np.prod(shape)
             x0 = inputs[self._var_names[name]['initial']]
-
-            out_shape = (num_stages,) + shape
-
-            TEMP = np.zeros((num_seg,) + out_shape)
-
-            for i in range(num_seg):
-                # print('k_shape')
-                # print(inputs[self._var_names[name]['k']][i, ...].shape)
-                k = inputs[self._var_names[name]['k']][i, ...].reshape((num_stages, size))
-                # print('foo')
-                # TEMP[i] = np.dot(self._A, k).reshape(out_shape)
-                outputs[self._var_names[name]['predicted']][i, ...] = x0[i, ...] + np.dot(self._A, k).reshape(out_shape)
-                # TEMP[i, ...] = np.dot(self._A, k).reshape(out_shape)
-            #
-            # print('CORRECT')
-            # print(TEMP)
-
-            # Without the for loop
-            out_shape = (num_seg, num_stages) + shape
 
             # # Reorder k to (num_stages, num_segments, size) to avoid a for loop
             # # k = np.moveaxis(inputs[self._var_names[name]['k']],
@@ -115,76 +99,17 @@ class RungeKuttaStatePredictComp(ExplicitComponent):
             # The matrix multiply
             A_dot_k = np.dot(self._A, k)
 
-            #
-            # Now put the shape back to ((num_stages, num_seg) + shape) and swap the axes to get
-            # the result back to ((num_seg, num_stages) + shape)
-            #
-            A_dot_k2 = np.einsum('ij...->ji...', A_dot_k.reshape((num_stages, num_seg) + shape))
+            # Now stack the segments vertically so we have num_seg * num_stages rows and size cols
+            A_dot_k = np.vstack(np.split(A_dot_k, num_seg, axis=1))
 
-            #
-            # Add the initial state value in the segment
-            #
+            # Now give x0 the same treatment.
+            # First broadcast to num_stages rows and num_segments * size cols
+            _x0 = np.repeat(np.reshape(x0, (1, num_seg * size)), num_stages, axis=0)
 
-            # print('x0')
-            # print(x0)
-            #
-            # print('x0 shaped')
-            x0_shaped = np.tile(x0, num_stages).reshape((num_seg, num_stages) + shape)
-            # print(x0_shaped)
-            #
-            # print('A dot k')
-            # print(A_dot_k2)
-            #
-            # print('A dot k error')
-            # print(A_dot_k2 - TEMP)
-            #
-            # print('result')
-            # print(x0_shaped + A_dot_k2)
-            #
-            # print('result error')
-            # print(x0_shaped + A_dot_k2 - outputs[self._var_names[name]['predicted']])
+            # Now chunk x0 into num_segments * num_stages rows and size cols
+            _x0 = np.vstack(np.split(_x0, num_seg, axis=1))
 
-            outputs[self._var_names[name]['predicted']] = x0_shaped + A_dot_k2
+            # Now compute the predicted state and change back to the correct shape at each row
+            x_p = np.reshape(_x0 + A_dot_k, newshape=(num_seg * num_stages,) + shape)
 
-            # exit(0)
-
-            # print('x0')
-            # print(x0)
-            # print('A dot k')
-            # print(np.dot(self._A, k))
-            # print('A dot k reordered')
-            # A_dot_k = np.einsum('ab...->ba...', np.dot(self._A, k))
-            # print(A_dot_k)
-            # print('A dot k raveled')
-            # A_dot_k_raveled = A_dot_k.ravel()
-            # print(A_dot_k.ravel())
-            # print('x0 repeated')
-            # print(np.repeat(x0.ravel(), num_stages)[np.newaxis, :])
-            # x0_repeated = np.repeat(x0.ravel(), num_stages)[np.newaxis, :]
-            # result = x0_repeated + A_dot_k_raveled
-            # print('result raveled')
-            # print(result)
-            # # print('A dot k reshaped')
-            # # print(np.dot(self._A, k).reshape((num_stages, num_seg) + shape))
-            # # print('A dot k reordered reshaped')
-            # # print(np.einsum('ab...->ba...', np.dot(self._A, k)).reshape((num_stages, num_seg) + shape))
-            # #print(np.dot(self._A, k).reshape((num_seg, num_stages) + shape))
-            # #print(outputs[self._var_names[name]['predicted']])
-            # exit(0)
-            # x0 = inputs[self._var_names[name]['initial']]
-            #
-            # print('k')
-            # k = inputs[self._var_names[name]['k']].reshape((num_stages, num_seg * size))
-            # print(k)
-            # print('k_shape')
-            # print(k.shape)
-            # print('x0 shape')
-            # print(x0.shape)
-            #
-            #
-            # # k = np.swapaxes(inputs[self._var_names[name]['k']], 0, 1).reshape((num_stages, num_seg * size))
-            #
-            # out_shape = (num_seg, num_stages) + shape
-            # foo = np.dot(self._A, k)
-            # print('foo')
-            # outputs[self._var_names[name]['predicted']] = x0 + np.dot(self._A, k).reshape(out_shape)
+            outputs[self._var_names[name]['predicted']] = x_p
