@@ -56,10 +56,9 @@ class TestRKStatePredictComp(unittest.TestCase):
         p.run_model()
 
         p.model.list_outputs(print_arrays=True)
-        exit(0)
 
         expected = np.array([[[0.50000000],
-                              [0.87510000],
+                              [0.87500000],
                               [0.953125],
                               [1.4453125]],
 
@@ -80,7 +79,7 @@ class TestRKStatePredictComp(unittest.TestCase):
 
         assert_rel_error(self, p.get_val('c.predicted_states:y'), expected)
 
-        cpd = p.check_partials(method='cs', out_stream=None)
+        cpd = p.check_partials(method='cs') # , out_stream=None)
         assert_check_partials(cpd)
 
     def test_rk_state_predict_comp_rk4_3seg(self):
@@ -122,10 +121,9 @@ class TestRKStatePredictComp(unittest.TestCase):
         p.run_model()
 
         p.model.list_outputs(print_arrays=True)
-        exit(0)
 
         expected = np.array([[[0.50000000],
-                              [0.87510000],
+                              [0.87500000],
                               [0.953125],
                               [1.4453125]],
 
@@ -137,12 +135,7 @@ class TestRKStatePredictComp(unittest.TestCase):
                              [[2.639602661132812],
                               [3.299503326416016],
                               [3.323853492736816],
-                              [4.020279407501221]],
-
-                             [[4.006818970044454],
-                              [4.696023712555567],
-                              [4.665199898183346],
-                              [5.308168919136127]]])
+                              [4.020279407501221]]])
 
         assert_rel_error(self, p.get_val('c.predicted_states:y'), expected)
 
@@ -169,7 +162,9 @@ class TestRKStatePredictComp(unittest.TestCase):
 
         p.setup(check=True, force_alloc_complex=True)
 
-        p['y0'] = [[0.5, 1.425130208333333], [2.639602661132812, 4.006818970044454]]
+        p['y0'] = [[0.500000000000000, 1.425130208333333],
+                   [2.639602661132812, 4.006818970044454]]
+
         p['k:y'] = np.array([[[0.75000000, 1.319801330566406],
                               [0.90625000, 1.368501663208008],
                               [0.94531250, 1.380676746368408],
@@ -182,13 +177,19 @@ class TestRKStatePredictComp(unittest.TestCase):
 
         p.run_model()
 
-        exit(0)
+        expected = p['c.predicted_states:y'] = np.array([[[0.75000000, 1.319801330566406],
+                                                          [0.90625000, 1.368501663208008],
+                                                          [0.94531250, 1.380676746368408],
+                                                          [1.09765625, 1.385139703750610]],
 
-        assert_rel_error(self,
-                         p.get_val('c.predicted_states:y'),
-                         np.array([0.5, 0.875, 0.953125, 1.4453125]).reshape(num_seg, 4, 1))
+                                                         [[1.087565104166667, 1.378409485022227],
+                                                          [1.203206380208333, 1.316761856277783],
+                                                          [1.232116699218750, 1.301349949091673],
+                                                          [1.328623453776042, 1.154084459568063]]])
 
-        cpd = p.check_partials(method='cs', out_stream=None)
+        assert_rel_error(self, p.get_val('c.predicted_states:y'), expected)
+
+        cpd = p.check_partials(method='cs') # , out_stream=None)
         assert_check_partials(cpd)
 
     def test_rk_state_advance_comp_rk4_matrix(self):
@@ -198,48 +199,54 @@ class TestRKStatePredictComp(unittest.TestCase):
 
         ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
 
-        ivc.add_output('k:y', shape=(4, 2, 2), units='m')
-        ivc.add_output('y0', shape=(2, 2), units='m')
+        ivc.add_output('k:y', shape=(1, 4, 2, 2), units='m')
+        ivc.add_output('y0', shape=(1, 2, 2), units='m')
 
         p.model.add_subsystem('c',
-                              RungeKuttaStatePredictComp(method='rk4', state_options=state_options))
+                              RungeKuttaStatePredictComp(num_segments=1, method='rk4',
+                                                         state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
         p.model.connect('y0', 'c.initial_states:y')
 
         p.setup(check=True, force_alloc_complex=True)
 
-        p['y0'] = [[0.5, 1.425130208333333], [2.639602661132812, 4.006818970044454]]
-        p['k:y'] = np.array([
-                            [[0.75, 1.087565104166667],
-                             [1.319801330566406, 1.378409485022227]],
+        p['y0'] = [[[0.5, 1.425130208333333],
+                    [2.639602661132812, 4.006818970044454]]]
 
-                            [[0.90625, 1.203206380208333],
-                             [1.368501663208008,  1.316761856277783]],
+        p['k:y'] = np.array([[[[0.75, 1.087565104166667],
+                              [1.319801330566406, 1.378409485022227]],
 
-                            [[0.9453125, 1.23211669921875],
-                             [1.380676746368408,  1.301349949091673]],
+                             [[0.90625, 1.203206380208333],
+                              [1.368501663208008,  1.316761856277783]],
 
-                            [[1.09765625, 1.328623453776042],
-                             [1.385139703750610,  1.154084459568063]]])
+                             [[0.9453125, 1.23211669921875],
+                              [1.380676746368408,  1.301349949091673]],
+
+                             [[1.09765625, 1.328623453776042],
+                              [1.385139703750610,  1.154084459568063]]]])
 
         p.run_model()
 
         p.model.list_outputs(print_arrays=True)
 
+        print(p.get_val('c.predicted_states:y').shape)
+        print(p.get_val('c.predicted_states:y')[0, :, 0, 0])
+        exit(0)
+
         assert_rel_error(self,
                          p.get_val('c.predicted_states:y'),
-                         [[[0.5, 1.425130208333333],
-                           [2.639602661132812, 4.006818970044454]],
+                         [[[[0.5, 1.425130208333333],
+                            [2.639602661132812, 4.006818970044454]],
 
-                          [[0.875, 1.968912760416667],
-                           [3.299503326416016, 4.696023712555567]],
+                           [[0.875, 1.968912760416667],
+                            [3.299503326416016, 4.696023712555567]],
 
-                          [[0.953125, 2.0267333984375],
-                           [3.323853492736816, 4.665199898183346]],
+                           [[0.953125, 2.0267333984375],
+                            [3.323853492736816, 4.665199898183346]],
 
-                          [[1.4453125, 2.657246907552083],
-                           [4.020279407501221, 5.308168919136127]]])
+                           [[1.4453125, 2.657246907552083],
+                            [4.020279407501221, 5.308168919136127]]]])
 
         np.set_printoptions(linewidth=1024)
         cpd = p.check_partials(method='cs', out_stream=None)
