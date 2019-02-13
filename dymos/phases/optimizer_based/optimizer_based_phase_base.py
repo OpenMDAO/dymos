@@ -113,66 +113,76 @@ class OptimizerBasedPhaseBase(PhaseBase):
         num_state_input_nodes = grid_data.subset_num_nodes['state_input']
 
         indep = IndepVarComp()
+
+        any_optimized_segments = False
         for name, options in iteritems(self.state_options):
-            indep.add_output(name='states:{0}'.format(name),
-                             shape=(num_state_input_nodes, np.prod(options['shape'])),
-                             units=options['units'])
-        self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
+            print('foo', type(options))
+            if options['solve_segments']: 
+                continue
+            else: 
+                indep.add_output(name='states:{0}'.format(name),
+                                 shape=(num_state_input_nodes, np.prod(options['shape'])),
+                                 units=options['units'])
+             
+                any_optimized_segments = True
+        
+        if any_optimized_segments:  
+            self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
 
-        for name, options in iteritems(self.state_options):
-            size = np.prod(options['shape'])
-            if options['opt']:
-                desvar_indices = list(range(size * num_state_input_nodes))
+            for name, options in iteritems(self.state_options):
+                size = np.prod(options['shape'])
+                if options['opt']:
+                    desvar_indices = list(range(size * num_state_input_nodes))
 
-                if options['fix_initial']:
-                    if options['initial_bounds'] is not None:
-                        raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                                         'initial_bounds for state {0}'.format(name))
-                    if isinstance(options['fix_initial'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[idx_to_fix]
-                    else:
-                        del desvar_indices[:size]
-                if options['fix_final']:
-                    if options['final_bounds'] is not None:
-                        raise ValueError('Cannot specify \'fix_final=True\' and specify '
-                                         'final_bounds for state {0}'.format(name))
-                    if isinstance(options['fix_final'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[-size + idx_to_fix]
-                    else:
-                        del desvar_indices[-size:]
+                    if options['fix_initial']:
+                        if options['initial_bounds'] is not None:
+                            raise ValueError('Cannot specify \'fix_initial=True\' and specify '
+                                            'initial_bounds for state {0}'.format(name))
+                        if isinstance(options['fix_initial'], Iterable):
+                            idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
+                            for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                                del desvar_indices[idx_to_fix]
+                        else:
+                            del desvar_indices[:size]
+                    if options['fix_final']:
+                        if options['final_bounds'] is not None:
+                            raise ValueError('Cannot specify \'fix_final=True\' and specify '
+                                            'final_bounds for state {0}'.format(name))
+                        if isinstance(options['fix_final'], Iterable):
+                            idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
+                            for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                                del desvar_indices[-size + idx_to_fix]
+                        else:
+                            del desvar_indices[-size:]
 
-                if len(desvar_indices) > 0:
-                    coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
-                                                        options)
+                    if len(desvar_indices) > 0:
+                        coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
+                                                            options)
 
-                    lb = np.zeros_like(desvar_indices, dtype=float)
-                    lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
-                        coerce_desvar_option('lower')
+                        lb = np.zeros_like(desvar_indices, dtype=float)
+                        lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                            coerce_desvar_option('lower')
 
-                    ub = np.zeros_like(desvar_indices, dtype=float)
-                    ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
-                        coerce_desvar_option('upper')
+                        ub = np.zeros_like(desvar_indices, dtype=float)
+                        ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                            coerce_desvar_option('upper')
 
-                    if options['initial_bounds'] is not None:
-                        lb[0] = options['initial_bounds'][0]
-                        ub[0] = options['initial_bounds'][-1]
+                        if options['initial_bounds'] is not None:
+                            lb[0] = options['initial_bounds'][0]
+                            ub[0] = options['initial_bounds'][-1]
 
-                    if options['final_bounds'] is not None:
-                        lb[-1] = options['final_bounds'][0]
-                        ub[-1] = options['final_bounds'][-1]
+                        if options['final_bounds'] is not None:
+                            lb[-1] = options['final_bounds'][0]
+                            ub[-1] = options['final_bounds'][-1]
 
-                    self.add_design_var(name='states:{0}'.format(name),
-                                        lower=lb,
-                                        upper=ub,
-                                        scaler=coerce_desvar_option('scaler'),
-                                        adder=coerce_desvar_option('adder'),
-                                        ref0=coerce_desvar_option('ref0'),
-                                        ref=coerce_desvar_option('ref'),
-                                        indices=desvar_indices)
+                        self.add_design_var(name='states:{0}'.format(name),
+                                            lower=lb,
+                                            upper=ub,
+                                            scaler=coerce_desvar_option('scaler'),
+                                            adder=coerce_desvar_option('adder'),
+                                            ref0=coerce_desvar_option('ref0'),
+                                            ref=coerce_desvar_option('ref'),
+                                            indices=desvar_indices)
 
     def _setup_defects(self):
         """
