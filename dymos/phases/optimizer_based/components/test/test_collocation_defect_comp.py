@@ -8,7 +8,8 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.optimizer_based.components import CollocationDefectComp
+from dymos.phases.optimizer_based.components import CollocationBalanceComp
+# from dymos.phases.optimizer_based.components import CollocationDefectComp
 from dymos.phases.grid_data import GridData
 
 
@@ -23,8 +24,10 @@ class TestCollocationComp(unittest.TestCase):
 
         self.p = Problem(model=Group())
 
-        state_options = {'x': {'units': 'm', 'shape': (1,)},
-                         'v': {'units': 'm/s', 'shape': (3, 2)}}
+        state_options = {'x': {'units': 'm', 'shape': (1,), 'fix_initial':True, 
+                               'fix_final':False, 'solve_segments':False},
+                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial':False, 
+                               'fix_final':True, 'solve_segments':False}}
 
         indep_comp = IndepVarComp()
         self.p.model.add_subsystem('indep', indep_comp, promotes_outputs=['*'])
@@ -49,7 +52,7 @@ class TestCollocationComp(unittest.TestCase):
             val=np.zeros((gd.subset_num_nodes['col'], 3, 2)), units='m/s')
 
         self.p.model.add_subsystem('defect_comp',
-                                   subsys=CollocationDefectComp(grid_data=gd,
+                                   subsys=CollocationBalanceComp(grid_data=gd,
                                                                 state_options=state_options))
 
         self.p.model.connect('f_approx:x', 'defect_comp.f_approx:x')

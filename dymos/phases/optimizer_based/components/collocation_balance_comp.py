@@ -90,37 +90,62 @@ class CollocationBalanceComp(ImplicitComponent):
         self.add_input('dt_dstau', units=time_units, 
                        shape=(num_col_nodes,))
 
-        self.var_names = var_names = {}
+        self.var_names = {}
         for state_name in state_options:
-            var_names[state_name] = {
+            self.var_names[state_name] = {
                 'f_approx': 'f_approx:{0}'.format(state_name),
                 'f_computed': 'f_computed:{0}'.format(state_name),
+                'defect': 'defects:{0}'.format(state_name),
             }
 
         for state_name, options in iteritems(state_options):
 
             shape = options['shape']
             units = options['units']
+            solved = options['solve_segments']
+            var_names = self.var_names[state_name]
 
             rate_units = get_rate_units(units, time_units)
 
-            self.add_output(name=state_name,
-                            shape=(num_state_input_nodes,) + shape,
-                            units=units)
+            # only need the implicit variable if this state is solved. 
+            # will get promoted to the same naming convention as the indepvar comp
+            if solved: 
+                self.add_output(name=state_name,
+                                shape=(num_state_input_nodes,) + shape,
+                                units=units)
 
             self.add_input(
-                name=var_names[state_name]['f_approx'],
+                name=var_names['f_approx'],
                 shape=(num_col_nodes,) + shape,
                 desc='Estimated derivative of state {0} '
                      'at the collocation nodes'.format(state_name),
                 units=rate_units)
 
             self.add_input(
-                name=var_names[state_name]['f_computed'],
+                name=var_names['f_computed'],
                 shape=(num_col_nodes,) + shape,
                 desc='Computed derivative of state {0} '
                      'at the collocation nodes'.format(state_name),
                 units=rate_units)
+
+            if not solved: 
+                # compute an output contraint value since the optimizer needs it
+                self.add_output(
+                    name=var_names['defect'],
+                    shape=(num_col_nodes,) + shape,
+                    desc='Constraint value for interior defects of state {0}'.format(state_name),
+                    units=units)
+
+                if 'defect_ref' in options and options['defect_ref'] is not None:
+                    def_scl = 1.0 / options['defect_ref']
+                elif 'defect_scaler' in options:
+                    def_scl = options['defect_scaler']
+                else:
+                    def_scl = 1.0
+
+                self.add_constraint(name=var_names['defect'],
+                                    equals=0.0,
+                                    scaler=def_scl)
 
 
         # Setup partials
@@ -128,34 +153,52 @@ class CollocationBalanceComp(ImplicitComponent):
         for state_name, options in iteritems(state_options):
             shape = options['shape']
             size = np.prod(shape)
+            solved = options['solve_segments']
+            var_names = self.var_names[state_name]
 
             solve_idx = np.array(self.state_idx_map[state_name]['solver'])
             indep_idx = np.array(self.state_idx_map[state_name]['indep'])
             num_indep_nodes = indep_idx.shape[0]
             num_solve_nodes = solve_idx.shape[0]
-           
-            base_idx = np.tile(np.arange(size),num_indep_nodes).reshape(num_indep_nodes,size) 
-            r = (indep_idx[:,np.newaxis]*size + base_idx).flatten()
-            self.declare_partials(of=state_name, wrt=state_name, 
-                                 rows=r, cols=r, val=-1)
- 
-            c = np.arange(num_solve_nodes * size)
-            base_idx = np.tile(np.arange(size),num_solve_nodes).reshape(num_solve_nodes,size) 
-            r = (solve_idx[:,np.newaxis]*size + base_idx).flatten()
 
-            var_names = self.var_names[state_name]
-            self.declare_partials(of=state_name,
-                                  wrt=var_names['f_approx'],
-                                  rows=r, cols=c)
+            if solved: # only need this deriv if its solved
+                base_idx = np.tile(np.arange(size),num_indep_nodes).reshape(num_indep_nodes,size) 
+                r = (indep_idx[:,np.newaxis]*size + base_idx).flatten()
+                self.declare_partials(of=state_name, wrt=state_name, 
+                                    rows=r, cols=r, val=-1)
 
-            self.declare_partials(of=state_name,
-                                  wrt=var_names['f_computed'],
-                                  rows=r, cols=c)
+                c = np.arange(num_solve_nodes * size)
+                base_idx = np.tile(np.arange(size),num_solve_nodes).reshape(num_solve_nodes,size) 
+                r = (solve_idx[:,np.newaxis]*size + base_idx).flatten()
 
-            c = np.repeat(np.arange(num_solve_nodes), size)
-            self.declare_partials(of=state_name,
-                                  wrt='dt_dstau',
-                                  rows=r, cols=c)
+                self.declare_partials(of=state_name,
+                                    wrt=var_names['f_approx'],
+                                    rows=r, cols=c)
+
+                self.declare_partials(of=state_name,
+                                    wrt=var_names['f_computed'],
+                                    rows=r, cols=c)
+
+                c = np.repeat(np.arange(num_solve_nodes), size)
+                self.declare_partials(of=state_name,
+                                    wrt='dt_dstau',
+                                    rows=r, cols=c)
+                                    
+            else: 
+                r = np.arange(num_col_nodes * size)
+                defect_name = self.var_names[state_name]['defect']
+                self.declare_partials(of=defect_name,
+                                    wrt=var_names['f_approx'],
+                                    rows=r, cols=r)
+
+                self.declare_partials(of=defect_name,
+                                    wrt=var_names['f_computed'],
+                                    rows=r, cols=r)
+
+                c = np.repeat(np.arange(num_col_nodes), size)
+                self.declare_partials(of=defect_name,
+                                    wrt='dt_dstau',
+                                    rows=r, cols=c)
 
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
@@ -173,37 +216,57 @@ class CollocationBalanceComp(ImplicitComponent):
         state_options = self.options['state_options']
         dt_dstau = inputs['dt_dstau']
 
-        for state_name in state_options:
-            # print(state_name)
-            
+        for state_name, options in iteritems(state_options):
             var_names = self.var_names[state_name]
 
             f_approx = inputs[var_names['f_approx']]
             f_computed = inputs[var_names['f_computed']]
 
-            # IndepVarComp residuals are always 0 
+            if options['solve_segments']: 
+                solve_idx = self.state_idx_map[state_name]['solver']
+                indep_idx = self.state_idx_map[state_name]['indep']
 
-            solve_idx = self.state_idx_map[state_name]['solver']
-            indep_idx = self.state_idx_map[state_name]['indep']
+                residuals[state_name][solve_idx,...] = ((f_approx - f_computed).T * dt_dstau).T
+                
+                # really is: <idep_val> - \outputs[state_name][indep_idx] but OpenMDAO implementation details mean we just set it to 0
+                # but derivatives are based on <idep_val> - \outputs[state_name][indep_idx], so you get -1 wrt state var
+                # NOTE: Because of this weirdness check_partials will report wrong derivs for the indep vars, but don't believe it!
+                residuals[state_name][indep_idx,...] = 0 
+            else: 
+                residuals[var_names['defect']] = ((f_approx - f_computed).T * dt_dstau).T
 
-            residuals[state_name][solve_idx,...] = ((f_approx - f_computed).T * dt_dstau).T
-            
-            # really is: <idep_val> - \outputs[state_name][indep_idx] but OpenMDAO implementation details mean we just set it to 0
-            # but derivatives are based on <idep_val> - \outputs[state_name][indep_idx], so you get -1 wrt state var
-            # NOTE: Because of this weirdness check_partials will report wrong derivs for the indep vars, but don't believe it!
-            residuals[state_name][indep_idx,...] = 0 
+    def solve_nonlinear(self, inputs, outputs): 
+        state_options = self.options['state_options']
+        dt_dstau = inputs['dt_dstau']
+
+        for state_name, options in iteritems(state_options):
+            if not options['solve_segments']: 
+                var_names = self.var_names[state_name]
+
+                f_approx = inputs[var_names['f_approx']]
+                f_computed = inputs[var_names['f_computed']]
+
+                outputs[var_names['defect']] = ((f_approx - f_computed).T * dt_dstau).T
 
     def linearize(self, inputs, outputs, J):
         dt_dstau = inputs['dt_dstau']
         for state_name, options in iteritems(self.options['state_options']):
             size = np.prod(options['shape'])
             var_names = self.var_names[state_name]
+            solved = options['solve_segments']
             f_approx = inputs[var_names['f_approx']]
             f_computed = inputs[var_names['f_computed']]
 
             k = np.repeat(dt_dstau, size)
 
-            J[state_name, var_names['f_approx']] = k
-            J[state_name, var_names['f_computed']] = -k
-            J[state_name, 'dt_dstau'] = (f_approx - f_computed).ravel()
+            if solved:
+                J[state_name, var_names['f_approx']] = k
+                J[state_name, var_names['f_computed']] = -k
+                J[state_name, 'dt_dstau'] = (f_approx - f_computed).ravel()
+            else: 
+                defect_name = self.var_names[state_name]['defect']
+                J[defect_name, var_names['f_approx']] = k
+                J[defect_name, var_names['f_computed']] = -k
+                J[defect_name, 'dt_dstau'] = (f_approx - f_computed).ravel()
+
 

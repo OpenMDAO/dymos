@@ -21,8 +21,10 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         gd = GridData(num_segments=n_segs, segment_ends=np.arange(n_segs+1),
                       transcription=transcription, transcription_order=order, compressed=compressed)
 
-        state_options = {'x': {'units': 'm', 'shape': (1,), 'fix_initial':True, 'fix_final':False},
-                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial':False, 'fix_final':True}}
+        state_options = {'x': {'units': 'm', 'shape': (1,), 'fix_initial':True, 
+                               'fix_final':False, 'solve_segments':True},
+                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial':False, 
+                               'fix_final':True, 'solve_segments':True}}
 
         defect_comp = p.model.add_subsystem('defect_comp',
                                             subsys=CollocationBalanceComp(grid_data=gd,
@@ -112,8 +114,10 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
             transcription=transcription, transcription_order=order)
 
 
-        state_options = {'x': {'units': 'm', 'shape': (1,), 'fix_initial':True, 'fix_final':False},
-                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial':True, 'fix_final':False}}
+        state_options = {'x': {'units': 'm', 'shape': (1,), 'fix_initial':True, 
+                              'fix_final':False, 'solve_segments':True},
+                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial':True, 
+                               'fix_final':False, 'solve_segments':True}}
 
 
         num_col_nodes = gd.subset_num_nodes['col']
