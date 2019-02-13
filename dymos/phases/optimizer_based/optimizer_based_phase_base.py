@@ -116,7 +116,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         any_optimized_segments = False
         for name, options in iteritems(self.state_options):
-            print('foo', type(options))
             if options['solve_segments']: 
                 continue
             else: 
