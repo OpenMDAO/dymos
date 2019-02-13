@@ -8,7 +8,7 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp 
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.optimizer_based.components.collocation_balance_comp import CollocationBalanceComp
+from dymos.phases.optimizer_based.components.collocation_comp import CollocationComp
 from dymos.phases.grid_data import GridData
 
 
@@ -27,8 +27,8 @@ class TestCollocationBalanceIndex(unittest.TestCase):
                                'fix_final':True, 'solve_segments':True}}
 
         defect_comp = p.model.add_subsystem('defect_comp',
-                                            subsys=CollocationBalanceComp(grid_data=gd,
-                                                                          state_options=state_options))
+                                            subsys=CollocationComp(grid_data=gd,
+                                                                   state_options=state_options))
 
         p.setup()
         p.final_setup()
@@ -148,8 +148,8 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
             val=np.ones((num_col_nodes, 3, 2))*2, units='m/s')
 
         p.model.add_subsystem('defect_comp',
-                              subsys=CollocationBalanceComp(grid_data=gd,
-                                                            state_options=state_options))
+                              subsys=CollocationComp(grid_data=gd,
+                                                     state_options=state_options))
 
         p.model.connect('f_approx:x', 'defect_comp.f_approx:x')
         p.model.connect('f_approx:v', 'defect_comp.f_approx:v')
@@ -174,10 +174,10 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
 
         expected = np.array([0.,-1.,0.,-2.,0.,-3.])
 
-        assert_almost_equal(p.model._residuals._views['defect_comp.x'],
+        assert_almost_equal(p.model._residuals._views['defect_comp.states:x'],
                             expected.reshape(6,1))
 
-        assert_almost_equal(p.model._residuals._views['defect_comp.v'],
+        assert_almost_equal(p.model._residuals._views['defect_comp.states:v'],
                             expected[:, np.newaxis, np.newaxis]*np.ones((6,3,2)))
 
        

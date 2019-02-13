@@ -8,7 +8,7 @@ import numpy as np
 
 from openmdao.api import IndepVarComp
 
-from ..optimizer_based.components import CollocationDefectComp, CollocationBalanceComp, StateInterpComp
+from ..optimizer_based.components import CollocationComp, StateInterpComp
 from ..components import EndpointConditionsComp
 from ..phase_base import PhaseBase
 from ...utils.constants import INF_BOUND
@@ -193,9 +193,9 @@ class OptimizerBasedPhaseBase(PhaseBase):
         time_units = self.time_options['units']
 
         self.add_subsystem('collocation_constraint',
-                           CollocationDefectComp(grid_data=grid_data,
-                                                 state_options=self.state_options,
-                                                 time_units=time_units))
+                           CollocationComp(grid_data=grid_data,
+                                           state_options=self.state_options,
+                                           time_units=time_units))
 
         self.connect('time.dt_dstau', ('collocation_constraint.dt_dstau'),
                      src_indices=grid_data.subset_node_indices['col'])

@@ -13,7 +13,7 @@ from dymos.phases.grid_data import GridData
 from dymos.utils.misc import get_rate_units
 from dymos.utils.indexing import get_src_indices_by_row
 
-class CollocationBalanceComp(ImplicitComponent):
+class CollocationComp(ImplicitComponent):
     """
     A simple equation balance for solving implicit equations.
 
