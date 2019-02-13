@@ -10,7 +10,8 @@ from openmdao.api import Problem, Group, ExplicitComponent, MetaModelStructuredC
 train_rpm = np.linspace(11247.65, 175.25, 25)[::-1]
 train_eta = np.array([0.10, 71.87, 75.27, 74.99, 73.25, 70.78, 67.89, 64.73, 61.40, 57.95, 54.41,
                       50.80, 47.14, 43.44, 39.71, 35.95, 32.17, 28.37, 24.56, 20.74, 16.90, 13.05,
-                      9.0, 5.34, 1.47])[::-1]
+                      9.0, 5.34, 1.47])[::-1] * .01
+
 
 class DCMotorCurrent(ExplicitComponent):
     """
@@ -29,22 +30,29 @@ class DCMotorCurrent(ExplicitComponent):
                        desc='applied current')
 
         # Derivatives
-        self.declare_partials('*', '*', method='fd')
+        row_col = np.arange(nn)
+        self.declare_partials(of='*', wrt='*', rows=row_col, cols=row_col)
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
         # 11.0/(11709 * 3.14159 / 30)
-        self.options.declare('K_e', default=.009,
+        self.options.declare('K_e', default=.0075,
                              desc='Back EMF constant (V*sec/rad).')
-        self.options.declare('resistance', default=0.5,
+        self.options.declare('resistance', default=15.0,
                              desc='Terminal Resistance (Ohm)')
 
     def compute(self, inputs, outputs):
         opts = self.options
         V = inputs['voltage']
-        n = inputs['rpm'] * np.pi / 30.0
+        omega = inputs['rpm'] * np.pi / 30.0
 
-        outputs['current'] = (V - opts['K_e'] * n) / opts['resistance']
+        outputs['current'] = (V - opts['K_e'] * omega) / opts['resistance']
+
+    def compute_partials(self, inputs, partials):
+        opts = self.options
+
+        partials['current', 'voltage'][:] = 1.0 / opts['resistance']
+        partials['current', 'rpm'][:] = -opts['K_e'] * (np.pi / (30.0 * opts['resistance']))
 
 
 class DCMotorPower(ExplicitComponent):
@@ -70,7 +78,10 @@ class DCMotorPower(ExplicitComponent):
                         desc='Motor output power.')
 
         # Derivatives
-        self.declare_partials('*', '*', method='fd')
+        row_col = np.arange(nn)
+        self.declare_partials(of='power', wrt=['voltage', 'current', 'efficiency'],
+                              rows=row_col, cols=row_col)
+        self.declare_partials(of='torque', wrt='*', rows=row_col, cols=row_col)
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -78,12 +89,31 @@ class DCMotorPower(ExplicitComponent):
     def compute(self, inputs, outputs):
         I = inputs['current']
         eff = inputs['efficiency']
-        n = inputs['rpm'] * np.pi / 30.0
+        omega = inputs['rpm'] * np.pi / 30.0
         V = inputs['voltage']
 
         power = eff * I * V
         outputs['power'] = power
-        outputs['torque'] = power / n
+        outputs['torque'] = power / omega
+
+    def compute_partials(self, inputs, partials):
+        I = inputs['current']
+        eff = inputs['efficiency']
+        omega = inputs['rpm'] * np.pi / 30.0
+        V = inputs['voltage']
+
+        dpower_dV = eff * I
+        dpower_deff = I * V
+        dpower_dVI= eff * V
+
+        partials['power', 'voltage'] = dpower_dV
+        partials['power', 'efficiency'] = dpower_deff
+        partials['power', 'current'] = dpower_dVI
+
+        partials['torque', 'voltage'] = dpower_dV / omega
+        partials['torque', 'efficiency'] = dpower_deff / omega
+        partials['torque', 'current'] = dpower_dVI / omega
+        partials['torque', 'rpm'] = -eff * I * V  * np.pi / (30.0 * omega**2)
 
 
 class MMComp(MetaModelStructuredComp):
@@ -104,7 +134,7 @@ class DCMotor(Group):
                            promotes_inputs=['rpm', 'voltage'],
                            promotes_outputs=['current'])
 
-        self.add_subsystem('motor_efficiency', MMComp(vec_size=num_nodes, method='slinear', extrapolate=False),
+        self.add_subsystem('motor_efficiency', MMComp(vec_size=num_nodes, method='slinear', extrapolate=True),
                            promotes_inputs=['rpm'],
                            promotes_outputs=['efficiency'])
 
@@ -134,5 +164,14 @@ if __name__ == '__main__':
     prob.setup()
 
     prob.run_model()
+
+    do_plot = True
+
+    if do_plot:
+        import matplotlib.pyplot as plt
+        plt.plot(prob['rpm'], prob['power'])
+        plt.xlabel('RPM')
+        plt.ylabel('Output Power')
+        plt.show()
 
     print('done')
