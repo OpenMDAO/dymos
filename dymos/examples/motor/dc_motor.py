@@ -5,15 +5,14 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from openmdao.api import Problem, Group, ExplicitComponent, ImplicitComponent, \
-     MetaModelStructuredComp, NewtonSolver, DirectSolver
+from openmdao.api import Problem, Group, ExplicitComponent, MetaModelStructuredComp
 
 train_rpm = np.linspace(11247.65, 175.25, 25)[::-1]
 train_eta = np.array([0.10, 71.87, 75.27, 74.99, 73.25, 70.78, 67.89, 64.73, 61.40, 57.95, 54.41,
                       50.80, 47.14, 43.44, 39.71, 35.95, 32.17, 28.37, 24.56, 20.74, 16.90, 13.05,
                       9.0, 5.34, 1.47])[::-1]
 
-class DCMotorCurrent(ImplicitComponent):
+class DCMotorCurrent(ExplicitComponent):
     """
     """
     def setup(self):
@@ -40,13 +39,12 @@ class DCMotorCurrent(ImplicitComponent):
         self.options.declare('resistance', default=0.5,
                              desc='Terminal Resistance (Ohm)')
 
-    def apply_nonlinear(self, inputs, outputs, residuals):
+    def compute(self, inputs, outputs):
         opts = self.options
         V = inputs['voltage']
         n = inputs['rpm'] * np.pi / 30.0
-        I = outputs['current']
 
-        residuals['current'] = V - I * opts['resistance'] - opts['K_e'] * n
+        outputs['current'] = (V - opts['K_e'] * n) / opts['resistance']
 
 
 class DCMotorPower(ExplicitComponent):
@@ -132,9 +130,6 @@ if __name__ == '__main__':
     ivc.add_output('voltage', 11.0*np.ones((nn, )), units='V')
 
     model.add_subsystem('ivc', ivc, promotes=['*'])
-
-    model.nonlinear_solver = NewtonSolver()
-    model.linear_solver = DirectSolver()
 
     prob.setup()
 
