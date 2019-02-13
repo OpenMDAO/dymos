@@ -110,7 +110,7 @@ class CollocationBalanceComp(ImplicitComponent):
             # only need the implicit variable if this state is solved. 
             # will get promoted to the same naming convention as the indepvar comp
             if solved: 
-                self.add_output(name=state_name,
+                self.add_output(name='states:{0}'.format(state_name),
                                 shape=(num_state_input_nodes,) + shape,
                                 units=units)
 
@@ -164,23 +164,25 @@ class CollocationBalanceComp(ImplicitComponent):
             if solved: # only need this deriv if its solved
                 base_idx = np.tile(np.arange(size),num_indep_nodes).reshape(num_indep_nodes,size) 
                 r = (indep_idx[:,np.newaxis]*size + base_idx).flatten()
-                self.declare_partials(of=state_name, wrt=state_name, 
+                state_var_name = 'states:{0}'.format(state_name)
+
+                self.declare_partials(of=state_var_name, wrt=state_var_name, 
                                     rows=r, cols=r, val=-1)
 
                 c = np.arange(num_solve_nodes * size)
                 base_idx = np.tile(np.arange(size),num_solve_nodes).reshape(num_solve_nodes,size) 
                 r = (solve_idx[:,np.newaxis]*size + base_idx).flatten()
 
-                self.declare_partials(of=state_name,
+                self.declare_partials(of=state_var_name,
                                     wrt=var_names['f_approx'],
                                     rows=r, cols=c)
 
-                self.declare_partials(of=state_name,
+                self.declare_partials(of=state_var_name,
                                     wrt=var_names['f_computed'],
                                     rows=r, cols=c)
 
                 c = np.repeat(np.arange(num_solve_nodes), size)
-                self.declare_partials(of=state_name,
+                self.declare_partials(of=state_var_name,
                                     wrt='dt_dstau',
                                     rows=r, cols=c)
                                     
@@ -225,13 +227,14 @@ class CollocationBalanceComp(ImplicitComponent):
             if options['solve_segments']: 
                 solve_idx = self.state_idx_map[state_name]['solver']
                 indep_idx = self.state_idx_map[state_name]['indep']
+                state_var_name = 'states:{0}'.format(state_name)
 
-                residuals[state_name][solve_idx,...] = ((f_approx - f_computed).T * dt_dstau).T
+                residuals[state_var_name][solve_idx,...] = ((f_approx - f_computed).T * dt_dstau).T
                 
                 # really is: <idep_val> - \outputs[state_name][indep_idx] but OpenMDAO implementation details mean we just set it to 0
                 # but derivatives are based on <idep_val> - \outputs[state_name][indep_idx], so you get -1 wrt state var
                 # NOTE: Because of this weirdness check_partials will report wrong derivs for the indep vars, but don't believe it!
-                residuals[state_name][indep_idx,...] = 0 
+                residuals[state_var_name][indep_idx,...] = 0 
             else: 
                 residuals[var_names['defect']] = ((f_approx - f_computed).T * dt_dstau).T
 
@@ -260,9 +263,10 @@ class CollocationBalanceComp(ImplicitComponent):
             k = np.repeat(dt_dstau, size)
 
             if solved:
-                J[state_name, var_names['f_approx']] = k
-                J[state_name, var_names['f_computed']] = -k
-                J[state_name, 'dt_dstau'] = (f_approx - f_computed).ravel()
+                state_var_name = 'states:{0}'.format(state_name)
+                J[state_var_name, var_names['f_approx']] = k
+                J[state_var_name, var_names['f_computed']] = -k
+                J[state_var_name, 'dt_dstau'] = (f_approx - f_computed).ravel()
             else: 
                 defect_name = self.var_names[state_name]['defect']
                 J[defect_name, var_names['f_approx']] = k

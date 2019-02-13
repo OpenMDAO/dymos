@@ -1,0 +1,143 @@
+from __future__ import print_function, division, absolute_import
+
+import unittest
+
+import numpy as np
+from numpy.testing import assert_almost_equal
+
+from openmdao.api import Problem, Group, IndepVarComp
+from openmdao.utils.assert_utils import assert_check_partials
+
+from dymos.phases.optimizer_based.components import CollocationBalanceComp
+# from dymos.phases.optimizer_based.components import CollocationDefectComp
+from dymos.phases.grid_data import GridData
+
+
+class TestCollocationCompSolOpt(unittest.TestCase):
+
+    # def setUp(self):
+    def make_prob(self, transcription, n_segs, order, compressed): 
+
+        p = Problem(model=Group())
+
+        gd = GridData(num_segments=n_segs, segment_ends=np.arange(n_segs+1),
+                      transcription=transcription, transcription_order=order, compressed=compressed)
+
+        state_options = {'x': {'units': 'm', 'shape': (1,), 'fix_initial':True, 
+                               'fix_final':False, 'solve_segments':False},
+                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial':False, 
+                               'fix_final':True, 'solve_segments':True}}
+
+        indep_comp = IndepVarComp()
+        p.model.add_subsystem('indep', indep_comp, promotes_outputs=['*'])
+
+        indep_comp.add_output(
+            'dt_dstau',
+            val=np.zeros((gd.subset_num_nodes['col']))
+        )
+
+        indep_comp.add_output(
+            'f_approx:x',
+            val=np.zeros((gd.subset_num_nodes['col'], 1)), units='m')
+        indep_comp.add_output(
+            'f_computed:x',
+            val=np.zeros((gd.subset_num_nodes['col'], 1)), units='m')
+
+        indep_comp.add_output(
+            'f_approx:v',
+            val=np.zeros((gd.subset_num_nodes['col'], 3, 2)), units='m/s')
+        indep_comp.add_output(
+            'f_computed:v',
+            val=np.zeros((gd.subset_num_nodes['col'], 3, 2)), units='m/s')
+
+        p.model.add_subsystem('defect_comp',
+                                   subsys=CollocationBalanceComp(grid_data=gd,
+                                                                state_options=state_options))
+
+        p.model.connect('f_approx:x', 'defect_comp.f_approx:x')
+        p.model.connect('f_approx:v', 'defect_comp.f_approx:v')
+        p.model.connect('f_computed:x', 'defect_comp.f_computed:x')
+        p.model.connect('f_computed:v', 'defect_comp.f_computed:v')
+        p.model.connect('dt_dstau', 'defect_comp.dt_dstau')
+
+        p.setup(force_alloc_complex=True)
+
+        p['dt_dstau'] = np.random.random(gd.subset_num_nodes['col'])
+
+        p['f_approx:x'] = np.random.random((gd.subset_num_nodes['col'], 1))
+        p['f_approx:v'] = np.random.random((gd.subset_num_nodes['col'], 3, 2))
+
+        p['f_computed:x'] = np.random.random((gd.subset_num_nodes['col'], 1))
+        p['f_computed:v'] = np.random.random((gd.subset_num_nodes['col'], 3, 2))
+
+        p.run_model()
+        p.model.run_apply_nonlinear()
+
+        # p.model.list_outputs(residuals=True, print_arrays=True)
+
+        return p
+
+    def test_results(self):
+        p = self.make_prob('gauss-lobatto', n_segs=4, order=3, compressed=False)
+
+        dt_dstau = p['dt_dstau']
+
+        assert_almost_equal(p['defect_comp.defects:x'],
+                            dt_dstau[:, np.newaxis] * (p['f_approx:x']-p['f_computed:x']))
+
+        solver_nodes = p.model.defect_comp.solver_node_idx[:-1] # fix_final
+        assert_almost_equal(p.model._residuals['defect_comp.states:v'][solver_nodes],
+                            dt_dstau[:, np.newaxis, np.newaxis] *
+                            (p['f_approx:v']-p['f_computed:v']))
+
+        #################################################################################
+        #################################################################################
+        p = self.make_prob('gauss-lobatto', n_segs=4, order=3, compressed=True)
+
+        dt_dstau = p['dt_dstau']
+
+        assert_almost_equal(p['defect_comp.defects:x'],
+                            dt_dstau[:, np.newaxis] * (p['f_approx:x']-p['f_computed:x']))
+
+        solver_nodes = p.model.defect_comp.solver_node_idx[:-1] # fix_final
+        assert_almost_equal(p.model._residuals['defect_comp.states:v'][solver_nodes],
+                            dt_dstau[:, np.newaxis, np.newaxis] *
+                            (p['f_approx:v']-p['f_computed:v']))
+
+    def test_partials(self):
+        def assert_partials(data):
+            # assert_check_partials(cpd) # can't use this here, cause of indepvarcomp weirdness
+            for of,wrt in data: 
+                if of == wrt:  
+                    # IndepVarComp like outputs have correct derivs, but FD is wrong so we skip them (should be some form of -I)
+                    continue
+                check_data = data[(of,wrt)]
+                self.assertLess(check_data['abs error'].forward, 1e-8)
+                
+            # print((self.p['f_approx:v']-self.p['f_computed:v']).ravel())
+
+        np.set_printoptions(linewidth=1024, edgeitems=1e1000)
+
+        p = self.make_prob('radau-ps', n_segs=2, order=5, compressed=False)
+        cpd = p.check_partials(compact_print=True, method='fd')
+        data = cpd['defect_comp']
+        assert_partials(data)
+
+        p = self.make_prob('radau-ps', n_segs=2, order=5, compressed=True)
+        cpd = p.check_partials(compact_print=True, method='fd')
+        data = cpd['defect_comp']
+        assert_partials(data)
+
+        p = self.make_prob('gauss-lobatto', n_segs=3, order=5, compressed=False)
+        cpd = p.check_partials(compact_print=True, method='fd')
+        data = cpd['defect_comp']
+        assert_partials(data)
+
+        p = self.make_prob('gauss-lobatto', n_segs=4, order=3, compressed=True)
+        cpd = p.check_partials(compact_print=True, method='fd')
+        data = cpd['defect_comp']
+        assert_partials(data)
+
+
+if __name__ == '__main__':
+    unittest.main()
