@@ -7,7 +7,7 @@ from scipy.linalg import block_diag
 
 from openmdao.api import ExplicitComponent
 
-from ...utils.rk_methods import rk_methods
+from dymos.utils.rk_methods import rk_methods
 
 
 class RungeKuttaStatePredictComp(ExplicitComponent):
@@ -28,13 +28,6 @@ class RungeKuttaStatePredictComp(ExplicitComponent):
         num_seg = self.options['num_segments']
 
         rk_data = rk_methods[self.options['method']]
-        # print(num_seg * [rk_data['A']])
-        # self._A = block_diag(num_seg * [rk_data['A']])
-        # self._A = np.block([[rk_data['A'], rk_data['A'], rk_data['A'], rk_data['A']],
-        #                     [rk_data['A'], rk_data['A'], rk_data['A'], rk_data['A']],
-        #                     [rk_data['A'], rk_data['A'], rk_data['A'], rk_data['A']],
-        #                     [rk_data['A'], rk_data['A'], rk_data['A'], rk_data['A']]])
-        # self._A = block_diag(*4*[rk_data['A']])
         self._A = block_diag(rk_data['A'])
         self._num_stages = rk_data['num_stages']
 

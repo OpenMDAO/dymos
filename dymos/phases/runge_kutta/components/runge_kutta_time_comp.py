@@ -7,10 +7,12 @@ from six import string_types
 from dymos.phases.grid_data import GridData
 
 
-class TimeComp(ExplicitComponent):
+class RungeKuttaTimeComp(ExplicitComponent):
 
     def initialize(self):
         # Required
+        self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
+
         self.options.declare('num_nodes', types=int,
                              desc='The total number of points at which times are required in the'
                                   'phase.')
@@ -37,7 +39,7 @@ class TimeComp(ExplicitComponent):
         self.add_output('dt_dstau', units=time_units, shape=len(node_ptau))
 
         # Setup partials
-        nn = self.options['num_nodes']
+        nn = self.options['grid_data'].num_nodes
         rs = np.arange(nn)
         cs = np.zeros(nn)
 

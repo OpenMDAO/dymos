@@ -972,35 +972,36 @@ class PhaseBase(Group):
         comps
             A list of the component names needed for time extents.
         """
-        time_units = self.time_options['units']
-        grid_data = self.grid_data
-
-        indeps = []
-        externals = []
-        comps = []
-
-        if self.time_options['input_initial']:
-            externals.append('t_initial')
-        else:
-            indeps.append('t_initial')
-            self.connect('t_initial', 'time.t_initial')
-
-        if self.time_options['input_duration']:
-            externals.append('t_duration')
-        else:
-            indeps.append('t_duration')
-            self.connect('t_duration', 'time.t_duration')
-
-        if indeps:
-            indep = IndepVarComp()
-            for var in indeps:
-                indep.add_output(var, val=1.0, units=time_units)
-            self.add_subsystem('time_extents', indep, promotes_outputs=['*'])
-            comps += ['time_extents']
-
-        time_comp = TimeComp(grid_data=grid_data, units=time_units)
-        self.add_subsystem('time', time_comp, promotes_outputs=['time', 'time_phase'],
-                           promotes_inputs=externals)
+        # time_units = self.time_options['units']
+        # grid_data = self.grid_data
+        #
+        # indeps = []
+        # externals = []
+        # comps = []
+        #
+        # if self.time_options['input_initial']:
+        #     externals.append('t_initial')
+        # else:
+        #     indeps.append('t_initial')
+        #     self.connect('t_initial', 'time.t_initial')
+        #
+        # if self.time_options['input_duration']:
+        #     externals.append('t_duration')
+        # else:
+        #     indeps.append('t_duration')
+        #     self.connect('t_duration', 'time.t_duration')
+        #
+        # if indeps:
+        #     indep = IndepVarComp()
+        #     for var in indeps:
+        #         indep.add_output(var, val=1.0, units=time_units)
+        #     self.add_subsystem('time_extents', indep, promotes_outputs=['*'])
+        #     comps += ['time_extents']
+        #
+        # time_comp = TimeComp(num_nodes=grid_data.num_nodes, nodes_ptau=grid_data.nodes_ptau,
+        #                      dptau_dstau=grid_data.nodes_dptau_dstau, time_units=time_units)
+        # self.add_subsystem('time', time_comp, promotes_outputs=['time', 'time_phase'],
+        #                    promotes_inputs=externals)
 
         if not (self.time_options['input_initial'] or self.time_options['fix_initial']):
             lb, ub = self.time_options['initial_bounds']
@@ -1027,7 +1028,6 @@ class PhaseBase(Group):
                                 adder=self.time_options['duration_adder'],
                                 ref0=self.time_options['duration_ref0'],
                                 ref=self.time_options['duration_ref'])
-        return comps
 
     def _setup_controls(self):
         """

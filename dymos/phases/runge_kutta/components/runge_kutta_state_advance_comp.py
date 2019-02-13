@@ -6,7 +6,7 @@ import numpy as np
 
 from openmdao.api import ExplicitComponent
 
-from ...utils.rk_methods import rk_methods
+from dymos.utils.rk_methods import rk_methods
 
 
 class RungeKuttaStateAdvanceComp(ExplicitComponent):
