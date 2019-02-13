@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     ivc = IndepVarComp()
     ivc.add_output('rpm', train_rpm, units='1/min')
-    ivc.add_output('voltage', 11.0*np.ones((nn, )), units='V')
+    ivc.add_output('voltage', 9.0*np.ones((nn, )), units='V')
 
     model.add_subsystem('ivc', ivc, promotes=['*'])
 
