@@ -15,7 +15,7 @@ SHOW_PLOTS = True
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
-                   transcription_order=3, force_alloc_complex=False):
+                   transcription_order=3, force_alloc_complex=False, top_level_jacobian='csc'):
 
     p = Problem(model=Group())
 
@@ -93,7 +93,6 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p['phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_input')
 
     p.run_driver()
-
 
     if SHOW_PLOTS:
         exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 100))

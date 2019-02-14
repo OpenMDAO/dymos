@@ -157,25 +157,22 @@ class USatm1976Comp(ExplicitComponent):
         arange = np.arange(nn)
         self.declare_partials(['temp', 'pres', 'rho', 'viscosity', 'drhos_dh', 'sos'], 'h',
                               rows=arange, cols=arange)
-      
 
     def compute(self, inputs, outputs):
 
-        outputs['temp'] = T_interp(inputs['h'], extrapolate=True) 
-        outputs['pres'] = P_interp(inputs['h'], extrapolate=True) 
-        outputs['rho'] = rho_interp(inputs['h'], extrapolate=True) 
+        outputs['temp'] = T_interp(inputs['h'], extrapolate=True)
+        outputs['pres'] = P_interp(inputs['h'], extrapolate=True)
+        outputs['rho'] = rho_interp(inputs['h'], extrapolate=True)
         outputs['viscosity'] = visc_interp(inputs['h'], extrapolate=True)
         outputs['drhos_dh'] = rho_interp_deriv(inputs['h'], extrapolate=True)
 
         outputs['sos'] = np.sqrt(self._K*outputs['temp'])
 
-
-
     def compute_partials(self, inputs, partials):
         nn = self.options['num_nodes']
         H = inputs['h']
         partials['temp', 'h'] = T_interp_deriv(H, extrapolate=True)
-        partials['pres', 'h'] = P_interp_deriv(H, extrapolate=True) 
+        partials['pres', 'h'] = P_interp_deriv(H, extrapolate=True)
         partials['rho', 'h'] = rho_interp_deriv(H, extrapolate=True)
         partials['viscosity', 'h'] = visc_interp_deriv(H, extrapolate=True)
         partials['drhos_dh', 'h'] = drho_dh_interp_deriv(H, extrapolate=True)

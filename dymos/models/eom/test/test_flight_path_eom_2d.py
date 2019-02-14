@@ -8,26 +8,20 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, ODEOptions
+from dymos import Phase, ODEOptions, declare_time, declare_state
 from dymos.models.eom import FlightPathEOM2D
 
 OPTIMIZER = 'SLSQP'
 SHOW_PLOTS = False
 
 
+@declare_time(units='s')
+@declare_state(name='r', rate_source='r_dot', units='m')
+@declare_state(name='h', rate_source='h_dot', units='m')
+@declare_state(name='gam', rate_source='gam_dot', targets='gam', units='rad')
+@declare_state(name='v', rate_source='v_dot', targets='v', units='m/s')
 class _CannonballODE(FlightPathEOM2D):
-
-    ode_options = ODEOptions()
-
-    ode_options.declare_time(units='s')
-
-    ode_options.declare_state(name='r', rate_source='r_dot', units='m')
-    ode_options.declare_state(name='h', rate_source='h_dot', units='m')
-    ode_options.declare_state(name='gam', rate_source='gam_dot', targets='gam', units='rad')
-    ode_options.declare_state(name='v', rate_source='v_dot', targets='v', units='m/s')
-
-    def __init__(self, **kwargs):
-        super(_CannonballODE, self).__init__(**kwargs)
+    pass
 
 
 class TestFlightPathEOM2D(unittest.TestCase):

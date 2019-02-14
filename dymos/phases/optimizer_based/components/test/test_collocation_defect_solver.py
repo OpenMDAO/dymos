@@ -5,26 +5,26 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp 
+from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.phases.optimizer_based.components.collocation_comp import CollocationComp
 from dymos.phases.grid_data import GridData
 
 
-class TestCollocationBalanceIndex(unittest.TestCase): 
+class TestCollocationBalanceIndex(unittest.TestCase):
 
-    def make_prob(self, transcription, n_segs, order, compressed): 
+    def make_prob(self, transcription, n_segs, order, compressed):
 
         p = Problem(model=Group())
 
         gd = GridData(num_segments=n_segs, segment_ends=np.arange(n_segs+1),
                       transcription=transcription, transcription_order=order, compressed=compressed)
 
-        state_options = {'x': {'units': 'm', 'shape': (1,), 'fix_initial':True, 
-                               'fix_final':False, 'solve_segments':True},
-                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial':False, 
-                               'fix_final':True, 'solve_segments':True}}
+        state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
+                               'fix_final': False, 'solve_segments': True},
+                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial': False,
+                               'fix_final': True, 'solve_segments': True}}
 
         defect_comp = p.model.add_subsystem('defect_comp',
                                             subsys=CollocationComp(grid_data=gd,
@@ -35,19 +35,17 @@ class TestCollocationBalanceIndex(unittest.TestCase):
 
         return p
 
-
-    def test_3_lgl(self): 
+    def test_3_lgl(self):
 
         p = self.make_prob(transcription='gauss-lobatto', n_segs=3, order=3, compressed=False)
         defect_comp = p.model.defect_comp
         self.assertSetEqual(set(defect_comp.state_idx_map['x']['solver']), set([1, 3, 5]))
         self.assertSetEqual(set(defect_comp.state_idx_map['x']['indep']), set([0, 2, 4]))
 
-        self.assertSetEqual(set(defect_comp.state_idx_map['v']['solver']), set([0,1,3]))
-        self.assertSetEqual(set(defect_comp.state_idx_map['v']['indep']), set([2,4,5]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['v']['solver']), set([0, 1, 3]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['v']['indep']), set([2, 4, 5]))
 
-
-    def test_5_lgl(self): 
+    def test_5_lgl(self):
 
         p = self.make_prob(transcription='gauss-lobatto', n_segs=2, order=5, compressed=False)
         defect_comp = p.model.defect_comp
@@ -58,67 +56,69 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(defect_comp.state_idx_map['v']['solver']), set([0, 1, 2, 4]))
         self.assertSetEqual(set(defect_comp.state_idx_map['v']['indep']), set([3, 5]))
 
-
-    def test_3_lgr(self): 
+    def test_3_lgr(self):
 
         p = self.make_prob(transcription='radau-ps', n_segs=3, order=3, compressed=False)
         defect_comp = p.model.defect_comp
 
-        self.assertSetEqual(set(defect_comp.state_idx_map['x']['solver']), set([1,2,3,5,6,7,9,10,11]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['x']['solver']),
+                            set([1, 2, 3, 5, 6, 7, 9, 10, 11]))
         self.assertSetEqual(set(defect_comp.state_idx_map['x']['indep']), set([0, 4, 8]))
 
-        self.assertSetEqual(set(defect_comp.state_idx_map['v']['solver']), set([0,1,2,3,5,6,7,9,10]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['v']['solver']),
+                            set([0, 1, 2, 3, 5, 6, 7, 9, 10]))
         self.assertSetEqual(set(defect_comp.state_idx_map['v']['indep']), set([4, 8, 11]))
 
-
-    def test_5_lgr(self): 
+    def test_5_lgr(self):
 
         p = self.make_prob(transcription='radau-ps', n_segs=2, order=5, compressed=False)
         defect_comp = p.model.defect_comp
 
-        self.assertSetEqual(set(defect_comp.state_idx_map['x']['solver']), set([1,2,3,4,5,7,8,9,10,11]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['x']['solver']),
+                            set([1, 2, 3, 4, 5, 7, 8, 9, 10, 11]))
         self.assertSetEqual(set(defect_comp.state_idx_map['x']['indep']), set([0, 6]))
 
-        self.assertSetEqual(set(defect_comp.state_idx_map['v']['solver']), set([0,1,2,3,4,5,7,8,9,10]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['v']['solver']),
+                            set([0, 1, 2, 3, 4, 5, 7, 8, 9, 10]))
         self.assertSetEqual(set(defect_comp.state_idx_map['v']['indep']), set([6, 11]))
 
-    def test_5_lgr_compressed(self): 
+    def test_5_lgr_compressed(self):
 
         p = self.make_prob(transcription='radau-ps', n_segs=2, order=5, compressed=True)
         defect_comp = p.model.defect_comp
 
-        self.assertSetEqual(set(defect_comp.state_idx_map['x']['solver']), set([1,2,3,4,5,6,7,8,9,10]))
-        self.assertSetEqual(set(defect_comp.state_idx_map['x']['indep']), set([0,]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['x']['solver']),
+                            set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['x']['indep']), set([0, ]))
 
-        self.assertSetEqual(set(defect_comp.state_idx_map['v']['solver']), set([0,1,2,3,4,5,6,7,8,9]))
-        self.assertSetEqual(set(defect_comp.state_idx_map['v']['indep']), set([10,]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['v']['solver']),
+                            set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['v']['indep']), set([10, ]))
 
-
-    def test_5_lgl_compressed(self): 
+    def test_5_lgl_compressed(self):
 
         p = self.make_prob(transcription='gauss-lobatto', n_segs=2, order=5, compressed=True)
         defect_comp = p.model.defect_comp
 
-        self.assertSetEqual(set(defect_comp.state_idx_map['x']['solver']), set([1,2,3,4]))
-        self.assertSetEqual(set(defect_comp.state_idx_map['x']['indep']), set([0,]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['x']['solver']), set([1, 2, 3, 4]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['x']['indep']), set([0, ]))
 
-        self.assertSetEqual(set(defect_comp.state_idx_map['v']['solver']), set([0,1,2,3]))
-        self.assertSetEqual(set(defect_comp.state_idx_map['v']['indep']), set([4,]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['v']['solver']), set([0, 1, 2, 3]))
+        self.assertSetEqual(set(defect_comp.state_idx_map['v']['indep']), set([4, ]))
+
 
 class TestCollocationBalanceApplyNL(unittest.TestCase):
 
     def make_prob(self, transcription, n_segs, order, compressed):
-        
+
         gd = GridData(
             num_segments=n_segs, segment_ends=np.arange(n_segs+1),
             transcription=transcription, transcription_order=order)
 
-
-        state_options = {'x': {'units': 'm', 'shape': (1,), 'fix_initial':True, 
-                              'fix_final':False, 'solve_segments':True},
-                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial':True, 
-                               'fix_final':False, 'solve_segments':True}}
-
+        state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
+                               'fix_final': False, 'solve_segments': True},
+                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial': True,
+                               'fix_final': False, 'solve_segments': True}}
 
         num_col_nodes = gd.subset_num_nodes['col']
         num_col_nodes_per_seg = gd.subset_num_nodes_per_segment['col']
@@ -135,7 +135,7 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
 
         indep_comp.add_output(
             'f_approx:x',
-            val=np.ones((num_col_nodes,1)), units='m')
+            val=np.ones((num_col_nodes, 1)), units='m')
         indep_comp.add_output(
             'f_computed:x',
             val=np.ones((num_col_nodes, 1))*2, units='m')
@@ -161,38 +161,35 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
 
         return p
 
-       
     def test_apply_nonlinear(self):
 
         p = self.make_prob('gauss-lobatto', n_segs=3, order=3, compressed=False)
 
         p.run_model()
-        p.model.run_apply_nonlinear() # need to make sure residuals are computed
-
+        p.model.run_apply_nonlinear()  # need to make sure residuals are computed
 
         dt_dstau = p['dt_dstau']
 
-        expected = np.array([0.,-1.,0.,-2.,0.,-3.])
+        expected = np.array([0., -1., 0., -2., 0., -3.])
 
         assert_almost_equal(p.model._residuals._views['defect_comp.states:x'],
-                            expected.reshape(6,1))
+                            expected.reshape(6, 1))
 
         assert_almost_equal(p.model._residuals._views['defect_comp.states:v'],
-                            expected[:, np.newaxis, np.newaxis]*np.ones((6,3,2)))
-
-       
+                            expected[:, np.newaxis, np.newaxis]*np.ones((6, 3, 2)))
 
     def test_partials(self):
 
         def assert_partials(data):
             # assert_check_partials(cpd) # can't use this here, cause of indepvarcomp weirdness
-            for of,wrt in data: 
-                if of == wrt:  
-                    # IndepVarComp like outputs have correct derivs, but FD is wrong so we skip them (should be some form of -I)
+            for of, wrt in data:
+                if of == wrt:
+                    # IndepVarComp like outputs have correct derivs, but FD is wrong so we skip
+                    # them (should be some form of -I)
                     continue
-                check_data = data[(of,wrt)]
+                check_data = data[(of, wrt)]
                 self.assertLess(check_data['abs error'].forward, 1e-8)
-                
+
             # print((self.p['f_approx:v']-self.p['f_computed:v']).ravel())
 
         np.set_printoptions(linewidth=1024, edgeitems=1e1000)

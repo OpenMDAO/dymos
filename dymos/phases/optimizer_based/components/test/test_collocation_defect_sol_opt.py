@@ -15,17 +15,17 @@ from dymos.phases.grid_data import GridData
 class TestCollocationCompSolOpt(unittest.TestCase):
 
     # def setUp(self):
-    def make_prob(self, transcription, n_segs, order, compressed): 
+    def make_prob(self, transcription, n_segs, order, compressed):
 
         p = Problem(model=Group())
 
         gd = GridData(num_segments=n_segs, segment_ends=np.arange(n_segs+1),
                       transcription=transcription, transcription_order=order, compressed=compressed)
 
-        state_options = {'x': {'units': 'm', 'shape': (1,), 'fix_initial':True, 
-                               'fix_final':False, 'solve_segments':False},
-                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial':False, 
-                               'fix_final':True, 'solve_segments':True}}
+        state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
+                               'fix_final': False, 'solve_segments': False},
+                         'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial': False,
+                               'fix_final': True, 'solve_segments': True}}
 
         indep_comp = IndepVarComp()
         p.model.add_subsystem('indep', indep_comp, promotes_outputs=['*'])
@@ -50,8 +50,7 @@ class TestCollocationCompSolOpt(unittest.TestCase):
             val=np.zeros((gd.subset_num_nodes['col'], 3, 2)), units='m/s')
 
         p.model.add_subsystem('defect_comp',
-                                   subsys=CollocationComp(grid_data=gd,
-                                                          state_options=state_options))
+                              subsys=CollocationComp(grid_data=gd, state_options=state_options))
 
         p.model.connect('f_approx:x', 'defect_comp.f_approx:x')
         p.model.connect('f_approx:v', 'defect_comp.f_approx:v')
@@ -84,7 +83,7 @@ class TestCollocationCompSolOpt(unittest.TestCase):
         assert_almost_equal(p['defect_comp.defects:x'],
                             dt_dstau[:, np.newaxis] * (p['f_approx:x']-p['f_computed:x']))
 
-        solver_nodes = p.model.defect_comp.solver_node_idx[:-1] # fix_final
+        solver_nodes = p.model.defect_comp.solver_node_idx[:-1]  # fix_final
         assert_almost_equal(p.model._residuals['defect_comp.states:v'][solver_nodes],
                             dt_dstau[:, np.newaxis, np.newaxis] *
                             (p['f_approx:v']-p['f_computed:v']))
@@ -98,7 +97,7 @@ class TestCollocationCompSolOpt(unittest.TestCase):
         assert_almost_equal(p['defect_comp.defects:x'],
                             dt_dstau[:, np.newaxis] * (p['f_approx:x']-p['f_computed:x']))
 
-        solver_nodes = p.model.defect_comp.solver_node_idx[:-1] # fix_final
+        solver_nodes = p.model.defect_comp.solver_node_idx[:-1]  # fix_final
         assert_almost_equal(p.model._residuals['defect_comp.states:v'][solver_nodes],
                             dt_dstau[:, np.newaxis, np.newaxis] *
                             (p['f_approx:v']-p['f_computed:v']))
@@ -106,13 +105,14 @@ class TestCollocationCompSolOpt(unittest.TestCase):
     def test_partials(self):
         def assert_partials(data):
             # assert_check_partials(cpd) # can't use this here, cause of indepvarcomp weirdness
-            for of,wrt in data: 
-                if of == wrt:  
-                    # IndepVarComp like outputs have correct derivs, but FD is wrong so we skip them (should be some form of -I)
+            for of, wrt in data:
+                if of == wrt:
+                    # IndepVarComp like outputs have correct derivs, but FD is wrong so we
+                    # skip them (should be some form of -I)
                     continue
-                check_data = data[(of,wrt)]
+                check_data = data[(of, wrt)]
                 self.assertLess(check_data['abs error'].forward, 1e-8)
-                
+
             # print((self.p['f_approx:v']-self.p['f_computed:v']).ravel())
 
         np.set_printoptions(linewidth=1024, edgeitems=1e1000)

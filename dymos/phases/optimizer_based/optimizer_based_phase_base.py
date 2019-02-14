@@ -116,16 +116,16 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         any_optimized_segments = False
         for name, options in iteritems(self.state_options):
-            if options['solve_segments']: 
+            if options['solve_segments']:
                 continue
-            else: 
+            else:
                 indep.add_output(name='states:{0}'.format(name),
                                  shape=(num_state_input_nodes, np.prod(options['shape'])),
                                  units=options['units'])
-             
+
                 any_optimized_segments = True
-        
-        if any_optimized_segments:  
+
+        if any_optimized_segments:
             self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
 
             for name, options in iteritems(self.state_options):
@@ -136,7 +136,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                     if options['fix_initial']:
                         if options['initial_bounds'] is not None:
                             raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                                            'initial_bounds for state {0}'.format(name))
+                                             'initial_bounds for state {0}'.format(name))
                         if isinstance(options['fix_initial'], Iterable):
                             idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
                             for idx_to_fix in reversed(sorted(idxs_to_fix)):
@@ -146,7 +146,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                     if options['fix_final']:
                         if options['final_bounds'] is not None:
                             raise ValueError('Cannot specify \'fix_final=True\' and specify '
-                                            'final_bounds for state {0}'.format(name))
+                                             'final_bounds for state {0}'.format(name))
                         if isinstance(options['fix_final'], Iterable):
                             idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
                             for idx_to_fix in reversed(sorted(idxs_to_fix)):

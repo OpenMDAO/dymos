@@ -95,7 +95,7 @@ class PhaseBase(Group):
     def set_state_options(self, name, units=_unspecified, val=1.0,
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
-                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None, 
+                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
                           solve_segments=False):
         """
         Set options that apply the EOM state variable of the given name.
@@ -136,9 +136,9 @@ class PhaseBase(Group):
             The unit-reference value of the state defect at the collocation nodes of the phase. If
             provided, this value overrides defect_scaler.
         solve_segments: bool(False)
-            If True, a solver will be used to converge the collocation defects within a segment. 
-            Note that the state continuity defects between segements will still be handled by the optimizer. 
-        
+            If True, a solver will be used to converge the collocation defects within a segment.
+            Note that the state continuity defects between segements will still be
+            handled by the optimizer.
 
         """
         if units is not _unspecified:

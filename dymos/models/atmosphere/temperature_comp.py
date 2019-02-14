@@ -47,7 +47,6 @@ class TemperatureComp(ExplicitComponent):
         outputs['temp'][:] += strato * 216.65
         outputs['temp'][:] += smooth * (a * h_m ** 3 + b * h_m ** 2 + c * h_m + d)
 
-
     def compute_partials(self, inputs, partials):
         h_m = inputs['h']
         a, b, c, d = self.coefs

@@ -108,6 +108,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         if os.path.exists('ex_brach_gl_compressed.db'):
             os.remove('ex_brach_gl_compressed.db')
 
+
 class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 
     @classmethod
@@ -146,25 +147,26 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
-
     def test_ex_brachistochrone_radau_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
                                                            compressed=True,
                                                            sim_record='ex_brachvs_radau_compressed.'
                                                                       'db',
-                                                           force_alloc_complex=True, run_driver=False)
+                                                           force_alloc_complex=True,
+                                                           run_driver=False)
 
-        # set the final optimized control profile from TestBrachistochroneVectorStatesExample.test_ex_brachistochrone_radau_compressed
+        # set the final optimized control profile from
+        # TestBrachistochroneVectorStatesExample.test_ex_brachistochrone_radau_compressed
         # and see if we get the right state history
-        theta = np.array([2.54206362,4.8278643 ,10.11278149,12.30024503,17.35332815,
-                 23.53948016,25.30747573,29.39010464,35.47854735,37.51549822,
-                 42.16351471,48.32419264,50.21299389,54.56658635,60.77733663,
-                 62.79222351,67.35945157,73.419141  ,75.27851226,79.60246558,
-                 85.89170743,87.96027845,92.66164608,98.89108826, ])
+        theta = np.array([2.54206362, 4.8278643, 10.11278149, 12.30024503, 17.35332815,
+                          23.53948016, 25.30747573, 29.39010464, 35.47854735, 37.51549822,
+                          42.16351471, 48.32419264, 50.21299389, 54.56658635, 60.77733663,
+                          62.79222351, 67.35945157, 73.419141, 75.27851226, 79.60246558,
+                          85.89170743, 87.96027845, 92.66164608, 98.89108826, ])
 
-        p['phase0.controls:theta'] = theta.reshape(-1,1)
-        
+        p['phase0.controls:theta'] = theta.reshape(-1, 1)
+
         self.assert_results(p)
         # self.assert_partials(p)
         self.tearDown()
@@ -210,5 +212,5 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
     #         os.remove('ex_brach_gl_compressed.db')
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     unittest.main()
