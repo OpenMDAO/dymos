@@ -6,7 +6,7 @@ from six import iteritems
 
 import numpy as np
 
-from openmdao.api import IndepVarComp
+from openmdao.api import IndepVarComp, DirectSolver, NewtonSolver
 
 from ..optimizer_based.components import CollocationComp, StateInterpComp
 from ..components import EndpointConditionsComp
@@ -57,6 +57,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         if self.any_optimized_segments:
             order.append('indep_states')
+
+        newton = self.nonlinear_solver = NewtonSolver()
+        newton.options['solve_subsystems'] = True
+        self.linear_solver = DirectSolver()
+
 
         order += ['time'] + control_interp_comp + \
             ['indep_jumps', 'initial_conditions', 'final_conditions']
@@ -130,8 +135,9 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                  shape=(num_state_input_nodes, np.prod(options['shape'])),
                                  units=options['units'])
 
-                any_optimized_segments = True
+                self.any_optimized_segments = True
 
+        if self.any_optimized_segments:
             self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
 
         # add all the des-vars (either from the IndepVarComp or from the indep-var-like
@@ -140,7 +146,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
             size = np.prod(options['shape'])
             if options['opt']:
                 if options['solve_segments']:
-                    desvar_indices = self.collocation_constraint.state_idx_map[name][indep]
+                    desvar_indices = list(self.collocation_constraint.state_idx_map[name]['indep'])
                 else:
                     desvar_indices = list(range(size * num_state_input_nodes))
 
@@ -193,6 +199,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                     ref0=coerce_desvar_option('ref0'),
                                     ref=coerce_desvar_option('ref'),
                                     indices=desvar_indices)
+
 
     def _setup_defects(self):
         """

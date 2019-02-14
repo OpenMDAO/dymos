@@ -10,11 +10,11 @@ from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-                             run_driver=True, top_level_jacobian='csc', compressed=True,
+                             top_level_jacobian='csc', compressed=True,
                              sim_record='brach_min_time_sim.db', optimizer='SLSQP',
                              dynamic_simul_derivs=True, force_alloc_complex=False,
                              solve_segments=False):
@@ -69,12 +69,13 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
     p['phase0.design_parameters:g'] = 9.80665
 
-    p.run_model()
-    if run_driver:
-        p.run_driver()
+    # p.run_model()
+    # if run_driver:
+    #     p.run_driver()
 
     # Plot results
     if SHOW_PLOTS:
+        p.run_driver()
         exp_out = phase.simulate(times=50, record_file=sim_record)
 
         fig, ax = plt.subplots()

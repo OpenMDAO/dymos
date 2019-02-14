@@ -84,7 +84,7 @@ class CollocationComp(ImplicitComponent):
                 self.state_idx_map[state_name]['solver'] = self.solver_node_idx[:-1]
                 self.state_idx_map[state_name]['indep'] = \
                     self.indep_node_idx + [self.solver_node_idx[-1]]
-
+            print('check', state_name, self.state_idx_map[state_name]['indep'])
         # NOTE: num_col_nodes MUST equal len(self.solver_node_idx) - 1 in order to ensure
         # you get a well defined problem; if that doesn't happen, something is wrong
 
@@ -188,6 +188,7 @@ class CollocationComp(ImplicitComponent):
                 r = (indep_idx[:, np.newaxis]*size + base_idx).flatten()
                 state_var_name = 'states:{0}'.format(state_name)
 
+                # anything that looks like an indep
                 self.declare_partials(of=state_var_name, wrt=state_var_name,
                                       rows=r, cols=r, val=-1)
 
@@ -207,6 +208,18 @@ class CollocationComp(ImplicitComponent):
                 self.declare_partials(of=state_var_name,
                                       wrt='dt_dstau',
                                       rows=r, cols=c)
+
+                # self.declare_partials(of=state_var_name,
+                #                       wrt=var_names['f_approx'],
+                #                       method='fd')
+
+                # self.declare_partials(of=state_var_name,
+                #                       wrt=var_names['f_computed'],
+                #                       method='fd')
+
+                # self.declare_partials(of=state_var_name,
+                #                       wrt='dt_dstau',
+                #                       method='fd')
 
             else:
                 r = np.arange(num_col_nodes * size)
@@ -265,6 +278,7 @@ class CollocationComp(ImplicitComponent):
                 # NOTE: check_partials will report wrong derivs for the indep vars,
                 #       but don't believe it!
                 residuals[state_var_name][indep_idx, ...] = 0
+
             else:
                 residuals[var_names['defect']] = \
                     ((f_approx - f_computed).T * dt_dstau).T - outputs[var_names['defect']]
