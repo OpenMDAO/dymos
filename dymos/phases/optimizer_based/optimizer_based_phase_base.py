@@ -128,6 +128,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         if any_optimized_segments:
             self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
 
+    def _setup_des_vars(self):
             for name, options in iteritems(self.state_options):
                 size = np.prod(options['shape'])
                 if options['opt']:

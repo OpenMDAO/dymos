@@ -74,6 +74,7 @@ class CollocationComp(ImplicitComponent):
 
         for state_name, options in iteritems(state_options):
             self.state_idx_map[state_name] = {'solver': None, 'indep': None}
+
             if options['solve_segments']:
                 if options['fix_initial'] and options['fix_final']:
                     raise ValueError('Can not use solver based collocation defects '
@@ -83,7 +84,7 @@ class CollocationComp(ImplicitComponent):
                     raise ValueError('Must have either fix_initial" and "fix_final" turned on '
                                      'with solver base collocation')
 
-            elif options['fix_initial']:
+            if options['fix_initial']:
                 self.state_idx_map[state_name]['solver'] = self.solver_node_idx[1:]
                 self.state_idx_map[state_name]['indep'] = \
                     [self.solver_node_idx[0]] + self.indep_node_idx
@@ -163,8 +164,10 @@ class CollocationComp(ImplicitComponent):
                 solve_idx = np.array(self.state_idx_map[state_name]['solver'])
                 indep_idx = np.array(self.state_idx_map[state_name]['indep'])
 
+                print('foo', indep_idx)
                 num_indep_nodes = indep_idx.shape[0]
                 num_solve_nodes = solve_idx.shape[0]
+
                 base_idx = np.tile(np.arange(size), num_indep_nodes).reshape(num_indep_nodes, size)
                 r = (indep_idx[:, np.newaxis]*size + base_idx).flatten()
                 state_var_name = 'states:{0}'.format(state_name)

@@ -51,8 +51,6 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
-        print('foobar', p['phase0.controls:theta'])
-
     def assert_partials(self, p):
         cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
