@@ -13,8 +13,8 @@ from .runge_kutta_k_comp import RungeKuttaKComp
 class RungeKuttaKIterGroup(Group):
     """
     This Group contains the state prediction component, the ODE, and the k-calculation component.
-    Given the initial values of the states and the times at the ODE evaluations, it will iterate
-    to find the Runge-Kutta weights 'k'.
+    Given the initial values of the states, the times at the ODE evaluations, and the stepsize
+    across each segment it will iterate to find the Runge-Kutta weights 'k'.
     """
     def __init__(self, get_rate_source_path, **kwargs):
         """
