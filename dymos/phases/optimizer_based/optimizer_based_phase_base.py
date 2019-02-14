@@ -53,8 +53,12 @@ class OptimizerBasedPhaseBase(PhaseBase):
         control_interp_comp = ['control_interp_comp'] if num_controls > 0 else []
 
         order = self._time_extents + indep_controls + \
-            input_params + design_params + traj_params + \
-            ['indep_states', 'time'] + control_interp_comp + \
+            input_params + design_params + traj_params
+
+        if self.any_optimized_segments:
+            order.append('indep_states')
+
+        order += ['time'] + control_interp_comp + \
             ['indep_jumps', 'initial_conditions', 'final_conditions']
 
         if transcription == 'gauss-lobatto':
@@ -114,7 +118,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         indep = IndepVarComp()
 
-        any_optimized_segments = False
+        # create des-vars for any solve_segments=False states
+        # NOTE: solve_segments=True states get their state:<state_name> vars from the output
+        #       of the implicit collocation_comp
+        self.any_optimized_segments = False
         for name, options in iteritems(self.state_options):
             if options['solve_segments']:
                 continue
@@ -125,63 +132,67 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
                 any_optimized_segments = True
 
-        if any_optimized_segments:
             self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
 
+        # add all the des-vars (either from the IndepVarComp or from the indep-var-like
+        # outputs of the collocation comp)
         for name, options in iteritems(self.state_options):
             size = np.prod(options['shape'])
             if options['opt']:
-                desvar_indices = list(range(size * num_state_input_nodes))
+                if options['solve_segments']:
+                    desvar_indices = self.collocation_constraint.state_idx_map[name][indep]
+                else:
+                    desvar_indices = list(range(size * num_state_input_nodes))
 
-                if options['fix_initial']:
-                    if options['initial_bounds'] is not None:
-                        raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                                         'initial_bounds for state {0}'.format(name))
-                    if isinstance(options['fix_initial'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[idx_to_fix]
-                    else:
-                        del desvar_indices[:size]
-                if options['fix_final']:
-                    if options['final_bounds'] is not None:
-                        raise ValueError('Cannot specify \'fix_final=True\' and specify '
-                                         'final_bounds for state {0}'.format(name))
-                    if isinstance(options['fix_final'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[-size + idx_to_fix]
-                    else:
-                        del desvar_indices[-size:]
+            if options['fix_initial']:
+                if options['initial_bounds'] is not None:
+                    raise ValueError('Cannot specify \'fix_initial=True\' and specify '
+                                        'initial_bounds for state {0}'.format(name))
+                if isinstance(options['fix_initial'], Iterable):
+                    idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
+                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                        del desvar_indices[idx_to_fix]
+                else:
+                    del desvar_indices[:size]
+            if options['fix_final']:
+                if options['final_bounds'] is not None:
+                    raise ValueError('Cannot specify \'fix_final=True\' and specify '
+                                        'final_bounds for state {0}'.format(name))
+                if isinstance(options['fix_final'], Iterable):
+                    idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
+                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                        del desvar_indices[-size + idx_to_fix]
+                else:
+                    del desvar_indices[-size:]
 
-                if len(desvar_indices) > 0:
-                    coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
-                                                        options)
+            if len(desvar_indices) > 0:
+                coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
+                                                    options)
 
-                    lb = np.zeros_like(desvar_indices, dtype=float)
-                    lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
-                        coerce_desvar_option('lower')
+                lb = np.zeros_like(desvar_indices, dtype=float)
+                lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                    coerce_desvar_option('lower')
 
-                    ub = np.zeros_like(desvar_indices, dtype=float)
-                    ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
-                        coerce_desvar_option('upper')
+                ub = np.zeros_like(desvar_indices, dtype=float)
+                ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                    coerce_desvar_option('upper')
 
-                    if options['initial_bounds'] is not None:
-                        lb[0] = options['initial_bounds'][0]
-                        ub[0] = options['initial_bounds'][-1]
+                if options['initial_bounds'] is not None:
+                    lb[0] = options['initial_bounds'][0]
+                    ub[0] = options['initial_bounds'][-1]
 
-                    if options['final_bounds'] is not None:
-                        lb[-1] = options['final_bounds'][0]
-                        ub[-1] = options['final_bounds'][-1]
+                if options['final_bounds'] is not None:
+                    lb[-1] = options['final_bounds'][0]
+                    ub[-1] = options['final_bounds'][-1]
 
-                    self.add_design_var(name='states:{0}'.format(name),
-                                        lower=lb,
-                                        upper=ub,
-                                        scaler=coerce_desvar_option('scaler'),
-                                        adder=coerce_desvar_option('adder'),
-                                        ref0=coerce_desvar_option('ref0'),
-                                        ref=coerce_desvar_option('ref'),
-                                        indices=desvar_indices)
+                self.add_design_var(name='states:{0}'.format(name),
+                                    lower=lb,
+                                    upper=ub,
+                                    scaler=coerce_desvar_option('scaler'),
+                                    adder=coerce_desvar_option('adder'),
+                                    ref0=coerce_desvar_option('ref0'),
+                                    ref=coerce_desvar_option('ref'),
+                                    indices=desvar_indices)
 
     def _setup_defects(self):
         """
@@ -192,10 +203,20 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         time_units = self.time_options['units']
 
+
+        any_solved_segments = False
+        for state_name, options in iteritems(self.state_options):
+            if options['solve_segments']:
+                any_solved_segments = True
+
+        p_outputs = []
+        if any_solved_segments:
+            p_outputs = ['states:*']
         self.add_subsystem('collocation_constraint',
                            CollocationComp(grid_data=grid_data,
                                            state_options=self.state_options,
-                                           time_units=time_units))
+                                           time_units=time_units),
+                           promotes_outputs=p_outputs)
 
         self.connect('time.dt_dstau', ('collocation_constraint.dt_dstau'),
                      src_indices=grid_data.subset_node_indices['col'])

@@ -43,16 +43,13 @@ class CollocationComp(ImplicitComponent):
         #     'reverse_time', types=bool, default=False,
         #     desc='It True, the ODE integration happens backwards; from t_final to t_initial')
 
-    def setup(self):
-        """
-        Define the independent variables, output variables, and partials.
-        """
+    def __init__(self, **kwargs):
+        super(CollocationComp, self).__init__(**kwargs)
+
+        self.state_idx_map = {}  # keyed by state_name, contains solver and optimizer index lists
+
         state_options = self.options['state_options']
         grid_data = self.options['grid_data']
-        num_col_nodes = grid_data.subset_num_nodes['col']
-        time_units = self.options['time_units']
-
-        num_state_input_nodes = grid_data.subset_num_nodes['state_input']
 
         state_input = grid_data.subset_node_indices['state_input']
 
@@ -65,23 +62,6 @@ class CollocationComp(ImplicitComponent):
         # specified in solver_solved
         self.solver_node_idx = list(np.where(np.in1d(state_input, solver_solved))[0])
         self.indep_node_idx = list(np.where(np.in1d(state_input, solver_indep))[0])
-
-        # NOTE: num_col_nodes MUST equal len(self.solver_node_idx) - 1 in order to ensure
-        # you get a well defined problem; if that doesn't happen, something is wrong
-
-        self.state_idx_map = {}  # keyed by state_name, contains solver and optimizer index lists
-
-        all_opt_defects = True
-        for state_name, options in iteritems(state_options):
-            if options['solve_segments']:
-                all_opt_defects = True
-                break
-
-        # in the degenerate case where all of the states are optimized, then we need this
-        # component to have a functioning solve_linear. The easiest way to do that was just to use
-        # the direct solver for now, but probably not the most efficient way...
-        if all_opt_defects:  #TODO: write actual hand-coded solve_linear?? I think that might perform better
-            self.linear_solver = DirectSolver()
 
         for state_name, options in iteritems(state_options):
             self.state_idx_map[state_name] = {'solver': None, 'indep': None}
@@ -105,7 +85,33 @@ class CollocationComp(ImplicitComponent):
                 self.state_idx_map[state_name]['indep'] = \
                     self.indep_node_idx + [self.solver_node_idx[-1]]
 
+        # NOTE: num_col_nodes MUST equal len(self.solver_node_idx) - 1 in order to ensure
+        # you get a well defined problem; if that doesn't happen, something is wrong
+
+    def setup(self):
+        """
+        Define the independent variables, output variables, and partials.
+        """
+        state_options = self.options['state_options']
+        grid_data = self.options['grid_data']
+        num_col_nodes = grid_data.subset_num_nodes['col']
+        time_units = self.options['time_units']
+
+        num_state_input_nodes = grid_data.subset_num_nodes['state_input']
+
         self.add_input('dt_dstau', units=time_units, shape=(num_col_nodes,))
+
+        all_opt_defects = True
+        for state_name, options in iteritems(state_options):
+            if options['solve_segments']:
+                all_opt_defects = False
+                break
+
+        # in the degenerate case where all of the states are optimized, then we need this
+        # component to have a functioning solve_linear. The easiest way to do that was just to use
+        # the direct solver for now, but probably not the most efficient way...
+        if all_opt_defects:  #TODO: write actual hand-coded solve_linear?? I think that might perform better
+            self.linear_solver = DirectSolver()
 
         self.var_names = {}
         for state_name in state_options:

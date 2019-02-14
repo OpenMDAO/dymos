@@ -16,7 +16,8 @@ SHOW_PLOTS = True
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                              run_driver=True, top_level_jacobian='csc', compressed=True,
                              sim_record='brach_min_time_sim.db', optimizer='SLSQP',
-                             dynamic_simul_derivs=True, force_alloc_complex=False):
+                             dynamic_simul_derivs=True, force_alloc_complex=False,
+                             solve_segments=False):
     p = Problem(model=Group())
 
     if optimizer == 'SNOPT':
@@ -41,8 +42,9 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-    phase.set_state_options('pos', fix_initial=True, fix_final=True)
-    phase.set_state_options('v', fix_initial=True, fix_final=False)
+    fix_final = not solve_segments  # can't fix final position if you're solving the segments
+    phase.set_state_options('pos', fix_initial=True, fix_final=fix_final, solve_segments=solve_segments)
+    phase.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=solve_segments)
 
     phase.add_control('theta', continuity=True, rate_continuity=True,
                       units='deg', lower=0.01, upper=179.9)

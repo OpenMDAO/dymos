@@ -146,13 +146,19 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
     def test_ex_brachistochrone_radau_compressed(self):
-        ex_brachistochrone_vs.SHOW_PLOTS = True
+        ex_brachistochrone_vs.SHOW_PLOTS = False
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
                                                            compressed=True,
                                                            sim_record='ex_brachvs_radau_compressed.'
                                                                       'db',
                                                            force_alloc_complex=True,
-                                                           run_driver=False)
+                                                           run_driver=False,
+                                                           solve_segments=True)
+
+        dvs = p.model.get_design_vars()
+        for v_name, v in dvs.items():
+            print(v_name, v['indices'])
+        # print(p.model.get_design_vars())
 
         # set the final optimized control profile from
         # TestBrachistochroneVectorStatesExample.test_ex_brachistochrone_radau_compressed
