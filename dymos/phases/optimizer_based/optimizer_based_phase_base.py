@@ -81,35 +81,13 @@ class OptimizerBasedPhaseBase(PhaseBase):
         time_units = self.time_options['units']
         grid_data = self.grid_data
 
-        indeps = []
-        externals = []
-        comps = []
-
-        if self.time_options['input_initial']:
-            externals.append('t_initial')
-        else:
-            indeps.append('t_initial')
-            self.connect('t_initial', 'time.t_initial')
-
-        if self.time_options['input_duration']:
-            externals.append('t_duration')
-        else:
-            indeps.append('t_duration')
-            self.connect('t_duration', 'time.t_duration')
-
-        if indeps:
-            indep = IndepVarComp()
-            for var in indeps:
-                indep.add_output(var, val=1.0, units=time_units)
-            self.add_subsystem('time_extents', indep, promotes_outputs=['*'])
-            comps += ['time_extents']
+        indeps, externals, comps = super(OptimizerBasedPhaseBase, self)._setup_time()
 
         time_comp = TimeComp(num_nodes=grid_data.num_nodes, node_ptau=grid_data.node_ptau,
                              node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units)
         self.add_subsystem('time', time_comp, promotes_outputs=['time', 'time_phase'],
                            promotes_inputs=externals)
 
-        super(OptimizerBasedPhaseBase, self)._setup_time()
 
         return comps
 

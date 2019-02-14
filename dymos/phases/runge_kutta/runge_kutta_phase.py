@@ -8,16 +8,18 @@ from dymos.phases.components import EndpointConditionsComp, ExplicitPathConstrai
 from dymos.phases.phase_base import PhaseBase, _unspecified
 from dymos.phases.grid_data import GridData
 
-from openmdao.api import IndepVarComp, Group, ParallelGroup, NonlinearRunOnce, NonlinearBlockJac, \
-    NonlinearBlockGS, NewtonSolver
+from openmdao.api import IndepVarComp, Group, NonlinearRunOnce, NonlinearBlockGS, \
+    NewtonSolver, DirectSolver, BalanceComp
 from openmdao.utils.units import convert_units, valid_units
 from six import iteritems
 
 # from .solvers.nl_rk_solver import NonlinearRK
-# from .components.segment.explicit_segment import ExplicitSegment
+from .components import RungeKuttaStatePredictComp, RungeKuttaKComp, RungeKuttaStepsizeComp, \
+    RungeKuttaStateAdvanceComp
 # from .components.implicit_segment_connection_comp import ImplicitSegmentConnectionComp
 from ..components.continuity_comp import ExplicitContinuityComp
 from ..components import ExplicitTimeseriesOutputComp
+from ..components import TimeComp
 from ...utils.rk_methods import rk_methods
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.constants import INF_BOUND
@@ -57,9 +59,12 @@ class RungeKuttaPhase(PhaseBase):
         self.options.declare('method', default='rk4', values=('rk4',),
                              desc='The integrator used within the explicit phase.')
         self.options.declare('solver_class', default=NonlinearBlockGS,
-                             values=(NonlinearBlockGS, NewtonSolver),
+                             values=(NonlinearBlockGS, NewtonSolver, NonlinearBlockGS),
                              desc='The nonlinear solver class used to converge the numerical '
                                   'integration of the segment.')
+        self.options.declare('solver_options', default={}, types=(dict,),
+                             desc='The options passed to the nonlinear solver used to converge the'
+                                  'Runge-Kutta propagation.')
 
     def setup(self):
         rk_options = rk_methods[self.options['method']]
@@ -100,21 +105,97 @@ class RungeKuttaPhase(PhaseBase):
         # self.set_order(order)
 
     def _setup_time(self):
-        pass
-        # comps = super(RungeKuttaPhase, self)._setup_time()
-        # gd = self.grid_data
-        #
-        # for iseg in range(gd.num_segments):
-        #     i1, i2 = gd.subset_segment_indices['all'][iseg, :]
-        #     seg_idxs = gd.subset_node_indices['all'][i1:i2]
-        #     seg_end_idxs = seg_idxs[[0, -1]]
-        #     self.connect('time', 'seg_{0}.seg_t0_tf'.format(iseg),
-        #                  src_indices=seg_end_idxs)
-        #     self.connect('t_initial', 'seg_{0}.t_initial_phase'.format(iseg))
-        # return comps
+        time_units = self.time_options['units']
+        num_seg = self.options['num_segments']
+        rk_data = rk_methods[self.options['method']]
+        num_nodes = num_seg * rk_data['num_stages']
+        grid_data = self.grid_data
+
+        indeps, externals, comps = super(RungeKuttaPhase, self)._setup_time()
+
+        time_comp = TimeComp(num_nodes=num_nodes, node_ptau=grid_data.node_ptau,
+                             node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units)
+
+        self.add_subsystem('time', time_comp, promotes_outputs=['time', 'time_phase'],
+                           promotes_inputs=externals)
+        comps.append('time')
+
+        h_comp = RungeKuttaStepsizeComp(num_segments=num_seg,
+                                        seg_rel_lengths=np.diff(grid_data.segment_ends),
+                                        time_units=time_units)
+
+        self.add_subsystem('stepsize_comp', h_comp, promotes_inputs=['t_duration'])
+
+        self.connect('stepsize_comp.h', 'k_comp.h')
+
+        if self.time_options['targets']:
+            self.connect('time',
+                         ['ode.{0}'.format(t) for t in self.time_options['targets']])
+
+        if self.time_options['time_phase_targets']:
+            self.connect('time_phase',
+                         ['ode.{0}'.format(t) for t in self.time_options['time_phase_targets']])
+
+        return comps
+
 
     def _setup_rhs(self):
-        pass
+        ODEClass = self.options['ode_class']
+        num_seg = self.options['num_segments']
+        rk_data = rk_methods[self.options['method']]
+        num_nodes = num_seg * rk_data['num_stages']
+
+        cnty_iter = self.add_subsystem('cnty_iter', subsys=Group(), promotes_inputs=['*'],
+                                       promotes_outputs=['*'])
+
+        k_iter = cnty_iter.add_subsystem('k_iter', subsys=Group(), promotes_inputs=['*'],
+                                         promotes_outputs=['*'])
+
+        k_iter.add_subsystem('state_predict_comp',
+                             RungeKuttaStatePredictComp(method=self.options['method'],
+                                                        num_segments=num_seg,
+                                                        state_options=self.state_options))
+        k_iter.add_subsystem('ode',
+                             subsys=ODEClass(num_nodes=num_nodes,
+                                             **self.options['ode_init_kwargs']))
+
+        k_iter.add_subsystem('k_comp',
+                             subsys=RungeKuttaKComp(method=self.options['method'],
+                                                    num_segments=num_seg,
+                                                    state_options=self.state_options,
+                                                    time_units=self.time_options['units']))
+
+        k_iter.linear_solver = DirectSolver()
+        k_iter.nonlinear_solver = \
+            self.options['solver_class'](**self.options['solver_options'])
+
+        cnty_iter.add_subsystem('state_advance_comp',
+                                RungeKuttaStateAdvanceComp(num_segments=num_seg,
+                                                           method=self.options['method'],
+                                                           state_options=self.state_options))
+
+        cnty_balance_comp = cnty_iter.add_subsystem('cnty_balance_comp', BalanceComp())
+
+        for state_name, options in iteritems(self.state_options):
+            # Connect the state predicted (assumed) value to its targets in the ode
+            k_iter.connect('state_predict_comp.predicted_states:{0}'.format(state_name),
+                             ['ode.{0}'.format(tgt) for tgt in options['targets']])
+
+            # Connect the state rate source to the k comp
+            rate_path, src_idxs = self._get_rate_source_path(state_name)
+            self.connect(rate_path,
+                         'k_comp.f:{0}'.format(state_name),
+                         src_indices=src_idxs,
+                         flat_src_indices=True)
+
+            # Connect the k value associated with the state to the state predict comp
+            self.connect('k_comp.k:{0}'.format(state_name),
+                         ('state_predict_comp.k:{0}'.format(state_name),
+                          'state_advance_comp.k:{0}'.format(state_name)))
+
+            cnty_balance_comp.add_balance('subsequent_states:{0}'.format(state_name), units=options['units'],
+                                          val=np.ones(((num_seg,) + options['shape'])))
+
     #     gd = self.grid_data
     #     shooting = 'single'
     #
@@ -184,50 +265,49 @@ class RungeKuttaPhase(PhaseBase):
     #         segments_group.add_subsystem('seg_{0}'.format(iseg),
     #                                      subsys=segment_i)
 
-    def _get_rate_source_path(self, state_name, nodes, **kwargs):
+    def _get_rate_source_path(self, state_name, nodes=None, **kwargs):
         gd = self.grid_data
         var = self.state_options[state_name]['rate_source']
         shape = self.state_options[state_name]['shape']
         var_type = self._classify_var(var)
-        seg_index = kwargs['seg_index']
-        num_steps = gd.num_steps_per_segment[seg_index]
+        num_segments = self.options['num_segments']
         num_stages = rk_methods[self.options['method']]['num_stages']
 
         # Determine the path to the variable
         if var_type == 'time':
-            rate_path = 't_stage'.format(seg_index)
+            rate_path = 'time'
             src_idxs = None
         elif var_type == 'time_phase':
-            rate_path = 'time_phase'.format(seg_index)
+            rate_path = 'time_phase'
             src_idxs = None
         elif var_type == 'state':
-            rate_path = 'seg_{0}.stage_states:{0}'.format(var)
+            rate_path = 'predicted_states:{0}'.format(var)
         elif var_type == 'indep_control':
-            rate_path = 'stage_control_values:{0}'.format(var)
+            rate_path = 'control_values:{0}'.format(var)
             src_idxs = None
         elif var_type == 'input_control':
-            rate_path = 'stage_control_values:{0}'.format(var)
+            rate_path = 'control_values:{0}'.format(var)
             src_idxs = None
         elif var_type == 'control_rate':
-            rate_path = 'stage_control_rates:{0}'.format(var)
+            rate_path = 'control_rates:{0}'.format(var)
             src_idxs = None
         elif var_type == 'control_rate2':
-            rate_path = 'stage_control_rates:{0}'.format(var)
+            rate_path = 'control_rates:{0}'.format(var)
             src_idxs = None
         elif var_type == 'design_parameter':
             rate_path = 'design_parameters:{0}'.format(var)
             size = np.prod(self.design_parameter_options[var]['shape'])
-            src_idxs = np.zeros(num_steps * num_stages * size, dtype=int)
+            src_idxs = np.zeros(num_segments * num_stages * size, dtype=int)
         elif var_type == 'input_parameter':
             rate_path = 'input_parameters:{0}_out'.format(var)
             size = np.prod(self.input_parameter_options[var]['shape'])
-            src_idxs = np.zeros(num_steps * num_stages * size, dtype=int)
+            src_idxs = np.zeros(num_segments * num_stages * size, dtype=int)
         else:
             # Failed to find variable, assume it is in the ODE
-            rate_path = 'stage_ode.{0}'.format(var)
+            rate_path = 'ode.{0}'.format(var)
             state_size = np.prod(shape)
-            size = num_steps * num_stages * state_size
-            src_idxs = np.arange(size, dtype=int).reshape((num_steps, num_stages, state_size))
+            size = num_segments * num_stages * state_size
+            src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
 
         return rate_path, src_idxs
 
@@ -236,16 +316,16 @@ class RungeKuttaPhase(PhaseBase):
         Add an IndepVarComp for the states and setup the states as design variables.
         """
         gd = self.grid_data
+        num_seg = self.options['num_segments']
         # num_state_input_nodes = gd.subset_num_nodes['state_input']
         # shooting = self.options['shooting']
         # num_stages = rk_methods[self.options['method']]['num_stages']
         #
-        # indep = IndepVarComp()
-        # for state_name, options in iteritems(self.state_options):
-        #     size = np.prod(options['shape'])
-        #     indep.add_output(name='states:{0}'.format(state_name),
-        #                      shape=(num_state_input_nodes, np.prod(options['shape'])),
-        #                      units=options['units'])
+        indep = IndepVarComp()
+        for state_name, options in iteritems(self.state_options):
+            indep.add_output(name='states:{0}'.format(state_name),
+                             shape=((1,) + options['shape']),
+                             units=options['units'])
         #
         #     for iseg in range(gd.num_segments):
         #         num_steps = gd.num_steps_per_segment[iseg]
@@ -255,7 +335,7 @@ class RungeKuttaPhase(PhaseBase):
         #                          'seg_{0}.initial_states:{1}'.format(iseg, state_name),
         #                          src_indices=[iseg])
         #
-        # self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
+        self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
         #
         # # Add the initial state values as design variables, if necessary
         #

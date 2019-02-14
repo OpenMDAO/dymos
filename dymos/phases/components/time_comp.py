@@ -28,18 +28,17 @@ class TimeComp(ExplicitComponent):
 
     def setup(self):
         time_units = self.options['units']
-        node_ptau = self.options['node_ptau']
+        num_nodes = self.options['num_nodes']
 
         self.add_input('t_initial', val=0., units=time_units)
         self.add_input('t_duration', val=1., units=time_units)
-        self.add_output('time', units=time_units, shape=len(node_ptau))
-        self.add_output('time_phase', units=time_units, shape=len(node_ptau))
-        self.add_output('dt_dstau', units=time_units, shape=len(node_ptau))
+        self.add_output('time', units=time_units, val=np.ones(num_nodes))
+        self.add_output('time_phase', units=time_units, val=np.ones(num_nodes))
+        self.add_output('dt_dstau', units=time_units, val=np.ones(num_nodes))
 
         # Setup partials
-        nn = self.options['num_nodes']
-        rs = np.arange(nn)
-        cs = np.zeros(nn)
+        rs = np.arange(num_nodes)
+        cs = np.zeros(num_nodes)
 
         self.declare_partials(of='time', wrt='t_initial', rows=rs, cols=cs, val=1.0)
         self.declare_partials(of='time', wrt='t_duration', rows=rs, cols=cs, val=1.0)
