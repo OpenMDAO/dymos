@@ -71,12 +71,15 @@ class CollocationComp(ImplicitComponent):
 
         self.state_idx_map = {}  # keyed by state_name, contains solver and optimizer index lists
 
-
         all_opt_defects = True
         for state_name, options in iteritems(state_options):
             if options['solve_segments']:
                 all_opt_defects = True
                 break
+
+        # in the degenerate case where all of the states are optimized, then we need this
+        # component to have a functioning solve_linear. The easiest way to do that was just to use
+        # the direct solver for now, but probably not the most efficient way...
         if all_opt_defects:  #TODO: write actual hand-coded solve_linear?? I think that might perform better
             self.linear_solver = DirectSolver()
 
