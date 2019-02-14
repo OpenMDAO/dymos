@@ -7,7 +7,7 @@ from six import string_types, iteritems
 
 import numpy as np
 
-from openmdao.core.implicitcomponent import ImplicitComponent
+from openmdao.api import ImplicitComponent, DirectSolver
 
 from dymos.phases.grid_data import GridData
 from dymos.utils.misc import get_rate_units
@@ -70,6 +70,15 @@ class CollocationComp(ImplicitComponent):
         # you get a well defined problem; if that doesn't happen, something is wrong
 
         self.state_idx_map = {}  # keyed by state_name, contains solver and optimizer index lists
+
+
+        all_opt_defects = True
+        for state_name, options in iteritems(state_options):
+            if options['solve_segments']:
+                all_opt_defects = True
+                break
+        if all_opt_defects:  #TODO: write actual hand-coded solve_linear?? I think that might perform better
+            self.linear_solver = DirectSolver()
 
         for state_name, options in iteritems(state_options):
             self.state_idx_map[state_name] = {'solver': None, 'indep': None}
@@ -163,7 +172,6 @@ class CollocationComp(ImplicitComponent):
                 solve_idx = np.array(self.state_idx_map[state_name]['solver'])
                 indep_idx = np.array(self.state_idx_map[state_name]['indep'])
 
-                print('foo', indep_idx)
                 num_indep_nodes = indep_idx.shape[0]
                 num_solve_nodes = solve_idx.shape[0]
 

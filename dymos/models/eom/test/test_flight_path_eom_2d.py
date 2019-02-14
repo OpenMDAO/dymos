@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, pyOptSparseDriver
+from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos import Phase, ODEOptions, declare_time, declare_state
