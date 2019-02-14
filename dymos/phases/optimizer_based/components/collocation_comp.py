@@ -54,7 +54,6 @@ class CollocationComp(ImplicitComponent):
 
         num_state_input_nodes = grid_data.subset_num_nodes['state_input']
 
-        seg_ends = grid_data.subset_node_indices['segment_ends']
         state_input = grid_data.subset_node_indices['state_input']
 
         # indecies into all_nodes that correspond to the solved and indep vars

@@ -1133,7 +1133,7 @@ class PhaseBase(Group):
             self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
                                promotes_outputs=['*'])
 
-        for name, options in iteritems(self.input_parameter_options):
+        for name in self.input_parameter_options:
             src_name = 'input_parameters:{0}_out'.format(name)
 
             for tgts, src_idxs in self._get_parameter_connections(name):
@@ -1152,7 +1152,7 @@ class PhaseBase(Group):
             self.add_subsystem('traj_params', subsys=passthru, promotes_inputs=['*'],
                                promotes_outputs=['*'])
 
-        for name, options in iteritems(self.traj_parameter_options):
+        for name in self.traj_parameter_options:
             src_name = 'traj_parameters:{0}_out'.format(name)
 
             for tgts, src_idxs in self._get_parameter_connections(name):
@@ -1486,22 +1486,22 @@ class PhaseBase(Group):
         op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
                                                                                  out_stream=None)])
         # Assign initial state values
-        for name, options in iteritems(self.state_options):
+        for name in self.state_options:
             op = op_dict['{0}.timeseries.states:{1}'.format(self.name, name)]
             sim_prob['{0}.initial_states:{1}'.format(self.name, name)] = op['value'][0, ...]
 
         # Assign control values at all nodes
-        for name, options in iteritems(self.control_options):
+        for name in self.control_options:
             op = op_dict['{0}.control_interp_comp.control_values:{1}'.format(self.name, name)]
             sim_prob['{0}.implicit_controls:{1}'.format(self.name, name)] = op['value']
 
         # Assign design parameter values
-        for name, options in iteritems(self.design_parameter_options):
+        for name in self.design_parameter_options:
             op = op_dict['{0}.design_params.design_parameters:{1}'.format(self.name, name)]
             sim_prob['{0}.design_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
 
         # Assign input parameter values
-        for name, options in iteritems(self.input_parameter_options):
+        for name in self.input_parameter_options:
             op = op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.name, name)]
             sim_prob['{0}.input_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
 
