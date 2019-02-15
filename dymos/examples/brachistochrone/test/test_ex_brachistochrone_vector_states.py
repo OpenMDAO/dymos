@@ -64,8 +64,6 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                                                            force_alloc_complex=True)
         p.run_driver()
 
-        print('v', p['phase0.states:v'])
-        print('pos', p['phase0.states:pos'])
         self.assert_results(p)
         self.assert_partials(p)
         self.tearDown()
@@ -94,6 +92,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                                                            force_alloc_complex=True)
 
         p.run_driver()
+        print('foo', p['phase0.controls:theta'])
         self.assert_results(p)
         self.assert_partials(p)
         self.tearDown()
@@ -172,100 +171,55 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                           62.79222351, 67.35945157, 73.419141, 75.27851226, 79.60246558,
                           85.89170743, 87.96027845, 92.66164608, 98.89108826, ])
 
-        v = np.array([0., 0.7826936, 1.85519827, 2.19133903, 2.94888909, 3.96188083, 4.27352452, 4.97004106,
-                      5.88315586, 6.15847324, 6.7602533, 7.52142417, 7.74480064, 8.22334063, 8.80196882, 8.9638606,
-                      9.29404116, 9.65664974, 9.74897797, 9.91965675, 10.05680102, 10.07516101, 10.07070724,
-                      9.9614451, 9.9028538])
-
-        pos = np.array([[0.00000000e+00, 1.00000000e+01],
-                        [1.94778856e-03, 9.96869875e+00],
-                        [2.17495404e-02, 9.82460935e+00],
-                        [3.52157241e-02, 9.75516795e+00],
-                        [8.85025140e-02, 9.55658605e+00],
-                        [2.22886301e-01, 9.19975901e+00],
-                        [2.82537968e-01, 9.06884572e+00],
-                        [4.52556485e-01, 8.74051469e+00],
-                        [7.74071639e-01, 8.23539137e+00],
-                        [8.99200543e-01, 8.06627214e+00],
-                        [1.23058548e+00, 7.66989707e+00],
-                        [1.79088189e+00, 7.11563589e+00],
-                        [1.99299275e+00, 6.94177276e+00],
-                        [2.49901192e+00, 6.55216909e+00],
-                        [3.29293410e+00, 6.04988562e+00],
-                        [3.56638899e+00, 5.90325005e+00],
-                        [4.22869168e+00, 5.59593864e+00],
-                        [5.21411520e+00, 5.24545843e+00],
-                        [5.54041544e+00, 5.15417801e+00],
-                        [6.30817770e+00, 4.98306345e+00],
-                        [7.40164406e+00, 4.84326352e+00],
-                        [7.75273244e+00, 4.82448866e+00],
-                        [8.55830403e+00, 4.82912543e+00],
-                        [9.65834602e+00, 4.94058042e+00],
-                        [1.00000000e+01, 5.00000000e+00]])
-
-
-
-        p['phase0.controls:theta'] = theta.reshape(-1, 1)
-        # p['phase0.states:v'] = v.reshape(-1, 1)
-        p['phase0.states:v'][:] = 100
-        p['phase0.states:v'][0] = 0
+        p['phase0.controls:theta'] = theta.reshape((-1,1))
+        p['phase0.states:v'][:] = 100 # bad initial guess on purpose
+        p['phase0.states:v'][0] = 0 # have to set the initial condition
 
         p['phase0.states:pos'][:] = 100
-        p['phase0.states:pos'][0,0] = 0
-        p['phase0.states:pos'][0,1] = 10.
+        p['phase0.states:pos'][0,0] = 0 # have to set the initial condition
+        p['phase0.states:pos'][0,1] = 10. # have to set the initial condition
 
-        print('foo', p['phase0.states:pos'])
-        # p['phase0.states:pos'] = pos
-        p['phase0.t_duration'] = 1.8016
+        p['phase0.t_duration'] = 1.8016 # need the final duration (ivp style)
 
         p.run_model()
-        print('bar', p['phase0.states:pos'])
-        # p.final_setup()
-        # p.model.run_apply_nonlinear()
-        # p.model.phase0.collocation_constraint.list_outputs(residuals=True, print_arrays=True)
         self.assert_results(p)
         # self.assert_partials(p)
         self.tearDown()
         if os.path.exists('ex_brach_radau_compressed.db'):
             os.remove('ex_brach_radau_compressed.db')
 
-    # def test_ex_brachistochrone_radau_uncompressed(self):
-    #     ex_brachistochrone_vs.SHOW_PLOTS = True
-    #     p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
-    #                                                        compressed=False,
-    #                                                        sim_record='ex_brachvs_radau_'
-    #                                                                   'uncompressed.db',
-    #                                                        force_alloc_complex=True)
-    #     self.assert_results(p)
-    #     self.assert_partials(p)
-    #     self.tearDown()
-    #     if os.path.exists('ex_brach_radau_uncompressed.db'):
-    #         os.remove('ex_brach_radau_uncompressed.db')
+    def test_ex_brachistochrone_gl_compressed(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
+                                                           compressed=True,
+                                                           sim_record='ex_brachvs_gl_compressed.db',
+                                                           force_alloc_complex=True,
+                                                           solve_segments=True)
 
-    # def test_ex_brachistochrone_gl_compressed(self):
-    #     ex_brachistochrone_vs.SHOW_PLOTS = True
-    #     p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
-    #                                                        compressed=True,
-    #                                                        sim_record='ex_brachvs_gl_compressed.db',
-    #                                                        force_alloc_complex=True)
-    #     self.assert_results(p)
-    #     self.assert_partials(p)
-    #     self.tearDown()
-    #     if os.path.exists('ex_brach_gl_compressed.db'):
-    #         os.remove('ex_brach_gl_compressed.db')
+        theta = np.array([1.04466973, 6.40253991, 12.26063396, 18.51810659, 25.07411252,
+                          31.59842762, 37.76082779, 43.8810928, 50.27900244, 56.67270776,
+                          62.78035981, 68.93138259, 75.45520008, 81.95935786, 88.05140149,
+                          94.03879494, 100.22900215])
 
-    # def test_ex_brachistochrone_gl_uncompressed(self):
-    #     ex_brachistochrone_vs.SHOW_PLOTS = True
-    #     p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
-    #                                                        transcription_order=5,
-    #                                                        compressed=False,
-    #                                                        sim_record='ex_brachvs_gl_compressed.db',
-    #                                                        force_alloc_complex=True)
-    #     self.assert_results(p)
-    #     self.assert_partials(p)
-    #     self.tearDown()
-    #     if os.path.exists('ex_brach_gl_compressed.db'):
-    #         os.remove('ex_brach_gl_compressed.db')
+
+        p['phase0.controls:theta'] = theta.reshape((-1,1))
+        p['phase0.states:v'][:] = 100 # bad initial guess on purpose
+        p['phase0.states:v'][0] = 0 # have to set the initial condition
+
+        p['phase0.states:pos'][:] = 100
+        p['phase0.states:pos'][0,0] = 0 # have to set the initial condition
+        p['phase0.states:pos'][0,1] = 10. # have to set the initial condition
+
+        p['phase0.t_duration'] = 1.8016 # need the final duration (ivp style)
+
+        p.run_model()
+        self.assert_results(p)
+
+        self.tearDown()
+        if os.path.exists('ex_brach_gl_compressed.db'):
+            os.remove('ex_brach_gl_compressed.db')
+
+
 
 
 if __name__ == "__main__":
