@@ -17,7 +17,7 @@ from dymos.utils.lgl import lgl
 
 
 def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
-                              solve_segments=False, show_plots=False):
+                              solve_segments=False, show_plots=False, use_boundary_constraints=False):
     p = Problem(model=Group())
     p.driver = pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
@@ -53,17 +53,22 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
                            duration_bounds=(300, 10000),
                            duration_ref=5600)
 
+    fix_final = True
+    if use_boundary_constraints:
+        fix_final = False
+        phase.add_boundary_constraint('mass_fuel', loc='final', units='lbm', equals=1e-3, linear=False)
+        phase.add_boundary_constraint('alt', loc='final', units='kft', equals=10.0, linear=False)
+
     phase.set_state_options('range', units='NM', fix_initial=True, fix_final=False, ref=1e-3,
                             defect_ref=1e-3, lower=0, upper=2000, solve_segments=solve_segments)
-    phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=False,
+    phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=fix_final,
                             upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2,
                             solve_segments=solve_segments)
-    phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=False, lower=0.0,
+    phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=fix_final, lower=0.0,
                             upper=60, ref=1e-3, defect_ref=1e-3,
                             solve_segments=solve_segments)
 
-    phase.add_boundary_constraint('mass_fuel', loc='final', units='lbm', equals=1e-3, linear=False)
-    phase.add_boundary_constraint('alt', loc='final', units='kft', equals=10.0, linear=False)
+
 
     phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
                       rate_continuity=True)

@@ -17,7 +17,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                              top_level_jacobian='csc', compressed=True,
                              sim_record='brach_min_time_sim.db', optimizer='SLSQP',
                              dynamic_simul_derivs=True, force_alloc_complex=False,
-                             solve_segments=False):
+                             solve_segments=False, run_driver=True):
     p = Problem(model=Group())
 
     if optimizer == 'SNOPT':
