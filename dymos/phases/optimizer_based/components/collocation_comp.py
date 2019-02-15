@@ -106,12 +106,6 @@ class CollocationComp(ImplicitComponent):
                 all_opt_defects = False
                 break
 
-        # in the degenerate case where all of the states are optimized, then we need this
-        # component to have a functioning solve_linear. The easiest way to do that was just to use
-        # the direct solver for now, but probably not the most efficient way...
-        if all_opt_defects:  # TODO: write actual hand-coded solve_linear?? might perform better
-            self.linear_solver = DirectSolver()
-
         self.var_names = {}
         for state_name in state_options:
             self.var_names[state_name] = {
@@ -207,18 +201,6 @@ class CollocationComp(ImplicitComponent):
                 self.declare_partials(of=state_var_name,
                                       wrt='dt_dstau',
                                       rows=r, cols=c)
-
-                # self.declare_partials(of=state_var_name,
-                #                       wrt=var_names['f_approx'],
-                #                       method='fd')
-
-                # self.declare_partials(of=state_var_name,
-                #                       wrt=var_names['f_computed'],
-                #                       method='fd')
-
-                # self.declare_partials(of=state_var_name,
-                #                       wrt='dt_dstau',
-                #                       method='fd')
 
             else:
                 r = np.arange(num_col_nodes * size)
@@ -316,3 +298,20 @@ class CollocationComp(ImplicitComponent):
                 J[defect_name, var_names['f_approx']] = k
                 J[defect_name, var_names['f_computed']] = -k
                 J[defect_name, 'dt_dstau'] = (f_approx - f_computed).ravel()
+
+
+    # this mimicks how the direct_solver works, for any dect outputs.
+    # but I wonder if it might be faster to just use a direct solver
+    # (or basically do a matrix equivalent operation)
+    #     self.linear_solver = DirectSolver()
+    def solve_linear(self, d_outputs, d_residuals, mode):
+        if mode == 'fwd':
+            for state_name, options in iteritems(self.options['state_options']):
+                if not options['solve_segments']:
+                    defect_name = self.var_names[state_name]['defect']
+                    d_outputs[defect_name] = -d_residuals[defect_name]
+        elif mode == 'rev':
+            for state_name, options in iteritems(self.options['state_options']):
+                if not options['solve_segments']:
+                    defect_name = self.var_names[state_name]['defect']
+                    d_residuals[defect_name] = -d_outputs[defect_name]
