@@ -1,0 +1,76 @@
+"""
+Simple model for a set of motors in parallel where efficiency is a function of current.
+"""
+from __future__ import print_function, division, absolute_import
+
+import numpy as np
+
+from openmdao.api import ExplicitComponent
+
+
+class Motors(ExplicitComponent):
+    """
+    Model for motors in parallel.
+    """
+
+    def initialize(self):
+        self.options.declare('num_nodes', default=1)
+        self.options.declare('n_parallel', default=3, desc='number of cells in parallel')
+
+    def setup(self):
+        num_nodes = self.options['num_nodes']
+
+        # Inputs
+        self.add_input('power_out_gearbox', val=np.ones(num_nodes), units='W',
+                       desc='Power at gearbox output')
+        self.add_input('current_in_motor', val=3.25*np.ones(num_nodes), units='A',
+                       desc='Total current demanded')
+
+        # Outputs
+        self.add_output('power_in_motor', val=np.ones(num_nodes), units='W',
+                        desc='Power required at motor input')
+
+        # Derivatives
+        row_col = np.arange(num_nodes)
+
+        self.declare_partials(of='power_in_motor', wrt=['*'], rows=row_col, cols=row_col)
+
+
+    def compute(self, inputs, outputs):
+        opt = self.options
+        current = inputs['current_in_motor']
+        power_out = inputs['power_out_gearbox']
+        n_parallel = self.options['n_parallel']
+
+        # Simple linear curve fit for efficiency.
+        eff = 0.7 - 0.2 * current / n_parallel
+
+        outputs['power_in_motor'] = power_out / eff
+
+    def compute_partials(self, inputs, partials):
+        opt = self.options
+        current = inputs['current_in_motor']
+        power_out = inputs['power_out_gearbox']
+        n_parallel = self.options['n_parallel']
+
+        eff = 0.7 - 0.2 * current / n_parallel
+
+        partials['power_in_motor', 'power_out_gearbox'] = 1.0 / eff
+        partials['power_in_motor', 'current_in_motor'] = 0.2 / n_parallel / eff**2
+
+
+if __name__ == '__main__':
+
+    from openmdao.api import Problem, IndepVarComp
+    num_nodes = 1
+
+    prob = Problem(model=Motors(num_nodes=num_nodes))
+    model = prob.model
+
+    prob.setup()
+
+    prob.run_model()
+
+    derivs = prob.check_partials(compact_print=True)
+
+    print('done')
