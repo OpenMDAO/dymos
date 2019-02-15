@@ -17,7 +17,8 @@ from dymos.utils.lgl import lgl
 
 
 def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
-                              solve_segments=False, show_plots=False, use_boundary_constraints=False):
+                              solve_segments=False, show_plots=False,
+                              use_boundary_constraints=False):
     p = Problem(model=Group())
     p.driver = pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
@@ -56,7 +57,8 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
     fix_final = True
     if use_boundary_constraints:
         fix_final = False
-        phase.add_boundary_constraint('mass_fuel', loc='final', units='lbm', equals=1e-3, linear=False)
+        phase.add_boundary_constraint('mass_fuel', loc='final', units='lbm',
+                                      equals=1e-3, linear=False)
         phase.add_boundary_constraint('alt', loc='final', units='kft', equals=10.0, linear=False)
 
     phase.set_state_options('range', units='NM', fix_initial=True, fix_final=False, ref=1e-3,
@@ -67,8 +69,6 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
     phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=fix_final, lower=0.0,
                             upper=60, ref=1e-3, defect_ref=1e-3,
                             solve_segments=solve_segments)
-
-
 
     phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
                       rate_continuity=True)
@@ -107,7 +107,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
 
     if show_plots:
         exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True,
-                                record_file='test_ex_aircraft_steady_flight_rec.db')
+                                 record_file='test_ex_aircraft_steady_flight_rec.db')
 
         t_imp = p.get_val('phase0.timeseries.time')
         t_exp = exp_out.get_val('phase0.timeseries.time')
