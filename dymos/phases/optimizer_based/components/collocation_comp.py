@@ -84,7 +84,6 @@ class CollocationComp(ImplicitComponent):
                 self.state_idx_map[state_name]['solver'] = self.solver_node_idx[:-1]
                 self.state_idx_map[state_name]['indep'] = \
                     self.indep_node_idx + [self.solver_node_idx[-1]]
-            print('check', state_name, self.state_idx_map[state_name]['indep'])
         # NOTE: num_col_nodes MUST equal len(self.solver_node_idx) - 1 in order to ensure
         # you get a well defined problem; if that doesn't happen, something is wrong
 

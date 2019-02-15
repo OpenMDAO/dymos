@@ -61,6 +61,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         if self.any_solved_segments:
             newton = self.nonlinear_solver = NewtonSolver()
             newton.options['solve_subsystems'] = True
+            newton.options['iprint'] = 0
             newton.linesearch = BoundsEnforceLS()
 
             self.linear_solver = DirectSolver()
@@ -211,7 +212,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
         num_seg = grid_data.num_segments
 
         time_units = self.time_options['units']
-
 
         any_solved_segments = False
         for state_name, options in iteritems(self.state_options):

@@ -16,7 +16,8 @@ from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 from dymos.utils.lgl import lgl
 
 
-def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
+def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
+                              solve_segments=False, show_plots=False):
     p = Problem(model=Group())
     p.driver = pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
@@ -53,11 +54,16 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
                            duration_ref=5600)
 
     phase.set_state_options('range', units='NM', fix_initial=True, fix_final=False, ref=1e-3,
-                            defect_ref=1e-3)
-    phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=True,
-                            upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2)
-    phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=True, lower=0.0,
-                            upper=60, ref=1e-3, defect_ref=1e-3)
+                            defect_ref=1e-3, lower=0, upper=2000, solve_segments=solve_segments)
+    phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=False,
+                            upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2,
+                            solve_segments=solve_segments)
+    phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=False, lower=0.0,
+                            upper=60, ref=1e-3, defect_ref=1e-3,
+                            solve_segments=solve_segments)
+
+    phase.add_boundary_constraint('mass_fuel', loc='final', units='lbm', equals=1e-3, linear=False)
+    phase.add_boundary_constraint('alt', loc='final', units='kft', equals=10.0, linear=False)
 
     phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
                       rate_continuity=True)
@@ -82,8 +88,8 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 3600.0
-    p['phase0.states:range'] = phase.interpolate(ys=(0, 724.0), nodes='state_input')
-    p['phase0.states:mass_fuel'] = phase.interpolate(ys=(30000, 0), nodes='state_input')
+    p['phase0.states:range'][:] = phase.interpolate(ys=(0, 724.0), nodes='state_input')
+    p['phase0.states:mass_fuel'][:] = phase.interpolate(ys=(30000, 1e-3), nodes='state_input')
     p['phase0.states:alt'][:] = 10.0
 
     p['phase0.controls:mach'][:] = 0.8
@@ -94,34 +100,35 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     p.run_driver()
 
-    exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True,
-                             record_file='test_ex_aircraft_steady_flight_rec.db')
+    if show_plots:
+        exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True,
+                                record_file='test_ex_aircraft_steady_flight_rec.db')
 
-    t_imp = p.get_val('phase0.timeseries.time')
-    t_exp = exp_out.get_val('phase0.timeseries.time')
+        t_imp = p.get_val('phase0.timeseries.time')
+        t_exp = exp_out.get_val('phase0.timeseries.time')
 
-    alt_imp = p.get_val('phase0.timeseries.states:alt')
-    alt_exp = exp_out.get_val('phase0.timeseries.states:alt')
+        alt_imp = p.get_val('phase0.timeseries.states:alt')
+        alt_exp = exp_out.get_val('phase0.timeseries.states:alt')
 
-    climb_rate_imp = p.get_val('phase0.timeseries.controls:climb_rate', units='ft/min')
-    climb_rate_exp = exp_out.get_val('phase0.timeseries.controls:climb_rate', units='ft/min')
+        climb_rate_imp = p.get_val('phase0.timeseries.controls:climb_rate', units='ft/min')
+        climb_rate_exp = exp_out.get_val('phase0.timeseries.controls:climb_rate', units='ft/min')
 
-    mass_fuel_imp = p.get_val('phase0.timeseries.states:mass_fuel', units='kg')
-    mass_fuel_exp = exp_out.get_val('phase0.timeseries.states:mass_fuel', units='kg')
+        mass_fuel_imp = p.get_val('phase0.timeseries.states:mass_fuel', units='kg')
+        mass_fuel_exp = exp_out.get_val('phase0.timeseries.states:mass_fuel', units='kg')
 
-    plt.plot(t_imp, alt_imp, 'ro')
-    plt.plot(t_exp, alt_exp, 'b-')
-    plt.suptitle('altitude vs time')
+        plt.plot(t_imp, alt_imp, 'ro')
+        plt.plot(t_exp, alt_exp, 'b-')
+        plt.suptitle('altitude vs time')
 
-    plt.figure()
-    plt.plot(t_imp, climb_rate_imp, 'ro')
-    plt.plot(t_exp, climb_rate_exp, 'b-')
-    plt.suptitle('climb rate vs time')
+        plt.figure()
+        plt.plot(t_imp, climb_rate_imp, 'ro')
+        plt.plot(t_exp, climb_rate_exp, 'b-')
+        plt.suptitle('climb rate vs time')
 
-    plt.figure()
-    plt.plot(t_imp, mass_fuel_imp, 'ro')
-    plt.plot(t_exp, mass_fuel_exp, 'b-')
-    plt.suptitle('fuel mass vs time')
+        plt.figure()
+        plt.plot(t_imp, mass_fuel_imp, 'ro')
+        plt.plot(t_exp, mass_fuel_exp, 'b-')
+        plt.suptitle('fuel mass vs time')
 
     # plt.figure()
     # plt.plot(phase.get_values('time', nodes='all'),
@@ -196,4 +203,4 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto'):
 
 
 if __name__ == '__main__':
-    ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps')
+    ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps', show_plots=True)
