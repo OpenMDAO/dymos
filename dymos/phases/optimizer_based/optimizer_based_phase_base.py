@@ -6,7 +6,7 @@ from six import iteritems
 
 import numpy as np
 
-from openmdao.api import IndepVarComp, DirectSolver, NewtonSolver
+from openmdao.api import IndepVarComp, DirectSolver, NewtonSolver, BoundsEnforceLS
 
 from ..optimizer_based.components import CollocationComp, StateInterpComp
 from ..components import EndpointConditionsComp
@@ -58,10 +58,12 @@ class OptimizerBasedPhaseBase(PhaseBase):
         if self.any_optimized_segments:
             order.append('indep_states')
 
-        newton = self.nonlinear_solver = NewtonSolver()
-        newton.options['solve_subsystems'] = True
-        self.linear_solver = DirectSolver()
+        if self.any_solved_segments:
+            newton = self.nonlinear_solver = NewtonSolver()
+            newton.options['solve_subsystems'] = True
+            newton.linesearch = BoundsEnforceLS()
 
+            self.linear_solver = DirectSolver()
 
         order += ['time'] + control_interp_comp + \
             ['indep_jumps', 'initial_conditions', 'final_conditions']
@@ -127,9 +129,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
         # NOTE: solve_segments=True states get their state:<state_name> vars from the output
         #       of the implicit collocation_comp
         self.any_optimized_segments = False
+        self.any_solved_segments = False
         for name, options in iteritems(self.state_options):
             if options['solve_segments']:
-                continue
+                self.any_solved_segments = True
             else:
                 indep.add_output(name='states:{0}'.format(name),
                                  shape=(num_state_input_nodes, np.prod(options['shape'])),
