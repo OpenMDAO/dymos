@@ -57,4 +57,6 @@ if __name__ == '__main__':
 
     derivs = prob.check_partials(compact_print=True)
 
+    prob.model.list_outputs()
+
     print('done')
