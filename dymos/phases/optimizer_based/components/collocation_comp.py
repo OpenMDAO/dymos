@@ -110,7 +110,7 @@ class CollocationComp(ImplicitComponent):
         # in the degenerate case where all of the states are optimized, then we need this
         # component to have a functioning solve_linear. The easiest way to do that was just to use
         # the direct solver for now, but probably not the most efficient way...
-        if all_opt_defects:  #TODO: write actual hand-coded solve_linear?? I think that might perform better
+        if all_opt_defects:  # TODO: write actual hand-coded solve_linear?? might perform better
             self.linear_solver = DirectSolver()
 
         self.var_names = {}

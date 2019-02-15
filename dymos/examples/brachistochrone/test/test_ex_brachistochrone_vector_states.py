@@ -171,15 +171,15 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                           62.79222351, 67.35945157, 73.419141, 75.27851226, 79.60246558,
                           85.89170743, 87.96027845, 92.66164608, 98.89108826, ])
 
-        p['phase0.controls:theta'] = theta.reshape((-1,1))
-        p['phase0.states:v'][:] = 100 # bad initial guess on purpose
-        p['phase0.states:v'][0] = 0 # have to set the initial condition
+        p['phase0.controls:theta'] = theta.reshape((-1, 1))
+        p['phase0.states:v'][:] = 100.  # bad initial guess on purpose
+        p['phase0.states:v'][0] = 0.  # have to set the initial condition
 
-        p['phase0.states:pos'][:] = 100
-        p['phase0.states:pos'][0,0] = 0 # have to set the initial condition
-        p['phase0.states:pos'][0,1] = 10. # have to set the initial condition
+        p['phase0.states:pos'][:] = 100.
+        p['phase0.states:pos'][0, 0] = 0.  # have to set the initial condition
+        p['phase0.states:pos'][0, 1] = 10.  # have to set the initial condition
 
-        p['phase0.t_duration'] = 1.8016 # need the final duration (ivp style)
+        p['phase0.t_duration'] = 1.8016  # need the final duration (ivp style)
 
         p.run_model()
         self.assert_results(p)
@@ -201,16 +201,15 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                           62.78035981, 68.93138259, 75.45520008, 81.95935786, 88.05140149,
                           94.03879494, 100.22900215])
 
-
-        p['phase0.controls:theta'] = theta.reshape((-1,1))
-        p['phase0.states:v'][:] = 100 # bad initial guess on purpose
-        p['phase0.states:v'][0] = 0 # have to set the initial condition
+        p['phase0.controls:theta'] = theta.reshape((-1, 1))
+        p['phase0.states:v'][:] = 100  # bad initial guess on purpose
+        p['phase0.states:v'][0] = 0  # have to set the initial condition
 
         p['phase0.states:pos'][:] = 100
-        p['phase0.states:pos'][0,0] = 0 # have to set the initial condition
-        p['phase0.states:pos'][0,1] = 10. # have to set the initial condition
+        p['phase0.states:pos'][0, 0] = 0  # have to set the initial condition
+        p['phase0.states:pos'][0, 1] = 10.  # have to set the initial condition
 
-        p['phase0.t_duration'] = 1.8016 # need the final duration (ivp style)
+        p['phase0.t_duration'] = 1.8016  # need the final duration (ivp style)
 
         p.run_model()
         self.assert_results(p)
@@ -218,9 +217,6 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         self.tearDown()
         if os.path.exists('ex_brach_gl_compressed.db'):
             os.remove('ex_brach_gl_compressed.db')
-
-
-
 
 if __name__ == "__main__":
     unittest.main()

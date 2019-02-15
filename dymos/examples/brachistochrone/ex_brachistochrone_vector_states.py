@@ -43,7 +43,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
     fix_final = not solve_segments  # can't fix final position if you're solving the segments
-    phase.set_state_options('pos', fix_initial=True, fix_final=fix_final, solve_segments=solve_segments)
+    phase.set_state_options('pos', fix_initial=True, fix_final=fix_final,
+                            solve_segments=solve_segments)
     phase.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=solve_segments)
 
     phase.add_control('theta', continuity=True, rate_continuity=True,
