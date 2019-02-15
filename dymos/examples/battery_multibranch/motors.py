@@ -15,7 +15,7 @@ class Motors(ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', default=1)
-        self.options.declare('n_parallel', default=3, desc='number of cells in parallel')
+        self.options.declare('n_parallel', default=3, desc='number of motors in parallel')
 
     def setup(self):
         num_nodes = self.options['num_nodes']
