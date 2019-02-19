@@ -3,6 +3,7 @@ from __future__ import print_function, division, absolute_import
 from six import string_types, iteritems
 
 import numpy as np
+from scipy.linalg import block_diag
 
 from openmdao.api import ExplicitComponent
 
@@ -29,8 +30,6 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
     def setup(self):
 
         self._var_names = {}
-        self._bflat = {}
-        self._k_shapes = {}
 
         num_segs = self.options['num_segments']
         rk_data = rk_methods[self.options['method']]
@@ -46,14 +45,11 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
             self._var_names[name]['k'] = 'k:{0}'.format(name)
             self._var_names[name]['final'] = 'final_states:{0}'.format(name)
 
-            self._bflat[name] = np.repeat(rk_data['b'], np.prod(shape) * num_segs)
-            self._k_shapes[name] = (num_segs, num_stages) + shape
-
             self.add_input(self._var_names[name]['initial'], shape=(num_segs,) + shape, units=units,
                            desc='The initial value of the state at the start of each segment.')
 
-            self.add_input(self._var_names[name]['k'], shape=self._k_shapes[name], units=units,
-                           desc='RK multiplier k for each stage in each segment.')
+            self.add_input(self._var_names[name]['k'], shape=(num_segs, num_stages) + shape,
+                           units=units, desc='RK multiplier k for each stage in each segment.')
 
             self.add_output(self._var_names[name]['final'], shape=(num_segs,) + shape,
                             units=units,
@@ -65,8 +61,16 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
                                   wrt=self._var_names[name]['initial'],
                                   rows=r, cols=c, val=1.0)
 
-            p = np.kron(rk_data['b'], np.eye(size*num_segs))
-            r, c = np.nonzero(p)
+            r = np.repeat(np.arange(num_segs * size, dtype=int), num_stages)
+            c = np.arange(num_segs * num_stages * size, dtype=int)
+
+            p = np.kron(rk_data['b'], np.eye(size))
+            p = block_diag(*num_segs*[p])
+            r, c = p.nonzero()
+            # np.set_printoptions(linewidth=1024)
+            # print(p)
+            # exit(0)
+
             self.declare_partials(of=self._var_names[name]['final'],
                                   wrt=self._var_names[name]['k'],
                                   rows=r, cols=c,
@@ -76,7 +80,6 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
         for name, options in iteritems(self.options['state_options']):
             x0 = inputs[self._var_names[name]['initial']]
             k = inputs[self._var_names[name]['k']]
-            b = self._bflat[name]
-            k_shape = self._k_shapes[name]
+            b = rk_methods[self.options['method']]['b']
             out_name = self._var_names[name]['final']
-            outputs[out_name] = x0 + np.sum((k.ravel() * b).reshape(k_shape), axis=0)
+            outputs[out_name] = x0 + np.einsum('ijk,j->ik', k, b)

@@ -15,7 +15,7 @@ from six import iteritems
 
 # from .solvers.nl_rk_solver import NonlinearRK
 from .components import RungeKuttaStatePredictComp, RungeKuttaKComp, RungeKuttaStepsizeComp, \
-    RungeKuttaStateAdvanceComp
+    RungeKuttaStateAdvanceComp, RungeKuttaContinuityIterGroup
 # from .components.implicit_segment_connection_comp import ImplicitSegmentConnectionComp
 from ..components.continuity_comp import ExplicitContinuityComp
 from ..components import ExplicitTimeseriesOutputComp
@@ -145,56 +145,58 @@ class RungeKuttaPhase(PhaseBase):
         rk_data = rk_methods[self.options['method']]
         num_nodes = num_seg * rk_data['num_stages']
 
-        cnty_iter = self.add_subsystem('cnty_iter', subsys=Group(), promotes_inputs=['*'],
-                                       promotes_outputs=['*'])
+        self.add_subsystem('cnty_iter', subsys=RungeKuttaContinuityIterGroup())
 
-        k_iter = cnty_iter.add_subsystem('k_iter', subsys=Group(), promotes_inputs=['*'],
-                                         promotes_outputs=['*'])
+        # cnty_iter = self.add_subsystem('cnty_iter', subsys=Group(), promotes_inputs=['*'],
+        #                                promotes_outputs=['*'])
+        #
+        # k_iter = cnty_iter.add_subsystem('k_iter', subsys=Group(), promotes_inputs=['*'],
+        #                                  promotes_outputs=['*'])
+        #
+        # k_iter.add_subsystem('state_predict_comp',
+        #                      RungeKuttaStatePredictComp(method=self.options['method'],
+        #                                                 num_segments=num_seg,
+        #                                                 state_options=self.state_options))
+        # k_iter.add_subsystem('ode',
+        #                      subsys=ODEClass(num_nodes=num_nodes,
+        #                                      **self.options['ode_init_kwargs']))
+        #
+        # k_iter.add_subsystem('k_comp',
+        #                      subsys=RungeKuttaKComp(method=self.options['method'],
+        #                                             num_segments=num_seg,
+        #                                             state_options=self.state_options,
+        #                                             time_units=self.time_options['units']))
+        #
+        # k_iter.linear_solver = DirectSolver()
+        # k_iter.nonlinear_solver = \
+        #     self.options['solver_class'](**self.options['solver_options'])
+        #
+        # cnty_iter.add_subsystem('state_advance_comp',
+        #                         RungeKuttaStateAdvanceComp(num_segments=num_seg,
+        #                                                    method=self.options['method'],
+        #                                                    state_options=self.state_options))
 
-        k_iter.add_subsystem('state_predict_comp',
-                             RungeKuttaStatePredictComp(method=self.options['method'],
-                                                        num_segments=num_seg,
-                                                        state_options=self.state_options))
-        k_iter.add_subsystem('ode',
-                             subsys=ODEClass(num_nodes=num_nodes,
-                                             **self.options['ode_init_kwargs']))
-
-        k_iter.add_subsystem('k_comp',
-                             subsys=RungeKuttaKComp(method=self.options['method'],
-                                                    num_segments=num_seg,
-                                                    state_options=self.state_options,
-                                                    time_units=self.time_options['units']))
-
-        k_iter.linear_solver = DirectSolver()
-        k_iter.nonlinear_solver = \
-            self.options['solver_class'](**self.options['solver_options'])
-
-        cnty_iter.add_subsystem('state_advance_comp',
-                                RungeKuttaStateAdvanceComp(num_segments=num_seg,
-                                                           method=self.options['method'],
-                                                           state_options=self.state_options))
-
-        cnty_balance_comp = cnty_iter.add_subsystem('cnty_balance_comp', BalanceComp())
-
-        for state_name, options in iteritems(self.state_options):
-            # Connect the state predicted (assumed) value to its targets in the ode
-            k_iter.connect('state_predict_comp.predicted_states:{0}'.format(state_name),
-                             ['ode.{0}'.format(tgt) for tgt in options['targets']])
-
-            # Connect the state rate source to the k comp
-            rate_path, src_idxs = self._get_rate_source_path(state_name)
-            self.connect(rate_path,
-                         'k_comp.f:{0}'.format(state_name),
-                         src_indices=src_idxs,
-                         flat_src_indices=True)
-
-            # Connect the k value associated with the state to the state predict comp
-            self.connect('k_comp.k:{0}'.format(state_name),
-                         ('state_predict_comp.k:{0}'.format(state_name),
-                          'state_advance_comp.k:{0}'.format(state_name)))
-
-            cnty_balance_comp.add_balance('subsequent_states:{0}'.format(state_name), units=options['units'],
-                                          val=np.ones(((num_seg,) + options['shape'])))
+        # cnty_balance_comp = cnty_iter.add_subsystem('cnty_balance_comp', BalanceComp())
+        #
+        # for state_name, options in iteritems(self.state_options):
+        #     # Connect the state predicted (assumed) value to its targets in the ode
+        #     k_iter.connect('state_predict_comp.predicted_states:{0}'.format(state_name),
+        #                      ['ode.{0}'.format(tgt) for tgt in options['targets']])
+        #
+        #     # Connect the state rate source to the k comp
+        #     rate_path, src_idxs = self._get_rate_source_path(state_name)
+        #     self.connect(rate_path,
+        #                  'k_comp.f:{0}'.format(state_name),
+        #                  src_indices=src_idxs,
+        #                  flat_src_indices=True)
+        #
+        #     # Connect the k value associated with the state to the state predict comp
+        #     self.connect('k_comp.k:{0}'.format(state_name),
+        #                  ('state_predict_comp.k:{0}'.format(state_name),
+        #                   'state_advance_comp.k:{0}'.format(state_name)))
+        #
+        #     cnty_balance_comp.add_balance('subsequent_states:{0}'.format(state_name), units=options['units'],
+        #                                   val=np.ones(((num_seg,) + options['shape'])))
 
     #     gd = self.grid_data
     #     shooting = 'single'
@@ -321,11 +323,11 @@ class RungeKuttaPhase(PhaseBase):
         # shooting = self.options['shooting']
         # num_stages = rk_methods[self.options['method']]['num_stages']
         #
-        indep = IndepVarComp()
-        for state_name, options in iteritems(self.state_options):
-            indep.add_output(name='states:{0}'.format(state_name),
-                             shape=((1,) + options['shape']),
-                             units=options['units'])
+        # indep = IndepVarComp()
+        # for state_name, options in iteritems(self.state_options):
+        #     indep.add_output(name='states:{0}'.format(state_name),
+        #                      shape=((1,) + options['shape']),
+        #                      units=options['units'])
         #
         #     for iseg in range(gd.num_segments):
         #         num_steps = gd.num_steps_per_segment[iseg]
@@ -335,7 +337,7 @@ class RungeKuttaPhase(PhaseBase):
         #                          'seg_{0}.initial_states:{1}'.format(iseg, state_name),
         #                          src_indices=[iseg])
         #
-        self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
+        # self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
         #
         # # Add the initial state values as design variables, if necessary
         #

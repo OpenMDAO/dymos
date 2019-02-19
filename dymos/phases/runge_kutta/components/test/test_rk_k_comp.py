@@ -77,6 +77,8 @@ class TestRKKComp(unittest.TestCase):
 
         assert_rel_error(self, p.get_val('c.k:y'), expected, tolerance=1.0E-9)
 
+        p.model.list_outputs(print_arrays=True)
+
         cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
 

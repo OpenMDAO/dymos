@@ -10,24 +10,8 @@ from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, Nonline
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.phases.runge_kutta.components.runge_kutta_k_iter_group import RungeKuttaKIterGroup
-from dymos.phases.runge_kutta.test.rk_test_ode import TestODE
+from dymos.phases.runge_kutta.test.rk_test_ode import TestODE, get_rate_source_path_1D
 
-
-def _get_rate_source_path_1D(state_name, nodes=None, **kwargs):
-    """
-    Function to provide debug capability.  Provides a lookup mechanism for the k iter group
-    to determine the rate source path of the state variables.
-    """
-    shape = (1,)
-    num_segments = 4
-    num_stages = 4
-
-    rate_path = 'ode.ydot'
-    state_size = np.prod(shape)
-    size = num_segments * num_stages * state_size
-    src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
-
-    return rate_path, src_idxs
 
 class TestRungeKuttaKIterGroup(unittest.TestCase):
 
@@ -45,7 +29,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
         ivc.add_output('t', shape=(num_seg * num_stages, 1), units='s')
 
         p.model.add_subsystem('k_iter_group',
-                              RungeKuttaKIterGroup(get_rate_source_path=_get_rate_source_path_1D,
+                              RungeKuttaKIterGroup(get_rate_source_path=get_rate_source_path_1D,
                                                    num_segments=num_seg,
                                                    method='rk4',
                                                    state_options=state_options,
@@ -117,7 +101,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
         ivc.add_output('t', shape=(num_seg * num_stages, 1), units='s')
 
         p.model.add_subsystem('k_iter_group',
-                              RungeKuttaKIterGroup(get_rate_source_path=_get_rate_source_path_1D,
+                              RungeKuttaKIterGroup(get_rate_source_path=get_rate_source_path_1D,
                                                    num_segments=num_seg,
                                                    method='rk4',
                                                    state_options=state_options,
@@ -173,7 +157,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
         ivc.add_output('t', shape=(num_seg * num_stages, 1), units='s')
 
         p.model.add_subsystem('k_iter_group',
-                              RungeKuttaKIterGroup(get_rate_source_path=_get_rate_source_path_1D,
+                              RungeKuttaKIterGroup(get_rate_source_path=get_rate_source_path_1D,
                                                    num_segments=num_seg,
                                                    method='rk4',
                                                    state_options=state_options,

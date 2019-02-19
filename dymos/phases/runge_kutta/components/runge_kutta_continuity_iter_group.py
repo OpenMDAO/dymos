@@ -1,11 +1,13 @@
 from __future__ import print_function, division, absolute_import
 
+import numpy as np
 from six import string_types, iteritems
 
 from openmdao.api import Group, DirectSolver, NonlinearBlockGS, NewtonSolver, NonlinearRunOnce
 
 from .runge_kutta_k_iter_group import RungeKuttaKIterGroup
 from .runge_kutta_state_advance_comp import RungeKuttaStateAdvanceComp
+from .runge_kutta_continuity_comp import RungeKuttaContinuityComp
 
 
 class RungeKuttaContinuityIterGroup(Group):
@@ -77,19 +79,35 @@ class RungeKuttaContinuityIterGroup(Group):
                                                  time_units=self.options['time_units'],
                                                  ode_class=self.options['ode_class'],
                                                  ode_init_kwargs=self.options['ode_init_kwargs'],
-                                                 solver_class=self.options['solver_class'],
-                                                 solver_options=self.options['solver_options']),
+                                                 solver_class=self.options['k_solver_class'],
+                                                 solver_options=self.options['k_solver_options']),
                             promotes_inputs=['*'],
                             promotes_outputs=['*'])
 
         self.add_subsystem('state_advance_comp',
                            RungeKuttaStateAdvanceComp(num_segments=self.options['num_segments'],
                                                       method=self.options['method'],
-                                                      state_options=self.options['state_options']))
+                                                      state_options=self.options['state_options']),
+                           promotes_inputs=['initial_states:*'],
+                           promotes_outputs=['final_states:*'])
+
+        self.add_subsystem('continuity_comp',
+                           RungeKuttaContinuityComp(num_segments=self.options['num_segments'],
+                                                    state_options=self.options['state_options']),
+                           promotes_inputs=['final_states:*'],
+                           promotes_outputs=['states:*'])
 
         for state_name, options in iteritems(self.options['state_options']):
             self.connect('k_comp.k:{0}'.format(state_name),
                          'state_advance_comp.k:{0}'.format(state_name))
 
+            self.connect('states:{0}'.format(state_name),
+                         'initial_states:{0}'.format(state_name),
+                         src_indices=np.arange(self.options['num_segments'], dtype=int))
+
         self.linear_solver = DirectSolver()
-        self.nonlinear_solver = self.options['solver_class'](**self.options['solver_options'])
+        self.nonlinear_solver = \
+            self.options['continuity_solver_class'](**self.options['continuity_solver_options'])
+
+        # p.model.connect('states:y', 'step_comp.y_i', src_indices=[0, 1, 2, 3])
+        # p.model.connect('step_comp.y_f', 'continuity_comp.final_states:y')

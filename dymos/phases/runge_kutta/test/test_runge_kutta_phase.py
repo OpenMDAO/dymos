@@ -8,6 +8,7 @@ from openmdao.api import Problem, Group, ExplicitComponent, NonlinearBlockGS
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos import RungeKuttaPhase, declare_time, declare_state
+from dymos.phases.runge_kutta.test.rk_test_ode import TestODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
