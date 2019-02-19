@@ -56,17 +56,16 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
                                duration_ref=3600)
 
         phase.set_state_options('range', units='NM', fix_initial=True, fix_final=False,
-                                scaler=0.001,
-                                defect_scaler=1.0E-2)
+                                ref=1e-3, defect_ref=1e-3,)
 
         phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=True,
-                                upper=1.5E5, lower=0.0, scaler=1.0E-5, defect_scaler=1.0E-1)
+                                upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2)
 
         phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=True,
-                                upper=60, lower=0)
+                                upper=60, lower=0, ref=1e-3, defect_ref=1e-3)
 
         phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
-                          ref0=-3000, ref=3000, rate_continuity=True)
+                          rate_continuity=True)
 
         phase.add_input_parameter('mach', units=None)
         phase.add_input_parameter('S', units='m**2')
@@ -80,15 +79,13 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
         p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
 
-        phase.add_objective('range', loc='final', ref=-0.1)
-
-        p.model.linear_solver = DirectSolver()
+        phase.add_objective('range', loc='final', ref=-1.0e-4)
 
         p.setup()
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 3600.0
-        p['phase0.states:range'] = phase.interpolate(ys=(0, 1000.0), nodes='state_input')
+        p['phase0.states:range'] = phase.interpolate(ys=(0, 800.0), nodes='state_input')
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(30000, 0), nodes='state_input')
         p['phase0.states:alt'][:] = 10.0
 
