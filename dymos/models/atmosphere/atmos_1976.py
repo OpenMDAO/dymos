@@ -159,13 +159,11 @@ class USatm1976Comp(ExplicitComponent):
                               rows=arange, cols=arange)
 
     def compute(self, inputs, outputs):
-
         outputs['temp'] = T_interp(inputs['h'], extrapolate=True)
         outputs['pres'] = P_interp(inputs['h'], extrapolate=True)
         outputs['rho'] = rho_interp(inputs['h'], extrapolate=True)
         outputs['viscosity'] = visc_interp(inputs['h'], extrapolate=True)
         outputs['drhos_dh'] = rho_interp_deriv(inputs['h'], extrapolate=True)
-
         outputs['sos'] = np.sqrt(self._K*outputs['temp'])
 
     def compute_partials(self, inputs, partials):

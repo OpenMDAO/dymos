@@ -299,7 +299,6 @@ class CollocationComp(ImplicitComponent):
                 J[defect_name, var_names['f_computed']] = -k
                 J[defect_name, 'dt_dstau'] = (f_approx - f_computed).ravel()
 
-
     # this mimicks how the direct_solver works, for any dect outputs.
     # but I wonder if it might be faster to just use a direct solver
     # (or basically do a matrix equivalent operation)

@@ -6,12 +6,6 @@ import unittest
 
 class TestBrachistochroneExplicitExample(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
-        for filename in ['phase0_sim.db']:
-            if os.path.exists(filename):
-                os.remove(filename)
-
     def test_brachistochrone_for_docs_single_shooting(self):
         import numpy as np
         import matplotlib
@@ -54,8 +48,7 @@ class TestBrachistochroneExplicitExample(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
-        p.model.options['assembled_jac_type'] = 'csc'
+        p.model.linear_solver = DirectSolver()
 
         p.setup(check=True, mode='fwd')
 
@@ -76,7 +69,7 @@ class TestBrachistochroneExplicitExample(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50))
+        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -139,7 +132,7 @@ class TestBrachistochroneExplicitExample(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
         p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup(check=True, mode='fwd')
@@ -161,7 +154,7 @@ class TestBrachistochroneExplicitExample(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50))
+        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')

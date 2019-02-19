@@ -332,8 +332,7 @@ class Trajectory(Group):
         for name, phs in iteritems(self._phases):
             g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
             # DirectSolvers were moved down into the phases for use with MPI
-            g.options['assembled_jac_type'] = 'csc'
-            g.linear_solver = DirectSolver(assemble_jac=True)
+            g.linear_solver = DirectSolver()
 
         if self._linkages:
             self._setup_linkages()
@@ -539,82 +538,3 @@ class Trajectory(Group):
         print('Done simulating phase {0}'.format(self.pathname))
 
         return sim_prob
-
-    def get_values(self, var, phases=None, nodes='all', units=None, flat=False):
-        """
-        Returns the values of the given variable from the given phases, if provided.
-        If the variable is not present in one ore more phases, it will be returned as
-        numpy.nan at each time step.  If the variable does not exist in any phase within the
-        trajectory, KeyError is raised.
-
-        Parameters
-        ----------
-        var : str
-            The variable whose values are to be returned.
-        phases : Sequence, None
-            The phases from which the values are desired.  If None, included all Phases.
-        units : str, None
-            The units in which the values are desired.
-        nodes : str or dict of {str: str}
-            The node subset for which the values should be provided.  If given as a string,
-            provide the same subset for all phases.  If given as a dictionary, provide a
-            mapping of phase names to node subsets.  If an invalid node subset is requested
-            in one or more phases, a ValueError is raised.
-        flat : bool
-            If False return the values in a dictionary keyed by phase name.  If True,
-            return a single array incorporating values from all phases.
-
-        Returns
-        -------
-        dict or np.array
-            If flat=False, a dictionary of the values of the variable in each phase will be
-            returned, keyed by Phase name.  If the values are not present in a subset of the phases,
-            return numpy.nan at each time point in those phases.
-
-        Raises
-        ------
-        KeyError
-            If the given variable is not found in any phase, a KeyError is raised.
-
-        """
-        phase_names = phases if phases is not None else list(self._phases.keys())
-
-        results = {}
-        time_units = None
-        times = {}
-
-        if isinstance(nodes, string_types):
-            node_map = dict([(phase_name, nodes) for phase_name in phase_names])
-        else:
-            node_map = nodes
-
-        var_in_traj = False
-
-        for phase_name in phase_names:
-            p = self._phases[phase_name]
-
-            if p.options['transcription'] == 'explicit':
-                node_map[phase_name] = 'steps'
-
-            if time_units is None:
-                time_units = p.time_options['units']
-            times[phase_name] = p.get_values('time', nodes=node_map[phase_name],
-                                             units=time_units)
-
-            try:
-                results[phase_name] = p.get_values(var, nodes=node_map[phase_name], units=units)
-                var_in_traj = True
-            except KeyError:
-                num_nodes = p.grid_data.subset_num_nodes[node_map[phase_name]]
-                results[phase_name] = np.empty((num_nodes, 1))
-                results[phase_name][:, :] = np.nan
-
-        if not var_in_traj:
-            raise KeyError('Variable "{0}" not found in trajectory.'.format(var))
-
-        if flat:
-            time_array = np.concatenate([times[pname] for pname in phase_names])
-            sort_idxs = np.argsort(time_array, axis=0).ravel()
-            results = np.concatenate([results[pname] for pname in phase_names])[sort_idxs, ...]
-
-        return results

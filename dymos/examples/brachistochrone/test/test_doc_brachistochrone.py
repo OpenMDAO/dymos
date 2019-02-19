@@ -1,16 +1,9 @@
 from __future__ import print_function, absolute_import, division
 
-import os
 import unittest
 
 
 class TestBrachistochroneExample(unittest.TestCase):
-
-    @classmethod
-    def tearDownClass(cls):
-        for filename in ['phase0_sim.db']:
-            if os.path.exists(filename):
-                os.remove(filename)
 
     def test_brachistochrone_for_docs_gauss_lobatto(self):
         import numpy as np
@@ -44,8 +37,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
-        p.model.options['assembled_jac_type'] = 'csc'
+        p.model.linear_solver = DirectSolver()
 
         p.setup()
 
@@ -66,7 +58,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50))
+        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')

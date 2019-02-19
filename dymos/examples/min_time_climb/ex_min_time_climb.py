@@ -15,7 +15,7 @@ SHOW_PLOTS = True
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
-                   transcription_order=3, force_alloc_complex=False, top_level_jacobian='csc'):
+                   transcription_order=3, force_alloc_complex=False):
 
     p = Problem(model=Group())
 
@@ -29,11 +29,11 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         p.driver.opt_settings['Function precision'] = 1.0E-12
-        p.driver.opt_settings['Linesearch tolerance'] = 0.99
+        p.driver.opt_settings['Linesearch tolerance'] = 0.1
         p.driver.opt_settings['Major step limit'] = 0.5
         # p.driver.opt_settings['Verify level'] = 3
 
-    phase = Phase(transcription,
+    phase = Phase('gauss-lobatto',
                   ode_class=MinTimeClimbODE,
                   num_segments=num_seg,
                   compressed=True,
@@ -45,10 +45,10 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                            duration_ref=100.0)
 
     phase.set_state_options('r', fix_initial=True, lower=0, upper=1.0E6,
-                            ref=1.0E4, defect_ref=1.0E4, units='m')
-
-    phase.set_state_options('h', fix_initial=True, lower=100, upper=20000.0,
                             ref=1.0E3, defect_ref=1.0E3, units='m')
+
+    phase.set_state_options('h', fix_initial=True, lower=0, upper=20000.0,
+                            ref=1.0E2, defect_ref=1.0E2, units='m')
 
     phase.set_state_options('v', fix_initial=True, lower=10.0,
                             ref=1.0E2, defect_ref=1.0E2, units='m/s')
@@ -57,11 +57,11 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                             ref=1.0, defect_ref=1.0, units='rad')
 
     phase.set_state_options('m', fix_initial=True, lower=10.0, upper=1.0E5,
-                            ref=1.0E4, defect_ref=1.0E4)
+                            ref=1.0E3, defect_ref=1.0E3)
 
-    phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0,
-                      continuity=True, rate_continuity=True, rate2_continuity=True,
-                      scaler=10.0)
+    phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
+                      rate_continuity=True, rate_continuity_scaler=100.0,
+                      rate2_continuity=False)
 
     phase.add_design_parameter('S', val=49.2386, units='m**2', opt=False)
     phase.add_design_parameter('Isp', val=1600.0, units='s', opt=False)
@@ -76,7 +76,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.add_path_constraint(name='alpha', lower=-8, upper=8)
 
     # Minimize time at the end of the phase
-    phase.add_objective('time', loc='final', ref=0.1)
+    phase.add_objective('time', loc='final', ref=1.0)
 
     p.model.linear_solver = DirectSolver()
 
@@ -135,5 +135,4 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 if __name__ == '__main__':
     SHOW_PLOTS = True
     p = min_time_climb(
-        optimizer='SNOPT', num_seg=10, transcription='radau-ps', transcription_order=5,
-        force_alloc_complex=False)
+        optimizer='SLSQP', num_seg=12, transcription='radau-ps', transcription_order=3)

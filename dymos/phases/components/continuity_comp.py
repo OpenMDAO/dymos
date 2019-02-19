@@ -293,7 +293,7 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
             if options['continuity'] and not compressed:
 
                 # linear if states are optimized, because they are dvs.
-                # but nonlinear if solve_segments, because its multiple shooting
+                # but nonlinear if solve_segments, because its like multiple shooting
                 is_linear = not options['solve_segments']
                 self.add_constraint(name='defect_states:{0}'.format(state_name),
                                     equals=0.0, scaler=1.0, linear=is_linear)
@@ -351,7 +351,7 @@ class RadauPSContinuityComp(ContinuityCompBase):
         for state_name, options in iteritems(state_options):
             if options['continuity'] and not compressed:
                 # linear if states are optimized, because they are dvs.
-                # but nonlinear if solve_segments, because its multiple shooting
+                # but nonlinear if solve_segments, because its like multiple shooting
                 is_linear = not options['solve_segments']
 
                 self.add_constraint(name='defect_states:{0}'.format(state_name),

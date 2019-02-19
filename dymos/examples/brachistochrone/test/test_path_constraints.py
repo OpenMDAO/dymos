@@ -35,8 +35,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('theta_rate', lower=0, upper=100, units='deg/s')
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
-        p.model.options['assembled_jac_type'] = 'csc'
+        p.model.linear_solver = DirectSolver()
 
         p.setup()
 
@@ -85,7 +84,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('theta_rate2', lower=-200, upper=200, units='rad/s**2')
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
         p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup()
@@ -135,8 +134,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('theta_rate', lower=0, upper=100, units='deg/s')
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
-        p.model.options['assembled_jac_type'] = 'csc'
+        p.model.linear_solver = DirectSolver()
 
         p.setup()
 
@@ -185,7 +183,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('theta_rate2', lower=-200, upper=200, units='rad/s**2')
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
         p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup()

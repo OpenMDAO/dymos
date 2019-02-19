@@ -20,9 +20,9 @@ p['phase0.t_initial'] = 1.0
 p['phase0.t_duration'] = 9.0
 p.run_model()
 
-t_disc = phase.get_values('time', nodes='disc')
-t_col = phase.get_values('time', nodes='col')
-t_all = phase.get_values('time', nodes='all')
+t_all = p.get_val('phase0.timeseries.time')
+t_disc = t_all[phase.grid_data.subset_segment_indices['state_disc']]
+t_col = t_all[phase.grid_data.subset_segment_indices['col']]
 
 
 def f(x):  # pragma: no cover

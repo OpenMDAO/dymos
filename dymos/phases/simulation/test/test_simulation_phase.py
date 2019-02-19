@@ -45,8 +45,7 @@ class TestSimulationPhaseGaussLobatto(unittest.TestCase):
 
         phase.add_timeseries_output('check', units='m/s', shape=(1,))
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
-        p.model.options['assembled_jac_type'] = 'csc'
+        p.model.linear_solver = DirectSolver()
 
         p.setup()
 

@@ -77,8 +77,7 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase.add_objective('time', loc='final', ref=3600)
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
-        p.model.options['assembled_jac_type'] = 'csc'
+        p.model.linear_solver = DirectSolver()
 
         p.setup()
 

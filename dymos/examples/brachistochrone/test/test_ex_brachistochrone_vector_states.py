@@ -61,9 +61,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                                                            compressed=True,
                                                            sim_record='ex_brachvs_radau_compressed.'
                                                                       'db',
-                                                           force_alloc_complex=True)
-        p.run_driver()
-
+                                                           force_alloc_complex=True,
+                                                           run_driver=True)
         self.assert_results(p)
         self.assert_partials(p)
         self.tearDown()
@@ -76,8 +75,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                                                            compressed=False,
                                                            sim_record='ex_brachvs_radau_'
                                                                       'uncompressed.db',
-                                                           force_alloc_complex=True)
-        p.run_driver()
+                                                           force_alloc_complex=True,
+                                                           run_driver=True)
         self.assert_results(p)
         self.assert_partials(p)
         self.tearDown()
@@ -89,10 +88,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
                                                            compressed=True,
                                                            sim_record='ex_brachvs_gl_compressed.db',
-                                                           force_alloc_complex=True)
-
-        p.run_driver()
-        print('foo', p['phase0.controls:theta'])
+                                                           force_alloc_complex=True,
+                                                           run_driver=True)
         self.assert_results(p)
         self.assert_partials(p)
         self.tearDown()
@@ -105,8 +102,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                                                            transcription_order=5,
                                                            compressed=False,
                                                            sim_record='ex_brachvs_gl_compressed.db',
-                                                           force_alloc_complex=True)
-        p.run_driver()
+                                                           force_alloc_complex=True,
+                                                           run_driver=True)
         self.assert_results(p)
         self.assert_partials(p)
         self.tearDown()

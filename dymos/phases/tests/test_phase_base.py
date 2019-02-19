@@ -286,8 +286,7 @@ class TestPhaseBase(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('g')
 
-        p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
@@ -336,7 +335,7 @@ class TestPhaseBase(unittest.TestCase):
         phase.add_objective('g')
 
         p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
@@ -389,8 +388,7 @@ class TestPhaseBase(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time')
 
-        p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
@@ -404,10 +402,13 @@ class TestPhaseBase(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, phase.get_values('theta', units='deg')[-1], 90.0)
-        assert_rel_error(self, phase.get_values('theta_rate')[-1], 0, tolerance=1.0E-6)
-        assert_rel_error(self, phase.get_values('theta_rate2')[-1], 0, tolerance=1.0E-6)
-        assert_rel_error(self, phase.get_values('g')[0], 9.80665, tolerance=1.0E-6)
+        assert_rel_error(self, p.get_val('phase0.timeseries.controls:theta', units='deg')[-1], 90.0)
+        assert_rel_error(self, p.get_val('phase0.timeseries.control_rates:theta_rate')[-1], 0,
+                         tolerance=1.0E-6)
+        assert_rel_error(self, p.get_val('phase0.timeseries.control_rates:theta_rate2')[-1], 0,
+                         tolerance=1.0E-6)
+        assert_rel_error(self, p.get_val('phase0.timeseries.design_parameters:g')[0], 9.80665,
+                         tolerance=1.0E-6)
 
 
 if __name__ == '__main__':

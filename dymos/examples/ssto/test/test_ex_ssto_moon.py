@@ -17,7 +17,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
     def test_results_gl_compressed(self):
         p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10, transcription_order=5,
-                                   top_level_jacobian='csc', compressed=True)
+                                   compressed=True)
 
         p.setup(check=True)
 
@@ -43,8 +43,8 @@ class TestExampleSSTOMoon(unittest.TestCase):
         assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)
 
         # Ensure the tangent of theta is (approximately) linear
-        time = p.model.phase0.get_values('time').flatten()
-        tan_theta = np.tan(p.model.phase0.get_values('theta').flatten())
+        time = p.get_val('phase0.timeseries.time').flatten()
+        tan_theta = np.tan(p.get_val('phase0.timeseries.controls:theta').flatten())
 
         coeffs, residuals, _, _, _ = np.polyfit(time, tan_theta, deg=1, full=True)
 
@@ -52,7 +52,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
     def test_results_radau_compressed(self):
         p = ex_ssto_moon.ssto_moon('radau-ps', num_seg=10, transcription_order=5,
-                                   top_level_jacobian='csc', compressed=True)
+                                   compressed=True)
 
         p.setup(check=True)
 
@@ -78,8 +78,8 @@ class TestExampleSSTOMoon(unittest.TestCase):
         assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)
 
         # Ensure the tangent of theta is (approximately) linear
-        time = p.model.phase0.get_values('time').flatten()
-        tan_theta = np.tan(p.model.phase0.get_values('theta').flatten())
+        time = p.get_val('phase0.timeseries.time').flatten()
+        tan_theta = np.tan(p.get_val('phase0.timeseries.controls:theta').flatten())
 
         coeffs, residuals, _, _, _ = np.polyfit(time, tan_theta, deg=1, full=True)
 
@@ -87,7 +87,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
     def test_results_gl_uncompressed(self):
         p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10, transcription_order=5,
-                                   top_level_jacobian='csc', compressed=False)
+                                   compressed=False)
 
         p.setup(check=True)
 
@@ -122,7 +122,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
     def test_results_radau_uncompressed(self):
         p = ex_ssto_moon.ssto_moon('radau-ps', num_seg=10, transcription_order=5,
-                                   top_level_jacobian='csc', compressed=False)
+                                   compressed=False)
 
         p.setup(check=True)
 
@@ -160,8 +160,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
         import dymos.examples.ssto.ex_ssto_moon as ex_ssto_moon
 
-        p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10,
-                                   transcription_order=5, top_level_jacobian='csc')
+        p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10, transcription_order=5)
 
         p.setup(check=True)
 

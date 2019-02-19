@@ -122,8 +122,7 @@ class TestTwoPhaseCannonballExplicit(unittest.TestCase):
         p.model.connect('size_comp.S', 'traj.input_parameters:S')
 
         # Finish Problem Setup
-        p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
 
         p.driver.add_recorder(SqliteRecorder('ex_two_phase_cannonball_exp.db'))
 
