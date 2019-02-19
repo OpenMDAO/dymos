@@ -227,3 +227,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         axes[2].set_ylabel(r'flight path angle (deg)')
 
         plt.show()
+
+
+if __name__ == "__main__":
+    unittest.main()
