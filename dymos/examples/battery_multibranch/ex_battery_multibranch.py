@@ -65,20 +65,35 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     # Second phase, but with battery failure.
 
-    phase1_fail = Phase(transcription,
+    phase1_bfail = Phase(transcription,
                         ode_class=BatteryODE,
                         num_segments=num_seg,
                         segment_ends=seg_ends,
                         transcription_order=5,
                         compressed=False)
 
-    traj_p1_fail = traj.add_phase('phase1_fail', phase1_fail)
+    traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
-    traj_p1_fail.set_time_options(fix_initial=False, fix_duration=True)
-    traj_p1_fail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+    traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
+    traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+
+    # Second phase, but with motor failure.
+
+    phase1_mfail = Phase(transcription,
+                        ode_class=BatteryODE,
+                        num_segments=num_seg,
+                        segment_ends=seg_ends,
+                        transcription_order=5,
+                        compressed=False)
+
+    traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
+
+    traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
+    traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
 
     traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'])
-    traj.link_phases(phases=['phase0', 'phase1_fail'], vars=['state_of_charge', 'time'])
+    traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'])
+    traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'])
 
     prob.model.options['assembled_jac_type'] = 'csc'
     prob.model.linear_solver = DirectSolver(assemble_jac=True)
@@ -91,11 +106,19 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
     prob['traj.phases.phase1.time_extents.t_initial'] = 1.0*3600
     prob['traj.phases.phase1.time_extents.t_duration'] = 1.0*3600
 
-    prob['traj.phases.phase1_fail.time_extents.t_initial'] = 1.0*3600
-    prob['traj.phases.phase1_fail.time_extents.t_duration'] = 1.0*3600
+    prob['traj.phases.phase1_bfail.time_extents.t_initial'] = 1.0*3600
+    prob['traj.phases.phase1_bfail.time_extents.t_duration'] = 1.0*3600
 
-    prob.model.traj.phases.phase1_fail.rhs_all.battery.options['n_parallel'] = 2
+    prob['traj.phases.phase1_mfail.time_extents.t_initial'] = 1.0*3600
+    prob['traj.phases.phase1_mfail.time_extents.t_duration'] = 1.0*3600
 
+    # Fail one battery
+    prob.model.traj.phases.phase1_bfail.rhs_all.battery.options['n_parallel'] = 2
+
+    # Fail one motor
+    prob.model.traj.phases.phase1_mfail.rhs_all.motors.options['n_parallel'] = 2
+
+    prob.set_solver_print(level=0)
     prob.run_driver()
 
     return prob
@@ -117,9 +140,10 @@ if __name__ == '__main__':
         #plt.figure(1)
         plt.subplot(2, 2, 1)
         plt.plot(t, soc)
-        plt.plot(t_all['phase1_fail']/3600, soc_all['phase1_fail'], 'r')
+        plt.plot(t_all['phase1_bfail']/3600, soc_all['phase1_bfail'], 'r')
+        plt.plot(t_all['phase1_mfail']/3600, soc_all['phase1_mfail'], 'c')
         plt.xlabel('Time (hour)')
-        plt.ylabel('State of Charge (percent')
+        plt.ylabel('State of Charge (percent)')
 
         V_oc_all = traj.get_values('battery.V_oc')
         V_oc = np.vstack((V_oc_all['phase0'], V_oc_all['phase1']))
@@ -127,7 +151,8 @@ if __name__ == '__main__':
         #plt.figure(2)
         plt.subplot(2, 2, 2)
         plt.plot(t, V_oc)
-        plt.plot(t_all['phase1_fail']/3600, V_oc_all['phase1_fail'], 'r')
+        plt.plot(t_all['phase1_bfail']/3600, V_oc_all['phase1_bfail'], 'r')
+        plt.plot(t_all['phase1_mfail']/3600, V_oc_all['phase1_mfail'], 'c')
         plt.xlabel('Time (hour)')
         plt.ylabel('Open Circuit Voltage (V)')
 
@@ -137,7 +162,8 @@ if __name__ == '__main__':
         #plt.figure(3)
         plt.subplot(2, 2, 3)
         plt.plot(t, Vline)
-        plt.plot(t_all['phase1_fail']/3600, V_pack_all['phase1_fail'], 'r')
+        plt.plot(t_all['phase1_bfail']/3600, V_pack_all['phase1_bfail'], 'r')
+        plt.plot(t_all['phase1_mfail']/3600, V_pack_all['phase1_mfail'], 'c')
         plt.xlabel('Time (hour)')
         plt.ylabel('Terminal Voltage (V)')
         plt.show()
@@ -148,7 +174,8 @@ if __name__ == '__main__':
         #plt.figure(4)
         plt.subplot(2, 2, 4)
         plt.plot(t, I_Li)
-        plt.plot(t_all['phase1_fail']/3600, I_Li_all['phase1_fail'], 'r')
+        plt.plot(t_all['phase1_bfail']/3600, I_Li_all['phase1_bfail'], 'r')
+        plt.plot(t_all['phase1_mfail']/3600, I_Li_all['phase1_mfail'], 'c')
         plt.xlabel('Time (hour)')
         plt.ylabel('Line Current (A)')
 

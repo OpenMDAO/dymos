@@ -4,8 +4,13 @@ Simple dynamic model of a LI battery.
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
+from scipy.interpolate import Akima1DInterpolator
 
 from openmdao.api import ExplicitComponent
+
+# Data for open circuit voltage model.
+train_SOC = np.array([0., 0.1, 0.25, 0.5, 0.75, 0.9, 1.0])
+train_V_oc = np.array([3.5, 3.55, 3.65, 3.75, 3.9, 4.1, 4.2])
 
 
 class Battery(ExplicitComponent):
@@ -55,22 +60,23 @@ class Battery(ExplicitComponent):
         # Derivatives
         row_col = np.arange(num_nodes)
 
-        self.declare_partials(of='V_oc', wrt=['SOC'], rows=row_col, cols=row_col, val=0.7)
-        self.declare_partials(of='V_L', wrt=['SOC'], rows=row_col, cols=row_col, val=0.7)
+        self.declare_partials(of='V_oc', wrt=['SOC'], rows=row_col, cols=row_col)
+        self.declare_partials(of='V_L', wrt=['SOC'], rows=row_col, cols=row_col)
         self.declare_partials(of='V_L', wrt=['I_Li'], rows=row_col, cols=row_col)
         self.declare_partials(of='dXdt:SOC', wrt=['I_Li'], rows=row_col, cols=row_col)
         self.declare_partials(of='I_pack', wrt=['I_Li'], rows=row_col, cols=row_col)
         self.declare_partials(of='V_pack', wrt=['SOC', 'I_Li'], rows=row_col, cols=row_col)
         self.declare_partials(of='P_pack', wrt=['SOC', 'I_Li'], rows=row_col, cols=row_col)
 
+        self.voltage_model = Akima1DInterpolator(train_SOC, train_V_oc)
+        self.voltage_model_derivative = self.voltage_model.derivative()
 
     def compute(self, inputs, outputs):
         opt = self.options
         I_Li = inputs['I_Li']
         SOC = inputs['SOC']
 
-        # Simple linear curve fit for open circuit voltage as a function of state of charge.
-        V_oc = 3.5 + 0.7*SOC
+        V_oc = self.voltage_model(SOC, extrapolate=True)
 
         outputs['V_oc'] = V_oc
         outputs['V_L'] = V_oc - (I_Li * opt['R_0'])
@@ -85,20 +91,24 @@ class Battery(ExplicitComponent):
         I_Li = inputs['I_Li']
         SOC = inputs['SOC']
 
+        dV_dSOC = self.voltage_model_derivative(SOC, extrapolate=True)
+        partials['V_oc', 'SOC'] = dV_dSOC
+        partials['V_L', 'SOC'] = dV_dSOC
+
         partials['V_L', 'I_Li'] = -opt['R_0']
 
         partials['dXdt:SOC', 'I_Li'] = -1./(3600.0*opt['Q_max'])
 
         n_parallel = opt['n_parallel']
         n_series = opt['n_series']
-        V_oc = 3.5 + 0.7*SOC
+        V_oc = self.voltage_model(SOC, extrapolate=True)
         V_L = V_oc - (I_Li * opt['R_0'])
 
         partials['I_pack', 'I_Li'] = n_parallel
         partials['V_pack', 'I_Li'] = -opt['R_0']
-        partials['V_pack', 'SOC'] = n_series * 0.7
+        partials['V_pack', 'SOC'] = n_series * dV_dSOC
         partials['P_pack', 'I_Li'] = n_parallel * n_series * (V_L - I_Li * opt['R_0'])
-        partials['P_pack', 'SOC'] = n_parallel * I_Li * n_series * 0.7
+        partials['P_pack', 'SOC'] = n_parallel * I_Li * n_series * dV_dSOC
 
 
 if __name__ == '__main__':

@@ -40,6 +40,7 @@ class BatteryODE(Group):
         self.connect('battery.I_pack', 'motors.current_in_motor')
 
         self.nonlinear_solver = NewtonSolver()
+        self.nonlinear_solver.options['maxiter'] = 20
         self.linear_solver = DirectSolver()
 
 

@@ -21,9 +21,9 @@ class Motors(ExplicitComponent):
         num_nodes = self.options['num_nodes']
 
         # Inputs
-        self.add_input('power_out_gearbox', val=3.0*np.ones(num_nodes), units='W',
+        self.add_input('power_out_gearbox', val=3.6*np.ones(num_nodes), units='W',
                        desc='Power at gearbox output')
-        self.add_input('current_in_motor', val=3.25*np.ones(num_nodes), units='A',
+        self.add_input('current_in_motor', val=np.ones(num_nodes), units='A',
                        desc='Total current demanded')
 
         # Outputs
@@ -43,7 +43,7 @@ class Motors(ExplicitComponent):
         n_parallel = self.options['n_parallel']
 
         # Simple linear curve fit for efficiency.
-        eff = 0.5 + current / n_parallel
+        eff = 0.9 - 0.3 * current / n_parallel
 
         outputs['power_in_motor'] = power_out / eff
 
@@ -53,10 +53,10 @@ class Motors(ExplicitComponent):
         power_out = inputs['power_out_gearbox']
         n_parallel = self.options['n_parallel']
 
-        eff = 0.5 + current / n_parallel
+        eff = 0.9 - 0.3 * current / n_parallel
 
         partials['power_in_motor', 'power_out_gearbox'] = 1.0 / eff
-        partials['power_in_motor', 'current_in_motor'] = -1.0 / (n_parallel * eff**2)
+        partials['power_in_motor', 'current_in_motor'] = 0.3 * power_out / (n_parallel * eff**2)
 
 
 if __name__ == '__main__':
