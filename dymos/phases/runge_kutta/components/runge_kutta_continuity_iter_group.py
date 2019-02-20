@@ -54,19 +54,22 @@ class RungeKuttaContinuityIterGroup(Group):
 
         self.options.declare('k_solver_class', default=NonlinearBlockGS,
                              values=(NonlinearBlockGS, NewtonSolver, NonlinearRunOnce),
+                             allow_none=True,
                              desc='The nonlinear solver class used to converge the numerical '
                                   'integration across each segment.')
 
-        self.options.declare('k_solver_options', default={}, types=(dict,),
+        self.options.declare('k_solver_options', default={'iprint': -1}, types=(dict,),
                              desc='The options passed to the nonlinear solver used to converge the'
                                   'Runge-Kutta propagation across each step.')
 
-        self.options.declare('continuity_solver_class', default=NonlinearBlockGS,
-                             values=(NonlinearBlockGS, NewtonSolver, NonlinearRunOnce),
+        self.options.declare('continuity_solver_class', default=NewtonSolver,
+                             values=(NewtonSolver, NonlinearRunOnce),
+                             allow_none=True,
                              desc='The nonlinear solver class used to enforce state continuity '
-                                  'across the segments (steps).')
+                                  'across the segments (steps).  Currently only NewtonSolver is'
+                                  'supported.')
 
-        self.options.declare('continuity_solver_options', default={}, types=(dict,),
+        self.options.declare('continuity_solver_options', default={'iprint': -1}, types=(dict,),
                              desc='The options passed to the nonlinear solver used to enforce '
                                   'state continuity across the segments (steps).')
 
@@ -106,8 +109,6 @@ class RungeKuttaContinuityIterGroup(Group):
                          src_indices=np.arange(self.options['num_segments'], dtype=int))
 
         self.linear_solver = DirectSolver()
-        self.nonlinear_solver = \
-            self.options['continuity_solver_class'](**self.options['continuity_solver_options'])
-
-        # p.model.connect('states:y', 'step_comp.y_i', src_indices=[0, 1, 2, 3])
-        # p.model.connect('step_comp.y_f', 'continuity_comp.final_states:y')
+        if self.options['continuity_solver_class']:
+            self.nonlinear_solver = \
+                self.options['continuity_solver_class'](**self.options['continuity_solver_options'])

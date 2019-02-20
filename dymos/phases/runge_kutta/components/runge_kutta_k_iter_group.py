@@ -52,6 +52,7 @@ class RungeKuttaKIterGroup(Group):
 
         self.options.declare('solver_class', default=NonlinearBlockGS,
                              values=(NonlinearBlockGS, NewtonSolver, NonlinearRunOnce),
+                             allow_none=True,
                              desc='The nonlinear solver class used to converge the numerical '
                                   'integration of the segment.')
 
@@ -99,4 +100,5 @@ class RungeKuttaKIterGroup(Group):
                          'state_predict_comp.k:{0}'.format(state_name))
 
         self.linear_solver = DirectSolver()
-        self.nonlinear_solver = self.options['solver_class'](**self.options['solver_options'])
+        if self.options['solver_class']:
+            self.nonlinear_solver = self.options['solver_class'](**self.options['solver_options'])
