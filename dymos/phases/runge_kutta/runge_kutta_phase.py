@@ -61,6 +61,11 @@ class RungeKuttaPhase(PhaseBase):
         self.options.declare('method', default='rk4', values=('rk4',),
                              desc='The integrator used within the explicit phase.')
 
+        self.options.declare('direction', default='forward', values=('forward', 'backward'),
+                             desc='Whether the numerical propagation occurs forwards or backwards '
+                                  'in time.  This poses restrictions on whether states can have '
+                                  'fixed initial/final values.')
+
         self.options.declare('k_solver_class', default=NonlinearBlockGS,
                              values=(NonlinearBlockGS, NewtonSolver, NonlinearRunOnce),
                              allow_none=True,
@@ -97,35 +102,6 @@ class RungeKuttaPhase(PhaseBase):
         num_nodes = num_seg * rk_data['num_stages']
         grid_data = self.grid_data
 
-        # Borrow the notion of node_ptau and node_dptau_dstau from GridData, without all the
-        # other unnecessary stuff
-        # First, map c to [-1, 1]
-        nodes_i = 2.0 * rk_data['c'] - 1
-
-        # Normalize the given segment ends
-        if self.options['segment_ends'] is None:
-            segment_ends = np.linspace(-1, 1, num_seg + 1)
-        else:
-            if len(self.options['segment_ends']) != num_seg + 1:
-                raise ValueError('segment_ends must be of length (num_segments + 1)')
-            # Assert monotonic increasing
-            if not np.all(np.diff(num_seg) > 0):
-                raise ValueError('segment_ends must be monotonically increasing')
-            segment_ends = np.atleast_1d(self.options['segment_ends'])
-        v0 = segment_ends[0]
-        v1 = segment_ends[-1]
-        self.segment_ends = -1. + 2 * (segment_ends - v0) / (v1 - v0)
-
-        # Now populate node_ptau and node_dptau_dstau
-        self.node_ptau = np.empty(0,)
-        self.node_dptau_dstau = np.empty(0,)
-        for iseg in range(num_seg):
-            v0 = segment_ends[iseg]
-            v1 = segment_ends[iseg + 1]
-            self.node_ptau = np.concatenate((self.node_ptau, v0 + 0.5 * (nodes_i + 1) * (v1 - v0)))
-            self.node_dptau_dstau = np.concatenate((self.node_dptau_dstau,
-                                                    0.5 * (v1 - v0) * np.ones_like(nodes_i)))
-
         indeps, externals, comps = super(RungeKuttaPhase, self)._setup_time()
 
         time_comp = TimeComp(num_nodes=num_nodes, node_ptau=grid_data.node_ptau,
@@ -136,8 +112,9 @@ class RungeKuttaPhase(PhaseBase):
         comps.append('time')
 
         h_comp = RungeKuttaStepsizeComp(num_segments=num_seg,
-                                        seg_rel_lengths=np.diff(self.segment_ends),
-                                        time_units=time_units)
+                                        seg_rel_lengths=np.diff(grid_data.segment_ends),
+                                        time_units=time_units,
+                                        direction=self.options['direction'])
 
         self.add_subsystem('stepsize_comp', h_comp,
                            promotes_inputs=['t_duration'],
@@ -145,9 +122,16 @@ class RungeKuttaPhase(PhaseBase):
 
         if self.time_options['targets']:
             time_tgts = self.time_options['targets']
-            self.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts])
-            self.connect('time', ['ode.{0}'.format(t) for t in time_tgts],
-                         src_indices=self.grid_data.subset_node_indices['segment_ends'])
+
+            if self.options['direction'] == 'forward':
+                self.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts],
+                             src_indices=self.grid_data.subset_node_indices['all'])
+            else:
+                self.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts],
+                             src_indices=self.grid_data.subset_node_indices['all'][::-1])
+
+        self.connect('time', ['ode.{0}'.format(t) for t in time_tgts],
+                     src_indices=self.grid_data.subset_node_indices['segment_ends'])
 
         if self.time_options['time_phase_targets']:
             time_phase_tgts = self.time_options['time_phase_targets']
@@ -233,7 +217,6 @@ class RungeKuttaPhase(PhaseBase):
         """
         Add an IndepVarComp for the states and setup the states as design variables.
         """
-        gd = self.grid_data
         num_seg = self.options['num_segments']
         num_state_input_nodes = num_seg + 1
 
@@ -243,6 +226,8 @@ class RungeKuttaPhase(PhaseBase):
             # Connect the states at the segment ends to the final ODE instance.
             row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
             row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
+            if self.options['direction'] == 'backward':
+                row_idxs = row_idxs[::-1]
             src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
             self.connect('states:{0}'.format(state_name),
                          ['ode.{0}'.format(tgt) for tgt in options['targets']],
@@ -554,6 +539,8 @@ class RungeKuttaPhase(PhaseBase):
                                                    units=options['units'])
             row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
             row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
+            if self.options['direction'] == 'backward':
+                row_idxs = row_idxs[::-1]
             src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
             self.connect(src_name='states:{0}'.format(name),
                          tgt_name='timeseries.segend_values:states:{0}'.format(name),
@@ -730,26 +717,33 @@ class RungeKuttaPhase(PhaseBase):
             provided, this value overrides defect_scaler.
 
         """
-        if fix_final:
-            raise ValueError('fix_final is not a valid option for states in ExplicitPhase. '
-                             'Use a final boundary constraint on the state instead.')
+        if fix_initial and fix_final:
+            raise ValueError('For RungeKuttaPhase, both fix_initial and fix_final may not be True. '
+                             'Use a boundary constraint to enforce one of the end values instead.')
 
-        if units is not _unspecified:
-            self.state_options[name]['units'] = units
+        if self.options['direction'] == 'forward' and not fix_initial:
+            raise ValueError('When RungeKuttaPhase option \'direction\' is \'forward\', state '
+                             'option \'fix_initial\' must be True.')
 
-        self.state_options[name]['val'] = val
-        self.state_options[name]['fix_initial'] = fix_initial
-        self.state_options[name]['fix_final'] = False
-        self.state_options[name]['initial_bounds'] = initial_bounds
-        self.state_options[name]['final_bounds'] = final_bounds
-        self.state_options[name]['lower'] = lower
-        self.state_options[name]['upper'] = upper
-        self.state_options[name]['scaler'] = scaler
-        self.state_options[name]['adder'] = adder
-        self.state_options[name]['ref'] = ref
-        self.state_options[name]['ref0'] = ref0
-        self.state_options[name]['defect_scaler'] = defect_scaler
-        self.state_options[name]['defect_ref'] = defect_ref
+        if self.options['direction'] == 'backward' and not fix_final:
+            raise ValueError('When RungeKuttaPhase option \'direction\' is \'backward\', state '
+                             'option \'fix_final\' must be True.')
+
+        super(RungeKuttaPhase, self).set_state_options(name=name,
+                                                       units=units,
+                                                       val=val,
+                                                       fix_initial=fix_initial,
+                                                       fix_final=fix_final,
+                                                       initial_bounds=initial_bounds,
+                                                       final_bounds=final_bounds,
+                                                       lower=lower,
+                                                       upper=upper,
+                                                       scaler=scaler,
+                                                       adder=adder,
+                                                       ref=ref,
+                                                       ref0=ref0,
+                                                       defect_scaler=defect_scaler,
+                                                       defect_ref=defect_ref)
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,

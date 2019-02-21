@@ -8,6 +8,7 @@ from openmdao.api import Group, DirectSolver, NonlinearBlockGS, NewtonSolver, No
 from .runge_kutta_k_iter_group import RungeKuttaKIterGroup
 from .runge_kutta_state_advance_comp import RungeKuttaStateAdvanceComp
 from .runge_kutta_continuity_comp import RungeKuttaContinuityComp
+from ....utils.indexing import get_src_indices_by_row
 
 
 class RungeKuttaContinuityIterGroup(Group):
@@ -45,6 +46,11 @@ class RungeKuttaContinuityIterGroup(Group):
 
         self.options.declare('time_units', default=None, allow_none=True, types=string_types,
                              desc='Units of the integration variable')
+
+        self.options.declare('direction', default='forward', values=('forward', 'backward'),
+                             desc='Whether the numerical propagation occurs forwards or backwards '
+                                  'in time.  This poses restrictions on whether states can have '
+                                  'fixed initial/final values.')
 
         self.options.declare('ode_class',
                              desc='System defining the ODE')
@@ -103,9 +109,18 @@ class RungeKuttaContinuityIterGroup(Group):
             self.connect('k_comp.k:{0}'.format(state_name),
                          'state_advance_comp.k:{0}'.format(state_name))
 
-            self.connect('states:{0}'.format(state_name),
-                         'initial_states:{0}'.format(state_name),
-                         src_indices=np.arange(self.options['num_segments'], dtype=int))
+            if self.options['direction'] == 'forward':
+                row_idxs = np.arange(self.options['num_segments'], dtype=int)
+                src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
+                self.connect('states:{0}'.format(state_name),
+                             'initial_states:{0}'.format(state_name),
+                             src_indices=src_idxs, flat_src_indices=True)
+            else:
+                row_idxs = np.arange(1, self.options['num_segments'] + 1, dtype=int)[::-1]
+                src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
+                self.connect('states:{0}'.format(state_name),
+                             'initial_states:{0}'.format(state_name),
+                             src_indices=src_idxs, flat_src_indices=True)
 
         self.linear_solver = DirectSolver()
         if self.options['continuity_solver_class']:
