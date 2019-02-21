@@ -87,8 +87,6 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
 
     phase.add_objective('range', loc='final', ref=-1.0e-4)
 
-    p.model.linear_solver = DirectSolver()
-
     p.setup()
 
     p['phase0.t_initial'] = 0.0

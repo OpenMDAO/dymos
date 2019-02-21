@@ -135,7 +135,7 @@ class PhaseBase(Group):
         defect_ref : float or ndarray (1.0)
             The unit-reference value of the state defect at the collocation nodes of the phase. If
             provided, this value overrides defect_scaler.
-        solve_segments: bool(False)
+        solve_segments : bool(False)
             If True, a solver will be used to converge the collocation defects within a segment.
             Note that the state continuity defects between segements will still be
             handled by the optimizer.

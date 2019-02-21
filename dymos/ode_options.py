@@ -230,7 +230,7 @@ class ODEOptions(object):
         self._check_targets('time', self._time_options['targets'])
 
     def declare_state(self, name, rate_source, targets=None, shape=None,
-                      units=None, solved_segments=False):
+                      units=None):
         """
         Add an ODE state variable.
 
@@ -249,10 +249,6 @@ class ODEOptions(object):
             The shape of the variable to potentially be provided as a control.
         units : str or None
             Units of the variable.
-        solved_segments: bool(False)
-            If True, a solver will be used to converge the collocation defects
-            within a segment. Note that the state continuity defects between
-            segements will still be handled by the optimizer.
         """
         if name in self._states:
             raise ValueError('State {0} has already been declared.'.format(name))
