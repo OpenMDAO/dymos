@@ -229,7 +229,8 @@ class ODEOptions(object):
 
         self._check_targets('time', self._time_options['targets'])
 
-    def declare_state(self, name, rate_source, targets=None, shape=None, units=None):
+    def declare_state(self, name, rate_source, targets=None, shape=None,
+                      units=None):
         """
         Add an ODE state variable.
 
@@ -258,6 +259,7 @@ class ODEOptions(object):
 
         options['name'] = name
         options['rate_source'] = rate_source
+
         if isinstance(targets, string_types):
             options['targets'] = [targets]
         elif isinstance(targets, Iterable):
