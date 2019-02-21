@@ -59,7 +59,7 @@ class LagrangeBarycentricInterpolant(object):
 
     """
 
-    def __init__(self, nodes):
+    def __init__(self, nodes, shape):
 
         self.num_nodes = len(nodes)
         """ The number of nodes in the interpolated polynomial. """
@@ -67,7 +67,9 @@ class LagrangeBarycentricInterpolant(object):
         self.tau_i = nodes
         """ The independent variable values at interpolation points. """
 
-        self.f_j = np.zeros(self.num_nodes)
+        _shape = (self.num_nodes,) + shape
+
+        self.f_j = np.zeros(_shape)
         """ An array of values to be interpolated. """
 
         self.w_b = np.ones(self.num_nodes)
@@ -79,10 +81,15 @@ class LagrangeBarycentricInterpolant(object):
                 if k != j:
                     self.w_b[j] /= (self.tau_i[j] - self.tau_i[k])
 
-        self.wbfj = np.zeros(self.num_nodes)
+        self.wbfj = np.zeros(_shape)
         """ An array of the precomputed product of the interpolated
             values and the corresponding barycentric weights.
         """
+
+        n = self.wbfj.shape[0]
+        m = np.prod(self.wbfj.shape[1:])
+        self.wbfj_flat = np.reshape(self.wbfj, newshape=(n, m))
+        """ A flattened view of wbfj"""
 
         self.x0 = -1.0
         """ The value of the independent axis corresponding to $\tau = -1$ """
@@ -137,11 +144,13 @@ class LagrangeBarycentricInterpolant(object):
         """
         if len(f_j) != self.num_nodes:
             raise ValueError("f_j must have {0} values".format(self.num_nodes))
-        self.f_j[:] = f_j
+        self.f_j[...] = f_j
         self.x0 = x0
         self.xf = xf
         self.dx_dtau = 0.5 * (xf - x0)
-        self.wbfj[:] = self.w_b * self.f_j
+
+        fjT = self.f_j.T
+        self.wbfj[...] = (self.w_b * fjT).T
         self._is_setup = True
 
     def eval(self, x):
@@ -171,7 +180,10 @@ class LagrangeBarycentricInterpolant(object):
                 if j == i:
                     continue
                 l[i] *= g[j]
-        return np.dot(self.wbfj, l)
+
+        result = np.reshape(np.dot(l, self.wbfj_flat), newshape=self.wbfj.shape[1:])
+
+        return result
 
     def eval_deriv(self, x, der=1):
         """ Interpolate the derivative of the polynomial at x.
@@ -209,7 +221,8 @@ class LagrangeBarycentricInterpolant(object):
                             continue
                         prod *= g[k]
                     lprime[i] += prod
-            df_dtau = np.dot(self.wbfj, lprime)
+            # df_dtau = np.dot(lprime, self.wbfj)
+            df_dtau = np.reshape(np.dot(lprime, self.wbfj_flat), newshape=self.wbfj.shape[1:])
             return df_dtau / self.dx_dtau
         elif der == 2:
             for i in range(n):
@@ -225,7 +238,7 @@ class LagrangeBarycentricInterpolant(object):
                                 continue
                             prod *= g[ii]
                         lprime[i] += prod
-            df_dtau = np.dot(self.wbfj, lprime)
+            df_dtau = np.reshape(np.dot(lprime, self.wbfj_flat), newshape=self.wbfj.shape[1:])
             return df_dtau / self.dx_dtau**2
         else:
             raise ValueError('Barycentric interpolant currently only supports up to '

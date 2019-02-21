@@ -133,7 +133,10 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
                           'for the optimization problem.  If False, allow the '
                           'control to be connected externally.')
 
-        self.declare(name='targets', types=Iterable, default=[], allow_none=True,
+        self.declare(name='dynamic', types=bool, default=True,
+                     desc='True if this parameter can be used as a dynamic control, else False')
+
+        self.declare(name='target_params', types=dict, default=None, allow_none=True,
                      desc='Used to store target information on a per-phase basis for trajectories.')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
@@ -192,11 +195,11 @@ class InputParameterOptionsDictionary(OptionsDictionary):
         self.declare(name='desc', types=string_types, default='',
                      desc='The description of the design parameter.')
 
-        self.declare(name='targets', types=Iterable, default=[], allow_none=True,
-                     desc='Used to store target information on a per-phase basis for trajectories.')
+        self.declare(name='dynamic', types=bool, default=True,
+                     desc='True if this parameter can be used as a dynamic control, else False')
 
-        self.declare(name='target_param', types=string_types, default=None, allow_none=True,
-                     desc='The name of the ODE system parameter to be set via input parameter.')
+        self.declare(name='target_params', types=dict, default=None, allow_none=True,
+                     desc='Used to store target information on a per-phase basis for trajectories.')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the design parameter in the phase.')
@@ -311,6 +314,10 @@ class StateOptionsDictionary(OptionsDictionary):
                      desc='Enforce continuity of state values at segment boundaries. This '
                           'option is invalid if opt=False.')
 
+        self.declare('solve_segments', default=False, types=bool,
+                     desc='setting to control if segment collocation defects are '
+                          'solved with a newton solver')
+
 
 class TimeOptionsDictionary(OptionsDictionary):
     """
@@ -379,6 +386,10 @@ class TimeOptionsDictionary(OptionsDictionary):
 
         self.declare(name='targets', types=Iterable, allow_none=True, default=None,
                      desc='targets in the ODE to which the integration variable is connected')
+
+        self.declare(name='time_phase_targets', types=Iterable, allow_none=True, default=None,
+                     desc='targets in the ODE to which the elapsed duration of the phase is '
+                          'connected')
 
 
 class _ForDocs(object):  # pragma: no cover

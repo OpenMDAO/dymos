@@ -9,7 +9,7 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 
 def get_angle_plot(line1, line2, radius=1, color=None, origin=(0, 0),
-                   len_x_axis=1, len_y_axis=1):
+                   len_x_axis=1, len_y_axis=1):  # pragma: no cover
 
     l1xy = line1.get_xydata()
     # Angle between line1 and x-axis
@@ -34,7 +34,7 @@ def get_angle_plot(line1, line2, radius=1, color=None, origin=(0, 0),
     # , label =str(angle) + u"\u00b0")
 
 
-def min_time_climb_fbd(include_drag=True):
+def min_time_climb_fbd(include_drag=True):  # pragma: no cover
     fig, ax = plt.subplots(1, 1, figsize=(6, 6))
     ax.axis('off')
 
@@ -137,5 +137,5 @@ def min_time_climb_fbd(include_drag=True):
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     min_time_climb_fbd()

@@ -64,30 +64,41 @@ class TestEndpointConditionComp(unittest.TestCase):
 
         p.model.add_subsystem('ivc', subsys=ivc, promotes_outputs=['*'])
 
-        p.model.add_subsystem('end_conditions',
-                              subsys=EndpointConditionsComp(time_options=time_options,
+        p.model.add_subsystem('initial_conditions',
+                              subsys=EndpointConditionsComp(loc='initial',
+                                                            time_options=time_options,
                                                             state_options=state_options,
-                                                            control_options=control_options))
+                                                            control_options=control_options),
+                              promotes_outputs=['*'])
 
-        p.model.connect('phase:time', 'end_conditions.values:time')
+        p.model.add_subsystem('final_conditions',
+                              subsys=EndpointConditionsComp(loc='final',
+                                                            time_options=time_options,
+                                                            state_options=state_options,
+                                                            control_options=control_options),
+                              promotes_outputs=['*'])
+
+        p.model.connect('phase:time', 'initial_conditions.initial_value:time')
+        p.model.connect('phase:time', 'final_conditions.final_value:time')
 
         size = np.prod(state_options['x']['shape'])
 
-        p.model.connect('phase:x', 'end_conditions.values:x')
+        p.model.connect('phase:x', 'initial_conditions.initial_value:x')
+        p.model.connect('phase:x', 'final_conditions.final_value:x')
 
-        p.model.connect('phase:theta', 'end_conditions.values:theta')
+        p.model.connect('phase:theta', 'initial_conditions.initial_value:theta')
+        p.model.connect('phase:theta', 'final_conditions.final_value:theta')
 
-        p.model.connect('phase:initial_jump:time', 'end_conditions.initial_jump:time')
-        p.model.connect('phase:final_jump:time', 'end_conditions.final_jump:time')
+        p.model.connect('phase:initial_jump:time', 'initial_conditions.initial_jump:time')
+        p.model.connect('phase:final_jump:time', 'final_conditions.final_jump:time')
 
-        p.model.connect('phase:initial_jump:x', 'end_conditions.initial_jump:x')
-        p.model.connect('phase:final_jump:x', 'end_conditions.final_jump:x')
+        p.model.connect('phase:initial_jump:x', 'initial_conditions.initial_jump:x')
+        p.model.connect('phase:final_jump:x', 'final_conditions.final_jump:x')
 
-        p.model.connect('phase:initial_jump:theta', 'end_conditions.initial_jump:theta')
-        p.model.connect('phase:final_jump:theta', 'end_conditions.final_jump:theta')
+        p.model.connect('phase:initial_jump:theta', 'initial_conditions.initial_jump:theta')
+        p.model.connect('phase:final_jump:theta', 'final_conditions.final_jump:theta')
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
-        p.model.options['assembled_jac_type'] = 'dense'
+        p.model.linear_solver = DirectSolver()
 
         p.setup(force_alloc_complex=True)
 
@@ -107,28 +118,28 @@ class TestEndpointConditionComp(unittest.TestCase):
 
         p.run_model()
 
-        assert_almost_equal(p['end_conditions.time--'],
+        assert_almost_equal(p['time--'],
                             p['phase:time'][0] - p['phase:initial_jump:time'])
 
-        assert_almost_equal(p['end_conditions.time-+'],
+        assert_almost_equal(p['time-+'],
                             p['phase:time'][0])
 
-        assert_almost_equal(p['end_conditions.time++'],
+        assert_almost_equal(p['time++'],
                             p['phase:time'][-1] + p['phase:final_jump:time'])
 
-        assert_almost_equal(p['end_conditions.time+-'],
+        assert_almost_equal(p['time+-'],
                             p['phase:time'][-1])
 
-        assert_almost_equal(p['end_conditions.states:x--'],
+        assert_almost_equal(p['states:x--'],
                             p['phase:x'][0] - p['phase:initial_jump:x'])
 
-        assert_almost_equal(p['end_conditions.states:x++'],
+        assert_almost_equal(p['states:x++'],
                             p['phase:x'][-1] + p['phase:final_jump:x'])
 
-        assert_almost_equal(p['end_conditions.controls:theta--'],
+        assert_almost_equal(p['controls:theta--'],
                             p['phase:theta'][0] - p['phase:initial_jump:theta'])
 
-        assert_almost_equal(p['end_conditions.controls:theta++'],
+        assert_almost_equal(p['controls:theta++'],
                             p['phase:theta'][-1] + p['phase:final_jump:theta'])
 
         cpd = p.check_partials(compact_print=True, method='cs')
@@ -183,24 +194,36 @@ class TestEndpointConditionComp(unittest.TestCase):
 
         p.model.add_subsystem('ivc', subsys=ivc, promotes_outputs=['*'])
 
-        p.model.add_subsystem('end_conditions',
-                              subsys=EndpointConditionsComp(time_options=time_options,
+        p.model.add_subsystem('initial_conditions',
+                              subsys=EndpointConditionsComp(loc='initial',
+                                                            time_options=time_options,
                                                             state_options=state_options,
-                                                            control_options=control_options))
+                                                            control_options=control_options),
+                              promotes_outputs=['*'])
 
-        p.model.connect('phase:time', 'end_conditions.values:time')
+        p.model.add_subsystem('final_conditions',
+                              subsys=EndpointConditionsComp(loc='final',
+                                                            time_options=time_options,
+                                                            state_options=state_options,
+                                                            control_options=control_options),
+                              promotes_outputs=['*'])
 
-        p.model.connect('phase:pos', 'end_conditions.values:pos')
+        p.model.connect('phase:time', 'initial_conditions.initial_value:time')
+        p.model.connect('phase:time', 'final_conditions.final_value:time')
 
-        p.model.connect('phase:initial_jump:pos', 'end_conditions.initial_jump:pos')
-        p.model.connect('phase:final_jump:pos', 'end_conditions.final_jump:pos')
+        p.model.connect('phase:pos', 'initial_conditions.initial_value:pos')
+        p.model.connect('phase:pos', 'final_conditions.final_value:pos')
 
-        p.model.connect('phase:cmd', 'end_conditions.values:cmd')
+        p.model.connect('phase:initial_jump:pos', 'initial_conditions.initial_jump:pos')
+        p.model.connect('phase:final_jump:pos', 'final_conditions.final_jump:pos')
 
-        p.model.connect('phase:initial_jump:cmd', 'end_conditions.initial_jump:cmd')
-        p.model.connect('phase:final_jump:cmd', 'end_conditions.final_jump:cmd')
+        p.model.connect('phase:cmd', 'initial_conditions.initial_value:cmd')
+        p.model.connect('phase:cmd', 'final_conditions.final_value:cmd')
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.connect('phase:initial_jump:cmd', 'initial_conditions.initial_jump:cmd')
+        p.model.connect('phase:final_jump:cmd', 'final_conditions.final_jump:cmd')
+
+        p.model.linear_solver = DirectSolver()
         p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup(force_alloc_complex=True)
@@ -222,21 +245,22 @@ class TestEndpointConditionComp(unittest.TestCase):
 
         p.run_model()
 
-        assert_almost_equal(p['end_conditions.states:pos--'],
+        assert_almost_equal(p['states:pos--'],
                             p['phase:pos'][0, :] - p['phase:initial_jump:pos'])
 
-        assert_almost_equal(p['end_conditions.states:pos++'],
+        assert_almost_equal(p['states:pos++'],
                             p['phase:pos'][-1, :] + p['phase:final_jump:pos'])
 
-        assert_almost_equal(p['end_conditions.controls:cmd--'],
+        assert_almost_equal(p['controls:cmd--'],
                             p['phase:cmd'][0, :] - p['phase:initial_jump:cmd'])
 
-        assert_almost_equal(p['end_conditions.controls:cmd++'],
+        assert_almost_equal(p['controls:cmd++'],
                             p['phase:cmd'][-1, :] + p['phase:final_jump:cmd'])
 
         cpd = p.check_partials(compact_print=True, method='cs')
 
         assert_check_partials(cpd)
+
 
 if __name__ == "__main__":
     unittest.main()

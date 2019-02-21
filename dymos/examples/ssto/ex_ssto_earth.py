@@ -7,7 +7,7 @@ from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
 
 def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
-               top_level_jacobian='csc', optimizer='SLSQP', compressed=False):
+               optimizer='SLSQP', compressed=False):
     p = Problem(model=Group())
     if optimizer == 'SNOPT':
         p.driver = pyOptSparseDriver()
@@ -46,7 +46,6 @@ def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
 
     phase.add_objective('time', loc='final', scaler=0.01)
 
-    p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
-    p.model.linear_solver = DirectSolver(assemble_jac=True)
+    p.model.linear_solver = DirectSolver()
 
     return p

@@ -13,22 +13,20 @@ SHOW_PLOTS = True
 
 
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-                             run_driver=True, top_level_jacobian='csc', compressed=True,
-                             sim_record='brach_min_time_sim.db', optimizer='SLSQP',
-                             dynamic_simul_derivs=True):
+                             run_driver=True, compressed=True, optimizer='SLSQP'):
     p = Problem(model=Group())
 
-    if optimizer == 'SNOPT':
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = optimizer
-        p.driver.opt_settings['Major iterations limit'] = 100
-        p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
-        p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-        p.driver.opt_settings['iSumm'] = 6
-    else:
-        p.driver = ScipyOptimizeDriver()
+    # if optimizer == 'SNOPT':
+    p.driver = pyOptSparseDriver()
+    p.driver.options['optimizer'] = optimizer
+    #     p.driver.opt_settings['Major iterations limit'] = 100
+    #     p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
+    #     p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
+    #     p.driver.opt_settings['iSumm'] = 6
+    # else:
+    #     p.driver = ScipyOptimizeDriver()
 
-    p.driver.options['dynamic_simul_derivs'] = dynamic_simul_derivs
+    p.driver.options['dynamic_simul_derivs'] = True
 
     phase = Phase(transcription,
                   ode_class=BrachistochroneODE,
@@ -47,13 +45,12 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     phase.add_control('theta', continuity=True, rate_continuity=True,
                       units='deg', lower=0.01, upper=179.9)
 
-    phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+    phase.add_input_parameter('g', units='m/s**2', val=9.80665)
 
     # Minimize time at the end of the phase
-    phase.add_objective('time', loc='final', scaler=10)
+    phase.add_objective('time_phase', loc='final', scaler=10)
 
-    p.model.options['assembled_jac_type'] = top_level_jacobian.lower()
-    p.model.linear_solver = DirectSolver(assemble_jac=True)
+    p.model.linear_solver = DirectSolver()
     p.setup(check=True)
 
     p['phase0.t_initial'] = 0.0
@@ -63,7 +60,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
     p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
     p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-    p['phase0.design_parameters:g'] = 9.80665
+    p['phase0.input_parameters:g'] = 9.80665
 
     p.run_model()
     if run_driver:
@@ -71,16 +68,16 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     # Plot results
     if SHOW_PLOTS:
-        exp_out = phase.simulate(times=50, record_file=sim_record)
+        exp_out = phase.simulate(times=50, record=False)
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = phase.get_values('x', nodes='all')
-        y_imp = phase.get_values('y', nodes='all')
+        x_imp = p.get_val('phase0.timeseries.states:x')
+        y_imp = p.get_val('phase0.timeseries.states:y')
 
-        x_exp = exp_out.get_values('x')
-        y_exp = exp_out.get_values('y')
+        x_exp = exp_out.get_val('phase0.timeseries.states:x')
+        y_exp = exp_out.get_val('phase0.timeseries.states:y')
 
         ax.plot(x_imp, y_imp, 'ro', label='implicit')
         ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -93,17 +90,17 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = phase.get_values('time', nodes='all')
-        y_imp = phase.get_values('theta_rate2', nodes='all')
+        x_imp = p.get_val('phase0.timeseries.time_phase')
+        y_imp = p.get_val('phase0.timeseries.controls:theta')
 
-        x_exp = exp_out.get_values('time')
-        y_exp = exp_out.get_values('theta_rate2')
+        x_exp = exp_out.get_val('phase0.timeseries.time_phase')
+        y_exp = exp_out.get_val('phase0.timeseries.controls:theta')
 
         ax.plot(x_imp, y_imp, 'ro', label='implicit')
         ax.plot(x_exp, y_exp, 'b-', label='explicit')
 
         ax.set_xlabel('time (s)')
-        ax.set_ylabel('theta rate2 (rad/s**2)')
+        ax.set_ylabel('theta (rad)')
         ax.grid(True)
         ax.legend(loc='lower right')
 
@@ -114,5 +111,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 if __name__ == '__main__':
     brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10, run_driver=True,
-                             top_level_jacobian='csc', transcription_order=3, compressed=True,
+                             transcription_order=3, compressed=True,
                              optimizer='SNOPT')
+    # brachistochrone_min_time(transcription='radau-ps', num_segments=10, run_driver=True,
+    #                          top_level_jacobian='csc', transcription_order=3, compressed=True,
+    #                          optimizer='SNOPT')

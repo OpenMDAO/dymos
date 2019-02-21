@@ -2,17 +2,19 @@ from __future__ import division, print_function, absolute_import
 
 from collections import Iterable
 
+from six import iteritems
+
 import numpy as np
-from dymos.phases.optimizer_based.components import CollocationComp, StateInterpComp
-from dymos.phases.components import EndpointConditionsComp
-from dymos.phases.phase_base import PhaseBase
-from dymos.utils.interpolate import LagrangeBarycentricInterpolant
-from dymos.utils.constants import INF_BOUND
-from dymos.utils.misc import CoerceDesvar
-from dymos.utils.simulation import ScipyODEIntegrator, PhaseSimulationResults, \
-    StdOutObserver, ProgressBarObserver, simulate_phase
-from openmdao.api import IndepVarComp
-from six import string_types, iteritems
+
+from openmdao.api import IndepVarComp, DirectSolver, NewtonSolver, BoundsEnforceLS
+
+from ..optimizer_based.components import CollocationComp, StateInterpComp
+from ..components import EndpointConditionsComp
+from ..phase_base import PhaseBase
+from ...utils.constants import INF_BOUND
+from ...utils.misc import CoerceDesvar, get_rate_units
+from ...utils.lagrange import lagrange_matrices
+from ...utils.indexing import get_src_indices_by_row
 
 
 class OptimizerBasedPhaseBase(PhaseBase):
@@ -34,84 +36,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
         A dictionary of the default options for controllable inputs of the Phase RHS
 
     """
-
-    def simulate(self, times='all', integrator='vode', integrator_params=None,
-                 observer=None, record_file=None, record=True):
-        """
-        Integrate the current phase using the current values of time, states, and controls.
-
-        Parameters
-        ----------
-        times : str or sequence
-            The times at which the observing function will be called, and outputs will be saved.
-            If given as a string, it must be a valid node subset name.
-            If given as a sequence, it directly provides the times at which output is provided,
-            *in addition to the segment boundaries*.
-        integrator : str
-            The integrator to be used by scipy.ode.  This is one of:
-            'vode', 'lsoda', 'dopri5', or 'dopri853'.
-        integrator_params : dict
-            Parameters specific to the chosen integrator.  See the scipy.integrate.ode
-            documentation for details.
-        observer : callable, str, or None
-            A callable function to be called at the specified timesteps in
-            `integrate_times`.  This can be used to record the integrated trajectory.
-            If 'progress-bar', a ProgressBarObserver will be used, which outputs the simulation
-            process to the screen as a ProgressBar.
-            If 'stdout', a StdOutObserver will be used, which outputs all variables
-            in the model to standard output by default.
-            If None, no observer will be called.
-        record_file : str or None
-            A string given the name of the recorded file to which the results of the explicit
-            simulation should be saved.  If None, automatically save to '<phase_name>_sim.db'.
-        record : bool
-            If True (default), save the explicit simulation results to the file specified
-            by record_file.
-
-        Returns
-        -------
-        results : PhaseSimulationResults object
-        """
-
-        ode_class = self.options['ode_class']
-        ode_init_kwargs = self.options['ode_init_kwargs']
-        time_values = self.get_values('time').ravel()
-        state_values = {}
-        control_values = {}
-        design_parameter_values = {}
-        input_parameter_values = {}
-        for state_name, options in iteritems(self.state_options):
-            state_values[state_name] = self.get_values(state_name, nodes='all')
-        for control_name, options in iteritems(self.control_options):
-            control_values[control_name] = self.get_values(control_name, nodes='all')
-        for dp_name, options in iteritems(self.design_parameter_options):
-            design_parameter_values[dp_name] = self.get_values(dp_name, nodes='all')
-        for ip_name, options in iteritems(self.input_parameter_options):
-            input_parameter_values[ip_name] = self.get_values(ip_name, nodes='all')
-
-        exp_out = simulate_phase(self.name,
-                                 ode_class=ode_class,
-                                 time_options=self.time_options,
-                                 state_options=self.state_options,
-                                 control_options=self.control_options,
-                                 design_parameter_options=self.design_parameter_options,
-                                 input_parameter_options=self.input_parameter_options,
-                                 time_values=time_values,
-                                 state_values=state_values,
-                                 control_values=control_values,
-                                 design_parameter_values=design_parameter_values,
-                                 input_parameter_values=input_parameter_values,
-                                 ode_init_kwargs=ode_init_kwargs,
-                                 grid_data=self.grid_data,
-                                 times=times,
-                                 record=record,
-                                 record_file=record_file,
-                                 observer=observer,
-                                 integrator=integrator,
-                                 integrator_params=integrator_params)
-
-        return exp_out
-
     def setup(self):
         super(OptimizerBasedPhaseBase, self).setup()
 
@@ -125,11 +49,17 @@ class OptimizerBasedPhaseBase(PhaseBase):
         indep_controls = ['indep_controls'] if num_opt_controls > 0 else []
         design_params = ['design_params'] if self.design_parameter_options else []
         input_params = ['input_params'] if self.input_parameter_options else []
+        traj_params = ['traj_params'] if self.traj_parameter_options else []
         control_interp_comp = ['control_interp_comp'] if num_controls > 0 else []
 
         order = self._time_extents + indep_controls + \
-            input_params + design_params + \
-            ['indep_states', 'time'] + control_interp_comp + ['indep_jumps', 'endpoint_conditions']
+            input_params + design_params + traj_params
+
+        if self.any_optimized_segments:
+            order.append('indep_states')
+
+        order += ['time'] + control_interp_comp + \
+            ['indep_jumps', 'initial_conditions', 'final_conditions']
 
         if transcription == 'gauss-lobatto':
             order = order + ['rhs_disc', 'state_interp', 'rhs_col', 'collocation_constraint']
@@ -140,11 +70,24 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         if self.grid_data.num_segments > 1:
             order.append('continuity_comp')
-        if getattr(self, 'boundary_constraints', None) is not None:
-            order.append('boundary_constraints')
+        if self._initial_boundary_constraints:
+            order.append('initial_boundary_constraints')
+        if self._final_boundary_constraints:
+            order.append('final_boundary_constraints')
         if getattr(self, 'path_constraints', None) is not None:
             order.append('path_constraints')
+
+        order.append('timeseries')
+
         self.set_order(order)
+
+        if self.any_solved_segments:
+            newton = self.nonlinear_solver = NewtonSolver()
+            newton.options['solve_subsystems'] = True
+            newton.options['iprint'] = 0
+            newton.linesearch = BoundsEnforceLS()
+
+            self.linear_solver = DirectSolver()
 
     def _setup_rhs(self):
         grid_data = self.grid_data
@@ -182,66 +125,84 @@ class OptimizerBasedPhaseBase(PhaseBase):
         num_state_input_nodes = grid_data.subset_num_nodes['state_input']
 
         indep = IndepVarComp()
-        for name, options in iteritems(self.state_options):
-            indep.add_output(name='states:{0}'.format(name),
-                             shape=(num_state_input_nodes, np.prod(options['shape'])),
-                             units=options['units'])
-        self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
 
+        # create des-vars for any solve_segments=False states
+        # NOTE: solve_segments=True states get their state:<state_name> vars from the output
+        #       of the implicit collocation_comp
+        self.any_optimized_segments = False
+        self.any_solved_segments = False
+        for name, options in iteritems(self.state_options):
+            if options['solve_segments']:
+                self.any_solved_segments = True
+            else:
+                indep.add_output(name='states:{0}'.format(name),
+                                 shape=(num_state_input_nodes, np.prod(options['shape'])),
+                                 units=options['units'])
+
+                self.any_optimized_segments = True
+
+        if self.any_optimized_segments:
+            self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
+
+        # add all the des-vars (either from the IndepVarComp or from the indep-var-like
+        # outputs of the collocation comp)
         for name, options in iteritems(self.state_options):
             size = np.prod(options['shape'])
             if options['opt']:
-                desvar_indices = list(range(size * num_state_input_nodes))
+                if options['solve_segments']:
+                    desvar_indices = list(self.collocation_constraint.state_idx_map[name]['indep'])
+                else:
+                    desvar_indices = list(range(size * num_state_input_nodes))
 
-                if options['fix_initial']:
-                    if options['initial_bounds'] is not None:
-                        raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                                         'initial_bounds for state {0}'.format(name))
-                    if isinstance(options['fix_initial'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[idx_to_fix]
-                    else:
-                        del desvar_indices[:size]
-                if options['fix_final']:
-                    if options['final_bounds'] is not None:
-                        raise ValueError('Cannot specify \'fix_final=True\' and specify '
-                                         'final_bounds for state {0}'.format(name))
-                    if isinstance(options['fix_final'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[-size + idx_to_fix]
-                    else:
-                        del desvar_indices[-size:]
+            if options['fix_initial']:
+                if options['initial_bounds'] is not None:
+                    raise ValueError('Cannot specify \'fix_initial=True\' and specify '
+                                     'initial_bounds for state {0}'.format(name))
+                if isinstance(options['fix_initial'], Iterable):
+                    idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
+                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                        del desvar_indices[idx_to_fix]
+                else:
+                    del desvar_indices[:size]
+            if options['fix_final']:
+                if options['final_bounds'] is not None:
+                    raise ValueError('Cannot specify \'fix_final=True\' and specify '
+                                     'final_bounds for state {0}'.format(name))
+                if isinstance(options['fix_final'], Iterable):
+                    idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
+                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                        del desvar_indices[-size + idx_to_fix]
+                else:
+                    del desvar_indices[-size:]
 
-                if len(desvar_indices) > 0:
-                    coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
-                                                        options)
+            if len(desvar_indices) > 0:
+                coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
+                                                    options)
 
-                    lb = np.zeros_like(desvar_indices, dtype=float)
-                    lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
-                        coerce_desvar_option('lower')
+                lb = np.zeros_like(desvar_indices, dtype=float)
+                lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                    coerce_desvar_option('lower')
 
-                    ub = np.zeros_like(desvar_indices, dtype=float)
-                    ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
-                        coerce_desvar_option('upper')
+                ub = np.zeros_like(desvar_indices, dtype=float)
+                ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                    coerce_desvar_option('upper')
 
-                    if options['initial_bounds'] is not None:
-                        lb[0] = options['initial_bounds'][0]
-                        ub[0] = options['initial_bounds'][-1]
+                if options['initial_bounds'] is not None:
+                    lb[0] = options['initial_bounds'][0]
+                    ub[0] = options['initial_bounds'][-1]
 
-                    if options['final_bounds'] is not None:
-                        lb[-1] = options['final_bounds'][0]
-                        ub[-1] = options['final_bounds'][-1]
+                if options['final_bounds'] is not None:
+                    lb[-1] = options['final_bounds'][0]
+                    ub[-1] = options['final_bounds'][-1]
 
-                    self.add_design_var(name='states:{0}'.format(name),
-                                        lower=lb,
-                                        upper=ub,
-                                        scaler=coerce_desvar_option('scaler'),
-                                        adder=coerce_desvar_option('adder'),
-                                        ref0=coerce_desvar_option('ref0'),
-                                        ref=coerce_desvar_option('ref'),
-                                        indices=desvar_indices)
+                self.add_design_var(name='states:{0}'.format(name),
+                                    lower=lb,
+                                    upper=ub,
+                                    scaler=coerce_desvar_option('scaler'),
+                                    adder=coerce_desvar_option('adder'),
+                                    ref0=coerce_desvar_option('ref0'),
+                                    ref=coerce_desvar_option('ref'),
+                                    indices=desvar_indices)
 
     def _setup_defects(self):
         """
@@ -252,39 +213,57 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         time_units = self.time_options['units']
 
+        any_solved_segments = False
+        for state_name, options in iteritems(self.state_options):
+            if options['solve_segments']:
+                any_solved_segments = True
+
+        p_outputs = []
+        if any_solved_segments:
+            p_outputs = ['states:*']
         self.add_subsystem('collocation_constraint',
                            CollocationComp(grid_data=grid_data,
                                            state_options=self.state_options,
-                                           time_units=time_units))
+                                           time_units=time_units),
+                           promotes_outputs=p_outputs)
 
         self.connect('time.dt_dstau', ('collocation_constraint.dt_dstau'),
                      src_indices=grid_data.subset_node_indices['col'])
 
         # Add the continuity constraint component if necessary
         if num_seg > 1:
+            segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+            state_disc_idxs = grid_data.subset_node_indices['state_disc']
 
-            for name, options in iteritems(self.state_options):
-                # The sub-indices of state_disc indices that are segment ends
-                state_disc_idxs = grid_data.subset_node_indices['state_disc']
-                segment_end_idxs = grid_data.subset_node_indices['segment_ends']
-                disc_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
-                self.connect('states:{0}'.format(name),
-                             'continuity_comp.states:{}'.format(name),
-                             src_indices=disc_subidxs)
+            if not self.options['compressed']:
+                state_input_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
+
+                for name, options in iteritems(self.state_options):
+                    shape = options['shape']
+                    flattened_src_idxs = get_src_indices_by_row(state_input_subidxs, shape=shape,
+                                                                flat=True)
+                    self.connect('states:{0}'.format(name),
+                                 'continuity_comp.states:{}'.format(name),
+                                 src_indices=flattened_src_idxs, flat_src_indices=True)
 
             for name, options in iteritems(self.control_options):
                 control_src_name = 'control_interp_comp.control_values:{0}'.format(name)
+
+                # The sub-indices of control_disc indices that are segment ends
+                segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+                src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
+
                 self.connect(control_src_name,
                              'continuity_comp.controls:{0}'.format(name),
-                             src_indices=grid_data.subset_node_indices['segment_ends'])
+                             src_indices=src_idxs, flat_src_indices=True)
 
                 self.connect('control_rates:{0}_rate'.format(name),
                              'continuity_comp.control_rates:{}_rate'.format(name),
-                             src_indices=grid_data.subset_node_indices['segment_ends'])
+                             src_indices=src_idxs, flat_src_indices=True)
 
                 self.connect('control_rates:{0}_rate2'.format(name),
                              'continuity_comp.control_rates:{}_rate2'.format(name),
-                             src_indices=grid_data.subset_node_indices['segment_ends'])
+                             src_indices=src_idxs, flat_src_indices=True)
 
     def _setup_endpoint_conditions(self):
 
@@ -297,19 +276,28 @@ class OptimizerBasedPhaseBase(PhaseBase):
         jump_comp.add_output('final_jump:time', val=0.0, units=self.time_options['units'],
                              desc='discontinuity in time at the end of the phase')
 
-        endpoint_comp = EndpointConditionsComp(time_options=self.time_options,
-                                               state_options=self.state_options,
-                                               control_options=self.control_options)
+        ic_comp = EndpointConditionsComp(loc='initial',
+                                         time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options)
 
-        self.connect('time', 'endpoint_conditions.values:time')
+        self.add_subsystem(name='initial_conditions', subsys=ic_comp, promotes_outputs=['*'])
+
+        fc_comp = EndpointConditionsComp(loc='final',
+                                         time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options)
+
+        self.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
+
+        self.connect('time', 'initial_conditions.initial_value:time')
+        self.connect('time', 'final_conditions.final_value:time')
 
         self.connect('initial_jump:time',
-                     'endpoint_conditions.initial_jump:time')
+                     'initial_conditions.initial_jump:time')
 
         self.connect('final_jump:time',
-                     'endpoint_conditions.final_jump:time')
-
-        promoted_list = ['time--', 'time-+', 'time+-', 'time++']
+                     'final_conditions.final_jump:time')
 
         for state_name, options in iteritems(self.state_options):
             size = np.prod(options['shape'])
@@ -328,20 +316,17 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                       'end of the phase'.format(state_name))
 
             self.connect('states:{0}'.format(state_name),
-                         'endpoint_conditions.values:{0}'.format(state_name))
+                         'initial_conditions.initial_value:{0}'.format(state_name))
+            self.connect('states:{0}'.format(state_name),
+                         'final_conditions.final_value:{0}'.format(state_name))
 
             self.connect('initial_jump:{0}'.format(state_name),
-                         'endpoint_conditions.initial_jump:{0}'.format(state_name),
+                         'initial_conditions.initial_jump:{0}'.format(state_name),
                          src_indices=ar, flat_src_indices=True)
 
             self.connect('final_jump:{0}'.format(state_name),
-                         'endpoint_conditions.final_jump:{0}'.format(state_name),
+                         'final_conditions.final_jump:{0}'.format(state_name),
                          src_indices=ar, flat_src_indices=True)
-
-            promoted_list += ['states:{0}--'.format(state_name),
-                              'states:{0}-+'.format(state_name),
-                              'states:{0}+-'.format(state_name),
-                              'states:{0}++'.format(state_name)]
 
         for control_name, options in iteritems(self.control_options):
             size = np.prod(options['shape'])
@@ -360,20 +345,98 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                       'end of the phase'.format(control_name))
 
             self.connect('control_interp_comp.control_values:{0}'.format(control_name),
-                         'endpoint_conditions.values:{0}'.format(control_name))
+                         'initial_conditions.initial_value:{0}'.format(control_name))
+
+            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
+                         'final_conditions.final_value:{0}'.format(control_name))
 
             self.connect('initial_jump:{0}'.format(control_name),
-                         'endpoint_conditions.initial_jump:{0}'.format(control_name),
+                         'initial_conditions.initial_jump:{0}'.format(control_name),
                          src_indices=ar, flat_src_indices=True)
 
             self.connect('final_jump:{0}'.format(control_name),
-                         'endpoint_conditions.final_jump:{0}'.format(control_name),
+                         'final_conditions.final_jump:{0}'.format(control_name),
                          src_indices=ar, flat_src_indices=True)
 
-            promoted_list += ['controls:{0}--'.format(control_name),
-                              'controls:{0}-+'.format(control_name),
-                              'controls:{0}+-'.format(control_name),
-                              'controls:{0}++'.format(control_name)]
+    def _get_boundary_constraint_src(self, var, loc):
+        # Determine the path to the variable which we will be constraining
+        time_units = self.time_options['units']
+        var_type = self._classify_var(var)
 
-        self.add_subsystem(name='endpoint_conditions', subsys=endpoint_comp,
-                           promotes_outputs=promoted_list)
+        if var_type == 'time':
+            shape = (1,)
+            units = time_units
+            linear = True
+            constraint_path = 'time'
+        elif var_type == 'time_phase':
+            shape = (1,)
+            units = time_units
+            linear = True
+            constraint_path = 'time_phase'
+        elif var_type == 'state':
+            state_shape = self.state_options[var]['shape']
+            state_units = self.state_options[var]['units']
+            shape = state_shape
+            units = state_units
+            linear = True
+            constraint_path = 'states:{0}'.format(var)
+        elif var_type in 'indep_control':
+            control_shape = self.control_options[var]['shape']
+            control_units = self.control_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = True
+            constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+        elif var_type == 'input_control':
+            control_shape = self.control_options[var]['shape']
+            control_units = self.control_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = False
+            constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+        elif var_type == 'design_parameter':
+            control_shape = self.design_parameter_options[var]['shape']
+            control_units = self.design_parameter_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = True
+            constraint_path = 'design_parameters:{0}'.format(var)
+        elif var_type == 'input_parameter':
+            control_shape = self.input_parameter_options[var]['shape']
+            control_units = self.input_parameter_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = False
+            constraint_path = 'input_parameters:{0}_out'.format(var)
+        elif var_type == 'control_rate':
+            control_var = var[:-5]
+            control_shape = self.control_options[control_var]['shape']
+            control_units = self.control_options[control_var]['units']
+            control_rate_units = get_rate_units(control_units, time_units, deriv=1)
+            shape = control_shape
+            units = control_rate_units
+            linear = False
+            constraint_path = 'control_rates:{0}'.format(var)
+        elif var_type == 'control_rate2':
+            control_var = var[:-6]
+            control_shape = self.control_options[control_var]['shape']
+            control_units = self.control_options[control_var]['units']
+            control_rate_units = get_rate_units(control_units, time_units, deriv=2)
+            shape = control_shape
+            units = control_rate_units
+            linear = False
+            constraint_path = 'control_rates:{0}'.format(var)
+        else:
+            # Failed to find variable, assume it is in the RHS
+            if self.options['transcription'] == 'gauss-lobatto':
+                constraint_path = 'rhs_disc.{0}'.format(var)
+            elif self.options['transcription'] == 'radau-ps':
+                constraint_path = 'rhs_all.{0}'.format(var)
+            else:
+                raise ValueError('Invalid transcription')
+            # TODO: Account for non-scalar variables here.
+            shape = (1,)
+            units = None
+            linear = False
+
+        return constraint_path, shape, units, linear

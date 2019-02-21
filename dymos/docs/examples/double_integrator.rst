@@ -30,6 +30,11 @@ in the control.
 1. The ODE System: double_integrator_ode.py
 -------------------------------------------
 
+This problem is unique in that we don't actually have to calculate anything in the ODE.  For the
+sake of Dymos, we create an ExplicitComponent and provide it with the `num_nodes` option, but
+it has no inputs and no outputs.  The rates for the states are entirely provided by the states
+and controls.
+
 .. embed-code::
     dymos.examples.double_integrator.double_integrator_ode
     :layout: code

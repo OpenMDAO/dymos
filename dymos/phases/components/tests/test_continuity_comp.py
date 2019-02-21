@@ -12,7 +12,7 @@ from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
 
 from dymos.phases.grid_data import GridData
 from dymos.phases.components.continuity_comp import GaussLobattoContinuityComp, \
-    RadauPSContinuityComp
+    RadauPSContinuityComp, ExplicitContinuityComp
 from dymos.phases.options import StateOptionsDictionary, ControlOptionsDictionary
 
 
@@ -20,7 +20,7 @@ class TestContinuityComp(unittest.TestCase):
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['compressed', 'uncompressed'],  # jacobian
+                          ['compressed', 'uncompressed'],  # compressed
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_continuity_comp',
                                                                           p.args[0],
                                                                           p.args[1]])
@@ -39,7 +39,6 @@ class TestContinuityComp(unittest.TestCase):
 
         ivp = self.p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
 
-        ndn = gd.subset_num_nodes['state_disc']
         nn = gd.subset_num_nodes['all']
 
         ivp.add_output('x', val=np.arange(nn), units='m')
@@ -83,8 +82,9 @@ class TestContinuityComp(unittest.TestCase):
         # The sub-indices of state_disc indices that are segment ends
         segment_end_idxs = gd.subset_node_indices['segment_ends']
 
-        self.p.model.connect('x', 'cnty_comp.states:x', src_indices=segment_end_idxs)
-        self.p.model.connect('y', 'cnty_comp.states:y', src_indices=segment_end_idxs)
+        if compressed != 'compressed':
+            self.p.model.connect('x', 'cnty_comp.states:x', src_indices=segment_end_idxs)
+            self.p.model.connect('y', 'cnty_comp.states:y', src_indices=segment_end_idxs)
 
         self.p.model.connect('t_duration', 'cnty_comp.t_duration')
 
@@ -96,6 +96,7 @@ class TestContinuityComp(unittest.TestCase):
         src_idxs_v = np.arange(size_v).reshape((nn,) + control_options['v']['shape'])
         src_idxs_v = src_idxs_v[gd.subset_node_indices['segment_ends'], ...]
 
+        # if transcription =='radau-ps' or compressed != 'compressed':
         self.p.model.connect('u', 'cnty_comp.controls:u', src_indices=src_idxs_u,
                              flat_src_indices=True)
 
@@ -105,6 +106,7 @@ class TestContinuityComp(unittest.TestCase):
         self.p.model.connect('u_rate2', 'cnty_comp.control_rates:u_rate2', src_indices=src_idxs_u,
                              flat_src_indices=True)
 
+        # if transcription =='radau-ps' or compressed != 'compressed':
         self.p.model.connect('v', 'cnty_comp.controls:v', src_indices=src_idxs_v,
                              flat_src_indices=True)
 
@@ -127,25 +129,155 @@ class TestContinuityComp(unittest.TestCase):
 
         self.p.run_model()
 
-        for state in ('x', 'y'):
-            expected_val = self.p[state][segment_end_idxs, ...][2::2, ...] - \
-                self.p[state][segment_end_idxs, ...][1:-1:2, ...]
+        if compressed != 'compressed':
+            for state in ('x', 'y'):
+                xpectd = self.p[state][segment_end_idxs, ...][2::2, ...] - \
+                    self.p[state][segment_end_idxs, ...][1:-1:2, ...]
 
-            assert_rel_error(self,
-                             self.p['cnty_comp.defect_states:{0}'.format(state)],
-                             expected_val.reshape((num_seg - 1,) + state_options[state]['shape']))
+                assert_rel_error(self,
+                                 self.p['cnty_comp.defect_states:{0}'.format(state)],
+                                 xpectd.reshape((num_seg - 1,) + state_options[state]['shape']))
 
         for ctrl in ('u', 'v'):
 
-            expected_val = self.p[ctrl][segment_end_idxs, ...][2::2, ...] - \
+            xpectd = self.p[ctrl][segment_end_idxs, ...][2::2, ...] - \
                 self.p[ctrl][segment_end_idxs, ...][1:-1:2, ...]
 
-            assert_rel_error(self,
-                             self.p['cnty_comp.defect_controls:{0}'.format(ctrl)],
-                             expected_val.reshape((num_seg-1,) + control_options[ctrl]['shape']))
+            if compressed != 'compressed':
+                assert_rel_error(self,
+                                 self.p['cnty_comp.defect_controls:{0}'.format(ctrl)],
+                                 xpectd.reshape((num_seg-1,) + control_options[ctrl]['shape']))
 
         np.set_printoptions(linewidth=1024)
         cpd = self.p.check_partials(method='cs', out_stream=None)
+        assert_check_partials(cpd)
+
+    def test_explicit_continuity_comp(self, compressed='compressed'):
+
+        num_seg = 3
+
+        gd = GridData(num_segments=num_seg,
+                      transcription_order=[5, 3, 3],
+                      num_steps_per_segment=4,
+                      segment_ends=[0.0, 3.0, 10.0, 20],
+                      transcription='explicit',
+                      compressed=compressed == 'compressed')
+
+        self.p = Problem(model=Group())
+
+        ivp = self.p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+
+        nn = gd.subset_num_nodes['all']
+
+        for iseg in range(gd.num_segments):
+            num_steps = gd.num_steps_per_segment[iseg]
+            ivp.add_output('seg_{0}:x'.format(iseg), val=np.arange(num_steps + 1), units='m')
+            ivp.add_output('seg_{0}:y'.format(iseg), val=np.arange(num_steps + 1), units='m/s')
+        ivp.add_output('u', val=np.zeros((nn, 3)), units='deg')
+        ivp.add_output('v', val=np.arange(nn), units='N')
+        ivp.add_output('u_rate', val=np.zeros((nn, 3)), units='deg/s')
+        ivp.add_output('v_rate', val=np.arange(nn), units='N/s')
+        ivp.add_output('u_rate2', val=np.zeros((nn, 3)), units='deg/s**2')
+        ivp.add_output('v_rate2', val=np.arange(nn), units='N/s**2')
+        ivp.add_output('t_duration', val=121.0, units='s')
+
+        state_options = {'x': StateOptionsDictionary(),
+                         'y': StateOptionsDictionary()}
+        control_options = {'u': ControlOptionsDictionary(),
+                           'v': ControlOptionsDictionary()}
+
+        state_options['x']['units'] = 'm'
+        state_options['y']['units'] = 'm/s'
+
+        control_options['u']['units'] = 'deg'
+        control_options['u']['shape'] = (3,)
+        control_options['u']['continuity'] = True
+
+        control_options['v']['units'] = 'N'
+
+        cnty_comp = ExplicitContinuityComp(grid_data=gd,
+                                           shooting='multiple',
+                                           time_units='s',
+                                           state_options=state_options,
+                                           control_options=control_options)
+
+        self.p.model.add_subsystem('cnty_comp', subsys=cnty_comp)
+        # The sub-indices of state_disc indices that are segment ends
+        segment_end_idxs = gd.subset_node_indices['segment_ends']
+
+        for iseg in range(num_seg):
+            for state_name in ['x', 'y']:
+
+                self.p.model.connect('seg_{0}:{1}'.format(iseg, state_name),
+                                     'cnty_comp.seg_{0}_states:{1}'.format(iseg, state_name))
+
+        self.p.model.connect('t_duration', 'cnty_comp.t_duration')
+
+        size_u = nn * np.prod(control_options['u']['shape'])
+        src_idxs_u = np.arange(size_u).reshape((nn,) + control_options['u']['shape'])
+        src_idxs_u = src_idxs_u[gd.subset_node_indices['segment_ends'], ...]
+
+        size_v = nn * np.prod(control_options['v']['shape'])
+        src_idxs_v = np.arange(size_v).reshape((nn,) + control_options['v']['shape'])
+        src_idxs_v = src_idxs_v[gd.subset_node_indices['segment_ends'], ...]
+
+        if compressed != 'compressed':
+            self.p.model.connect('u', 'cnty_comp.controls:u', src_indices=src_idxs_u,
+                                 flat_src_indices=True)
+
+        self.p.model.connect('u_rate', 'cnty_comp.control_rates:u_rate', src_indices=src_idxs_u,
+                             flat_src_indices=True)
+
+        self.p.model.connect('u_rate2', 'cnty_comp.control_rates:u_rate2', src_indices=src_idxs_u,
+                             flat_src_indices=True)
+
+        if compressed != 'compressed':
+            self.p.model.connect('v', 'cnty_comp.controls:v', src_indices=src_idxs_v,
+                                 flat_src_indices=True)
+
+        self.p.model.connect('v_rate', 'cnty_comp.control_rates:v_rate', src_indices=src_idxs_v,
+                             flat_src_indices=True)
+
+        self.p.model.connect('v_rate2', 'cnty_comp.control_rates:v_rate2', src_indices=src_idxs_v,
+                             flat_src_indices=True)
+
+        self.p.setup(check=True, force_alloc_complex=True)
+
+        for iseg in range(num_seg):
+            for state_name in ['x', 'y']:
+                var = 'seg_{0}:{1}'.format(iseg, state_name)
+                self.p[var] = np.random.rand(*self.p[var].shape)
+        self.p['u'] = np.random.rand(*self.p['u'].shape)
+        self.p['v'] = np.random.rand(*self.p['v'].shape)
+        self.p['u_rate'] = np.random.rand(*self.p['u'].shape)
+        self.p['v_rate'] = np.random.rand(*self.p['v'].shape)
+        self.p['u_rate2'] = np.random.rand(*self.p['u'].shape)
+        self.p['v_rate2'] = np.random.rand(*self.p['v'].shape)
+
+        self.p.run_model()
+
+        if compressed != 'compressed':
+            for state_name in ('x', 'y'):
+                for i in range(1, num_seg):
+                    left_var = 'seg_{0}:{1}'.format(i - 1, state_name)
+                    left = self.p[left_var][-1, ...]
+                    right_var = 'seg_{0}:{1}'.format(i, state_name)
+                    right = self.p[right_var][0, ...]
+                    xpectd = right - left
+                    defect_var = 'cnty_comp.defect_states:{0}'.format(state_name)
+                    assert_rel_error(self, self.p[defect_var][i-1, ...], xpectd)
+
+        for ctrl in ('u', 'v'):
+            xpectd = self.p[ctrl][segment_end_idxs, ...][2::2, ...] - \
+                self.p[ctrl][segment_end_idxs, ...][1:-1:2, ...]
+
+            if compressed != 'compressed':
+                assert_rel_error(self,
+                                 self.p['cnty_comp.defect_controls:{0}'.format(ctrl)],
+                                 xpectd.reshape((num_seg-1,) + control_options[ctrl]['shape']))
+
+        np.set_printoptions(linewidth=1024)
+        cpd = self.p.check_partials(method='cs')
         assert_check_partials(cpd)
 
 

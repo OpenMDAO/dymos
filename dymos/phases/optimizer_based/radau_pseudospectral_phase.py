@@ -1,13 +1,16 @@
 from __future__ import division, print_function, absolute_import
 
+import warnings
+
 import numpy as np
 from openmdao.utils.units import convert_units, valid_units
 from six import iteritems
 
-from ..grid_data import GridData
+from ..grid_data import GridData, make_subset_map
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
-from ..components import RadauPathConstraintComp, RadauPSContinuityComp
+from ..components import RadauPathConstraintComp, RadauPSContinuityComp, RadauTimeseriesOutputComp
 from ...utils.misc import get_rate_units
+from ...utils.indexing import get_src_indices_by_row
 
 
 class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
@@ -74,6 +77,11 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             self.connect('time',
                          ['rhs_all.{0}'.format(t) for t in self.time_options['targets']],
                          src_indices=self.grid_data.subset_node_indices['all'])
+
+        if self.time_options['time_phase_targets']:
+            self.connect('time_phase',
+                         ['rhs_all.{0}'.format(t) for t in self.time_options['time_phase_targets']],
+                         src_indices=self.grid_data.subset_node_indices['all'])
         return comps
 
     def _setup_controls(self):
@@ -97,24 +105,6 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 self.connect('control_rates:{0}_rate2'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
-    # def _setup_design_parameters(self):
-    #     super(RadauPseudospectralPhase, self)._setup_design_parameters()
-    #
-    #     for name, options in iteritems(self.design_parameter_options):
-    #
-    #         map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-    #
-    #         if not options['input_value']:
-    #             src_name = 'design_parameters:{0}'.format(name)
-    #         else:
-    #             src_name = 'design_parameters:{0}_out'.format(name)
-    #
-    #         if name in self.ode_options._parameters:
-    #             targets = self.ode_options._parameters[name]['targets']
-    #             self.connect(src_name,
-    #                          ['rhs_all.{0}'.format(t) for t in targets],
-    #                          src_indices=map_indices_to_all)
-
     def _get_parameter_connections(self, name):
         """
         Returns a list containing tuples of each path and related indices to which the
@@ -127,13 +117,26 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             given design variable is to be connected.
         """
         connection_info = []
-        map_indices_to_all = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
 
         if name in self.ode_options._parameters:
+            shape = self.ode_options._parameters[name]['shape']
+            dynamic = self.ode_options._parameters[name]['dynamic']
             targets = self.ode_options._parameters[name]['targets']
 
+            if self.ode_options._parameters[name]['dynamic']:
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+
+            if not dynamic:
+                src_idxs = np.squeeze(src_idxs, axis=0)
+            elif shape == (1,):
+                src_idxs = src_idxs.ravel()
+
             rhs_all_tgts = ['rhs_all.{0}'.format(t) for t in targets]
-            connection_info.append((rhs_all_tgts, map_indices_to_all))
+            connection_info.append((rhs_all_tgts, src_idxs))
 
         return connection_info
 
@@ -165,6 +168,12 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 options['units'] = time_units if con_units is None else con_units
                 options['linear'] = True
                 self.connect(src_name='time',
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+            if var_type == 'time_phase':
+                options['shape'] = (1,)
+                options['units'] = time_units if con_units is None else con_units
+                options['linear'] = True
+                self.connect(src_name='time_phase',
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
             elif var_type == 'state':
                 state_shape = self.state_options[var]['shape']
@@ -231,6 +240,136 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             kwargs.pop('constraint_name', None)
             path_comp._add_path_constraint(con_name, var_type, **kwargs)
 
+    def _setup_timeseries_outputs(self):
+
+        gd = self.grid_data
+        time_units = self.time_options['units']
+        timeseries_comp = RadauTimeseriesOutputComp(grid_data=gd)
+        self.add_subsystem('timeseries', subsys=timeseries_comp)
+
+        timeseries_comp._add_timeseries_output('time',
+                                               var_class=self._classify_var('time'),
+                                               units=time_units)
+        self.connect(src_name='time', tgt_name='timeseries.all_values:time')
+
+        timeseries_comp._add_timeseries_output('time_phase',
+                                               var_class=self._classify_var('time_phase'),
+                                               units=time_units)
+        self.connect(src_name='time', tgt_name='timeseries.all_values:time_phase')
+
+        for name, options in iteritems(self.state_options):
+            timeseries_comp._add_timeseries_output('states:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=options['units'])
+            src_rows = gd.input_maps['state_input_to_disc']
+            src_idxs = get_src_indices_by_row(src_rows, options['shape'])
+            self.connect(src_name='states:{0}'.format(name),
+                         tgt_name='timeseries.all_values:states:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+        for name, options in iteritems(self.control_options):
+            control_units = options['units']
+            timeseries_comp._add_timeseries_output('controls:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=control_units)
+            src_rows = gd.subset_node_indices['all']
+            src_idxs = get_src_indices_by_row(src_rows, options['shape'])
+            self.connect(src_name='control_interp_comp.control_values:{0}'.format(name),
+                         tgt_name='timeseries.all_values:controls:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+            # # Control rates
+            timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=get_rate_units(control_units,
+                                                                        time_units,
+                                                                        deriv=1))
+            self.connect(src_name='control_rates:{0}_rate'.format(name),
+                         tgt_name='timeseries.all_values:control_rates:{0}_rate'.format(name))
+
+            # Control second derivatives
+            timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=get_rate_units(control_units,
+                                                                        time_units,
+                                                                        deriv=2))
+            self.connect(src_name='control_rates:{0}_rate2'.format(name),
+                         tgt_name='timeseries.all_values:control_rates:{0}_rate2'.format(name))
+
+        for name, options in iteritems(self.design_parameter_options):
+            units = options['units']
+            timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=units)
+
+            if self.ode_options._parameters[name]['dynamic']:
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+
+            self.connect(src_name='design_parameters:{0}'.format(name),
+                         tgt_name='timeseries.all_values:design_parameters:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+        for name, options in iteritems(self.input_parameter_options):
+            units = options['units']
+            timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   units=units)
+
+            if self.ode_options._parameters[name]['dynamic']:
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+
+            self.connect(src_name='input_parameters:{0}_out'.format(name),
+                         tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+        for name, options in iteritems(self.traj_parameter_options):
+            units = options['units']
+            timeseries_comp._add_timeseries_output('traj_parameters:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   units=units)
+
+            if self.ode_options._parameters[name]['dynamic']:
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+
+            self.connect(src_name='traj_parameters:{0}_out'.format(name),
+                         tgt_name='timeseries.all_values:traj_parameters:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+        for var, options in iteritems(self._timeseries_outputs):
+            output_name = options['output_name']
+
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = self._classify_var(var)
+
+            # Failed to find variable, assume it is in the RHS
+            self.connect(src_name='rhs_all.{0}'.format(var),
+                         tgt_name='timeseries.all_values:{0}'.format(output_name),
+                         src_indices=gd.subset_node_indices['all'])
+
+            kwargs = options.copy()
+            kwargs.pop('output_name', None)
+            timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
+
     def _setup_rhs(self):
         super(RadauPseudospectralPhase, self)._setup_rhs()
 
@@ -272,9 +411,11 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 'state_interp.staterate_col:{0}'.format(name),
                 'collocation_constraint.f_approx:{0}'.format(name))
 
-            self.connect('rhs_all.{0}'.format(options['rate_source']),
+            rate_src, src_idxs = self._get_rate_source_path(name, nodes='col')
+
+            self.connect(rate_src,
                          'collocation_constraint.f_computed:{0}'.format(name),
-                         src_indices=grid_data.subset_node_indices['col'])
+                         src_indices=src_idxs, flat_src_indices=True)
 
         if grid_data.num_segments > 1:
             self.add_subsystem('continuity_comp',
@@ -283,6 +424,64 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                      control_options=self.control_options,
                                                      time_units=self.time_options['units']),
                                promotes_inputs=['t_duration'])
+
+    def _get_rate_source_path(self, state_name, nodes, **kwargs):
+        gd = self.grid_data
+        var = self.state_options[state_name]['rate_source']
+        # Note the rate source must be shape-compatible with the state
+        shape = self.state_options[state_name]['shape']
+        var_type = self._classify_var(var)
+
+        # Determine the path to the variable
+        if var_type == 'time':
+            rate_path = 'time'
+            node_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'time_phase':
+            rate_path = 'time_phase'
+            node_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'state':
+            if self.options['compressed']:
+                rate_path = 'states:{0}'.format(var)
+                node_idxs = np.arange(gd.subset_num_nodes['state_input'] - 1, dtype=int)
+            else:
+                rate_path = 'states:{0}'.format(var)
+                node_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'indep_control':
+            rate_path = 'control_interp_comp.control_values:{0}'.format(var)
+            node_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'input_control':
+            rate_path = 'control_interp_comp.control_values:{0}'.format(var)
+            node_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'control_rate':
+            control_name = var[:-5]
+            rate_path = 'control_rates:{0}_rate'.format(control_name)
+            node_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'control_rate2':
+            control_name = var[:-6]
+            rate_path = 'control_rates:{0}_rate2'.format(control_name)
+            node_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'design_parameter':
+            rate_path = 'design_parameters:{0}'.format(var)
+            dynamic = self.design_parameter_options[var]['dynamic']
+            if dynamic:
+                node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+            else:
+                node_idxs = np.zeros(1, dtype=int)
+        elif var_type == 'input_parameter':
+            rate_path = 'input_parameters:{0}_out'.format(var)
+            dynamic = self.input_parameter_options[var]['dynamic']
+            if dynamic:
+                node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+            else:
+                node_idxs = np.zeros(1, dtype=int)
+        else:
+            # Failed to find variable, assume it is in the ODE
+            rate_path = 'rhs_all.{0}'.format(var)
+            node_idxs = gd.subset_node_indices[nodes]
+
+        src_idxs = get_src_indices_by_row(node_idxs, shape=shape)
+
+        return rate_path, src_idxs
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
@@ -326,6 +525,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         # Determine the path to the variable
         if var_type == 'time':
             obj_path = 'time'
+        elif var_type == 'time_phase':
+            obj_path = 'time_phase'
         elif var_type == 'state':
             obj_path = 'states:{0}'.format(name)
         elif var_type == 'indep_control':
@@ -352,92 +553,3 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                              adder=adder, scaler=scaler,
                                                              parallel_deriv_color=pdc,
                                                              vectorize_derivs=vectorize_derivs)
-
-    def get_values(self, var, nodes=None, units=None):
-        """
-        Retrieve the values of the given variable at the given
-        subset of nodes.
-
-        Parameters
-        ----------
-        var : str
-            The variable whose values are to be returned.  This may be
-            the name 'time', the name of a state, control, or parameter,
-            or the path to a variable in the ODEFunction of the phase.
-        nodes : str
-            The name of the node subset.
-        units : str
-            The units in which the values should be expressed.  Must be compatible
-            with the corresponding units inside the phase.
-
-        Returns
-        -------
-        ndarray
-            An array of the values at the requested node subset.  The
-            node index is the first dimension of the ndarray.
-        """
-        if nodes is None:
-            nodes = 'all'
-
-        gd = self.grid_data
-
-        var_type = self._classify_var(var)
-
-        op = dict(self.list_outputs(explicit=True, values=True, units=True, shape=True,
-                                    out_stream=None))
-
-        if units is not None:
-            if not valid_units(units):
-                raise ValueError('Units {0} is not a valid units identifier'.format(units))
-
-        var_prefix = '{0}.'.format(self.pathname) if self.pathname else ''
-
-        path_map = {'time': 'time.{0}',
-                    'state': 'indep_states.states:{0}',
-                    'indep_control': 'control_interp_comp.control_values:{0}',
-                    'input_control': 'control_interp_comp.control_values:{0}',
-                    'design_parameter': 'design_params.design_parameters:{0}',
-                    'input_parameter': 'input_params.input_parameters:{0}_out',
-                    'control_rate': 'control_interp_comp.control_rates:{0}',
-                    'control_rate2': 'control_interp_comp.control_rates:{0}',
-                    'ode': 'rhs_all.{0}'}
-
-        if var_type == 'state':
-            var_path = var_prefix + path_map[var_type].format(var)
-            output_units = op[var_path]['units']
-            output_value = convert_units(op[var_path]['value'][gd.input_maps['state_input_to_disc'],
-                                                               ...], output_units, units)
-
-        elif var_type in ('input_control', 'indep_control'):
-            var_path = var_prefix + path_map[var_type].format(var)
-            output_units = op[var_path]['units']
-
-            vals = op[var_path]['value']
-            output_value = convert_units(vals, output_units, units)
-
-        elif var_type in ('design_parameter', 'input_parameter', 'traj_design_parameter',
-                          'traj_input_parameter'):
-            var_path = var_prefix + path_map[var_type].format(var)
-            output_units = op[var_path]['units']
-
-            output_value = convert_units(op[var_path]['value'], output_units, units)
-            output_value = np.repeat(output_value, gd.num_nodes, axis=0)
-
-        elif var_type == 'ode':
-            rhs_all_outputs = dict(self.rhs_all.list_outputs(out_stream=None, values=True,
-                                                             shape=True, units=True))
-            prom2abs_all = self.rhs_all._var_allprocs_prom2abs_list
-            abs_path_all = prom2abs_all['output'][var][0]
-            output_value = rhs_all_outputs[abs_path_all]['value']
-            output_units = rhs_all_outputs[abs_path_all]['units']
-            output_value = convert_units(output_value, output_units, units)
-        else:
-            var_path = var_prefix + path_map[var_type].format(var)
-            output_units = op[var_path]['units']
-            output_value = convert_units(op[var_path]['value'], output_units, units)
-
-        # Always return a column vector
-        if len(output_value.shape) == 1:
-            output_value = np.reshape(output_value, (gd.num_nodes, 1))
-
-        return output_value[gd.subset_node_indices[nodes], ...]

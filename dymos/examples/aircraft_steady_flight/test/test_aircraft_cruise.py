@@ -1,5 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
+import os
 import unittest
 
 from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, \
@@ -9,7 +10,7 @@ from openmdao.utils.assert_utils import assert_rel_error
 from dymos import Phase
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
-optimizer = 'SLSQP'
+optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
 
 try:
     import MBI
@@ -57,10 +58,10 @@ class TestAircraftCruise(unittest.TestCase):
                                 defect_scaler=0.01)
         phase.set_state_options('mass_fuel', fix_final=True, upper=20000.0, lower=0.0,
                                 scaler=1.0E-4, defect_scaler=1.0E-2)
-
-        phase.add_control('alt', units='km', opt=False, rate_param='climb_rate')
+        phase.set_state_options('alt', units='km', fix_initial=True)
 
         phase.add_control('mach', units=None, opt=False)
+        phase.add_control('climb_rate', units='m/s', opt=False)
 
         phase.add_input_parameter('S', units='m**2')
         phase.add_input_parameter('mass_empty', units='kg')
@@ -68,14 +69,15 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0)
 
+        phase.add_timeseries_output('tas_comp.TAS', units='m/s')
+
         p.model.connect('assumptions.S', 'phase0.input_parameters:S')
         p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
         p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
 
         phase.add_objective('time', loc='final', ref=3600)
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
-        p.model.options['assembled_jac_type'] = 'csc'
+        p.model.linear_solver = DirectSolver()
 
         p.setup()
 
@@ -83,8 +85,9 @@ class TestAircraftCruise(unittest.TestCase):
         p['phase0.t_duration'] = 1.515132 * 3600.0
         p['phase0.states:range'] = phase.interpolate(ys=(0, 1296.4), nodes='state_input')
         p['phase0.states:mass_fuel'] = phase.interpolate(ys=(12236.594555, 0), nodes='state_input')
+        p['phase0.states:alt'] = 5.0
         p['phase0.controls:mach'] = 0.8
-        p['phase0.controls:alt'] = 5.0
+        p['phase0.controls:climb_rate'] = 0.0
 
         p['assumptions.S'] = 427.8
         p['assumptions.mass_empty'] = 0.15E6
@@ -92,12 +95,11 @@ class TestAircraftCruise(unittest.TestCase):
 
         p.run_driver()
 
-        tas = phase.get_values('tas_comp.TAS', units='m/s')
-        time = phase.get_values('time', units='s')
-        range = phase.get_values('range', units='m')
+        time = p.get_val('phase0.timeseries.time')
+        tas = p.get_val('phase0.timeseries.TAS', units='km/s')
+        range = p.get_val('phase0.timeseries.states:range')
 
-        assert_rel_error(self, range, tas*time, tolerance=1.0E-9)
-
+        assert_rel_error(self, range, tas*time, tolerance=1.0E-4)
 
 if __name__ == '__main__':
     unittest.main()

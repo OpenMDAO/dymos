@@ -9,10 +9,11 @@ import numpy as np
 
 from scipy import interpolate
 
-from openmdao.api import Group, IndepVarComp
+from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder
 from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
+# from dymos.phases.components import BoundaryConstraintComp
 from dymos.phases.components import BoundaryConstraintComp
 from dymos.phases.components import InputParameterComp
 from dymos.phases.components import TimeComp
@@ -38,9 +39,12 @@ class PhaseBase(Group):
         self.control_options = {}
         self.design_parameter_options = {}
         self.input_parameter_options = {}
+        self.traj_parameter_options = {}
         self.time_options = TimeOptionsDictionary()
-        self._boundary_constraints = {}
+        self._initial_boundary_constraints = {}
+        self._final_boundary_constraints = {}
         self._path_constraints = {}
+        self._timeseries_outputs = {}
         self._objectives = []
         self._ode_controls = {}
         self.grid_data = None
@@ -69,6 +73,8 @@ class PhaseBase(Group):
         # Integration variable options default to values from the RHS
         self.time_options['units'] = self.ode_options._time_options['units']
         self.time_options['targets'] = self.ode_options._time_options['targets']
+        self.time_options['time_phase_targets'] = \
+            self.ode_options._time_options['time_phase_targets']
 
     def initialize(self):
         self.options.declare('num_segments', types=int, desc='Number of segments')
@@ -76,7 +82,7 @@ class PhaseBase(Group):
                              desc='System defining the ODE')
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
-        self.options.declare('transcription', values=['gauss-lobatto', 'radau-ps'],
+        self.options.declare('transcription', values=['gauss-lobatto', 'radau-ps', 'explicit'],
                              desc='Transcription technique of the optimal control problem.')
         self.options.declare('segment_ends', default=None, types=Iterable, allow_none=True,
                              desc='Iterable of locations of segment ends or None for equally'
@@ -89,7 +95,8 @@ class PhaseBase(Group):
     def set_state_options(self, name, units=_unspecified, val=1.0,
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
-                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None):
+                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
+                          solve_segments=False):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -128,6 +135,10 @@ class PhaseBase(Group):
         defect_ref : float or ndarray (1.0)
             The unit-reference value of the state defect at the collocation nodes of the phase. If
             provided, this value overrides defect_scaler.
+        solve_segments : bool(False)
+            If True, a solver will be used to converge the collocation defects within a segment.
+            Note that the state continuity defects between segements will still be
+            handled by the optimizer.
 
         """
         if units is not _unspecified:
@@ -145,6 +156,7 @@ class PhaseBase(Group):
         self.state_options[name]['ref0'] = ref0
         self.state_options[name]['defect_scaler'] = defect_scaler
         self.state_options[name]['defect_ref'] = defect_ref
+        self.state_options[name]['solve_segments'] = solve_segments
 
     def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,
@@ -214,35 +226,40 @@ class PhaseBase(Group):
         The user may override these defaults by specifying them as True or False.
 
         """
+        ode_params = self.ode_options._parameters
         if name in self.control_options:
             raise ValueError('{0} has already been added as a control.'.format(name))
         if name in self.design_parameter_options:
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
         if name in self.input_parameter_options:
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
+        if name in ode_params and not ode_params[name]['dynamic']:
+            raise ValueError('{0} is declared as a static parameter and therefore cannot be '
+                             'used as a dynamic control'.format(name))
 
         self.control_options[name] = ControlOptionsDictionary()
 
-        if name in self.ode_options._parameters:
-            ode_param_info = self.ode_options._parameters[name]
+        if name in ode_params:
+            ode_param_info = ode_params[name]
             self.control_options[name]['units'] = ode_param_info['units']
             self.control_options[name]['shape'] = ode_param_info['shape']
+            self.control_options[name]['targets'] = ode_param_info['targets']
         else:
             rate_used = \
-                rate_param is not None and rate_param in self.ode_options._parameters
+                rate_param is not None and rate_param in ode_params
             rate2_used = \
-                rate2_param is not None and rate2_param in self.ode_options._parameters
+                rate2_param is not None and rate2_param in ode_params
             if not rate_used and not rate2_used:
                 err_msg = '{0} is not a controllable parameter in the ODE system, nor is it ' \
                           'connected to one through its rate or second derivative.'.format(name)
                 raise ValueError(err_msg)
 
         if rate_param is not None:
-            ode_rate_param_info = self.ode_options._parameters[rate_param]
+            ode_rate_param_info = ode_params[rate_param]
             self.control_options[name]['rate_param'] = rate_param
             self.control_options[name]['shape'] = ode_rate_param_info['shape']
         if rate2_param is not None:
-            ode_rate2_param_info = self.ode_options._parameters[rate2_param]
+            ode_rate2_param_info = ode_params[rate2_param]
             self.control_options[name]['rate2_param'] = rate2_param
             self.control_options[name]['shape'] = ode_rate2_param_info['shape']
 
@@ -347,6 +364,7 @@ class PhaseBase(Group):
             ode_param_info = self.ode_options._parameters[name]
             self.design_parameter_options[name]['units'] = ode_param_info['units']
             self.design_parameter_options[name]['shape'] = ode_param_info['shape']
+            self.design_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
         else:
             err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
             raise ValueError(err_msg)
@@ -383,9 +401,9 @@ class PhaseBase(Group):
         if units != 0:
             self.design_parameter_options[name]['units'] = units
 
-    def add_input_parameter(self, name, val=0.0, units=0, alias=None):
+    def add_input_parameter(self, name, val=0.0, units=0):
         """
-        Add a design parameter (static control variable) to the phase.
+        Add an input parameter (static control variable) to the phase.
 
         Parameters
         ----------
@@ -396,10 +414,6 @@ class PhaseBase(Group):
         units : str or None or 0
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
-        alias : str or None
-            If provided, specifies the alternative name by which this input parameter is to be
-            referenced.
-
         """
 
         if name in self.control_options:
@@ -408,30 +422,66 @@ class PhaseBase(Group):
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
         if name in self.input_parameter_options:
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
-        if alias in self.control_options:
-            raise ValueError('{0} has already been added as a control.'.format(name))
-        if alias in self.design_parameter_options:
-            raise ValueError('{0} has already been added as a design parameter.'.format(name))
-        if alias in self.input_parameter_options:
-            raise ValueError('{0} has already been added as an input parameter.'.format(name))
+        if name in self.traj_parameter_options:
+            raise ValueError('{0} has already been added as a trajectory input '
+                             'parameter.'.format(name))
 
-        ip_name = name if alias is None else alias
-
-        self.input_parameter_options[ip_name] = InputParameterOptionsDictionary()
+        self.input_parameter_options[name] = InputParameterOptionsDictionary()
 
         if name in self.ode_options._parameters:
             ode_param_info = self.ode_options._parameters[name]
-            self.input_parameter_options[ip_name]['units'] = ode_param_info['units']
-            self.input_parameter_options[ip_name]['shape'] = ode_param_info['shape']
+            self.input_parameter_options[name]['units'] = ode_param_info['units']
+            self.input_parameter_options[name]['shape'] = ode_param_info['shape']
+            self.input_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
         else:
             err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
             raise ValueError(err_msg)
 
-        self.input_parameter_options[ip_name]['val'] = val
-        self.input_parameter_options[ip_name]['target_param'] = name
+        self.input_parameter_options[name]['val'] = val
 
         if units != 0:
-            self.input_parameter_options[ip_name]['units'] = units
+            self.input_parameter_options[name]['units'] = units
+
+    def _add_traj_parameter(self, name, val=0.0, units=0):
+        """
+        Add an input parameter to the phase that is connected to an input or design parameter
+        in the parent trajectory.
+
+        Parameters
+        ----------
+        name : str
+            Name of the ODE parameter to be controlled via this input parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.        """
+
+        if name in self.control_options:
+            raise ValueError('{0} has already been added as a control.'.format(name))
+        if name in self.design_parameter_options:
+            raise ValueError('{0} has already been added as a design parameter.'.format(name))
+        if name in self.input_parameter_options:
+            raise ValueError('{0} has already been added as an input parameter.'.format(name))
+        if name in self.traj_parameter_options:
+            raise ValueError('{0} has already been added as a trajectory input '
+                             'parameter.'.format(name))
+
+        self.traj_parameter_options[name] = InputParameterOptionsDictionary()
+
+        if name in self.ode_options._parameters:
+            ode_param_info = self.ode_options._parameters[name]
+            self.traj_parameter_options[name]['units'] = ode_param_info['units']
+            self.traj_parameter_options[name]['shape'] = ode_param_info['shape']
+            self.traj_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
+        else:
+            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
+            raise ValueError(err_msg)
+
+        self.traj_parameter_options[name]['val'] = val
+
+        if units != 0:
+            self.traj_parameter_options[name]['units'] = units
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None, lower=None,
                                 upper=None, equals=None, scaler=None, adder=None,
@@ -480,22 +530,21 @@ class PhaseBase(Group):
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
 
-        if name not in self._boundary_constraints:
-            self._boundary_constraints[name] = {}
-            self._boundary_constraints[name]['constraint_name'] = constraint_name
+        bc_dict = self._initial_boundary_constraints \
+            if loc == 'initial' else self._final_boundary_constraints
 
-        if loc not in self._boundary_constraints[name]:
-            self._boundary_constraints[name][loc] = {}
+        bc_dict[name] = {}
+        bc_dict[name]['constraint_name'] = constraint_name
 
-        self._boundary_constraints[name][loc]['lower'] = lower
-        self._boundary_constraints[name][loc]['upper'] = upper
-        self._boundary_constraints[name][loc]['equals'] = equals
-        self._boundary_constraints[name][loc]['scaler'] = scaler
-        self._boundary_constraints[name][loc]['adder'] = adder
-        self._boundary_constraints[name][loc]['ref0'] = ref0
-        self._boundary_constraints[name][loc]['ref'] = ref
-        self._boundary_constraints[name][loc]['linear'] = linear
-        self._boundary_constraints[name][loc]['units'] = units
+        bc_dict[name]['lower'] = lower
+        bc_dict[name]['upper'] = upper
+        bc_dict[name]['equals'] = equals
+        bc_dict[name]['scaler'] = scaler
+        bc_dict[name]['adder'] = adder
+        bc_dict[name]['ref0'] = ref0
+        bc_dict[name]['ref'] = ref
+        bc_dict[name]['linear'] = linear
+        bc_dict[name]['units'] = units
 
     def add_path_constraint(self, name, constraint_name=None, units=None, lower=None,
                             upper=None, equals=None, scaler=None, adder=None,
@@ -551,6 +600,38 @@ class PhaseBase(Group):
         self._path_constraints[name]['ref'] = ref
         self._path_constraints[name]['linear'] = linear
         self._path_constraints[name]['units'] = units
+
+    def add_timeseries_output(self, name, output_name=None, units=None, shape=(1,)):
+        r"""
+        Add a path constraint to a variable in the phase.
+
+        Parameters
+        ----------
+        name : string
+            The name of the variable to be used as a timeseries output.  Must be one of
+            'time', 'time_phase', 't_initial', 't_duration', or one of the states, controls,
+            control rates, or parameters in the phase.
+        output_name : string or None
+            The name of the variable as listed in the phase timeseries outputs.  By
+            default this is the last element in `name` when split by dots.  The user may
+            override the constraint name if splitting the path causes name collisions.
+        units : str or None
+            The units in which the boundary constraint is to be applied.  If None, use the
+            units associated with the constrained output.  If provided, must be compatible with
+            the variables units.
+        shape : tuple
+            The shape of the timeseries output variable.  This must be provided (if not scalar)
+            since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
+        """
+        if output_name is None:
+            output_name = name.split('.')[-1]
+
+        if name not in self._timeseries_outputs:
+            self._timeseries_outputs[name] = {}
+            self._timeseries_outputs[name]['output_name'] = output_name
+
+        self._timeseries_outputs[name]['units'] = units
+        self._timeseries_outputs[name]['shape'] = shape
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
@@ -822,6 +903,8 @@ class PhaseBase(Group):
         """
         if var == 'time':
             return 'time'
+        elif var == 'time_phase':
+            return 'time_phase'
         elif var in self.state_options:
             return 'state'
         elif var in self.control_options:
@@ -833,6 +916,8 @@ class PhaseBase(Group):
             return 'design_parameter'
         elif var in self.input_parameter_options:
             return 'input_parameter'
+        elif var in self.traj_parameter_options:
+            return 'traj_parameter'
         elif var.endswith('_rate'):
             if var[:-5] in self.control_options:
                 return 'control_rate'
@@ -870,13 +955,19 @@ class PhaseBase(Group):
         if self.design_parameter_options:
             self._setup_design_parameters()
 
+        if self.traj_parameter_options:
+            self._setup_traj_input_parameters()
+
         self._setup_rhs()
         self._setup_defects()
         self._setup_states()
 
         self._setup_endpoint_conditions()
-        self._setup_boundary_constraints()
+        self._setup_boundary_constraints('initial')
+        self._setup_boundary_constraints('final')
         self._setup_path_constraints()
+
+        self._setup_timeseries_outputs()
 
     def _setup_time(self):
         """
@@ -914,7 +1005,8 @@ class PhaseBase(Group):
             comps += ['time_extents']
 
         time_comp = TimeComp(grid_data=grid_data, units=time_units)
-        self.add_subsystem('time', time_comp, promotes_outputs=['time'], promotes_inputs=externals)
+        self.add_subsystem('time', time_comp, promotes_outputs=['time', 'time_phase'],
+                           promotes_inputs=externals)
 
         if not (self.time_options['input_initial'] or self.time_options['fix_initial']):
             lb, ub = self.time_options['initial_bounds']
@@ -1018,13 +1110,16 @@ class PhaseBase(Group):
                                     ref0=options['ref0'],
                                     ref=options['ref'])
 
+            _shape = (1,) + options['shape']
+
             indep.add_output(name=src_name,
                              val=options['val'],
-                             shape=(1, np.prod(options['shape'])),
+                             shape=_shape,
                              units=options['units'])
 
             for tgts, src_idxs in self._get_parameter_connections(name):
-                self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
+                self.connect(src_name, [t for t in tgts],
+                             src_indices=src_idxs, flat_src_indices=True)
 
     def _setup_input_parameters(self):
         """
@@ -1038,10 +1133,29 @@ class PhaseBase(Group):
             self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
                                promotes_outputs=['*'])
 
-        for name, options in iteritems(self.input_parameter_options):
+        for name in self.input_parameter_options:
             src_name = 'input_parameters:{0}_out'.format(name)
 
-            for tgts, src_idxs in self._get_parameter_connections(options['target_param']):
+            for tgts, src_idxs in self._get_parameter_connections(name):
+                self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
+
+    def _setup_traj_input_parameters(self):
+        """
+        Adds a InputParameterComp to allow input parameters to be connected from sources
+        external to the phase.
+        """
+        if self.traj_parameter_options:
+            passthru = \
+                InputParameterComp(input_parameter_options=self.traj_parameter_options,
+                                   traj_params=True)
+
+            self.add_subsystem('traj_params', subsys=passthru, promotes_inputs=['*'],
+                               promotes_outputs=['*'])
+
+        for name, options in iteritems(self.traj_parameter_options):
+            src_name = 'traj_parameters:{0}_out'.format(name)
+
+            for tgts, src_idxs in self._get_parameter_connections(name):
                 self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
 
     def _get_parameter_connections(self, name):
@@ -1057,6 +1171,27 @@ class PhaseBase(Group):
         """
         raise NotImplementedError()
 
+    def _get_rate_source_path(self, state_name, nodes, **kwargs):
+        """
+        Given the name of a variable to be used as a rate source, provide the source connection
+        path for that variable in the Phase.
+
+        Parameters
+        ----------
+        state_name : str
+            The name of the state variable whose source path and indices is desired.
+        nodes : str
+            The name of the node subset from which the rate source is desired.
+
+        Returns
+        -------
+        path : str
+            The full path to the rate source in the system.
+        src_idxs : np.ndarray
+            The source indices in the resulting src that provide the values at the given nodes.
+        """
+        raise NotImplementedError()
+
     def _setup_rhs(self):
         raise NotImplementedError()
 
@@ -1069,142 +1204,93 @@ class PhaseBase(Group):
     def _setup_endpoint_conditions(self):
         raise NotImplementedError()
 
-    def _setup_boundary_constraints(self):
+    def _get_boundary_constraint_src(self, var, loc):
         """
-        Adds BoundaryConstraintComp if necessary and issues appropriate connections.
-        """
-        transcription = self.options['transcription']
-        bc_comp = None
-
-        if self._boundary_constraints:
-            bc_comp = self.add_subsystem('boundary_constraints', subsys=BoundaryConstraintComp())
-
-        for var, options in iteritems(self._boundary_constraints):
-            con_name = options['constraint_name']
-            con_units = options.get('units', None)
-            con_shape = options.get('shape', (1,))
-
-            # Determine the path to the variable which we will be constraining
-            var_type = self._classify_var(var)
-
-            if var_type == 'time':
-                options['shape'] = (1,)
-                options['units'] = self.time_options['units'] if con_units is None else con_units
-                options['linear'] = True
-                constraint_path = 'time'
-            elif var_type == 'state':
-                state_shape = self.state_options[var]['shape']
-                state_units = self.state_options[var]['units']
-                options['shape'] = state_shape if con_shape is None else con_shape
-                options['units'] = state_units if con_units is None else con_units
-                options['linear'] = True
-                constraint_path = 'states:{0}'.format(var)
-            elif var_type in 'indep_control':
-                control_shape = self.control_options[var]['shape']
-                control_units = self.control_options[var]['units']
-                options['shape'] = control_shape if con_shape is None else con_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
-                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
-            elif var_type == 'input_control':
-                control_shape = self.control_options[var]['shape']
-                control_units = self.control_options[var]['units']
-                options['shape'] = control_shape if con_shape is None else con_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = False
-                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
-            elif var_type == 'design_parameter':
-                control_shape = self.design_parameter_options[var]['shape']
-                control_units = self.design_parameter_options[var]['units']
-                options['shape'] = control_shape if con_shape is None else con_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
-                constraint_path = 'design_parameters:{0}'.format(var)
-            elif var_type == 'input_parameter':
-                control_shape = self.input_parameter_options[var]['shape']
-                control_units = self.input_parameter_options[var]['units']
-                options['shape'] = control_shape if con_shape is None else con_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = False
-                constraint_path = 'input_parameters:{0}_out'.format(var)
-            elif var_type == 'control_rate':
-                control_var = var[:-5]
-                control_shape = self.control_options[control_var]['shape']
-                control_units = self.control_options[control_var]['units']
-                control_rate_units = get_rate_units(control_units,
-                                                    self.time_options['units'],
-                                                    deriv=1)
-                options['shape'] = control_shape if con_shape is None else con_shape
-                options['units'] = control_rate_units if con_units is None else con_units
-                constraint_path = 'control_rates:{0}'.format(var)
-            elif var_type == 'control_rate2':
-                control_var = var[:-6]
-                control_shape = self.control_options[control_var]['shape']
-                control_units = self.control_options[control_var]['units']
-                control_rate_units = get_rate_units(control_units,
-                                                    self.time_options['units'],
-                                                    deriv=2)
-                options['shape'] = control_shape if con_shape is None else con_shape
-                options['units'] = control_rate_units if con_units is None else con_units
-                constraint_path = 'control_rates:{0}'.format(var)
-            else:
-                # Failed to find variable, assume it is in the RHS
-                if transcription == 'gauss-lobatto':
-                    constraint_path = 'rhs_disc.{0}'.format(var)
-                elif transcription == 'radau-ps':
-                    constraint_path = 'rhs_all.{0}'.format(var)
-                else:
-                    raise ValueError('Invalid transcription')
-
-                options['shape'] = con_shape
-                options['units'] = con_units
-
-            if 'initial' in options:
-                options['initial']['units'] = options['units']
-                bc_comp._add_initial_constraint(con_name,
-                                                **options['initial'])
-            if 'final' in options:
-                options['final']['units'] = options['units']
-                bc_comp._add_final_constraint(con_name,
-                                              **options['final'])
-
-            # Build the correct src_indices regardless of shape
-            size = np.prod(options['shape'])
-            src_idxs_initial = np.arange(size, dtype=int).reshape(options['shape'])
-            src_idxs_final = np.arange(-size, 0, dtype=int).reshape(options['shape'])
-            src_idxs = np.stack((src_idxs_initial, src_idxs_final))
-
-            self.connect(constraint_path,
-                         'boundary_constraints.boundary_values:{0}'.format(con_name),
-                         src_indices=src_idxs, flat_src_indices=True)
-
-    def _setup_path_constraints(self):
-        raise NotImplementedError('_setup_path_constraints has not been implemented '
-                                  'for this phase type')
-
-    def get_values(self, var, nodes=None, units=None):
-        """
-        Retrieve the values of the given variable at the given
-        subset of nodes.
+        Get the path of the boundary constraint source within the phase.
 
         Parameters
         ----------
         var : str
-            The variable whose values are to be returned.  This may be
-            the name 'time', the name of a state, control, or parameter,
-            or the path to a variable in the ODE system of the phase.
-        nodes : str or None
-            The name of the node subset or None (default).
-        units : str or None
-            The units in which the returned values are to be provided.
+            The variable within the phase whose value is to be constrained at a boundary.
+        loc : str
+            The location of the boundary constraint in the phase.  Must be one of 'initial' or
+            'final'.
 
         Returns
         -------
-        ndarray
-            An array of the values at the requested node subset.  The
-            node index is the first dimension of the ndarray.
+        src : str
+            The phase-relative path of the boundary constraint source.
+        src_idxs : np.array of int
+            The source indices that of src that provide the boundary constraint values.
+        shape : tuple of int
+            The shape of the variable being boundary-constrained.
+        units : str
+            The units of the output to be boundary-constrained.
+        linear : bool
+            True if this boundary constraint is constrained linearly, otherwise False.
+
         """
-        raise NotImplementedError('get_values has not been implemented for this class.')
+        raise NotImplementedError('This phase class does not implement '
+                                  '_get_boundary_constraint_src.')
+
+    def _setup_boundary_constraints(self, loc):
+        """
+        Adds BoundaryConstraintComp for initial and/or final boundary constraints if necessary
+        and issues appropriate connections.
+
+        Parameters
+        ----------
+        loc : str
+            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
+
+        """
+        if loc not in ('initial', 'final'):
+            raise ValueError('loc must be one of \'initial\' or \'final\'.')
+        bc_comp = None
+
+        bc_dict = self._initial_boundary_constraints \
+            if loc == 'initial' else self._final_boundary_constraints
+
+        if bc_dict:
+            bc_comp = self.add_subsystem('{0}_boundary_constraints'.format(loc),
+                                         subsys=BoundaryConstraintComp(loc=loc))
+
+        for var, options in iteritems(bc_dict):
+            con_name = options['constraint_name']
+
+            # Constraint options are a copy of options with constraint_name key removed.
+            con_options = options.copy()
+            con_options.pop('constraint_name')
+
+            src, shape, units, linear = self._get_boundary_constraint_src(var, loc)
+
+            con_units = options.get('units', None)
+            con_shape = options.get('shape', (1,))
+            con_size = int(np.prod(con_shape))
+            con_options['shape'] = shape if con_shape is None else con_shape
+            con_options['units'] = units if con_units is None else con_units
+            con_options['linear'] = linear
+
+            # Build the correct src_indices regardless of shape
+            if loc == 'initial':
+                src_idxs = np.arange(con_size, dtype=int).reshape(con_shape)
+            else:
+                src_idxs = np.arange(-con_size, 0, dtype=int).reshape(con_shape)
+
+            bc_comp._add_constraint(con_name, **con_options)
+
+            self.connect(src,
+                         '{0}_boundary_constraints.{0}_value_in:{1}'.format(loc, con_name),
+                         src_indices=src_idxs,
+                         flat_src_indices=True)
+
+    def _setup_path_constraints(self):
+        raise NotImplementedError('_setup_path_constraints has not been implemented '
+                                  'for phase type {0}'.format(self.__class__))
+
+    def _setup_timeseries_outputs(self):
+        raise NotImplementedError('_setup_timeseries_outputs has not been implemented '
+                                  'for phase type {0}'.format(self.__class__))
 
     def set_values(self, var, value, nodes=None, kind='linear', axis=0):
         """
@@ -1234,10 +1320,9 @@ class PhaseBase(Group):
         """
         raise NotImplementedError('set_values has not been implemented for this class.')
 
-    def interpolate(self, xs=None, ys=None, nodes=None, kind='linear', axis=0):
+    def interpolate(self, xs=None, ys=None, nodes='all', kind='linear', axis=0):
         """
-        Return an array of values on [a,b] linearly interpolated to the
-        input nodes of the phase.
+        Return an array of values on interpolated to the given node subset of the phase.
 
         Parameters
         ----------
@@ -1263,14 +1348,11 @@ class PhaseBase(Group):
         np.array
             The values of y interpolated at nodes of the specified type.
         """
-        if nodes is None:
-            nodes = 'all'
-
         if not isinstance(ys, Iterable):
             raise ValueError('ys must be provided as an Iterable of length at least 2.')
         if nodes not in ('col', 'disc', 'all', 'state_disc', 'state_input', 'control_disc',
                          'control_input', 'segment_ends'):
-            raise ValueError("nodes must be one of 'col', 'disc', 'all', 'state_disc', "
+            raise ValueError("nodes must be one of 'col', 'all', 'state_disc', "
                              "'state_input', 'control_disc', 'control_input', or 'segment_ends'")
         if xs is None:
             if len(ys) != 2:
@@ -1295,3 +1377,114 @@ class PhaseBase(Group):
         if res.shape[0] == 1:
             res = res.T
         return res
+
+    def _init_simulation_phase(self, times):
+        """
+        Return a SimulationPhase initialized based on data from this Phase instance and
+        the given simulation times.
+
+        Parameters
+        ----------
+        times : str or Sequence of float
+            Times at which outputs of the simulation are requested.  If given as a str, it should
+            be one of the node subsets (default is 'all').  If given as a sequence, output will
+            be provided at those times *in addition to times at the boundary of each segment*.
+
+        Returns
+        -------
+        SimulationPhase
+            An instance of SimulationPhase initialized based on data from this Phase and the given
+            times.  This instance has not yet been setup.
+        """
+
+        from .simulation.simulation_phase import SimulationPhase
+
+        op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
+                                                                                 out_stream=None)])
+
+        time = op_dict['{0}.time.time'.format(self.pathname)]['value']
+
+        sim_phase = SimulationPhase(grid_data=self.grid_data,
+                                    ode_class=self.options['ode_class'],
+                                    ode_init_kwargs=self.options['ode_init_kwargs'],
+                                    times=times,
+                                    t_initial=time[0],
+                                    t_duration=time[-1]-time[0],
+                                    timeseries_outputs=self._timeseries_outputs)
+
+        sim_phase.time_options.update(self.time_options)
+        sim_phase.state_options.update(self.state_options)
+        sim_phase.control_options.update(self.control_options)
+        sim_phase.design_parameter_options.update(self.design_parameter_options)
+        sim_phase.input_parameter_options.update(self.input_parameter_options)
+        sim_phase.traj_parameter_options.update(self.traj_parameter_options)
+
+        return sim_phase
+
+    def simulate(self, times='all', record_file=None, record=True):
+        """
+        Simulate the Phase using scipy.integrate.solve_ivp.
+
+        Parameters
+        ----------
+        times : str or Sequence of float
+            Times at which outputs of the simulation are requested.  If given as a str, it should
+            be one of the node subsets (default is 'all').  If given as a sequence, output will
+            be provided at those times *in addition to times at the boundary of each segment*.
+        record_file : str or None
+            If recording is enabled, the name of the file to which the results will be recorded.
+            If None, use the default filename '<phase_name>_sim.db'.
+        record : bool
+            If True, recording the results of the simulation is enabled.
+
+        Returns
+        -------
+        problem
+            An OpenMDAO Problem in which the simulation is implemented.  This Problem interface
+            can be interrogated to obtain timeseries outputs in the same manner as other Phases
+            to obtain results at the requested times.
+        """
+
+        sim_prob = Problem(model=Group())
+
+        sim_phase = self._init_simulation_phase(times)
+
+        sim_prob.model.add_subsystem(self.name, sim_phase)
+
+        if record:
+            filename = '{0}_sim.sql'.format(self.name) if record_file is None else record_file
+            rec = SqliteRecorder(filename)
+            sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
+            sim_prob.model.add_recorder(rec)
+
+        sim_prob.setup(check=True)
+
+        op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
+                                                                                 out_stream=None)])
+        # Assign initial state values
+        for name in self.state_options:
+            op = op_dict['{0}.timeseries.states:{1}'.format(self.name, name)]
+            sim_prob['{0}.initial_states:{1}'.format(self.name, name)] = op['value'][0, ...]
+
+        # Assign control values at all nodes
+        for name in self.control_options:
+            op = op_dict['{0}.control_interp_comp.control_values:{1}'.format(self.name, name)]
+            sim_prob['{0}.implicit_controls:{1}'.format(self.name, name)] = op['value']
+
+        # Assign design parameter values
+        for name in self.design_parameter_options:
+            op = op_dict['{0}.design_params.design_parameters:{1}'.format(self.name, name)]
+            sim_prob['{0}.design_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
+
+        # Assign input parameter values
+        for name in self.input_parameter_options:
+            op = op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.name, name)]
+            sim_prob['{0}.input_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
+
+        print('\nSimulating phase {0}'.format(self.pathname))
+        sim_prob.run_model()
+        print('Done simulating phase {0}'.format(self.pathname))
+
+        sim_prob.cleanup()
+
+        return sim_prob

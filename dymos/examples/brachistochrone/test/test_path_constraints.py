@@ -35,8 +35,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('theta_rate', lower=0, upper=100, units='deg/s')
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
-        p.model.options['assembled_jac_type'] = 'csc'
+        p.model.linear_solver = DirectSolver()
 
         p.setup()
 
@@ -52,7 +51,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
     def test_control_rate2_path_constraint_gl(self):
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
@@ -85,7 +84,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('theta_rate2', lower=-200, upper=200, units='rad/s**2')
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
         p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup()
@@ -102,7 +101,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
     def test_control_rate_path_constraint_radau(self):
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
@@ -135,8 +134,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('theta_rate', lower=0, upper=100, units='deg/s')
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
-        p.model.options['assembled_jac_type'] = 'csc'
+        p.model.linear_solver = DirectSolver()
 
         p.setup()
 
@@ -152,7 +150,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
     def test_control_rate2_path_constraint_radau(self):
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
@@ -185,7 +183,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('theta_rate2', lower=-200, upper=200, units='rad/s**2')
 
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
         p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup()
@@ -202,4 +200,4 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, phase.get_values('time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)

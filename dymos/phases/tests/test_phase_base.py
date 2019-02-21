@@ -286,8 +286,7 @@ class TestPhaseBase(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('g')
 
-        p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
@@ -336,7 +335,7 @@ class TestPhaseBase(unittest.TestCase):
         phase.add_objective('g')
 
         p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver(assemble_jac=True)
+        p.model.linear_solver = DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
@@ -351,6 +350,65 @@ class TestPhaseBase(unittest.TestCase):
         p.run_driver()
 
         assert_rel_error(self, p['phase0.t_duration'], 10, tolerance=1.0E-3)
+
+    def test_control_boundary_constraint_gl(self):
+        from openmdao.api import Problem, ScipyOptimizeDriver, DirectSolver
+        from openmdao.utils.assert_utils import assert_rel_error
+
+        p = Problem(model=Group())
+
+        p.driver = ScipyOptimizeDriver()
+
+        p.driver.options['dynamic_simul_derivs'] = True
+
+        phase = Phase('gauss-lobatto',
+                      ode_class=BrachistochroneODE,
+                      num_segments=20,
+                      transcription_order=3,
+                      compressed=True)
+
+        p.model.add_subsystem('phase0', phase)
+
+        phase.set_time_options(fix_initial=True, duration_bounds=(0.1, 10))
+
+        phase.set_state_options('x', fix_initial=True, fix_final=True)
+        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('v', fix_initial=True, fix_final=False)
+
+        phase.add_control('theta', continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', units='m/s**2', opt=True, val=9.80665)
+
+        phase.add_boundary_constraint('theta', loc='final', lower=90.0, upper=90.0, units='deg')
+        phase.add_boundary_constraint('theta_rate', loc='final', equals=0.0, units='deg/s')
+        phase.add_boundary_constraint('theta_rate2', loc='final', equals=0.0, units='deg/s**2')
+        phase.add_boundary_constraint('g', loc='initial', equals=9.80665, units='m/s**2')
+
+        # Minimize time at the end of the phase
+        phase.add_objective('time')
+
+        p.model.linear_solver = DirectSolver()
+        p.setup(check=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 2.0
+
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.design_parameters:g'] = 8
+
+        p.run_driver()
+
+        assert_rel_error(self, p.get_val('phase0.timeseries.controls:theta', units='deg')[-1], 90.0)
+        assert_rel_error(self, p.get_val('phase0.timeseries.control_rates:theta_rate')[-1], 0,
+                         tolerance=1.0E-6)
+        assert_rel_error(self, p.get_val('phase0.timeseries.control_rates:theta_rate2')[-1], 0,
+                         tolerance=1.0E-6)
+        assert_rel_error(self, p.get_val('phase0.timeseries.design_parameters:g')[0], 9.80665,
+                         tolerance=1.0E-6)
 
 
 if __name__ == '__main__':
