@@ -67,9 +67,6 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
             p = np.kron(rk_data['b'], np.eye(size))
             p = block_diag(*num_segs*[p])
             r, c = p.nonzero()
-            # np.set_printoptions(linewidth=1024)
-            # print(p)
-            # exit(0)
 
             self.declare_partials(of=self._var_names[name]['final'],
                                   wrt=self._var_names[name]['k'],

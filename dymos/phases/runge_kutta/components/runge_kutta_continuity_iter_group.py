@@ -18,19 +18,19 @@ class RungeKuttaContinuityIterGroup(Group):
     to find the Runge-Kutta weights 'k' and the initial values of the states in all but the first
     segments to provide state continuity across the phase.
     """
-    def __init__(self, get_rate_source_path, **kwargs):
-        """
-
-        Parameters
-        ----------
-        get_rate_source_path : callable
-            The function or method used to provide state rate source path information.  Nominally
-            this is the _get_rate_source_path method of the parent phase but for testing purposes
-            it is convenient to override it so an entire Phase does not need to be included in the
-            test.
-        """
-        self._get_rate_source_path = get_rate_source_path
-        super(RungeKuttaContinuityIterGroup, self).__init__(**kwargs)
+    # def __init__(self, get_rate_source_path, **kwargs):
+    #     """
+    #
+    #     Parameters
+    #     ----------
+    #     get_rate_source_path : callable
+    #         The function or method used to provide state rate source path information.  Nominally
+    #         this is the _get_rate_source_path method of the parent phase but for testing purposes
+    #         it is convenient to override it so an entire Phase does not need to be included in the
+    #         test.
+    #     """
+    #     self._get_rate_source_path = get_rate_source_path
+    #     super(RungeKuttaContinuityIterGroup, self).__init__(**kwargs)
 
     def initialize(self):
 
@@ -75,8 +75,7 @@ class RungeKuttaContinuityIterGroup(Group):
 
     def setup(self):
         self.add_subsystem('k_iter_group',
-                            RungeKuttaKIterGroup(get_rate_source_path=self._get_rate_source_path,
-                                                 num_segments=self.options['num_segments'],
+                            RungeKuttaKIterGroup(num_segments=self.options['num_segments'],
                                                  method=self.options['method'],
                                                  state_options=self.options['state_options'],
                                                  time_units=self.options['time_units'],

@@ -14,8 +14,8 @@ from openmdao.utils.units import convert_units, valid_units
 from six import iteritems
 
 # from .solvers.nl_rk_solver import NonlinearRK
-from .components import RungeKuttaStatePredictComp, RungeKuttaKComp, RungeKuttaStepsizeComp, \
-    RungeKuttaStateAdvanceComp, RungeKuttaContinuityIterGroup
+from .components import RungeKuttaStepsizeComp, RungeKuttaContinuityIterGroup, \
+    RungeKuttaTimeseriesOutputComp
 # from .components.implicit_segment_connection_comp import ImplicitSegmentConnectionComp
 from ..components.continuity_comp import ExplicitContinuityComp
 from ..components import ExplicitTimeseriesOutputComp
@@ -50,59 +50,45 @@ class RungeKuttaPhase(PhaseBase):
     def initialize(self):
         super(RungeKuttaPhase, self).initialize()
         self.options['transcription'] = 'explicit'
-        self.options.declare('num_segments', default=10, types=(int, Iterable),
+        self.options.declare('num_segments', types=(int,),
                              desc='The number of segments in the Phase.  In RungeKuttaPhase, each'
                                   'segment is a single timestep of the integration scheme.')
+
         self.options.declare('segment_ends', default=None, types=(int, Iterable), allow_none=True,
                              desc='The relative endpoint locations for each segment. Must be of '
                                   'length (num_segments + 1).')
+
         self.options.declare('method', default='rk4', values=('rk4',),
                              desc='The integrator used within the explicit phase.')
-        self.options.declare('solver_class', default=NonlinearBlockGS,
-                             values=(NonlinearBlockGS, NewtonSolver, NonlinearBlockGS),
+
+        self.options.declare('k_solver_class', default=NonlinearBlockGS,
+                             values=(NonlinearBlockGS, NewtonSolver, NonlinearRunOnce),
+                             allow_none=True,
                              desc='The nonlinear solver class used to converge the numerical '
-                                  'integration of the segment.')
-        self.options.declare('solver_options', default={}, types=(dict,),
+                                  'integration across each segment.')
+
+        self.options.declare('k_solver_options', default={'iprint': -1}, types=(dict,),
                              desc='The options passed to the nonlinear solver used to converge the'
-                                  'Runge-Kutta propagation.')
+                                  'Runge-Kutta propagation across each step.')
+
+        self.options.declare('continuity_solver_class', default=NewtonSolver,
+                             values=(NewtonSolver, NonlinearRunOnce),
+                             allow_none=True,
+                             desc='The nonlinear solver class used to enforce state continuity '
+                                  'across the segments (steps).  Currently only NewtonSolver is'
+                                  'supported.')
+
+        self.options.declare('continuity_solver_options', default={'iprint': -1}, types=(dict,),
+                             desc='The options passed to the nonlinear solver used to enforce '
+                                  'state continuity across the segments (steps).')
 
     def setup(self):
-        rk_options = rk_methods[self.options['method']]
         self.grid_data = GridData(num_segments=self.options['num_segments'],
-                                  transcription='gauss-lobatto',
-                                  transcription_order=rk_options['control_order'],
-                                  segment_ends=self.options['segment_ends'],
-                                  compressed=self.options['compressed'])
+                                  transcription='runge-kutta',
+                                  transcription_order=self.options['method'],
+                                  segment_ends=self.options['segment_ends'])
 
         super(RungeKuttaPhase, self).setup()
-
-        # num_opt_controls = len([name for (name, options) in iteritems(self.control_options)
-        #                         if options['opt']])
-        #
-        # num_controls = len(self.control_options)
-        #
-        # indep_controls = ['indep_controls'] if num_opt_controls > 0 else []
-        # design_params = ['design_params'] if self.design_parameter_options else []
-        # input_params = ['input_params'] if self.input_parameter_options else []
-        # traj_params = ['traj_params'] if self.traj_parameter_options else []
-        # control_interp_comp = ['control_interp_comp'] if num_controls > 0 else []
-        #
-        # order = self._time_extents + indep_controls + \
-        #     input_params + design_params + traj_params + \
-        #     ['indep_states', 'time'] + control_interp_comp
-        #
-        # continuity_comp = ['continuity_comp'] if self.grid_data.num_segments > 1 else []
-        # order = order + ['segments'] + continuity_comp + \
-        #     ['indep_jumps', 'initial_conditions', 'final_conditions']
-        #
-        # if self._initial_boundary_constraints:
-        #     order.append('initial_boundary_constraints')
-        # if self._final_boundary_constraints:
-        #     order.append('final_boundary_constraints')
-        # if self._path_constraints:
-        #     order.append('path_constraints')
-        # order.append('timeseries')
-        # self.set_order(order)
 
     def _setup_time(self):
         time_units = self.time_options['units']
@@ -110,6 +96,35 @@ class RungeKuttaPhase(PhaseBase):
         rk_data = rk_methods[self.options['method']]
         num_nodes = num_seg * rk_data['num_stages']
         grid_data = self.grid_data
+
+        # Borrow the notion of node_ptau and node_dptau_dstau from GridData, without all the
+        # other unnecessary stuff
+        # First, map c to [-1, 1]
+        nodes_i = 2.0 * rk_data['c'] - 1
+
+        # Normalize the given segment ends
+        if self.options['segment_ends'] is None:
+            segment_ends = np.linspace(-1, 1, num_seg + 1)
+        else:
+            if len(self.options['segment_ends']) != num_seg + 1:
+                raise ValueError('segment_ends must be of length (num_segments + 1)')
+            # Assert monotonic increasing
+            if not np.all(np.diff(num_seg) > 0):
+                raise ValueError('segment_ends must be monotonically increasing')
+            segment_ends = np.atleast_1d(self.options['segment_ends'])
+        v0 = segment_ends[0]
+        v1 = segment_ends[-1]
+        self.segment_ends = -1. + 2 * (segment_ends - v0) / (v1 - v0)
+
+        # Now populate node_ptau and node_dptau_dstau
+        self.node_ptau = np.empty(0,)
+        self.node_dptau_dstau = np.empty(0,)
+        for iseg in range(num_seg):
+            v0 = segment_ends[iseg]
+            v1 = segment_ends[iseg + 1]
+            self.node_ptau = np.concatenate((self.node_ptau, v0 + 0.5 * (nodes_i + 1) * (v1 - v0)))
+            self.node_dptau_dstau = np.concatenate((self.node_dptau_dstau,
+                                                    0.5 * (v1 - v0) * np.ones_like(nodes_i)))
 
         indeps, externals, comps = super(RungeKuttaPhase, self)._setup_time()
 
@@ -121,154 +136,55 @@ class RungeKuttaPhase(PhaseBase):
         comps.append('time')
 
         h_comp = RungeKuttaStepsizeComp(num_segments=num_seg,
-                                        seg_rel_lengths=np.diff(grid_data.segment_ends),
+                                        seg_rel_lengths=np.diff(self.segment_ends),
                                         time_units=time_units)
 
-        self.add_subsystem('stepsize_comp', h_comp, promotes_inputs=['t_duration'])
-
-        self.connect('stepsize_comp.h', 'k_comp.h')
+        self.add_subsystem('stepsize_comp', h_comp,
+                           promotes_inputs=['t_duration'],
+                           promotes_outputs=['h'])
 
         if self.time_options['targets']:
-            self.connect('time',
-                         ['ode.{0}'.format(t) for t in self.time_options['targets']])
+            time_tgts = self.time_options['targets']
+            self.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts])
+            self.connect('time', ['ode.{0}'.format(t) for t in time_tgts],
+                         src_indices=self.grid_data.subset_node_indices['segment_ends'])
 
         if self.time_options['time_phase_targets']:
+            time_phase_tgts = self.time_options['time_phase_targets']
             self.connect('time_phase',
-                         ['ode.{0}'.format(t) for t in self.time_options['time_phase_targets']])
+                         ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
+            self.connect('time_phase',
+                         ['ode.{0}'.format(t) for t in time_phase_tgts],
+                         src_indices=self.grid_data.subset_node_indices['segment_ends'])
 
         return comps
 
-
     def _setup_rhs(self):
-        ODEClass = self.options['ode_class']
-        num_seg = self.options['num_segments']
-        rk_data = rk_methods[self.options['method']]
-        num_nodes = num_seg * rk_data['num_stages']
 
-        self.add_subsystem('cnty_iter', subsys=RungeKuttaContinuityIterGroup())
+        self.add_subsystem('rk_solve_group',
+                           RungeKuttaContinuityIterGroup(
+                               num_segments=self.options['num_segments'],
+                               method=self.options['method'],
+                               state_options=self.state_options,
+                               time_units=self.time_options['units'],
+                               ode_class=self.options['ode_class'],
+                               ode_init_kwargs=self.options['ode_init_kwargs'],
+                               k_solver_class=self.options['k_solver_class'],
+                               k_solver_options=self.options['k_solver_options'],
+                               continuity_solver_class=self.options['continuity_solver_class'],
+                               continuity_solver_options=self.options['continuity_solver_options']),
+                           promotes_inputs=['h'],
+                           promotes_outputs=['states:*'])
 
-        # cnty_iter = self.add_subsystem('cnty_iter', subsys=Group(), promotes_inputs=['*'],
-        #                                promotes_outputs=['*'])
-        #
-        # k_iter = cnty_iter.add_subsystem('k_iter', subsys=Group(), promotes_inputs=['*'],
-        #                                  promotes_outputs=['*'])
-        #
-        # k_iter.add_subsystem('state_predict_comp',
-        #                      RungeKuttaStatePredictComp(method=self.options['method'],
-        #                                                 num_segments=num_seg,
-        #                                                 state_options=self.state_options))
-        # k_iter.add_subsystem('ode',
-        #                      subsys=ODEClass(num_nodes=num_nodes,
-        #                                      **self.options['ode_init_kwargs']))
-        #
-        # k_iter.add_subsystem('k_comp',
-        #                      subsys=RungeKuttaKComp(method=self.options['method'],
-        #                                             num_segments=num_seg,
-        #                                             state_options=self.state_options,
-        #                                             time_units=self.time_options['units']))
-        #
-        # k_iter.linear_solver = DirectSolver()
-        # k_iter.nonlinear_solver = \
-        #     self.options['solver_class'](**self.options['solver_options'])
-        #
-        # cnty_iter.add_subsystem('state_advance_comp',
-        #                         RungeKuttaStateAdvanceComp(num_segments=num_seg,
-        #                                                    method=self.options['method'],
-        #                                                    state_options=self.state_options))
-
-        # cnty_balance_comp = cnty_iter.add_subsystem('cnty_balance_comp', BalanceComp())
-        #
-        # for state_name, options in iteritems(self.state_options):
-        #     # Connect the state predicted (assumed) value to its targets in the ode
-        #     k_iter.connect('state_predict_comp.predicted_states:{0}'.format(state_name),
-        #                      ['ode.{0}'.format(tgt) for tgt in options['targets']])
-        #
-        #     # Connect the state rate source to the k comp
-        #     rate_path, src_idxs = self._get_rate_source_path(state_name)
-        #     self.connect(rate_path,
-        #                  'k_comp.f:{0}'.format(state_name),
-        #                  src_indices=src_idxs,
-        #                  flat_src_indices=True)
-        #
-        #     # Connect the k value associated with the state to the state predict comp
-        #     self.connect('k_comp.k:{0}'.format(state_name),
-        #                  ('state_predict_comp.k:{0}'.format(state_name),
-        #                   'state_advance_comp.k:{0}'.format(state_name)))
-        #
-        #     cnty_balance_comp.add_balance('subsequent_states:{0}'.format(state_name), units=options['units'],
-        #                                   val=np.ones(((num_seg,) + options['shape'])))
-
-    #     gd = self.grid_data
-    #     shooting = 'single'
-    #
-    #     if shooting in ('single', 'hybrid'):
-    #         group_class = Group
-    #     else:
-    #         group_class = ParallelGroup
-    #
-    #     segments_group = self.add_subsystem('segments', subsys=group_class(),
-    #                                         promotes_inputs=['*'], promotes_outputs=['*'])
-    #
-    #     if shooting in ('single', 'multiple'):
-    #         segments_group.nonlinear_solver = NonlinearRunOnce()
-    #     elif shooting == 'hybrid':
-    #         segments_group.nonlinear_solver = NonlinearBlockJac()
-    #
-    #     for iseg in range(gd.num_segments):
-    #
-    #         # Add a segment connector for each segment pair if in 'single' or 'hybrid' shooting
-    #         if iseg > 0 and shooting in ('single', 'hybrid'):
-    #             seg_connect_i = ImplicitSegmentConnectionComp(state_options=self.state_options)
-    #             con_name = 'connect_{0}_{1}'.format(iseg - 1, iseg)
-    #             segments_group.add_subsystem(con_name,
-    #                                          subsys=seg_connect_i)
-    #
-    #             for state_name, options in iteritems(self.state_options):
-    #                 shape = options['shape']
-    #                 size = int(np.prod(shape))
-    #                 lhs_src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
-    #
-    #                 self.connect('seg_{0}.step_states:{1}'.format(iseg - 1, state_name),
-    #                              '{0}.lhs_states:{1}'.format(con_name, state_name),
-    #                              src_indices=lhs_src_idxs)
-    #
-    #                 self.connect('{0}.rhs_states:{1}'.format(con_name, state_name),
-    #                              'seg_{0}.initial_states:{1}'.format(iseg, state_name))
-    #
-    #         # Add the segment
-    #         segment_i = ExplicitSegment(index=iseg,
-    #                                     grid_data=self.grid_data,
-    #                                     num_steps=self.options['num_steps'],
-    #                                     method='rk4',
-    #                                     ode_class=self.options['ode_class'],
-    #                                     ode_init_kwargs=self.options['ode_init_kwargs'],
-    #                                     time_options=self.time_options,
-    #                                     state_options=self.state_options,
-    #                                     control_options=self.control_options,
-    #                                     design_parameter_options=self.design_parameter_options,
-    #                                     input_parameter_options=self.input_parameter_options,
-    #                                     seg_solver_class=self.options['seg_solver_class'])
-    #
-    #         for state_name, options in iteritems(self.state_options):
-    #             rate_source = options['rate_source']
-    #             if rate_source in self.design_parameter_options or \
-    #                     rate_source in self.input_parameter_options:
-    #                 sys = self
-    #                 tgt = 'seg_{0}.state_rates:{1}'.format(iseg, state_name)
-    #             else:
-    #                 sys = segment_i
-    #                 tgt = 'state_rates:{1}'.format(iseg, state_name)
-    #             # Connect the state rate source for each segment
-    #             rate_path, src_idxs = self._get_rate_source_path(state_name,
-    #                                                              nodes=None,
-    #                                                              seg_index=iseg)
-    #             sys.connect(rate_path, tgt, src_indices=src_idxs, flat_src_indices=True)
-    #
-    #         segments_group.add_subsystem('seg_{0}'.format(iseg),
-    #                                      subsys=segment_i)
+        # Since the RK Solve group evaluates the ODE at *predicted* state values, we need
+        # to instantiate a second ODE group that will call the ODE at the actual integrated
+        # state values so that we can accurate evaluate path and boundary constraints and
+        # obtain timeseries for ODE outputs.
+        self.add_subsystem('ode',
+                           self.options['ode_class'](num_nodes=2*self.options['num_segments'],
+                                                     **self.options['ode_init_kwargs']))
 
     def _get_rate_source_path(self, state_name, nodes=None, **kwargs):
-        gd = self.grid_data
         var = self.state_options[state_name]['rate_source']
         shape = self.state_options[state_name]['shape']
         var_type = self._classify_var(var)
@@ -306,7 +222,7 @@ class RungeKuttaPhase(PhaseBase):
             src_idxs = np.zeros(num_segments * num_stages * size, dtype=int)
         else:
             # Failed to find variable, assume it is in the ODE
-            rate_path = 'ode.{0}'.format(var)
+            rate_path = 'rk_solve_group.ode.{0}'.format(var)
             state_size = np.prod(shape)
             size = num_segments * num_stages * state_size
             src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
@@ -319,68 +235,65 @@ class RungeKuttaPhase(PhaseBase):
         """
         gd = self.grid_data
         num_seg = self.options['num_segments']
-        # num_state_input_nodes = gd.subset_num_nodes['state_input']
-        # shooting = self.options['shooting']
-        # num_stages = rk_methods[self.options['method']]['num_stages']
-        #
-        # indep = IndepVarComp()
-        # for state_name, options in iteritems(self.state_options):
-        #     indep.add_output(name='states:{0}'.format(state_name),
-        #                      shape=((1,) + options['shape']),
-        #                      units=options['units'])
-        #
-        #     for iseg in range(gd.num_segments):
-        #         num_steps = gd.num_steps_per_segment[iseg]
-        #
-        #         if iseg == 0 or shooting == 'multiple':
-        #             self.connect('states:{0}'.format(state_name),
-        #                          'seg_{0}.initial_states:{1}'.format(iseg, state_name),
-        #                          src_indices=[iseg])
-        #
-        # self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
-        #
-        # # Add the initial state values as design variables, if necessary
-        #
-        # for state_name, options in iteritems(self.state_options):
-        #     size = np.prod(options['shape'])
-        #     if options['opt']:
-        #         desvar_indices = list(range(size * num_state_input_nodes))
-        #
-        #         if options['fix_initial']:
-        #             if options['initial_bounds'] is not None:
-        #                 raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-        #                                  'initial_bounds for state {0}'.format(state_name))
-        #             if isinstance(options['fix_initial'], Iterable):
-        #                 idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
-        #                 for idx_to_fix in reversed(sorted(idxs_to_fix)):
-        #                     del desvar_indices[idx_to_fix]
-        #             else:
-        #                 del desvar_indices[:size]
-        #
-        #         if len(desvar_indices) > 0:
-        #             coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
-        #                                                 options)
-        #
-        #             lb = np.zeros_like(desvar_indices, dtype=float)
-        #             lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
-        #                 coerce_desvar_option('lower')
-        #
-        #             ub = np.zeros_like(desvar_indices, dtype=float)
-        #             ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
-        #                 coerce_desvar_option('upper')
-        #
-        #             if options['initial_bounds'] is not None:
-        #                 lb[0] = options['initial_bounds'][0]
-        #                 ub[0] = options['initial_bounds'][-1]
-        #
-        #             self.add_design_var(name='states:{0}'.format(state_name),
-        #                                 lower=lb,
-        #                                 upper=ub,
-        #                                 scaler=coerce_desvar_option('scaler'),
-        #                                 adder=coerce_desvar_option('adder'),
-        #                                 ref0=coerce_desvar_option('ref0'),
-        #                                 ref=coerce_desvar_option('ref'),
-        #                                 indices=desvar_indices)
+        num_state_input_nodes = num_seg + 1
+
+        for state_name, options in iteritems(self.state_options):
+            size = np.prod(options['shape'])
+
+            # Connect the states at the segment ends to the final ODE instance.
+            row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
+            row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
+            src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
+            self.connect('states:{0}'.format(state_name),
+                         ['ode.{0}'.format(tgt) for tgt in options['targets']],
+                         src_indices=src_idxs.ravel(), flat_src_indices=True)
+
+            # Connect the state rate source to the k comp
+            rate_path, src_idxs = self._get_rate_source_path(state_name)
+
+            self.connect(rate_path,
+                         'rk_solve_group.k_comp.f:{0}'.format(state_name),
+                         src_indices=src_idxs,
+                         flat_src_indices=True)
+
+            if options['opt']:
+                desvar_indices = list(range(size))
+
+                if options['fix_initial']:
+                    if options['initial_bounds'] is not None:
+                        raise ValueError('Cannot specify \'fix_initial=True\' and specify '
+                                         'initial_bounds for state {0}'.format(state_name))
+                    if isinstance(options['fix_initial'], Iterable):
+                        idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
+                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                            del desvar_indices[idx_to_fix]
+                    else:
+                        del desvar_indices[:size]
+
+                if len(desvar_indices) > 0:
+                    coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
+                                                        options)
+
+                    lb = np.zeros_like(desvar_indices, dtype=float)
+                    lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                        coerce_desvar_option('lower')
+
+                    ub = np.zeros_like(desvar_indices, dtype=float)
+                    ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                        coerce_desvar_option('upper')
+
+                    if options['initial_bounds'] is not None:
+                        lb[0] = options['initial_bounds'][0]
+                        ub[0] = options['initial_bounds'][-1]
+
+                    self.add_design_var(name='states:{0}'.format(state_name),
+                                        lower=lb,
+                                        upper=ub,
+                                        scaler=coerce_desvar_option('scaler'),
+                                        adder=coerce_desvar_option('adder'),
+                                        ref0=coerce_desvar_option('ref0'),
+                                        ref=coerce_desvar_option('ref'),
+                                        indices=desvar_indices)
 
     def _setup_controls(self):
         pass
@@ -397,39 +310,7 @@ class RungeKuttaPhase(PhaseBase):
         """
         Setup the Collocation and Continuity components as necessary.
         """
-        gd = self.grid_data
-        #
-        # if gd.num_segments < 2:
-        #     return
-        #
-        # self.add_subsystem('continuity_comp',
-        #                    ExplicitContinuityComp(grid_data=gd,
-        #                                           shooting=self.options['shooting'],
-        #                                           state_options=self.state_options,
-        #                                           control_options=self.control_options,
-        #                                           time_units=self.time_options['units']),
-        #                    promotes_inputs=['t_duration'])
-        #
-        # if self.options['shooting'] == 'multiple':
-        #     for iseg in range(gd.num_segments):
-        #         for name, options in iteritems(self.state_options):
-        #             self.connect('seg_{0}.step_states:{1}'.format(iseg, name),
-        #                          'continuity_comp.seg_{0}_states:{1}'.format(iseg, name))
-        #
-        # for name, options in iteritems(self.control_options):
-        #     control_src_name = 'control_interp_comp.control_values:{0}'.format(name)
-        #     if not self.grid_data.compressed:
-        #         self.connect(control_src_name,
-        #                      'continuity_comp.controls:{0}'.format(name),
-        #                      src_indices=gd.subset_node_indices['segment_ends'])
-        #
-        #     self.connect('control_rates:{0}_rate'.format(name),
-        #                  'continuity_comp.control_rates:{}_rate'.format(name),
-        #                  src_indices=gd.subset_node_indices['segment_ends'])
-        #
-        #     self.connect('control_rates:{0}_rate2'.format(name),
-        #                  'continuity_comp.control_rates:{}_rate2'.format(name),
-        #                  src_indices=gd.subset_node_indices['segment_ends'])
+        pass
 
     def _setup_endpoint_conditions(self):
         pass
@@ -646,172 +527,138 @@ class RungeKuttaPhase(PhaseBase):
             path_comp._add_path_constraint(con_name, var_type, **kwargs)
 
     def _setup_timeseries_outputs(self):
-        """
-        Add a path constraint component if necessary and issue appropriate connections as
-        part of the setup stack.
-        """
+
         gd = self.grid_data
-        # time_units = self.time_options['units']
-        # num_stages = rk_methods[self.options['method']]['num_stages']
-        #
-        # timeseries_comp = ExplicitTimeseriesOutputComp(grid_data=gd)
-        # self.add_subsystem('timeseries', subsys=timeseries_comp)
-        #
-        # timeseries_comp._add_timeseries_output('time',
-        #                                        var_class=self._classify_var('time'),
-        #                                        units=time_units)
-        # for iseg in range(gd.num_segments):
-        #     src = 'seg_{0}.t_step'.format(iseg)
-        #     tgt = 'timeseries.seg_{0}_values:time'.format(iseg)
-        #     self.connect(src_name=src, tgt_name=tgt)
-        #
-        # timeseries_comp._add_timeseries_output('time_phase',
-        #                                        var_class=self._classify_var('time_phase'),
-        #                                        units=time_units)
-        # for iseg in range(gd.num_segments):
-        #     src = 'seg_{0}.t_phase_step'.format(iseg)
-        #     tgt = 'timeseries.seg_{0}_values:time_phase'.format(iseg)
-        #     self.connect(src_name=src, tgt_name=tgt)
-        #
-        # for name, options in iteritems(self.state_options):
-        #     timeseries_comp._add_timeseries_output('states:{0}'.format(name),
-        #                                            var_class=self._classify_var(name),
-        #                                            units=options['units'])
-        #
-        #     for iseg in range(gd.num_segments):
-        #         src = 'seg_{0}.step_states:{1}'.format(iseg, name)
-        #         tgt = 'timeseries.seg_{0}_values:states:{1}'.format(iseg, name)
-        #         self.connect(src_name=src, tgt_name=tgt)
-        #
-        # for name, options in iteritems(self.control_options):
-        #     timeseries_comp._add_timeseries_output('controls:{0}'.format(name),
-        #                                            var_class=self._classify_var(name),
-        #                                            units=options['units'])
-        #
-        #     timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(name),
-        #                                            var_class=self._classify_var(name),
-        #                                            units=get_rate_units(options['units'],
-        #                                                                 time_units, deriv=1))
-        #
-        #     timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(name),
-        #                                            var_class=self._classify_var(name),
-        #                                            units=get_rate_units(options['units'],
-        #                                                                 time_units, deriv=2))
-        #
-        #     size = np.prod(options['shape'])
-        #     for iseg in range(gd.num_segments):
-        #         # Get all indices of the source
-        #         num_steps = self.grid_data.num_steps_per_segment[iseg]
-        #         src_total_size = num_steps * num_stages * size
-        #         src_indexer = np.reshape(np.arange(src_total_size, dtype=int),
-        #                                  newshape=(num_steps, num_stages) + options['shape'])
-        #         # Select only the indices that are step values
-        #         src_idxs = np.concatenate((src_indexer[:, 0, ...], src_indexer[-1:, -1, ...]),
-        #                                   axis=0)
-        #
-        #         # Reshape the selected indices to conform with the target shape
-        #         tgt_shape = (num_steps + 1,) + options['shape']
-        #         src_idxs = np.reshape(src_idxs, tgt_shape)
-        #
-        #         self.connect(src_name='seg_{0}.stage_control_values:{1}'.format(iseg, name),
-        #                      tgt_name='timeseries.seg_{0}_values:controls:{1}'.format(iseg, name),
-        #                      src_indices=src_idxs, flat_src_indices=True)
-        #
-        #         self.connect(src_name='seg_{0}.stage_control_rates:{1}_rate'.format(iseg, name),
-        #                      tgt_name='timeseries.seg_{0}_values:'
-        #                               'control_rates:{1}_rate'.format(iseg, name),
-        #                      src_indices=src_idxs, flat_src_indices=True)
-        #
-        #         self.connect(src_name='seg_{0}.stage_control_rates:{1}_rate2'.format(iseg, name),
-        #                      tgt_name='timeseries.seg_{0}_values:'
-        #                               'control_rates:{1}_rate2'.format(iseg, name),
-        #                      src_indices=src_idxs, flat_src_indices=True)
-        #
-        # for name, options in iteritems(self.design_parameter_options):
-        #     units = options['units']
-        #     size = np.prod(options['shape'])
-        #     timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
-        #                                            var_class=self._classify_var(name),
-        #                                            units=units)
-        #
-        #     for iseg in range(gd.num_segments):
-        #         num_steps = self.grid_data.num_steps_per_segment[iseg]
-        #         src_total_size = num_steps * size + 1
-        #
-        #         if self.ode_options._parameters[name]['dynamic']:
-        #             src_idxs_raw = np.zeros(src_total_size, dtype=int)
-        #             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-        #         else:
-        #             src_idxs_raw = np.zeros(1, dtype=int)
-        #             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-        #
-        #         self.connect(src_name='design_parameters:{0}'.format(name),
-        #                      tgt_name='timeseries.seg_{0}_values:'
-        #                               'design_parameters:{1}'.format(iseg, name),
-        #                      src_indices=src_idxs, flat_src_indices=True)
-        #
-        # for name, options in iteritems(self.input_parameter_options):
-        #     units = options['units']
-        #     size = np.prod(options['shape'])
-        #     timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
-        #                                            var_class=self._classify_var(name),
-        #                                            units=units)
-        #
-        #     for iseg in range(gd.num_segments):
-        #         num_steps = self.grid_data.num_steps_per_segment[iseg]
-        #         src_total_size = num_steps * size + 1
-        #
-        #         if self.ode_options._parameters[name]['dynamic']:
-        #             src_idxs_raw = np.zeros(src_total_size, dtype=int)
-        #             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-        #         else:
-        #             src_idxs_raw = np.zeros(1, dtype=int)
-        #             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-        #
-        #         self.connect(src_name='input_parameters:{0}_out'.format(name),
-        #                      tgt_name='timeseries.seg_{0}_values:'
-        #                               'input_parameters:{1}'.format(iseg, name),
-        #                      src_indices=src_idxs, flat_src_indices=True)
-        #
-        # for name, options in iteritems(self.traj_parameter_options):
-        #     units = options['units']
-        #     size = np.prod(options['shape'])
-        #     timeseries_comp._add_timeseries_output('traj_parameters:{0}'.format(name),
-        #                                            var_class=self._classify_var(name),
-        #                                            units=units)
-        #
-        #     for iseg in range(gd.num_segments):
-        #         num_steps = self.grid_data.num_steps_per_segment[iseg]
-        #         src_total_size = num_steps * size + 1
-        #
-        #         if self.ode_options._parameters[name]['dynamic']:
-        #             src_idxs_raw = np.zeros(src_total_size, dtype=int)
-        #             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-        #         else:
-        #             src_idxs_raw = np.zeros(1, dtype=int)
-        #             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-        #
-        #         self.connect(src_name='traj_parameters:{0}_out'.format(name),
-        #                      tgt_name='timeseries.seg_{0}_values:'
-        #                               'traj_parameters:{1}'.format(iseg, name),
-        #                      src_indices=src_idxs, flat_src_indices=True)
-        #
-        # for var, options in iteritems(self._timeseries_outputs):
-        #     output_name = options['output_name']
-        #
-        #     # Determine the path to the variable which we will be constraining
-        #     # This is more complicated for path constraints since, for instance,
-        #     # a single state variable has two sources which must be connected to
-        #     # the path component.
-        #     var_type = self._classify_var(var)
-        #
-        #     # Failed to find variable, assume it is in the RHS
-        #     self.connect(src_name='seg_{0}.step_states:{1}'.format(iseg, name),
-        #                  tgt_name='timeseries.seg_{0}_values:states:{1}'.format(output_name))
-        #
-        #     kwargs = options.copy()
-        #     kwargs.pop('output_name', None)
-        #     timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
+        num_seg = gd.num_segments
+        time_units = self.time_options['units']
+        timeseries_comp = RungeKuttaTimeseriesOutputComp(grid_data=gd)
+        self.add_subsystem('timeseries', subsys=timeseries_comp)
+        src_idxs = get_src_indices_by_row(gd.subset_node_indices['segment_ends'], (1,))
+
+        timeseries_comp._add_timeseries_output('time',
+                                               var_class=self._classify_var('time'),
+                                               units=time_units)
+        self.connect(src_name='time', tgt_name='timeseries.segend_values:time',
+                     src_indices=src_idxs, flat_src_indices=True)
+
+        timeseries_comp._add_timeseries_output('time_phase',
+                                               var_class=self._classify_var('time_phase'),
+                                               units=time_units)
+        self.connect(src_name='time', tgt_name='timeseries.segend_values:time_phase',
+                     src_indices=src_idxs, flat_src_indices=True)
+
+        for name, options in iteritems(self.state_options):
+            timeseries_comp._add_timeseries_output('states:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=options['units'])
+            row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
+            row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
+            src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
+            self.connect(src_name='states:{0}'.format(name),
+                         tgt_name='timeseries.segend_values:states:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+        for name, options in iteritems(self.control_options):
+            control_units = options['units']
+            timeseries_comp._add_timeseries_output('controls:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=control_units)
+            src_rows = gd.subset_node_indices['all']
+            src_idxs = get_src_indices_by_row(src_rows, options['shape'])
+            self.connect(src_name='control_interp_comp.control_values:{0}'.format(name),
+                         tgt_name='timeseries.segend_values:controls:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+            # # Control rates
+            timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=get_rate_units(control_units,
+                                                                        time_units,
+                                                                        deriv=1))
+            self.connect(src_name='control_rates:{0}_rate'.format(name),
+                         tgt_name='timeseries.segend_values:control_rates:{0}_rate'.format(name))
+
+            # Control second derivatives
+            timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=get_rate_units(control_units,
+                                                                        time_units,
+                                                                        deriv=2))
+            self.connect(src_name='control_rates:{0}_rate2'.format(name),
+                         tgt_name='timeseries.segend_values:control_rates:{0}_rate2'.format(name))
+
+        for name, options in iteritems(self.design_parameter_options):
+            units = options['units']
+            timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=units)
+
+            if self.ode_options._parameters[name]['dynamic']:
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+
+            self.connect(src_name='design_parameters:{0}'.format(name),
+                         tgt_name='timeseries.segend_values:design_parameters:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+        for name, options in iteritems(self.input_parameter_options):
+            units = options['units']
+            timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   units=units)
+
+            if self.ode_options._parameters[name]['dynamic']:
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+
+            self.connect(src_name='input_parameters:{0}_out'.format(name),
+                         tgt_name='timeseries.segend_values:input_parameters:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+        for name, options in iteritems(self.traj_parameter_options):
+            units = options['units']
+            timeseries_comp._add_timeseries_output('traj_parameters:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   units=units)
+
+            if self.ode_options._parameters[name]['dynamic']:
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+
+            self.connect(src_name='traj_parameters:{0}_out'.format(name),
+                         tgt_name='timeseries.segend_values:traj_parameters:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+        for var, options in iteritems(self._timeseries_outputs):
+            output_name = options['output_name']
+
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = self._classify_var(var)
+
+            # Failed to find variable, assume it is in the RHS
+            self.connect(src_name='ode.{0}'.format(var),
+                         tgt_name='timeseries.segend_values:{0}'.format(output_name))
+
+            kwargs = options.copy()
+            kwargs.pop('output_name', None)
+            timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
 
     def _get_parameter_connections(self, name):
         """

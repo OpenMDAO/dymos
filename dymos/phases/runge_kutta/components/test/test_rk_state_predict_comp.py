@@ -177,8 +177,6 @@ class TestRKStatePredictComp(unittest.TestCase):
 
         p.run_model()
 
-        print(p.get_val('c.predicted_states:y'))
-
         expected = np.array([[0.50000000, 2.639602661132812],
                              [0.87500000, 3.299503326416016],
                              [0.95312500, 3.323853492736816],

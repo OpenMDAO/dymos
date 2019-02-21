@@ -16,20 +16,6 @@ class RungeKuttaKIterGroup(Group):
     Given the initial values of the states, the times at the ODE evaluations, and the stepsize
     across each segment it will iterate to find the Runge-Kutta weights 'k'.
     """
-    def __init__(self, get_rate_source_path, **kwargs):
-        """
-
-        Parameters
-        ----------
-        get_rate_source_path : callable
-            The function or method used to provide state rate source path information.  Nominally
-            this is the _get_rate_source_path method of the parent phase but for testing purposes
-            it is convenient to override it so an entire Phase does not need to be included in the
-            test.
-        """
-        self._get_rate_source_path = get_rate_source_path
-        super(RungeKuttaKIterGroup, self).__init__(**kwargs)
-
     def initialize(self):
 
         self.options.declare('num_segments', types=int,
@@ -88,12 +74,12 @@ class RungeKuttaKIterGroup(Group):
             self.connect('state_predict_comp.predicted_states:{0}'.format(state_name),
                              ['ode.{0}'.format(tgt) for tgt in options['targets']])
 
-            # Connect the state rate source to the k comp
-            rate_path, src_idxs = self._get_rate_source_path(state_name)
-            self.connect(rate_path,
-                         'k_comp.f:{0}'.format(state_name),
-                         src_indices=src_idxs,
-                         flat_src_indices=True)
+            # # Connect the state rate source to the k comp
+            # rate_path, src_idxs = self._get_rate_source_path(state_name)
+            # self.connect(rate_path,
+            #              'k_comp.f:{0}'.format(state_name),
+            #              src_indices=src_idxs,
+            #              flat_src_indices=True)
 
             # Connect the k value associated with the state to the state predict comp
             self.connect('k_comp.k:{0}'.format(state_name),

@@ -27,11 +27,9 @@ rk_methods : dict of dict of {str: object}
 
 import numpy as np
 
-from .lgl import lgl
-
 rk_methods = {'rk4': {'num_stages': 4,
-                      'control_order': 3,
                       'c': np.array([0., 0.5, 0.5, 1.0]),
+                      'control_disc_indices': [0, 1, 3],
                       'b': np.array([1/6, 1/3, 1/3, 1/6]),
                       'b_err': np.array([1/6, 1/3, 1/3, 1/6]),
                       'A': np.array([[0.0, 0.0, 0.0, 0.0],

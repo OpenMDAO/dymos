@@ -28,19 +28,5 @@ class TestODE(ExplicitComponent):
     def compute_partials(self, inputs, partials):
         partials['ydot', 't'] = -2 * inputs['t']
 
-
-def get_rate_source_path_1D(state_name, nodes=None, **kwargs):
-    """
-    Function to provide debug capability.  Provides a lookup mechanism for the k iter group
-    to determine the rate source path of the state variables.
-    """
-    shape = (1,)
-    num_segments = 4
-    num_stages = 4
-
-    rate_path = 'ode.ydot'
-    state_size = np.prod(shape)
-    size = num_segments * num_stages * state_size
-    src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
-
-    return rate_path, src_idxs
+def test_ode_solution(y, t):
+    return t**2 + 2*t + 1 - 0.5 * np.exp(t)

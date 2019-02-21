@@ -11,7 +11,7 @@ from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
 
 from dymos.phases.runge_kutta.components import RungeKuttaContinuityIterGroup, \
     RungeKuttaStepsizeComp
-from dymos.phases.runge_kutta.test.rk_test_ode import TestODE, get_rate_source_path_1D
+from dymos.phases.runge_kutta.test.rk_test_ode import TestODE
 
 
 class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
@@ -34,7 +34,6 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
 
         p.model.add_subsystem('cnty_iter_group',
                               RungeKuttaContinuityIterGroup(
-                                  get_rate_source_path=get_rate_source_path_1D,
                                   num_segments=num_seg,
                                   method='rk4',
                                   state_options=state_options,
@@ -47,6 +46,10 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
 
         p.model.connect('h', 'cnty_iter_group.h')
         p.model.connect('time', 'cnty_iter_group.ode.t')
+
+        src_idxs = np.arange(16, dtype=int).reshape((num_seg, 4, 1))
+        p.model.connect('cnty_iter_group.ode.ydot', 'cnty_iter_group.k_comp.f:y',
+                        src_indices=src_idxs, flat_src_indices=True)
 
         p.model.nonlinear_solver = NonlinearRunOnce()
         p.model.linear_solver = DirectSolver()
@@ -127,7 +130,6 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
 
         p.model.add_subsystem('cnty_iter_group',
                               RungeKuttaContinuityIterGroup(
-                                  get_rate_source_path=get_rate_source_path_1D,
                                   num_segments=num_seg,
                                   method='rk4',
                                   state_options=state_options,
@@ -140,6 +142,10 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
 
         p.model.connect('h', 'cnty_iter_group.h')
         p.model.connect('time', 'cnty_iter_group.ode.t')
+
+        src_idxs = np.arange(16, dtype=int).reshape((num_seg, 4, 1))
+        p.model.connect('cnty_iter_group.ode.ydot', 'cnty_iter_group.k_comp.f:y',
+                        src_indices=src_idxs, flat_src_indices=True)
 
         p.model.nonlinear_solver = NonlinearRunOnce()
         p.model.linear_solver = DirectSolver()

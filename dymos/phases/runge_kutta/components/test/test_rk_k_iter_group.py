@@ -10,7 +10,7 @@ from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, Nonline
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.phases.runge_kutta.components.runge_kutta_k_iter_group import RungeKuttaKIterGroup
-from dymos.phases.runge_kutta.test.rk_test_ode import TestODE, get_rate_source_path_1D
+from dymos.phases.runge_kutta.test.rk_test_ode import TestODE
 
 
 class TestRungeKuttaKIterGroup(unittest.TestCase):
@@ -29,8 +29,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
         ivc.add_output('t', shape=(num_seg * num_stages, 1), units='s')
 
         p.model.add_subsystem('k_iter_group',
-                              RungeKuttaKIterGroup(get_rate_source_path=get_rate_source_path_1D,
-                                                   num_segments=num_seg,
+                              RungeKuttaKIterGroup(num_segments=num_seg,
                                                    method='rk4',
                                                    state_options=state_options,
                                                    time_units='s',
@@ -41,6 +40,10 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
         p.model.connect('t', 'k_iter_group.ode.t')
         p.model.connect('h', 'k_iter_group.h')
         p.model.connect('initial_states:y', 'k_iter_group.initial_states:y')
+
+        src_idxs = np.arange(16, dtype=int).reshape((num_seg, num_stages, 1))
+        p.model.connect('k_iter_group.ode.ydot', 'k_iter_group.k_comp.f:y',
+                        src_indices=src_idxs, flat_src_indices=True)
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -101,8 +104,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
         ivc.add_output('t', shape=(num_seg * num_stages, 1), units='s')
 
         p.model.add_subsystem('k_iter_group',
-                              RungeKuttaKIterGroup(get_rate_source_path=get_rate_source_path_1D,
-                                                   num_segments=num_seg,
+                              RungeKuttaKIterGroup(num_segments=num_seg,
                                                    method='rk4',
                                                    state_options=state_options,
                                                    time_units='s',
@@ -114,6 +116,10 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
         p.model.connect('t', 'k_iter_group.ode.t')
         p.model.connect('h', 'k_iter_group.h')
         p.model.connect('initial_states:y', 'k_iter_group.initial_states:y')
+
+        src_idxs = np.arange(16, dtype=int).reshape((num_seg, num_stages, 1))
+        p.model.connect('k_iter_group.ode.ydot', 'k_iter_group.k_comp.f:y',
+                        src_indices=src_idxs, flat_src_indices=True)
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -157,8 +163,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
         ivc.add_output('t', shape=(num_seg * num_stages, 1), units='s')
 
         p.model.add_subsystem('k_iter_group',
-                              RungeKuttaKIterGroup(get_rate_source_path=get_rate_source_path_1D,
-                                                   num_segments=num_seg,
+                              RungeKuttaKIterGroup(num_segments=num_seg,
                                                    method='rk4',
                                                    state_options=state_options,
                                                    time_units='s',
@@ -170,6 +175,10 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
         p.model.connect('t', 'k_iter_group.ode.t')
         p.model.connect('h', 'k_iter_group.h')
         p.model.connect('initial_states:y', 'k_iter_group.initial_states:y')
+
+        src_idxs = np.arange(16, dtype=int).reshape((num_seg, num_stages, 1))
+        p.model.connect('k_iter_group.ode.ydot', 'k_iter_group.k_comp.f:y',
+                        src_indices=src_idxs, flat_src_indices=True)
 
         p.setup(check=True, force_alloc_complex=True)
 
