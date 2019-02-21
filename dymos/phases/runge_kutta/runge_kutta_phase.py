@@ -529,7 +529,7 @@ class RungeKuttaPhase(PhaseBase):
         timeseries_comp._add_timeseries_output('time_phase',
                                                var_class=self._classify_var('time_phase'),
                                                units=time_units)
-        self.connect(src_name='time', tgt_name='timeseries.segend_values:time_phase',
+        self.connect(src_name='time_phase', tgt_name='timeseries.segend_values:time_phase',
                      src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in iteritems(self.state_options):

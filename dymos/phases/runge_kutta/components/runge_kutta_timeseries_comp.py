@@ -30,23 +30,17 @@ class RungeKuttaTimeseriesOutputComp(TimeseriesOutputCompBase):
             self._vars.append((input_name, output_name, kwargs['shape']))
 
             # Setup partials
-            all_shape = (num_nodes,) + kwargs['shape']
-            var_size = np.prod(kwargs['shape'])
-            all_size = np.prod(all_shape)
+            segend_shape = (num_nodes,) + kwargs['shape']
+            segend_size = np.prod(segend_shape)
 
-            all_row_starts = grid_data.subset_node_indices['all'] * var_size
-            all_rows = []
-            for i in all_row_starts:
-                all_rows.extend(range(i, i + var_size))
-            all_rows = np.asarray(all_rows, dtype=int)
+            ar = np.arange(segend_size)
 
-            # self.declare_partials(
-            #     of=output_name,
-            #     wrt=input_name,
-            #     dependent=True,
-            #     rows=all_rows,
-            #     cols=np.arange(all_size),
-            #     val=1.0)
+            self.declare_partials(
+                of=output_name,
+                wrt=input_name,
+                rows=ar,
+                cols=ar,
+                val=1.0)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for (input_name, output_name, _) in self._vars:
