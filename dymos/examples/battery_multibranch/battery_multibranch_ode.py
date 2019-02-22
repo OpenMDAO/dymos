@@ -10,8 +10,8 @@ from openmdao.api import Group, BalanceComp, NewtonSolver, DirectSolver
 
 from dymos import declare_time, declare_state
 
-from batteries import Battery
-from motors import Motors
+from dymos.examples.battery_multibranch.batteries import Battery
+from dymos.examples.battery_multibranch.motors import Motors
 
 
 @declare_time(units='s')

@@ -12,7 +12,8 @@ except ImportError:
 
 import numpy as np
 
-from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Problem, SqliteRecorder
+from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Problem, \
+     SqliteRecorder, BalanceComp
 
 from ..utils.constants import INF_BOUND
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
@@ -40,7 +41,11 @@ class Trajectory(Group):
         """
         Declare any options for Trajectory.
         """
-        pass
+        self.options.declare('phase_linkages', default='constrained',
+                             values=('solved', 'constrained'),
+                             desc="Method to handle linkages. Set to 'constrained' (default) to "
+                                  "let the optimizer handle them, or set to 'solved' to create a "
+                                  "BalanceComponent for a solver to converge.")
 
     def add_phase(self, name, phase, **kwargs):
         """
@@ -243,7 +248,10 @@ class Trajectory(Group):
                     self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_linkages(self):
-        link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
+        if self.options['phase_linkages'] == 'constrained':
+            link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
+        else:
+            link_comp = self.add_subsystem('linkages', BalanceComp())
 
         print('--- Linkage Report [{0}] ---'.format(self.pathname))
 
@@ -278,9 +286,12 @@ class Trajectory(Group):
                 else:
                     units_map[var] = None
 
-            link_comp.add_linkage(name=linkage_name,
-                                  vars=varnames,
-                                  units=units_map)
+            if self.options['phase_linkages'] == 'constrained':
+                link_comp.add_linkage(name=linkage_name,
+                                      vars=varnames,
+                                      units=units_map)
+            else:
+                pass
 
             for var, options in iteritems(vars):
                 loc1, loc2 = options['locs']
@@ -306,8 +317,11 @@ class Trajectory(Group):
                 elif var in p2_design_parameters:
                     source2 = 'design_parameters:{0}'.format(var)
 
-                self.connect('{0}.{1}'.format(phase_name2, source2),
-                             'linkages.{0}_{1}:rhs'.format(linkage_name, var))
+                if self.options['phase_linkages'] == 'constrained':
+                    self.connect('{0}.{1}'.format(phase_name2, source2),
+                                 'linkages.{0}_{1}:rhs'.format(linkage_name, var))
+                else:
+                    pass
 
                 print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
                                                               max_varname_length + 9))

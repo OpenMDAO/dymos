@@ -132,50 +132,63 @@ if __name__ == '__main__':
         import matplotlib.pyplot as plt
         traj = prob.model.traj
 
-        t_all = traj.get_values('time')
-        t = np.vstack((t_all['phase0'], t_all['phase1'])) / 3600
-        soc_all = traj.get_values('state_of_charge')
-        soc = np.vstack((soc_all['phase0'], soc_all['phase1']))
+        t0 = prob['traj.phases.phase0.time.time']/3600
+        t1 = prob['traj.phases.phase1.time.time']/3600
+        t1b = prob['traj.phases.phase1_bfail.time.time']/3600
+        t1m = prob['traj.phases.phase1_mfail.time.time']/3600
+        soc0 = prob['traj.phases.phase0.indep_states.states:state_of_charge']
+        soc1 = prob['traj.phases.phase1.indep_states.states:state_of_charge']
+        soc1b = prob['traj.phases.phase1_bfail.indep_states.states:state_of_charge']
+        soc1m = prob['traj.phases.phase1_mfail.indep_states.states:state_of_charge']
 
         #plt.figure(1)
         plt.subplot(2, 2, 1)
-        plt.plot(t, soc)
-        plt.plot(t_all['phase1_bfail']/3600, soc_all['phase1_bfail'], 'r')
-        plt.plot(t_all['phase1_mfail']/3600, soc_all['phase1_mfail'], 'c')
+        plt.plot(t0, soc0, 'b')
+        plt.plot(t1, soc1, 'b')
+        plt.plot(t1b, soc1b, 'r')
+        plt.plot(t1m, soc1m, 'c')
         plt.xlabel('Time (hour)')
         plt.ylabel('State of Charge (percent)')
 
-        V_oc_all = traj.get_values('battery.V_oc')
-        V_oc = np.vstack((V_oc_all['phase0'], V_oc_all['phase1']))
+        V_oc0 = prob['traj.phases.phase0.rhs_all.battery.V_oc']
+        V_oc1 = prob['traj.phases.phase1.rhs_all.battery.V_oc']
+        V_oc1b = prob['traj.phases.phase1_bfail.rhs_all.battery.V_oc']
+        V_oc1m = prob['traj.phases.phase1_mfail.rhs_all.battery.V_oc']
 
         #plt.figure(2)
         plt.subplot(2, 2, 2)
-        plt.plot(t, V_oc)
-        plt.plot(t_all['phase1_bfail']/3600, V_oc_all['phase1_bfail'], 'r')
-        plt.plot(t_all['phase1_mfail']/3600, V_oc_all['phase1_mfail'], 'c')
+        plt.plot(t0, V_oc0, 'b')
+        plt.plot(t1, V_oc1, 'b')
+        plt.plot(t1b, V_oc1b, 'r')
+        plt.plot(t1m, V_oc1m, 'c')
         plt.xlabel('Time (hour)')
         plt.ylabel('Open Circuit Voltage (V)')
 
-        V_pack_all = traj.get_values('battery.V_pack')
-        Vline = np.vstack((V_pack_all['phase0'], V_pack_all['phase1']))
+        V_pack0 = prob['traj.phases.phase0.rhs_all.battery.V_pack']
+        V_pack1 = prob['traj.phases.phase1.rhs_all.battery.V_pack']
+        V_pack1b = prob['traj.phases.phase1_bfail.rhs_all.battery.V_pack']
+        V_pack1m = prob['traj.phases.phase1_mfail.rhs_all.battery.V_pack']
 
         #plt.figure(3)
         plt.subplot(2, 2, 3)
-        plt.plot(t, Vline)
-        plt.plot(t_all['phase1_bfail']/3600, V_pack_all['phase1_bfail'], 'r')
-        plt.plot(t_all['phase1_mfail']/3600, V_pack_all['phase1_mfail'], 'c')
+        plt.plot(t0, V_pack0, 'b')
+        plt.plot(t1, V_pack1, 'b')
+        plt.plot(t1b, V_pack1b, 'r')
+        plt.plot(t1m, V_pack1m, 'c')
         plt.xlabel('Time (hour)')
         plt.ylabel('Terminal Voltage (V)')
-        plt.show()
 
-        I_Li_all = traj.get_values('pwr_balance.I_Li')
-        I_Li = np.vstack((I_Li_all['phase0'], I_Li_all['phase1']))
+        I_Li0 = prob['traj.phases.phase0.rhs_all.pwr_balance.I_Li']
+        I_Li1 = prob['traj.phases.phase1.rhs_all.pwr_balance.I_Li']
+        I_Li1b = prob['traj.phases.phase1_bfail.rhs_all.pwr_balance.I_Li']
+        I_Li1m = prob['traj.phases.phase1_mfail.rhs_all.pwr_balance.I_Li']
 
         #plt.figure(4)
         plt.subplot(2, 2, 4)
-        plt.plot(t, I_Li)
-        plt.plot(t_all['phase1_bfail']/3600, I_Li_all['phase1_bfail'], 'r')
-        plt.plot(t_all['phase1_mfail']/3600, I_Li_all['phase1_mfail'], 'c')
+        plt.plot(t0, I_Li0, 'b')
+        plt.plot(t1, I_Li1, 'b')
+        plt.plot(t1b, I_Li1b, 'r')
+        plt.plot(t1m, I_Li1m, 'c')
         plt.xlabel('Time (hour)')
         plt.ylabel('Line Current (A)')
 
