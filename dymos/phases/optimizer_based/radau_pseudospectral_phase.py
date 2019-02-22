@@ -307,12 +307,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                    shape=options['shape'],
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='design_parameters:{0}'.format(name),
                          tgt_name='timeseries.all_values:design_parameters:{0}'.format(name),
@@ -322,14 +318,11 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             units = options['units']
             timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
                                                    var_class=self._classify_var(name),
+                                                   shape=options['shape'],
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='input_parameters:{0}_out'.format(name),
                          tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
