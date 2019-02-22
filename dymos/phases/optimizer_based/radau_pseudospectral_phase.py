@@ -126,14 +126,12 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             if self.ode_options._parameters[name]['dynamic']:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                if shape == (1,):
+                    src_idxs = src_idxs.ravel()
             else:
                 src_idxs_raw = np.zeros(1, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
-
-            if not dynamic:
                 src_idxs = np.squeeze(src_idxs, axis=0)
-            elif shape == (1,):
-                src_idxs = src_idxs.ravel()
 
             rhs_all_tgts = ['rhs_all.{0}'.format(t) for t in targets]
             connection_info.append((rhs_all_tgts, src_idxs))

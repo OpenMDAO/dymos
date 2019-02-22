@@ -162,16 +162,12 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                 col_rows = np.zeros(self.grid_data.subset_num_nodes['col'], dtype=int)
                 disc_src_idxs = get_src_indices_by_row(disc_rows, shape)
                 col_src_idxs = get_src_indices_by_row(col_rows, shape)
+                if shape == (1,):
+                    disc_src_idxs = disc_src_idxs.ravel()
+                    col_src_idxs = col_src_idxs.ravel()
             else:
                 disc_src_idxs = np.squeeze(get_src_indices_by_row([0], shape), axis=0)
                 col_src_idxs = np.squeeze(get_src_indices_by_row([0], shape), axis=0)
-
-            if not dynamic:
-                disc_src_idxs = np.squeeze(disc_src_idxs, axis=0)
-                col_src_idxs = np.squeeze(col_src_idxs, axis=0)
-            elif shape == (1,):
-                disc_src_idxs = disc_src_idxs.ravel()
-                col_src_idxs = col_src_idxs.ravel()
 
             rhs_disc_tgts = ['rhs_disc.{0}'.format(t) for t in targets]
             connection_info.append((rhs_disc_tgts, disc_src_idxs))
