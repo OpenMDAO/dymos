@@ -95,7 +95,8 @@ class PhaseBase(Group):
     def set_state_options(self, name, units=_unspecified, val=1.0,
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
-                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None):
+                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
+                          solve_segments=False):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -134,6 +135,10 @@ class PhaseBase(Group):
         defect_ref : float or ndarray (1.0)
             The unit-reference value of the state defect at the collocation nodes of the phase. If
             provided, this value overrides defect_scaler.
+        solve_segments : bool(False)
+            If True, a solver will be used to converge the collocation defects within a segment.
+            Note that the state continuity defects between segements will still be
+            handled by the optimizer.
 
         """
         if units is not _unspecified:
@@ -151,6 +156,7 @@ class PhaseBase(Group):
         self.state_options[name]['ref0'] = ref0
         self.state_options[name]['defect_scaler'] = defect_scaler
         self.state_options[name]['defect_ref'] = defect_ref
+        self.state_options[name]['solve_segments'] = solve_segments
 
     def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,
@@ -1123,11 +1129,12 @@ class PhaseBase(Group):
             self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
                                promotes_outputs=['*'])
 
-        for name, options in iteritems(self.input_parameter_options):
+        for name in self.input_parameter_options:
             src_name = 'input_parameters:{0}_out'.format(name)
 
             for tgts, src_idxs in self._get_parameter_connections(name):
-                self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
+                self.connect(src_name, [t for t in tgts],
+                             src_indices=src_idxs, flat_src_indices=True)
 
     def _setup_traj_input_parameters(self):
         """
@@ -1452,22 +1459,22 @@ class PhaseBase(Group):
         op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
                                                                                  out_stream=None)])
         # Assign initial state values
-        for name, options in iteritems(self.state_options):
+        for name in self.state_options:
             op = op_dict['{0}.timeseries.states:{1}'.format(self.name, name)]
             sim_prob['{0}.initial_states:{1}'.format(self.name, name)] = op['value'][0, ...]
 
         # Assign control values at all nodes
-        for name, options in iteritems(self.control_options):
+        for name in self.control_options:
             op = op_dict['{0}.control_interp_comp.control_values:{1}'.format(self.name, name)]
             sim_prob['{0}.implicit_controls:{1}'.format(self.name, name)] = op['value']
 
         # Assign design parameter values
-        for name, options in iteritems(self.design_parameter_options):
+        for name in self.design_parameter_options:
             op = op_dict['{0}.design_params.design_parameters:{1}'.format(self.name, name)]
             sim_prob['{0}.design_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
 
         # Assign input parameter values
-        for name, options in iteritems(self.input_parameter_options):
+        for name in self.input_parameter_options:
             op = op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.name, name)]
             sim_prob['{0}.input_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
 

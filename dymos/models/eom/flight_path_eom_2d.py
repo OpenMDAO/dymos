@@ -156,3 +156,12 @@ class FlightPathEOM2D(ExplicitComponent):
 
         partials['r_dot', 'gam'] = -v * sgam
         partials['r_dot', 'v'] = cgam
+
+if __name__ == "__main__":
+
+    from openmdao.api import Problem
+    p = Problem()
+    p.model = FlightPathEOM2D(num_nodes=2)
+
+    p.setup(force_alloc_complex=True)
+    p.check_partials(method='cs')

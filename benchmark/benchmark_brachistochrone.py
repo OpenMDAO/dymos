@@ -48,8 +48,7 @@ class BenchmarkBrachistochrone(unittest.TestCase):
                                                         optimizer='SNOPT',
                                                         num_segments=30,
                                                         transcription_order=3,
-                                                        compressed=True,
-                                                        dynamic_simul_derivs=True)
+                                                        compressed=True)
         self.run_asserts(p)
 
     def benchmark_radau_30_3_color_simul_uncompressed_snopt(self):
@@ -58,18 +57,7 @@ class BenchmarkBrachistochrone(unittest.TestCase):
                                                         optimizer='SNOPT',
                                                         num_segments=30,
                                                         transcription_order=3,
-                                                        compressed=False,
-                                                        dynamic_simul_derivs=True)
-        self.run_asserts(p)
-
-    def benchmark_radau_30_3_nocolor_nosimul_compressed_snopt(self):
-        ex_brachistochrone.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        optimizer='SNOPT',
-                                                        num_segments=30,
-                                                        transcription_order=3,
-                                                        compressed=True,
-                                                        dynamic_simul_derivs=False)
+                                                        compressed=False)
         self.run_asserts(p)
 
     def benchmark_gl_30_3_color_simul_compressed_snopt(self):
@@ -78,8 +66,7 @@ class BenchmarkBrachistochrone(unittest.TestCase):
                                                         optimizer='SNOPT',
                                                         num_segments=30,
                                                         transcription_order=3,
-                                                        compressed=True,
-                                                        dynamic_simul_derivs=True)
+                                                        compressed=True)
         self.run_asserts(p)
 
     def benchmark_gl_30_3_color_simul_uncompressed_snopt(self):
@@ -88,16 +75,5 @@ class BenchmarkBrachistochrone(unittest.TestCase):
                                                         optimizer='SNOPT',
                                                         num_segments=30,
                                                         transcription_order=3,
-                                                        compressed=False,
-                                                        dynamic_simul_derivs=True)
-        self.run_asserts(p)
-
-    def benchmark_gl_30_3_nocolor_nosimul_compressed_snopt(self):
-        ex_brachistochrone.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        optimizer='SNOPT',
-                                                        num_segments=30,
-                                                        transcription_order=3,
-                                                        compressed=True,
-                                                        dynamic_simul_derivs=False)
+                                                        compressed=False)
         self.run_asserts(p)

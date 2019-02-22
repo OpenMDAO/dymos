@@ -314,6 +314,10 @@ class StateOptionsDictionary(OptionsDictionary):
                      desc='Enforce continuity of state values at segment boundaries. This '
                           'option is invalid if opt=False.')
 
+        self.declare('solve_segments', default=False, types=bool,
+                     desc='setting to control if segment collocation defects are '
+                          'solved with a newton solver')
+
 
 class TimeOptionsDictionary(OptionsDictionary):
     """

@@ -16,15 +16,15 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                              run_driver=True, compressed=True, optimizer='SLSQP'):
     p = Problem(model=Group())
 
-    if optimizer == 'SNOPT':
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = optimizer
-        p.driver.opt_settings['Major iterations limit'] = 100
-        p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
-        p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-        p.driver.opt_settings['iSumm'] = 6
-    else:
-        p.driver = ScipyOptimizeDriver()
+    # if optimizer == 'SNOPT':
+    p.driver = pyOptSparseDriver()
+    p.driver.options['optimizer'] = optimizer
+    #     p.driver.opt_settings['Major iterations limit'] = 100
+    #     p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
+    #     p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
+    #     p.driver.opt_settings['iSumm'] = 6
+    # else:
+    #     p.driver = ScipyOptimizeDriver()
 
     p.driver.options['dynamic_simul_derivs'] = True
 
@@ -113,3 +113,6 @@ if __name__ == '__main__':
     brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10, run_driver=True,
                              transcription_order=3, compressed=True,
                              optimizer='SNOPT')
+    # brachistochrone_min_time(transcription='radau-ps', num_segments=10, run_driver=True,
+    #                          top_level_jacobian='csc', transcription_order=3, compressed=True,
+    #                          optimizer='SNOPT')
