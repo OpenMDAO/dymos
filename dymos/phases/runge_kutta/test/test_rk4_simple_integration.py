@@ -12,9 +12,9 @@ from dymos.phases.runge_kutta.test.rk_test_ode import TestODE, test_ode_solution
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
-class TestRungeKuttaPhase(unittest.TestCase):
+class TestRK4SimpleIntegration(unittest.TestCase):
 
-    def test_single_segment_simple_integration_forward_fixed_initial(self):
+    def test_simple_integration_forward_fixed_initial(self):
 
         p = Problem(model=Group())
         phase = p.model.add_subsystem(
@@ -44,7 +44,7 @@ class TestRungeKuttaPhase(unittest.TestCase):
         expected = test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])
         assert_rel_error(self, p['phase0.ode.y'], expected, tolerance=1.0E-3)
 
-    def test_single_segment_simple_integration_backward_fixed_final(self):
+    def test_simple_integration_backward_fixed_final(self):
 
         p = Problem(model=Group())
         phase = p.model.add_subsystem(
@@ -75,7 +75,7 @@ class TestRungeKuttaPhase(unittest.TestCase):
         expected = np.atleast_2d(test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])).T
         assert_rel_error(self, p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
 
-    def test_single_segment_simple_integration_forward_fixed_final(self):
+    def test_simple_integration_forward_fixed_final(self):
 
         p = Problem(model=Group())
         phase = p.model.add_subsystem(
@@ -94,7 +94,7 @@ class TestRungeKuttaPhase(unittest.TestCase):
             phase.set_state_options('y', fix_final=True)
         self.assertEqual(str(e.exception), expected)
 
-    def test_single_segment_simple_integration_backward_fixed_initial(self):
+    def test_simple_integration_backward_fixed_initial(self):
 
         p = Problem(model=Group())
         phase = p.model.add_subsystem(

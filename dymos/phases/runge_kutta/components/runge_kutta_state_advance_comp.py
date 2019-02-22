@@ -61,9 +61,6 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
                                   wrt=self._var_names[name]['initial'],
                                   rows=r, cols=c, val=1.0)
 
-            r = np.repeat(np.arange(num_segs * size, dtype=int), num_stages)
-            c = np.arange(num_segs * num_stages * size, dtype=int)
-
             p = np.kron(rk_data['b'], np.eye(size))
             p = block_diag(*num_segs*[p])
             r, c = p.nonzero()

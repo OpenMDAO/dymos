@@ -130,8 +130,8 @@ class RungeKuttaPhase(PhaseBase):
                 self.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts],
                              src_indices=self.grid_data.subset_node_indices['all'][::-1])
 
-        self.connect('time', ['ode.{0}'.format(t) for t in time_tgts],
-                     src_indices=self.grid_data.subset_node_indices['segment_ends'])
+            self.connect('time', ['ode.{0}'.format(t) for t in time_tgts],
+                         src_indices=self.grid_data.subset_node_indices['segment_ends'])
 
         if self.time_options['time_phase_targets']:
             time_phase_tgts = self.time_options['time_phase_targets']
@@ -281,15 +281,52 @@ class RungeKuttaPhase(PhaseBase):
                                         indices=desvar_indices)
 
     def _setup_controls(self):
-        pass
-        # super(RungeKuttaPhase, self)._setup_controls()
-        # gd = self.grid_data
-        # for name, options in iteritems(self.control_options):
-        #     for iseg in range(gd.num_segments):
-        #         i1, i2 = gd.subset_segment_indices['control_disc'][iseg]
-        #         self.connect('control_interp_comp.control_values:{0}'.format(name),
-        #                      'seg_{0}.disc_controls:{1}'.format(iseg, name),
-        #                      src_indices=np.arange(i1, i2, dtype=int))
+        num_dynamic = super(RungeKuttaPhase, self)._setup_controls()
+        grid_data = self.grid_data
+
+        for name, options in iteritems(self.control_options):
+            segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+            all_idxs = grid_data.subset_node_indices['all']
+            segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=options['shape'])
+            all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
+
+
+            if name in self.ode_options._parameters:
+                src_name = 'control_interp_comp.control_values:{0}'.format(name)
+                targets = self.ode_options._parameters[name]['targets']
+                self.connect(src_name,
+                             ['ode.{0}'.format(t) for t in targets],
+                             src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
+
+                self.connect(src_name,
+                             ['rk_solve_group.ode.{0}'.format(t) for t in targets],
+                             src_indices=all_src_idxs.ravel(), flat_src_indices=True)
+
+            if options['rate_param']:
+                src_name = 'control_rates:{0}_rate'.format(name)
+                targets = self.ode_options._parameters[options['rate_param']]['targets']
+
+                self.connect(src_name,
+                             ['ode.{0}'.format(t) for t in targets],
+                             src_indices=segend_src_idxs, flat_src_indices=True)
+
+                self.connect(src_name,
+                             ['rk_solve_group.{0}'.format(t) for t in targets],
+                             src_indices=all_src_idxs, flat_src_indices=True)
+
+            if options['rate2_param']:
+                src_name = 'control_rates:{0}_rate2'.format(name)
+                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+
+                self.connect(src_name,
+                             ['ode.{0}'.format(t) for t in targets],
+                             src_indices=segend_src_idxs, flat_src_indices=True)
+
+                self.connect(src_name,
+                             ['rk_solve_group.{0}'.format(t) for t in targets],
+                             src_indices=all_src_idxs, flat_src_indices=True)
+
+        return num_dynamic
 
     def _setup_defects(self):
         """
@@ -552,7 +589,7 @@ class RungeKuttaPhase(PhaseBase):
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
                                                    units=control_units)
-            src_rows = gd.subset_node_indices['all']
+            src_rows = gd.subset_node_indices['segment_ends']
             src_idxs = get_src_indices_by_row(src_rows, options['shape'])
             self.connect(src_name='control_interp_comp.control_values:{0}'.format(name),
                          tgt_name='timeseries.segend_values:controls:{0}'.format(name),
@@ -566,7 +603,8 @@ class RungeKuttaPhase(PhaseBase):
                                                                         time_units,
                                                                         deriv=1))
             self.connect(src_name='control_rates:{0}_rate'.format(name),
-                         tgt_name='timeseries.segend_values:control_rates:{0}_rate'.format(name))
+                         tgt_name='timeseries.segend_values:control_rates:{0}_rate'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
 
             # Control second derivatives
             timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(name),
@@ -576,7 +614,8 @@ class RungeKuttaPhase(PhaseBase):
                                                                         time_units,
                                                                         deriv=2))
             self.connect(src_name='control_rates:{0}_rate2'.format(name),
-                         tgt_name='timeseries.segend_values:control_rates:{0}_rate2'.format(name))
+                         tgt_name='timeseries.segend_values:control_rates:{0}_rate2'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in iteritems(self.design_parameter_options):
             units = options['units']
@@ -586,7 +625,7 @@ class RungeKuttaPhase(PhaseBase):
                                                    units=units)
 
             if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
             else:
                 src_idxs_raw = np.zeros(1, dtype=int)
@@ -603,7 +642,7 @@ class RungeKuttaPhase(PhaseBase):
                                                    units=units)
 
             if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
             else:
                 src_idxs_raw = np.zeros(1, dtype=int)
@@ -620,7 +659,7 @@ class RungeKuttaPhase(PhaseBase):
                                                    units=units)
 
             if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
             else:
                 src_idxs_raw = np.zeros(1, dtype=int)
@@ -659,17 +698,20 @@ class RungeKuttaPhase(PhaseBase):
             given design variable is to be connected.
         """
         connection_info = []
-        template = 'seg_{0}.stage_ode.{1}'
+        num_seg = self.grid_data.num_segments
         num_stages = rk_methods[self.options['method']]['num_stages']
+        num_iter_ode_nodes = num_seg * num_stages
+        num_final_ode_nodes = 2 * num_seg
 
         if name in self.ode_options._parameters:
             ode_tgts = self.ode_options._parameters[name]['targets']
 
-            for i in range(self.grid_data.num_segments):
-                num_steps = self.grid_data.num_steps_per_segment[i]
-                num_nodes = num_stages * num_steps
-                src_idxs = [0] * num_nodes
-                connection_info.append(([template.format(i, t) for t in ode_tgts], src_idxs))
+            src_idxs = np.zeros(num_final_ode_nodes, dtype=int)
+            connection_info.append((['ode.{0}'.format(tgt) for tgt in ode_tgts], src_idxs))
+
+            src_idxs = np.zeros(num_iter_ode_nodes, dtype=int)
+            connection_info.append((['rk_solve_group.ode.{0}'.format(tgt) for tgt in ode_tgts],
+                                    src_idxs))
 
         return connection_info
 
@@ -783,8 +825,6 @@ class RungeKuttaPhase(PhaseBase):
             If True, vectorize derivative calculations.
         """
         var_type = self._classify_var(name)
-        gd = self.grid_data
-        num_seg = gd.num_segments
 
         # Determine the path to the variable
         if var_type == 'time':
@@ -792,10 +832,7 @@ class RungeKuttaPhase(PhaseBase):
         elif var_type == 'time_phase':
             obj_path = 'time_phase'
         elif var_type == 'state':
-            if loc == 'initial':
-                obj_path = 'seg_{0}.step_states:{1}'.format(0, name)
-            else:
-                obj_path = 'seg_{0}.step_states:{1}'.format(num_seg - 1, name)
+            obj_path = 'timeseries.states:{0}'.format(name)
         elif var_type == 'indep_control':
             obj_path = 'control_interp_comp.control_values:{0}'.format(name)
         elif var_type == 'input_control':
@@ -812,10 +849,7 @@ class RungeKuttaPhase(PhaseBase):
             obj_path = 'input_parameters:{0}_out'.format(name)
         else:
             # Failed to find variable, assume it is in the RHS
-            if loc == 'initial':
-                obj_path = 'seg_{0}.stage_ode.{1}'.format(0, name)
-            else:
-                obj_path = 'seg_{0}.stage_ode.{1}'.format(num_seg - 1, name)
+            obj_path = 'ode.{0}'.format(name)
 
         super(RungeKuttaPhase, self)._add_objective(obj_path, loc=loc, index=index, shape=shape,
                                                     ref=ref, ref0=ref0, adder=adder,
@@ -828,25 +862,24 @@ class RungeKuttaPhase(PhaseBase):
         time_units = self.time_options['units']
         var_type = self._classify_var(var)
 
-        src_seg = 'seg_{0}'.format(0 if loc == 'initial' else self.grid_data.num_segments - 1)
-
         if var_type == 'time':
             shape = (1,)
-            units = self.time_units
+            units = time_units
             linear = True
-            constraint_path = '{0}.t_step'.format(src_seg)
+            constraint_path = 'time'
         elif var_type == 'time_phase':
             shape = (1,)
-            units = self.time_units
+            units = time_units
             linear = True
-            constraint_path = '{0}.time_phase'.format(src_seg)
+            constraint_path = 'time_phase'
         elif var_type == 'state':
             state_shape = self.state_options[var]['shape']
             state_units = self.state_options[var]['units']
             shape = state_shape
             units = state_units
-            linear = True if loc == 'initial' else False
-            constraint_path = '{0}.step_states:{1}'.format(src_seg, var)
+            linear = True if loc == 'initial' and self.state_options[var]['fix_initial'] or \
+                loc == 'final' and self.state_options[var]['fix_final'] else False
+            constraint_path = 'states:{0}'.format(var)
         elif var_type in 'indep_control':
             control_shape = self.control_options[var]['shape']
             control_units = self.control_options[var]['units']
@@ -895,7 +928,7 @@ class RungeKuttaPhase(PhaseBase):
             constraint_path = 'control_rates:{0}'.format(var)
         else:
             # Failed to find variable, assume it is in the RHS
-            constraint_path = '{0}.stage_ode.{1}'.format(src_seg, var)
+            constraint_path = 'ode.{0}'.format(var)
             shape = None
             units = None
             linear = False
