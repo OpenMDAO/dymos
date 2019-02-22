@@ -38,7 +38,6 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         p.model.nonlinear_solver = NonlinearRunOnce()
         p.model.linear_solver = DirectSolver()
 
-
         p.setup(check=True, force_alloc_complex=True)
 
         p['states:y'] = np.array([[0.50000000],
@@ -135,7 +134,6 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
 
         assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
-
 
     def test_continuity_comp_newton(self):
         num_seg = 4

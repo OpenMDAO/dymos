@@ -19,7 +19,7 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_segments', types=int,
-                             desc='The number of segments (timesteps) in the phase')
+                             desc='The number of segments (time steps) in the phase')
 
         self.options.declare('method', default='rk4', values=('rk4',),
                              desc='Specific Runge-Kutta Method to use.')
@@ -76,4 +76,4 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
             k = inputs[self._var_names[name]['k']]
             b = rk_methods[self.options['method']]['b']
             out_name = self._var_names[name]['final']
-            outputs[out_name] = x0 + np.einsum('ijk,j->ik', k, b)
+            outputs[out_name] = x0 + np.einsum('ijk...,j...->ik...', k, b)

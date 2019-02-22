@@ -46,7 +46,6 @@ class RungeKuttaKIterGroup(Group):
                              desc='The options passed to the nonlinear solver used to converge the'
                                   'Runge-Kutta propagation.')
 
-
     def setup(self):
         num_seg = self.options['num_segments']
         rk_data = rk_methods[self.options['method']]
@@ -72,7 +71,7 @@ class RungeKuttaKIterGroup(Group):
         for state_name, options in iteritems(self.options['state_options']):
             # Connect the state predicted (assumed) value to its targets in the ode
             self.connect('state_predict_comp.predicted_states:{0}'.format(state_name),
-                             ['ode.{0}'.format(tgt) for tgt in options['targets']])
+                         ['ode.{0}'.format(tgt) for tgt in options['targets']])
 
             # # Connect the state rate source to the k comp
             # rate_path, src_idxs = self._get_rate_source_path(state_name)

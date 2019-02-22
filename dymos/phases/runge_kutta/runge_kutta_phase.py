@@ -290,7 +290,6 @@ class RungeKuttaPhase(PhaseBase):
             segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=options['shape'])
             all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
 
-
             if name in self.ode_options._parameters:
                 src_name = 'control_interp_comp.control_values:{0}'.format(name)
                 targets = self.ode_options._parameters[name]['targets']

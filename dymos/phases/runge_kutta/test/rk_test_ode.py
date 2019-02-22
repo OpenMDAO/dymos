@@ -4,6 +4,7 @@ import numpy as np
 from openmdao.api import ExplicitComponent
 from dymos import declare_time, declare_state
 
+
 @declare_time(targets=['t'], units='s')
 @declare_state('y', targets=['y'], rate_source='ydot', units='m')
 class TestODE(ExplicitComponent):
@@ -28,5 +29,6 @@ class TestODE(ExplicitComponent):
     def compute_partials(self, inputs, partials):
         partials['ydot', 't'] = -2 * inputs['t']
 
-def test_ode_solution(y, t):
+
+def _test_ode_solution(y, t):
     return t**2 + 2*t + 1 - 0.5 * np.exp(t)

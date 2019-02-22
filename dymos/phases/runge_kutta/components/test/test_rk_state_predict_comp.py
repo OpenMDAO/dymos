@@ -7,7 +7,8 @@ import numpy as np
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
-from dymos.phases.runge_kutta.components.runge_kutta_state_predict_comp import RungeKuttaStatePredictComp
+from dymos.phases.runge_kutta.components.runge_kutta_state_predict_comp import \
+    RungeKuttaStatePredictComp
 
 
 class TestRKStatePredictComp(unittest.TestCase):
@@ -79,7 +80,7 @@ class TestRKStatePredictComp(unittest.TestCase):
 
         assert_rel_error(self, p.get_val('c.predicted_states:y'), expected)
 
-        cpd = p.check_partials(method='cs') # , out_stream=None)
+        cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
 
     def test_rk_state_predict_comp_rk4_3seg(self):
@@ -188,7 +189,7 @@ class TestRKStatePredictComp(unittest.TestCase):
 
         assert_rel_error(self, p.get_val('c.predicted_states:y'), expected)
 
-        cpd = p.check_partials(method='cs') # , out_stream=None)
+        cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
 
     def test_rk_state_advance_comp_rk4_matrix(self):

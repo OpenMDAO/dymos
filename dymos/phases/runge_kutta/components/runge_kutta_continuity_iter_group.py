@@ -81,16 +81,16 @@ class RungeKuttaContinuityIterGroup(Group):
 
     def setup(self):
         self.add_subsystem('k_iter_group',
-                            RungeKuttaKIterGroup(num_segments=self.options['num_segments'],
-                                                 method=self.options['method'],
-                                                 state_options=self.options['state_options'],
-                                                 time_units=self.options['time_units'],
-                                                 ode_class=self.options['ode_class'],
-                                                 ode_init_kwargs=self.options['ode_init_kwargs'],
-                                                 solver_class=self.options['k_solver_class'],
-                                                 solver_options=self.options['k_solver_options']),
-                            promotes_inputs=['*'],
-                            promotes_outputs=['*'])
+                           RungeKuttaKIterGroup(num_segments=self.options['num_segments'],
+                                                method=self.options['method'],
+                                                state_options=self.options['state_options'],
+                                                time_units=self.options['time_units'],
+                                                ode_class=self.options['ode_class'],
+                                                ode_init_kwargs=self.options['ode_init_kwargs'],
+                                                solver_class=self.options['k_solver_class'],
+                                                solver_options=self.options['k_solver_options']),
+                           promotes_inputs=['*'],
+                           promotes_outputs=['*'])
 
         self.add_subsystem('state_advance_comp',
                            RungeKuttaStateAdvanceComp(num_segments=self.options['num_segments'],

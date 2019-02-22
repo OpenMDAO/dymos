@@ -4,11 +4,11 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, ExplicitComponent, NonlinearBlockGS, NonlinearRunOnce, ScipyOptimizeDriver, pyOptSparseDriver
+from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos import RungeKuttaPhase
-from dymos.phases.runge_kutta.test.rk_test_ode import TestODE, test_ode_solution
+from dymos.phases.runge_kutta.test.rk_test_ode import TestODE, _test_ode_solution
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
@@ -27,14 +27,15 @@ class TestRK4WithControls(unittest.TestCase):
         p.driver.opt_settings['Verify level'] = 3
 
         # p.driver.options['dynamic_simul_derivs'] = True
+        # p.model.approx_totals()
 
         phase = p.model.add_subsystem(
             'phase0',
             RungeKuttaPhase(num_segments=10,
                             method='rk4',
                             ode_class=BrachistochroneODE,
-                            k_solver_options={'iprint': 2},
-                            continuity_solver_options={'iprint': 2, 'solve_subsystems': True}))
+                            k_solver_options={'iprint': -1},
+                            continuity_solver_options={'iprint': -1, 'solve_subsystems': True}))
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
@@ -53,33 +54,21 @@ class TestRK4WithControls(unittest.TestCase):
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
 
-        p.setup(check=True, force_alloc_complex=True)
+        p.model.linear_solver = DirectSolver()
+
+        p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2
 
-        p['phase0.states:x'] = 0 #  phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['phase0.states:y'] = 10 #  phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['phase0.states:v'] = 0 # phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['phase0.states:x'] = 0
+        p['phase0.states:y'] = 10
+        p['phase0.states:v'] = 0
         p['phase0.controls:theta'] = phase.interpolate(ys=[1, 100], nodes='control_input')
         p['phase0.design_parameters:g'] = 9.80665
 
         p.run_model()
-
-        c = p.check_partials(method='fd', compact_print=True)
         p.run_driver()
-
-        # print(p['phase0.timeseries.time'], p['phase0.timeseries.design_parameters:g'])
-        # print(p['phase0.timeseries.time'], p['phase0.timeseries.controls:theta'])
-        import matplotlib.pyplot as plt
-        plt.plot(p.get_val('phase0.timeseries.states:x'), p.get_val('phase0.timeseries.states:y'))
-        plt.show()
-
-        # from openmdao.api import view_model
-        # view_model(p.model)
-
-        #expected = test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])
-        #assert_rel_error(self, p['phase0.ode.y'], expected, tolerance=1.0E-3)
 
     def test_single_segment_simple_integration_backward_fixed_final(self):
 
@@ -109,7 +98,7 @@ class TestRK4WithControls(unittest.TestCase):
 
         p.run_model()
 
-        expected = np.atleast_2d(test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])).T
+        expected = np.atleast_2d(_test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])).T
         assert_rel_error(self, p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
 
     def test_single_segment_simple_integration_forward_fixed_final(self):

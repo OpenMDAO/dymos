@@ -102,7 +102,9 @@ class TestControlRateComp(unittest.TestCase):
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=10.0, units='s')
 
-        p.model.add_subsystem('time_comp', subsys=TimeComp(grid_data=gd, units='s'),
+        p.model.add_subsystem('time_comp',
+                              subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                              node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 
@@ -187,7 +189,8 @@ class TestControlRateComp(unittest.TestCase):
         ivc.add_output('t_duration', val=10.0, units='s')
 
         p.model.add_subsystem('time_comp',
-                              subsys=TimeComp(grid_data=gd, units='s'),
+                              subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                              node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 
@@ -288,7 +291,8 @@ class TestControlRateComp(unittest.TestCase):
         ivc.add_output('t_duration', val=10.0, units='s')
 
         p.model.add_subsystem('time_comp',
-                              subsys=TimeComp(grid_data=gd, units='s'),
+                              subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                              node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 
@@ -387,7 +391,9 @@ class TestControlRateComp(unittest.TestCase):
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=10.0, units='s')
 
-        p.model.add_subsystem('time_comp', subsys=TimeComp(grid_data=gd, units='s'),
+        p.model.add_subsystem('time_comp',
+                              subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                              node_dptau_dstau=gd.node_dptau_dstau, units='s'),
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 

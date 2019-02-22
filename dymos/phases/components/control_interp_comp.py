@@ -89,6 +89,7 @@ class ControlInterpComp(ExplicitComponent):
             self.val_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
             self.rate_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
             self.rate2_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
+
             for i in range(size):
                 self.val_jacs[name][:, i, :, i] = self.L
                 self.rate_jacs[name][:, i, :, i] = self.D
@@ -173,6 +174,13 @@ class ControlInterpComp(ExplicitComponent):
         self.D = np.dot(D_da, L_id)
         self.D2 = np.dot(D_aa, self.D)
 
+        if np.any(np.isnan(self.D2)):
+            # If D_aa is singular we can try an alternate path to get there.
+            # This occurs when all nodes include duplicate points
+            L_id, D_id = gd.phase_lagrange_matrices('control_input', 'control_disc')
+            L_ii, D_ii = gd.phase_lagrange_matrices('control_input', 'control_input')
+            self.D2 = np.dot(D_da, np.dot(L_id, D_ii))
+
         self._setup_controls()
 
         self.set_check_partial_options('*', method='cs')
@@ -200,7 +208,6 @@ class ControlInterpComp(ExplicitComponent):
             control_name = self._input_names[name]
 
             size = self.sizes[name]
-
             rate_name = self._output_rate_names[name]
             rate2_name = self._output_rate2_names[name]
 

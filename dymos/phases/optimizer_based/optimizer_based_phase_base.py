@@ -88,7 +88,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
         self.add_subsystem('time', time_comp, promotes_outputs=['time', 'time_phase'],
                            promotes_inputs=externals)
 
-
         return comps
 
     def _setup_rhs(self):

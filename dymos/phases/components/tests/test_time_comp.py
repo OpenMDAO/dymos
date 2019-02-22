@@ -37,7 +37,9 @@ class TestTimeComp(unittest.TestCase):
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=100.0, units='s')
 
-        p.model.add_subsystem('time', TimeComp(grid_data=gd, units='s'))
+        p.model.add_subsystem('time',
+                              TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                       node_dptau_dstau=gd.node_dptau_dstau, units='s'))
 
         p.model.connect('t_initial', 'time.t_initial')
         p.model.connect('t_duration', 'time.t_duration')
@@ -90,7 +92,9 @@ class TestTimeComp(unittest.TestCase):
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=100.0, units='s')
 
-        p.model.add_subsystem('time', TimeComp(grid_data=gd, units='s'))
+        p.model.add_subsystem('time',
+                              TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                       node_dptau_dstau=gd.node_dptau_dstau, units='s'))
 
         p.model.connect('t_initial', 'time.t_initial')
         p.model.connect('t_duration', 'time.t_duration')

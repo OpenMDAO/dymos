@@ -103,7 +103,7 @@ class TestRKStateAdvanceComp(unittest.TestCase):
                          tolerance=1.0E-9)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(method='cs')#, out_stream=None)
+        cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
 
     def test_rk_state_advance_comp_rk4_matrix(self):
@@ -117,7 +117,9 @@ class TestRKStateAdvanceComp(unittest.TestCase):
         ivc.add_output('y0', shape=(2, 2), units='m')
 
         p.model.add_subsystem('c',
-                              RungeKuttaStateAdvanceComp(method='rk4', state_options=state_options))
+                              RungeKuttaStateAdvanceComp(num_segments=1,
+                                                         method='rk4',
+                                                         state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
         p.model.connect('y0', 'c.initial_states:y')
@@ -144,8 +146,8 @@ class TestRKStateAdvanceComp(unittest.TestCase):
 
         assert_rel_error(self,
                          p.get_val('c.final_states:y'),
-                         [[1.425130208333333, 2.639602661132812],
-                          [4.006818970044454, 5.301605229265987]])
+                         [[[1.425130208333333, 2.639602661132812],
+                          [4.006818970044454, 5.301605229265987]]])
 
         np.set_printoptions(linewidth=1024)
         cpd = p.check_partials(method='cs', out_stream=None)

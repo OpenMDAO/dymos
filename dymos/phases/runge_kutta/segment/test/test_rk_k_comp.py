@@ -64,7 +64,7 @@ class TestRKKComp(unittest.TestCase):
                          p.get_val('c.k:y'),
                          np.array([[0.75, 0.90625, 0.9453125, 1.09765625]]).T)
 
-        cpd = p.check_partials(method='cs') #, out_stream=None)
+        cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
 
     def test_rk_state_advance_comp_rk4_vector(self):
@@ -89,8 +89,6 @@ class TestRKKComp(unittest.TestCase):
         p['f:y'] = 2.0*np.array([[0.75, 0.90625, 0.9453125, 1.09765625],
                                  [1.087565104166667, 1.203206380208333, 1.23211669921875,
                                   1.328623453776042]]).T
-
-
 
         p.run_model()
 

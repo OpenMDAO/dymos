@@ -8,7 +8,7 @@ from openmdao.api import Problem, Group, ExplicitComponent, NonlinearBlockGS, No
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos import RungeKuttaPhase, declare_time, declare_state
-from dymos.phases.runge_kutta.test.rk_test_ode import TestODE, test_ode_solution
+from dymos.phases.runge_kutta.test.rk_test_ode import TestODE, _test_ode_solution
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
@@ -41,7 +41,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
         p.run_model()
 
-        expected = test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])
+        expected = _test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])
         assert_rel_error(self, p['phase0.ode.y'], expected, tolerance=1.0E-3)
 
     def test_simple_integration_backward_fixed_final(self):
@@ -72,7 +72,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
         p.run_model()
 
-        expected = np.atleast_2d(test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])).T
+        expected = np.atleast_2d(_test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])).T
         assert_rel_error(self, p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
 
     def test_simple_integration_forward_fixed_final(self):
