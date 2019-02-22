@@ -68,8 +68,8 @@ class TestStaticInputParameters(unittest.TestCase):
 
         try:
             p.setup()
-        except:
-            self.fail('Exception encountered in setup')
+        except Exception as e:
+            self.fail('Exception encountered in setup:\n' + str(e))
 
     def test_gauss_lobatto(self):
 
@@ -88,5 +88,5 @@ class TestStaticInputParameters(unittest.TestCase):
 
         try:
             p.setup()
-        except:
-            self.fail('Exception encountered in setup')
+        except Exception as e:
+            self.fail('Exception encountered in setup:\n' + str(e))
