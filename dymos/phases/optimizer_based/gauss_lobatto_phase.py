@@ -151,17 +151,29 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             given design variable is to be connected.
         """
         connection_info = []
-        map_indices_to_disc = np.zeros(self.grid_data.subset_num_nodes['state_disc'], dtype=int)
-        map_indices_to_col = np.zeros(self.grid_data.subset_num_nodes['col'], dtype=int)
 
         if name in self.ode_options._parameters:
             targets = self.ode_options._parameters[name]['targets']
+            dynamic = self.ode_options._parameters[name]['dynamic']
+            shape = self.ode_options._parameters[name]['shape']
+
+            if dynamic:
+                disc_rows = np.zeros(self.grid_data.subset_num_nodes['state_disc'], dtype=int)
+                col_rows = np.zeros(self.grid_data.subset_num_nodes['col'], dtype=int)
+                disc_src_idxs = get_src_indices_by_row(disc_rows, shape)
+                col_src_idxs = get_src_indices_by_row(col_rows, shape)
+                if shape == (1,):
+                    disc_src_idxs = disc_src_idxs.ravel()
+                    col_src_idxs = col_src_idxs.ravel()
+            else:
+                disc_src_idxs = np.squeeze(get_src_indices_by_row([0], shape), axis=0)
+                col_src_idxs = np.squeeze(get_src_indices_by_row([0], shape), axis=0)
 
             rhs_disc_tgts = ['rhs_disc.{0}'.format(t) for t in targets]
-            connection_info.append((rhs_disc_tgts, map_indices_to_disc))
+            connection_info.append((rhs_disc_tgts, disc_src_idxs))
 
             rhs_col_tgts = ['rhs_col.{0}'.format(t) for t in targets]
-            connection_info.append((rhs_col_tgts, map_indices_to_col))
+            connection_info.append((rhs_col_tgts, col_src_idxs))
 
         return connection_info
 
@@ -328,12 +340,8 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                                                    shape=options['shape'],
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='design_parameters:{0}'.format(name),
                          tgt_name='timeseries.all_values:design_parameters:{0}'.format(name),
@@ -346,12 +354,8 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                                                    shape=options['shape'],
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='input_parameters:{0}_out'.format(name),
                          tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
@@ -359,18 +363,13 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
         for name, options in iteritems(self.traj_parameter_options):
             units = options['units']
-            target_params = options['target_params']
             timeseries_comp._add_timeseries_output('traj_parameters:{0}'.format(name),
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='traj_parameters:{0}_out'.format(name),
                          tgt_name='timeseries.all_values:traj_parameters:{0}'.format(name),

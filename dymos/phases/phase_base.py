@@ -1137,7 +1137,8 @@ class PhaseBase(Group):
             src_name = 'input_parameters:{0}_out'.format(name)
 
             for tgts, src_idxs in self._get_parameter_connections(name):
-                self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
+                self.connect(src_name, [t for t in tgts],
+                             src_indices=src_idxs, flat_src_indices=True)
 
     def _setup_traj_input_parameters(self):
         """
