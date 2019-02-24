@@ -109,7 +109,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
 
 class TestCollocationBalanceApplyNL(unittest.TestCase):
 
-    def make_prob(self, transcription, n_segs, order, compressed):
+    def make_prob(self, transcription, n_segs, order, compressed, debug_deriv=False):
 
         gd = GridData(
             num_segments=n_segs, segment_ends=np.arange(n_segs+1),
@@ -149,7 +149,8 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
 
         p.model.add_subsystem('defect_comp',
                               subsys=CollocationComp(grid_data=gd,
-                                                     state_options=state_options))
+                                                     state_options=state_options,
+                                                     debug_deriv=debug_deriv))
 
         p.model.connect('f_approx:x', 'defect_comp.f_approx:x')
         p.model.connect('f_approx:v', 'defect_comp.f_approx:v')
@@ -179,40 +180,27 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
                             expected[:, np.newaxis, np.newaxis]*np.ones((6, 3, 2)))
 
     def test_partials(self):
-
-        def assert_partials(data):
-            # assert_check_partials(cpd) # can't use this here, cause of indepvarcomp weirdness
-            for of, wrt in data:
-                if of == wrt:
-                    # IndepVarComp like outputs have correct derivs, but FD is wrong so we skip
-                    # them (should be some form of -I)
-                    continue
-                check_data = data[(of, wrt)]
-                self.assertLess(check_data['abs error'].forward, 1e-8)
-
-            # print((self.p['f_approx:v']-self.p['f_computed:v']).ravel())
-
         np.set_printoptions(linewidth=1024, edgeitems=1e1000)
 
-        p = self.make_prob('radau-ps', n_segs=2, order=5, compressed=False)
+        p = self.make_prob('radau-ps', n_segs=2, order=5, compressed=False, debug_deriv=True)
         cpd = p.check_partials(compact_print=True, method='fd')
         data = cpd['defect_comp']
-        assert_partials(data)
+        assert_check_partials(cpd)
 
-        p = self.make_prob('radau-ps', n_segs=2, order=5, compressed=True)
+        p = self.make_prob('radau-ps', n_segs=2, order=5, compressed=True, debug_deriv=True)
         cpd = p.check_partials(compact_print=True, method='fd')
         data = cpd['defect_comp']
-        assert_partials(data)
+        assert_check_partials(cpd)
 
-        p = self.make_prob('gauss-lobatto', n_segs=3, order=5, compressed=False)
+        p = self.make_prob('gauss-lobatto', n_segs=3, order=5, compressed=False, debug_deriv=True)
         cpd = p.check_partials(compact_print=True, method='fd')
         data = cpd['defect_comp']
-        assert_partials(data)
+        assert_check_partials(cpd)
 
-        p = self.make_prob('gauss-lobatto', n_segs=4, order=3, compressed=True)
+        p = self.make_prob('gauss-lobatto', n_segs=4, order=3, compressed=True, debug_deriv=True)
         cpd = p.check_partials(compact_print=True, method='fd')
         data = cpd['defect_comp']
-        assert_partials(data)
+        assert_check_partials(cpd)
 
 if __name__ == '__main__':
     unittest.main()

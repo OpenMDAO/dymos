@@ -8,6 +8,7 @@ from six import string_types, iteritems
 import numpy as np
 
 from openmdao.api import ImplicitComponent, DirectSolver
+from openmdao.recorders.recording_iteration_stack import Recording
 
 from dymos.phases.grid_data import GridData
 from dymos.utils.misc import get_rate_units
@@ -43,8 +44,23 @@ class CollocationComp(ImplicitComponent):
         #     'reverse_time', types=bool, default=False,
         #     desc='It True, the ODE integration happens backwards; from t_final to t_initial')
 
-    def __init__(self, **kwargs):
+    def __init__(self, debug_deriv=False, **kwargs):
+        """
+        initialize the collocaiton_comp variable bookkeeping scheme
+
+        Parameters
+        ----------
+        debug_deriv: bool (False)
+            flag that controls the behavior of indep-var-comp-like outputs inside apply_nonlinear.
+            This should only be set to True for the purposes of check_partials testing.
+        **kwargs : dict of keyword arguments
+            Keyword arguments that will be mapped into the Component options.
+        """
+
+
         super(CollocationComp, self).__init__(**kwargs)
+
+        self._debug_deriv=debug_deriv
 
         self.state_idx_map = {}  # keyed by state_name, contains solver and optimizer index lists
 
@@ -223,6 +239,7 @@ class CollocationComp(ImplicitComponent):
                                       wrt='dt_dstau',
                                       rows=r, cols=c)
 
+
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
         Calculate the residual for each balance.
@@ -252,13 +269,13 @@ class CollocationComp(ImplicitComponent):
 
                 residuals[state_var_name][solve_idx, ...] = ((f_approx - f_computed).T * dt_dstau).T
 
-                # really is: <idep_val> - \outputs[state_name][indep_idx] but OpenMDAO
-                # implementation details mean we just set it to 0
-                # but derivatives are still based on (<idep_val> - \outputs[state_name][indep_idx]),
-                # so you get -1 wrt state var
-                # NOTE: check_partials will report wrong derivs for the indep vars,
-                #       but don't believe it!
-                residuals[state_var_name][indep_idx, ...] = 0
+                if self._debug_deriv:
+                    # just picked a random target value here.
+                    residuals[state_var_name][indep_idx, ...] = 14.765 - outputs[state_var_name][indep_idx, ...]
+                else:
+                    # really is: <idep_val> - \outputs[state_name][indep_idx] but OpenMDAO doesn't
+                    # track any actual <indep_val> so we use this trick to make it work
+                    residuals[state_var_name][indep_idx, ...] = 0
 
             else:
                 residuals[var_names['defect']] = \
