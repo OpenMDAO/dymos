@@ -9,7 +9,7 @@ import numpy as np
 from openmdao.core.implicitcomponent import ImplicitComponent
 
 
-class RungeKuttaContinuityComp(ImplicitComponent):
+class RungeKuttaStateContinuityComp(ImplicitComponent):
     """
     A simple equation balance for solving implicit equations.
     Attributes

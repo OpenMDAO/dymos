@@ -7,11 +7,11 @@ from openmdao.api import Group, DirectSolver, NonlinearBlockGS, NewtonSolver, No
 
 from .runge_kutta_k_iter_group import RungeKuttaKIterGroup
 from .runge_kutta_state_advance_comp import RungeKuttaStateAdvanceComp
-from .runge_kutta_continuity_comp import RungeKuttaContinuityComp
+from .runge_kutta_state_continuity_comp import RungeKuttaStateContinuityComp
 from ....utils.indexing import get_src_indices_by_row
 
 
-class RungeKuttaContinuityIterGroup(Group):
+class RungeKuttaStateContinuityIterGroup(Group):
     """
     This Group contains the k-iteration subgroup, the state advance component, continuity defect
     component.  Given the initial value of each state at the beginning of the first segment,
@@ -19,19 +19,6 @@ class RungeKuttaContinuityIterGroup(Group):
     to find the Runge-Kutta weights 'k' and the initial values of the states in all but the first
     segments to provide state continuity across the phase.
     """
-    # def __init__(self, get_rate_source_path, **kwargs):
-    #     """
-    #
-    #     Parameters
-    #     ----------
-    #     get_rate_source_path : callable
-    #         The function or method used to provide state rate source path information.  Nominally
-    #         this is the _get_rate_source_path method of the parent phase but for testing purposes
-    #         it is convenient to override it so an entire Phase does not need to be included in the
-    #         test.
-    #     """
-    #     self._get_rate_source_path = get_rate_source_path
-    #     super(RungeKuttaContinuityIterGroup, self).__init__(**kwargs)
 
     def initialize(self):
 
@@ -100,9 +87,9 @@ class RungeKuttaContinuityIterGroup(Group):
                            promotes_outputs=['state_integrals:*', 'final_states:*'])
 
         self.add_subsystem('continuity_comp',
-                           RungeKuttaContinuityComp(num_segments=self.options['num_segments'],
-                                                    state_options=self.options['state_options'],
-                                                    direction=self.options['direction']),
+                           RungeKuttaStateContinuityComp(num_segments=self.options['num_segments'],
+                                                         state_options=self.options['state_options'],
+                                                         direction=self.options['direction']),
                            promotes_inputs=['state_integrals:*'],
                            promotes_outputs=['states:*'])
 

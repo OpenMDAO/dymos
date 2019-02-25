@@ -8,17 +8,12 @@ from dymos.phases.components import EndpointConditionsComp
 from dymos.phases.phase_base import PhaseBase, _unspecified
 from dymos.phases.grid_data import GridData
 
-from openmdao.api import IndepVarComp, Group, NonlinearRunOnce, NonlinearBlockGS, \
+from openmdao.api import IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
     NewtonSolver, DirectSolver, BalanceComp
-from openmdao.utils.units import convert_units, valid_units
 from six import iteritems
 
-# from .solvers.nl_rk_solver import NonlinearRK
-from .components import RungeKuttaStepsizeComp, RungeKuttaContinuityIterGroup, \
-    RungeKuttaTimeseriesOutputComp, RungeKuttaPathConstraintComp
-# from .components.implicit_segment_connection_comp import ImplicitSegmentConnectionComp
-from ..components.continuity_comp import ExplicitContinuityComp
-from ..components import ExplicitTimeseriesOutputComp
+from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
+    RungeKuttaTimeseriesOutputComp, RungeKuttaPathConstraintComp, RungeKuttaControlContinuityComp
 from ..components import TimeComp
 from ...utils.rk_methods import rk_methods
 from ...utils.misc import CoerceDesvar, get_rate_units
@@ -141,7 +136,7 @@ class RungeKuttaPhase(PhaseBase):
     def _setup_rhs(self):
 
         self.add_subsystem('rk_solve_group',
-                           RungeKuttaContinuityIterGroup(
+                           RungeKuttaStateContinuityIterGroup(
                                num_segments=self.options['num_segments'],
                                method=self.options['method'],
                                state_options=self.state_options,
@@ -347,9 +342,41 @@ class RungeKuttaPhase(PhaseBase):
 
     def _setup_defects(self):
         """
+        Setup the Continuity component as necessary.
+        """
+        """
         Setup the Collocation and Continuity components as necessary.
         """
-        pass
+        grid_data = self.grid_data
+        num_seg = grid_data.num_segments
+
+        # Add the continuity constraint component if necessary
+        if num_seg > 1:
+            time_units = self.time_options['units']
+
+            self.add_subsystem('continuity_comp',
+                               RungeKuttaControlContinuityComp(grid_data=grid_data,
+                                                               state_options=self.state_options,
+                                                               control_options=self.control_options,
+                                                               time_units=time_units),
+                               promotes_inputs=['t_duration'])
+
+            for name, options in iteritems(self.control_options):
+                # The sub-indices of control_disc indices that are segment ends
+                segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+                src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
+
+                self.connect('control_interp_comp.control_values:{0}'.format(name),
+                             'continuity_comp.controls:{0}'.format(name),
+                             src_indices=src_idxs, flat_src_indices=True)
+
+                self.connect('control_rates:{0}_rate'.format(name),
+                             'continuity_comp.control_rates:{}_rate'.format(name),
+                             src_indices=src_idxs, flat_src_indices=True)
+
+                self.connect('control_rates:{0}_rate2'.format(name),
+                             'continuity_comp.control_rates:{}_rate2'.format(name),
+                             src_indices=src_idxs, flat_src_indices=True)
 
     def _setup_endpoint_conditions(self):
 

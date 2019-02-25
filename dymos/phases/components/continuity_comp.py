@@ -392,129 +392,129 @@ class RadauPSContinuityComp(ContinuityCompBase):
                                     linear=False)
 
 
-class ExplicitContinuityComp(ContinuityCompBase):
-    """
-    ContinuityComp defines constraints to ensure continuity between adjacent segments.
-    """
-    def initialize(self):
-        super(ExplicitContinuityComp, self).initialize()
-        self.options.declare('shooting', default='single', values=('single', 'multiple', 'hybrid'),
-                             desc='The shooting method used to integrate across the phase.  Single'
-                                  'shooting propagates the state from segment to segment, '
-                                  'serially.  Multiple shooting runs each segment in parallel and'
-                                  'uses an optimizer to enforce state continuity at segment bounds.'
-                                  ' Hybrid propagates the segments in parallel but enforces state '
-                                  'continuity with a nonlinear solver.')
-
-    def _setup_state_continuity(self):
-        state_options = self.options['state_options']
-        gd = self.options['grid_data']
-        num_segments = gd.num_segments
-        compressed = gd.compressed
-        self.state_vars = {}
-        self._is_multiple_shooting = self.options['shooting'] == 'multiple'
-
-        if not self._is_multiple_shooting or num_segments <= 1:
-            return
-
-        for state_name, options in iteritems(state_options):
-            shape = options['shape']
-            size = np.prod(shape)
-            units = options['units']
-
-            self.state_vars[state_name] = {}
-            self.state_vars[state_name]['values'] = []
-            self.state_vars[state_name]['defect'] = 'defect_states:{0}'.format(state_name)
-
-            self.add_output(
-                name=self.state_vars[state_name]['defect'],
-                shape=(num_segments - 1,) + shape,
-                desc='Consistency constraint values for state {0}'.format(state_name),
-                units=units)
-
-            for iseg in range(num_segments):
-                num_steps = gd.num_steps_per_segment[iseg]
-
-                self.state_vars[state_name]['values'].append(
-                    'seg_{0}_states:{1}'.format(iseg, state_name))
-
-                self.add_input(name=self.state_vars[state_name]['values'][-1],
-                               shape=(num_steps + 1,) + shape,
-                               desc='Step values of state {0} in segment {1}'.format(state_name,
-                                                                                     iseg - 1),
-                               units=units)
-
-                # TODO: Partials currently limited to scalar states
-                if iseg == 0:
-                    # First segment
-                    r = [0]
-                    c = [num_steps]
-                    val = -1.0
-                elif iseg == num_segments - 1:
-                    # Last segment
-                    r = [num_segments - 2]
-                    c = [0]
-                    val = 1.0
-                else:
-                    #
-                    r = [iseg - 1, iseg]
-                    c = [0, num_steps]
-                    val = [1.0, -1.0]
-
-                self.declare_partials(of=self.state_vars[state_name]['defect'],
-                                      wrt=self.state_vars[state_name]['values'][-1],
-                                      rows=r, cols=c, val=val)
-
-            # Add the constraint
-            if options['continuity']:
-                self.add_constraint(name='defect_states:{0}'.format(state_name),
-                                    equals=0.0, scaler=1.0, linear=False)
-
-    def _setup_control_continuity(self):
-        control_options = self.options['control_options']
-        num_segments = self.options['grid_data'].num_segments
-        compressed = self.options['grid_data'].compressed
-
-        if num_segments <= 1:
-            # Control value and rate continuity is enforced even with compressed transcription
-            return
-
-        super(ExplicitContinuityComp, self)._setup_control_continuity()
-
-        for control_name, options in iteritems(control_options):
-
-            if options['continuity'] and not compressed:
-                self.add_constraint(name='defect_controls:{0}'.format(control_name),
-                                    equals=0.0, scaler=1.0, linear=True)
-
-            #
-            # Setup first derivative continuity
-            #
-
-            if options['rate_continuity']:
-                self.add_constraint(name='defect_control_rates:{0}_rate'.format(control_name),
-                                    equals=0.0, scaler=options['rate_continuity_scaler'],
-                                    linear=False)
-
-            #
-            # Setup second derivative continuity
-            #
-
-            if options['rate2_continuity']:
-                self.add_constraint(name='defect_control_rates:{0}_rate2'.format(control_name),
-                                    equals=0.0, scaler=options['rate2_continuity_scaler'],
-                                    linear=False)
-
-    def _compute_state_continuity(self, inputs, outputs):
-        state_options = self.options['state_options']
-        num_segments = self.options['grid_data'].num_segments
-
-        if not self._is_multiple_shooting:
-            return
-
-        for i in range(1, num_segments):
-            for state_name, options in iteritems(state_options):
-                left = inputs[self.state_vars[state_name]['values'][i-1]][-1, ...]
-                right = inputs[self.state_vars[state_name]['values'][i]][0, ...]
-                defect = outputs[self.state_vars[state_name]['defect']]
-                defect[i - 1, ...] = right - left
+# class ExplicitContinuityComp(ContinuityCompBase):
+#     """
+#     ContinuityComp defines constraints to ensure continuity between adjacent segments.
+#     """
+#     def initialize(self):
+#         super(ExplicitContinuityComp, self).initialize()
+#         self.options.declare('shooting', default='single', values=('single', 'multiple', 'hybrid'),
+#                              desc='The shooting method used to integrate across the phase.  Single'
+#                                   'shooting propagates the state from segment to segment, '
+#                                   'serially.  Multiple shooting runs each segment in parallel and'
+#                                   'uses an optimizer to enforce state continuity at segment bounds.'
+#                                   ' Hybrid propagates the segments in parallel but enforces state '
+#                                   'continuity with a nonlinear solver.')
+#
+#     def _setup_state_continuity(self):
+#         state_options = self.options['state_options']
+#         gd = self.options['grid_data']
+#         num_segments = gd.num_segments
+#         compressed = gd.compressed
+#         self.state_vars = {}
+#         self._is_multiple_shooting = self.options['shooting'] == 'multiple'
+#
+#         if not self._is_multiple_shooting or num_segments <= 1:
+#             return
+#
+#         for state_name, options in iteritems(state_options):
+#             shape = options['shape']
+#             size = np.prod(shape)
+#             units = options['units']
+#
+#             self.state_vars[state_name] = {}
+#             self.state_vars[state_name]['values'] = []
+#             self.state_vars[state_name]['defect'] = 'defect_states:{0}'.format(state_name)
+#
+#             self.add_output(
+#                 name=self.state_vars[state_name]['defect'],
+#                 shape=(num_segments - 1,) + shape,
+#                 desc='Consistency constraint values for state {0}'.format(state_name),
+#                 units=units)
+#
+#             for iseg in range(num_segments):
+#                 num_steps = gd.num_steps_per_segment[iseg]
+#
+#                 self.state_vars[state_name]['values'].append(
+#                     'seg_{0}_states:{1}'.format(iseg, state_name))
+#
+#                 self.add_input(name=self.state_vars[state_name]['values'][-1],
+#                                shape=(num_steps + 1,) + shape,
+#                                desc='Step values of state {0} in segment {1}'.format(state_name,
+#                                                                                      iseg - 1),
+#                                units=units)
+#
+#                 # TODO: Partials currently limited to scalar states
+#                 if iseg == 0:
+#                     # First segment
+#                     r = [0]
+#                     c = [num_steps]
+#                     val = -1.0
+#                 elif iseg == num_segments - 1:
+#                     # Last segment
+#                     r = [num_segments - 2]
+#                     c = [0]
+#                     val = 1.0
+#                 else:
+#                     #
+#                     r = [iseg - 1, iseg]
+#                     c = [0, num_steps]
+#                     val = [1.0, -1.0]
+#
+#                 self.declare_partials(of=self.state_vars[state_name]['defect'],
+#                                       wrt=self.state_vars[state_name]['values'][-1],
+#                                       rows=r, cols=c, val=val)
+#
+#             # Add the constraint
+#             if options['continuity']:
+#                 self.add_constraint(name='defect_states:{0}'.format(state_name),
+#                                     equals=0.0, scaler=1.0, linear=False)
+#
+#     def _setup_control_continuity(self):
+#         control_options = self.options['control_options']
+#         num_segments = self.options['grid_data'].num_segments
+#         compressed = self.options['grid_data'].compressed
+#
+#         if num_segments <= 1:
+#             # Control value and rate continuity is enforced even with compressed transcription
+#             return
+#
+#         super(ExplicitContinuityComp, self)._setup_control_continuity()
+#
+#         for control_name, options in iteritems(control_options):
+#
+#             if options['continuity'] and not compressed:
+#                 self.add_constraint(name='defect_controls:{0}'.format(control_name),
+#                                     equals=0.0, scaler=1.0, linear=True)
+#
+#             #
+#             # Setup first derivative continuity
+#             #
+#
+#             if options['rate_continuity']:
+#                 self.add_constraint(name='defect_control_rates:{0}_rate'.format(control_name),
+#                                     equals=0.0, scaler=options['rate_continuity_scaler'],
+#                                     linear=False)
+#
+#             #
+#             # Setup second derivative continuity
+#             #
+#
+#             if options['rate2_continuity']:
+#                 self.add_constraint(name='defect_control_rates:{0}_rate2'.format(control_name),
+#                                     equals=0.0, scaler=options['rate2_continuity_scaler'],
+#                                     linear=False)
+#
+#     def _compute_state_continuity(self, inputs, outputs):
+#         state_options = self.options['state_options']
+#         num_segments = self.options['grid_data'].num_segments
+#
+#         if not self._is_multiple_shooting:
+#             return
+#
+#         for i in range(1, num_segments):
+#             for state_name, options in iteritems(state_options):
+#                 left = inputs[self.state_vars[state_name]['values'][i-1]][-1, ...]
+#                 right = inputs[self.state_vars[state_name]['values'][i]][0, ...]
+#                 defect = outputs[self.state_vars[state_name]['defect']]
+#                 defect[i - 1, ...] = right - left

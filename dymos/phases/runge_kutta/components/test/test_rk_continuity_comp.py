@@ -9,7 +9,7 @@ from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, Nonline
     NewtonSolver, ExecComp, DirectSolver
 from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
 
-from dymos.phases.runge_kutta.components.runge_kutta_continuity_comp import RungeKuttaContinuityComp
+from dymos.phases.runge_kutta.components.runge_kutta_state_continuity_comp import RungeKuttaStateContinuityComp
 from dymos.phases.runge_kutta.test.rk_test_ode import TestODE
 
 
@@ -22,8 +22,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         p = Problem(model=Group())
 
         p.model.add_subsystem('continuity_comp',
-                              RungeKuttaContinuityComp(num_segments=num_seg,
-                                                       state_options=state_options),
+                              RungeKuttaStateContinuityComp(num_segments=num_seg,
+                                                            state_options=state_options),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -86,8 +86,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         p = Problem(model=Group())
 
         p.model.add_subsystem('continuity_comp',
-                              RungeKuttaContinuityComp(num_segments=num_seg,
-                                                       state_options=state_options),
+                              RungeKuttaStateContinuityComp(num_segments=num_seg,
+                                                            state_options=state_options),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -150,8 +150,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         p = Problem(model=Group())
 
         p.model.add_subsystem('continuity_comp',
-                              RungeKuttaContinuityComp(num_segments=num_seg,
-                                                       state_options=state_options),
+                              RungeKuttaStateContinuityComp(num_segments=num_seg,
+                                                            state_options=state_options),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -205,9 +205,9 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         p = Problem(model=Group())
 
         p.model.add_subsystem('continuity_comp',
-                              RungeKuttaContinuityComp(num_segments=num_seg,
-                                                       state_options=state_options,
-                                                       direction='backward'),
+                              RungeKuttaStateContinuityComp(num_segments=num_seg,
+                                                            state_options=state_options,
+                                                            direction='backward'),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -270,9 +270,9 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         p = Problem(model=Group())
 
         p.model.add_subsystem('continuity_comp',
-                              RungeKuttaContinuityComp(num_segments=num_seg,
-                                                       state_options=state_options,
-                                                       direction='backward'),
+                              RungeKuttaStateContinuityComp(num_segments=num_seg,
+                                                            state_options=state_options,
+                                                            direction='backward'),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -335,9 +335,9 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         p = Problem(model=Group())
 
         p.model.add_subsystem('continuity_comp',
-                              RungeKuttaContinuityComp(num_segments=num_seg,
-                                                       state_options=state_options,
-                                                       direction='backward'),
+                              RungeKuttaStateContinuityComp(num_segments=num_seg,
+                                                            state_options=state_options,
+                                                            direction='backward'),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
