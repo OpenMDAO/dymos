@@ -71,11 +71,12 @@ class CollocationComp(ImplicitComponent):
                     raise ValueError('Can not use solver based collocation defects '
                                      'with both "fix_initial" and "fix_final" turned on.')
 
-                if (not options['fix_initial']) and (not options['fix_final']):
+                if (not options['fix_initial'] and not options['solve_continuity']) and \
+                   (not options['fix_final']):
                     raise ValueError('Must have either fix_initial" and "fix_final" turned on '
                                      'with solver base collocation')
 
-            if options['fix_initial']:
+            if options['fix_initial'] or options['solve_continuity']:
                 self.state_idx_map[state_name]['solver'] = self.solver_node_idx[1:]
                 self.state_idx_map[state_name]['indep'] = \
                     [self.solver_node_idx[0]] + self.indep_node_idx
@@ -130,6 +131,11 @@ class CollocationComp(ImplicitComponent):
                                 shape=(num_state_input_nodes,) + shape,
                                 units=units)
 
+                # Input for continuity, which comes from an external balance when solved.
+                if options['solve_continuity']:
+                    self.add_input(name='initial_state_continuity:{0}'.format(state_name),
+                                   units=units)
+
             self.add_input(
                 name=var_names['f_approx'],
                 shape=(num_col_nodes, ) + shape,
@@ -176,14 +182,17 @@ class CollocationComp(ImplicitComponent):
 
                 num_indep_nodes = indep_idx.shape[0]
                 num_solve_nodes = solve_idx.shape[0]
-
-                base_idx = np.tile(np.arange(size), num_indep_nodes).reshape(num_indep_nodes, size)
-                r = (indep_idx[:, np.newaxis]*size + base_idx).flatten()
                 state_var_name = 'states:{0}'.format(state_name)
 
-                # anything that looks like an indep
-                self.declare_partials(of=state_var_name, wrt=state_var_name,
-                                      rows=r, cols=r, val=-1)
+                if options['solve_continuity']:
+                else:
+
+                    base_idx = np.tile(np.arange(size), num_indep_nodes).reshape(num_indep_nodes, size)
+                    r = (indep_idx[:, np.newaxis]*size + base_idx).flatten()
+
+                    # anything that looks like an indep
+                    self.declare_partials(of=state_var_name, wrt=state_var_name,
+                                          rows=r, cols=r, val=-1)
 
                 c = np.arange(num_solve_nodes * size)
                 base_idx = np.tile(np.arange(size), num_solve_nodes).reshape(num_solve_nodes, size)

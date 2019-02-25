@@ -96,7 +96,7 @@ class PhaseBase(Group):
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
                           ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
-                          solve_segments=False):
+                          solve_segments=False, solve_continuity=False):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -139,7 +139,9 @@ class PhaseBase(Group):
             If True, a solver will be used to converge the collocation defects within a segment.
             Note that the state continuity defects between segements will still be
             handled by the optimizer.
-
+        solve_continuity : bool(False)
+            If True, a solver is used to converge the state continuity defects between segments. This
+            option is only valid if solve_segments is also True.
         """
         if units is not _unspecified:
             self.state_options[name]['units'] = units
@@ -157,6 +159,7 @@ class PhaseBase(Group):
         self.state_options[name]['defect_scaler'] = defect_scaler
         self.state_options[name]['defect_ref'] = defect_ref
         self.state_options[name]['solve_segments'] = solve_segments
+        self.state_options[name]['solve_continuity'] = solve_continuity
 
     def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,

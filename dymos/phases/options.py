@@ -318,6 +318,10 @@ class StateOptionsDictionary(OptionsDictionary):
                      desc='setting to control if segment collocation defects are '
                           'solved with a newton solver')
 
+        self.declare('solve_continuity', default=False, types=bool,
+                     desc='setting to control if inter-segment state continuity defects are '
+                          'solved with a newton solver')
+
 
 class TimeOptionsDictionary(OptionsDictionary):
     """
