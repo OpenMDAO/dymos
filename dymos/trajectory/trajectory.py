@@ -13,7 +13,7 @@ except ImportError:
 import numpy as np
 
 from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Problem, \
-     SqliteRecorder, BalanceComp
+     SqliteRecorder, BalanceComp, NewtonSolver, BoundsEnforceLS
 
 from ..utils.constants import INF_BOUND
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
@@ -250,8 +250,6 @@ class Trajectory(Group):
     def _setup_linkages(self):
         if self.options['phase_linkages'] == 'constrained':
             link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
-        else:
-            link_comp = self.add_subsystem('linkages', BalanceComp())
 
         print('--- Linkage Report [{0}] ---'.format(self.pathname))
 
@@ -290,8 +288,6 @@ class Trajectory(Group):
                 link_comp.add_linkage(name=linkage_name,
                                       vars=varnames,
                                       units=units_map)
-            else:
-                pass
 
             for var, options in iteritems(vars):
                 loc1, loc2 = options['locs']
@@ -305,8 +301,9 @@ class Trajectory(Group):
                 elif var in p1_design_parameters:
                     source1 = 'design_parameters:{0}'.format(var)
 
-                self.connect('{0}.{1}'.format(phase_name1, source1),
-                             'linkages.{0}_{1}:lhs'.format(linkage_name, var))
+                if self.options['phase_linkages'] == 'constrained':
+                    self.connect('{0}.{1}'.format(phase_name1, source1),
+                                 'linkages.{0}_{1}:lhs'.format(linkage_name, var))
 
                 if var in p2_states:
                     source2 = 'states:{0}{1}'.format(var, loc2)
@@ -320,8 +317,16 @@ class Trajectory(Group):
                 if self.options['phase_linkages'] == 'constrained':
                     self.connect('{0}.{1}'.format(phase_name2, source2),
                                  'linkages.{0}_{1}:rhs'.format(linkage_name, var))
-                else:
-                    pass
+
+                if self.options['phase_linkages'] == 'solved':
+
+                    if var == 'time':
+                        path = 'time_extents.initial_state_continuity:t_initial'
+                    else:
+                        path = 'collocation_constraint.initial_state_continuity:{0}'.format(var)
+
+                    self.connect('{0}.{1}'.format(phase_name1, source1),
+                                 '{0}.{1}'.format(phase_name2, path))
 
                 print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
                                                               max_varname_length + 9))
@@ -350,6 +355,14 @@ class Trajectory(Group):
 
         if self._linkages:
             self._setup_linkages()
+
+        if self.options['phase_linkages'] == 'solved':
+            newton = self.nonlinear_solver = NewtonSolver()
+            newton.options['solve_subsystems'] = True
+            newton.options['iprint'] = 0
+            newton.linesearch = BoundsEnforceLS()
+
+            self.linear_solver = DirectSolver()
 
     def link_phases(self, phases, vars=None, locs=('++', '--')):
         """

@@ -91,9 +91,9 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
     traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
     traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
 
-    traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'])
-    traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'])
-    traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'])
+    traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'], locs=('++', '-+'))
+    traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'], locs=('++', '-+'))
+    traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'], locs=('++', '-+'))
 
     prob.model.options['assembled_jac_type'] = 'csc'
     prob.model.linear_solver = DirectSolver(assemble_jac=True)

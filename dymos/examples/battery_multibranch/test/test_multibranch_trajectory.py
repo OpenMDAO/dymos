@@ -175,9 +175,9 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p1 = traj.add_phase('phase1', phase1)
 
-        traj_p1.set_time_options(fix_initial=False, fix_duration=True)
+        traj_p1.set_time_options(fix_initial=False, fix_duration=True, solve_continuity=True)
         traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
-                                  solve_segments=True)
+                                  solve_segments=True, solve_continuity=True)
         traj_p1.add_objective('time', loc='final')
 
         # Second phase, but with battery failure.
@@ -191,9 +191,9 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
-        traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
+        traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True, solve_continuity=True)
         traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
-                                        solve_segments=True)
+                                        solve_segments=True, solve_continuity=True)
 
         # Second phase, but with motor failure.
 
@@ -206,9 +206,9 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
 
-        traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
+        traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True, solve_continuity=True)
         traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
-                                        solve_segments=True)
+                                        solve_segments=True, solve_continuity=True)
 
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'])
         traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'])
@@ -237,13 +237,13 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         # Fail one motor
         prob.model.traj.phases.phase1_mfail.rhs_all.motors.options['n_parallel'] = 2
 
-        prob.set_solver_print(level=0)
-        prob.run_driver()
+        prob.set_solver_print(level=2)
+        prob.run_model()
 
-        soc0 = prob['traj.phases.phase0.indep_states.states:state_of_charge']
-        soc1 = prob['traj.phases.phase1.indep_states.states:state_of_charge']
-        soc1b = prob['traj.phases.phase1_bfail.indep_states.states:state_of_charge']
-        soc1m = prob['traj.phases.phase1_mfail.indep_states.states:state_of_charge']
+        soc0 = prob['traj.phases.phase0.collocation_constraint.states:state_of_charge']
+        soc1 = prob['traj.phases.phase1.collocation_constraint.states:state_of_charge']
+        soc1b = prob['traj.phases.phase1_bfail.collocation_constraint.states:state_of_charge']
+        soc1m = prob['traj.phases.phase1_mfail.collocation_constraint.states:state_of_charge']
 
         # Final value for State of Charge in each segment should be a good test.
         assert_rel_error(self, soc0[-1], 0.63464982, 1e-6)

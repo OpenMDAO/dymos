@@ -395,6 +395,10 @@ class TimeOptionsDictionary(OptionsDictionary):
                      desc='targets in the ODE to which the elapsed duration of the phase is '
                           'connected')
 
+        self.declare('solve_continuity', default=False, types=bool,
+                     desc='setting to control if inter-segment state continuity defects are '
+                          'solved with a newton solver')
+
 
 class _ForDocs(object):  # pragma: no cover
     """

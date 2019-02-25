@@ -9,7 +9,7 @@ import numpy as np
 
 from scipy import interpolate
 
-from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder
+from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder, ExplicitComponent
 from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
@@ -758,7 +758,7 @@ class PhaseBase(Group):
                          initial_adder=None, initial_ref=None, initial_ref0=None,
                          duration=1.0, duration_bounds=(None, None),
                          duration_scaler=None, duration_adder=None, duration_ref=None,
-                         duration_ref0=None):
+                         duration_ref0=None, solve_continuity=False):
         """
         Set options for the time (or the integration variable) in the Phase.
 
@@ -805,6 +805,9 @@ class PhaseBase(Group):
             Zero-reference value for the duration of time across the phase.
         duration_ref : float
             Unit-reference value for the duration of time across the phase.
+        solve_continuity : bool(False)
+            If True, a solver is used to converge the state continuity defects between segments. This
+            option is only valid if solve_segments is also True.
         """
         if opt_initial is not None:
             self.time_options['fix_initial'] = not opt_initial
@@ -881,6 +884,7 @@ class PhaseBase(Group):
         self.time_options['duration_adder'] = duration_adder
         self.time_options['duration_ref'] = duration_ref
         self.time_options['duration_ref0'] = duration_ref0
+        self.time_options['solve_continuity'] = solve_continuity
 
     def _classify_var(self, var):
         """
@@ -1001,9 +1005,47 @@ class PhaseBase(Group):
             self.connect('t_duration', 'time.t_duration')
 
         if indeps:
-            indep = IndepVarComp()
-            for var in indeps:
-                indep.add_output(var, val=1.0, units=time_units)
+            if self.time_options['solve_continuity']:
+
+                class TimeExtents(ExplicitComponent):
+
+                    def setup(self):
+                        indeps = self.options['indeps']
+                        units = self.options['units']
+                        solve_continuity = self.options['solve_continuity']
+
+                        if solve_continuity:
+                            self.add_input('initial_state_continuity:t_initial', val=1.0,
+                                           units=units)
+
+                            self.declare_partials(of='t_initial',
+                                                  wrt='initial_state_continuity:t_initial', val=1.0)
+
+                        for name in indeps:
+                            self.add_output(name, val=1.0, units=units)
+
+                    def initialize(self):
+                        self.options.declare('indeps', [],
+                                             desc='List of time var names.')
+                        self.options.declare('units', 's',
+                                             desc='Time units.')
+                        self.options.declare('solve_continuity', False,
+                                             desc='When True, create an input for the initial value.')
+
+                    def compute(self, inputs, outputs):
+                        if self.options['solve_continuity']:
+                            outputs['t_initial'] = inputs['initial_state_continuity:t_initial']
+
+
+                indep = TimeExtents(indeps=indeps, units=time_units,
+                                    solve_continuity=self.time_options['solve_continuity'])
+
+            else:
+                indep = IndepVarComp()
+
+                for var in indeps:
+                    indep.add_output(var, val=1.0, units=time_units)
+
             self.add_subsystem('time_extents', indep, promotes_outputs=['*'])
             comps += ['time_extents']
 

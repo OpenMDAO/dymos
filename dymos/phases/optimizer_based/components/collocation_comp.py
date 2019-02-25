@@ -81,10 +81,16 @@ class CollocationComp(ImplicitComponent):
                 self.state_idx_map[state_name]['indep'] = \
                     [self.solver_node_idx[0]] + self.indep_node_idx
 
+            elif options['solve_continuity']:
+                self.state_idx_map[state_name]['solver'] = self.solver_node_idx[:]
+                self.state_idx_map[state_name]['indep'] = \
+                    [self.solver_node_idx[0]] + self.indep_node_idx
+
             elif options['fix_final']:
                 self.state_idx_map[state_name]['solver'] = self.solver_node_idx[:-1]
                 self.state_idx_map[state_name]['indep'] = \
                     self.indep_node_idx + [self.solver_node_idx[-1]]
+
         # NOTE: num_col_nodes MUST equal len(self.solver_node_idx) - 1 in order to ensure
         # you get a well defined problem; if that doesn't happen, something is wrong
 
@@ -134,7 +140,7 @@ class CollocationComp(ImplicitComponent):
                 # Input for continuity, which comes from an external balance when solved.
                 if options['solve_continuity']:
                     self.add_input(name='initial_state_continuity:{0}'.format(state_name),
-                                   units=units)
+                                   shape=(1, ), units=units)
 
             self.add_input(
                 name=var_names['f_approx'],
@@ -184,15 +190,17 @@ class CollocationComp(ImplicitComponent):
                 num_solve_nodes = solve_idx.shape[0]
                 state_var_name = 'states:{0}'.format(state_name)
 
+                base_idx = np.tile(np.arange(size), num_indep_nodes).reshape(num_indep_nodes, size)
+                r = (indep_idx[:, np.newaxis]*size + base_idx).flatten()
+
+                # anything that looks like an indep
+                self.declare_partials(of=state_var_name, wrt=state_var_name,
+                                      rows=r, cols=r, val=-1.0)
+
                 if options['solve_continuity']:
-                else:
-
-                    base_idx = np.tile(np.arange(size), num_indep_nodes).reshape(num_indep_nodes, size)
-                    r = (indep_idx[:, np.newaxis]*size + base_idx).flatten()
-
-                    # anything that looks like an indep
-                    self.declare_partials(of=state_var_name, wrt=state_var_name,
-                                          rows=r, cols=r, val=-1)
+                    initial_state_name = 'initial_state_continuity:{0}'.format(state_name)
+                    self.declare_partials(of=state_var_name, wrt=initial_state_name,
+                                          rows=r, cols=r, val=1.0)
 
                 c = np.arange(num_solve_nodes * size)
                 base_idx = np.tile(np.arange(size), num_solve_nodes).reshape(num_solve_nodes, size)
@@ -261,13 +269,20 @@ class CollocationComp(ImplicitComponent):
 
                 residuals[state_var_name][solve_idx, ...] = ((f_approx - f_computed).T * dt_dstau).T
 
+                if options['solve_continuity']:
+                    initial_state_name = 'initial_state_continuity:{0}'.format(state_name)
+                    residuals[state_var_name][indep_idx, ...] = \
+                        inputs[initial_state_name][indep_idx, ...] - \
+                        outputs[state_var_name][indep_idx, ...]
+
                 # really is: <idep_val> - \outputs[state_name][indep_idx] but OpenMDAO
                 # implementation details mean we just set it to 0
                 # but derivatives are still based on (<idep_val> - \outputs[state_name][indep_idx]),
                 # so you get -1 wrt state var
                 # NOTE: check_partials will report wrong derivs for the indep vars,
                 #       but don't believe it!
-                residuals[state_var_name][indep_idx, ...] = 0
+                else:
+                    residuals[state_var_name][indep_idx, ...] = 0
 
             else:
                 residuals[var_names['defect']] = \
@@ -278,7 +293,12 @@ class CollocationComp(ImplicitComponent):
         dt_dstau = inputs['dt_dstau']
 
         for state_name, options in iteritems(state_options):
-            if not options['solve_segments']:
+            if options['solve_segments']:
+                if options['solve_continuity']:
+                    output_name = 'states:{0}'.format(state_name)
+                    input_name = 'initial_state_continuity:{0}'.format(state_name)
+                    outputs[output_name][0, ...] = inputs[input_name]
+            else:
                 var_names = self.var_names[state_name]
 
                 f_approx = inputs[var_names['f_approx']]
