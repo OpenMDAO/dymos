@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division
 import unittest
 
 
-class TestBrachistochroneRK4tExample(unittest.TestCase):
+class TestBrachistochroneRK4Example(unittest.TestCase):
 
     def test_brachistochrone_for_docs_forward_shooting(self):
         import numpy as np
@@ -270,7 +270,8 @@ class TestBrachistochroneRK4tExample(unittest.TestCase):
         phase = Phase('runge-kutta',
                       ode_class=BrachistochroneODE,
                       num_segments=20,
-                      method='rk4')
+                      method='rk4',
+                      compressed=True)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -313,8 +314,6 @@ class TestBrachistochroneRK4tExample(unittest.TestCase):
         assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        np.seterr(all='raise')
-
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
@@ -369,11 +368,11 @@ class TestBrachistochroneRK4tExample(unittest.TestCase):
 
         phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        # Final state values can't be controlled with simple bounds in ExplicitPhase,
+        # Final state values can't be controlled with simple bounds in RungeKuttaPhase,
         # so use nonlinear boundary constraints instead.
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
-        phase.add_path_constraint('theta_rate', lower=-50, upper=50, units='deg/s')
+        phase.add_path_constraint('theta_rate', lower=-60, upper=60, units='deg/s')
 
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)
@@ -397,8 +396,6 @@ class TestBrachistochroneRK4tExample(unittest.TestCase):
         assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        np.seterr(all='raise')
-
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
@@ -481,8 +478,6 @@ class TestBrachistochroneRK4tExample(unittest.TestCase):
         assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        np.seterr(all='raise')
-
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
