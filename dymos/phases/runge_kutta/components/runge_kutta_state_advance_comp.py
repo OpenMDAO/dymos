@@ -44,12 +44,17 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
             self._var_names[name]['initial'] = 'initial_states:{0}'.format(name)
             self._var_names[name]['k'] = 'k:{0}'.format(name)
             self._var_names[name]['final'] = 'final_states:{0}'.format(name)
+            self._var_names[name]['integral'] = 'state_integrals:{0}'.format(name)
 
             self.add_input(self._var_names[name]['initial'], shape=(num_segs,) + shape, units=units,
                            desc='The initial value of the state at the start of each segment.')
 
             self.add_input(self._var_names[name]['k'], shape=(num_segs, num_stages) + shape,
                            units=units, desc='RK multiplier k for each stage in each segment.')
+
+            self.add_output(self._var_names[name]['integral'], shape=(num_segs,) + shape,
+                            units=units,
+                            desc='The change in value of the state along each segment')
 
             self.add_output(self._var_names[name]['final'], shape=(num_segs,) + shape,
                             units=units,
@@ -70,10 +75,17 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
                                   rows=r, cols=c,
                                   val=np.tile(rk_data['b'], size*num_segs))
 
+            self.declare_partials(of=self._var_names[name]['integral'],
+                                  wrt=self._var_names[name]['k'],
+                                  rows=r, cols=c,
+                                  val=np.tile(rk_data['b'], size*num_segs))
+
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for name, options in iteritems(self.options['state_options']):
             x0 = inputs[self._var_names[name]['initial']]
             k = inputs[self._var_names[name]['k']]
             b = rk_methods[self.options['method']]['b']
-            out_name = self._var_names[name]['final']
-            outputs[out_name] = x0 + np.einsum('ijk...,j...->ik...', k, b)
+            final_name = self._var_names[name]['final']
+            integral_name = self._var_names[name]['integral']
+            outputs[integral_name] = np.einsum('ijk...,j...->ik...', k, b)
+            outputs[final_name] = x0 + outputs[integral_name]

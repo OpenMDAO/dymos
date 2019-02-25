@@ -48,7 +48,7 @@ class RungeKuttaContinuityIterGroup(Group):
                              desc='Units of the integration variable')
 
         self.options.declare('direction', default='forward', values=('forward', 'backward'),
-                             desc='Whether the numerical propagation occurs forwards or backwards '
+                             desc='Whether the numerical propagation occurs forward or backward '
                                   'in time.  This poses restrictions on whether states can have '
                                   'fixed initial/final values.')
 
@@ -97,30 +97,23 @@ class RungeKuttaContinuityIterGroup(Group):
                                                       method=self.options['method'],
                                                       state_options=self.options['state_options']),
                            promotes_inputs=['initial_states:*'],
-                           promotes_outputs=['final_states:*'])
+                           promotes_outputs=['state_integrals:*', 'final_states:*'])
 
         self.add_subsystem('continuity_comp',
                            RungeKuttaContinuityComp(num_segments=self.options['num_segments'],
-                                                    state_options=self.options['state_options']),
-                           promotes_inputs=['final_states:*'],
+                                                    state_options=self.options['state_options'],
+                                                    direction=self.options['direction']),
+                           promotes_inputs=['state_integrals:*'],
                            promotes_outputs=['states:*'])
 
         for state_name, options in iteritems(self.options['state_options']):
             self.connect('k_comp.k:{0}'.format(state_name),
                          'state_advance_comp.k:{0}'.format(state_name))
-
-            if self.options['direction'] == 'forward':
-                row_idxs = np.arange(self.options['num_segments'], dtype=int)
-                src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
-                self.connect('states:{0}'.format(state_name),
-                             'initial_states:{0}'.format(state_name),
-                             src_indices=src_idxs, flat_src_indices=True)
-            else:
-                row_idxs = np.arange(1, self.options['num_segments'] + 1, dtype=int)[::-1]
-                src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
-                self.connect('states:{0}'.format(state_name),
-                             'initial_states:{0}'.format(state_name),
-                             src_indices=src_idxs, flat_src_indices=True)
+            row_idxs = np.arange(self.options['num_segments'], dtype=int)
+            src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
+            self.connect('states:{0}'.format(state_name),
+                         'initial_states:{0}'.format(state_name),
+                         src_indices=src_idxs, flat_src_indices=True)
 
         self.linear_solver = DirectSolver()
         if self.options['continuity_solver_class']:

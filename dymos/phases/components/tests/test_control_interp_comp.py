@@ -161,6 +161,99 @@ class TestControlRateComp(unittest.TestCase):
         assert_check_partials(cpd)
 
     @parameterized.expand(
+        itertools.product([True, False],  # compressed
+                          ), testcase_func_name=lambda f, n, p: '_'.join(
+            ['test_control_interp_scalar_rk4', str(p.args[0])]))
+    def test_control_interp_scalar_rk4(self, compressed=True):
+
+        segends = np.array([0.0, 3.0, 9.0])
+
+        gd = GridData(num_segments=2,
+                      segment_ends=segends,
+                      transcription='runge-kutta',
+                      transcription_order='rk4',
+                      compressed=compressed)
+
+        p = Problem(model=Group())
+
+        controls = {'a': {'units': 'm', 'shape': (1,), 'dynamic': True},
+                    'b': {'units': 'm', 'shape': (1,), 'dynamic': True}}
+
+        ivc = IndepVarComp()
+        p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
+
+        ivc.add_output('controls:a',
+                       val=np.zeros((gd.subset_num_nodes['control_input'], 1)),
+                       units='m')
+
+        ivc.add_output('controls:b',
+                       val=np.zeros((gd.subset_num_nodes['control_input'], 1)),
+                       units='m')
+
+        ivc.add_output('t_initial', val=0.0, units='s')
+        ivc.add_output('t_duration', val=10.0, units='s')
+
+        p.model.add_subsystem('time_comp',
+                              subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                              node_dptau_dstau=gd.node_dptau_dstau, units='s'),
+                              promotes_inputs=['t_initial', 't_duration'],
+                              promotes_outputs=['time', 'dt_dstau'])
+
+        p.model.add_subsystem('control_interp_comp',
+                              subsys=ControlInterpComp(grid_data=gd,
+                                                       control_options=controls,
+                                                       time_units='s'),
+                              promotes_inputs=['controls:*'])
+
+        p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
+
+        p.setup(force_alloc_complex=True)
+
+        p['t_initial'] = 0.0
+        p['t_duration'] = 3.0
+
+        p.run_model()
+
+        t = p['time']
+        p['controls:a'][:, 0] = f_a(t[gd.subset_node_indices['control_input']])
+        p['controls:b'][:, 0] = f_b(t[gd.subset_node_indices['control_input']])
+
+        p.run_model()
+
+        a_value_expected = f_a(t)
+        b_value_expected = f_b(t)
+
+        a_rate_expected = f1_a(t)
+        b_rate_expected = f1_b(t)
+
+        a_rate2_expected = f2_a(t)
+        b_rate2_expected = f2_b(t)
+
+        assert_almost_equal(p['control_interp_comp.control_values:a'],
+                            np.atleast_2d(a_value_expected).T)
+
+        assert_almost_equal(p['control_interp_comp.control_values:b'],
+                            np.atleast_2d(b_value_expected).T)
+
+        assert_almost_equal(p['control_interp_comp.control_rates:a_rate'],
+                            np.atleast_2d(a_rate_expected).T)
+
+        # RK4 Segments have quadratic control polynomials and can't match b in rate
+        # assert_almost_equal(p['control_interp_comp.control_rates:b_rate'],
+        #                     np.atleast_2d(b_rate_expected).T)
+
+        assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'],
+                            np.atleast_2d(a_rate2_expected).T)
+
+        # RK4 Segments have quadratic control polynomials and can't match b in rate
+        # assert_almost_equal(p['control_interp_comp.control_rates:b_rate2'],
+        #                     np.atleast_2d(b_rate2_expected).T)
+
+        np.set_printoptions(linewidth=1024)
+        cpd = p.check_partials(compact_print=False, out_stream=None, method='cs')
+        assert_check_partials(cpd)
+
+    @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           [True, False],  # compressed
                           ), testcase_func_name=lambda f, n, p: '_'.join(

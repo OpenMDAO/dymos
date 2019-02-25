@@ -62,7 +62,7 @@ class RungeKuttaPhase(PhaseBase):
                              desc='The integrator used within the explicit phase.')
 
         self.options.declare('direction', default='forward', values=('forward', 'backward'),
-                             desc='Whether the numerical propagation occurs forwards or backwards '
+                             desc='Whether the numerical propagation occurs forward or backward '
                                   'in time.  This poses restrictions on whether states can have '
                                   'fixed initial/final values.')
 
@@ -113,8 +113,7 @@ class RungeKuttaPhase(PhaseBase):
 
         h_comp = RungeKuttaStepsizeComp(num_segments=num_seg,
                                         seg_rel_lengths=np.diff(grid_data.segment_ends),
-                                        time_units=time_units,
-                                        direction=self.options['direction'])
+                                        time_units=time_units)
 
         self.add_subsystem('stepsize_comp', h_comp,
                            promotes_inputs=['t_duration'],
@@ -123,12 +122,8 @@ class RungeKuttaPhase(PhaseBase):
         if self.time_options['targets']:
             time_tgts = self.time_options['targets']
 
-            if self.options['direction'] == 'forward':
-                self.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts],
-                             src_indices=self.grid_data.subset_node_indices['all'])
-            else:
-                self.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts],
-                             src_indices=self.grid_data.subset_node_indices['all'][::-1])
+            self.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts],
+                         src_indices=self.grid_data.subset_node_indices['all'])
 
             self.connect('time', ['ode.{0}'.format(t) for t in time_tgts],
                          src_indices=self.grid_data.subset_node_indices['segment_ends'])
@@ -151,6 +146,7 @@ class RungeKuttaPhase(PhaseBase):
                                method=self.options['method'],
                                state_options=self.state_options,
                                time_units=self.time_options['units'],
+                               direction=self.options['direction'],
                                ode_class=self.options['ode_class'],
                                ode_init_kwargs=self.options['ode_init_kwargs'],
                                k_solver_class=self.options['k_solver_class'],
@@ -226,8 +222,6 @@ class RungeKuttaPhase(PhaseBase):
             # Connect the states at the segment ends to the final ODE instance.
             row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
             row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
-            if self.options['direction'] == 'backward':
-                row_idxs = row_idxs[::-1]
             src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
             self.connect('states:{0}'.format(state_name),
                          ['ode.{0}'.format(tgt) for tgt in options['targets']],
@@ -242,14 +236,38 @@ class RungeKuttaPhase(PhaseBase):
                          flat_src_indices=True)
 
             if options['opt']:
-                desvar_indices = list(range(size))
+                # Set the desvar indices accordingly
+                if self.options['direction'] == 'forward':
+                    desvar_indices = list(range(size))
+                else:
+                    desvar_indices = np.arange(num_seg * size, size * (num_seg + 1),
+                                               dtype=int).tolist()
 
                 if options['fix_initial']:
+                    if self.options['direction'] == 'backward':
+                        raise ValueError('Cannot specify \'fix_initial=True\' and specify '
+                                         'direction=\'backward\' for state {0} in '
+                                         'RungeKuttaPhase'.format(state_name))
                     if options['initial_bounds'] is not None:
                         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
                                          'initial_bounds for state {0}'.format(state_name))
                     if isinstance(options['fix_initial'], Iterable):
                         idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
+                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                            del desvar_indices[idx_to_fix]
+                    else:
+                        del desvar_indices[:size]
+
+                if options['fix_final']:
+                    if self.options['direction'] == 'forward':
+                        raise ValueError('Cannot specify \'fix_final=True\' and specify '
+                                         'direction=\'forrward\' for state {0} in '
+                                         'RungeKuttaPhase'.format(state_name))
+                    if options['final_bounds'] is not None:
+                        raise ValueError('Cannot specify \'fix_final=True\' and specify '
+                                         'final_bounds for state {0}'.format(state_name))
+                    if isinstance(options['fix_final'], Iterable):
+                        idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
                         for idx_to_fix in reversed(sorted(idxs_to_fix)):
                             del desvar_indices[idx_to_fix]
                     else:
@@ -334,99 +352,99 @@ class RungeKuttaPhase(PhaseBase):
         pass
 
     def _setup_endpoint_conditions(self):
-        pass
-        # num_seg = self.grid_data.num_segments
-        #
-        # jump_comp = self.add_subsystem('indep_jumps', subsys=IndepVarComp(),
-        #                                promotes_outputs=['*'])
-        #
-        # jump_comp.add_output('initial_jump:time', val=0.0, units=self.time_options['units'],
-        #                      desc='discontinuity in time at the start of the phase')
-        #
-        # jump_comp.add_output('final_jump:time', val=0.0, units=self.time_options['units'],
-        #                      desc='discontinuity in time at the end of the phase')
-        #
-        # ic_comp = EndpointConditionsComp(loc='initial',
-        #                                  time_options=self.time_options,
-        #                                  state_options=self.state_options,
-        #                                  control_options=self.control_options)
-        #
-        # self.add_subsystem(name='initial_conditions', subsys=ic_comp, promotes_outputs=['*'])
-        #
-        # fc_comp = EndpointConditionsComp(loc='final',
-        #                                  time_options=self.time_options,
-        #                                  state_options=self.state_options,
-        #                                  control_options=self.control_options)
-        #
-        # self.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
-        #
-        # self.connect('time', 'initial_conditions.initial_value:time')
-        # self.connect('time', 'final_conditions.final_value:time')
-        #
-        # self.connect('initial_jump:time',
-        #              'initial_conditions.initial_jump:time')
-        #
-        # self.connect('final_jump:time',
-        #              'final_conditions.final_jump:time')
-        #
-        # for state_name, options in iteritems(self.state_options):
-        #     size = np.prod(options['shape'])
-        #     ar = np.arange(size)
-        #
-        #     jump_comp.add_output('initial_jump:{0}'.format(state_name),
-        #                          val=np.zeros(options['shape']),
-        #                          units=options['units'],
-        #                          desc='discontinuity in {0} at the '
-        #                               'start of the phase'.format(state_name))
-        #
-        #     jump_comp.add_output('final_jump:{0}'.format(state_name),
-        #                          val=np.zeros(options['shape']),
-        #                          units=options['units'],
-        #                          desc='discontinuity in {0} at the '
-        #                               'end of the phase'.format(state_name))
-        #
-        #     self.connect('seg_0.step_states:{0}'.format(state_name),
-        #                  'initial_conditions.initial_value:{0}'.format(state_name))
-        #     self.connect('seg_{0}.step_states:{1}'.format(num_seg - 1, state_name),
-        #                  'final_conditions.final_value:{0}'.format(state_name))
-        #
-        #     self.connect('initial_jump:{0}'.format(state_name),
-        #                  'initial_conditions.initial_jump:{0}'.format(state_name),
-        #                  src_indices=ar, flat_src_indices=True)
-        #
-        #     self.connect('final_jump:{0}'.format(state_name),
-        #                  'final_conditions.final_jump:{0}'.format(state_name),
-        #                  src_indices=ar, flat_src_indices=True)
-        #
-        # for control_name, options in iteritems(self.control_options):
-        #     size = np.prod(options['shape'])
-        #     ar = np.arange(size)
-        #
-        #     jump_comp.add_output('initial_jump:{0}'.format(control_name),
-        #                          val=np.zeros(options['shape']),
-        #                          units=options['units'],
-        #                          desc='discontinuity in {0} at the '
-        #                               'start of the phase'.format(control_name))
-        #
-        #     jump_comp.add_output('final_jump:{0}'.format(control_name),
-        #                          val=np.zeros(options['shape']),
-        #                          units=options['units'],
-        #                          desc='discontinuity in {0} at the '
-        #                               'end of the phase'.format(control_name))
-        #
-        #     self.connect('control_interp_comp.control_values:{0}'.format(control_name),
-        #                  'initial_conditions.initial_value:{0}'.format(control_name))
-        #
-        #     self.connect('control_interp_comp.control_values:{0}'.format(control_name),
-        #                  'final_conditions.final_value:{0}'.format(control_name))
-        #
-        #     self.connect('initial_jump:{0}'.format(control_name),
-        #                  'initial_conditions.initial_jump:{0}'.format(control_name),
-        #                  src_indices=ar, flat_src_indices=True)
-        #
-        #     self.connect('final_jump:{0}'.format(control_name),
-        #                  'final_conditions.final_jump:{0}'.format(control_name),
-        #                  src_indices=ar, flat_src_indices=True)
+        num_seg = self.grid_data.num_segments
+
+        jump_comp = self.add_subsystem('indep_jumps', subsys=IndepVarComp(),
+                                       promotes_outputs=['*'])
+
+        jump_comp.add_output('initial_jump:time', val=0.0, units=self.time_options['units'],
+                             desc='discontinuity in time at the start of the phase')
+
+        jump_comp.add_output('final_jump:time', val=0.0, units=self.time_options['units'],
+                             desc='discontinuity in time at the end of the phase')
+
+        ic_comp = EndpointConditionsComp(loc='initial',
+                                         time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options)
+
+        self.add_subsystem(name='initial_conditions', subsys=ic_comp, promotes_outputs=['*'])
+
+        fc_comp = EndpointConditionsComp(loc='final',
+                                         time_options=self.time_options,
+                                         state_options=self.state_options,
+                                         control_options=self.control_options)
+
+        self.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
+
+        self.connect('time', 'initial_conditions.initial_value:time')
+        self.connect('time', 'final_conditions.final_value:time')
+
+        self.connect('initial_jump:time',
+                     'initial_conditions.initial_jump:time')
+
+        self.connect('final_jump:time',
+                     'final_conditions.final_jump:time')
+
+        for state_name, options in iteritems(self.state_options):
+            size = np.prod(options['shape'])
+            ar = np.arange(size)
+
+            jump_comp.add_output('initial_jump:{0}'.format(state_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'start of the phase'.format(state_name))
+
+            jump_comp.add_output('final_jump:{0}'.format(state_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'end of the phase'.format(state_name))
+
+            self.connect('states:{0}'.format(state_name),
+                         'initial_conditions.initial_value:{0}'.format(state_name))
+
+            self.connect('states:{0}'.format(state_name),
+                         'final_conditions.final_value:{0}'.format(state_name))
+
+            self.connect('initial_jump:{0}'.format(state_name),
+                         'initial_conditions.initial_jump:{0}'.format(state_name),
+                         src_indices=ar, flat_src_indices=True)
+
+            self.connect('final_jump:{0}'.format(state_name),
+                         'final_conditions.final_jump:{0}'.format(state_name),
+                         src_indices=ar, flat_src_indices=True)
+
+        for control_name, options in iteritems(self.control_options):
+            size = np.prod(options['shape'])
+            ar = np.arange(size)
+
+            jump_comp.add_output('initial_jump:{0}'.format(control_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'start of the phase'.format(control_name))
+
+            jump_comp.add_output('final_jump:{0}'.format(control_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'end of the phase'.format(control_name))
+
+            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
+                         'initial_conditions.initial_value:{0}'.format(control_name))
+
+            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
+                         'final_conditions.final_value:{0}'.format(control_name))
+
+            self.connect('initial_jump:{0}'.format(control_name),
+                         'initial_conditions.initial_jump:{0}'.format(control_name),
+                         src_indices=ar, flat_src_indices=True)
+
+            self.connect('final_jump:{0}'.format(control_name),
+                         'final_conditions.final_jump:{0}'.format(control_name),
+                         src_indices=ar, flat_src_indices=True)
 
     def _setup_path_constraints(self):
         """
@@ -575,8 +593,6 @@ class RungeKuttaPhase(PhaseBase):
                                                    units=options['units'])
             row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
             row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
-            if self.options['direction'] == 'backward':
-                row_idxs = row_idxs[::-1]
             src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
             self.connect(src_name='states:{0}'.format(name),
                          tgt_name='timeseries.segend_values:states:{0}'.format(name),
@@ -758,18 +774,6 @@ class RungeKuttaPhase(PhaseBase):
             provided, this value overrides defect_scaler.
 
         """
-        if fix_initial and fix_final:
-            raise ValueError('For RungeKuttaPhase, both fix_initial and fix_final may not be True. '
-                             'Use a boundary constraint to enforce one of the end values instead.')
-
-        if self.options['direction'] == 'forward' and not fix_initial:
-            raise ValueError('When RungeKuttaPhase option \'direction\' is \'forward\', state '
-                             'option \'fix_initial\' must be True.')
-
-        if self.options['direction'] == 'backward' and not fix_final:
-            raise ValueError('When RungeKuttaPhase option \'direction\' is \'backward\', state '
-                             'option \'fix_final\' must be True.')
-
         super(RungeKuttaPhase, self).set_state_options(name=name,
                                                        units=units,
                                                        val=val,

@@ -24,11 +24,6 @@ class RungeKuttaStepsizeComp(ExplicitComponent):
         self.options.declare('time_units', default=None, allow_none=True, types=string_types,
                              desc='Units of the integration variable')
 
-        self.options.declare('direction', default='forward', values=('forward', 'backward'),
-                             desc='Whether the numerical propagation occurs forwards or backwards '
-                                  'in time.  This poses restrictions on whether states can have '
-                                  'fixed initial/final values.')
-
     def setup(self):
 
         self._var_names = {}
@@ -38,8 +33,6 @@ class RungeKuttaStepsizeComp(ExplicitComponent):
 
         self._norm_seg_rel_lengths = seg_rel_lengths / np.sum(seg_rel_lengths)
 
-        self._sign = 1 if self.options['direction'] == 'forward' else -1
-
         self.add_input('t_duration', val=1.0, units=self.options['time_units'])
 
         self.add_output('h', val=np.ones(num_seg), units=self.options['time_units'],
@@ -47,7 +40,7 @@ class RungeKuttaStepsizeComp(ExplicitComponent):
 
         self.declare_partials(of='h', wrt='t_duration', rows=np.arange(num_seg, dtype=int),
                               cols=np.zeros(num_seg, dtype=int),
-                              val=self._sign * self._norm_seg_rel_lengths)
+                              val=self._norm_seg_rel_lengths)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
-        outputs['h'] = self._sign * inputs['t_duration'] * self._norm_seg_rel_lengths
+        outputs['h'] = inputs['t_duration'] * self._norm_seg_rel_lengths

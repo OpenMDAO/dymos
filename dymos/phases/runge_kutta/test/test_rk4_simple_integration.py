@@ -14,7 +14,7 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 
 class TestRK4SimpleIntegration(unittest.TestCase):
 
-    def test_simple_integration_forward_fixed_initial(self):
+    def test_simple_integration_forward(self):
 
         p = Problem(model=Group())
         phase = p.model.add_subsystem(
@@ -44,12 +44,12 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         expected = _test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])
         assert_rel_error(self, p['phase0.ode.y'], expected, tolerance=1.0E-3)
 
-    def test_simple_integration_backward_fixed_final(self):
+    def test_simple_integration_backward(self):
 
         p = Problem(model=Group())
         phase = p.model.add_subsystem(
             'phase0',
-            RungeKuttaPhase(num_segments=200,
+            RungeKuttaPhase(num_segments=4,
                             method='rk4',
                             ode_class=TestODE,
                             direction='backward',
@@ -57,7 +57,6 @@ class TestRK4SimpleIntegration(unittest.TestCase):
                             continuity_solver_options={'iprint': 2, 'solve_subsystems': True}))
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
-        phase.set_state_options('y', fix_initial=False, fix_final=True)
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
@@ -75,44 +74,6 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         expected = np.atleast_2d(_test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])).T
         assert_rel_error(self, p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
 
-    def test_simple_integration_forward_fixed_final(self):
-
-        p = Problem(model=Group())
-        phase = p.model.add_subsystem(
-            'phase0',
-            RungeKuttaPhase(num_segments=200,
-                            method='rk4',
-                            ode_class=TestODE,
-                            k_solver_options={'iprint': 2},
-                            continuity_solver_options={'iprint': 2, 'solve_subsystems': True}))
-
-        phase.set_time_options(fix_initial=True, fix_duration=True)
-
-        expected = 'When RungeKuttaPhase option \'direction\' is \'forward\', state ' \
-                   'option \'fix_initial\' must be True.'
-        with self.assertRaises(ValueError) as e:
-            phase.set_state_options('y', fix_final=True)
-        self.assertEqual(str(e.exception), expected)
-
-    def test_simple_integration_backward_fixed_initial(self):
-
-        p = Problem(model=Group())
-        phase = p.model.add_subsystem(
-            'phase0',
-            RungeKuttaPhase(num_segments=200,
-                            method='rk4',
-                            ode_class=TestODE,
-                            direction='backward',
-                            k_solver_options={'iprint': 2},
-                            continuity_solver_options={'iprint': 2, 'solve_subsystems': True}))
-
-        phase.set_time_options(fix_initial=True, fix_duration=True)
-
-        expected = 'When RungeKuttaPhase option \'direction\' is \'backward\', state ' \
-                   'option \'fix_final\' must be True.'
-        with self.assertRaises(ValueError) as e:
-            phase.set_state_options('y', fix_initial=True)
-        self.assertEqual(str(e.exception), expected)
 
 if __name__ == '__main__':
     unittest.main()
