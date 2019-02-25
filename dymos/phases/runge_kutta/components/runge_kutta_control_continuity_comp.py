@@ -19,8 +19,6 @@ class RungeKuttaControlContinuityComp(ContinuityCompBase):
         control_options = self.options['control_options']
         num_segments = self.options['grid_data'].num_segments
         compressed = self.options['grid_data'].compressed
-        print(compressed)
-        exit(0)
 
         if num_segments <= 1:
             # Control rate continuity is enforced even with compressed transcription

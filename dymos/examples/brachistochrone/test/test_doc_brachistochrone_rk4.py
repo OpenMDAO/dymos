@@ -224,11 +224,12 @@ class TestBrachistochroneRK4tExample(unittest.TestCase):
         # Solve for the optimal trajectory
         p.run_driver()
 
-        # Test the results
-        assert_rel_error(self, p['phase0.time'][-1], 1.802, tolerance=1.0E-3)
+        from openmdao.utils.assert_utils import assert_check_partials
+        np.set_printoptions(linewidth=1024, edgeitems=1000)
+        cpd = p.check_partials()
 
-        # Generate the explicitly simulated trajectory
-        np.seterr(all='raise')
+        # Test the results
+        assert_rel_error(self, p['phase0.time'][-1], 1.805, tolerance=1.0E-3)
 
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']

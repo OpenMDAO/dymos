@@ -76,10 +76,6 @@ def _phase_lagrange_matrices(grid_data, t_eval_per_seg, t_initial, t_duration):
         t0_iseg, tf_iseg = time_seg_ends[iseg, :]
         tau_s_eval = 2.0 * (t_eval_iseg - t0_iseg) / (tf_iseg - t0_iseg) - 1
 
-        print(iseg)
-        print(tau_s_given)
-        print(tau_s_eval)
-
         L_block, D_block = lagrange_matrices(tau_s_given, tau_s_eval)
         _, Daa_block = lagrange_matrices(tau_s_given, tau_s_given)
 

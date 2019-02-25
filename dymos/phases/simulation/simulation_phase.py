@@ -205,13 +205,15 @@ class SimulationPhase(Group):
         num_seg = gd.num_segments
 
         if self.control_options:
-            self.add_subsystem('interp_comp',
-                               SimulationPhaseControlInterpComp(control_options=self.control_options,
-                                                                time_units=self.time_options['units'],
-                                                                grid_data=self.options['grid_data'],
-                                                                t_eval_per_seg=self.t_eval_per_seg,
-                                                                t_initial=self.options['t_initial'],
-                                                                t_duration=self.options['t_duration']))
+
+            interp_comp = SimulationPhaseControlInterpComp(control_options=self.control_options,
+                                                           time_units=self.time_options['units'],
+                                                           grid_data=self.options['grid_data'],
+                                                           t_eval_per_seg=self.t_eval_per_seg,
+                                                           t_initial=self.options['t_initial'],
+                                                           t_duration=self.options['t_duration'])
+
+            self.add_subsystem('interp_comp', interp_comp)
 
         for name, options in iteritems(self.control_options):
             ivc.add_output('implicit_controls:{0}'.format(name),

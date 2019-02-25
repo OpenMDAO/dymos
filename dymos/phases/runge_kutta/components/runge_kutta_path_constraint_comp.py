@@ -33,13 +33,14 @@ class RungeKuttaPathConstraintComp(PathConstraintCompBase):
                 self.add_constraint(output_name, **constraint_kwargs)
 
                 self._vars.append((input_name, output_name, kwargs['shape']))
+
                 # Setup partials
 
                 all_shape = (num_nodes,) + kwargs['shape']
                 var_size = np.prod(kwargs['shape'])
                 all_size = np.prod(all_shape)
 
-                all_row_starts = grid_data.subset_node_indices['segment_ends'] * var_size
+                all_row_starts = np.arange(num_nodes, dtype=int) * var_size
                 all_rows = []
                 for i in all_row_starts:
                     all_rows.extend(range(i, i + var_size))
@@ -48,11 +49,10 @@ class RungeKuttaPathConstraintComp(PathConstraintCompBase):
                 self.declare_partials(
                     of=output_name,
                     wrt=input_name,
-                    method='fd')
-                    # dependent=True,
-                    # rows=all_rows,
-                    # cols=np.arange(all_size),
-                    # val=1.0)
+                    dependent=True,
+                    rows=all_rows,
+                    cols=np.arange(all_size),
+                    val=1.0)
 
         def compute(self, inputs, outputs):
             for (input_name, output_name, _) in self._vars:

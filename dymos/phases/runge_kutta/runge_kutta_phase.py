@@ -86,7 +86,8 @@ class RungeKuttaPhase(PhaseBase):
         self.grid_data = GridData(num_segments=self.options['num_segments'],
                                   transcription='runge-kutta',
                                   transcription_order=self.options['method'],
-                                  segment_ends=self.options['segment_ends'])
+                                  segment_ends=self.options['segment_ends'],
+                                  compressed=self.options['compressed'])
 
         super(RungeKuttaPhase, self).setup()
 

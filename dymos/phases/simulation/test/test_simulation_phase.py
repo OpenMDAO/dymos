@@ -353,11 +353,6 @@ class TestSimulationPhaseRK4(unittest.TestCase):
         v_sim = sim_prob.get_val('phase0.timeseries.states:v')
         theta_sim = sim_prob.get_val('phase0.timeseries.controls:theta')
 
-        import matplotlib.pyplot as plt
-        plt.plot(t_sol, theta_sol, 'ro')
-        plt.plot(t_sim, theta_sim, 'b--')
-        plt.show()
-
         f_x = interp1d(t_sim[:, 0], x_sim[:, 0], axis=0)
         f_y = interp1d(t_sim[:, 0], y_sim[:, 0], axis=0)
         f_v = interp1d(t_sim[:, 0], v_sim[:, 0], axis=0)

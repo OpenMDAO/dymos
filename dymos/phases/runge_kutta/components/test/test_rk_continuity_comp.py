@@ -5,12 +5,12 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
-    NewtonSolver, ExecComp, DirectSolver
-from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
+from openmdao.api import Problem, Group, NonlinearRunOnce, NonlinearBlockGS, \
+    NewtonSolver, DirectSolver
+from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos.phases.runge_kutta.components.runge_kutta_state_continuity_comp import RungeKuttaStateContinuityComp
-from dymos.phases.runge_kutta.test.rk_test_ode import TestODE
+from dymos.phases.runge_kutta.components.runge_kutta_state_continuity_comp import \
+    RungeKuttaStateContinuityComp
 
 
 class TestRungeKuttaContinuityComp(unittest.TestCase):
