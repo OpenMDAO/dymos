@@ -257,7 +257,7 @@ class TestSimulationPhaseRK4(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
 
         phase = cls.phase = Phase('runge-kutta', ode_class=BrachistochroneODE, num_segments=10,
-                                  compressed=False)
+                                  compressed=True)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -267,7 +267,7 @@ class TestSimulationPhaseRK4(unittest.TestCase):
         phase.set_state_options('y', fix_initial=True, fix_final=False)
         phase.set_state_options('v', fix_initial=True)
 
-        phase.add_control('theta', units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', lower=0.01, upper=179.9, continuity=True)
 
         phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -352,6 +352,11 @@ class TestSimulationPhaseRK4(unittest.TestCase):
         y_sim = sim_prob.get_val('phase0.timeseries.states:y')
         v_sim = sim_prob.get_val('phase0.timeseries.states:v')
         theta_sim = sim_prob.get_val('phase0.timeseries.controls:theta')
+
+        import matplotlib.pyplot as plt
+        plt.plot(t_sol, theta_sol, 'ro')
+        plt.plot(t_sim, theta_sim, 'b--')
+        plt.show()
 
         f_x = interp1d(t_sim[:, 0], x_sim[:, 0], axis=0)
         f_y = interp1d(t_sim[:, 0], y_sim[:, 0], axis=0)

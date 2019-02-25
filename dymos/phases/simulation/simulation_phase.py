@@ -12,7 +12,7 @@ from ...utils.indexing import get_src_indices_by_row
 from ...utils.misc import get_rate_units
 from .segment_simulation_comp import SegmentSimulationComp
 from .simulation_state_mux_comp import SimulationStateMuxComp
-from .interp_comp import InterpComp
+from .simulation_phase_control_interp_comp import SimulationPhaseControlInterpComp
 from .simulation_timeseries_comp import SimulationTimeseriesOutputComp
 from ..options import InputParameterOptionsDictionary, TimeOptionsDictionary
 from ..components import InputParameterComp
@@ -201,7 +201,17 @@ class SimulationPhase(Group):
     def _setup_controls(self, ivc):
         gd = self.options['grid_data']
         nn = gd.subset_num_nodes['all']
+        ncin = gd.subset_num_nodes['control_input']
         num_seg = gd.num_segments
+
+        if self.control_options:
+            self.add_subsystem('interp_comp',
+                               SimulationPhaseControlInterpComp(control_options=self.control_options,
+                                                                time_units=self.time_options['units'],
+                                                                grid_data=self.options['grid_data'],
+                                                                t_eval_per_seg=self.t_eval_per_seg,
+                                                                t_initial=self.options['t_initial'],
+                                                                t_duration=self.options['t_duration']))
 
         for name, options in iteritems(self.control_options):
             ivc.add_output('implicit_controls:{0}'.format(name),
@@ -217,8 +227,12 @@ class SimulationPhase(Group):
                              src_indices=src_idxs, flat_src_indices=True)
 
             # connect the control to the interpolator
+
+            row_idxs = gd.subset_node_indices['control_disc']
+            src_idxs = get_src_indices_by_row(row_idxs=row_idxs, shape=options['shape'])
             self.connect(src_name='implicit_controls:{0}'.format(name),
-                         tgt_name='interp_comp.controls:{0}'.format(name))
+                         tgt_name='interp_comp.controls:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
 
             if options['targets']:
                 self.connect(src_name='interp_comp.control_values:{0}'.format(name),
@@ -555,15 +569,6 @@ class SimulationPhase(Group):
                            SimulationStateMuxComp(grid_data=self.options['grid_data'],
                                                   times_per_seg=self.t_eval_per_seg,
                                                   state_options=self.state_options))
-
-        if self.control_options:
-            self.add_subsystem('interp_comp',
-                               InterpComp(control_options=self.control_options,
-                                          time_units=self.time_options['units'],
-                                          grid_data=self.options['grid_data'],
-                                          t_eval_per_seg=self.t_eval_per_seg,
-                                          t_initial=self.options['t_initial'],
-                                          t_duration=self.options['t_duration']))
 
         self._setup_ode()
 

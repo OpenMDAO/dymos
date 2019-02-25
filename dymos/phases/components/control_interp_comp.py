@@ -178,10 +178,6 @@ class ControlInterpComp(ExplicitComponent):
         # Matrix D2 provides second derivatives at all nodes given values at input nodes.
         self.D2 = np.dot(D_da, np.dot(D_dd, L_id))
 
-        print(self.L)
-        print(self.D)
-        print(self.D2)
-
         self._setup_controls()
 
         self.set_check_partial_options('*', method='cs')

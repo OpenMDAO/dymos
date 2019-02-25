@@ -3,7 +3,8 @@ from __future__ import print_function, division, absolute_import
 from collections import OrderedDict
 
 import numpy as np
-from dymos.phases.simulation.control_interpolation_comp import ControlInterpolationComp
+from dymos.phases.simulation.odeint_control_interpolation_comp import \
+    ODEIntControlInterpolationComp
 from dymos.phases.simulation.state_rate_collector_comp import StateRateCollectorComp
 from openmdao.core.group import Group
 from openmdao.core.indepvarcomp import IndepVarComp
@@ -121,8 +122,9 @@ class ODEIntegrationInterface(object):
                               ['ode.{0}'.format(tgt) for tgt in options['targets']])
 
         if self.control_options:
-            self._interp_comp = ControlInterpolationComp(time_units=time_units,
-                                                         control_options=control_options)
+            self._interp_comp = \
+                ODEIntControlInterpolationComp(time_units=time_units,
+                                               control_options=control_options)
             self._interp_comp.interpolants = self.control_interpolants
 
             model.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])

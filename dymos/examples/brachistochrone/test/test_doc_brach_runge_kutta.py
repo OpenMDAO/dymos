@@ -15,7 +15,9 @@ class TestRK4WithControls(unittest.TestCase):
 
         p = Problem(model=Group())
 
+        from openmdao.api import pyOptSparseDriver
         p.driver = ScipyOptimizeDriver()
+        p.driver = pyOptSparseDriver()
 
         phase = p.model.add_subsystem(
             'phase0',
@@ -23,7 +25,8 @@ class TestRK4WithControls(unittest.TestCase):
                             method='rk4',
                             ode_class=BrachistochroneODE,
                             k_solver_options={'iprint': -1},
-                            continuity_solver_options={'iprint': -1, 'solve_subsystems': True}))
+                            continuity_solver_options={'iprint': -1, 'solve_subsystems': True},
+                            compressed=True))
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
@@ -67,6 +70,13 @@ class TestRK4WithControls(unittest.TestCase):
         assert_rel_error(self, p.get_val('phase0.timeseries.states:y')[-1], 5, tolerance=1.0E-3)
 
         assert_rel_error(self, p.get_val('phase0.timeseries.states:v')[0], 0, tolerance=1.0E-3)
+
+        exp_out = phase.simulate()
+
+        import matplotlib.pyplot as plt
+        plt.plot(p.get_val('phase0.timeseries.time'), p.get_val('phase0.timeseries.controls:theta'), 'ro')
+        plt.plot(exp_out.get_val('phase0.timeseries.time'), exp_out.get_val('phase0.timeseries.controls:theta'), 'b--')
+        plt.show()
 
     def test_brachistochrone_backward_fixed_final(self):
 
