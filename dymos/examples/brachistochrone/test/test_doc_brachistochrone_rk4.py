@@ -422,7 +422,6 @@ class TestBrachistochroneRK4tExample(unittest.TestCase):
 
         plt.show()
 
-
     def test_brachistochrone_for_docs_forward_shooting_path_constrained_ode_output(self):
         import numpy as np
         import matplotlib

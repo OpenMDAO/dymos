@@ -48,4 +48,3 @@ class RungeKuttaControlContinuityComp(ContinuityCompBase):
                 self.add_constraint(name='defect_control_rates:{0}_rate2'.format(control_name),
                                     equals=0.0, scaler=options['rate2_continuity_scaler'],
                                     linear=False)
-

@@ -87,9 +87,10 @@ class RungeKuttaStateContinuityIterGroup(Group):
                            promotes_outputs=['state_integrals:*', 'final_states:*'])
 
         self.add_subsystem('continuity_comp',
-                           RungeKuttaStateContinuityComp(num_segments=self.options['num_segments'],
-                                                         state_options=self.options['state_options'],
-                                                         direction=self.options['direction']),
+                           RungeKuttaStateContinuityComp(
+                               num_segments=self.options['num_segments'],
+                               state_options=self.options['state_options'],
+                               direction=self.options['direction']),
                            promotes_inputs=['state_integrals:*'],
                            promotes_outputs=['states:*'])
 

@@ -6,4 +6,3 @@ from .runge_kutta_state_continuity_iter_group import RungeKuttaStateContinuityIt
 from .runge_kutta_timeseries_comp import RungeKuttaTimeseriesOutputComp
 from .runge_kutta_path_constraint_comp import RungeKuttaPathConstraintComp
 from .runge_kutta_control_continuity_comp import RungeKuttaControlContinuityComp
-
