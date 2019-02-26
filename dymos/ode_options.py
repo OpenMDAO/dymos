@@ -1,7 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
 from collections import Iterable
-from six import string_types, iteritems
+from six import string_types
 import numpy as np
 
 from openmdao.utils.options_dictionary import OptionsDictionary
@@ -20,6 +20,12 @@ class _ODETimeOptionsDictionary(OptionsDictionary):
         self.declare('time_phase_targets', default=[], types=Iterable,
                      desc='Target path(s) for the time_phase variable '
                           '(the current phase elapsed time), relative to the top-level system.')
+        self.declare('t_initial_targets', default=[], types=Iterable,
+                     desc='Target path(s) for the t_initial variable relative to the top-level '
+                          'system.')
+        self.declare('t_duration_targets', default=[], types=Iterable,
+                     desc='Target path(s) for the t_duration variable relative to the top-level '
+                          'system.')
         self.declare('units', default=None, types=string_types, allow_none=True,
                      desc='Units for time.')
 

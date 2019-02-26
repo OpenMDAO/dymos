@@ -98,13 +98,13 @@ class ODEIntegrationInterface(object):
         model.connect('time_phase', ['ode.{0}'.format(tgt) for tgt in
                                      ode_class.ode_options._time_options['time_phase_targets']])
 
-        # self.prob.model.connect('t_initial',
-        #                         ['ode.{0}'.format(tgt) for tgt in
-        #                          self.ode_options._time_options['t_initial_targets']])
-        #
-        # self.prob.model.connect('t_duration',
-        #                         ['ode.{0}'.format(tgt) for tgt in
-        #                          self.ode_options._time_options['t_duration_targets']])
+        model.connect('t_initial',
+                      ['ode.{0}'.format(tgt) for tgt in
+                       self.ode_options._time_options['t_initial_targets']])
+
+        model.connect('t_duration',
+                      ['ode.{0}'.format(tgt) for tgt in
+                       self.ode_options._time_options['t_duration_targets']])
 
         # The States Comp
         for name, options in iteritems(self.state_options):
