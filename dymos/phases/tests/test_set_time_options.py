@@ -83,8 +83,8 @@ class TestPhaseTimeOptions(unittest.TestCase):
         p.model.linear_solver = DirectSolver()
         p.setup(check=True)
 
-        assert_rel_error(p['phase0.t_initial'], 0.01)
-        assert_rel_error(p['phase0.t_duration'], 1.9)
+        assert_rel_error(self, p['phase0.t_initial'], 0.01)
+        assert_rel_error(self, p['phase0.t_duration'], 1.9)
 
     def test_ex_double_integrator_input_and_fixed_times_warns(self, transcription='radau-ps'):
         """
