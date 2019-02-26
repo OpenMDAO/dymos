@@ -7,8 +7,7 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.components import GaussLobattoPathConstraintComp, RadauPathConstraintComp, \
-    ExplicitPathConstraintComp
+from dymos.phases.components import GaussLobattoPathConstraintComp, RadauPathConstraintComp
 from dymos.phases.grid_data import GridData
 from dymos.phases.options import ControlOptionsDictionary
 
@@ -197,91 +196,6 @@ class TestPathConstraintCompRadau(unittest.TestCase):
 
         assert_almost_equal(p['c_disc'],
                             p['path_constraints.path:c'][gd.subset_node_indices['state_disc'], ...])
-
-    def test_partials(self):
-        np.set_printoptions(linewidth=1024, edgeitems=1000)
-        cpd = self.p.check_partials(out_stream=None)
-        assert_check_partials(cpd)
-
-
-class TestPathConstraintCompExplicit(unittest.TestCase):
-
-    def setUp(self):
-
-        transcription = 'explicit'
-
-        self.gd = gd = GridData(num_segments=2,
-                                transcription_order=3,
-                                num_steps_per_segment=[4, 4],
-                                segment_ends=[0.0, 3.0, 10.0],
-                                transcription=transcription)
-
-        self.p = Problem(model=Group())
-
-        ivc = IndepVarComp()
-        self.p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
-
-        ivc.add_output('seg_0:a', val=np.zeros((gd.num_steps_per_segment[0]+1, 1)), units='m')
-        ivc.add_output('seg_1:a', val=np.zeros((gd.num_steps_per_segment[1]+1, 1)), units='m')
-
-        ivc.add_output('seg_0:b', val=np.zeros((gd.num_steps_per_segment[0]+1, 3)), units='s')
-        ivc.add_output('seg_1:b', val=np.zeros((gd.num_steps_per_segment[1]+1, 3)), units='s')
-
-        ivc.add_output('seg_0:c', val=np.zeros((gd.num_steps_per_segment[0]+1, 3, 3)), units='N*m')
-        ivc.add_output('seg_1:c', val=np.zeros((gd.num_steps_per_segment[1]+1, 3, 3)), units='N*m')
-
-        path_comp = ExplicitPathConstraintComp(grid_data=gd)
-
-        self.p.model.add_subsystem('path_constraints', subsys=path_comp)
-
-        path_comp._add_path_constraint('a', var_class='ode', shape=(1,),
-                                       lower=0, upper=10, units='m')
-        path_comp._add_path_constraint('b', var_class='input_control', shape=(3,),
-                                       lower=0, upper=10, units='s')
-        path_comp._add_path_constraint('c', var_class='control_rate2', shape=(3, 3),
-                                       lower=0, upper=10, units='N*m')
-
-        self.p.model.connect('seg_0:a', 'path_constraints.seg_0_values:a')
-        self.p.model.connect('seg_1:a', 'path_constraints.seg_1_values:a')
-
-        self.p.model.connect('seg_0:b', 'path_constraints.seg_0_values:b')
-        self.p.model.connect('seg_1:b', 'path_constraints.seg_1_values:b')
-
-        self.p.model.connect('seg_0:c', 'path_constraints.seg_0_values:c')
-        self.p.model.connect('seg_1:c', 'path_constraints.seg_1_values:c')
-
-        self.p.setup()
-
-        self.p.set_val('seg_0:a', np.reshape(100 + np.arange(5), (5, 1)))
-        self.p.set_val('seg_1:a', np.reshape(200 + np.arange(5), (5, 1)))
-
-        self.p.set_val('seg_0:b', np.reshape(100 + np.arange(15), (5, 3)))
-        self.p.set_val('seg_1:b', np.reshape(200 + np.arange(15), (5, 3)))
-
-        self.p.set_val('seg_0:c', np.reshape(100 + np.arange(45), (5, 3, 3)))
-        self.p.set_val('seg_1:c', np.reshape(200 + np.arange(45), (5, 3, 3)))
-
-        self.p.run_model()
-
-    def test_results(self):
-        p = self.p
-        assert_almost_equal(p['seg_0:a'],
-                            p['path_constraints.seg_0_values:a'][0:5])
-
-        assert_almost_equal(p['seg_1:a'],
-                            p['path_constraints.seg_1_values:a'][0:5])
-
-        assert_almost_equal(p['seg_0:b'],
-                            p['path_constraints.seg_0_values:b'][0:5, ...])
-
-        assert_almost_equal(p['seg_1:b'],
-                            p['path_constraints.seg_1_values:b'][0:5, ...])
-
-        assert_almost_equal(p['seg_0:c'],
-                            p['path_constraints.seg_0_values:c'][0:5, ...])
-
-        assert_almost_equal(p['seg_1:c'],
-                            p['path_constraints.seg_1_values:c'][0:5, ...])
 
     def test_partials(self):
         np.set_printoptions(linewidth=1024, edgeitems=1000)

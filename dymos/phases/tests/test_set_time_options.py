@@ -5,6 +5,7 @@ import unittest
 import warnings
 
 from openmdao.api import Problem, Group, IndepVarComp, ScipyOptimizeDriver, DirectSolver
+from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -48,6 +49,42 @@ class TestPhaseTimeOptions(unittest.TestCase):
                          msg='set_time_options failed to raise two warnings')
         self.assertEqual(str(ctx[0].message), expected_msg0)
         self.assertEqual(str(ctx[1].message), expected_msg1)
+
+    def test_initial_val_and_final_val_stick(self):
+        p = Problem(model=Group())
+
+        p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
+
+        phase = Phase('gauss-lobatto',
+                      ode_class=BrachistochroneODE,
+                      num_segments=8,
+                      transcription_order=3)
+
+        p.model.add_subsystem('phase0', phase)
+
+        phase.set_time_options(fix_initial=False, fix_duration=False,
+                               initial_val=0.01, duration_val=1.9)
+
+        phase.set_state_options('x', fix_initial=True, fix_final=True)
+        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('v', fix_initial=True, fix_final=False)
+
+        phase.add_control('theta', continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+
+        # Minimize time at the end of the phase
+        phase.add_objective('time', loc='final', scaler=10)
+
+        phase.add_boundary_constraint('time', loc='initial', equals=0)
+
+        p.model.linear_solver = DirectSolver()
+        p.setup(check=True)
+
+        assert_rel_error(self, p['phase0.t_initial'], 0.01)
+        assert_rel_error(self, p['phase0.t_duration'], 1.9)
 
     def test_ex_double_integrator_input_and_fixed_times_warns(self, transcription='radau-ps'):
         """

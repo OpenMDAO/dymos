@@ -30,6 +30,42 @@ from dymos.utils.misc import CoerceDesvar
 _unspecified = object()
 
 
+class TimeExtents(ExplicitComponent):
+    """
+    Replacemes TimeExtents Indepvarcomp.
+
+    This passes through an initial value for time. Ony used when 'solve_continuity' is True
+    for time.
+    """
+    def setup(self):
+        indeps = self.options['indeps']
+        units = self.options['units']
+        solve_continuity = self.options['solve_continuity']
+
+        if solve_continuity:
+            self.add_input('initial_state_continuity:t_initial', val=1.0,
+                           units=units)
+
+            self.declare_partials(of='t_initial',
+                                  wrt='initial_state_continuity:t_initial', val=1.0)
+
+        for name in indeps:
+            self.add_output(name, val=1.0, units=units)
+
+    def initialize(self):
+        self.options.declare('indeps', [],
+                             desc='List of time var names.')
+        self.options.declare('units', 's',
+                             desc='Time units.')
+        self.options.declare('solve_continuity', False,
+                             desc='When True, create an input for the initial '
+                                  'value.')
+
+    def compute(self, inputs, outputs):
+        if self.options['solve_continuity']:
+            outputs['t_initial'] = inputs['initial_state_continuity:t_initial']
+
+
 class PhaseBase(Group):
     def __init__(self, **kwargs):
 
@@ -75,6 +111,10 @@ class PhaseBase(Group):
         self.time_options['targets'] = self.ode_options._time_options['targets']
         self.time_options['time_phase_targets'] = \
             self.ode_options._time_options['time_phase_targets']
+        self.time_options['t_initial_targets'] = \
+            self.ode_options._time_options['t_initial_targets']
+        self.time_options['t_duration_targets'] = \
+            self.ode_options._time_options['t_duration_targets']
 
     def initialize(self):
         self.options.declare('num_segments', types=int, desc='Number of segments')
@@ -758,9 +798,9 @@ class PhaseBase(Group):
 
     def set_time_options(self, opt_initial=None, opt_duration=None, fix_initial=False,
                          fix_duration=False, input_initial=False, input_duration=False,
-                         initial=0.0, initial_bounds=(None, None), initial_scaler=None,
+                         initial_val=0.0, initial_bounds=(None, None), initial_scaler=None,
                          initial_adder=None, initial_ref=None, initial_ref0=None,
-                         duration=1.0, duration_bounds=(None, None),
+                         duration_val=1.0, duration_bounds=(None, None),
                          duration_scaler=None, duration_adder=None, duration_ref=None,
                          duration_ref0=None, solve_continuity=False):
         """
@@ -784,7 +824,7 @@ class PhaseBase(Group):
         input_duration : bool
             If True, the user is expected to link phase.t_duration to an external output source.
             Providing input_duration=True makes all time duration optimization settings irrelevant.
-        initial : float
+        initial_val : float
             Default value of the time at the start of the phase.
         initial_bounds : Iterable of size 2
             Tuple of (lower, upper) bounds for time at the start of the phase.
@@ -796,7 +836,7 @@ class PhaseBase(Group):
             Zero-reference value for the initial value of time.
         initial_ref : float
             Unit-reference value for the initial value of time.
-        duration : float
+        duration_val : float
             Value of the duration of time across the phase.
         duration_bounds : Iterable of size 2
             Tuple of (lower, upper) bounds for the duration of time
@@ -873,7 +913,7 @@ class PhaseBase(Group):
                 warnings.warn(msg, RuntimeWarning)
 
         self.time_options['input_initial'] = input_initial
-        self.time_options['initial'] = initial
+        self.time_options['initial_val'] = initial_val
         self.time_options['initial_bounds'] = initial_bounds
         self.time_options['initial_scaler'] = initial_scaler
         self.time_options['initial_adder'] = initial_adder
@@ -881,7 +921,7 @@ class PhaseBase(Group):
         self.time_options['initial_ref0'] = initial_ref0
 
         self.time_options['input_duration'] = input_duration
-        self.time_options['duration'] = duration
+        self.time_options['duration_val'] = duration_val
         self.time_options['duration_bounds'] = duration_bounds
         self.time_options['duration_scaler'] = duration_scaler
         self.time_options['duration_adder'] = duration_adder
@@ -946,15 +986,15 @@ class PhaseBase(Group):
 
         self._time_extents = self._setup_time()
 
-        # Declare control_rate comp to which we'll connect controls and parameters.
+        # The control interpolation comp to which we'll connect controls
         if self.control_options:
-            ctrl_rate_comp = ControlInterpComp(control_options=self.control_options,
-                                               time_units=self.time_options['units'],
-                                               grid_data=self.grid_data)
+            control_interp_comp = ControlInterpComp(control_options=self.control_options,
+                                                    time_units=self.time_options['units'],
+                                                    grid_data=self.grid_data)
             self._setup_controls()
 
             self.add_subsystem('control_interp_comp',
-                               subsys=ctrl_rate_comp,
+                               subsys=control_interp_comp,
                                promotes_inputs=['controls:*'],
                                promotes_outputs=['control_rates:*'])
             self.connect('time.dt_dstau', 'control_interp_comp.dt_dstau')
@@ -989,9 +1029,10 @@ class PhaseBase(Group):
             A list of the component names needed for time extents.
         """
         time_units = self.time_options['units']
-        grid_data = self.grid_data
 
         indeps = []
+        default_vals = {'t_initial': self.time_options['initial_val'],
+                        't_duration': self.time_options['duration_val']}
         externals = []
         comps = []
 
@@ -1010,36 +1051,6 @@ class PhaseBase(Group):
         if indeps:
             if self.time_options['solve_continuity']:
 
-                class TimeExtents(ExplicitComponent):
-
-                    def setup(self):
-                        indeps = self.options['indeps']
-                        units = self.options['units']
-                        solve_continuity = self.options['solve_continuity']
-
-                        if solve_continuity:
-                            self.add_input('initial_state_continuity:t_initial', val=1.0,
-                                           units=units)
-
-                            self.declare_partials(of='t_initial',
-                                                  wrt='initial_state_continuity:t_initial', val=1.0)
-
-                        for name in indeps:
-                            self.add_output(name, val=1.0, units=units)
-
-                    def initialize(self):
-                        self.options.declare('indeps', [],
-                                             desc='List of time var names.')
-                        self.options.declare('units', 's',
-                                             desc='Time units.')
-                        self.options.declare('solve_continuity', False,
-                                             desc='When True, create an input for the initial '
-                                                  'value.')
-
-                    def compute(self, inputs, outputs):
-                        if self.options['solve_continuity']:
-                            outputs['t_initial'] = inputs['initial_state_continuity:t_initial']
-
                 indep = TimeExtents(indeps=indeps, units=time_units,
                                     solve_continuity=self.time_options['solve_continuity'])
 
@@ -1047,14 +1058,10 @@ class PhaseBase(Group):
                 indep = IndepVarComp()
 
                 for var in indeps:
-                    indep.add_output(var, val=1.0, units=time_units)
+                    indep.add_output(var, val=default_vals[var], units=time_units)
 
             self.add_subsystem('time_extents', indep, promotes_outputs=['*'])
             comps += ['time_extents']
-
-        time_comp = TimeComp(grid_data=grid_data, units=time_units)
-        self.add_subsystem('time', time_comp, promotes_outputs=['time', 'time_phase'],
-                           promotes_inputs=externals)
 
         if not (self.time_options['input_initial'] or self.time_options['fix_initial']):
             lb, ub = self.time_options['initial_bounds']
@@ -1081,7 +1088,8 @@ class PhaseBase(Group):
                                 adder=self.time_options['duration_adder'],
                                 ref0=self.time_options['duration_ref0'],
                                 ref=self.time_options['duration_ref'])
-        return comps
+
+        return indeps, externals, comps
 
     def _setup_controls(self):
         """
@@ -1185,7 +1193,8 @@ class PhaseBase(Group):
             src_name = 'input_parameters:{0}_out'.format(name)
 
             for tgts, src_idxs in self._get_parameter_connections(name):
-                self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
+                self.connect(src_name, [t for t in tgts],
+                             src_indices=src_idxs, flat_src_indices=True)
 
     def _setup_traj_input_parameters(self):
         """

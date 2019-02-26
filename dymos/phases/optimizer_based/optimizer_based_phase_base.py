@@ -9,11 +9,11 @@ import numpy as np
 from openmdao.api import IndepVarComp, DirectSolver, NewtonSolver, BoundsEnforceLS
 
 from ..optimizer_based.components import CollocationComp, StateInterpComp
+from ..components import TimeComp
 from ..components import EndpointConditionsComp
 from ..phase_base import PhaseBase
 from ...utils.constants import INF_BOUND
 from ...utils.misc import CoerceDesvar, get_rate_units
-from ...utils.lagrange import lagrange_matrices
 from ...utils.indexing import get_src_indices_by_row
 
 
@@ -88,6 +88,20 @@ class OptimizerBasedPhaseBase(PhaseBase):
             newton.linesearch = BoundsEnforceLS()
 
             self.linear_solver = DirectSolver()
+
+    def _setup_time(self):
+        time_units = self.time_options['units']
+        grid_data = self.grid_data
+
+        indeps, externals, comps = super(OptimizerBasedPhaseBase, self)._setup_time()
+
+        time_comp = TimeComp(num_nodes=grid_data.num_nodes, node_ptau=grid_data.node_ptau,
+                             node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units)
+
+        self.add_subsystem('time', time_comp, promotes_outputs=['time', 'time_phase'],
+                           promotes_inputs=externals)
+
+        return comps
 
     def _setup_rhs(self):
         grid_data = self.grid_data

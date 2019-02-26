@@ -82,6 +82,16 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             self.connect('time_phase',
                          ['rhs_all.{0}'.format(t) for t in self.time_options['time_phase_targets']],
                          src_indices=self.grid_data.subset_node_indices['all'])
+
+        if self.time_options['t_initial_targets']:
+            tgts = self.time_options['t_initial_targets']
+            self.connect('t_initial',
+                         ['rhs_all.{0}'.format(t) for t in tgts])
+
+        if self.time_options['t_duration_targets']:
+            tgts = self.time_options['t_duration_targets']
+            self.connect('t_duration',
+                         ['rhs_all.{0}'.format(t) for t in tgts])
         return comps
 
     def _setup_controls(self):
@@ -126,14 +136,12 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             if self.ode_options._parameters[name]['dynamic']:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                if shape == (1,):
+                    src_idxs = src_idxs.ravel()
             else:
                 src_idxs_raw = np.zeros(1, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
-
-            if not dynamic:
                 src_idxs = np.squeeze(src_idxs, axis=0)
-            elif shape == (1,):
-                src_idxs = src_idxs.ravel()
 
             rhs_all_tgts = ['rhs_all.{0}'.format(t) for t in targets]
             connection_info.append((rhs_all_tgts, src_idxs))
@@ -307,12 +315,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                    shape=options['shape'],
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='design_parameters:{0}'.format(name),
                          tgt_name='timeseries.all_values:design_parameters:{0}'.format(name),
@@ -322,14 +326,11 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             units = options['units']
             timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
                                                    var_class=self._classify_var(name),
+                                                   shape=options['shape'],
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='input_parameters:{0}_out'.format(name),
                          tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),

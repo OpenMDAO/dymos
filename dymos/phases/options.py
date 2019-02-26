@@ -348,7 +348,7 @@ class TimeOptionsDictionary(OptionsDictionary):
                      desc='If True, the phase duration (t_duration) is expected to be '
                           'connected to an external output source.')
 
-        self.declare('initial', types=Number,
+        self.declare('initial_val', types=Number, default=0.0,
                      desc='Value of the integration variable at the start of the phase.')
 
         self.declare('initial_bounds', types=Iterable, default=(None, None),
@@ -367,7 +367,7 @@ class TimeOptionsDictionary(OptionsDictionary):
         self.declare('initial_ref', types=Number, allow_none=True, default=None,
                      desc='Unit-reference value for the initial value of the integration variable.')
 
-        self.declare('duration', types=Number,
+        self.declare('duration_val', types=Number, default=1.0,
                      desc='Value of the duration of the integration variable across the phase.')
 
         self.declare('duration_bounds', types=Iterable, default=(None, None),
@@ -398,6 +398,14 @@ class TimeOptionsDictionary(OptionsDictionary):
         self.declare('solve_continuity', default=False, types=bool,
                      desc='setting to control if inter-segment state continuity defects are '
                           'solved with a newton solver')
+
+        self.declare(name='t_initial_targets', types=Iterable, allow_none=True, default=None,
+                     desc='targets in the ODE to which the initial time of the phase is '
+                          'connected')
+
+        self.declare(name='t_duration_targets', types=Iterable, allow_none=True, default=None,
+                     desc='targets in the ODE to which the total duration of the phase is '
+                          'connected')
 
 
 class _ForDocs(object):  # pragma: no cover

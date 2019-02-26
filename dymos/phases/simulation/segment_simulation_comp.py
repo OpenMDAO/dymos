@@ -50,31 +50,20 @@ class SegmentSimulationComp(ExplicitComponent):
     def setup(self):
         idx = self.options['index']
         gd = self.options['grid_data']
+
+        # Number of control discretization nodes per segment
         ncdsps = gd.subset_num_nodes_per_segment['control_disc'][idx]
-        # print(idx, ncdsps)
-        # print(gd.subset_segment_indices)
+
         # Indices of the control disc nodes belonging to the current segment
         control_disc_seg_idxs = gd.subset_segment_indices['control_disc'][idx]
+
         # Segment tau values for the control disc nodes in the phase
         control_disc_stau = gd.node_stau[gd.subset_node_indices['control_disc']]
+
         # Segment tau values for the control disc nodes in the current segment
         control_disc_seg_stau = control_disc_stau[control_disc_seg_idxs[0]:control_disc_seg_idxs[1]]
-        # print('segment ', idx)
-        # print(gd.subset_node_indices['control_disc'])
-        # print(gd.node_stau[gd.subset_node_indices['control_disc']])
-        # print(control_disc_seg_idxs)
-        # print(gd.node_stau[gd.subset_node_indices['control_disc']][control_disc_seg_idxs[0]:control_disc_seg_idxs[1]])
-        # print(control_disc_stau[control_disc_seg_idxs[0]:control_disc_seg_idxs[1]])
-        # print(control_disc_seg_stau)
-        # print('end')
-        # # print(control_disc_seg_idxs)
-        # # print(control_disc_stau)
-        # if idx == 3:
-        #     exit(0)
-        # print(control_disc_idxs_seg_i)
-        # exit(0)
+
         num_output_points = len(self.options['t_eval'])
-        # seg_idxs = gd.segment_indices[idx, :]
 
         self.ode_integration_interface = ODEIntegrationInterface(
             phase_name='',
@@ -86,6 +75,12 @@ class SegmentSimulationComp(ExplicitComponent):
             input_parameter_options=self.input_parameter_options,
             traj_parameter_options=self.traj_parameter_options,
             ode_init_kwargs=self.options['ode_init_kwargs'])
+
+        self.add_input(name='t_initial', val=0.0, units=self.time_options['units'],
+                       desc='Initial time value in the phase.')
+
+        self.add_input(name='t_duration', val=1.0, units=self.time_options['units'],
+                       desc='Total time duration of the phase.')
 
         # Setup the initial state vector for integration
         self.state_vec_size = 0
@@ -148,6 +143,15 @@ class SegmentSimulationComp(ExplicitComponent):
             self.ode_integration_interface.control_interpolants[name].setup(x0=t_eval[0],
                                                                             xf=t_eval[-1],
                                                                             f_j=ctrl_vals)
+
+        # Set the values of t_initial and t_duration
+        iface_prob.set_val('t_initial',
+                           value=inputs['t_initial'],
+                           units=self.time_options['units'])
+
+        iface_prob.set_val('t_duration',
+                           value=inputs['t_duration'],
+                           units=self.time_options['units'])
 
         # Set the values of the phase design parameters
         for param_name, options in iteritems(self.design_parameter_options):

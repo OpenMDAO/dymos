@@ -3,7 +3,8 @@ from __future__ import print_function, division, absolute_import
 from collections import OrderedDict
 
 import numpy as np
-from dymos.phases.simulation.control_interpolation_comp import ControlInterpolationComp
+from dymos.phases.simulation.odeint_control_interpolation_comp import \
+    ODEIntControlInterpolationComp
 from dymos.phases.simulation.state_rate_collector_comp import StateRateCollectorComp
 from openmdao.core.group import Group
 from openmdao.core.indepvarcomp import IndepVarComp
@@ -58,9 +59,6 @@ class ODEIntegrationInterface(object):
         self.traj_parameter_options = traj_parameter_options
         self.control_interpolants = {}
 
-        # Stored initial value of time so that time_phase can be calculated
-        self.t_initial = 0.0
-
         pos = 0
 
         for state, options in iteritems(state_options):
@@ -85,9 +83,9 @@ class ODEIntegrationInterface(object):
         ivc = IndepVarComp()
         time_units = ode_class.ode_options._time_options['units']
         ivc.add_output('time', val=0.0, units=time_units)
-        ivc.add_output('time_phase', val=0.0, units=time_units)
-        ivc.add_output('t_initial', val=0.0, units=time_units)
-        ivc.add_output('t_duration', val=0.0, units=time_units)
+        ivc.add_output('time_phase', val=-88.0, units=time_units)
+        ivc.add_output('t_initial', val=-99.0, units=time_units)
+        ivc.add_output('t_duration', val=-111.0, units=time_units)
 
         model.add_subsystem('time_input', ivc, promotes_outputs=['*'])
 
@@ -97,13 +95,13 @@ class ODEIntegrationInterface(object):
         model.connect('time_phase', ['ode.{0}'.format(tgt) for tgt in
                                      ode_class.ode_options._time_options['time_phase_targets']])
 
-        # self.prob.model.connect('t_initial',
-        #                         ['ode.{0}'.format(tgt) for tgt in
-        #                          self.ode_options._time_options['t_initial_targets']])
-        #
-        # self.prob.model.connect('t_duration',
-        #                         ['ode.{0}'.format(tgt) for tgt in
-        #                          self.ode_options._time_options['t_duration_targets']])
+        model.connect('t_initial',
+                      ['ode.{0}'.format(tgt) for tgt in
+                       ode_class.ode_options._time_options['t_initial_targets']])
+
+        model.connect('t_duration',
+                      ['ode.{0}'.format(tgt) for tgt in
+                       ode_class.ode_options._time_options['t_duration_targets']])
 
         # The States Comp
         for name, options in iteritems(self.state_options):
@@ -121,8 +119,9 @@ class ODEIntegrationInterface(object):
                               ['ode.{0}'.format(tgt) for tgt in options['targets']])
 
         if self.control_options:
-            self._interp_comp = ControlInterpolationComp(time_units=time_units,
-                                                         control_options=control_options)
+            self._interp_comp = \
+                ODEIntControlInterpolationComp(time_units=time_units,
+                                               control_options=control_options)
             self._interp_comp.interpolants = self.control_interpolants
 
             model.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])
@@ -280,7 +279,7 @@ class ODEIntegrationInterface(object):
 
         """
         self.prob['time'] = t
-        self.prob['time_phase'] = t - self.t_initial
+        self.prob['time_phase'] = t - self.prob['t_initial']
         self._unpack_state_vec(x)
         self.prob.run_model()
         xdot = self._pack_state_rate_vec()

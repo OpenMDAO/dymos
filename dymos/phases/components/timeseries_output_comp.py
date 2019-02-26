@@ -6,7 +6,6 @@ import numpy as np
 from openmdao.api import ExplicitComponent
 
 from dymos.phases.grid_data import GridData
-from dymos.utils.constants import INF_BOUND
 
 
 class TimeseriesOutputCompBase(ExplicitComponent):
@@ -97,11 +96,6 @@ class GaussLobattoTimeseriesOutputComp(TimeseriesOutputCompBase):
             self._vars.append((disc_input_name, col_input_name, all_input_name,
                                kwargs['src_all'], output_name, shape))
 
-            # constraint_kwargs = {k: kwargs.get(k, None)
-            #                      for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
-            #                                'scaler', 'indices', 'linear')}
-            # self.add_constraint(output_name, **constraint_kwargs)
-
             # Setup partials
             if kwargs['src_all']:
                 all_shape = (num_nodes,) + shape
@@ -190,15 +184,9 @@ class RadauTimeseriesOutputComp(TimeseriesOutputCompBase):
             output_kwargs['shape'] = (num_nodes,) + kwargs['shape']
             self.add_output(output_name, **output_kwargs)
 
-            # constraint_kwargs = {k: kwargs.get(k, None)
-            #                      for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
-            #                                'scaler', 'indices', 'linear')}
-            # self.add_constraint(output_name, **constraint_kwargs)
-
             self._vars.append((input_name, output_name, kwargs['shape']))
 
             # Setup partials
-
             all_shape = (num_nodes,) + kwargs['shape']
             var_size = np.prod(kwargs['shape'])
             all_size = np.prod(all_shape)

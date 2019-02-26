@@ -123,13 +123,13 @@ class CollocationComp(ImplicitComponent):
             # will get promoted to the same naming convention as the indepvar comp
             if solved:
                 self.add_output(name='states:{0}'.format(state_name),
-                                shape=(num_state_input_nodes,) + shape,
+                                shape=(num_state_input_nodes, ) + shape,
                                 units=units)
 
                 # Input for continuity, which comes from an external balance when solved.
                 if options['solve_continuity']:
                     self.add_input(name='initial_state_continuity:{0}'.format(state_name),
-                                   shape=(1, ), units=units)
+                                   shape=(1, ) + shape, units=units)
 
             self.add_input(
                 name=var_names['f_approx'],
