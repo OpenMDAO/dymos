@@ -936,15 +936,15 @@ class PhaseBase(Group):
 
         self._time_extents = self._setup_time()
 
-        # Declare control_rate comp to which we'll connect controls and parameters.
+        # The control interpolation comp to which we'll connect controls
         if self.control_options:
-            ctrl_rate_comp = ControlInterpComp(control_options=self.control_options,
-                                               time_units=self.time_options['units'],
-                                               grid_data=self.grid_data)
+            control_interp_comp = ControlInterpComp(control_options=self.control_options,
+                                                    time_units=self.time_options['units'],
+                                                    grid_data=self.grid_data)
             self._setup_controls()
 
             self.add_subsystem('control_interp_comp',
-                               subsys=ctrl_rate_comp,
+                               subsys=control_interp_comp,
                                promotes_inputs=['controls:*'],
                                promotes_outputs=['control_rates:*'])
             self.connect('time.dt_dstau', 'control_interp_comp.dt_dstau')
@@ -979,7 +979,6 @@ class PhaseBase(Group):
             A list of the component names needed for time extents.
         """
         time_units = self.time_options['units']
-        grid_data = self.grid_data
 
         indeps = []
         externals = []
@@ -1003,10 +1002,6 @@ class PhaseBase(Group):
                 indep.add_output(var, val=1.0, units=time_units)
             self.add_subsystem('time_extents', indep, promotes_outputs=['*'])
             comps += ['time_extents']
-
-        time_comp = TimeComp(grid_data=grid_data, units=time_units)
-        self.add_subsystem('time', time_comp, promotes_outputs=['time', 'time_phase'],
-                           promotes_inputs=externals)
 
         if not (self.time_options['input_initial'] or self.time_options['fix_initial']):
             lb, ub = self.time_options['initial_bounds']
@@ -1033,7 +1028,8 @@ class PhaseBase(Group):
                                 adder=self.time_options['duration_adder'],
                                 ref0=self.time_options['duration_ref0'],
                                 ref=self.time_options['duration_ref'])
-        return comps
+
+        return indeps, externals, comps
 
     def _setup_controls(self):
         """

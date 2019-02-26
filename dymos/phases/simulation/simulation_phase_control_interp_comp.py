@@ -65,8 +65,8 @@ def _phase_lagrange_matrices(grid_data, t_eval_per_seg, t_initial, t_duration):
         #
         # 1. Get the segment tau values of the given nodes.
         #
-        i1, i2 = grid_data.subset_segment_indices['all'][iseg, :]
-        indices = grid_data.subset_node_indices['all'][i1:i2]
+        i1, i2 = grid_data.subset_segment_indices['control_disc'][iseg, :]
+        indices = grid_data.subset_node_indices['control_disc'][i1:i2]
         tau_s_given = grid_data.node_stau[indices]
 
         #
@@ -92,7 +92,7 @@ def _phase_lagrange_matrices(grid_data, t_eval_per_seg, t_initial, t_duration):
     return L_ae, D_ae, D2_ae
 
 
-class InterpComp(ExplicitComponent):
+class SimulationPhaseControlInterpComp(ExplicitComponent):
     """
     Compute the approximated control values and rates given the values of a control at an arbitrary
     set of points (known a priori) given the values at all nodes.
@@ -142,7 +142,7 @@ class InterpComp(ExplicitComponent):
         control_options = self.options['control_options']
         num_nodes = self.options['grid_data'].subset_num_nodes['all']
         num_output_points = sum([len(a) for a in list(self.options['t_eval_per_seg'].values())])
-        num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
+        num_control_disc_nodes = self.options['grid_data'].subset_num_nodes['control_disc']
         time_units = self.options['time_units']
 
         for name, options in iteritems(control_options):
@@ -151,7 +151,7 @@ class InterpComp(ExplicitComponent):
             self._output_rate_names[name] = 'control_rates:{0}_rate'.format(name)
             self._output_rate2_names[name] = 'control_rates:{0}_rate2'.format(name)
             shape = options['shape']
-            input_shape = (num_nodes,) + shape
+            input_shape = (num_control_disc_nodes,) + shape
             output_shape = (num_output_points,) + shape
 
             units = options['units']

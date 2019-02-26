@@ -89,6 +89,7 @@ class ControlInterpComp(ExplicitComponent):
             self.val_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
             self.rate_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
             self.rate2_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
+
             for i in range(size):
                 self.val_jacs[name][:, i, :, i] = self.L
                 self.rate_jacs[name][:, i, :, i] = self.D
@@ -157,7 +158,6 @@ class ControlInterpComp(ExplicitComponent):
 
         num_disc_nodes = gd.subset_num_nodes['control_disc']
         num_input_nodes = gd.subset_num_nodes['control_input']
-        gd.input_maps['dynamic_control_input_to_disc']
 
         # Find the indexing matrix that, multiplied by the values at the input nodes,
         # gives the values at the discretization nodes
@@ -165,13 +165,18 @@ class ControlInterpComp(ExplicitComponent):
         L_id[np.arange(num_disc_nodes, dtype=int),
              gd.input_maps['dynamic_control_input_to_disc']] = 1.0
 
-        # The control interpolation matrix L is the product of M_index_to_disc and the nominal
-        # pseudospectral interpolation matrix from the discretization nodes to all nodes.
+        # Matrices L_da and D_da interpolate values and rates (respectively) at all nodes from
+        # values specified at control discretization nodes.
         L_da, D_da = gd.phase_lagrange_matrices('control_disc', 'all')
-        _, D_aa = gd.phase_lagrange_matrices('all', 'all')
         self.L = np.dot(L_da, L_id)
         self.D = np.dot(D_da, L_id)
-        self.D2 = np.dot(D_aa, self.D)
+
+        # Matrix D_dd interpolates rates at discretization nodes from values given at control
+        # discretization nodes.
+        _, D_dd = gd.phase_lagrange_matrices('control_disc', 'control_disc')
+
+        # Matrix D2 provides second derivatives at all nodes given values at input nodes.
+        self.D2 = np.dot(D_da, np.dot(D_dd, L_id))
 
         self._setup_controls()
 
@@ -200,7 +205,6 @@ class ControlInterpComp(ExplicitComponent):
             control_name = self._input_names[name]
 
             size = self.sizes[name]
-
             rate_name = self._output_rate_names[name]
             rate2_name = self._output_rate2_names[name]
 

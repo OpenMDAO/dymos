@@ -3,11 +3,11 @@ from openmdao.core.explicitcomponent import ExplicitComponent
 from six import string_types, iteritems
 
 
-class ControlInterpolationComp(ExplicitComponent):
+class ODEIntControlInterpolationComp(ExplicitComponent):
     """
     Provides the interpolated value and rate of a control variable during explicit integration.
 
-    For each control handled by ControlInterpolationComp, the user must provide an object
+    For each control handled by ODEIntControlInterpolationComp, the user must provide an object
     with methods `eval(t)` and `eval_deriv(t)` which return the interpolated value and
     derivative of the control at time `t`, respectively.
     """
