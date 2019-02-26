@@ -167,8 +167,32 @@ class SimulationPhase(Group):
                        val=time_vals - time_vals[0],
                        units=time_units)
 
+        ivc.add_output('t_initial',
+                       val=time_vals[0],
+                       units=time_units)
+
+        ivc.add_output('t_duration',
+                       val=time_vals[-1] - time_vals[0],
+                       units=time_units)
+
         if self.time_options['targets']:
             self.connect('time', ['ode.{0}'.format(tgt) for tgt in self.time_options['targets']])
+
+        if self.time_options['time_phase_targets']:
+            self.connect('time_phase', ['ode.{0}'.format(tgt)
+                                        for tgt in self.time_options['time_phase_targets']])
+
+        if self.time_options['t_initial_targets']:
+            self.connect('t_initial', ['ode.{0}'.format(tgt)
+                                       for tgt in self.time_options['t_initial_targets']])
+            for i in range(num_seg):
+                self.connect(src_name='t_initial', tgt_name='segment_{0}.t_initial'.format(i))
+
+        if self.time_options['t_duration_targets']:
+            self.connect('t_duration', ['ode.{0}'.format(tgt)
+                                        for tgt in self.time_options['t_duration_targets']])
+            for i in range(num_seg):
+                self.connect(src_name='t_duration', tgt_name='segment_{0}.t_duration'.format(i))
 
     def _setup_states(self, ivc):
         gd = self.options['grid_data']
@@ -201,7 +225,6 @@ class SimulationPhase(Group):
     def _setup_controls(self, ivc):
         gd = self.options['grid_data']
         nn = gd.subset_num_nodes['all']
-        ncin = gd.subset_num_nodes['control_input']
         num_seg = gd.num_segments
 
         if self.control_options:

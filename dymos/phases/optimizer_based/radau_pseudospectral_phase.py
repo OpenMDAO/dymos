@@ -86,14 +86,12 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         if self.time_options['t_initial_targets']:
             tgts = self.time_options['t_initial_targets']
             self.connect('t_initial',
-                         ['rhs_all.{0}'.format(t) for t in tgts],
-                         src_indices=np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int))
+                         ['rhs_all.{0}'.format(t) for t in tgts])
 
         if self.time_options['t_duration_targets']:
             tgts = self.time_options['t_duration_targets']
             self.connect('t_duration',
-                         ['rhs_all.{0}'.format(t) for t in tgts],
-                         src_indices=np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int))
+                         ['rhs_all.{0}'.format(t) for t in tgts])
         return comps
 
     def _setup_controls(self):

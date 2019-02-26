@@ -134,23 +134,15 @@ class RungeKuttaPhase(PhaseBase):
 
         if self.time_options['t_initial_targets']:
             time_phase_tgts = self.time_options['t_initial_targets']
-            self.connect('t_initial',
-                         ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts],
-                         src_indices=np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int))
-            self.connect('t_initial',
-                         ['ode.{0}'.format(t) for t in time_phase_tgts],
-                         src_indices=np.zeros(self.grid_data.subset_num_nodes['segment_ends'],
-                                              dtype=int))
+            self.connect('t_initial', ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
+            self.connect('t_initial', ['ode.{0}'.format(t) for t in time_phase_tgts])
 
         if self.time_options['t_duration_targets']:
             time_phase_tgts = self.time_options['t_duration_targets']
             self.connect('t_duration',
-                         ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts],
-                         src_indices=np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int))
+                         ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
             self.connect('t_duration',
-                         ['ode.{0}'.format(t) for t in time_phase_tgts],
-                         src_indices=np.zeros(self.grid_data.subset_num_nodes['segment_ends'],
-                                              dtype=int))
+                         ['ode.{0}'.format(t) for t in time_phase_tgts])
 
         return comps
 
