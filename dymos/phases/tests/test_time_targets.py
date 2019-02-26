@@ -265,6 +265,8 @@ class TestPhaseTimeTargets(unittest.TestCase):
         time_phase_all = p['phase0.time_phase']
         time_phase_segends = time_phase_all[gd.subset_node_indices['segment_ends']]
 
+        # Test the iteration ODE
+
         assert_rel_error(self, p['phase0.rk_solve_group.ode.time_phase'][-1], 1.8016,
                          tolerance=1.0E-3)
 
@@ -275,6 +277,19 @@ class TestPhaseTimeTargets(unittest.TestCase):
         assert_rel_error(self, p['phase0.rk_solve_group.ode.time_phase'], time_phase_all)
 
         assert_rel_error(self, p['phase0.rk_solve_group.ode.time'], time_all)
+
+        # Now test the final ODE
+
+        assert_rel_error(self, p['phase0.ode.time_phase'][-1], 1.8016,
+                         tolerance=1.0E-3)
+
+        assert_rel_error(self, p['phase0.ode.t_initial'], p['phase0.t_initial'])
+
+        assert_rel_error(self, p['phase0.ode.t_duration'], p['phase0.t_duration'])
+
+        assert_rel_error(self, p['phase0.ode.time_phase'], time_phase_segends)
+
+        assert_rel_error(self, p['phase0.ode.time'], time_segends)
 
         exp_out = p.model.phase0.simulate()
 
