@@ -17,10 +17,9 @@ class MyComp(ExplicitComponent):
     def setup(self):
         nn = self.options['num_nodes']
         n_traj = self.options['n_traj']
-        self.add_input('time', val=np.zeros(nn))
-        self.add_input('alpha', shape=np.zeros((n_traj, 2)).shape)
-
-        self.add_output('y', val=np.zeros(nn))
+        self.add_input('time', val=np.zeros(nn), units='s')
+        self.add_input('alpha', shape=np.zeros((n_traj, 2)).shape, units='m')
+        self.add_output('y', val=np.zeros(nn), units='1/s')
 
     def compute(self, inputs, outputs):
         pass
