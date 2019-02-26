@@ -35,7 +35,6 @@ class Motors(ExplicitComponent):
 
         self.declare_partials(of='power_in_motor', wrt=['*'], rows=row_col, cols=row_col)
 
-
     def compute(self, inputs, outputs):
         opt = self.options
         current = inputs['current_in_motor']

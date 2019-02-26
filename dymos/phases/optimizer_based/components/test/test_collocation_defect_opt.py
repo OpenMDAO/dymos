@@ -24,9 +24,11 @@ class TestCollocationComp(unittest.TestCase):
         self.p = Problem(model=Group())
 
         state_options = {'x': {'units': 'm', 'shape': (1,), 'fix_initial': True,
-                               'fix_final': False, 'solve_segments': False},
+                               'fix_final': False, 'solve_segments': False,
+                               'solve_continuity': False},
                          'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial': False,
-                               'fix_final': True, 'solve_segments': False}}
+                               'fix_final': True, 'solve_segments': False,
+                               'solve_continuity': False}}
 
         indep_comp = IndepVarComp()
         self.p.model.add_subsystem('indep', indep_comp, promotes_outputs=['*'])

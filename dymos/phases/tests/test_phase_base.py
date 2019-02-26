@@ -254,6 +254,21 @@ class TestPhaseBase(unittest.TestCase):
         expected = 'Invalid boundary constraint location "foo". Must be "initial" or "final".'
         self.assertEqual(str(e.exception), expected)
 
+    def test_invalid_set_options(self):
+
+        phase = Phase('gauss-lobatto',
+                      ode_class=BrachistochroneODE,
+                      num_segments=20,
+                      transcription_order=3,
+                      compressed=True)
+
+        with self.assertRaises(ValueError) as e:
+            phase.set_state_options('x', fix_initial=False, fix_final=False,
+                                    solve_segments=False, solve_continuity=True)
+
+        msg = "The 'solve_continuity' option can only be used when 'solve_segments' is True."
+        self.assertEqual(str(e.exception), msg)
+
     def test_objective_design_parameter_gl(self):
         from openmdao.api import Problem, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error

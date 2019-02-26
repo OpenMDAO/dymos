@@ -315,8 +315,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(state_name))
 
-            self.connect('states:{0}'.format(state_name),
-                         'initial_conditions.initial_value:{0}'.format(state_name))
+            # This is connected to the previous phase if we are solving the continuity.
+            if not options['solve_continuity']:
+                self.connect('states:{0}'.format(state_name),
+                             'initial_conditions.initial_value:{0}'.format(state_name))
+
             self.connect('states:{0}'.format(state_name),
                          'final_conditions.final_value:{0}'.format(state_name))
 

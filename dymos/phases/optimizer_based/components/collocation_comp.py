@@ -1,4 +1,4 @@
-"""Define the BalanceComp class."""
+"""Define the CollocationComp class."""
 
 from __future__ import print_function, division, absolute_import
 
@@ -81,11 +81,6 @@ class CollocationComp(ImplicitComponent):
                 self.state_idx_map[state_name]['indep'] = \
                     [self.solver_node_idx[0]] + self.indep_node_idx
 
-            elif options['solve_continuity']:
-                self.state_idx_map[state_name]['solver'] = self.solver_node_idx[:]
-                self.state_idx_map[state_name]['indep'] = \
-                    [self.solver_node_idx[0]] + self.indep_node_idx
-
             elif options['fix_final']:
                 self.state_idx_map[state_name]['solver'] = self.solver_node_idx[:-1]
                 self.state_idx_map[state_name]['indep'] = \
@@ -106,12 +101,6 @@ class CollocationComp(ImplicitComponent):
         num_state_input_nodes = grid_data.subset_num_nodes['state_input']
 
         self.add_input('dt_dstau', units=time_units, shape=(num_col_nodes,))
-
-        all_opt_defects = True
-        for state_name, options in iteritems(state_options):
-            if options['solve_segments']:
-                all_opt_defects = False
-                break
 
         self.var_names = {}
         for state_name in state_options:

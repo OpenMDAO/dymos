@@ -25,8 +25,10 @@ class BatteryODE(Group):
         num_nodes = self.options['num_nodes']
 
         self.add_subsystem(name='pwr_balance',
-                           subsys=BalanceComp(name='I_Li', val=1.0*np.ones(num_nodes), rhs_name='pwr_out_batt',
-                                              lhs_name='P_pack', units='A', eq_units='W', lower = 0.0, upper= 50.))
+                           subsys=BalanceComp(name='I_Li', val=1.0*np.ones(num_nodes),
+                                              rhs_name='pwr_out_batt',
+                                              lhs_name='P_pack',
+                                              units='A', eq_units='W', lower=0.0, upper=50.))
 
         self.add_subsystem('battery', Battery(num_nodes=num_nodes),
                            promotes_inputs=['SOC'],

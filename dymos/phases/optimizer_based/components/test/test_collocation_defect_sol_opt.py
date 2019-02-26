@@ -23,9 +23,11 @@ class TestCollocationCompSolOpt(unittest.TestCase):
                       transcription=transcription, transcription_order=order, compressed=compressed)
 
         state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
-                               'fix_final': False, 'solve_segments': False},
+                               'fix_final': False, 'solve_segments': False,
+                               'solve_continuity': False},
                          'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial': False,
-                               'fix_final': True, 'solve_segments': True}}
+                               'fix_final': True, 'solve_segments': True,
+                               'solve_continuity': False}}
 
         indep_comp = IndepVarComp()
         p.model.add_subsystem('indep', indep_comp, promotes_outputs=['*'])

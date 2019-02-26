@@ -12,8 +12,8 @@ except ImportError:
 
 import numpy as np
 
-from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Problem, \
-     SqliteRecorder, BalanceComp, NewtonSolver, BoundsEnforceLS
+from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Problem
+from openmdao.api import SqliteRecorder, BalanceComp, NewtonSolver, BoundsEnforceLS
 
 from ..utils.constants import INF_BOUND
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
@@ -322,11 +322,18 @@ class Trajectory(Group):
 
                     if var == 'time':
                         path = 'time_extents.initial_state_continuity:t_initial'
-                    else:
-                        path = 'collocation_constraint.initial_state_continuity:{0}'.format(var)
 
-                    self.connect('{0}.{1}'.format(phase_name1, source1),
-                                 '{0}.{1}'.format(phase_name2, path))
+                        self.connect('{0}.{1}'.format(phase_name1, source1),
+                                     '{0}.{1}'.format(phase_name2, path))
+                    else:
+                        path1 = 'initial_conditions.initial_value:{0}'.format(var)
+                        path2 = 'collocation_constraint.initial_state_continuity:{0}'.format(var)
+
+                        self.connect('{0}.{1}'.format(phase_name1, source1),
+                                     '{0}.{1}'.format(phase_name2, path1))
+
+                        self.connect('{0}.{1}'.format(phase_name2, source2),
+                                     '{0}.{1}'.format(phase_name2, path2))
 
                 print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
                                                               max_varname_length + 9))
@@ -377,8 +384,8 @@ class Trajectory(Group):
 
         - '--' specifies the value at the start of the phase before an initial state or control jump
         - '-+' specifies the value at the start of the phase after an initial state or control jump
-        - '+-' specifies the value at the end of the phase before an initial state or control jump
-        - '++' specifies the value at the end of the phase after an initial state or control jump
+        - '+-' specifies the value at the end of the phase before a final state or control jump
+        - '++' specifies the value at the end of the phase after a final state or control jump
 
         Parameters
         ----------

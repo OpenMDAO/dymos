@@ -140,8 +140,8 @@ class PhaseBase(Group):
             Note that the state continuity defects between segements will still be
             handled by the optimizer.
         solve_continuity : bool(False)
-            If True, a solver is used to converge the state continuity defects between segments. This
-            option is only valid if solve_segments is also True.
+            If True, then initial conditions for this variable come from an external source.
+            This option is only valid if solve_segments is also True.
         """
         if units is not _unspecified:
             self.state_options[name]['units'] = units
@@ -160,6 +160,10 @@ class PhaseBase(Group):
         self.state_options[name]['defect_ref'] = defect_ref
         self.state_options[name]['solve_segments'] = solve_segments
         self.state_options[name]['solve_continuity'] = solve_continuity
+
+        if solve_continuity and not solve_segments:
+            msg = "The 'solve_continuity' option can only be used when 'solve_segments' is True."
+            raise ValueError(msg)
 
     def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,
@@ -806,8 +810,7 @@ class PhaseBase(Group):
         duration_ref : float
             Unit-reference value for the duration of time across the phase.
         solve_continuity : bool(False)
-            If True, a solver is used to converge the state continuity defects between segments. This
-            option is only valid if solve_segments is also True.
+            If True, then initial conditions for time come from an external source.
         """
         if opt_initial is not None:
             self.time_options['fix_initial'] = not opt_initial
@@ -1030,12 +1033,12 @@ class PhaseBase(Group):
                         self.options.declare('units', 's',
                                              desc='Time units.')
                         self.options.declare('solve_continuity', False,
-                                             desc='When True, create an input for the initial value.')
+                                             desc='When True, create an input for the initial '
+                                                  'value.')
 
                     def compute(self, inputs, outputs):
                         if self.options['solve_continuity']:
                             outputs['t_initial'] = inputs['initial_state_continuity:t_initial']
-
 
                 indep = TimeExtents(indeps=indeps, units=time_units,
                                     solve_continuity=self.time_options['solve_continuity'])
