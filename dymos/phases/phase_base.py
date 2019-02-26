@@ -751,9 +751,9 @@ class PhaseBase(Group):
 
     def set_time_options(self, opt_initial=None, opt_duration=None, fix_initial=False,
                          fix_duration=False, input_initial=False, input_duration=False,
-                         initial=0.0, initial_bounds=(None, None), initial_scaler=None,
+                         initial_val=0.0, initial_bounds=(None, None), initial_scaler=None,
                          initial_adder=None, initial_ref=None, initial_ref0=None,
-                         duration=1.0, duration_bounds=(None, None),
+                         duration_val=1.0, duration_bounds=(None, None),
                          duration_scaler=None, duration_adder=None, duration_ref=None,
                          duration_ref0=None):
         """
@@ -777,7 +777,7 @@ class PhaseBase(Group):
         input_duration : bool
             If True, the user is expected to link phase.t_duration to an external output source.
             Providing input_duration=True makes all time duration optimization settings irrelevant.
-        initial : float
+        initial_val : float
             Default value of the time at the start of the phase.
         initial_bounds : Iterable of size 2
             Tuple of (lower, upper) bounds for time at the start of the phase.
@@ -789,7 +789,7 @@ class PhaseBase(Group):
             Zero-reference value for the initial value of time.
         initial_ref : float
             Unit-reference value for the initial value of time.
-        duration : float
+        duration_val : float
             Value of the duration of time across the phase.
         duration_bounds : Iterable of size 2
             Tuple of (lower, upper) bounds for the duration of time
@@ -864,7 +864,7 @@ class PhaseBase(Group):
                 warnings.warn(msg, RuntimeWarning)
 
         self.time_options['input_initial'] = input_initial
-        self.time_options['initial'] = initial
+        self.time_options['initial_val'] = initial_val
         self.time_options['initial_bounds'] = initial_bounds
         self.time_options['initial_scaler'] = initial_scaler
         self.time_options['initial_adder'] = initial_adder
@@ -872,7 +872,7 @@ class PhaseBase(Group):
         self.time_options['initial_ref0'] = initial_ref0
 
         self.time_options['input_duration'] = input_duration
-        self.time_options['duration'] = duration
+        self.time_options['duration_val'] = duration_val
         self.time_options['duration_bounds'] = duration_bounds
         self.time_options['duration_scaler'] = duration_scaler
         self.time_options['duration_adder'] = duration_adder
@@ -981,6 +981,8 @@ class PhaseBase(Group):
         time_units = self.time_options['units']
 
         indeps = []
+        default_vals = {'t_initial': self.time_options['initial_val'],
+                        't_duration': self.time_options['duration_val']}
         externals = []
         comps = []
 
@@ -999,7 +1001,7 @@ class PhaseBase(Group):
         if indeps:
             indep = IndepVarComp()
             for var in indeps:
-                indep.add_output(var, val=1.0, units=time_units)
+                indep.add_output(var, val=default_vals[var], units=time_units)
             self.add_subsystem('time_extents', indep, promotes_outputs=['*'])
             comps += ['time_extents']
 
