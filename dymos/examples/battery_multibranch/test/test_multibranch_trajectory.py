@@ -147,7 +147,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         num_seg = 5
         seg_ends, _ = lgl(num_seg + 1)
 
-        traj = prob.model.add_subsystem('traj', Trajectory(phase_linkages='solved'))
+        traj = prob.model.add_subsystem('traj', Trajectory())
 
         # First phase: normal operation.
 
@@ -210,9 +210,12 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
                                         solve_segments=True, solve_continuity=True)
 
-        traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'])
-        traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'])
-        traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'])
+        traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'],
+                         connected=True)
+        traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'],
+                         connected=True)
+        traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'],
+                         connected=True)
 
         prob.model.options['assembled_jac_type'] = 'csc'
         prob.model.linear_solver = DirectSolver(assemble_jac=True)
@@ -258,7 +261,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         num_seg = 5
         seg_ends, _ = lgl(num_seg + 1)
 
-        traj = prob.model.add_subsystem('traj', Trajectory(phase_linkages='solved'))
+        traj = prob.model.add_subsystem('traj', Trajectory())
 
         # First phase: normal operation.
 
@@ -321,9 +324,12 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
                                         solve_segments=True, solve_continuity=True)
 
-        traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'])
-        traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'])
-        traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'])
+        traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'],
+                         connected=True)
+        traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'],
+                         connected=True)
+        traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'],
+                         connected=True)
 
         prob.model.options['assembled_jac_type'] = 'csc'
         prob.model.linear_solver = DirectSolver(assemble_jac=True)
