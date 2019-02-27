@@ -4,12 +4,11 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, ExplicitComponent, NonlinearBlockGS, NonlinearRunOnce
+from openmdao.api import Problem, Group
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import RungeKuttaPhase, declare_time, declare_state
+from dymos import RungeKuttaPhase
 from dymos.phases.runge_kutta.test.rk_test_ode import TestODE, _test_ode_solution
-from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
 class TestRK4SimpleIntegration(unittest.TestCase):
@@ -52,11 +51,11 @@ class TestRK4SimpleIntegration(unittest.TestCase):
             RungeKuttaPhase(num_segments=4,
                             method='rk4',
                             ode_class=TestODE,
-                            direction='backward',
                             k_solver_options={'iprint': 2},
                             continuity_solver_options={'iprint': 2, 'solve_subsystems': True}))
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
+        phase.set_state_options('y', fix_initial=False, time_direction='backward')
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 

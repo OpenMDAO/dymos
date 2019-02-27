@@ -100,7 +100,7 @@ class PhaseBase(Group):
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
                           ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
-                          solve_segments=False):
+                          solve_segments=False, time_direction='forward'):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -143,6 +143,9 @@ class PhaseBase(Group):
             If True, a solver will be used to converge the collocation defects within a segment.
             Note that the state continuity defects between segements will still be
             handled by the optimizer.
+        time_direction : str
+            The direction of time propagation for this state when solve_segments is True.  Must be
+            one of 'forward' or 'backward'.
 
         """
         if units is not _unspecified:
@@ -161,6 +164,7 @@ class PhaseBase(Group):
         self.state_options[name]['defect_scaler'] = defect_scaler
         self.state_options[name]['defect_ref'] = defect_ref
         self.state_options[name]['solve_segments'] = solve_segments
+        self.state_options[name]['time_direction'] = time_direction
 
     def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,

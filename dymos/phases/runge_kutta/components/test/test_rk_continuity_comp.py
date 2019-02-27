@@ -3,7 +3,6 @@ from __future__ import print_function, division, absolute_import
 import unittest
 
 import numpy as np
-from numpy.testing import assert_almost_equal
 
 from openmdao.api import Problem, Group, NonlinearRunOnce, NonlinearBlockGS, \
     NewtonSolver, DirectSolver
@@ -17,7 +16,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
 
     def test_continuity_comp_no_iteration_fwd(self):
         num_seg = 4
-        state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y']}}
+        state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'],
+                               'time_direction': 'forward'}}
 
         p = Problem(model=Group())
 
@@ -81,7 +81,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_nonlinearblockgs_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False}}
+                               'fix_final': False, 'time_direction': 'forward'}}
 
         p = Problem(model=Group())
 
@@ -145,7 +145,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_newton_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False}}
+                               'fix_final': False, 'time_direction': 'forward'}}
 
         p = Problem(model=Group())
 
@@ -198,16 +198,16 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
-    def test_continuity_comp_no_iteration_backwards(self):
+    def test_continuity_comp_no_iteration_backward(self):
         num_seg = 4
-        state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y']}}
+        state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'],
+                               'time_direction': 'backward'}}
 
         p = Problem(model=Group())
 
         p.model.add_subsystem('continuity_comp',
                               RungeKuttaStateContinuityComp(num_segments=num_seg,
-                                                            state_options=state_options,
-                                                            direction='backward'),
+                                                            state_options=state_options),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -262,17 +262,16 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
-    def test_continuity_comp_nonlinearblockgs_backwards(self):
+    def test_continuity_comp_nonlinearblockgs_backward(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False}}
+                               'fix_final': False, 'time_direction': 'backward'}}
 
         p = Problem(model=Group())
 
         p.model.add_subsystem('continuity_comp',
                               RungeKuttaStateContinuityComp(num_segments=num_seg,
-                                                            state_options=state_options,
-                                                            direction='backward'),
+                                                            state_options=state_options),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -330,14 +329,13 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_newton_backwards(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False}}
+                               'fix_final': False, 'time_direction': 'backward'}}
 
         p = Problem(model=Group())
 
         p.model.add_subsystem('continuity_comp',
                               RungeKuttaStateContinuityComp(num_segments=num_seg,
-                                                            state_options=state_options,
-                                                            direction='backward'),
+                                                            state_options=state_options),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 

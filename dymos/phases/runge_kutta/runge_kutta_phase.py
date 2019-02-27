@@ -249,7 +249,7 @@ class RungeKuttaPhase(PhaseBase):
                 if options['fix_initial']:
                     if options['time_direction'] == 'backward':
                         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                                         'direction=\'backward\' for state {0} in '
+                                         'time_direction=\'backward\' for state {0} in '
                                          'RungeKuttaPhase'.format(state_name))
                     if options['initial_bounds'] is not None:
                         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
@@ -264,7 +264,7 @@ class RungeKuttaPhase(PhaseBase):
                 if options['fix_final']:
                     if options['time_direction'] == 'forward':
                         raise ValueError('Cannot specify \'fix_final=True\' and specify '
-                                         'direction=\'forrward\' for state {0} in '
+                                         'time_direction=\'forward\' for state {0} in '
                                          'RungeKuttaPhase'.format(state_name))
                     if options['final_bounds'] is not None:
                         raise ValueError('Cannot specify \'fix_final=True\' and specify '
@@ -768,7 +768,8 @@ class RungeKuttaPhase(PhaseBase):
     def set_state_options(self, name, units=_unspecified, val=1.0,
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
-                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None):
+                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
+                          time_direction='forward'):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -790,6 +791,8 @@ class RungeKuttaPhase(PhaseBase):
         fix_final : bool(False)
             If True, omit the final value of the state from the design variables (prevent the
             optimizer from changing it).
+        time_direction : str('forward')
+            The direction of propagation for this state variable, either 'forward' or 'backward'.
         lower : float or ndarray or None (None)
             The lower bound of the state at the nodes of the phase.
         upper : float or ndarray or None (None)
@@ -823,7 +826,8 @@ class RungeKuttaPhase(PhaseBase):
                                                        ref=ref,
                                                        ref0=ref0,
                                                        defect_scaler=defect_scaler,
-                                                       defect_ref=defect_ref)
+                                                       defect_ref=defect_ref,
+                                                       time_direction=time_direction)
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
