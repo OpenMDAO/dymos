@@ -13,7 +13,7 @@ except ImportError:
 import numpy as np
 
 from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Problem
-from openmdao.api import SqliteRecorder, BalanceComp, NewtonSolver, BoundsEnforceLS
+from openmdao.api import SqliteRecorder, BalanceComp
 
 from ..utils.constants import INF_BOUND
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
@@ -362,14 +362,6 @@ class Trajectory(Group):
 
         if self._linkages:
             self._setup_linkages()
-
-        if self.options['phase_linkages'] == 'solved':
-            newton = self.nonlinear_solver = NewtonSolver()
-            newton.options['solve_subsystems'] = True
-            newton.options['iprint'] = 0
-            newton.linesearch = BoundsEnforceLS()
-
-            self.linear_solver = DirectSolver()
 
     def link_phases(self, phases, vars=None, locs=('++', '--')):
         """

@@ -237,7 +237,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         # Fail one motor
         prob.model.traj.phases.phase1_mfail.rhs_all.motors.options['n_parallel'] = 2
 
-        prob.set_solver_print(level=2)
+        prob.set_solver_print(level=0)
         prob.run_model()
 
         soc0 = prob['traj.phases.phase0.collocation_constraint.states:state_of_charge']
@@ -352,7 +352,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         prob['traj.phase0.final_jump:state_of_charge'] = 0.1
         prob['traj.phase1_bfail.initial_jump:state_of_charge'] = -0.2
 
-        prob.set_solver_print(level=2)
+        prob.set_solver_print(level=0)
         prob.run_model()
 
         soc0 = prob['traj.phases.phase0.collocation_constraint.states:state_of_charge']
