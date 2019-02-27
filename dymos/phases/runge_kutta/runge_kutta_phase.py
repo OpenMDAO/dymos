@@ -56,11 +56,6 @@ class RungeKuttaPhase(PhaseBase):
         self.options.declare('method', default='rk4', values=('rk4',),
                              desc='The integrator used within the explicit phase.')
 
-        self.options.declare('direction', default='forward', values=('forward', 'backward'),
-                             desc='Whether the numerical propagation occurs forward or backward '
-                                  'in time.  This poses restrictions on whether states can have '
-                                  'fixed initial/final values.')
-
         self.options.declare('k_solver_class', default=NonlinearBlockGS,
                              values=(NonlinearBlockGS, NewtonSolver, NonlinearRunOnce),
                              allow_none=True,
@@ -78,7 +73,8 @@ class RungeKuttaPhase(PhaseBase):
                                   'across the segments (steps).  Currently only NewtonSolver is'
                                   'supported.')
 
-        self.options.declare('continuity_solver_options', default={'iprint': -1}, types=(dict,),
+        self.options.declare('continuity_solver_options',
+                             default={'iprint': -1, 'solve_subsystems': True}, types=(dict,),
                              desc='The options passed to the nonlinear solver used to enforce '
                                   'state continuity across the segments (steps).')
 
@@ -154,7 +150,6 @@ class RungeKuttaPhase(PhaseBase):
                                method=self.options['method'],
                                state_options=self.state_options,
                                time_units=self.time_options['units'],
-                               direction=self.options['direction'],
                                ode_class=self.options['ode_class'],
                                ode_init_kwargs=self.options['ode_init_kwargs'],
                                k_solver_class=self.options['k_solver_class'],
@@ -245,14 +240,14 @@ class RungeKuttaPhase(PhaseBase):
 
             if options['opt']:
                 # Set the desvar indices accordingly
-                if self.options['direction'] == 'forward':
+                if options['time_direction'] == 'forward':
                     desvar_indices = list(range(size))
                 else:
                     desvar_indices = np.arange(num_seg * size, size * (num_seg + 1),
                                                dtype=int).tolist()
 
                 if options['fix_initial']:
-                    if self.options['direction'] == 'backward':
+                    if options['time_direction'] == 'backward':
                         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
                                          'direction=\'backward\' for state {0} in '
                                          'RungeKuttaPhase'.format(state_name))
@@ -267,7 +262,7 @@ class RungeKuttaPhase(PhaseBase):
                         del desvar_indices[:size]
 
                 if options['fix_final']:
-                    if self.options['direction'] == 'forward':
+                    if options['time_direction'] == 'forward':
                         raise ValueError('Cannot specify \'fix_final=True\' and specify '
                                          'direction=\'forrward\' for state {0} in '
                                          'RungeKuttaPhase'.format(state_name))
@@ -364,7 +359,7 @@ class RungeKuttaPhase(PhaseBase):
         num_seg = grid_data.num_segments
 
         # Add the continuity constraint component if necessary
-        if num_seg > 1:
+        if num_seg > 1 and self.control_options:
             time_units = self.time_options['units']
 
             self.add_subsystem('continuity_comp',
