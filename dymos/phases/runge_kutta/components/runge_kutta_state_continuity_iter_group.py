@@ -34,11 +34,6 @@ class RungeKuttaStateContinuityIterGroup(Group):
         self.options.declare('time_units', default=None, allow_none=True, types=string_types,
                              desc='Units of the integration variable')
 
-        self.options.declare('direction', default='forward', values=('forward', 'backward'),
-                             desc='Whether the numerical propagation occurs forward or backward '
-                                  'in time.  This poses restrictions on whether states can have '
-                                  'fixed initial/final values.')
-
         self.options.declare('ode_class',
                              desc='System defining the ODE')
 
@@ -89,8 +84,7 @@ class RungeKuttaStateContinuityIterGroup(Group):
         self.add_subsystem('continuity_comp',
                            RungeKuttaStateContinuityComp(
                                num_segments=self.options['num_segments'],
-                               state_options=self.options['state_options'],
-                               direction=self.options['direction']),
+                               state_options=self.options['state_options']),
                            promotes_inputs=['state_integrals:*'],
                            promotes_outputs=['states:*'])
 
