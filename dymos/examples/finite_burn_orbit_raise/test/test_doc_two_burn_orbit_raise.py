@@ -33,7 +33,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         p.model.add_subsystem('traj', traj)
 
         p.driver = pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
+        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
         p.driver.options['optimizer'] = optimizer
         p.driver.options['dynamic_simul_derivs'] = True
 
