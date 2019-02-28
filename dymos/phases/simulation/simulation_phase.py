@@ -185,14 +185,14 @@ class SimulationPhase(Group):
         if self.time_options['t_initial_targets']:
             self.connect('t_initial', ['ode.{0}'.format(tgt)
                                        for tgt in self.time_options['t_initial_targets']])
-            for i in range(num_seg):
-                self.connect(src_name='t_initial', tgt_name='segment_{0}.t_initial'.format(i))
+        for i in range(num_seg):
+            self.connect(src_name='t_initial', tgt_name='segment_{0}.t_initial'.format(i))
 
         if self.time_options['t_duration_targets']:
             self.connect('t_duration', ['ode.{0}'.format(tgt)
                                         for tgt in self.time_options['t_duration_targets']])
-            for i in range(num_seg):
-                self.connect(src_name='t_duration', tgt_name='segment_{0}.t_duration'.format(i))
+        for i in range(num_seg):
+            self.connect(src_name='t_duration', tgt_name='segment_{0}.t_duration'.format(i))
 
     def _setup_states(self, ivc):
         gd = self.options['grid_data']
