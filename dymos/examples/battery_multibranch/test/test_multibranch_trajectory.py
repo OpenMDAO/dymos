@@ -329,7 +329,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'],
                          connected=True)
         traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'],
-                         connected=True)
+                         connected=True, locs=('+-', '--'))
 
         prob.model.options['assembled_jac_type'] = 'csc'
         prob.model.linear_solver = DirectSolver(assemble_jac=True)
@@ -357,6 +357,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         # Jumps
         prob['traj.phase0.final_jump:state_of_charge'] = 0.1
         prob['traj.phase1_bfail.initial_jump:state_of_charge'] = -0.2
+        prob['traj.phase1_mfail.initial_jump:state_of_charge'] = -0.2
 
         prob.set_solver_print(level=0)
         prob.run_model()
@@ -370,6 +371,45 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         assert_rel_error(self, soc0[-1], 0.63464982, 1e-6)
         assert_rel_error(self, soc1[0], 0.73464982, 1e-6)
         assert_rel_error(self, soc1b[0], 0.93464982, 1e-6)
+        assert_rel_error(self, soc1m[0], 0.83464982, 1e-6)
+
+    def test_solver_defects_reverse_propagation(self):
+        transcription = 'radau-ps'
+        prob = Problem()
+
+        num_seg = 5
+        seg_ends, _ = lgl(num_seg + 1)
+
+        # First phase: normal operation.
+
+        phase0 = Phase(transcription,
+                       ode_class=BatteryODE,
+                       num_segments=num_seg,
+                       segment_ends=seg_ends,
+                       transcription_order=5,
+                       compressed=True)
+
+        traj_p0 = prob.model.add_subsystem('phase0', phase0)
+
+        traj_p0.set_time_options(fix_initial=True, fix_duration=True)
+        traj_p0.set_state_options('state_of_charge', fix_initial=False, fix_final=True,
+                                  solve_segments=True, propagation='backward', solve_continuity=True)
+
+
+        prob.model.options['assembled_jac_type'] = 'csc'
+        prob.model.linear_solver = DirectSolver(assemble_jac=True)
+
+        prob.setup()
+
+        prob['phase0.time_extents.t_initial'] = 0
+        prob['phase0.time_extents.t_duration'] = 1.0*3600
+        prob['phase0.final_conditions.final_value:state_of_charge'] = 0.63464982
+
+        prob.set_solver_print(level=0)
+        prob.run_model()
+
+        soc0 = prob['phase0.states:state_of_charge']
+        assert_rel_error(self, soc0[0], 1.0, 1e-6)
 
 if __name__ == '__main__':
     unittest.main()

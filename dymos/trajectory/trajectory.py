@@ -314,13 +314,9 @@ class Trajectory(Group):
                                      '{0}.{1}'.format(phase_name2, path))
                     else:
                         path1 = 'initial_conditions.initial_value:{0}'.format(var)
-                        path2 = 'collocation_constraint.initial_state_continuity:{0}'.format(var)
 
                         self.connect('{0}.{1}'.format(phase_name1, source1),
                                      '{0}.{1}'.format(phase_name2, path1))
-
-                        self.connect('{0}.{1}'.format(phase_name2, source2),
-                                     '{0}.{1}'.format(phase_name2, path2))
 
                 else:
 

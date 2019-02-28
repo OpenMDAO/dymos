@@ -27,22 +27,17 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
         self.options.declare('num_segments', types=int,
                              desc='The number of segments (timesteps) in the phase.')
 
-        self.options.declare('direction', default='forward', values=('forward', 'backward'),
-                             desc='Whether the numerical propagation occurs forwards or backwards '
-                                  'in time.  This poses restrictions on whether states can have '
-                                  'fixed initial/final values.')
-
     def setup(self):
         """
         Define the independent variables, output variables, and partials.
         """
         num_seg = self.options['num_segments']
         state_options = self.options['state_options']
-        direction = self.options['direction']
 
         self._var_names = {}
 
         for state_name, options in iteritems(state_options):
+            direction = options['propagation']
 
             self._var_names[state_name] = {
                 'states': 'states:{0}'.format(state_name),
@@ -106,10 +101,10 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
             unscaled, dimensional residuals written to via residuals[key]
         """
         state_options = self.options['state_options']
-        direction = self.options['direction']
 
         for state_name, options in iteritems(state_options):
-            names = self._var_names[state_name]\
+            names = self._var_names[state_name]
+            direction = options['propagation']
 
             x_i = outputs[names['states']][:-1, ...]
             x_f = outputs[names['states']][1:, ...]

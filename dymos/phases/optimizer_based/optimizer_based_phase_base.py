@@ -143,17 +143,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
         # create des-vars for any solve_segments=False states
         # NOTE: solve_segments=True states get their state:<state_name> vars from the output
         #       of the implicit collocation_comp
-        self.any_optimized_segments = False
-        self.any_solved_segments = False
         for name, options in iteritems(self.state_options):
-            if options['solve_segments']:
-                self.any_solved_segments = True
-            else:
+            if not options['solve_segments']:
                 indep.add_output(name='states:{0}'.format(name),
                                  shape=(num_state_input_nodes, np.prod(options['shape'])),
                                  units=options['units'])
-
-                self.any_optimized_segments = True
 
         if self.any_optimized_segments:
             self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
@@ -178,6 +172,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                         del desvar_indices[idx_to_fix]
                 else:
                     del desvar_indices[:size]
+
             if options['fix_final']:
                 if options['final_bounds'] is not None:
                     raise ValueError('Cannot specify \'fix_final=True\' and specify '
@@ -227,14 +222,18 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         time_units = self.time_options['units']
 
-        any_solved_segments = False
-        for state_name, options in iteritems(self.state_options):
+        self.any_optimized_segments = False
+        self.any_solved_segments = False
+        for name, options in iteritems(self.state_options):
             if options['solve_segments']:
-                any_solved_segments = True
+                self.any_solved_segments = True
+            else:
+                self.any_optimized_segments = True
 
         p_outputs = []
-        if any_solved_segments:
+        if self.any_solved_segments:
             p_outputs = ['states:*']
+
         self.add_subsystem('collocation_constraint',
                            CollocationComp(grid_data=grid_data,
                                            state_options=self.state_options,
@@ -329,13 +328,21 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(state_name))
 
-            # This is connected to the previous phase if we are solving the continuity.
-            if not options['solve_continuity']:
+            # May be open to external connection to upstream components.
+            if options['solve_continuity'] and options['propagation'] == 'forward':
+                tgt = 'collocation_constraint.initial_state_continuity:{0}'.format(state_name)
+                self.connect('states:{0}--'.format(state_name), tgt)
+            else:
                 self.connect('states:{0}'.format(state_name),
                              'initial_conditions.initial_value:{0}'.format(state_name))
 
-            self.connect('states:{0}'.format(state_name),
-                         'final_conditions.final_value:{0}'.format(state_name))
+            # May be open to external connection to downstream components.
+            if options['solve_continuity'] and options['propagation'] == 'backward':
+                tgt = 'collocation_constraint.final_state_continuity:{0}'.format(state_name)
+                self.connect('states:{0}++'.format(state_name), tgt)
+            else:
+                self.connect('states:{0}'.format(state_name),
+                             'final_conditions.final_value:{0}'.format(state_name))
 
             self.connect('initial_jump:{0}'.format(state_name),
                          'initial_conditions.initial_jump:{0}'.format(state_name),

@@ -19,7 +19,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
     def test_continuity_comp_no_iteration(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False}}
+                               'fix_final': False, 'propagation': 'forward'}}
 
         p = Problem(model=Group())
 
@@ -115,7 +115,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
     def test_continuity_comp_newtonsolver(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False}}
+                               'fix_final': False, 'propagation': 'forward'}}
 
         p = Problem(model=Group())
 

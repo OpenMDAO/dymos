@@ -136,7 +136,7 @@ class PhaseBase(Group):
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
                           ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
-                          solve_segments=False, solve_continuity=False):
+                          solve_segments=False, propagation='forward', solve_continuity=False):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -179,7 +179,9 @@ class PhaseBase(Group):
             If True, a solver will be used to converge the collocation defects within a segment.
             Note that the state continuity defects between segements will still be
             handled by the optimizer.
-
+        propagation : str
+            The direction of time propagation for this state when solve_segments is True.  Must be
+            one of 'forward' or 'backward'.
         solve_continuity : bool(False)
             If True, then initial conditions for this variable come from an external source.
             This option is only valid if solve_segments is also True.
@@ -201,6 +203,7 @@ class PhaseBase(Group):
         self.state_options[name]['defect_ref'] = defect_ref
         self.state_options[name]['solve_segments'] = solve_segments
         self.state_options[name]['solve_continuity'] = solve_continuity
+        self.state_options[name]['propagation'] = propagation
 
         if solve_continuity and not solve_segments:
             msg = "The 'solve_continuity' option can only be used when 'solve_segments' is True."

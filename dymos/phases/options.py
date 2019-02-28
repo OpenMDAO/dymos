@@ -322,6 +322,11 @@ class StateOptionsDictionary(OptionsDictionary):
                      desc='setting to control if inter-segment state continuity defects are '
                           'solved with a newton solver')
 
+        self.declare('propagation', default='forward', values=('forward', 'backward'),
+                     desc='Whether the numerical propagation occurs forward or backward '
+                          'in time for this state.  This poses restrictions on whether '
+                          'states can have fixed or connected initial and final values.')
+
 
 class TimeOptionsDictionary(OptionsDictionary):
     """
