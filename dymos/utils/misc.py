@@ -81,27 +81,3 @@ class CoerceDesvar(object):
                 raise ValueError('array-valued option {0} must have length '
                                  'num_input_nodes ({1})'.format(option, val))
             return val[self.desvar_indices]
-
-
-def convert_to_ascii(s):
-    """
-    Workaround to convert loaded unicode strings to ascii for Python 2.7.
-
-    Parameters
-    ----------
-    s : str or unicode
-        Character string to be converted.
-
-    Returns
-    -------
-    str or unicode
-        Character s converted to ascii (for 2.7) or unicode (Python 3.x)
-
-    """
-    if sys.version_info[0] < 3:
-        if isinstance(s, unicode):
-            return s.encode('ascii')
-        else:
-            return s
-    else:
-        return s
