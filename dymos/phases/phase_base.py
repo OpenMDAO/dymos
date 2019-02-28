@@ -179,6 +179,7 @@ class PhaseBase(Group):
             If True, a solver will be used to converge the collocation defects within a segment.
             Note that the state continuity defects between segements will still be
             handled by the optimizer.
+
         solve_continuity : bool(False)
             If True, then initial conditions for this variable come from an external source.
             This option is only valid if solve_segments is also True.

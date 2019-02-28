@@ -122,9 +122,10 @@ class CollocationComp(ImplicitComponent):
             # only need the implicit variable if this state is solved.
             # will get promoted to the same naming convention as the indepvar comp
             if solved:
+                ref = 1.0 / options['defect_scaler']
                 self.add_output(name='states:{0}'.format(state_name),
                                 shape=(num_state_input_nodes, ) + shape,
-                                units=units)
+                                units=units, ref=ref)
 
                 # Input for continuity, which comes from an external balance when solved.
                 if options['solve_continuity']:
