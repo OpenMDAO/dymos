@@ -17,7 +17,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_no_iteration_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'],
-                               'time_direction': 'forward'}}
+                               'propagation': 'forward'}}
 
         p = Problem(model=Group())
 
@@ -81,7 +81,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_nonlinearblockgs_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'time_direction': 'forward'}}
+                               'fix_final': False, 'propagation': 'forward'}}
 
         p = Problem(model=Group())
 
@@ -145,7 +145,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_newton_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'time_direction': 'forward'}}
+                               'fix_final': False, 'propagation': 'forward'}}
 
         p = Problem(model=Group())
 
@@ -201,7 +201,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_no_iteration_backward(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'],
-                               'time_direction': 'backward'}}
+                               'propagation': 'backward'}}
 
         p = Problem(model=Group())
 
@@ -265,7 +265,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_nonlinearblockgs_backward(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'time_direction': 'backward'}}
+                               'fix_final': False, 'propagation': 'backward'}}
 
         p = Problem(model=Group())
 
@@ -329,7 +329,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_newton_backwards(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'time_direction': 'backward'}}
+                               'fix_final': False, 'propagation': 'backward'}}
 
         p = Problem(model=Group())
 

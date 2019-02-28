@@ -1,6 +1,5 @@
 from __future__ import print_function, division, absolute_import
 
-import os
 import unittest
 
 import matplotlib
@@ -8,13 +7,6 @@ matplotlib.use('Agg')
 
 
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
-
-    # @classmethod
-    # def tearDownClass(cls):
-    #     for filename in ['coloring.json', 'two_burn_orbit_raise_example_for_docs.db', 'SLSQP.out',
-    #                      'SNOPT_print.out', 'SNOPT_summary.out', 'SLSQP.out']:
-    #         if os.path.exists(filename):
-    #             os.remove(filename)
 
     def test_two_burn_orbit_raise_gl_rkfwd_gl_constrained(self):
         import numpy as np
@@ -39,7 +31,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.driver.opt_settings['iSumm'] = 6
 
         # Setting this to True will cause the SNOPT derivative check to fail.
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.options['dynamic_simul_derivs'] = False
 
         traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU')
 
@@ -68,17 +60,17 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10)
         coast.set_state_options('r', fix_initial=False, fix_final=False,
-                                time_direction='forward')
+                                propagation='forward')
         coast.set_state_options('theta', fix_initial=False, fix_final=False,
-                                time_direction='forward')
+                                propagation='forward')
         coast.set_state_options('vr', fix_initial=False, fix_final=False,
-                                time_direction='forward')
+                                propagation='forward')
         coast.set_state_options('vt', fix_initial=False, fix_final=False,
-                                time_direction='forward')
+                                propagation='forward')
         coast.set_state_options('accel', fix_initial=True, fix_final=False,
-                                time_direction='forward')
+                                propagation='forward')
         coast.set_state_options('deltav', fix_initial=False, fix_final=False,
-                                time_direction='forward')
+                                propagation='forward')
         coast.add_design_parameter('u1', opt=False, val=0.0)
 
         # Third Phase (burn)
@@ -115,8 +107,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Finish Problem Setup
         p.model.linear_solver = DirectSolver()
-
-        p.driver.add_recorder(SqliteRecorder('two_burn_orbit_raise_example_for_docs.db'))
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -187,7 +177,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                          tolerance=2.0E-3)
 
         # Plot results
-        exp_out = traj.simulate(times=50)
+        exp_out = traj.simulate(times=50, record=False)
 
         fig = plt.figure(figsize=(8, 4))
         fig.suptitle('Two Burn Orbit Raise Solution')
@@ -298,17 +288,17 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10)
         coast.set_state_options('r', fix_initial=False, fix_final=False,
-                                time_direction='backward')
+                                propagation='backward')
         coast.set_state_options('theta', fix_initial=False, fix_final=False,
-                                time_direction='backward')
+                                propagation='backward')
         coast.set_state_options('vr', fix_initial=False, fix_final=False,
-                                time_direction='backward')
+                                propagation='backward')
         coast.set_state_options('vt', fix_initial=False, fix_final=False,
-                                time_direction='backward')
+                                propagation='backward')
         coast.set_state_options('accel', fix_initial=False, fix_final=True,
-                                time_direction='backward')
+                                propagation='backward')
         coast.set_state_options('deltav', fix_initial=False, fix_final=False,
-                                time_direction='backward')
+                                propagation='backward')
         coast.add_design_parameter('u1', opt=False, val=0.0)
 
         # Third Phase (burn)
@@ -345,8 +335,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Finish Problem Setup
         p.model.linear_solver = DirectSolver()
-
-        p.driver.add_recorder(SqliteRecorder('two_burn_orbit_raise_example_for_docs.db'))
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -413,7 +401,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                          tolerance=2.0E-3)
 
         # Plot results
-        exp_out = traj.simulate(times=50)
+        exp_out = traj.simulate(times=50, record=False)
 
         fig = plt.figure(figsize=(8, 4))
         fig.suptitle('Two Burn Orbit Raise Solution')
