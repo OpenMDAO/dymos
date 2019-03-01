@@ -5,7 +5,10 @@ import unittest
 import matplotlib
 matplotlib.use('Agg')
 
+from dymos.utils.testing_utils import use_tempdirs
 
+
+@use_tempdirs
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
     def test_two_burn_orbit_raise_gl_rkfwd_gl_constrained(self):
@@ -13,7 +16,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         import matplotlib.pyplot as plt
 
-        from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, SqliteRecorder
+        from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
         from openmdao.utils.general_utils import set_pyoptsparse_opt
 
@@ -166,10 +169,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                   value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
 
         p.run_driver()
-
-        with open('cpd.txt', 'w') as f:
-            np.set_printoptions(linewidth=1024, edgeitems=1024)
-            cpd = p.check_partials(out_stream=f)
 
         assert_rel_error(self,
                          p.get_val('traj.burn2.timeseries.states:deltav')[-1],
