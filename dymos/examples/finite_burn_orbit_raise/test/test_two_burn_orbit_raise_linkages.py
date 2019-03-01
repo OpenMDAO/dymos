@@ -28,7 +28,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.model.add_subsystem('traj', traj)
 
         p.driver = pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
+        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
         p.driver.options['optimizer'] = optimizer
         p.driver.opt_settings['Verify level'] = 3
         p.driver.opt_settings['iSumm'] = 6
@@ -256,7 +256,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.model.add_subsystem('traj', traj)
 
         p.driver = pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
+        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
         p.driver.options['optimizer'] = optimizer
         p.driver.options['dynamic_simul_derivs'] = True
 
