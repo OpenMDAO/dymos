@@ -102,16 +102,15 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         phase = Phase('runge-kutta',
                       ode_class=BrachistochroneODE,
                       num_segments=20,
-                      method='rk4',
-                      direction='backward')
+                      method='rk4')
 
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
 
-        phase.set_state_options('x', fix_final=True)
-        phase.set_state_options('y', fix_final=True)
-        phase.set_state_options('v', fix_final=False)
+        phase.set_state_options('x', fix_initial=False, fix_final=True, time_direction='backward')
+        phase.set_state_options('y', fix_initial=False, fix_final=True, time_direction='backward')
+        phase.set_state_options('v', fix_initial=False, fix_final=False, time_direction='backward')
 
         phase.add_control('theta', units='deg', lower=0.01, upper=179.9, ref0=0, ref=180.0,
                           rate_continuity=True, rate2_continuity=True)
