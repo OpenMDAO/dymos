@@ -35,7 +35,6 @@ class TestInputParameterConnections(unittest.TestCase):
 
                 self.connect('sum.m_tot', 'eom.m')
 
-
         optimizer = 'SLSQP'
         num_segments = 1
         transcription_order = 5
@@ -99,7 +98,6 @@ class TestInputParameterConnections(unittest.TestCase):
                 self.add_subsystem('eom', FlightPathEOM2D(num_nodes=nn))
 
                 self.connect('sum.m_tot', 'eom.m')
-
 
         optimizer = 'SLSQP'
         num_segments = 1
