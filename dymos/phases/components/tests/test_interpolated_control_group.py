@@ -65,7 +65,7 @@ def f2_d(t):
 
 class TestInterpolatedControLGroup(unittest.TestCase):
 
-    def test_control_interp_scalar_gl_compressed(self):
+    def test_interp_control_group_scalar_gl(self):
         transcription = 'gauss-lobatto'
         compressed = True
 
@@ -124,16 +124,11 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
         t_all = p['time']
-        
+
         p['controls:a'][:, 0] = f_a(t_control_input)
         p['controls:b'][:, 0] = f_b(t_control_input)
 
         p.run_model()
-
-        import matplotlib.pyplot as plt
-        plt.plot(t_control_input, p['controls:a'], 'ro')
-        plt.plot(t_all, p['control_values:a'], 'b.')
-        plt.show()
 
         a_value_expected = f_a(t_all)
         b_value_expected = f_b(t_all)
@@ -166,7 +161,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         cpd = p.check_partials(compact_print=False, out_stream=None, method='cs')
         assert_check_partials(cpd)
 
-    def test_control_interp_scalar_radau(self):
+    def test_interp_control_group_scalar_radau(self):
         transcription = 'radau-ps'
         compressed = False
 
@@ -231,10 +226,101 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p.run_model()
 
-        import matplotlib.pyplot as plt
-        plt.plot(t_control_input, p['controls:a'], 'ro')
-        plt.plot(t_all, p['control_values:a'], 'b.')
-        plt.show()
+        a_value_expected = f_a(t_all)
+        b_value_expected = f_b(t_all)
+
+        a_rate_expected = f1_a(t_all)
+        b_rate_expected = f1_b(t_all)
+
+        a_rate2_expected = f2_a(t_all)
+        b_rate2_expected = f2_b(t_all)
+
+        assert_almost_equal(p['control_values:a'],
+                            np.atleast_2d(a_value_expected).T)
+
+        assert_almost_equal(p['control_values:b'],
+                            np.atleast_2d(b_value_expected).T)
+
+        assert_almost_equal(p['control_rates:a_rate'],
+                            np.atleast_2d(a_rate_expected).T)
+
+        assert_almost_equal(p['control_rates:b_rate'],
+                            np.atleast_2d(b_rate_expected).T)
+
+        assert_almost_equal(p['control_rates:a_rate2'],
+                            np.atleast_2d(a_rate2_expected).T)
+
+        assert_almost_equal(p['control_rates:b_rate2'],
+                            np.atleast_2d(b_rate2_expected).T)
+
+        np.set_printoptions(linewidth=1024)
+        cpd = p.check_partials(compact_print=False, out_stream=None, method='cs')
+        assert_check_partials(cpd)
+
+    def test_interp_control_group_scalar_rungekutta(self):
+        transcription = 'runge-kutta'
+        compressed = False
+
+        segends = np.array([0.0, 3.0, 10.0])
+
+        gd = GridData(num_segments=2,
+                      transcription_order='rk4',
+                      segment_ends=segends,
+                      transcription=transcription,
+                      compressed=compressed)
+
+        p = Problem(model=Group())
+
+        controls = {'a': ControlOptionsDictionary(),
+                    'b': ControlOptionsDictionary()}
+
+        controls['a']['units'] = 'm'
+        controls['a']['interp_order'] = 3
+        controls['a']['opt'] = True
+
+        controls['b']['units'] = 'm'
+        controls['b']['interp_order'] = 3
+        controls['b']['opt'] = True
+
+        ivc = IndepVarComp()
+        p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
+
+        ivc.add_output('t_initial', val=0.0, units='s')
+        ivc.add_output('t_duration', val=10.0, units='s')
+
+        p.model.add_subsystem('time_comp',
+                              subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                              node_dptau_dstau=gd.node_dptau_dstau, units='s'),
+                              promotes_inputs=['t_initial', 't_duration'],
+                              promotes_outputs=['time', 'dt_dstau'])
+
+        interp_control_group = InterpolatedControlGroup(grid_data=gd,
+                                                        control_options=controls,
+                                                        time_units='s')
+
+        p.model.add_subsystem('interp_controls',
+                              subsys=interp_control_group,
+                              promotes_inputs=['*'],
+                              promotes_outputs=['*'])
+
+        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
+
+        p.setup(force_alloc_complex=True)
+
+        p['t_initial'] = 0.0
+        p['t_duration'] = 3.0
+
+        p.run_model()
+
+        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+
+        t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
+        t_all = p['time']
+
+        p['controls:a'][:, 0] = f_a(t_control_input)
+        p['controls:b'][:, 0] = f_b(t_control_input)
+
+        p.run_model()
 
         a_value_expected = f_a(t_all)
         b_value_expected = f_b(t_all)
@@ -267,415 +353,641 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         cpd = p.check_partials(compact_print=False, out_stream=None, method='cs')
         assert_check_partials(cpd)
 
-    # @parameterized.expand(
-    #     itertools.product([True, False],  # compressed
-    #                       ), testcase_func_name=lambda f, n, p: '_'.join(
-    #         ['test_control_interp_scalar_rk4', str(p.args[0])]))
-    # def test_control_interp_scalar_rk4(self, compressed=True):
-    #
-    #     segends = np.array([0.0, 3.0, 9.0])
-    #
-    #     gd = GridData(num_segments=2,
-    #                   segment_ends=segends,
-    #                   transcription='runge-kutta',
-    #                   transcription_order='rk4',
-    #                   compressed=compressed)
-    #
-    #     p = Problem(model=Group())
-    #
-    #     controls = {'a': {'units': 'm', 'shape': (1,), 'dynamic': True},
-    #                 'b': {'units': 'm', 'shape': (1,), 'dynamic': True}}
-    #
-    #     ivc = IndepVarComp()
-    #     p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
-    #
-    #     ivc.add_output('controls:a',
-    #                    val=np.zeros((gd.subset_num_nodes['control_input'], 1)),
-    #                    units='m')
-    #
-    #     ivc.add_output('controls:b',
-    #                    val=np.zeros((gd.subset_num_nodes['control_input'], 1)),
-    #                    units='m')
-    #
-    #     ivc.add_output('t_initial', val=0.0, units='s')
-    #     ivc.add_output('t_duration', val=10.0, units='s')
-    #
-    #     p.model.add_subsystem('time_comp',
-    #                           subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
-    #                                           node_dptau_dstau=gd.node_dptau_dstau, units='s'),
-    #                           promotes_inputs=['t_initial', 't_duration'],
-    #                           promotes_outputs=['time', 'dt_dstau'])
-    #
-    #     p.model.add_subsystem('control_interp_comp',
-    #                           subsys=ControlInterpComp(grid_data=gd,
-    #                                                    control_options=controls,
-    #                                                    time_units='s'),
-    #                           promotes_inputs=['controls:*'])
-    #
-    #     p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
-    #
-    #     p.setup(force_alloc_complex=True)
-    #
-    #     p['t_initial'] = 0.0
-    #     p['t_duration'] = 3.0
-    #
-    #     p.run_model()
-    #
-    #     t = p['time']
-    #     p['controls:a'][:, 0] = f_a(t[gd.subset_node_indices['control_input']])
-    #     p['controls:b'][:, 0] = f_b(t[gd.subset_node_indices['control_input']])
-    #
-    #     p.run_model()
-    #
-    #     a_value_expected = f_a(t)
-    #     b_value_expected = f_b(t)
-    #
-    #     a_rate_expected = f1_a(t)
-    #     b_rate_expected = f1_b(t)
-    #
-    #     a_rate2_expected = f2_a(t)
-    #     b_rate2_expected = f2_b(t)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_values:a'],
-    #                         np.atleast_2d(a_value_expected).T)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_values:b'],
-    #                         np.atleast_2d(b_value_expected).T)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate'],
-    #                         np.atleast_2d(a_rate_expected).T)
-    #
-    #     # RK4 Segments have quadratic control polynomials and can't match b in rate
-    #     # assert_almost_equal(p['control_interp_comp.control_rates:b_rate'],
-    #     #                     np.atleast_2d(b_rate_expected).T)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'],
-    #                         np.atleast_2d(a_rate2_expected).T)
-    #
-    #     # RK4 Segments have quadratic control polynomials and can't match b in rate
-    #     # assert_almost_equal(p['control_interp_comp.control_rates:b_rate2'],
-    #     #                     np.atleast_2d(b_rate2_expected).T)
-    #
-    #     np.set_printoptions(linewidth=1024)
-    #     cpd = p.check_partials(compact_print=False, out_stream=None, method='cs')
-    #     assert_check_partials(cpd)
-    #
-    # @parameterized.expand(
-    #     itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-    #                       [True, False],  # compressed
-    #                       ), testcase_func_name=lambda f, n, p: '_'.join(
-    #         ['test_control_interp_vector', p.args[0], str(p.args[1])])
-    # )
-    # def test_control_interp_vector(self, transcription='gauss-lobatto', compressed=True):
-    #
-    #     segends = np.array([0.0, 3.0, 10.0])
-    #
-    #     gd = GridData(num_segments=2,
-    #                   transcription_order=5,
-    #                   segment_ends=segends,
-    #                   transcription=transcription,
-    #                   compressed=compressed)
-    #
-    #     p = Problem(model=Group())
-    #
-    #     controls = {'a': {'units': 'm', 'shape': (3,), 'dynamic': True}}
-    #
-    #     ivc = IndepVarComp()
-    #     p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
-    #
-    #     ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['control_input'], 3)),
-    #                    units='m')
-    #     ivc.add_output('t_initial', val=0.0, units='s')
-    #     ivc.add_output('t_duration', val=10.0, units='s')
-    #
-    #     p.model.add_subsystem('time_comp',
-    #                           subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
-    #                                           node_dptau_dstau=gd.node_dptau_dstau, units='s'),
-    #                           promotes_inputs=['t_initial', 't_duration'],
-    #                           promotes_outputs=['time', 'dt_dstau'])
-    #
-    #     p.model.add_subsystem('control_interp_comp',
-    #                           subsys=ControlInterpComp(grid_data=gd,
-    #                                                    control_options=controls,
-    #                                                    time_units='s'),
-    #                           promotes_inputs=['controls:*'])
-    #
-    #     p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
-    #
-    #     p.setup(force_alloc_complex=True)
-    #
-    #     p['t_initial'] = 0.0
-    #     p['t_duration'] = 3.0
-    #
-    #     p.run_model()
-    #
-    #     control_input_idxs = gd.subset_node_indices['control_input']
-    #
-    #     t = p['time']
-    #     p['controls:a'][:, 0] = f_a(t[control_input_idxs])
-    #     p['controls:a'][:, 1] = f_b(t[control_input_idxs])
-    #     p['controls:a'][:, 2] = f_c(t[control_input_idxs])
-    #
-    #     p.run_model()
-    #
-    #     a0_value_expected = f_a(t)
-    #     a1_value_expected = f_b(t)
-    #     a2_value_expected = f_c(t)
-    #
-    #     a0_rate_expected = f1_a(t)
-    #     a1_rate_expected = f1_b(t)
-    #     a2_rate_expected = f1_c(t)
-    #
-    #     a0_rate2_expected = f2_a(t)
-    #     a1_rate2_expected = f2_b(t)
-    #     a2_rate2_expected = f2_c(t)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_values:a'][:, 0],
-    #                         a0_value_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_values:a'][:, 1],
-    #                         a1_value_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_values:a'][:, 2],
-    #                         a2_value_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate'][:, 0],
-    #                         a0_rate_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate'][:, 1],
-    #                         a1_rate_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate'][:, 2],
-    #                         a2_rate_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'][:, 0],
-    #                         a0_rate2_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'][:, 1],
-    #                         a1_rate2_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'][:, 2],
-    #                         a2_rate2_expected)
-    #
-    #     np.set_printoptions(linewidth=1024)
-    #     cpd = p.check_partials(method='cs', out_stream=None)
-    #
-    #     assert_check_partials(cpd)
-    #
-    # @parameterized.expand(
-    #     itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-    #                       [True, False],  # compressed
-    #                       ), testcase_func_name=lambda f, n, p: '_'.join(
-    #         ['test_control_interp_matrix_3x1', p.args[0], str(p.args[1])])
-    # )
-    # def test_control_interp_matrix_3x1(self, transcription='gauss-lobatto', compressed=True):
-    #
-    #     segends = np.array([0.0, 3.0, 10.0])
-    #
-    #     gd = GridData(num_segments=2,
-    #                   transcription_order=5,
-    #                   segment_ends=segends,
-    #                   transcription=transcription,
-    #                   compressed=compressed)
-    #
-    #     p = Problem(model=Group())
-    #
-    #     controls = {'a': {'units': 'm', 'shape': (3, 1), 'dynamic': True}}
-    #
-    #     ivc = IndepVarComp()
-    #     p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
-    #
-    #     ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['control_input'], 3, 1)),
-    #                    units='m')
-    #     ivc.add_output('t_initial', val=0.0, units='s')
-    #     ivc.add_output('t_duration', val=10.0, units='s')
-    #
-    #     p.model.add_subsystem('time_comp',
-    #                           subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
-    #                                           node_dptau_dstau=gd.node_dptau_dstau, units='s'),
-    #                           promotes_inputs=['t_initial', 't_duration'],
-    #                           promotes_outputs=['time', 'dt_dstau'])
-    #
-    #     p.model.add_subsystem('control_interp_comp',
-    #                           subsys=ControlInterpComp(grid_data=gd,
-    #                                                    control_options=controls,
-    #                                                    time_units='s'),
-    #                           promotes_inputs=['controls:*'])
-    #
-    #     p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
-    #
-    #     p.setup(force_alloc_complex=True)
-    #
-    #     p['t_initial'] = 0.0
-    #     p['t_duration'] = 3.0
-    #
-    #     p.run_model()
-    #
-    #     t = p['time']
-    #     control_input_idxs = gd.subset_node_indices['control_input']
-    #     p['controls:a'][:, 0, 0] = f_a(t[control_input_idxs])
-    #     p['controls:a'][:, 1, 0] = f_b(t[control_input_idxs])
-    #     p['controls:a'][:, 2, 0] = f_c(t[control_input_idxs])
-    #
-    #     p.run_model()
-    #
-    #     a0_value_expected = f_a(t)
-    #     a1_value_expected = f_b(t)
-    #     a2_value_expected = f_c(t)
-    #
-    #     a0_rate_expected = f1_a(t)
-    #     a1_rate_expected = f1_b(t)
-    #     a2_rate_expected = f1_c(t)
-    #
-    #     a0_rate2_expected = f2_a(t)
-    #     a1_rate2_expected = f2_b(t)
-    #     a2_rate2_expected = f2_c(t)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_values:a'][:, 0, 0],
-    #                         a0_value_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_values:a'][:, 1, 0],
-    #                         a1_value_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_values:a'][:, 2, 0],
-    #                         a2_value_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate'][:, 0, 0],
-    #                         a0_rate_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate'][:, 1, 0],
-    #                         a1_rate_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate'][:, 2, 0],
-    #                         a2_rate_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'][:, 0, 0],
-    #                         a0_rate2_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'][:, 1, 0],
-    #                         a1_rate2_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'][:, 2, 0],
-    #                         a2_rate2_expected)
-    #
-    #     np.set_printoptions(linewidth=1024)
-    #     cpd = p.check_partials(compact_print=False, method='cs', out_stream=None)
-    #
-    #     assert_check_partials(cpd)
-    #
-    # @parameterized.expand(
-    #     itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-    #                       [True, False],  # compressed
-    #                       ), testcase_func_name=lambda f, n, p: '_'.join(
-    #         ['test_control_interp_matrix_2x2', p.args[0], str(p.args[1])])
-    # )
-    # def test_control_interp_matrix_2x2(self, transcription='gauss-lobatto', compressed=True):
-    #
-    #     segends = np.array([0.0, 3.0, 10.0])
-    #
-    #     gd = GridData(num_segments=2,
-    #                   transcription_order=5,
-    #                   segment_ends=segends,
-    #                   transcription=transcription,
-    #                   compressed=compressed)
-    #
-    #     p = Problem(model=Group())
-    #
-    #     controls = {'a': {'units': 'm', 'shape': (2, 2), 'dynamic': True}}
-    #
-    #     ivc = IndepVarComp()
-    #     p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
-    #
-    #     ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['control_input'], 2, 2)),
-    #                    units='m')
-    #     ivc.add_output('t_initial', val=0.0, units='s')
-    #     ivc.add_output('t_duration', val=10.0, units='s')
-    #
-    #     p.model.add_subsystem('time_comp',
-    #                           subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
-    #                                           node_dptau_dstau=gd.node_dptau_dstau, units='s'),
-    #                           promotes_inputs=['t_initial', 't_duration'],
-    #                           promotes_outputs=['time', 'dt_dstau'])
-    #
-    #     p.model.add_subsystem('control_interp_comp',
-    #                           subsys=ControlInterpComp(grid_data=gd,
-    #                                                    control_options=controls,
-    #                                                    time_units='s'),
-    #                           promotes_inputs=['controls:*'])
-    #
-    #     p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
-    #
-    #     p.setup(force_alloc_complex=True)
-    #
-    #     p['t_initial'] = 0.0
-    #     p['t_duration'] = 3.0
-    #
-    #     p.run_model()
-    #
-    #     t = p['time']
-    #     control_input_idxs = gd.subset_node_indices['control_input']
-    #     p['controls:a'][:, 0, 0] = f_a(t[control_input_idxs])
-    #     p['controls:a'][:, 0, 1] = f_b(t[control_input_idxs])
-    #     p['controls:a'][:, 1, 0] = f_c(t[control_input_idxs])
-    #     p['controls:a'][:, 1, 1] = f_d(t[control_input_idxs])
-    #
-    #     p.run_model()
-    #
-    #     a0_value_expected = f_a(t)
-    #     a1_value_expected = f_b(t)
-    #     a2_value_expected = f_c(t)
-    #     a3_value_expected = f_d(t)
-    #
-    #     a0_rate_expected = f1_a(t)
-    #     a1_rate_expected = f1_b(t)
-    #     a2_rate_expected = f1_c(t)
-    #     a3_rate_expected = f1_d(t)
-    #
-    #     a0_rate2_expected = f2_a(t)
-    #     a1_rate2_expected = f2_b(t)
-    #     a2_rate2_expected = f2_c(t)
-    #     a3_rate2_expected = f2_d(t)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_values:a'][:, 0, 0],
-    #                         a0_value_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_values:a'][:, 0, 1],
-    #                         a1_value_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_values:a'][:, 1, 0],
-    #                         a2_value_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_values:a'][:, 1, 1],
-    #                         a3_value_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate'][:, 0, 0],
-    #                         a0_rate_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate'][:, 0, 1],
-    #                         a1_rate_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate'][:, 1, 0],
-    #                         a2_rate_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate'][:, 1, 1],
-    #                         a3_rate_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'][:, 0, 0],
-    #                         a0_rate2_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'][:, 0, 1],
-    #                         a1_rate2_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'][:, 1, 0],
-    #                         a2_rate2_expected)
-    #
-    #     assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'][:, 1, 1],
-    #                         a3_rate2_expected)
-    #
-    #     np.set_printoptions(linewidth=1024)
-    #     cpd = p.check_partials(compact_print=False, method='cs', out_stream=None)
-    #
-    #     assert_check_partials(cpd)
+    def test_interp_control_group_vector_gl(self):
+        transcription = 'gauss-lobatto'
+        compressed = True
+
+        segends = np.array([0.0, 3.0, 10.0])
+
+        gd = GridData(num_segments=2,
+                      transcription_order=5,
+                      segment_ends=segends,
+                      transcription=transcription,
+                      compressed=compressed)
+
+        p = Problem(model=Group())
+
+        controls = {'a': ControlOptionsDictionary()}
+
+        controls['a']['units'] = 'm'
+        controls['a']['interp_order'] = 3
+        controls['a']['opt'] = True
+        controls['a']['shape'] = (3,)
+
+        ivc = IndepVarComp()
+        p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
+
+        ivc.add_output('t_initial', val=0.0, units='s')
+        ivc.add_output('t_duration', val=10.0, units='s')
+
+        p.model.add_subsystem('time_comp',
+                              subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                              node_dptau_dstau=gd.node_dptau_dstau, units='s'),
+                              promotes_inputs=['t_initial', 't_duration'],
+                              promotes_outputs=['time', 'dt_dstau'])
+
+        interp_control_group = InterpolatedControlGroup(grid_data=gd,
+                                                        control_options=controls,
+                                                        time_units='s')
+
+        p.model.add_subsystem('interp_controls',
+                              subsys=interp_control_group,
+                              promotes_inputs=['*'],
+                              promotes_outputs=['*'])
+
+        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
+
+        p.setup(force_alloc_complex=True)
+
+        p['t_initial'] = 0.0
+        p['t_duration'] = 3.0
+
+        p.run_model()
+
+        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+
+        t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
+        t_all = p['time']
+
+        p['controls:a'][:, 0] = f_a(t_control_input)
+        p['controls:a'][:, 1] = f_b(t_control_input)
+        p['controls:a'][:, 2] = f_c(t_control_input)
+
+        p.run_model()
+
+        a0_value_expected = f_a(t_all)
+        a1_value_expected = f_b(t_all)
+        a2_value_expected = f_c(t_all)
+
+        a0_rate_expected = f1_a(t_all)
+        a1_rate_expected = f1_b(t_all)
+        a2_rate_expected = f1_c(t_all)
+
+        a0_rate2_expected = f2_a(t_all)
+        a1_rate2_expected = f2_b(t_all)
+        a2_rate2_expected = f2_c(t_all)
+
+        assert_almost_equal(p['control_values:a'][:, 0],
+                            a0_value_expected)
+
+        assert_almost_equal(p['control_values:a'][:, 1],
+                            a1_value_expected)
+
+        assert_almost_equal(p['control_values:a'][:, 2],
+                            a2_value_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 0],
+                            a0_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 1],
+                            a1_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 2],
+                            a2_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 0],
+                            a0_rate2_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 1],
+                            a1_rate2_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 2],
+                            a2_rate2_expected)
+
+        np.set_printoptions(linewidth=1024)
+        cpd = p.check_partials(method='cs', out_stream=None)
+
+        assert_check_partials(cpd)
+
+    def test_interp_control_group_vector_radau(self):
+        transcription = 'radau-ps'
+        compressed = True
+
+        segends = np.array([0.0, 3.0, 10.0])
+
+        gd = GridData(num_segments=2,
+                      transcription_order=5,
+                      segment_ends=segends,
+                      transcription=transcription,
+                      compressed=compressed)
+
+        p = Problem(model=Group())
+
+        controls = {'a': ControlOptionsDictionary()}
+
+        controls['a']['units'] = 'm'
+        controls['a']['interp_order'] = 3
+        controls['a']['opt'] = True
+        controls['a']['shape'] = (3,)
+
+        ivc = IndepVarComp()
+        p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
+
+        ivc.add_output('t_initial', val=0.0, units='s')
+        ivc.add_output('t_duration', val=10.0, units='s')
+
+        p.model.add_subsystem('time_comp',
+                              subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                              node_dptau_dstau=gd.node_dptau_dstau, units='s'),
+                              promotes_inputs=['t_initial', 't_duration'],
+                              promotes_outputs=['time', 'dt_dstau'])
+
+        interp_control_group = InterpolatedControlGroup(grid_data=gd,
+                                                        control_options=controls,
+                                                        time_units='s')
+
+        p.model.add_subsystem('interp_controls',
+                              subsys=interp_control_group,
+                              promotes_inputs=['*'],
+                              promotes_outputs=['*'])
+
+        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
+
+        p.setup(force_alloc_complex=True)
+
+        p['t_initial'] = 0.0
+        p['t_duration'] = 3.0
+
+        p.run_model()
+
+        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+
+        t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
+        t_all = p['time']
+
+        p['controls:a'][:, 0] = f_a(t_control_input)
+        p['controls:a'][:, 1] = f_b(t_control_input)
+        p['controls:a'][:, 2] = f_c(t_control_input)
+
+        p.run_model()
+
+        a0_value_expected = f_a(t_all)
+        a1_value_expected = f_b(t_all)
+        a2_value_expected = f_c(t_all)
+
+        a0_rate_expected = f1_a(t_all)
+        a1_rate_expected = f1_b(t_all)
+        a2_rate_expected = f1_c(t_all)
+
+        a0_rate2_expected = f2_a(t_all)
+        a1_rate2_expected = f2_b(t_all)
+        a2_rate2_expected = f2_c(t_all)
+
+        assert_almost_equal(p['control_values:a'][:, 0],
+                            a0_value_expected)
+
+        assert_almost_equal(p['control_values:a'][:, 1],
+                            a1_value_expected)
+
+        assert_almost_equal(p['control_values:a'][:, 2],
+                            a2_value_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 0],
+                            a0_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 1],
+                            a1_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 2],
+                            a2_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 0],
+                            a0_rate2_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 1],
+                            a1_rate2_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 2],
+                            a2_rate2_expected)
+
+        np.set_printoptions(linewidth=1024)
+        cpd = p.check_partials(method='cs', out_stream=None)
+
+        assert_check_partials(cpd)
+
+    def test_interp_control_group_vector_rungekutta(self):
+        transcription = 'runge-kutta'
+        compressed = True
+
+        segends = np.array([0.0, 3.0, 10.0])
+
+        gd = GridData(num_segments=2,
+                      transcription_order='rk4',
+                      segment_ends=segends,
+                      transcription=transcription,
+                      compressed=compressed)
+
+        p = Problem(model=Group())
+
+        controls = {'a': ControlOptionsDictionary()}
+
+        controls['a']['units'] = 'm'
+        controls['a']['interp_order'] = 3
+        controls['a']['opt'] = True
+        controls['a']['shape'] = (3,)
+
+        ivc = IndepVarComp()
+        p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
+
+        ivc.add_output('t_initial', val=0.0, units='s')
+        ivc.add_output('t_duration', val=10.0, units='s')
+
+        p.model.add_subsystem('time_comp',
+                              subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                              node_dptau_dstau=gd.node_dptau_dstau, units='s'),
+                              promotes_inputs=['t_initial', 't_duration'],
+                              promotes_outputs=['time', 'dt_dstau'])
+
+        interp_control_group = InterpolatedControlGroup(grid_data=gd,
+                                                        control_options=controls,
+                                                        time_units='s')
+
+        p.model.add_subsystem('interp_controls',
+                              subsys=interp_control_group,
+                              promotes_inputs=['*'],
+                              promotes_outputs=['*'])
+
+        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
+
+        p.setup(force_alloc_complex=True)
+
+        p['t_initial'] = 0.0
+        p['t_duration'] = 3.0
+
+        p.run_model()
+
+        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+
+        t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
+        t_all = p['time']
+
+        p['controls:a'][:, 0] = f_a(t_control_input)
+        p['controls:a'][:, 1] = f_b(t_control_input)
+        p['controls:a'][:, 2] = f_c(t_control_input)
+
+        p.run_model()
+
+        a0_value_expected = f_a(t_all)
+        a1_value_expected = f_b(t_all)
+        a2_value_expected = f_c(t_all)
+
+        a0_rate_expected = f1_a(t_all)
+        a1_rate_expected = f1_b(t_all)
+        a2_rate_expected = f1_c(t_all)
+
+        a0_rate2_expected = f2_a(t_all)
+        a1_rate2_expected = f2_b(t_all)
+        a2_rate2_expected = f2_c(t_all)
+
+        assert_almost_equal(p['control_values:a'][:, 0],
+                            a0_value_expected)
+
+        assert_almost_equal(p['control_values:a'][:, 1],
+                            a1_value_expected)
+
+        assert_almost_equal(p['control_values:a'][:, 2],
+                            a2_value_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 0],
+                            a0_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 1],
+                            a1_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 2],
+                            a2_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 0],
+                            a0_rate2_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 1],
+                            a1_rate2_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 2],
+                            a2_rate2_expected)
+
+        np.set_printoptions(linewidth=1024)
+        cpd = p.check_partials(method='cs', out_stream=None)
+
+        assert_check_partials(cpd)
+
+    def test_interp_control_group_matrix_gl(self):
+        transcription = 'gauss-lobatto'
+        compressed = True
+
+        segends = np.array([0.0, 3.0, 10.0])
+
+        gd = GridData(num_segments=2,
+                      transcription_order=5,
+                      segment_ends=segends,
+                      transcription=transcription,
+                      compressed=compressed)
+
+        p = Problem(model=Group())
+
+        controls = {'a': ControlOptionsDictionary()}
+
+        controls['a']['units'] = 'm'
+        controls['a']['interp_order'] = 3
+        controls['a']['opt'] = True
+        controls['a']['shape'] = (3, 1)
+
+        ivc = IndepVarComp()
+        p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
+
+        ivc.add_output('t_initial', val=0.0, units='s')
+        ivc.add_output('t_duration', val=10.0, units='s')
+
+        p.model.add_subsystem('time_comp',
+                              subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                              node_dptau_dstau=gd.node_dptau_dstau, units='s'),
+                              promotes_inputs=['t_initial', 't_duration'],
+                              promotes_outputs=['time', 'dt_dstau'])
+
+        interp_control_group = InterpolatedControlGroup(grid_data=gd,
+                                                        control_options=controls,
+                                                        time_units='s')
+
+        p.model.add_subsystem('interp_controls',
+                              subsys=interp_control_group,
+                              promotes_inputs=['*'],
+                              promotes_outputs=['*'])
+
+        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
+
+        p.setup(force_alloc_complex=True)
+
+        p['t_initial'] = 0.0
+        p['t_duration'] = 3.0
+
+        p.run_model()
+
+        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+
+        t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
+        t_all = p['time']
+
+        p['controls:a'][:, 0, 0] = f_a(t_control_input)
+        p['controls:a'][:, 1, 0] = f_b(t_control_input)
+        p['controls:a'][:, 2, 0] = f_c(t_control_input)
+
+        p.run_model()
+
+        a0_value_expected = f_a(t_all)
+        a1_value_expected = f_b(t_all)
+        a2_value_expected = f_c(t_all)
+
+        a0_rate_expected = f1_a(t_all)
+        a1_rate_expected = f1_b(t_all)
+        a2_rate_expected = f1_c(t_all)
+
+        a0_rate2_expected = f2_a(t_all)
+        a1_rate2_expected = f2_b(t_all)
+        a2_rate2_expected = f2_c(t_all)
+
+        assert_almost_equal(p['control_values:a'][:, 0, 0],
+                            a0_value_expected)
+
+        assert_almost_equal(p['control_values:a'][:, 1, 0],
+                            a1_value_expected)
+
+        assert_almost_equal(p['control_values:a'][:, 2, 0],
+                            a2_value_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 0, 0],
+                            a0_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 1, 0],
+                            a1_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 2, 0],
+                            a2_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 0, 0],
+                            a0_rate2_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 1, 0],
+                            a1_rate2_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 2, 0],
+                            a2_rate2_expected)
+
+        np.set_printoptions(linewidth=1024)
+        cpd = p.check_partials(method='cs', out_stream=None)
+
+        assert_check_partials(cpd)
+
+    def test_interp_control_group_matrix_radau(self):
+        transcription = 'radau-ps'
+        compressed = True
+
+        segends = np.array([0.0, 3.0, 10.0])
+
+        gd = GridData(num_segments=2,
+                      transcription_order=5,
+                      segment_ends=segends,
+                      transcription=transcription,
+                      compressed=compressed)
+
+        p = Problem(model=Group())
+
+        controls = {'a': ControlOptionsDictionary()}
+
+        controls['a']['units'] = 'm'
+        controls['a']['interp_order'] = 3
+        controls['a']['opt'] = True
+        controls['a']['shape'] = (3, 1)
+
+        ivc = IndepVarComp()
+        p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
+
+        ivc.add_output('t_initial', val=0.0, units='s')
+        ivc.add_output('t_duration', val=10.0, units='s')
+
+        p.model.add_subsystem('time_comp',
+                              subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                              node_dptau_dstau=gd.node_dptau_dstau, units='s'),
+                              promotes_inputs=['t_initial', 't_duration'],
+                              promotes_outputs=['time', 'dt_dstau'])
+
+        interp_control_group = InterpolatedControlGroup(grid_data=gd,
+                                                        control_options=controls,
+                                                        time_units='s')
+
+        p.model.add_subsystem('interp_controls',
+                              subsys=interp_control_group,
+                              promotes_inputs=['*'],
+                              promotes_outputs=['*'])
+
+        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
+
+        p.setup(force_alloc_complex=True)
+
+        p['t_initial'] = 0.0
+        p['t_duration'] = 3.0
+
+        p.run_model()
+
+        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+
+        t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
+        t_all = p['time']
+
+        p['controls:a'][:, 0, 0] = f_a(t_control_input)
+        p['controls:a'][:, 1, 0] = f_b(t_control_input)
+        p['controls:a'][:, 2, 0] = f_c(t_control_input)
+
+        p.run_model()
+
+        a0_value_expected = f_a(t_all)
+        a1_value_expected = f_b(t_all)
+        a2_value_expected = f_c(t_all)
+
+        a0_rate_expected = f1_a(t_all)
+        a1_rate_expected = f1_b(t_all)
+        a2_rate_expected = f1_c(t_all)
+
+        a0_rate2_expected = f2_a(t_all)
+        a1_rate2_expected = f2_b(t_all)
+        a2_rate2_expected = f2_c(t_all)
+
+        assert_almost_equal(p['control_values:a'][:, 0, 0],
+                            a0_value_expected)
+
+        assert_almost_equal(p['control_values:a'][:, 1, 0],
+                            a1_value_expected)
+
+        assert_almost_equal(p['control_values:a'][:, 2, 0],
+                            a2_value_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 0, 0],
+                            a0_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 1, 0],
+                            a1_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 2, 0],
+                            a2_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 0, 0],
+                            a0_rate2_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 1, 0],
+                            a1_rate2_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 2, 0],
+                            a2_rate2_expected)
+
+        np.set_printoptions(linewidth=1024)
+        cpd = p.check_partials(method='cs', out_stream=None)
+
+        assert_check_partials(cpd)
+
+    def test_interp_control_group_matrix_rungekutta(self):
+        transcription = 'runge-kutta'
+        compressed = True
+
+        segends = np.array([0.0, 3.0, 10.0])
+
+        gd = GridData(num_segments=2,
+                      transcription_order='rk4',
+                      segment_ends=segends,
+                      transcription=transcription,
+                      compressed=compressed)
+
+        p = Problem(model=Group())
+
+        controls = {'a': ControlOptionsDictionary()}
+
+        controls['a']['units'] = 'm'
+        controls['a']['interp_order'] = 3
+        controls['a']['opt'] = True
+        controls['a']['shape'] = (3, 1)
+
+        ivc = IndepVarComp()
+        p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
+
+        ivc.add_output('t_initial', val=0.0, units='s')
+        ivc.add_output('t_duration', val=10.0, units='s')
+
+        p.model.add_subsystem('time_comp',
+                              subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                              node_dptau_dstau=gd.node_dptau_dstau, units='s'),
+                              promotes_inputs=['t_initial', 't_duration'],
+                              promotes_outputs=['time', 'dt_dstau'])
+
+        interp_control_group = InterpolatedControlGroup(grid_data=gd,
+                                                        control_options=controls,
+                                                        time_units='s')
+
+        p.model.add_subsystem('interp_controls',
+                              subsys=interp_control_group,
+                              promotes_inputs=['*'],
+                              promotes_outputs=['*'])
+
+        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
+
+        p.setup(force_alloc_complex=True)
+
+        p['t_initial'] = 0.0
+        p['t_duration'] = 3.0
+
+        p.run_model()
+
+        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+
+        t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
+        t_all = p['time']
+
+        p['controls:a'][:, 0, 0] = f_a(t_control_input)
+        p['controls:a'][:, 1, 0] = f_b(t_control_input)
+        p['controls:a'][:, 2, 0] = f_c(t_control_input)
+
+        p.run_model()
+
+        a0_value_expected = f_a(t_all)
+        a1_value_expected = f_b(t_all)
+        a2_value_expected = f_c(t_all)
+
+        a0_rate_expected = f1_a(t_all)
+        a1_rate_expected = f1_b(t_all)
+        a2_rate_expected = f1_c(t_all)
+
+        a0_rate2_expected = f2_a(t_all)
+        a1_rate2_expected = f2_b(t_all)
+        a2_rate2_expected = f2_c(t_all)
+
+        assert_almost_equal(p['control_values:a'][:, 0, 0],
+                            a0_value_expected)
+
+        assert_almost_equal(p['control_values:a'][:, 1, 0],
+                            a1_value_expected)
+
+        assert_almost_equal(p['control_values:a'][:, 2, 0],
+                            a2_value_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 0, 0],
+                            a0_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 1, 0],
+                            a1_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate'][:, 2, 0],
+                            a2_rate_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 0, 0],
+                            a0_rate2_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 1, 0],
+                            a1_rate2_expected)
+
+        assert_almost_equal(p['control_rates:a_rate2'][:, 2, 0],
+                            a2_rate2_expected)
+
+        np.set_printoptions(linewidth=1024)
+        cpd = p.check_partials(method='cs', out_stream=None)
+
+        assert_check_partials(cpd)
 
 
 if __name__ == '__main__':

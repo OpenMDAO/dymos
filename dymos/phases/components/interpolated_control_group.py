@@ -146,6 +146,7 @@ class LGLInterpolatedControlComp(ExplicitComponent):
             outputs[self._output_rate2_names[name]] = (b / dt_dptau ** 2).T
 
     def compute_partials(self, inputs, partials):
+        nn = self.options['grid_data'].num_nodes
 
         for name, options in iteritems(self.options['interp_control_options']):
             control_name = self._input_names[name]
@@ -160,7 +161,7 @@ class LGLInterpolatedControlComp(ExplicitComponent):
             u_d = np.reshape(inputs[control_name], (num_input_nodes, size))
 
             t_duration = inputs['t_duration']
-            t_duration_tile = np.tile(t_duration, size)
+            t_duration_tile = np.tile(t_duration, size * nn)
 
             partials[rate_name, 't_duration'] = \
                 0.5 * (-np.dot(D_de, u_d).ravel(order='F') / (0.5 * t_duration_tile) ** 2)
@@ -168,7 +169,7 @@ class LGLInterpolatedControlComp(ExplicitComponent):
             partials[rate2_name, 't_duration'] = \
                 -1.0 * (np.dot(D2_de, u_d).ravel(order='F') / (0.5 * t_duration_tile) ** 3)
 
-            t_duration_x_size = np.repeat(t_duration, size)[:, np.newaxis]
+            t_duration_x_size = np.repeat(t_duration, size * nn)[:, np.newaxis]
 
             r_nz, c_nz = self.rate_jac_rows[name], self.rate_jac_cols[name]
             partials[rate_name, control_name] = \
@@ -208,12 +209,13 @@ class InterpolatedControlGroup(Group):
         if num_opt > 0:
             ivc = self.add_subsystem('control_inputs', subsys=ivc, promotes_outputs=['*'])
 
-        self.add_subsystem('control_comp',
-                           subsys=LGLInterpolatedControlComp(time_units=self.options['time_units'],
-                                                             grid_data=self.options['grid_data'],
-                               interp_control_options=self._interp_controls),
-                           promotes_inputs=['*'],
-                           promotes_outputs=['*'])
+        self.add_subsystem(
+            'control_comp',
+            subsys=LGLInterpolatedControlComp(time_units=self.options['time_units'],
+                                              grid_data=self.options['grid_data'],
+                                              interp_control_options=self._interp_controls),
+            promotes_inputs=['*'],
+            promotes_outputs=['*'])
 
         # For any interpolated control with `opt=True`, add an indep var comp output and
         # setup the design variable for optimization.
