@@ -13,17 +13,14 @@ from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder, ExplicitC
 from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
-# from dymos.phases.components import BoundaryConstraintComp
 from dymos.phases.components import BoundaryConstraintComp
 from dymos.phases.components import InputParameterComp
-from dymos.phases.components import TimeComp
 from dymos.phases.options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
     InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary
 from dymos.phases.components import ControlInterpComp
 from dymos.phases.grid_data import GridData
 from dymos.ode_options import ODEOptions
 from dymos.utils.constants import INF_BOUND
-from dymos.utils.misc import get_rate_units
 from dymos.utils.misc import CoerceDesvar
 
 

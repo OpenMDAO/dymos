@@ -263,7 +263,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         timeseries_comp._add_timeseries_output('time_phase',
                                                var_class=self._classify_var('time_phase'),
                                                units=time_units)
-        self.connect(src_name='time', tgt_name='timeseries.all_values:time_phase')
+        self.connect(src_name='time_phase', tgt_name='timeseries.all_values:time_phase')
 
         for name, options in iteritems(self.state_options):
             timeseries_comp._add_timeseries_output('states:{0}'.format(name),
