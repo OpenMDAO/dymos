@@ -3,7 +3,6 @@ from __future__ import print_function, division
 from six import string_types, iteritems
 
 import numpy as np
-from scipy.sparse import csr_matrix
 
 from openmdao.api import ExplicitComponent
 
