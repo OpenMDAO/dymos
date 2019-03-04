@@ -9,6 +9,7 @@ from ..grid_data import GridData
 from ...utils.lgl import lgl
 from ...utils.lagrange import lagrange_matrices
 from ...utils.misc import get_rate_units
+from ...utils.constants import INF_BOUND
 
 
 class LGLInterpolatedControlComp(ExplicitComponent):
@@ -20,8 +21,8 @@ class LGLInterpolatedControlComp(ExplicitComponent):
         self.options.declare('time_units', default=None, allow_none=True, types=string_types,
                              desc='Units of time')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
-        self.options.declare('control_options', types=dict,
-                             desc='Dictionary of options for the dynamic controls')
+        self.options.declare('interp_control_options', types=dict,
+                             desc='Dictionary of options for the interpolated controls')
 
         self._matrices = {}
 
@@ -50,8 +51,8 @@ class LGLInterpolatedControlComp(ExplicitComponent):
                        desc='duration of the phase to which this interpolated control group '
                             'belongs')
 
-        for name, options in iteritems(self.options['control_options']):
-            disc_nodes = lgl(options['num_points'])
+        for name, options in iteritems(self.options['interp_control_options']):
+            disc_nodes, _ = lgl(options['interp_order'] + 1)
             num_control_input_nodes = len(disc_nodes)
             shape = options['shape']
             size = np.prod(shape)
@@ -110,21 +111,18 @@ class LGLInterpolatedControlComp(ExplicitComponent):
                                   wrt=self._input_names[name],
                                   rows=rs, cols=cs, val=self.val_jacs[name][rs, cs])
 
-            cs = np.tile(np.arange(num_nodes, dtype=int), reps=size)
             rs = np.concatenate([np.arange(0, num_nodes * size, size, dtype=int) + i
                                  for i in range(size)])
 
             self.declare_partials(of=self._output_rate_names[name],
-                                  wrt='dt_dstau',
-                                  rows=rs, cols=cs)
+                                  wrt='t_duration', rows=rs, cols=np.zeros_like(rs))
 
             self.declare_partials(of=self._output_rate_names[name],
                                   wrt=self._input_names[name],
                                   rows=self.rate_jac_rows[name], cols=self.rate_jac_cols[name])
 
             self.declare_partials(of=self._output_rate2_names[name],
-                                  wrt='dt_dstau',
-                                  rows=rs, cols=cs)
+                                  wrt='t_duration', rows=rs, cols=np.zeros_like(rs))
 
             self.declare_partials(of=self._output_rate2_names[name],
                                   wrt=self._input_names[name],
@@ -134,7 +132,7 @@ class LGLInterpolatedControlComp(ExplicitComponent):
 
         dt_dptau = 0.5 * inputs['t_duration']
 
-        for name, options in self.options['interp_controls']:
+        for name, options in iteritems(self.options['interp_control_options']):
             L_de, D_de, D2_de = self._matrices[name]
 
             u = inputs[self._input_names[name]]
@@ -143,16 +141,16 @@ class LGLInterpolatedControlComp(ExplicitComponent):
             b = np.tensordot(D2_de, u, axes=(1, 0)).T
 
             # divide each "row" by dt_dptau or dt_dptau**2
-            outputs[self._output_val_names[name]] = np.tensordot(self.L, u, axes=(1, 0))
+            outputs[self._output_val_names[name]] = np.tensordot(L_de, u, axes=(1, 0))
             outputs[self._output_rate_names[name]] = (a / dt_dptau).T
             outputs[self._output_rate2_names[name]] = (b / dt_dptau ** 2).T
 
     def compute_partials(self, inputs, partials):
-        control_options = self.options['control_options']
-        num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
 
-        for name, options in iteritems(control_options):
+        for name, options in iteritems(self.options['interp_control_options']):
             control_name = self._input_names[name]
+            num_input_nodes = options['interp_order'] + 1
+            L_de, D_de, D2_de = self._matrices[name]
 
             size = self.sizes[name]
             rate_name = self._output_rate_names[name]
@@ -161,24 +159,24 @@ class LGLInterpolatedControlComp(ExplicitComponent):
             # Unroll matrix-shaped controls into an array at each node
             u_d = np.reshape(inputs[control_name], (num_input_nodes, size))
 
-            dt_dstau = inputs['dt_dstau']
-            dt_dstau_tile = np.tile(dt_dstau, size)
+            t_duration = inputs['t_duration']
+            t_duration_tile = np.tile(t_duration, size)
 
-            partials[rate_name, 'dt_dstau'] = \
-                (-np.dot(self.D, u_d).ravel(order='F') / dt_dstau_tile ** 2)
+            partials[rate_name, 't_duration'] = \
+                0.5 * (-np.dot(D_de, u_d).ravel(order='F') / (0.5 * t_duration_tile) ** 2)
 
-            partials[rate2_name, 'dt_dstau'] = \
-                -2.0 * (np.dot(self.D2, u_d).ravel(order='F') / dt_dstau_tile ** 3)
+            partials[rate2_name, 't_duration'] = \
+                -1.0 * (np.dot(D2_de, u_d).ravel(order='F') / (0.5 * t_duration_tile) ** 3)
 
-            dt_dstau_x_size = np.repeat(dt_dstau, size)[:, np.newaxis]
+            t_duration_x_size = np.repeat(t_duration, size)[:, np.newaxis]
 
             r_nz, c_nz = self.rate_jac_rows[name], self.rate_jac_cols[name]
             partials[rate_name, control_name] = \
-                (self.rate_jacs[name] / dt_dstau_x_size)[r_nz, c_nz]
+                (self.rate_jacs[name] / (0.5 * t_duration_x_size))[r_nz, c_nz]
 
             r_nz, c_nz = self.rate2_jac_rows[name], self.rate2_jac_cols[name]
             partials[rate2_name, control_name] = \
-                (self.rate2_jacs[name] / dt_dstau_x_size ** 2)[r_nz, c_nz]
+                (self.rate2_jacs[name] / (0.5 * t_duration_x_size) ** 2)[r_nz, c_nz]
 
 
 class InterpolatedControlGroup(Group):
@@ -190,20 +188,57 @@ class InterpolatedControlGroup(Group):
                              desc='Units of time')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
-        self._interp_controls = {}
-
     def setup(self):
 
         ivc = IndepVarComp()
 
-        self.add_subsystem('control_inputs', subsys=ivc, promotes_outputs=['*'])
+        self._interp_controls = {}
+
+        # Pull out the interpolated controls
+        num_opt = 0
+        for name, options in iteritems(self.options['control_options']):
+            if options['interp_order'] is None:
+                continue
+            if options['interp_order'] < 1:
+                raise ValueError('If provided, interpolation order must be >= 1 (linear)')
+            if options['opt']:
+                num_opt += 1
+            self._interp_controls[name] = options
+
+        if num_opt > 0:
+            ivc = self.add_subsystem('control_inputs', subsys=ivc, promotes_outputs=['*'])
 
         self.add_subsystem('control_comp',
                            subsys=LGLInterpolatedControlComp(time_units=self.options['time_units'],
                                                              grid_data=self.options['grid_data'],
-                                                             control_options=self.options['control_options']),
+                               interp_control_options=self._interp_controls),
                            promotes_inputs=['*'],
                            promotes_outputs=['*'])
 
+        # For any interpolated control with `opt=True`, add an indep var comp output and
+        # setup the design variable for optimization.
         for name, options in iteritems(self._interp_controls):
-            print(name)
+            num_input_nodes = options['interp_order'] + 1
+            shape = options['shape']
+            if options['opt']:
+                ivc.add_output('controls:{0}'.format(name),
+                               val=np.ones((num_input_nodes,) + shape),
+                               units=options['units'])
+
+                desvar_indices = list(range(num_input_nodes))
+                if options['fix_initial']:
+                    desvar_indices.pop(0)
+                if options['fix_final']:
+                    desvar_indices.pop()
+
+                lb = -INF_BOUND if options['lower'] is None else options['lower']
+                ub = INF_BOUND if options['upper'] is None else options['upper']
+
+                self.add_design_var('controls:{0}'.format(name),
+                                    lower=lb,
+                                    upper=ub,
+                                    ref=options['ref'],
+                                    ref0=options['ref0'],
+                                    adder=options['adder'],
+                                    scaler=options['scaler'],
+                                    indices=desvar_indices)

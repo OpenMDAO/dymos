@@ -110,6 +110,11 @@ class ControlOptionsDictionary(OptionsDictionary):
                           'segment boundaries. '
                           'This option is invalid if opt=False.')
 
+        self.declare(name='interp_order', types=(int,), default=None, allow_none=True,
+                     desc='A integer that provides the interpolation order when the control is'
+                          'to assume a single polynomial basis across the entire phase, or None'
+                          'to use the default control behavior.')
+
 
 class DesignParameterOptionsDictionary(OptionsDictionary):
     """
