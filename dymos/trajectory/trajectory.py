@@ -271,17 +271,10 @@ class Trajectory(Group):
                         p1_opt = p1.state_options[var]
                         p2_opt = p2.state_options[var]
 
-                        if p1_opt['propagation'] != p2_opt['propagation']:
-                            msg = "Connected phases for variable '{0} must have same propagation" \
-                                  " direction."
-                            raise ValueError(msg.format(var))
-
                         # Trajectory linkage modifies these options in connected states.
-                        if p2_opt['propagation'] == 'forward':
-                            p2_opt['connect_initial'] = True
-                            p2.time_options['input_initial'] = True
-                        else:
-                            p2_opt['connect_final'] = True
+                        #p1_opt['connected_final'] = True
+                        p2_opt['connected_initial'] = True
+                        p2.time_options['input_initial'] = True
 
                 else:
                     vars_to_constrain.append(var)
@@ -335,17 +328,10 @@ class Trajectory(Group):
                     else:
                         p2_opt = p2.state_options[var]
 
-                        if p2_opt['propagation'] == 'forward':
-                            path = 'collocation_constraint.initial_states:{0}'.format(var)
+                        path = 'collocation_constraint.initial_states:{0}'.format(var)
 
-                            self.connect('{0}.{1}'.format(phase_name1, source1),
-                                         '{0}.{1}'.format(phase_name2, path))
-
-                        else:
-                            path = 'collocation_constraint.final_states:{0}'.format(var)
-
-                            self.connect('{0}.{1}'.format(phase_name2, source2),
-                                         '{0}.{1}'.format(phase_name1, path))
+                        self.connect('{0}.{1}'.format(phase_name1, source1),
+                                     '{0}.{1}'.format(phase_name2, path))
 
                 else:
 

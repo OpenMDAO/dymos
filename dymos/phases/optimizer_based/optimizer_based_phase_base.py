@@ -173,6 +173,9 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 else:
                     del desvar_indices[:size]
 
+            elif options['connected_initial'] and not options['solve_segments']:
+                del desvar_indices[:size]
+
             if options['fix_final']:
                 if options['final_bounds'] is not None:
                     raise ValueError('Cannot specify \'fix_final=True\' and specify '
@@ -183,6 +186,9 @@ class OptimizerBasedPhaseBase(PhaseBase):
                         del desvar_indices[-size + idx_to_fix]
                 else:
                     del desvar_indices[-size:]
+
+            elif options['connected_final'] and not options['solve_segments']:
+                del desvar_indices[-size:]
 
             if len(desvar_indices) > 0:
                 coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,

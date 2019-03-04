@@ -255,6 +255,8 @@ class TestPhaseBase(unittest.TestCase):
         self.assertEqual(str(e.exception), expected)
 
     def test_invalid_set_options(self):
+        from openmdao.api import Problem
+        p = Problem(model=Group())
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,
@@ -262,11 +264,16 @@ class TestPhaseBase(unittest.TestCase):
                       transcription_order=3,
                       compressed=True)
 
-        with self.assertRaises(ValueError) as e:
-            phase.set_state_options('x', fix_initial=False, fix_final=False,
-                                    solve_segments=False, solve_continuity=True)
+        phase.set_state_options('x', connected_initial=True, connected_final=True,
+                                solve_segments=True)
 
-        msg = "The 'solve_continuity' option can only be used when 'solve_segments' is True."
+        p.model.add_subsystem('z', phase)
+
+        with self.assertRaises(ValueError) as e:
+            p.setup()
+
+        msg = 'Can not use solver based collocation defects with both "connected_initial" and ' + \
+              '"connected_final" turned on.'
         self.assertEqual(str(e.exception), msg)
 
     def test_objective_design_parameter_gl(self):

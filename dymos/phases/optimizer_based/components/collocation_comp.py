@@ -53,7 +53,7 @@ class CollocationComp(ImplicitComponent):
 
         state_input = grid_data.subset_node_indices['state_input']
 
-        # indecies into all_nodes that correspond to the solved and indep vars
+        # indicies into all_nodes that correspond to the solved and indep vars
         # (not accouting for fix_initial or fix_final)
         solver_solved = grid_data.subset_node_indices['solver_solved']
         solver_indep = grid_data.subset_node_indices['solver_indep']
@@ -72,19 +72,33 @@ class CollocationComp(ImplicitComponent):
                                      'with both "fix_initial" and "fix_final" turned on.')
 
                 if not options['fix_initial'] and not options['fix_final'] and \
-                   not options['connect_initial'] and not options['connect_final']:
+                   not options['connected_initial']:
                     raise ValueError('Must have either fix_initial" and "fix_final" turned on '
                                      'with solver base collocation')
 
-            if options['propagation'] == 'forward':
+                if options['connected_initial'] and options['connected_final']:
+                    raise ValueError('Can not use solver based collocation defects with both '
+                                     '"connected_initial" and "connected_final" turned on.')
+
                 self.state_idx_map[state_name]['solver'] = self.solver_node_idx[1:]
                 self.state_idx_map[state_name]['indep'] = \
                     [self.solver_node_idx[0]] + self.indep_node_idx
 
-            elif options['propagation'] == 'backward':
-                self.state_idx_map[state_name]['solver'] = self.solver_node_idx[:-1]
-                self.state_idx_map[state_name]['indep'] = \
-                    self.indep_node_idx + [self.solver_node_idx[-1]]
+            else:
+                if options['connected_initial'] and not options['connected_final']:
+                    self.state_idx_map[state_name]['solver'] = self.solver_node_idx[1:]
+                    self.state_idx_map[state_name]['indep'] = \
+                        [self.solver_node_idx[0]] + self.indep_node_idx
+
+                elif not options['connected_initial'] and options['connected_final']:
+                    self.state_idx_map[state_name]['solver'] = self.solver_node_idx[:-1]
+                    self.state_idx_map[state_name]['indep'] = \
+                        self.indep_node_idx + [self.solver_node_idx[-1]]
+
+                elif options['connected_initial'] and options['connected_final']:
+                    self.state_idx_map[state_name]['solver'] = self.solver_node_idx[1:-1]
+                    self.state_idx_map[state_name]['indep'] = \
+                        self.indep_node_idx + [self.solver_node_idx[-1]]
 
         # NOTE: num_col_nodes MUST equal len(self.solver_node_idx) - 1 in order to ensure
         # you get a well defined problem; if that doesn't happen, something is wrong
@@ -121,7 +135,7 @@ class CollocationComp(ImplicitComponent):
 
             # only need the implicit variable if this state is solved.
             # will get promoted to the same naming convention as the indepvar comp
-            if solved:
+            if solved or options['connected_initial'] or options['connected_final']:
 
                 ref = 1.0
                 if 'defect_ref' in options and options['defect_ref']:
@@ -133,13 +147,10 @@ class CollocationComp(ImplicitComponent):
                                 shape=(num_state_input_nodes, ) + shape,
                                 units=units, ref=ref)
 
-                # Input for continuity, which can come from an external source.
-                if options['connect_initial']:
-                    input_name = 'initial_states:{0}'.format(state_name)
-                    self.add_input(name=input_name, shape=(1, ) + shape, units=units)
-                elif options['connect_final']:
-                    input_name = 'final_states:{0}'.format(state_name)
-                    self.add_input(name=input_name, shape=(1, ) + shape, units=units)
+            # Input for continuity, which can come from an external source.
+            if solved or options['connected_initial']:
+                input_name = 'initial_states:{0}'.format(state_name)
+                self.add_input(name=input_name, shape=(1, ) + shape, units=units)
 
             self.add_input(
                 name=var_names['f_approx'],
@@ -196,15 +207,9 @@ class CollocationComp(ImplicitComponent):
                 self.declare_partials(of=state_var_name, wrt=state_var_name,
                                       rows=r, cols=r, val=-1.0)
 
-                if options['connect_initial']:
-                    wrt = 'initial_states:{0}'.format(state_name)
-                    self.declare_partials(of=state_var_name, wrt=wrt, rows=r,
-                                          cols=np.arange(num_indep_nodes), val=1.0)
-
-                elif options['connect_final']:
-                    wrt = 'final_states:{0}'.format(state_name)
-                    self.declare_partials(of=state_var_name, wrt=wrt, rows=r,
-                                          cols=np.arange(num_indep_nodes), val=1.0)
+                wrt = 'initial_states:{0}'.format(state_name)
+                self.declare_partials(of=state_var_name, wrt=wrt, rows=r,
+                                      cols=np.arange(num_indep_nodes), val=1.0)
 
                 c = np.arange(num_solve_nodes * size)
                 base_idx = np.tile(np.arange(size), num_solve_nodes).reshape(num_solve_nodes, size)
@@ -244,6 +249,26 @@ class CollocationComp(ImplicitComponent):
                                       wrt='dt_dstau',
                                       rows=r, cols=c)
 
+                if options['connected_initial']:
+                    solve_idx = np.array(self.state_idx_map[state_name]['solver'])
+                    indep_idx = np.array(self.state_idx_map[state_name]['indep'])
+
+                    num_indep_nodes = indep_idx.shape[0]
+                    num_solve_nodes = solve_idx.shape[0]
+                    state_var_name = 'states:{0}'.format(state_name)
+
+                    base_idx = np.tile(np.arange(size), num_indep_nodes).reshape(num_indep_nodes, size)
+                    r = (indep_idx[:, np.newaxis]*size + base_idx).flatten()
+
+                    # anything that looks like an indep
+                    row_col = np.arange(num_state_input_nodes)
+                    self.declare_partials(of=state_var_name, wrt=state_var_name,
+                                          rows=row_col, cols=row_col, val=-1.0)
+
+                    wrt = 'initial_states:{0}'.format(state_name)
+                    self.declare_partials(of=state_var_name, wrt=wrt, rows=r,
+                                          cols=np.arange(num_indep_nodes), val=1.0)
+
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
         Calculate the residual for each balance.
@@ -266,55 +291,46 @@ class CollocationComp(ImplicitComponent):
             f_approx = inputs[var_names['f_approx']]
             f_computed = inputs[var_names['f_computed']]
 
+            solve_idx = self.state_idx_map[state_name]['solver']
+            indep_idx = self.state_idx_map[state_name]['indep']
+            state_var_name = 'states:{0}'.format(state_name)
+
             if options['solve_segments']:
-                solve_idx = self.state_idx_map[state_name]['solver']
-                indep_idx = self.state_idx_map[state_name]['indep']
-                state_var_name = 'states:{0}'.format(state_name)
-
                 residuals[state_var_name][solve_idx, ...] = ((f_approx - f_computed).T * dt_dstau).T
-
-                if options['connect_initial']:
-                    bc_state_name = 'initial_states:{0}'.format(state_name)
-
-                    residuals[state_var_name][indep_idx, ...] = \
-                        inputs[bc_state_name][np.arange(len(indep_idx)), ...] - \
-                        outputs[state_var_name][indep_idx, ...]
-
-                elif options['connect_final']:
-                    bc_state_name = 'final_states:{0}'.format(state_name)
-
-                    residuals[state_var_name][indep_idx, ...] = \
-                        inputs[bc_state_name][np.arange(len(indep_idx)), ...] - \
-                        outputs[state_var_name][indep_idx, ...]
-
-                # really is: <idep_val> - \outputs[state_name][indep_idx] but OpenMDAO
-                # implementation details mean we just set it to 0
-                # but derivatives are still based on (<idep_val> - \outputs[state_name][indep_idx]),
-                # so you get -1 wrt state var
-                # NOTE: check_partials will report wrong derivs for the indep vars,
-                #       but don't believe it!
-                else:
-                    residuals[state_var_name][indep_idx, ...] = 0.0
 
             else:
                 residuals[var_names['defect']] = \
                     ((f_approx - f_computed).T * dt_dstau).T - outputs[var_names['defect']]
+
+            if options['connected_initial']:
+                bc_state_name = 'initial_states:{0}'.format(state_name)
+
+                residuals[state_var_name][indep_idx, ...] = \
+                    inputs[bc_state_name][np.arange(len(indep_idx)), ...] - \
+                    outputs[state_var_name][indep_idx, ...]
+
+            # really is: <idep_val> - \outputs[state_name][indep_idx] but OpenMDAO
+            # implementation details mean we just set it to 0
+            # but derivatives are still based on (<idep_val> - \outputs[state_name][indep_idx]),
+            # so you get -1 wrt state var
+            # NOTE: check_partials will report wrong derivs for the indep vars,
+            #       but don't believe it!
+            else:
+                residuals[state_var_name][indep_idx, ...] = 0.0
 
     def solve_nonlinear(self, inputs, outputs):
         state_options = self.options['state_options']
         dt_dstau = inputs['dt_dstau']
 
         for state_name, options in iteritems(state_options):
-            if options['solve_segments']:
+            if options['connected_initial']:
                 indep_idx = self.state_idx_map[state_name]['indep']
                 output_name = 'states:{0}'.format(state_name)
-                if options['connect_initial']:
-                    input_name = 'initial_states:{0}'.format(state_name)
-                    outputs[output_name][indep_idx, ...] = inputs[input_name]
-                elif options['connect_final']:
-                    input_name = 'final_states:{0}'.format(state_name)
-                    outputs[output_name][indep_idx, ...] = inputs[input_name]
-            else:
+
+                input_name = 'initial_states:{0}'.format(state_name)
+                outputs[output_name][indep_idx, ...] = inputs[input_name]
+
+            if not options['solve_segments']:
                 var_names = self.var_names[state_name]
 
                 f_approx = inputs[var_names['f_approx']]

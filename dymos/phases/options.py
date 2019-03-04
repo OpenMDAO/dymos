@@ -323,11 +323,11 @@ class StateOptionsDictionary(OptionsDictionary):
                           'in time for this state.  This poses restrictions on whether '
                           'states can have fixed or connected initial and final values.')
 
-        self.declare(name='connect_initial', default=False, types=bool,
+        self.declare(name='connected_initial', default=False, types=bool,
                      desc='Whether an input is created to pass in the initial state. This may be '
                           'set by a trajectory that links phases.')
 
-        self.declare(name='connect_final', default=False, types=bool,
+        self.declare(name='connected_final', default=False, types=bool,
                      desc='Whether an input is created to pass in the final state. This may be '
                           'set by a trajectory that links phases.')
 
