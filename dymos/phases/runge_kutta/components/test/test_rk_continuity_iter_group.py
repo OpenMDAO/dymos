@@ -3,14 +3,12 @@ from __future__ import print_function, division, absolute_import
 import unittest
 
 import numpy as np
-from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
-    NewtonSolver, ExecComp, DirectSolver
-from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
+from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, \
+    NewtonSolver, DirectSolver
+from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos.phases.runge_kutta.components import RungeKuttaStateContinuityIterGroup, \
-    RungeKuttaStepsizeComp
+from dymos.phases.runge_kutta.components import RungeKuttaStateContinuityIterGroup
 from dymos.phases.runge_kutta.test.rk_test_ode import TestODE
 
 
@@ -19,7 +17,8 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
     def test_continuity_comp_no_iteration(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'propagation': 'forward'}}
+                               'fix_final': False, 'propagation': 'forward', 'defect_scaler': None,
+                               'defect_ref': 1.0}}
 
         p = Problem(model=Group())
 
@@ -107,7 +106,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         J_rev = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_fd']
 
-        J_fd[0, 0] = 1.0
+        J_fd[0, 0] = -1.0
 
         assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
@@ -115,7 +114,8 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
     def test_continuity_comp_newtonsolver(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'propagation': 'forward'}}
+                               'fix_final': False, 'propagation': 'forward', 'defect_scaler': None,
+                               'defect_ref': 1.0}}
 
         p = Problem(model=Group())
 
@@ -180,7 +180,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         J_rev = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_fd']
 
-        J_fd[0, 0] = 1.0
+        J_fd[0, 0] = -1.0
 
         assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)

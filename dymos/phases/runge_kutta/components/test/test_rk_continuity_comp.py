@@ -17,7 +17,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_no_iteration_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'],
-                               'propagation': 'forward'}}
+                               'propagation': 'forward', 'defect_scaler': 1.0, 'defect_ref': None}}
 
         p = Problem(model=Group())
 
@@ -73,7 +73,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         J_rev = cpd['continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
 
-        J_fd[0, 0] = 1.0
+        J_fd[0, 0] = -1.0
 
         assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
@@ -81,7 +81,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_nonlinearblockgs_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'propagation': 'forward'}}
+                               'fix_final': False, 'propagation': 'forward', 'defect_scaler': 1.0,
+                               'defect_ref': None}}
 
         p = Problem(model=Group())
 
@@ -137,7 +138,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         J_rev = cpd['continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
 
-        J_fd[0, 0] = 1.0
+        J_fd[0, 0] = -1.0
 
         assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
@@ -145,7 +146,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_newton_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'propagation': 'forward'}}
+                               'fix_final': False, 'propagation': 'forward', 'defect_scaler': 1.0,
+                               'defect_ref': None}}
 
         p = Problem(model=Group())
 
@@ -193,7 +195,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         J_rev = cpd['continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
 
-        J_fd[0, 0] = 1.0
+        J_fd[0, 0] = -1.0
 
         assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
@@ -201,7 +203,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_no_iteration_backward(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'],
-                               'propagation': 'backward'}}
+                               'propagation': 'backward', 'defect_scaler': 1.0, 'defect_ref': None}}
 
         p = Problem(model=Group())
 
@@ -265,7 +267,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_nonlinearblockgs_backward(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'propagation': 'backward'}}
+                               'fix_final': False, 'propagation': 'backward',
+                               'defect_scaler': 1.0, 'defect_ref': None}}
 
         p = Problem(model=Group())
 
@@ -329,7 +332,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_newton_backwards(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'propagation': 'backward'}}
+                               'fix_final': False, 'propagation': 'backward', 'defect_scaler': 1.0,
+                               'defect_ref': None}}
 
         p = Problem(model=Group())
 
