@@ -264,7 +264,26 @@ class Trajectory(Group):
             units_map = {}
             vars_to_constrain = []
             for var, options in iteritems(vars):
-                if not options['connected']:
+                if options['connected']:
+
+                    # If this is a state, and we are linking it, we need to do some checks.
+                    if var in p1_states:
+                        p1_opt = p1.state_options[var]
+                        p2_opt = p2.state_options[var]
+
+                        if p1_opt['propagation'] != p2_opt['propagation']:
+                            msg = "Connected phases for variable '{0} must have same propagation" \
+                                  " direction."
+                            raise ValueError(msg.format(var))
+
+                        # Trajectory linkage modifies these options in connected states.
+                        if p2_opt['propagation'] == 'forward':
+                            p2_opt['connect_initial'] = True
+                            p2.time_options['input_initial'] = True
+                        else:
+                            p2_opt['connect_final'] = True
+
+                else:
                     vars_to_constrain.append(var)
                     if var in p1_states:
                         units_map[var] = p1.state_options[var]['units']
@@ -308,15 +327,25 @@ class Trajectory(Group):
                 if options['connected']:
 
                     if var == 'time':
-                        path = 'time_extents.initial_state_continuity:t_initial'
+                        path = 't_initial'
 
                         self.connect('{0}.{1}'.format(phase_name1, source1),
                                      '{0}.{1}'.format(phase_name2, path))
-                    else:
-                        path1 = 'initial_conditions.initial_value:{0}'.format(var)
 
-                        self.connect('{0}.{1}'.format(phase_name1, source1),
-                                     '{0}.{1}'.format(phase_name2, path1))
+                    else:
+                        p2_opt = p2.state_options[var]
+
+                        if p2_opt['propagation'] == 'forward':
+                            path = 'collocation_constraint.initial_states:{0}'.format(var)
+
+                            self.connect('{0}.{1}'.format(phase_name1, source1),
+                                         '{0}.{1}'.format(phase_name2, path))
+
+                        else:
+                            path = 'collocation_constraint.final_states:{0}'.format(var)
+
+                            self.connect('{0}.{1}'.format(phase_name2, source2),
+                                         '{0}.{1}'.format(phase_name1, path))
 
                 else:
 

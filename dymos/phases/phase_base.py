@@ -27,42 +27,6 @@ from dymos.utils.misc import CoerceDesvar
 _unspecified = object()
 
 
-class TimeExtents(ExplicitComponent):
-    """
-    Replacemes TimeExtents Indepvarcomp.
-
-    This passes through an initial value for time. Ony used when 'solve_continuity' is True
-    for time.
-    """
-    def setup(self):
-        indeps = self.options['indeps']
-        units = self.options['units']
-        solve_continuity = self.options['solve_continuity']
-
-        if solve_continuity:
-            self.add_input('initial_states:t_initial', val=1.0,
-                           units=units)
-
-            self.declare_partials(of='t_initial',
-                                  wrt='initial_states:t_initial', val=1.0)
-
-        for name in indeps:
-            self.add_output(name, val=1.0, units=units)
-
-    def initialize(self):
-        self.options.declare('indeps', [],
-                             desc='List of time var names.')
-        self.options.declare('units', 's',
-                             desc='Time units.')
-        self.options.declare('solve_continuity', False,
-                             desc='When True, create an input for the initial '
-                                  'value.')
-
-    def compute(self, inputs, outputs):
-        if self.options['solve_continuity']:
-            outputs['t_initial'] = inputs['initial_states:t_initial']
-
-
 class PhaseBase(Group):
     def __init__(self, **kwargs):
 
@@ -133,7 +97,7 @@ class PhaseBase(Group):
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
                           ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
-                          solve_segments=False, propagation='forward', solve_continuity=False):
+                          solve_segments=False, propagation='forward'):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -179,9 +143,6 @@ class PhaseBase(Group):
         propagation : str
             The direction of time propagation for this state when solve_segments is True.  Must be
             one of 'forward' or 'backward'.
-        solve_continuity : bool(False)
-            If True, then initial conditions for this variable come from an external source.
-            This option is only valid if solve_segments is also True.
         """
         if units is not _unspecified:
             self.state_options[name]['units'] = units
@@ -199,12 +160,8 @@ class PhaseBase(Group):
         self.state_options[name]['defect_scaler'] = defect_scaler
         self.state_options[name]['defect_ref'] = defect_ref
         self.state_options[name]['solve_segments'] = solve_segments
-        self.state_options[name]['solve_continuity'] = solve_continuity
         self.state_options[name]['propagation'] = propagation
 
-        if solve_continuity and not solve_segments:
-            msg = "The 'solve_continuity' option can only be used when 'solve_segments' is True."
-            raise ValueError(msg)
 
     def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,
@@ -803,7 +760,7 @@ class PhaseBase(Group):
                          initial_adder=None, initial_ref=None, initial_ref0=None,
                          duration_val=1.0, duration_bounds=(None, None),
                          duration_scaler=None, duration_adder=None, duration_ref=None,
-                         duration_ref0=None, solve_continuity=False):
+                         duration_ref0=None):
         """
         Set options for the time (or the integration variable) in the Phase.
 
@@ -850,8 +807,6 @@ class PhaseBase(Group):
             Zero-reference value for the duration of time across the phase.
         duration_ref : float
             Unit-reference value for the duration of time across the phase.
-        solve_continuity : bool(False)
-            If True, then initial conditions for time come from an external source.
         """
         if opt_initial is not None:
             self.time_options['fix_initial'] = not opt_initial
@@ -928,7 +883,6 @@ class PhaseBase(Group):
         self.time_options['duration_adder'] = duration_adder
         self.time_options['duration_ref'] = duration_ref
         self.time_options['duration_ref0'] = duration_ref0
-        self.time_options['solve_continuity'] = solve_continuity
 
     def _classify_var(self, var):
         """
@@ -1050,16 +1004,10 @@ class PhaseBase(Group):
             self.connect('t_duration', 'time.t_duration')
 
         if indeps:
-            if self.time_options['solve_continuity']:
+            indep = IndepVarComp()
 
-                indep = TimeExtents(indeps=indeps, units=time_units,
-                                    solve_continuity=self.time_options['solve_continuity'])
-
-            else:
-                indep = IndepVarComp()
-
-                for var in indeps:
-                    indep.add_output(var, val=default_vals[var], units=time_units)
+            for var in indeps:
+                indep.add_output(var, val=default_vals[var], units=time_units)
 
             self.add_subsystem('time_extents', indep, promotes_outputs=['*'])
             comps += ['time_extents']
