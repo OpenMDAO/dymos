@@ -71,19 +71,18 @@ class CollocationComp(ImplicitComponent):
                     raise ValueError('Can not use solver based collocation defects '
                                      'with both "fix_initial" and "fix_final" turned on.')
 
-                if (not options['fix_initial'] and not options['solve_continuity']) and \
-                   (not options['fix_final']):
+                if not options['fix_initial']  and not options['fix_final']:
                     raise ValueError('Must have either fix_initial" and "fix_final" turned on '
                                      'with solver base collocation')
 
             if options['fix_initial'] or \
-               (options['solve_continuity'] and options['propagation']=='forward'):
+               (options['solve_segments'] and options['propagation'] == 'forward'):
                 self.state_idx_map[state_name]['solver'] = self.solver_node_idx[1:]
                 self.state_idx_map[state_name]['indep'] = \
                     [self.solver_node_idx[0]] + self.indep_node_idx
 
             elif options['fix_final'] or \
-               (options['solve_continuity'] and options['propagation']=='backward'):
+                 (options['solve_segments'] and options['propagation'] == 'backward'):
                 self.state_idx_map[state_name]['solver'] = self.solver_node_idx[:-1]
                 self.state_idx_map[state_name]['indep'] = \
                     self.indep_node_idx + [self.solver_node_idx[-1]]
@@ -124,17 +123,23 @@ class CollocationComp(ImplicitComponent):
             # only need the implicit variable if this state is solved.
             # will get promoted to the same naming convention as the indepvar comp
             if solved:
-                ref = 1.0 / options['defect_scaler']
+
+                ref = 1.0
+                if 'defect_ref' in options and options['defect_ref']:
+                    ref = options['defect_ref']
+                elif 'defect_scaler' in options:
+                    ref = 1.0 / options['defect_scaler']
+
                 self.add_output(name='states:{0}'.format(state_name),
                                 shape=(num_state_input_nodes, ) + shape,
                                 units=units, ref=ref)
 
-                # Input for continuity, which comes from an external balance when solved.
-                if options['solve_continuity']:
+                # Input for continuity, which can come from an external source.
+                if options['solve_segments']:
                     if options['propagation'] == 'forward':
-                        input_name = 'initial_state_continuity:{0}'.format(state_name)
+                        input_name = 'initial_states:{0}'.format(state_name)
                     else:
-                        input_name = 'final_state_continuity:{0}'.format(state_name)
+                        input_name = 'final_states:{0}'.format(state_name)
                     self.add_input(name=input_name, shape=(1, ) + shape, units=units)
 
             self.add_input(
@@ -192,11 +197,11 @@ class CollocationComp(ImplicitComponent):
                 self.declare_partials(of=state_var_name, wrt=state_var_name,
                                       rows=r, cols=r, val=-1.0)
 
-                if options['solve_continuity']:
+                if options['solve_segments']:
                     if options['propagation'] == 'forward':
-                        wrt = 'initial_state_continuity:{0}'.format(state_name)
+                        wrt = 'initial_states:{0}'.format(state_name)
                     else:
-                        wrt = 'final_state_continuity:{0}'.format(state_name)
+                        wrt = 'final_states:{0}'.format(state_name)
                     self.declare_partials(of=state_var_name, wrt=wrt, rows=r,
                                           cols=np.arange(num_indep_nodes), val=1.0)
 
@@ -267,11 +272,11 @@ class CollocationComp(ImplicitComponent):
 
                 residuals[state_var_name][solve_idx, ...] = ((f_approx - f_computed).T * dt_dstau).T
 
-                if options['solve_continuity']:
+                if options['solve_segments']:
                     if options['propagation'] == 'forward':
-                        bc_state_name = 'initial_state_continuity:{0}'.format(state_name)
+                        bc_state_name = 'initial_states:{0}'.format(state_name)
                     else:
-                        bc_state_name = 'final_state_continuity:{0}'.format(state_name)
+                        bc_state_name = 'final_states:{0}'.format(state_name)
 
                     residuals[state_var_name][indep_idx, ...] = \
                         inputs[bc_state_name][np.arange(len(indep_idx)), ...] - \
@@ -296,13 +301,13 @@ class CollocationComp(ImplicitComponent):
 
         for state_name, options in iteritems(state_options):
             if options['solve_segments']:
-                if options['solve_continuity']:
+                if options['solve_segments']:
                     indep_idx = self.state_idx_map[state_name]['indep']
                     output_name = 'states:{0}'.format(state_name)
                     if options['propagation'] == 'forward':
-                        input_name = 'initial_state_continuity:{0}'.format(state_name)
+                        input_name = 'initial_states:{0}'.format(state_name)
                     else:
-                        input_name = 'final_state_continuity:{0}'.format(state_name)
+                        input_name = 'final_states:{0}'.format(state_name)
                     outputs[output_name][indep_idx, ...] = inputs[input_name]
             else:
                 var_names = self.var_names[state_name]

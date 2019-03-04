@@ -43,11 +43,11 @@ class TimeExtents(ExplicitComponent):
         solve_continuity = self.options['solve_continuity']
 
         if solve_continuity:
-            self.add_input('initial_state_continuity:t_initial', val=1.0,
+            self.add_input('initial_states:t_initial', val=1.0,
                            units=units)
 
             self.declare_partials(of='t_initial',
-                                  wrt='initial_state_continuity:t_initial', val=1.0)
+                                  wrt='initial_states:t_initial', val=1.0)
 
         for name in indeps:
             self.add_output(name, val=1.0, units=units)
@@ -63,7 +63,7 @@ class TimeExtents(ExplicitComponent):
 
     def compute(self, inputs, outputs):
         if self.options['solve_continuity']:
-            outputs['t_initial'] = inputs['initial_state_continuity:t_initial']
+            outputs['t_initial'] = inputs['initial_states:t_initial']
 
 
 class PhaseBase(Group):

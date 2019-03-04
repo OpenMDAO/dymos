@@ -314,18 +314,26 @@ class StateOptionsDictionary(OptionsDictionary):
                      desc='Enforce continuity of state values at segment boundaries. This '
                           'option is invalid if opt=False.')
 
-        self.declare('solve_segments', default=False, types=bool,
+        self.declare(name='solve_segments', default=False, types=bool,
                      desc='setting to control if segment collocation defects are '
                           'solved with a newton solver')
 
-        self.declare('solve_continuity', default=False, types=bool,
+        self.declare(name='solve_continuity', default=False, types=bool,
                      desc='setting to control if inter-segment state continuity defects are '
                           'solved with a newton solver')
 
-        self.declare('propagation', default='forward', values=('forward', 'backward'),
+        self.declare(name='propagation', default='forward', values=('forward', 'backward'),
                      desc='Whether the numerical propagation occurs forward or backward '
                           'in time for this state.  This poses restrictions on whether '
                           'states can have fixed or connected initial and final values.')
+
+        self.declare(name='connect_initial', default=False, types=bool,
+                     desc='Whether an input is created to pass in the initial state. This may be '
+                          'set by a trajectory that links phases.')
+
+        self.declare(name='connect_final', default=False, types=bool,
+                     desc='Whether an input is created to pass in the initial state. This may be '
+                          'set by a trajectory that links phases.')
 
 
 class TimeOptionsDictionary(OptionsDictionary):

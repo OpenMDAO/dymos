@@ -234,6 +234,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         prob['traj.phases.phase1_mfail.time_extents.t_initial'] = 1.0*3600
         prob['traj.phases.phase1_mfail.time_extents.t_duration'] = 1.0*3600
 
+        prob['traj.phases.phase0.initial_conditions.initial_value:state_of_charge'] = 1.0
+
         # Fail one battery
         prob.model.traj.phases.phase1_bfail.rhs_all.battery.options['n_parallel'] = 2
 
@@ -348,6 +350,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         prob['traj.phases.phase1_mfail.time_extents.t_initial'] = 1.0*3600
         prob['traj.phases.phase1_mfail.time_extents.t_duration'] = 1.0*3600
 
+        prob['traj.phases.phase0.initial_conditions.initial_value:state_of_charge'] = 1.0
+
         # Fail one battery
         prob.model.traj.phases.phase1_bfail.rhs_all.battery.options['n_parallel'] = 2
 
@@ -393,8 +397,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
         traj_p0.set_state_options('state_of_charge', fix_initial=False, fix_final=True,
-                                  solve_segments=True, propagation='backward', solve_continuity=True)
-
+                                  solve_segments=True, propagation='backward',
+                                  solve_continuity=True)
 
         prob.model.options['assembled_jac_type'] = 'csc'
         prob.model.linear_solver = DirectSolver(assemble_jac=True)

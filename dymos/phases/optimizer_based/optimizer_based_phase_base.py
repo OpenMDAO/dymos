@@ -329,16 +329,16 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                       'end of the phase'.format(state_name))
 
             # May be open to external connection to upstream components.
-            if options['solve_continuity'] and options['propagation'] == 'forward':
-                tgt = 'collocation_constraint.initial_state_continuity:{0}'.format(state_name)
+            if options['solve_segments'] and options['propagation'] == 'forward':
+                tgt = 'collocation_constraint.initial_states:{0}'.format(state_name)
                 self.connect('states:{0}--'.format(state_name), tgt)
             else:
                 self.connect('states:{0}'.format(state_name),
                              'initial_conditions.initial_value:{0}'.format(state_name))
 
             # May be open to external connection to downstream components.
-            if options['solve_continuity'] and options['propagation'] == 'backward':
-                tgt = 'collocation_constraint.final_state_continuity:{0}'.format(state_name)
+            if options['solve_segments'] and options['propagation'] == 'backward':
+                tgt = 'collocation_constraint.final_states:{0}'.format(state_name)
                 self.connect('states:{0}++'.format(state_name), tgt)
             else:
                 self.connect('states:{0}'.format(state_name),
