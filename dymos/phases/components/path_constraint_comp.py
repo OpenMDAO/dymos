@@ -71,7 +71,11 @@ class PathConstraintCompBase(ExplicitComponent):
             If True, this variable is distributed across multiple processes.
         """
         src_all = var_class in ['time', 'time_phase', 'indep_control', 'input_control',
-                                'control_rate', 'control_rate2']
+                                'control_rate', 'control_rate2', 'indep_polynomial_control',
+                                'input_polynomial_control', 'polynomial_control_rate',
+                                'polynomial_control_rate2', 'design_parameter', 'input_parameter',
+                                'traj_parameter']
+
         lower = -INF_BOUND if upper is not None and lower is None else lower
         upper = INF_BOUND if lower is not None and upper is None else upper
         kwargs = {'shape': shape, 'units': units, 'res_units': res_units, 'desc': desc,

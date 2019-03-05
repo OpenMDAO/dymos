@@ -137,22 +137,22 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         a_rate2_expected = f2_a(t_all)
         b_rate2_expected = f2_b(t_all)
 
-        assert_almost_equal(p['control_values:a'],
+        assert_almost_equal(p['polynomial_control_values:a'],
                             np.atleast_2d(a_value_expected).T)
 
-        assert_almost_equal(p['control_values:b'],
+        assert_almost_equal(p['polynomial_control_values:b'],
                             np.atleast_2d(b_value_expected).T)
 
-        assert_almost_equal(p['control_rates:a_rate'],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'],
                             np.atleast_2d(a_rate_expected).T)
 
-        assert_almost_equal(p['control_rates:b_rate'],
+        assert_almost_equal(p['polynomial_control_rates:b_rate'],
                             np.atleast_2d(b_rate_expected).T)
 
-        assert_almost_equal(p['control_rates:a_rate2'],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'],
                             np.atleast_2d(a_rate2_expected).T)
 
-        assert_almost_equal(p['control_rates:b_rate2'],
+        assert_almost_equal(p['polynomial_control_rates:b_rate2'],
                             np.atleast_2d(b_rate2_expected).T)
 
         np.set_printoptions(linewidth=1024)
@@ -233,22 +233,22 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         a_rate2_expected = f2_a(t_all)
         b_rate2_expected = f2_b(t_all)
 
-        assert_almost_equal(p['control_values:a'],
+        assert_almost_equal(p['polynomial_control_values:a'],
                             np.atleast_2d(a_value_expected).T)
 
-        assert_almost_equal(p['control_values:b'],
+        assert_almost_equal(p['polynomial_control_values:b'],
                             np.atleast_2d(b_value_expected).T)
 
-        assert_almost_equal(p['control_rates:a_rate'],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'],
                             np.atleast_2d(a_rate_expected).T)
 
-        assert_almost_equal(p['control_rates:b_rate'],
+        assert_almost_equal(p['polynomial_control_rates:b_rate'],
                             np.atleast_2d(b_rate_expected).T)
 
-        assert_almost_equal(p['control_rates:a_rate2'],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'],
                             np.atleast_2d(a_rate2_expected).T)
 
-        assert_almost_equal(p['control_rates:b_rate2'],
+        assert_almost_equal(p['polynomial_control_rates:b_rate2'],
                             np.atleast_2d(b_rate2_expected).T)
 
         np.set_printoptions(linewidth=1024)
@@ -327,22 +327,22 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         a_rate2_expected = f2_a(t_all)
         b_rate2_expected = f2_b(t_all)
 
-        assert_almost_equal(p['control_values:a'],
+        assert_almost_equal(p['polynomial_control_values:a'],
                             np.atleast_2d(a_value_expected).T)
 
-        assert_almost_equal(p['control_values:b'],
+        assert_almost_equal(p['polynomial_control_values:b'],
                             np.atleast_2d(b_value_expected).T)
 
-        assert_almost_equal(p['control_rates:a_rate'],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'],
                             np.atleast_2d(a_rate_expected).T)
 
-        assert_almost_equal(p['control_rates:b_rate'],
+        assert_almost_equal(p['polynomial_control_rates:b_rate'],
                             np.atleast_2d(b_rate_expected).T)
 
-        assert_almost_equal(p['control_rates:a_rate2'],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'],
                             np.atleast_2d(a_rate2_expected).T)
 
-        assert_almost_equal(p['control_rates:b_rate2'],
+        assert_almost_equal(p['polynomial_control_rates:b_rate2'],
                             np.atleast_2d(b_rate2_expected).T)
 
         np.set_printoptions(linewidth=1024)
@@ -423,31 +423,31 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         a1_rate2_expected = f2_b(t_all)
         a2_rate2_expected = f2_c(t_all)
 
-        assert_almost_equal(p['control_values:a'][:, 0],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 0],
                             a0_value_expected)
 
-        assert_almost_equal(p['control_values:a'][:, 1],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 1],
                             a1_value_expected)
 
-        assert_almost_equal(p['control_values:a'][:, 2],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 2],
                             a2_value_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 0],
                             a0_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 1],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 1],
                             a1_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 2],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 2],
                             a2_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 0],
                             a0_rate2_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 1],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 1],
                             a1_rate2_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 2],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 2],
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
@@ -529,31 +529,31 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         a1_rate2_expected = f2_b(t_all)
         a2_rate2_expected = f2_c(t_all)
 
-        assert_almost_equal(p['control_values:a'][:, 0],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 0],
                             a0_value_expected)
 
-        assert_almost_equal(p['control_values:a'][:, 1],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 1],
                             a1_value_expected)
 
-        assert_almost_equal(p['control_values:a'][:, 2],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 2],
                             a2_value_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 0],
                             a0_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 1],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 1],
                             a1_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 2],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 2],
                             a2_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 0],
                             a0_rate2_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 1],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 1],
                             a1_rate2_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 2],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 2],
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
@@ -635,31 +635,31 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         a1_rate2_expected = f2_b(t_all)
         a2_rate2_expected = f2_c(t_all)
 
-        assert_almost_equal(p['control_values:a'][:, 0],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 0],
                             a0_value_expected)
 
-        assert_almost_equal(p['control_values:a'][:, 1],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 1],
                             a1_value_expected)
 
-        assert_almost_equal(p['control_values:a'][:, 2],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 2],
                             a2_value_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 0],
                             a0_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 1],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 1],
                             a1_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 2],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 2],
                             a2_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 0],
                             a0_rate2_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 1],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 1],
                             a1_rate2_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 2],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 2],
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
@@ -741,31 +741,31 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         a1_rate2_expected = f2_b(t_all)
         a2_rate2_expected = f2_c(t_all)
 
-        assert_almost_equal(p['control_values:a'][:, 0, 0],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 0, 0],
                             a0_value_expected)
 
-        assert_almost_equal(p['control_values:a'][:, 1, 0],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 1, 0],
                             a1_value_expected)
 
-        assert_almost_equal(p['control_values:a'][:, 2, 0],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 2, 0],
                             a2_value_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 0, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 0, 0],
                             a0_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 1, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 1, 0],
                             a1_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 2, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 2, 0],
                             a2_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 0, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 0, 0],
                             a0_rate2_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 1, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 1, 0],
                             a1_rate2_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 2, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 2, 0],
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
@@ -847,31 +847,31 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         a1_rate2_expected = f2_b(t_all)
         a2_rate2_expected = f2_c(t_all)
 
-        assert_almost_equal(p['control_values:a'][:, 0, 0],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 0, 0],
                             a0_value_expected)
 
-        assert_almost_equal(p['control_values:a'][:, 1, 0],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 1, 0],
                             a1_value_expected)
 
-        assert_almost_equal(p['control_values:a'][:, 2, 0],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 2, 0],
                             a2_value_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 0, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 0, 0],
                             a0_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 1, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 1, 0],
                             a1_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 2, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 2, 0],
                             a2_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 0, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 0, 0],
                             a0_rate2_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 1, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 1, 0],
                             a1_rate2_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 2, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 2, 0],
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
@@ -953,31 +953,31 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         a1_rate2_expected = f2_b(t_all)
         a2_rate2_expected = f2_c(t_all)
 
-        assert_almost_equal(p['control_values:a'][:, 0, 0],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 0, 0],
                             a0_value_expected)
 
-        assert_almost_equal(p['control_values:a'][:, 1, 0],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 1, 0],
                             a1_value_expected)
 
-        assert_almost_equal(p['control_values:a'][:, 2, 0],
+        assert_almost_equal(p['polynomial_control_values:a'][:, 2, 0],
                             a2_value_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 0, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 0, 0],
                             a0_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 1, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 1, 0],
                             a1_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate'][:, 2, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate'][:, 2, 0],
                             a2_rate_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 0, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 0, 0],
                             a0_rate2_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 1, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 1, 0],
                             a1_rate2_expected)
 
-        assert_almost_equal(p['control_rates:a_rate2'][:, 2, 0],
+        assert_almost_equal(p['polynomial_control_rates:a_rate2'][:, 2, 0],
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)

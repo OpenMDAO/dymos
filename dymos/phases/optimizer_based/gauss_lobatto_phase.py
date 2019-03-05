@@ -153,6 +153,48 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
         return num_dynamic
 
+    def _setup_polynomial_controls(self):
+        super(GaussLobattoPhase, self)._setup_polynomial_controls()
+        grid_data = self.grid_data
+
+        for name, options in iteritems(self.polynomial_control_options):
+            state_disc_idxs = grid_data.subset_node_indices['state_disc']
+            col_idxs = grid_data.subset_node_indices['col']
+
+            control_src_name = 'polynomial_control_values:{0}'.format(name)
+
+            if name in self.ode_options._parameters:
+                targets = self.ode_options._parameters[name]['targets']
+                self.connect(control_src_name,
+                             ['rhs_disc.{0}'.format(t) for t in targets],
+                             src_indices=state_disc_idxs)
+
+                self.connect(control_src_name,
+                             ['rhs_col.{0}'.format(t) for t in targets],
+                             src_indices=col_idxs)
+
+            if options['rate_param']:
+                targets = self.ode_options._parameters[options['rate_param']]['targets']
+
+                self.connect('polynomial_control_rates:{0}_rate'.format(name),
+                             ['rhs_disc.{0}'.format(t) for t in targets],
+                             src_indices=state_disc_idxs)
+
+                self.connect('polynomial_control_rates:{0}_rate'.format(name),
+                             ['rhs_col.{0}'.format(t) for t in targets],
+                             src_indices=col_idxs)
+
+            if options['rate2_param']:
+                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+
+                self.connect('polynomial_control_rates:{0}_rate2'.format(name),
+                             ['rhs_disc.{0}'.format(t) for t in targets],
+                             src_indices=state_disc_idxs)
+
+                self.connect('polynomial_control_rates:{0}_rate2'.format(name),
+                             ['rhs_col.{0}'.format(t) for t in targets],
+                             src_indices=col_idxs)
+
     def _get_parameter_connections(self, name):
         """
         Returns a list containing tuples of each path and related indices to which the
@@ -252,6 +294,18 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                 self.connect(src_name=constraint_path,
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
+            elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
+                control_shape = self.control_options[var]['shape']
+                control_units = self.control_options[var]['units']
+                options['shape'] = control_shape
+                options['units'] = control_units if con_units is None else con_units
+                options['linear'] = True
+
+                constraint_path = 'polynomial_control_values:{0}'.format(var)
+
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
             elif var_type == 'control_rate':
                 control_name = var[:-5]
                 control_shape = self.control_options[control_name]['shape']
@@ -271,6 +325,28 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                 options['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con_units is None else con_units
                 constraint_path = 'control_rates:{0}_rate2'.format(control_name)
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'polynomial_control_rate':
+                control_name = var[:-5]
+                control_shape = self.control_options[control_name]['shape']
+                control_units = self.control_options[control_name]['units']
+                options['shape'] = control_shape
+                options['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                    if con_units is None else con_units
+                constraint_path = 'polynomial_control_rates:{0}_rate'.format(control_name)
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'polynomial_control_rate2':
+                control_name = var[:-6]
+                control_shape = self.control_options[control_name]['shape']
+                control_units = self.control_options[control_name]['units']
+                options['shape'] = control_shape
+                options['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                    if con_units is None else con_units
+                constraint_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
                 self.connect(src_name=constraint_path,
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
@@ -320,12 +396,12 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             control_units = options['units']
 
             # Control values
-            timeseries_comp._add_timeseries_output('controls:{0}'.format(name),
+            timeseries_comp._add_timeseries_output('control_values:{0}'.format(name),
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
                                                    units=control_units)
             self.connect(src_name='control_interp_comp.control_values:{0}'.format(name),
-                         tgt_name='timeseries.all_values:controls:{0}'.format(name))
+                         tgt_name='timeseries.all_values:control_values:{0}'.format(name))
 
             # # Control rates
             timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(name),
@@ -346,6 +422,41 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                                                                         deriv=2))
             self.connect(src_name='control_rates:{0}_rate2'.format(name),
                          tgt_name='timeseries.all_values:control_rates:{0}_rate2'.format(name))
+
+        for name, options in iteritems(self.polynomial_control_options):
+            control_units = options['units']
+
+            # Control values
+            timeseries_comp._add_timeseries_output('polynomial_control_values:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=control_units)
+            self.connect(src_name='polynomial_control_values:{0}'.format(name),
+                         tgt_name='timeseries.all_values:'
+                                  'polynomial_control_values:{0}'.format(name))
+
+            # # Control rates
+            timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=get_rate_units(control_units,
+                                                                        time_units,
+                                                                        deriv=1))
+            self.connect(src_name='polynomial_control_rates:{0}_rate'.format(name),
+                         tgt_name='timeseries.all_values:'
+                                  'polynomial_control_rates:{0}_rate'.format(name))
+
+            # Control second derivatives
+            timeseries_comp._add_timeseries_output('polynomial_control_rates:'
+                                                   '{0}_rate2'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=get_rate_units(control_units,
+                                                                        time_units,
+                                                                        deriv=2))
+            self.connect(src_name='polynomial_control_rates:{0}_rate2'.format(name),
+                         tgt_name='timeseries.all_values:'
+                                  'polynomial_control_rates:{0}_rate2'.format(name))
 
         for name, options in iteritems(self.design_parameter_options):
             units = options['units']

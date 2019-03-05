@@ -18,7 +18,7 @@ from dymos.phases.components import InputParameterComp
 from dymos.phases.options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
     InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary, \
     PolynomialControlOptionsDictionary
-from dymos.phases.components import ControlInterpComp
+from dymos.phases.components import ControlInterpComp, PolynomialControlGroup
 from dymos.ode_options import ODEOptions
 from dymos.utils.constants import INF_BOUND
 from dymos.utils.misc import CoerceDesvar
@@ -409,7 +409,7 @@ class PhaseBase(Group):
         ode_params = self.ode_options._parameters
         self._check_parameter(name, dynamic=True)
 
-        self.control_options[name] = PolynomialControlOptionsDictionary()
+        self.polynomial_control_options[name] = PolynomialControlOptionsDictionary()
 
         if name in ode_params:
             ode_param_info = ode_params[name]
@@ -456,7 +456,7 @@ class PhaseBase(Group):
                 warnings.warn(msg, RuntimeWarning)
 
         self.polynomial_control_options[name]['val'] = val
-        self.polynomial_control_options[name]['interp_order'] = order
+        self.polynomial_control_options[name]['order'] = order
         self.polynomial_control_options[name]['opt'] = opt
         self.polynomial_control_options[name]['fix_initial'] = fix_initial
         self.polynomial_control_options[name]['fix_final'] = fix_final
@@ -468,7 +468,7 @@ class PhaseBase(Group):
         self.polynomial_control_options[name]['ref0'] = ref0
 
         if units != 0:
-            self.control_options[name]['units'] = units
+            self.polynomial_control_options[name]['units'] = units
 
     def add_design_parameter(self, name, val=0.0, units=0, opt=True,
                              lower=None, upper=None, scaler=None, adder=None, ref=None, ref0=None):
@@ -741,7 +741,7 @@ class PhaseBase(Group):
 
     def add_timeseries_output(self, name, output_name=None, units=None, shape=(1,)):
         r"""
-        Add a path constraint to a variable in the phase.
+        Add a variable to the timeseries outputs of the phase.
 
         Parameters
         ----------
@@ -1036,7 +1036,9 @@ class PhaseBase(Group):
         str
             The classification of the given variable, which is one of
             'time', 'state', 'input_control', 'indep_control', 'control_rate',
-            'control_rate2', 'design_parameter', 'input_parameter', or 'ode'.
+            'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
+            'polynomial_control_rate', 'polynomial_control_rate2', 'design_parameter',
+            'input_parameter', or 'ode'.
 
         """
         if var == 'time':
@@ -1050,18 +1052,25 @@ class PhaseBase(Group):
                 return 'indep_control'
             else:
                 return 'input_control'
+        elif var in self.polynomial_control_options:
+            if self.polynomial_control_options[var]['opt']:
+                return 'indep_polynomial_control'
+            else:
+                return 'input_polynomial_control'
         elif var in self.design_parameter_options:
             return 'design_parameter'
         elif var in self.input_parameter_options:
             return 'input_parameter'
         elif var in self.traj_parameter_options:
             return 'traj_parameter'
-        elif var.endswith('_rate'):
-            if var[:-5] in self.control_options:
+        elif var.endswith('_rate') and var[:-5] in self.control_options:
                 return 'control_rate'
-        elif var.endswith('_rate2'):
-            if var[:-6] in self.control_options:
+        elif var.endswith('_rate2') and var[:-6] in self.control_options:
                 return 'control_rate2'
+        elif var.endswith('_rate') and var[:-5] in self.polynomial_control_options:
+                return 'polynomial_control_rate'
+        elif var.endswith('_rate2') and var[:-6] in self.polynomial_control_options:
+                return 'polynomial_control_rate2'
         else:
             return 'ode'
 
@@ -1086,6 +1095,9 @@ class PhaseBase(Group):
                                promotes_inputs=['controls:*'],
                                promotes_outputs=['control_rates:*'])
             self.connect('time.dt_dstau', 'control_interp_comp.dt_dstau')
+
+        if self.polynomial_control_options:
+            self._setup_polynomial_controls()
 
         if self.input_parameter_options:
             self._setup_input_parameters()
@@ -1221,6 +1233,17 @@ class PhaseBase(Group):
                                  units=options['units'])
 
         return num_dynamic_controls
+
+    def _setup_polynomial_controls(self):
+        """
+        Adds the polynomial control group to the model if any polynomial controls are present.
+        """
+        if self.polynomial_control_options:
+            sys = PolynomialControlGroup(grid_data=self.grid_data,
+                                         polynomial_control_options=self.polynomial_control_options,
+                                         time_units=self.time_options['units'])
+            self.add_subsystem('polynomial_controls', subsys=sys,
+                               promotes_inputs=['*'], promotes_outputs=['*'])
 
     def _setup_design_parameters(self):
         """

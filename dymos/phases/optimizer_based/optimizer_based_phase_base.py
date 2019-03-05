@@ -51,8 +51,9 @@ class OptimizerBasedPhaseBase(PhaseBase):
         input_params = ['input_params'] if self.input_parameter_options else []
         traj_params = ['traj_params'] if self.traj_parameter_options else []
         control_interp_comp = ['control_interp_comp'] if num_controls > 0 else []
+        polynomial_controls = ['polynomial_controls'] if self.polynomial_control_options else []
 
-        order = self._time_extents + indep_controls + \
+        order = self._time_extents + indep_controls + polynomial_controls + \
             input_params + design_params + traj_params
 
         if self.any_optimized_segments:

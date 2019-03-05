@@ -58,7 +58,7 @@ class LGLPolynomialControlComp(ExplicitComponent):
             size = np.prod(shape)
             units = options['units']
             rate_units = get_rate_units(units, self.options['time_units'], deriv=1)
-            rate2_units = get_rate_units(units, self.options['time_units'], deriv=1)
+            rate2_units = get_rate_units(units, self.options['time_units'], deriv=2)
 
             input_shape = (num_control_input_nodes,) + shape
             output_shape = (num_nodes,) + shape
@@ -70,9 +70,9 @@ class LGLPolynomialControlComp(ExplicitComponent):
             self._matrices[name] = L_de, D_de, D2_de
 
             self._input_names[name] = 'polynomial_controls:{0}'.format(name)
-            self._output_val_names[name] = 'control_values:{0}'.format(name)
-            self._output_rate_names[name] = 'control_rates:{0}_rate'.format(name)
-            self._output_rate2_names[name] = 'control_rates:{0}_rate2'.format(name)
+            self._output_val_names[name] = 'polynomial_control_values:{0}'.format(name)
+            self._output_rate_names[name] = 'polynomial_control_rates:{0}_rate'.format(name)
+            self._output_rate2_names[name] = 'polynomial_control_rates:{0}_rate2'.format(name)
 
             self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
             self.add_output(self._output_val_names[name], shape=output_shape, units=units)

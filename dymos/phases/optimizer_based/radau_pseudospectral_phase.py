@@ -115,6 +115,27 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 self.connect('control_rates:{0}_rate2'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
+    def _setup_polynomial_controls(self):
+        super(RadauPseudospectralPhase, self)._setup_polynomial_controls()
+
+        for name, options in iteritems(self.polynomial_control_options):
+
+            if name in self.ode_options._parameters:
+                targets = self.ode_options._parameters[name]['targets']
+
+                self.connect('polynomial_control_values:{0}'.format(name),
+                             ['rhs_all.{0}'.format(t) for t in targets])
+
+            if options['rate_param']:
+                targets = self.ode_options._parameters[options['rate_param']]['targets']
+                self.connect('polynomial_control_rates:{0}_rate'.format(name),
+                             ['rhs_all.{0}'.format(t) for t in targets])
+
+            if options['rate2_param']:
+                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+                self.connect('polynomial_control_rates:{0}_rate2'.format(name),
+                             ['rhs_all.{0}'.format(t) for t in targets])
+
     def _get_parameter_connections(self, name):
         """
         Returns a list containing tuples of each path and related indices to which the
@@ -215,6 +236,28 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 self.connect(src_name=constraint_path,
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
+            elif var_type == 'indep_polynomial_control':
+                control_shape = self.control_options[var]['shape']
+                control_units = self.control_options[var]['units']
+                options['shape'] = control_shape
+                options['units'] = control_units if con_units is None else con_units
+                options['linear'] = True
+                constraint_path = 'polynomial_control_values:{0}'.format(var)
+
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'input_polynomial_control':
+                control_shape = self.control_options[var]['shape']
+                control_units = self.control_options[var]['units']
+                options['shape'] = control_shape
+                options['units'] = control_units if con_units is None else con_units
+                options['linear'] = True
+                constraint_path = 'polynomial_control_values:{0}'.format(var)
+
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
             elif var_type == 'control_rate':
                 control_name = var[:-5]
                 control_shape = self.control_options[control_name]['shape']
@@ -234,6 +277,28 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 options['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con_units is None else con_units
                 constraint_path = 'control_rates:{0}_rate2'.format(control_name)
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'polynomial_control_rate':
+                control_name = var[:-5]
+                control_shape = self.control_options[control_name]['shape']
+                control_units = self.control_options[control_name]['units']
+                options['shape'] = control_shape
+                options['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                    if con_units is None else con_units
+                constraint_path = 'polynomial_control_rates:{0}_rate'.format(control_name)
+                self.connect(src_name=constraint_path,
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'polynomial_control_rate2':
+                control_name = var[:-6]
+                control_shape = self.control_options[control_name]['shape']
+                control_units = self.control_options[control_name]['units']
+                options['shape'] = control_shape
+                options['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                    if con_units is None else con_units
+                constraint_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
                 self.connect(src_name=constraint_path,
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
@@ -307,6 +372,42 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                                         deriv=2))
             self.connect(src_name='control_rates:{0}_rate2'.format(name),
                          tgt_name='timeseries.all_values:control_rates:{0}_rate2'.format(name))
+
+        for name, options in iteritems(self.polynomial_control_options):
+            control_units = options['units']
+            timeseries_comp._add_timeseries_output('polynomial_control_values:{0}'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=control_units)
+            src_rows = gd.subset_node_indices['all']
+            src_idxs = get_src_indices_by_row(src_rows, options['shape'])
+            self.connect(src_name='polynomial_control_values:{0}'.format(name),
+                         tgt_name='timeseries.all_values:'
+                                  'polynomial_control_values:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+            # # Control rates
+            timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=get_rate_units(control_units,
+                                                                        time_units,
+                                                                        deriv=1))
+            self.connect(src_name='polynomial_control_rates:{0}_rate'.format(name),
+                         tgt_name='timeseries.all_values:polynomial_control_rates:'
+                                  '{0}_rate'.format(name))
+
+            # Control second derivatives
+            timeseries_comp._add_timeseries_output('polynomial_control_rates:'
+                                                   '{0}_rate2'.format(name),
+                                                   var_class=self._classify_var(name),
+                                                   shape=options['shape'],
+                                                   units=get_rate_units(control_units,
+                                                                        time_units,
+                                                                        deriv=2))
+            self.connect(src_name='polynomial_control_rates:{0}_rate2'.format(name),
+                         tgt_name='timeseries.all_values:polynomial_control_rates:'
+                                  '{0}_rate2'.format(name))
 
         for name, options in iteritems(self.design_parameter_options):
             units = options['units']
