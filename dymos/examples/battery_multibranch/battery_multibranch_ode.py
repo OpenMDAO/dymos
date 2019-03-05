@@ -20,9 +20,13 @@ class BatteryODE(Group):
 
     def initialize(self):
         self.options.declare('num_nodes', default=1)
+        self.options.declare('num_battery', default=3)
+        self.options.declare('num_motor', default=3)
 
     def setup(self):
         num_nodes = self.options['num_nodes']
+        num_battery = self.options['num_battery']
+        num_motor = self.options['num_motor']
 
         self.add_subsystem(name='pwr_balance',
                            subsys=BalanceComp(name='I_Li', val=1.0*np.ones(num_nodes),
@@ -30,11 +34,11 @@ class BatteryODE(Group):
                                               lhs_name='P_pack',
                                               units='A', eq_units='W', lower=0.0, upper=50.))
 
-        self.add_subsystem('battery', Battery(num_nodes=num_nodes),
+        self.add_subsystem('battery', Battery(num_nodes=num_nodes, n_parallel=num_battery),
                            promotes_inputs=['SOC'],
                            promotes_outputs=['dXdt:SOC'])
 
-        self.add_subsystem('motors', Motors(num_nodes=num_nodes))
+        self.add_subsystem('motors', Motors(num_nodes=num_nodes, n_parallel=num_motor))
 
         self.connect('battery.P_pack', 'pwr_balance.P_pack')
         self.connect('motors.power_in_motor', 'pwr_balance.pwr_out_batt')

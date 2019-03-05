@@ -70,6 +70,7 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
                          num_segments=num_seg,
                          segment_ends=seg_ends,
                          transcription_order=5,
+                         ode_init_kwargs = {'num_battery': 2},
                          compressed=False)
 
     traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
@@ -84,6 +85,7 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
                          num_segments=num_seg,
                          segment_ends=seg_ends,
                          transcription_order=5,
+                         ode_init_kwargs = {'num_motor': 2},
                          compressed=False)
 
     traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
@@ -111,12 +113,6 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     prob['traj.phases.phase1_mfail.time_extents.t_initial'] = 1.0*3600
     prob['traj.phases.phase1_mfail.time_extents.t_duration'] = 1.0*3600
-
-    # Fail one battery
-    prob.model.traj.phases.phase1_bfail.rhs_all.battery.options['n_parallel'] = 2
-
-    # Fail one motor
-    prob.model.traj.phases.phase1_mfail.rhs_all.motors.options['n_parallel'] = 2
 
     prob.set_solver_print(level=0)
     prob.run_driver()

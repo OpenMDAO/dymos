@@ -70,6 +70,7 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
                              num_segments=num_seg,
                              segment_ends=seg_ends,
                              transcription_order=5,
+                             ode_init_kwargs = {'num_battery': 2},
                              compressed=False)
 
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
@@ -84,6 +85,7 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
                              num_segments=num_seg,
                              segment_ends=seg_ends,
                              transcription_order=5,
+                             ode_init_kwargs = {'num_motor': 2},
                              compressed=False)
 
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
@@ -100,31 +102,25 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
 
         prob.setup()
 
-        prob['traj.phases.phase0.time_extents.t_initial'] = 0
-        prob['traj.phases.phase0.time_extents.t_duration'] = 1.0*3600
+        prob['traj.phase0.t_initial'] = 0
+        prob['traj.phase0.t_duration'] = 1.0*3600
 
-        prob['traj.phases.phase1.time_extents.t_initial'] = 1.0*3600
-        prob['traj.phases.phase1.time_extents.t_duration'] = 1.0*3600
+        prob['traj.phase1.t_initial'] = 1.0*3600
+        prob['traj.phase1.t_duration'] = 1.0*3600
 
-        prob['traj.phases.phase1_bfail.time_extents.t_initial'] = 1.0*3600
-        prob['traj.phases.phase1_bfail.time_extents.t_duration'] = 1.0*3600
+        prob['traj.phase1_bfail.t_initial'] = 1.0*3600
+        prob['traj.phase1_bfail.t_duration'] = 1.0*3600
 
-        prob['traj.phases.phase1_mfail.time_extents.t_initial'] = 1.0*3600
-        prob['traj.phases.phase1_mfail.time_extents.t_duration'] = 1.0*3600
-
-        # Fail one battery
-        prob.model.traj.phases.phase1_bfail.rhs_all.battery.options['n_parallel'] = 2
-
-        # Fail one motor
-        prob.model.traj.phases.phase1_mfail.rhs_all.motors.options['n_parallel'] = 2
+        prob['traj.phase1_mfail.t_initial'] = 1.0*3600
+        prob['traj.phase1_mfail.t_duration'] = 1.0*3600
 
         prob.set_solver_print(level=0)
         prob.run_driver()
 
-        soc0 = prob['traj.phases.phase0.indep_states.states:state_of_charge']
-        soc1 = prob['traj.phases.phase1.indep_states.states:state_of_charge']
-        soc1b = prob['traj.phases.phase1_bfail.indep_states.states:state_of_charge']
-        soc1m = prob['traj.phases.phase1_mfail.indep_states.states:state_of_charge']
+        soc0 = prob['traj.phase0.states:state_of_charge']
+        soc1 = prob['traj.phase1.states:state_of_charge']
+        soc1b = prob['traj.phase1_bfail.states:state_of_charge']
+        soc1m = prob['traj.phase1_mfail.states:state_of_charge']
 
         # Final value for State of Chrage in each segment should be a good test.
         print('State of Charge after 1 hour')
@@ -141,10 +137,6 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
         t1 = prob['traj.phases.phase1.time.time']/3600
         t1b = prob['traj.phases.phase1_bfail.time.time']/3600
         t1m = prob['traj.phases.phase1_mfail.time.time']/3600
-        soc0 = prob['traj.phases.phase0.indep_states.states:state_of_charge']
-        soc1 = prob['traj.phases.phase1.indep_states.states:state_of_charge']
-        soc1b = prob['traj.phases.phase1_bfail.indep_states.states:state_of_charge']
-        soc1m = prob['traj.phases.phase1_mfail.indep_states.states:state_of_charge']
 
         plt.subplot(2, 1, 1)
         plt.plot(t0, soc0, 'b')

@@ -55,7 +55,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         order = self._time_extents + indep_controls + \
             input_params + design_params + traj_params
 
-        if self.any_optimized_segments:
+        if self.create_state_indepvarcomp:
             order.append('indep_states')
 
         order += ['time'] + control_interp_comp + \
@@ -144,12 +144,13 @@ class OptimizerBasedPhaseBase(PhaseBase):
         # NOTE: solve_segments=True states get their state:<state_name> vars from the output
         #       of the implicit collocation_comp
         for name, options in iteritems(self.state_options):
-            if not options['solve_segments']:
+            if not options['solve_segments'] and not options['connected_initial'] and \
+               not options['connected_final']:
                 indep.add_output(name='states:{0}'.format(name),
                                  shape=(num_state_input_nodes, np.prod(options['shape'])),
                                  units=options['units'])
 
-        if self.any_optimized_segments:
+        if self.create_state_indepvarcomp:
             self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
 
         # add all the des-vars (either from the IndepVarComp or from the indep-var-like
@@ -228,16 +229,16 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         time_units = self.time_options['units']
 
-        self.any_optimized_segments = False
+        self.create_state_indepvarcomp = False
         self.any_solved_segments = False
         for name, options in iteritems(self.state_options):
             if options['solve_segments']:
                 self.any_solved_segments = True
-            else:
-                self.any_optimized_segments = True
+            elif not options['connected_initial'] and not options['connected_final']:
+                self.create_state_indepvarcomp = True
 
         p_outputs = []
-        if self.any_solved_segments:
+        if not self.create_state_indepvarcomp:
             p_outputs = ['states:*']
 
         self.add_subsystem('collocation_constraint',
