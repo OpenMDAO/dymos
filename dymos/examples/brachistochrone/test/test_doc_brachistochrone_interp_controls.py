@@ -31,7 +31,7 @@ class TestBrachistochroneInterpolatedControl(unittest.TestCase):
         phase.set_state_options('v', fix_initial=True)
 
         # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_control('theta', units='deg', interp='lgl', num_points=9, lower=0.01, upper=179.9)
+        phase.add_interp_control('theta', order=9, units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 

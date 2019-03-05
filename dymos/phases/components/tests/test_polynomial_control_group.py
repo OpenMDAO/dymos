@@ -7,9 +7,9 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.components import TimeComp, InterpolatedControlGroup
+from dymos.phases.components import TimeComp, PolynomialControlGroup
 from dymos.phases.grid_data import GridData
-from dymos.phases.options import ControlOptionsDictionary
+from dymos.phases.options import PolynomialControlOptionsDictionary
 from dymos.utils.lgl import lgl
 
 
@@ -65,7 +65,7 @@ def f2_d(t):
 
 class TestInterpolatedControLGroup(unittest.TestCase):
 
-    def test_interp_control_group_scalar_gl(self):
+    def test_polynomial_control_group_scalar_gl(self):
         transcription = 'gauss-lobatto'
         compressed = True
 
@@ -79,15 +79,15 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        controls = {'a': ControlOptionsDictionary(),
-                    'b': ControlOptionsDictionary()}
+        controls = {'a': PolynomialControlOptionsDictionary(),
+                    'b': PolynomialControlOptionsDictionary()}
 
         controls['a']['units'] = 'm'
-        controls['a']['interp_order'] = 3
+        controls['a']['order'] = 3
         controls['a']['opt'] = True
 
         controls['b']['units'] = 'm'
-        controls['b']['interp_order'] = 3
+        controls['b']['order'] = 3
         controls['b']['opt'] = True
 
         ivc = IndepVarComp()
@@ -102,16 +102,14 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 
-        interp_control_group = InterpolatedControlGroup(grid_data=gd,
-                                                        control_options=controls,
-                                                        time_units='s')
+        polynomial_control_group = PolynomialControlGroup(grid_data=gd,
+                                                          polynomial_control_options=controls,
+                                                          time_units='s')
 
-        p.model.add_subsystem('interp_controls',
-                              subsys=interp_control_group,
+        p.model.add_subsystem('polynomial_controls',
+                              subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
-
-        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
 
         p.setup(force_alloc_complex=True)
 
@@ -120,13 +118,13 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p.run_model()
 
-        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+        control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
         t_all = p['time']
 
-        p['controls:a'][:, 0] = f_a(t_control_input)
-        p['controls:b'][:, 0] = f_b(t_control_input)
+        p['polynomial_controls:a'][:, 0] = f_a(t_control_input)
+        p['polynomial_controls:b'][:, 0] = f_b(t_control_input)
 
         p.run_model()
 
@@ -161,7 +159,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         cpd = p.check_partials(compact_print=False, out_stream=None, method='cs')
         assert_check_partials(cpd)
 
-    def test_interp_control_group_scalar_radau(self):
+    def test_polynomial_control_group_scalar_radau(self):
         transcription = 'radau-ps'
         compressed = False
 
@@ -175,15 +173,15 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        controls = {'a': ControlOptionsDictionary(),
-                    'b': ControlOptionsDictionary()}
+        controls = {'a': PolynomialControlOptionsDictionary(),
+                    'b': PolynomialControlOptionsDictionary()}
 
         controls['a']['units'] = 'm'
-        controls['a']['interp_order'] = 3
+        controls['a']['order'] = 3
         controls['a']['opt'] = True
 
         controls['b']['units'] = 'm'
-        controls['b']['interp_order'] = 3
+        controls['b']['order'] = 3
         controls['b']['opt'] = True
 
         ivc = IndepVarComp()
@@ -198,12 +196,12 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 
-        interp_control_group = InterpolatedControlGroup(grid_data=gd,
-                                                        control_options=controls,
-                                                        time_units='s')
+        polynomial_control_group = PolynomialControlGroup(grid_data=gd,
+                                                          polynomial_control_options=controls,
+                                                          time_units='s')
 
-        p.model.add_subsystem('interp_controls',
-                              subsys=interp_control_group,
+        p.model.add_subsystem('polynomial_controls',
+                              subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -216,13 +214,13 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p.run_model()
 
-        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+        control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
         t_all = p['time']
 
-        p['controls:a'][:, 0] = f_a(t_control_input)
-        p['controls:b'][:, 0] = f_b(t_control_input)
+        p['polynomial_controls:a'][:, 0] = f_a(t_control_input)
+        p['polynomial_controls:b'][:, 0] = f_b(t_control_input)
 
         p.run_model()
 
@@ -257,7 +255,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         cpd = p.check_partials(compact_print=False, out_stream=None, method='cs')
         assert_check_partials(cpd)
 
-    def test_interp_control_group_scalar_rungekutta(self):
+    def test_polynomial_control_group_scalar_rungekutta(self):
         transcription = 'runge-kutta'
         compressed = False
 
@@ -271,15 +269,15 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        controls = {'a': ControlOptionsDictionary(),
-                    'b': ControlOptionsDictionary()}
+        controls = {'a': PolynomialControlOptionsDictionary(),
+                    'b': PolynomialControlOptionsDictionary()}
 
         controls['a']['units'] = 'm'
-        controls['a']['interp_order'] = 3
+        controls['a']['order'] = 3
         controls['a']['opt'] = True
 
         controls['b']['units'] = 'm'
-        controls['b']['interp_order'] = 3
+        controls['b']['order'] = 3
         controls['b']['opt'] = True
 
         ivc = IndepVarComp()
@@ -294,16 +292,14 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 
-        interp_control_group = InterpolatedControlGroup(grid_data=gd,
-                                                        control_options=controls,
-                                                        time_units='s')
+        polynomial_control_group = PolynomialControlGroup(grid_data=gd,
+                                                          polynomial_control_options=controls,
+                                                          time_units='s')
 
-        p.model.add_subsystem('interp_controls',
-                              subsys=interp_control_group,
+        p.model.add_subsystem('polynomial_controls',
+                              subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
-
-        # p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
 
         p.setup(force_alloc_complex=True)
 
@@ -312,13 +308,13 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p.run_model()
 
-        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+        control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
         t_all = p['time']
 
-        p['controls:a'][:, 0] = f_a(t_control_input)
-        p['controls:b'][:, 0] = f_b(t_control_input)
+        p['polynomial_controls:a'][:, 0] = f_a(t_control_input)
+        p['polynomial_controls:b'][:, 0] = f_b(t_control_input)
 
         p.run_model()
 
@@ -353,7 +349,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         cpd = p.check_partials(compact_print=False, out_stream=None, method='cs')
         assert_check_partials(cpd)
 
-    def test_interp_control_group_vector_gl(self):
+    def test_polynomial_control_group_vector_gl(self):
         transcription = 'gauss-lobatto'
         compressed = True
 
@@ -367,10 +363,10 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        controls = {'a': ControlOptionsDictionary()}
+        controls = {'a': PolynomialControlOptionsDictionary()}
 
         controls['a']['units'] = 'm'
-        controls['a']['interp_order'] = 3
+        controls['a']['order'] = 3
         controls['a']['opt'] = True
         controls['a']['shape'] = (3,)
 
@@ -386,12 +382,12 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 
-        interp_control_group = InterpolatedControlGroup(grid_data=gd,
-                                                        control_options=controls,
-                                                        time_units='s')
+        polynomial_control_group = PolynomialControlGroup(grid_data=gd,
+                                                          polynomial_control_options=controls,
+                                                          time_units='s')
 
-        p.model.add_subsystem('interp_controls',
-                              subsys=interp_control_group,
+        p.model.add_subsystem('polynomial_controls',
+                              subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -404,14 +400,14 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p.run_model()
 
-        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+        control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
         t_all = p['time']
 
-        p['controls:a'][:, 0] = f_a(t_control_input)
-        p['controls:a'][:, 1] = f_b(t_control_input)
-        p['controls:a'][:, 2] = f_c(t_control_input)
+        p['polynomial_controls:a'][:, 0] = f_a(t_control_input)
+        p['polynomial_controls:a'][:, 1] = f_b(t_control_input)
+        p['polynomial_controls:a'][:, 2] = f_c(t_control_input)
 
         p.run_model()
 
@@ -459,7 +455,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         assert_check_partials(cpd)
 
-    def test_interp_control_group_vector_radau(self):
+    def test_polynomial_control_group_vector_radau(self):
         transcription = 'radau-ps'
         compressed = True
 
@@ -473,10 +469,10 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        controls = {'a': ControlOptionsDictionary()}
+        controls = {'a': PolynomialControlOptionsDictionary()}
 
         controls['a']['units'] = 'm'
-        controls['a']['interp_order'] = 3
+        controls['a']['order'] = 3
         controls['a']['opt'] = True
         controls['a']['shape'] = (3,)
 
@@ -492,12 +488,12 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 
-        interp_control_group = InterpolatedControlGroup(grid_data=gd,
-                                                        control_options=controls,
-                                                        time_units='s')
+        polynomial_control_group = PolynomialControlGroup(grid_data=gd,
+                                                          polynomial_control_options=controls,
+                                                          time_units='s')
 
-        p.model.add_subsystem('interp_controls',
-                              subsys=interp_control_group,
+        p.model.add_subsystem('polynomial_controls',
+                              subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -510,14 +506,14 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p.run_model()
 
-        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+        control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
         t_all = p['time']
 
-        p['controls:a'][:, 0] = f_a(t_control_input)
-        p['controls:a'][:, 1] = f_b(t_control_input)
-        p['controls:a'][:, 2] = f_c(t_control_input)
+        p['polynomial_controls:a'][:, 0] = f_a(t_control_input)
+        p['polynomial_controls:a'][:, 1] = f_b(t_control_input)
+        p['polynomial_controls:a'][:, 2] = f_c(t_control_input)
 
         p.run_model()
 
@@ -565,7 +561,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         assert_check_partials(cpd)
 
-    def test_interp_control_group_vector_rungekutta(self):
+    def test_polynomial_control_group_vector_rungekutta(self):
         transcription = 'runge-kutta'
         compressed = True
 
@@ -579,10 +575,10 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        controls = {'a': ControlOptionsDictionary()}
+        controls = {'a': PolynomialControlOptionsDictionary()}
 
         controls['a']['units'] = 'm'
-        controls['a']['interp_order'] = 3
+        controls['a']['order'] = 3
         controls['a']['opt'] = True
         controls['a']['shape'] = (3,)
 
@@ -598,12 +594,12 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 
-        interp_control_group = InterpolatedControlGroup(grid_data=gd,
-                                                        control_options=controls,
-                                                        time_units='s')
+        polynomial_control_group = PolynomialControlGroup(grid_data=gd,
+                                                          polynomial_control_options=controls,
+                                                          time_units='s')
 
-        p.model.add_subsystem('interp_controls',
-                              subsys=interp_control_group,
+        p.model.add_subsystem('polynomial_controls',
+                              subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -616,14 +612,14 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p.run_model()
 
-        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+        control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
         t_all = p['time']
 
-        p['controls:a'][:, 0] = f_a(t_control_input)
-        p['controls:a'][:, 1] = f_b(t_control_input)
-        p['controls:a'][:, 2] = f_c(t_control_input)
+        p['polynomial_controls:a'][:, 0] = f_a(t_control_input)
+        p['polynomial_controls:a'][:, 1] = f_b(t_control_input)
+        p['polynomial_controls:a'][:, 2] = f_c(t_control_input)
 
         p.run_model()
 
@@ -671,7 +667,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         assert_check_partials(cpd)
 
-    def test_interp_control_group_matrix_gl(self):
+    def test_polynomial_control_group_matrix_gl(self):
         transcription = 'gauss-lobatto'
         compressed = True
 
@@ -685,10 +681,10 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        controls = {'a': ControlOptionsDictionary()}
+        controls = {'a': PolynomialControlOptionsDictionary()}
 
         controls['a']['units'] = 'm'
-        controls['a']['interp_order'] = 3
+        controls['a']['order'] = 3
         controls['a']['opt'] = True
         controls['a']['shape'] = (3, 1)
 
@@ -704,12 +700,12 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 
-        interp_control_group = InterpolatedControlGroup(grid_data=gd,
-                                                        control_options=controls,
-                                                        time_units='s')
+        polynomial_control_group = PolynomialControlGroup(grid_data=gd,
+                                                          polynomial_control_options=controls,
+                                                          time_units='s')
 
-        p.model.add_subsystem('interp_controls',
-                              subsys=interp_control_group,
+        p.model.add_subsystem('polynomial_controls',
+                              subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -722,14 +718,14 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p.run_model()
 
-        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+        control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
         t_all = p['time']
 
-        p['controls:a'][:, 0, 0] = f_a(t_control_input)
-        p['controls:a'][:, 1, 0] = f_b(t_control_input)
-        p['controls:a'][:, 2, 0] = f_c(t_control_input)
+        p['polynomial_controls:a'][:, 0, 0] = f_a(t_control_input)
+        p['polynomial_controls:a'][:, 1, 0] = f_b(t_control_input)
+        p['polynomial_controls:a'][:, 2, 0] = f_c(t_control_input)
 
         p.run_model()
 
@@ -777,7 +773,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         assert_check_partials(cpd)
 
-    def test_interp_control_group_matrix_radau(self):
+    def test_polynomial_control_group_matrix_radau(self):
         transcription = 'radau-ps'
         compressed = True
 
@@ -791,10 +787,10 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        controls = {'a': ControlOptionsDictionary()}
+        controls = {'a': PolynomialControlOptionsDictionary()}
 
         controls['a']['units'] = 'm'
-        controls['a']['interp_order'] = 3
+        controls['a']['order'] = 3
         controls['a']['opt'] = True
         controls['a']['shape'] = (3, 1)
 
@@ -810,12 +806,12 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 
-        interp_control_group = InterpolatedControlGroup(grid_data=gd,
-                                                        control_options=controls,
-                                                        time_units='s')
+        polynomial_control_group = PolynomialControlGroup(grid_data=gd,
+                                                          polynomial_control_options=controls,
+                                                          time_units='s')
 
-        p.model.add_subsystem('interp_controls',
-                              subsys=interp_control_group,
+        p.model.add_subsystem('polynomial_controls',
+                              subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -828,14 +824,14 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p.run_model()
 
-        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+        control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
         t_all = p['time']
 
-        p['controls:a'][:, 0, 0] = f_a(t_control_input)
-        p['controls:a'][:, 1, 0] = f_b(t_control_input)
-        p['controls:a'][:, 2, 0] = f_c(t_control_input)
+        p['polynomial_controls:a'][:, 0, 0] = f_a(t_control_input)
+        p['polynomial_controls:a'][:, 1, 0] = f_b(t_control_input)
+        p['polynomial_controls:a'][:, 2, 0] = f_c(t_control_input)
 
         p.run_model()
 
@@ -883,7 +879,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         assert_check_partials(cpd)
 
-    def test_interp_control_group_matrix_rungekutta(self):
+    def test_polynomial_control_group_matrix_rungekutta(self):
         transcription = 'runge-kutta'
         compressed = True
 
@@ -897,10 +893,10 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        controls = {'a': ControlOptionsDictionary()}
+        controls = {'a': PolynomialControlOptionsDictionary()}
 
         controls['a']['units'] = 'm'
-        controls['a']['interp_order'] = 3
+        controls['a']['order'] = 3
         controls['a']['opt'] = True
         controls['a']['shape'] = (3, 1)
 
@@ -916,12 +912,12 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                               promotes_inputs=['t_initial', 't_duration'],
                               promotes_outputs=['time', 'dt_dstau'])
 
-        interp_control_group = InterpolatedControlGroup(grid_data=gd,
-                                                        control_options=controls,
-                                                        time_units='s')
+        polynomial_control_group = PolynomialControlGroup(grid_data=gd,
+                                                          polynomial_control_options=controls,
+                                                          time_units='s')
 
-        p.model.add_subsystem('interp_controls',
-                              subsys=interp_control_group,
+        p.model.add_subsystem('polynomial_controls',
+                              subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
@@ -934,14 +930,14 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         p.run_model()
 
-        control_nodes_ptau, _ = lgl(controls['a']['interp_order'] + 1)
+        control_nodes_ptau, _ = lgl(controls['a']['order'] + 1)
 
         t_control_input = p['t_initial'] + 0.5 * (control_nodes_ptau + 1) * p['t_duration']
         t_all = p['time']
 
-        p['controls:a'][:, 0, 0] = f_a(t_control_input)
-        p['controls:a'][:, 1, 0] = f_b(t_control_input)
-        p['controls:a'][:, 2, 0] = f_c(t_control_input)
+        p['polynomial_controls:a'][:, 0, 0] = f_a(t_control_input)
+        p['polynomial_controls:a'][:, 1, 0] = f_b(t_control_input)
+        p['polynomial_controls:a'][:, 2, 0] = f_c(t_control_input)
 
         p.run_model()
 

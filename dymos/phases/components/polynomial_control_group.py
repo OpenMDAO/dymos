@@ -12,7 +12,7 @@ from ...utils.misc import get_rate_units
 from ...utils.constants import INF_BOUND
 
 
-class LGLInterpolatedControlComp(ExplicitComponent):
+class LGLPolynomialControlComp(ExplicitComponent):
     """
     Component which interpolates controls as a single polynomial across the entire phase.
     """
@@ -21,8 +21,8 @@ class LGLInterpolatedControlComp(ExplicitComponent):
         self.options.declare('time_units', default=None, allow_none=True, types=string_types,
                              desc='Units of time')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
-        self.options.declare('interp_control_options', types=dict,
-                             desc='Dictionary of options for the interpolated controls')
+        self.options.declare('polynomial_control_options', types=dict,
+                             desc='Dictionary of options for the polynomial controls')
 
         self._matrices = {}
 
@@ -51,8 +51,8 @@ class LGLInterpolatedControlComp(ExplicitComponent):
                        desc='duration of the phase to which this interpolated control group '
                             'belongs')
 
-        for name, options in iteritems(self.options['interp_control_options']):
-            disc_nodes, _ = lgl(options['interp_order'] + 1)
+        for name, options in iteritems(self.options['polynomial_control_options']):
+            disc_nodes, _ = lgl(options['order'] + 1)
             num_control_input_nodes = len(disc_nodes)
             shape = options['shape']
             size = np.prod(shape)
@@ -69,7 +69,7 @@ class LGLInterpolatedControlComp(ExplicitComponent):
 
             self._matrices[name] = L_de, D_de, D2_de
 
-            self._input_names[name] = 'controls:{0}'.format(name)
+            self._input_names[name] = 'polynomial_controls:{0}'.format(name)
             self._output_val_names[name] = 'control_values:{0}'.format(name)
             self._output_rate_names[name] = 'control_rates:{0}_rate'.format(name)
             self._output_rate2_names[name] = 'control_rates:{0}_rate2'.format(name)
@@ -132,7 +132,7 @@ class LGLInterpolatedControlComp(ExplicitComponent):
 
         dt_dptau = 0.5 * inputs['t_duration']
 
-        for name, options in iteritems(self.options['interp_control_options']):
+        for name, options in iteritems(self.options['polynomial_control_options']):
             L_de, D_de, D2_de = self._matrices[name]
 
             u = inputs[self._input_names[name]]
@@ -148,9 +148,9 @@ class LGLInterpolatedControlComp(ExplicitComponent):
     def compute_partials(self, inputs, partials):
         nn = self.options['grid_data'].num_nodes
 
-        for name, options in iteritems(self.options['interp_control_options']):
+        for name, options in iteritems(self.options['polynomial_control_options']):
             control_name = self._input_names[name]
-            num_input_nodes = options['interp_order'] + 1
+            num_input_nodes = options['order'] + 1
             L_de, D_de, D2_de = self._matrices[name]
 
             size = self.sizes[name]
@@ -180,10 +180,10 @@ class LGLInterpolatedControlComp(ExplicitComponent):
                 (self.rate2_jacs[name] / (0.5 * t_duration_x_size) ** 2)[r_nz, c_nz]
 
 
-class InterpolatedControlGroup(Group):
+class PolynomialControlGroup(Group):
 
     def initialize(self):
-        self.options.declare('control_options', types=dict,
+        self.options.declare('polynomial_control_options', types=dict,
                              desc='Dictionary of options for the dynamic controls')
         self.options.declare('time_units', default=None, allow_none=True, types=string_types,
                              desc='Units of time')
@@ -193,37 +193,35 @@ class InterpolatedControlGroup(Group):
 
         ivc = IndepVarComp()
 
-        self._interp_controls = {}
+        opts = self.options
 
         # Pull out the interpolated controls
         num_opt = 0
-        for name, options in iteritems(self.options['control_options']):
-            if options['interp_order'] is None:
-                continue
-            if options['interp_order'] < 1:
-                raise ValueError('If provided, interpolation order must be >= 1 (linear)')
+        for name, options in iteritems(opts['polynomial_control_options']):
+            if options['order'] < 1:
+                raise ValueError('Interpolation order must be >= 1 (linear)')
             if options['opt']:
                 num_opt += 1
-            self._interp_controls[name] = options
 
         if num_opt > 0:
             ivc = self.add_subsystem('control_inputs', subsys=ivc, promotes_outputs=['*'])
 
         self.add_subsystem(
             'control_comp',
-            subsys=LGLInterpolatedControlComp(time_units=self.options['time_units'],
-                                              grid_data=self.options['grid_data'],
-                                              interp_control_options=self._interp_controls),
+            subsys=LGLPolynomialControlComp(time_units=opts['time_units'],
+                                            grid_data=opts['grid_data'],
+                                            polynomial_control_options=opts['polynomial_control_'
+                                                                            'options']),
             promotes_inputs=['*'],
             promotes_outputs=['*'])
 
         # For any interpolated control with `opt=True`, add an indep var comp output and
         # setup the design variable for optimization.
-        for name, options in iteritems(self._interp_controls):
-            num_input_nodes = options['interp_order'] + 1
+        for name, options in iteritems(self.options['polynomial_control_options']):
+            num_input_nodes = options['order'] + 1
             shape = options['shape']
             if options['opt']:
-                ivc.add_output('controls:{0}'.format(name),
+                ivc.add_output('polynomial_controls:{0}'.format(name),
                                val=np.ones((num_input_nodes,) + shape),
                                units=options['units'])
 
@@ -236,7 +234,7 @@ class InterpolatedControlGroup(Group):
                 lb = -INF_BOUND if options['lower'] is None else options['lower']
                 ub = INF_BOUND if options['upper'] is None else options['upper']
 
-                self.add_design_var('controls:{0}'.format(name),
+                self.add_design_var('polynomial_controls:{0}'.format(name),
                                     lower=lb,
                                     upper=ub,
                                     ref=options['ref'],

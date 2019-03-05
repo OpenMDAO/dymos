@@ -115,6 +115,90 @@ class ControlOptionsDictionary(OptionsDictionary):
                           'to assume a single polynomial basis across the entire phase, or None'
                           'to use the default control behavior.')
 
+class PolynomialControlOptionsDictionary(OptionsDictionary):
+    """
+    An OptionsDictionary specific to controls.
+    """
+
+    def __init__(self, read_only=False):
+        super(PolynomialControlOptionsDictionary, self).__init__(read_only)
+
+        self.declare(name='name', types=string_types,
+                     desc='The name of ODE system parameter to be controlled.')
+
+        self.declare(name='units', types=string_types, default=None,
+                     allow_none=True, desc='The units in which the control variable is defined.')
+
+        self.declare(name='desc', types=string_types, default='',
+                     desc='The description of the control variable.')
+
+        self.declare(name='opt', default=True, types=bool,
+                     desc='If True, the control value will be a design variable '
+                          'for the optimization problem.  If False, allow the '
+                          'control to be connected externally.')
+
+        self.declare(name='fix_initial', types=bool, default=False,
+                     desc='If True, the initial value of this control is fixed and not a '
+                          'design variable. This option is invalid if opt=False.')
+
+        self.declare(name='fix_final', types=bool, default=False,
+                     desc='If True, the final value of this control is fixed and not a '
+                          'design variable. This option is invalid if opt=False.')
+
+        self.declare(name='targets', types=Iterable, default=[],
+                     desc='Used to store target information.')
+
+        self.declare(name='rate_param', types=Iterable, allow_none=True,
+                     default=None,
+                     desc='The parameter in the ODE to which the control rate is connected')
+
+        self.declare(name='rate2_param', types=Iterable, allow_none=True,
+                     default=None,
+                     desc='The parameter in the ODE to which the control 2nd derivative '
+                          'is connected.')
+
+        self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
+                     desc='The default value of the control variable at the '
+                          'control discretization nodes.')
+
+        self.declare(name='shape', types=Iterable, default=(1,),
+                     desc='The shape of the control variable at each point in time.')
+
+        self.declare(name='lower', types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='The lower bound of the control variable at the nodes. This '
+                          'option is invalid if opt=False.')
+
+        self.declare(name='upper', types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='The upper bound of the control variable at the nodes. This '
+                          'option is invalid if opt=False.')
+
+        self.declare(name='scaler', types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='The scaler of the control variable at the nodes. This '
+                          'option is invalid if opt=False.')
+
+        self.declare(name='adder', types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='The adder of the control variable at the nodes. This'
+                          'option is invalid if opt=False.')
+
+        self.declare(name='ref0', types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='The zero-reference value of the control variable at the nodes. This '
+                          'option is invalid if opt=False.')
+
+        self.declare(name='ref', types=(Iterable, Number), default=None,
+                     allow_none=True,
+                     desc='The unit-reference value of the control variable at the nodes. This '
+                          'option is invalid if opt=False.')
+
+        self.declare(name='order', types=(int,), default=None, allow_none=True,
+                     desc='A integer that provides the interpolation order when the control is'
+                          'to assume a single polynomial basis across the entire phase, or None'
+                          'to use the default control behavior.')
+
 
 class DesignParameterOptionsDictionary(OptionsDictionary):
     """

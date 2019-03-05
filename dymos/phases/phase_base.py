@@ -13,17 +13,14 @@ from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder
 from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
-# from dymos.phases.components import BoundaryConstraintComp
 from dymos.phases.components import BoundaryConstraintComp
 from dymos.phases.components import InputParameterComp
-from dymos.phases.components import TimeComp
 from dymos.phases.options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
-    InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary
+    InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary, \
+    PolynomialControlOptionsDictionary
 from dymos.phases.components import ControlInterpComp
-from dymos.phases.grid_data import GridData
 from dymos.ode_options import ODEOptions
 from dymos.utils.constants import INF_BOUND
-from dymos.utils.misc import get_rate_units
 from dymos.utils.misc import CoerceDesvar
 
 
@@ -37,6 +34,7 @@ class PhaseBase(Group):
 
         self.state_options = {}
         self.control_options = {}
+        self.polynomial_control_options = {}
         self.design_parameter_options = {}
         self.input_parameter_options = {}
         self.traj_parameter_options = {}
@@ -166,6 +164,46 @@ class PhaseBase(Group):
         self.state_options[name]['solve_segments'] = solve_segments
         self.state_options[name]['time_direction'] = time_direction
 
+    def _check_parameter(self, name, dynamic):
+        """
+        Checks that the parameter of the given name is valid.
+
+        First name is checked against all existing controls, input parameters, and design
+        parameters.  If it has already been assigned to one of those, ValueError is raised.
+        Finally, if *dynamic* is True, the control is not a dynamic parameter in the ODE,
+        ValueError is raised.
+
+        Parameters
+        ----------
+        name : str
+            The name of the controllable parameter.
+        dynamic : bool
+            True if attempting to use the given name as a dynamic control, otherwise False.
+
+        Raises
+        ------
+        ValueError
+            Raised if the parameter of the given name is previously assigned, non-existent, or
+            incompatible with the type of control to which it is assigned.
+
+
+        """
+        ode_params = self.ode_options._parameters
+        if name in self.control_options:
+            raise ValueError('{0} has already been added as a control.'.format(name))
+        if name in self.design_parameter_options:
+            raise ValueError('{0} has already been added as a design parameter.'.format(name))
+        if name in self.input_parameter_options:
+            raise ValueError('{0} has already been added as an input parameter.'.format(name))
+        if name in self.polynomial_control_options:
+            raise ValueError('{0} has already been added as an interpolated control.'.format(name))
+        if name in self.traj_parameter_options:
+            raise ValueError('{0} has already been added as a trajectory-level '
+                             'parameter.'.format(name))
+        if name in ode_params and dynamic and not ode_params[name]['dynamic']:
+            raise ValueError('{0} is declared as a static parameter and therefore cannot be '
+                             'used as a dynamic control'.format(name))
+
     def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,
                     scaler=None, adder=None, ref=None, ref0=None, continuity=None,
@@ -235,15 +273,7 @@ class PhaseBase(Group):
 
         """
         ode_params = self.ode_options._parameters
-        if name in self.control_options:
-            raise ValueError('{0} has already been added as a control.'.format(name))
-        if name in self.design_parameter_options:
-            raise ValueError('{0} has already been added as a design parameter.'.format(name))
-        if name in self.input_parameter_options:
-            raise ValueError('{0} has already been added as an input parameter.'.format(name))
-        if name in ode_params and not ode_params[name]['dynamic']:
-            raise ValueError('{0} is declared as a static parameter and therefore cannot be '
-                             'used as a dynamic control'.format(name))
+        self._check_parameter(name, dynamic=True)
 
         self.control_options[name] = ControlOptionsDictionary()
 
@@ -326,6 +356,120 @@ class PhaseBase(Group):
         if units != 0:
             self.control_options[name]['units'] = units
 
+    def add_polynomial_control(self, name, order, val=0.0, units=0,
+                               opt=True, lower=None, upper=None,
+                               fix_initial=False, fix_final=False,
+                               scaler=None, adder=None, ref=None, ref0=None,
+                               rate_param=None, rate2_param=None):
+        """
+        Adds an polynomial control variable to be tied to a parameter in the ODE.
+
+        Polynomial controls are defined by values at the Legendre-Gauss-Lobatto nodes of a
+        single polynomial, defined on [-1, 1] in phase tau space.
+
+        For a polynomial control of a given order, the number of nodes used to define the
+        polynomial is (order + 1).
+
+        Parameters
+        ----------
+        name : str
+            Name of the controllable parameter in the ODE.
+        order : int
+            The order of the interpolating polynomial used to represent the control valeu in
+            phase tau space.
+        val : float or ndarray
+            Default value of the control at all nodes.  If val scalar and the control
+            is dynamic it will be broadcast.
+        units : str or None or 0
+            Units in which the control variable is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        opt : bool
+            If True (default) the value(s) of this control will be design variables in
+            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
+            If False, the values of this control will exist as aainput controls:{name}
+        lower : float or ndarray
+            The lower bound of the control at the nodes of the phase.
+        upper : float or ndarray
+            The upper bound of the control at the nodes of the phase.
+        scaler : float or ndarray
+            The scaler of the control value at the nodes of the phase.
+        adder : float or ndarray
+            The adder of the control value at the nodes of the phase.
+        ref0 : float or ndarray
+            The zero-reference value of the control at the nodes of the phase.
+        ref : float or ndarray
+            The unit-reference value of the control at the nodes of the phase
+        rate_param : None or str
+            The name of the parameter in the ODE to which the first time-derivative
+            of the control value is connected.
+        rate2_param : None or str
+            The name of the parameter in the ODE to which the second time-derivative
+            of the control value is connected.
+        """
+        ode_params = self.ode_options._parameters
+        self._check_parameter(name, dynamic=True)
+
+        self.control_options[name] = PolynomialControlOptionsDictionary()
+
+        if name in ode_params:
+            ode_param_info = ode_params[name]
+            self.polynomial_control_options[name]['units'] = ode_param_info['units']
+            self.polynomial_control_options[name]['shape'] = ode_param_info['shape']
+            self.polynomial_control_options[name]['targets'] = ode_param_info['targets']
+        else:
+            rate_used = \
+                rate_param is not None and rate_param in ode_params
+            rate2_used = \
+                rate2_param is not None and rate2_param in ode_params
+            if not rate_used and not rate2_used:
+                err_msg = '{0} is not a controllable parameter in the ODE system, nor is it ' \
+                          'connected to one through its rate or second derivative.'.format(name)
+                raise ValueError(err_msg)
+
+        if rate_param is not None:
+            ode_rate_param_info = ode_params[rate_param]
+            self.polynomial_control_options[name]['rate_param'] = rate_param
+            self.polynomial_control_options[name]['shape'] = ode_rate_param_info['shape']
+        if rate2_param is not None:
+            ode_rate2_param_info = ode_params[rate2_param]
+            self.polynomial_control_options[name]['rate2_param'] = rate2_param
+            self.polynomial_control_options[name]['shape'] = ode_rate2_param_info['shape']
+
+        # Don't allow the user to provide desvar options if the control is not optimal
+        if not opt:
+            illegal_options = []
+            if lower is not None:
+                illegal_options.append('lower')
+            if upper is not None:
+                illegal_options.append('upper')
+            if scaler is not None:
+                illegal_options.append('scaler')
+            if adder is not None:
+                illegal_options.append('adder')
+            if ref is not None:
+                illegal_options.append('ref')
+            if ref0 is not None:
+                illegal_options.append('ref0')
+            if illegal_options:
+                msg = 'Invalid options for non-optimal control "{0}":'.format(name) + \
+                      ', '.join(illegal_options)
+                warnings.warn(msg, RuntimeWarning)
+
+        self.polynomial_control_options[name]['val'] = val
+        self.polynomial_control_options[name]['interp_order'] = order
+        self.polynomial_control_options[name]['opt'] = opt
+        self.polynomial_control_options[name]['fix_initial'] = fix_initial
+        self.polynomial_control_options[name]['fix_final'] = fix_final
+        self.polynomial_control_options[name]['lower'] = lower
+        self.polynomial_control_options[name]['upper'] = upper
+        self.polynomial_control_options[name]['scaler'] = scaler
+        self.polynomial_control_options[name]['adder'] = adder
+        self.polynomial_control_options[name]['ref'] = ref
+        self.polynomial_control_options[name]['ref0'] = ref0
+
+        if units != 0:
+            self.control_options[name]['units'] = units
+
     def add_design_parameter(self, name, val=0.0, units=0, opt=True,
                              lower=None, upper=None, scaler=None, adder=None, ref=None, ref0=None):
         """
@@ -359,12 +503,7 @@ class PhaseBase(Group):
             The unit-reference value of the design parameter for the optimizer.
 
         """
-        if name in self.control_options:
-            raise ValueError('{0} has already been added as a control.'.format(name))
-        if name in self.design_parameter_options:
-            raise ValueError('{0} has already been added as a design parameter.'.format(name))
-        if name in self.input_parameter_options:
-            raise ValueError('{0} has already been added as an input parameter.'.format(name))
+        self._check_parameter(name, dynamic=False)
 
         self.design_parameter_options[name] = DesignParameterOptionsDictionary()
 
@@ -423,16 +562,7 @@ class PhaseBase(Group):
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         """
-
-        if name in self.control_options:
-            raise ValueError('{0} has already been added as a control.'.format(name))
-        if name in self.design_parameter_options:
-            raise ValueError('{0} has already been added as a design parameter.'.format(name))
-        if name in self.input_parameter_options:
-            raise ValueError('{0} has already been added as an input parameter.'.format(name))
-        if name in self.traj_parameter_options:
-            raise ValueError('{0} has already been added as a trajectory input '
-                             'parameter.'.format(name))
+        self._check_parameter(name, dynamic=False)
 
         self.input_parameter_options[name] = InputParameterOptionsDictionary()
 
