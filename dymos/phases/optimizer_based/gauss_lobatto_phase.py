@@ -295,11 +295,11 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
-                control_shape = self.control_options[var]['shape']
-                control_units = self.control_options[var]['units']
+                control_shape = self.polynomial_control_options[var]['shape']
+                control_units = self.polynomial_control_options[var]['units']
                 options['shape'] = control_shape
                 options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
+                options['linear'] = False
 
                 constraint_path = 'polynomial_control_values:{0}'.format(var)
 
@@ -330,8 +330,8 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
             elif var_type == 'polynomial_control_rate':
                 control_name = var[:-5]
-                control_shape = self.control_options[control_name]['shape']
-                control_units = self.control_options[control_name]['units']
+                control_shape = self.polynomial_control_options[control_name]['shape']
+                control_units = self.polynomial_control_options[control_name]['units']
                 options['shape'] = control_shape
                 options['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con_units is None else con_units
@@ -341,8 +341,8 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
 
             elif var_type == 'polynomial_control_rate2':
                 control_name = var[:-6]
-                control_shape = self.control_options[control_name]['shape']
-                control_units = self.control_options[control_name]['units']
+                control_shape = self.polynomial_control_options[control_name]['shape']
+                control_units = self.polynomial_control_options[control_name]['units']
                 options['shape'] = control_shape
                 options['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con_units is None else con_units
@@ -400,7 +400,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
                                                    units=control_units)
-            self.connect(src_name='control_interp_comp.control_values:{0}'.format(name),
+            self.connect(src_name='control_interp_comp.controls:{0}'.format(name),
                          tgt_name='timeseries.all_values:control_values:{0}'.format(name))
 
             # # Control rates
@@ -427,13 +427,13 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             control_units = options['units']
 
             # Control values
-            timeseries_comp._add_timeseries_output('polynomial_control_values:{0}'.format(name),
+            timeseries_comp._add_timeseries_output('polynomial_controls:{0}'.format(name),
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
                                                    units=control_units)
             self.connect(src_name='polynomial_control_values:{0}'.format(name),
                          tgt_name='timeseries.all_values:'
-                                  'polynomial_control_values:{0}'.format(name))
+                                  'polynomial_controls:{0}'.format(name))
 
             # # Control rates
             timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(name),

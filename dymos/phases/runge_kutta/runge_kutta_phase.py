@@ -755,15 +755,14 @@ class RungeKuttaPhase(PhaseBase):
 
         for name, options in iteritems(self.polynomial_control_options):
             control_units = options['units']
-            timeseries_comp._add_timeseries_output('polynomial_control_values:{0}'.format(name),
+            timeseries_comp._add_timeseries_output('polynomial_controls:{0}'.format(name),
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
                                                    units=control_units)
             src_rows = gd.subset_node_indices['segment_ends']
             src_idxs = get_src_indices_by_row(src_rows, options['shape'])
             self.connect(src_name='polynomial_control_values:{0}'.format(name),
-                         tgt_name='timeseries.segend_values:polynomial_control_values'
-                                  ':{0}'.format(name),
+                         tgt_name='timeseries.segend_values:polynomial_controls:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
             # # Control rates
@@ -774,7 +773,8 @@ class RungeKuttaPhase(PhaseBase):
                                                                         time_units,
                                                                         deriv=1))
             self.connect(src_name='polynomial_control_rates:{0}_rate'.format(name),
-                         tgt_name='timeseries.segend_values:polynomial_control_rates:{0}_rate'.format(name),
+                         tgt_name='timeseries.segend_values:polynomial_control_rates'
+                                  ':{0}_rate'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
             # Control second derivatives
@@ -785,7 +785,8 @@ class RungeKuttaPhase(PhaseBase):
                                                                         time_units,
                                                                         deriv=2))
             self.connect(src_name='polynomial_control_rates:{0}_rate2'.format(name),
-                         tgt_name='timeseries.segend_values:polynomial_control_rates:{0}_rate2'.format(name),
+                         tgt_name='timeseries.segend_values:polynomial_control_rates'
+                                  ':{0}_rate2'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in iteritems(self.design_parameter_options):
@@ -1043,20 +1044,20 @@ class RungeKuttaPhase(PhaseBase):
             linear = True if loc == 'initial' and self.state_options[var]['fix_initial'] or \
                 loc == 'final' and self.state_options[var]['fix_final'] else False
             constraint_path = 'states:{0}'.format(var)
-        elif var_type in 'indep_control':
-            control_shape = self.control_options[var]['shape']
-            control_units = self.control_options[var]['units']
-            shape = control_shape
-            units = control_units
-            linear = True
-            constraint_path = 'control_values:{0}'.format(var)
-        elif var_type == 'input_control':
+        elif var_type in ('indep_control', 'input_control'):
             control_shape = self.control_options[var]['shape']
             control_units = self.control_options[var]['units']
             shape = control_shape
             units = control_units
             linear = False
             constraint_path = 'control_values:{0}'.format(var)
+        elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
+            control_shape = self.polynomial_control_options[var]['shape']
+            control_units = self.polynomial_control_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = False
+            constraint_path = 'polynomial_control_values:{0}'.format(var)
         elif var_type == 'design_parameter':
             control_shape = self.design_parameter_options[var]['shape']
             control_units = self.design_parameter_options[var]['units']
@@ -1071,24 +1072,26 @@ class RungeKuttaPhase(PhaseBase):
             units = control_units
             linear = False
             constraint_path = 'input_parameters:{0}_out'.format(var)
-        elif var_type == 'control_rate':
+        elif var_type in ('control_rate', 'control_rate2'):
             control_var = var[:-5]
             control_shape = self.control_options[control_var]['shape']
             control_units = self.control_options[control_var]['units']
-            control_rate_units = get_rate_units(control_units, time_units, deriv=1)
+            d = 1 if var_type == 'control_rate' else 2
+            control_rate_units = get_rate_units(control_units, time_units, deriv=d)
             shape = control_shape
             units = control_rate_units
             linear = False
             constraint_path = 'control_rates:{0}'.format(var)
-        elif var_type == 'control_rate2':
-            control_var = var[:-6]
-            control_shape = self.control_options[control_var]['shape']
-            control_units = self.control_options[control_var]['units']
-            control_rate_units = get_rate_units(control_units, time_units, deriv=2)
+        elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
+            control_var = var[:-5]
+            control_shape = self.polynomial_control_options[control_var]['shape']
+            control_units = self.polynomial_control_options[control_var]['units']
+            d = 1 if var_type == 'polynomial_control_rate' else 2
+            control_rate_units = get_rate_units(control_units, time_units, deriv=d)
             shape = control_shape
             units = control_rate_units
             linear = False
-            constraint_path = 'control_rates:{0}'.format(var)
+            constraint_path = 'polynomial_control_rates:{0}'.format(var)
         else:
             # Failed to find variable, assume it is in the RHS
             constraint_path = 'ode.{0}'.format(var)
