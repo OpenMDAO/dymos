@@ -70,7 +70,7 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
                          num_segments=num_seg,
                          segment_ends=seg_ends,
                          transcription_order=5,
-                         ode_init_kwargs = {'num_battery': 2},
+                         ode_init_kwargs={'num_battery': 2},
                          compressed=False)
 
     traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
@@ -85,7 +85,7 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
                          num_segments=num_seg,
                          segment_ends=seg_ends,
                          transcription_order=5,
-                         ode_init_kwargs = {'num_motor': 2},
+                         ode_init_kwargs={'num_motor': 2},
                          compressed=False)
 
     traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)

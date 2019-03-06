@@ -272,7 +272,6 @@ class Trajectory(Group):
                         p2_opt = p2.state_options[var]
 
                         # Trajectory linkage modifies these options in connected states.
-                        #p1_opt['connected_final'] = True
                         p2_opt['connected_initial'] = True
                         p2.time_options['input_initial'] = True
 

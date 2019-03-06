@@ -175,10 +175,10 @@ def make_traj_connected(transcription='gauss-lobatto', transcription_order=3, co
     # Link Phases
     traj.link_phases(phases=['burn1', 'coast'],
                      vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'],
-                     connected = True)
+                     connected=True)
     traj.link_phases(phases=['burn2', 'coast'],
                      vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'],
-                     connected = True)
+                     connected=True)
 
     return traj
 

@@ -144,14 +144,20 @@ class CollocationComp(ImplicitComponent):
             if solved or options['connected_initial'] or options['connected_final']:
 
                 ref = 1.0
-                if 'defect_ref' in options and options['defect_ref']:
-                    ref = options['defect_ref']
+                if 'defect_ref' in options and options['ref']:
+                    ref = options['ref']
                 elif 'defect_scaler' in options:
-                    ref = 1.0 / options['defect_scaler']
+                    ref = 1.0 / options['scaler']
+
+                res_ref = 1.0
+                if 'defect_ref' in options and options['defect_ref']:
+                    res_ref = options['defect_ref']
+                elif 'defect_scaler' in options:
+                    res_ref = 1.0 / options['defect_scaler']
 
                 self.add_output(name='states:{0}'.format(state_name),
                                 shape=(num_state_input_nodes, ) + shape,
-                                units=units, ref=ref)
+                                units=units, ref=ref, res_ref=res_ref)
 
             # Input for continuity, which can come from an external source.
             if solved or options['connected_initial']:
