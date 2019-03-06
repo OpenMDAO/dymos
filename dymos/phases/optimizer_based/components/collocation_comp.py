@@ -144,23 +144,24 @@ class CollocationComp(ImplicitComponent):
             if solved or options['connected_initial'] or options['connected_final']:
 
                 ref = 1.0
-                if 'defect_ref' in options and options['ref']:
+                if 'ref' in options and options['ref']:
                     ref = options['ref']
-                elif 'defect_scaler' in options:
+                elif 'scaler' in options and options['scaler']:
                     ref = 1.0 / options['scaler']
 
                 res_ref = 1.0
                 if 'defect_ref' in options and options['defect_ref']:
                     res_ref = options['defect_ref']
-                elif 'defect_scaler' in options:
+                elif 'defect_scaler' in options and options['defect_scaler']:
                     res_ref = 1.0 / options['defect_scaler']
 
                 self.add_output(name='states:{0}'.format(state_name),
+                                upper=options['upper'], lower=options['lower'],
                                 shape=(num_state_input_nodes, ) + shape,
                                 units=units, ref=ref, res_ref=res_ref)
 
             # Input for continuity, which can come from an external source.
-            if solved or options['connected_initial']:
+            if options['connected_initial']:
                 input_name = 'initial_states:{0}'.format(state_name)
                 self.add_input(name=input_name, shape=(1, ) + shape, units=units)
 
@@ -279,8 +280,8 @@ class CollocationComp(ImplicitComponent):
                                           rows=row_col, cols=row_col, val=-1.0)
 
                     wrt = 'initial_states:{0}'.format(state_name)
-                    self.declare_partials(of=state_var_name, wrt=wrt, rows=r,
-                                          cols=np.arange(len(r)), val=1.0)
+                    r = c = np.arange(np.prod(shape))
+                    self.declare_partials(of=state_var_name, wrt=wrt, rows=r, cols=c, val=1.0)
 
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
