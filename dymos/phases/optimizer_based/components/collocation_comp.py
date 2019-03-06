@@ -80,12 +80,12 @@ class CollocationComp(ImplicitComponent):
                     raise ValueError('Can not use solver based collocation defects with both '
                                      '"connected_initial" and "connected_final" turned on.')
 
-                if options['fix_initial']:
+                if options['fix_initial'] or options['connected_initial']:
                     self.state_idx_map[state_name]['solver'] = self.solver_node_idx[1:]
                     self.state_idx_map[state_name]['indep'] = \
                         [self.solver_node_idx[0]] + self.indep_node_idx
 
-                if options['fix_final']:
+                elif options['fix_final'] or options['connected_final']:
                     self.state_idx_map[state_name]['solver'] = self.solver_node_idx[:-1]
                     self.state_idx_map[state_name]['indep'] = \
                         self.indep_node_idx + [self.solver_node_idx[-1]]
@@ -213,9 +213,10 @@ class CollocationComp(ImplicitComponent):
                 self.declare_partials(of=state_var_name, wrt=state_var_name,
                                       rows=r, cols=r, val=-1.0)
 
-                wrt = 'initial_states:{0}'.format(state_name)
-                self.declare_partials(of=state_var_name, wrt=wrt, rows=r,
-                                      cols=np.arange(num_indep_nodes), val=1.0)
+                if options['connected_initial']:
+                    wrt = 'initial_states:{0}'.format(state_name)
+                    r = c = np.arange(np.prod(shape))
+                    self.declare_partials(of=state_var_name, wrt=wrt, rows=r, cols=c, val=1.0)
 
                 c = np.arange(num_solve_nodes * size)
                 base_idx = np.tile(np.arange(size), num_solve_nodes).reshape(num_solve_nodes, size)
@@ -273,7 +274,7 @@ class CollocationComp(ImplicitComponent):
 
                     wrt = 'initial_states:{0}'.format(state_name)
                     self.declare_partials(of=state_var_name, wrt=wrt, rows=r,
-                                          cols=np.arange(num_indep_nodes), val=1.0)
+                                          cols=np.arange(len(r)), val=1.0)
 
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
@@ -304,6 +305,14 @@ class CollocationComp(ImplicitComponent):
             if options['solve_segments']:
                 residuals[state_var_name][solve_idx, ...] = ((f_approx - f_computed).T * dt_dstau).T
 
+                # really is: <idep_val> - \outputs[state_name][indep_idx] but OpenMDAO
+                # implementation details mean we just set it to 0
+                # but derivatives are still based on (<idep_val> - \outputs[state_name][indep_idx]),
+                # so you get -1 wrt state var
+                # NOTE: check_partials will report wrong derivs for the indep vars,
+                #       but don't believe it!
+                residuals[state_var_name][indep_idx, ...] = 0.0
+
             else:
                 residuals[var_names['defect']] = \
                     ((f_approx - f_computed).T * dt_dstau).T - outputs[var_names['defect']]
@@ -311,18 +320,9 @@ class CollocationComp(ImplicitComponent):
             if options['connected_initial']:
                 bc_state_name = 'initial_states:{0}'.format(state_name)
 
-                residuals[state_var_name][indep_idx, ...] = \
-                    inputs[bc_state_name][np.arange(len(indep_idx)), ...] - \
-                    outputs[state_var_name][indep_idx, ...]
-
-            # really is: <idep_val> - \outputs[state_name][indep_idx] but OpenMDAO
-            # implementation details mean we just set it to 0
-            # but derivatives are still based on (<idep_val> - \outputs[state_name][indep_idx]),
-            # so you get -1 wrt state var
-            # NOTE: check_partials will report wrong derivs for the indep vars,
-            #       but don't believe it!
-            elif options['solve_segments']:
-                residuals[state_var_name][indep_idx, ...] = 0.0
+                residuals[state_var_name][0, ...] = \
+                    inputs[bc_state_name][0, ...] - \
+                    outputs[state_var_name][0, ...]
 
     def solve_nonlinear(self, inputs, outputs):
         state_options = self.options['state_options']
@@ -334,7 +334,7 @@ class CollocationComp(ImplicitComponent):
                 output_name = 'states:{0}'.format(state_name)
 
                 input_name = 'initial_states:{0}'.format(state_name)
-                outputs[output_name][indep_idx, ...] = inputs[input_name]
+                outputs[output_name][0, ...] = inputs[input_name]
 
             if not options['solve_segments']:
                 var_names = self.var_names[state_name]

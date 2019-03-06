@@ -78,7 +78,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
                              num_segments=num_seg,
                              segment_ends=seg_ends,
                              transcription_order=5,
-                             ode_init_kwargs = {'num_battery': 2},
+                             ode_init_kwargs={'num_battery': 2},
                              compressed=False)
 
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
@@ -93,7 +93,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
                              num_segments=num_seg,
                              segment_ends=seg_ends,
                              transcription_order=5,
-                             ode_init_kwargs = {'num_motor': 2},
+                             ode_init_kwargs={'num_motor': 2},
                              compressed=False)
 
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
@@ -183,7 +183,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
                              num_segments=num_seg,
                              segment_ends=seg_ends,
                              transcription_order=5,
-                             ode_init_kwargs = {'num_battery': 2},
+                             ode_init_kwargs={'num_battery': 2},
                              compressed=True)
 
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
@@ -199,7 +199,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
                              num_segments=num_seg,
                              segment_ends=seg_ends,
                              transcription_order=5,
-                             ode_init_kwargs = {'num_motor': 2},
+                             ode_init_kwargs={'num_motor': 2},
                              compressed=True)
 
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
@@ -264,7 +264,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         traj_p0 = prob.model.add_subsystem('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
-        traj_p0.set_state_options('state_of_charge', fix_initial=False, fix_final=True,
+        traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False,
                                   solve_segments=True)
 
         prob.setup()
@@ -397,7 +397,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
                              num_segments=num_seg,
                              segment_ends=seg_ends,
                              transcription_order=5,
-                             ode_init_kwargs = {'num_battery': 2},
+                             ode_init_kwargs={'num_battery': 2},
                              compressed=True)
 
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
@@ -412,7 +412,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
                              num_segments=num_seg,
                              segment_ends=seg_ends,
                              transcription_order=5,
-                             ode_init_kwargs = {'num_motor': 2},
+                             ode_init_kwargs={'num_motor': 2},
                              compressed=True)
 
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
