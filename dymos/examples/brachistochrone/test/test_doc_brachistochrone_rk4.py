@@ -106,11 +106,11 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
+        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(-2.0, -0.5))
 
-        phase.set_state_options('x', fix_initial=False, fix_final=True, propagation='backward')
-        phase.set_state_options('y', fix_initial=False, fix_final=True, propagation='backward')
-        phase.set_state_options('v', fix_initial=False, fix_final=False, propagation='backward')
+        phase.set_state_options('x', fix_initial=True)
+        phase.set_state_options('y', fix_initial=True)
+        phase.set_state_options('v', fix_initial=False)
 
         phase.add_control('theta', units='deg', lower=0.01, upper=179.9, ref0=0, ref=180.0,
                           rate_continuity=True, rate2_continuity=True)
@@ -119,19 +119,19 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.
-        phase.add_boundary_constraint('x', loc='initial', equals=0)
-        phase.add_boundary_constraint('y', loc='initial', equals=10)
-        phase.add_boundary_constraint('v', loc='initial', equals=0)
+        phase.add_boundary_constraint('x', loc='final', equals=0)
+        phase.add_boundary_constraint('y', loc='final', equals=10)
+        phase.add_boundary_constraint('v', loc='final', equals=0)
 
         # Minimize time at the end of the phase
-        phase.add_objective('time_phase', loc='final', scaler=1)
+        phase.add_objective('time', loc='final', scaler=-1)
 
         p.model.linear_solver = DirectSolver()
 
         p.setup(check=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
+        p['phase0.t_initial'] = 1.8016
+        p['phase0.t_duration'] = -1.8016
 
         p['phase0.states:x'] = 10
         p['phase0.states:y'] = 5
@@ -142,7 +142,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
+        assert_rel_error(self, p['phase0.time'][-1], -1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']

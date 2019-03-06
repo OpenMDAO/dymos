@@ -37,7 +37,6 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
         self._var_names = {}
 
         for state_name, options in iteritems(state_options):
-            direction = options['propagation']
 
             self._var_names[state_name] = {
                 'states': 'states:{0}'.format(state_name),
@@ -45,6 +44,7 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
             }
 
             shape = options['shape']
+            size = np.prod(shape)
             units = options['units']
             var_names = self._var_names[state_name]
 
@@ -66,35 +66,34 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
                            desc='Change in the state value over each segment.',
                            units=units)
 
-            if direction == 'forward':
-                r = np.repeat(np.arange(1, num_seg + 1, dtype=int), repeats=2)
-                r = np.concatenate(([0], r))
-                c = np.repeat(np.arange(num_seg, dtype=int), repeats=2)
-                c = np.concatenate((c, [num_seg]))
-                v = np.tile(np.array([1, -1]), num_seg)
-                v = np.concatenate((v, [1]))
-                v[0] = -1.0
-            else:
-                r = np.repeat(np.arange(num_seg, dtype=int), repeats=2)
-                r = np.concatenate((r, [num_seg]))
-                c = np.repeat(np.arange(1, num_seg + 1, dtype=int), repeats=2)
-                c = np.concatenate(([0], c))
-                v = np.tile(np.array([-1, 1]), num_seg)
-                v = np.concatenate((v, [-1]))
-
+            #
+            # Define the partials of the states wrt themselves.
+            #
+            n_rows = size * (1 + num_seg)
+            n_cols = n_rows
+            temp_jac = np.zeros((n_rows, n_cols), dtype=int)
+            eye_size = np.eye(size, dtype=int)
+            pattern = np.zeros((num_seg, num_seg + 1))
+            diag_rows, diag_cols = np.diag_indices(num_seg)
+            pattern[diag_rows, diag_cols] = -1
+            pattern[diag_rows, diag_cols + 1] = 1
+            temp_jac[size:, :] = np.kron(pattern, eye_size)
+            temp_jac[:size, :size] = -np.eye(size)
+            r, c = np.nonzero(temp_jac)
+            v = temp_jac[r, c]
             self.declare_partials(of=var_names['states'], wrt=var_names['states'],
                                   rows=r, cols=c, val=v)
 
-            if direction == 'forward':
-                c = np.arange(num_seg, dtype=int)
-                r = c + 1
-                self.declare_partials(of=var_names['states'], wrt=var_names['integral'],
-                                      rows=r, cols=c, val=-1.0)
-            else:
-                c = np.arange(num_seg, dtype=int)
-                r = c
-                self.declare_partials(of=var_names['states'], wrt=var_names['integral'],
-                                      rows=r, cols=c, val=-1.0)
+            #
+            # Define the partials of the states wrt the state integrals.
+            #
+            n_rows = size * (1 + num_seg)
+            n_cols = size * num_seg
+            temp_jac = np.zeros((n_rows, n_cols), dtype=int)
+            temp_jac[size:, :] = np.eye(n_cols, dtype=int)
+            r, c = np.nonzero(temp_jac)
+            self.declare_partials(of=var_names['states'], wrt=var_names['integral'],
+                                  rows=r, cols=c, val=-1.0)
 
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
@@ -112,18 +111,10 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
 
         for state_name, options in iteritems(state_options):
             names = self._var_names[state_name]
-            direction = options['propagation']
 
             x_i = outputs[names['states']][:-1, ...]
             x_f = outputs[names['states']][1:, ...]
             dx = inputs[names['integral']]
 
-            # Currently the direction of propagation is set at the phase level.  We can
-            # compute this on a state-by-state basis if necessary.
-
-            if direction == 'forward':
-                residuals[names['states']][0, ...] = 0
-                residuals[names['states']][1:, ...] = x_f - x_i - dx
-            else:
-                residuals[names['states']][:-1, ...] = x_f - x_i - dx
-                residuals[names['states']][-1, ...] = 0
+            residuals[names['states']][0, ...] = 0
+            residuals[names['states']][1:, ...] = x_f - x_i - dx

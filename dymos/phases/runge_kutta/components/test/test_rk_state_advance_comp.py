@@ -64,7 +64,7 @@ class TestRKStateAdvanceComp(unittest.TestCase):
                          tolerance=1.0E-9)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(method='cs')
+        cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
 
     def test_rk_state_advance_comp_rk4_vector(self):
@@ -93,8 +93,6 @@ class TestRKStateAdvanceComp(unittest.TestCase):
         p['k:y'][1, :, 1] = [1.37840949, 1.31676186, 1.30134995, 1.15408446]
 
         p.run_model()
-
-        p.model.list_outputs(print_arrays=True)
 
         assert_rel_error(test_case=self,
                          actual=p.get_val('c.final_states:y'),
@@ -141,8 +139,6 @@ class TestRKStateAdvanceComp(unittest.TestCase):
                              [1.385139703750610,  1.154084459568063]]])
 
         p.run_model()
-
-        p.model.list_outputs(print_arrays=True)
 
         assert_rel_error(self,
                          p.get_val('c.final_states:y'),
