@@ -44,7 +44,7 @@ class RungeKuttaKIterGroup(Group):
 
         self.options.declare('solver_options', default={}, types=(dict,),
                              desc='The options passed to the nonlinear solver used to converge the'
-                                  'Runge-Kutta propagation.')
+                                  'Runge-Kutta propagation across each step.')
 
     def setup(self):
         num_seg = self.options['num_segments']

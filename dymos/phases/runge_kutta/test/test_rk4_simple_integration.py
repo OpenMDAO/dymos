@@ -55,7 +55,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
                             continuity_solver_options={'iprint': 2, 'solve_subsystems': True}))
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
-        phase.set_state_options('y', fix_initial=False, time_direction='backward')
+        phase.set_state_options('y', fix_initial=True)
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
@@ -63,8 +63,8 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
         p.final_setup()
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
+        p['phase0.t_initial'] = 2.0
+        p['phase0.t_duration'] = -2.0
 
         p['phase0.states:y'] = 5.305471950534675
 

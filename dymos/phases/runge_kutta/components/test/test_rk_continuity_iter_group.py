@@ -107,7 +107,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         J_rev = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_fd']
 
-        J_fd[0, 0] = 1.0
+        J_fd[0, 0] = -1.0
 
         assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
@@ -180,7 +180,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         J_rev = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_fd']
 
-        J_fd[0, 0] = 1.0
+        J_fd[0, 0] = -1.0
 
         assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
