@@ -438,7 +438,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
             linear = False
             constraint_path = 'input_parameters:{0}_out'.format(var)
         elif var_type in ('control_rate', 'control_rate2'):
-            control_var = var[:-5]
+            control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
             control_shape = self.control_options[control_var]['shape']
             control_units = self.control_options[control_var]['units']
             d = 2 if var_type == 'control_rate2' else 1

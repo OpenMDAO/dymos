@@ -115,6 +115,7 @@ class ControlOptionsDictionary(OptionsDictionary):
                           'to assume a single polynomial basis across the entire phase, or None'
                           'to use the default control behavior.')
 
+
 class PolynomialControlOptionsDictionary(OptionsDictionary):
     """
     An OptionsDictionary specific to controls.

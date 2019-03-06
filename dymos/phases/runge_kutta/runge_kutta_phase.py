@@ -778,7 +778,8 @@ class RungeKuttaPhase(PhaseBase):
                          src_indices=src_idxs, flat_src_indices=True)
 
             # Control second derivatives
-            timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate2'.format(name),
+            timeseries_comp._add_timeseries_output('polynomial_control_rates:'
+                                                   '{0}_rate2'.format(name),
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
                                                    units=get_rate_units(control_units,

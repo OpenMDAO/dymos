@@ -396,12 +396,12 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             control_units = options['units']
 
             # Control values
-            timeseries_comp._add_timeseries_output('control_values:{0}'.format(name),
+            timeseries_comp._add_timeseries_output('controls:{0}'.format(name),
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
                                                    units=control_units)
-            self.connect(src_name='control_interp_comp.controls:{0}'.format(name),
-                         tgt_name='timeseries.all_values:control_values:{0}'.format(name))
+            self.connect(src_name='control_interp_comp.control_values:{0}'.format(name),
+                         tgt_name='timeseries.all_values:controls:{0}'.format(name))
 
             # # Control rates
             timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(name),

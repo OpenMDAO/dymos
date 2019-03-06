@@ -227,3 +227,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
             axes[i].plot(time_exp['descent'], p_exp['descent'], 'r--')
 
         plt.show()
+
+
+if __name__ == '__main__':
+    unittest.main()
