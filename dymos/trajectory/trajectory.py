@@ -369,7 +369,8 @@ class Trajectory(Group):
         if self._linkages:
             self._setup_linkages()
 
-    def link_phases(self, phases, vars=None, locs=('++', '--'), connected=False):
+    def link_phases(self, phases, vars=None, locs=('++', '--'), connected=False, src_loc='final',
+                    tgt_loc='initial'):
         """
         Specifies that phases in the given sequence are to be assume continuity of the given
         variables.
@@ -407,6 +408,12 @@ class Trajectory(Group):
         connected : bool
             Set to True to directly connect the phases being linked. Otherwise, create constraints
             for the optimizer to solve.
+        src_loc : str
+            Which end of the phase to connect on the source side of the linkage. Can be initial or
+            final. Default is final.
+        tgt_loc : str
+            Which end of the phase to connect on the target side of the linkage. Can be initial or
+            final. Default is initial.
 
         Examples
         --------
@@ -479,7 +486,9 @@ class Trajectory(Group):
 
             for var in sorted(implicitly_linked_vars.union(explicitly_linked_vars)):
                 self._linkages[phase1_name, phase2_name][var] = {'locs': locs, 'units': None,
-                                                                 'connected': connected}
+                                                                 'connected': connected,
+                                                                 'src_loc': src_loc,
+                                                                 'tgt_loc': tgt_loc}
 
     def simulate(self, times='all', record=True, record_file=None, time_units='s'):
         """

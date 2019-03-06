@@ -80,9 +80,15 @@ class CollocationComp(ImplicitComponent):
                     raise ValueError('Can not use solver based collocation defects with both '
                                      '"connected_initial" and "connected_final" turned on.')
 
-                self.state_idx_map[state_name]['solver'] = self.solver_node_idx[1:]
-                self.state_idx_map[state_name]['indep'] = \
-                    [self.solver_node_idx[0]] + self.indep_node_idx
+                if options['fix_initial']:
+                    self.state_idx_map[state_name]['solver'] = self.solver_node_idx[1:]
+                    self.state_idx_map[state_name]['indep'] = \
+                        [self.solver_node_idx[0]] + self.indep_node_idx
+
+                if options['fix_final']:
+                    self.state_idx_map[state_name]['solver'] = self.solver_node_idx[:-1]
+                    self.state_idx_map[state_name]['indep'] = \
+                        self.indep_node_idx + [self.solver_node_idx[-1]]
 
             else:
                 if options['connected_initial'] and not options['connected_final']:
@@ -315,7 +321,7 @@ class CollocationComp(ImplicitComponent):
             # so you get -1 wrt state var
             # NOTE: check_partials will report wrong derivs for the indep vars,
             #       but don't believe it!
-            else:
+            elif options['solve_segments']:
                 residuals[state_var_name][indep_idx, ...] = 0.0
 
     def solve_nonlinear(self, inputs, outputs):

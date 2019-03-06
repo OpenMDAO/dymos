@@ -23,10 +23,10 @@ class TestCollocationBalanceIndex(unittest.TestCase):
 
         state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
                                'fix_final': False, 'solve_segments': True,
-                               'solve_continuity': False},
+                               'connected_initial': False, 'connected_final': False},
                          'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial': False,
                                'fix_final': True, 'solve_segments': True,
-                               'solve_continuity': False}}
+                               'connected_initial': False, 'connected_final': False}}
 
         defect_comp = p.model.add_subsystem('defect_comp',
                                             subsys=CollocationComp(grid_data=gd,
@@ -119,10 +119,10 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
 
         state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
                                'fix_final': False, 'solve_segments': True,
-                               'solve_continuity': False},
+                               'connected_initial': False, 'connected_final': False},
                          'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial': True,
                                'fix_final': False, 'solve_segments': True,
-                               'solve_continuity': False}}
+                               'connected_initial': False, 'connected_final': False}}
 
         num_col_nodes = gd.subset_num_nodes['col']
         num_col_nodes_per_seg = gd.subset_num_nodes_per_segment['col']
