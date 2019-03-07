@@ -58,7 +58,9 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
             self.add_output(name=var_names['states'],
                             shape=(num_seg + 1,) + shape,
                             res_ref=res_ref,
-                            units=units)
+                            units=units,
+                            lower=options['lower'],
+                            upper=options['upper'])
 
             # The value of the state at the end of each segment.
             self.add_input(name=var_names['integral'],

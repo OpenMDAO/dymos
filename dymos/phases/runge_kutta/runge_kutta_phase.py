@@ -9,7 +9,7 @@ from dymos.phases.phase_base import PhaseBase, _unspecified
 from dymos.phases.grid_data import GridData
 
 from openmdao.api import IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
-    NewtonSolver, DirectSolver, BalanceComp
+    NewtonSolver, BoundsEnforceLS
 from six import iteritems
 
 from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
@@ -66,18 +66,6 @@ class RungeKuttaPhase(PhaseBase):
                              desc='The options passed to the nonlinear solver used to converge the'
                                   'Runge-Kutta propagation across each step.')
 
-        self.options.declare('continuity_solver_class', default=NewtonSolver,
-                             values=(NewtonSolver, NonlinearRunOnce),
-                             allow_none=True,
-                             desc='The nonlinear solver class used to enforce state continuity '
-                                  'across the segments (steps).  Currently only NewtonSolver is'
-                                  'supported.')
-
-        self.options.declare('continuity_solver_options',
-                             default={'iprint': -1, 'solve_subsystems': True}, types=(dict,),
-                             desc='The options passed to the nonlinear solver used to enforce '
-                                  'state continuity across the segments (steps).')
-
     def setup(self):
         self.grid_data = GridData(num_segments=self.options['num_segments'],
                                   transcription='runge-kutta',
@@ -86,6 +74,15 @@ class RungeKuttaPhase(PhaseBase):
                                   compressed=self.options['compressed'])
 
         super(RungeKuttaPhase, self).setup()
+
+        #
+        # Add a newton solver to converge the continuity between the segments/steps
+        #
+        self.nonlinear_solver = NewtonSolver()
+        self.nonlinear_solver.options['iprint'] = -1
+        self.nonlinear_solver.options['solve_subsystems'] = True
+        self.nonlinear_solver.options['err_on_maxiter'] = True
+        self.nonlinear_solver.linesearch = BoundsEnforceLS()
 
     def _setup_time(self):
         time_units = self.time_options['units']
@@ -153,9 +150,7 @@ class RungeKuttaPhase(PhaseBase):
                                ode_class=self.options['ode_class'],
                                ode_init_kwargs=self.options['ode_init_kwargs'],
                                k_solver_class=self.options['k_solver_class'],
-                               k_solver_options=self.options['k_solver_options'],
-                               continuity_solver_class=self.options['continuity_solver_class'],
-                               continuity_solver_options=self.options['continuity_solver_options']),
+                               k_solver_options=self.options['k_solver_options']),
                            promotes_inputs=['h'],
                            promotes_outputs=['states:*'])
 

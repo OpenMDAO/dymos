@@ -18,7 +18,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
                                'fix_final': False, 'propagation': 'forward', 'defect_scaler': None,
-                               'defect_ref': 1.0}}
+                               'defect_ref': 1.0, 'lower': None, 'upper': None}}
 
         p = Problem(model=Group())
 
@@ -39,8 +39,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
                                   time_units='s',
                                   ode_class=TestODE,
                                   ode_init_kwargs={},
-                                  k_solver_class=NonlinearRunOnce,
-                                  continuity_solver_class=NonlinearRunOnce),
+                                  k_solver_class=NonlinearRunOnce),
                               promotes_outputs=['states:*'])
 
         p.model.connect('h', 'cnty_iter_group.h')
@@ -115,7 +114,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
                                'fix_final': False, 'propagation': 'forward', 'defect_scaler': None,
-                               'defect_ref': 1.0}}
+                               'defect_ref': 1.0, 'lower': None, 'upper': None}}
 
         p = Problem(model=Group())
 
@@ -136,8 +135,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
                                   time_units='s',
                                   ode_class=TestODE,
                                   ode_init_kwargs={},
-                                  k_solver_class=None,
-                                  continuity_solver_class=NewtonSolver),
+                                  k_solver_class=None),
                               promotes_outputs=['states:*'])
 
         p.model.connect('h', 'cnty_iter_group.h')
@@ -147,7 +145,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         p.model.connect('cnty_iter_group.ode.ydot', 'cnty_iter_group.k_comp.f:y',
                         src_indices=src_idxs, flat_src_indices=True)
 
-        p.model.nonlinear_solver = NonlinearRunOnce()
+        p.model.nonlinear_solver = NewtonSolver()
         p.model.linear_solver = DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)

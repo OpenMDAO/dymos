@@ -50,17 +50,6 @@ class RungeKuttaStateContinuityIterGroup(Group):
                              desc='The options passed to the nonlinear solver used to converge the'
                                   'Runge-Kutta propagation across each step.')
 
-        self.options.declare('continuity_solver_class', default=NewtonSolver,
-                             values=(NewtonSolver, NonlinearRunOnce),
-                             allow_none=True,
-                             desc='The nonlinear solver class used to enforce state continuity '
-                                  'across the segments (steps).  Currently only NewtonSolver is'
-                                  'supported.')
-
-        self.options.declare('continuity_solver_options', default={'iprint': -1}, types=(dict,),
-                             desc='The options passed to the nonlinear solver used to enforce '
-                                  'state continuity across the segments (steps).')
-
     def setup(self):
         self.add_subsystem('k_iter_group',
                            RungeKuttaKIterGroup(num_segments=self.options['num_segments'],
@@ -98,6 +87,3 @@ class RungeKuttaStateContinuityIterGroup(Group):
                          src_indices=src_idxs, flat_src_indices=True)
 
         self.linear_solver = DirectSolver()
-        if self.options['continuity_solver_class']:
-            self.nonlinear_solver = \
-                self.options['continuity_solver_class'](**self.options['continuity_solver_options'])

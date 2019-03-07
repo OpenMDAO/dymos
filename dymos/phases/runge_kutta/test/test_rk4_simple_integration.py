@@ -20,9 +20,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
             'phase0',
             RungeKuttaPhase(num_segments=200,
                             method='rk4',
-                            ode_class=TestODE,
-                            k_solver_options={'iprint': 2},
-                            continuity_solver_options={'iprint': 2, 'solve_subsystems': True}))
+                            ode_class=TestODE))
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
         phase.set_state_options('y', fix_initial=True)
@@ -46,13 +44,9 @@ class TestRK4SimpleIntegration(unittest.TestCase):
     def test_simple_integration_backward(self):
 
         p = Problem(model=Group())
-        phase = p.model.add_subsystem(
-            'phase0',
-            RungeKuttaPhase(num_segments=4,
-                            method='rk4',
-                            ode_class=TestODE,
-                            k_solver_options={'iprint': 2},
-                            continuity_solver_options={'iprint': 2, 'solve_subsystems': True}))
+        phase = p.model.add_subsystem('phase0',
+                                      RungeKuttaPhase(num_segments=4, method='rk4',
+                                                      ode_class=TestODE))
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
         phase.set_state_options('y', fix_initial=True)
