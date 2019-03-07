@@ -272,7 +272,11 @@ class Trajectory(Group):
                         p2_opt = p2.state_options[var]
 
                         # Trajectory linkage modifies these options in connected states.
-                        p2_opt['connected_initial'] = True
+                        if options['tgt_loc'] == 'final':
+                            p2_opt['connected_final'] = True
+                        else:
+                            p2_opt['connected_initial'] = True
+
                         p2.time_options['input_initial'] = True
 
                 else:
@@ -319,15 +323,19 @@ class Trajectory(Group):
                 if options['connected']:
 
                     if var == 'time':
-                        path = 't_initial'
+                        if options['tgt_loc'] == 'initial':
+                            path = 't_initial'
 
-                        self.connect('{0}.{1}'.format(phase_name1, source1),
-                                     '{0}.{1}'.format(phase_name2, path))
+                            self.connect('{0}.{1}'.format(phase_name1, source1),
+                                         '{0}.{1}'.format(phase_name2, path))
 
                     else:
                         p2_opt = p2.state_options[var]
 
-                        path = 'collocation_constraint.initial_states:{0}'.format(var)
+                        if options['tgt_loc'] == 'final':
+                            path = 'collocation_constraint.final_states:{0}'.format(var)
+                        else:
+                            path = 'collocation_constraint.initial_states:{0}'.format(var)
 
                         self.connect('{0}.{1}'.format(phase_name1, source1),
                                      '{0}.{1}'.format(phase_name2, path))

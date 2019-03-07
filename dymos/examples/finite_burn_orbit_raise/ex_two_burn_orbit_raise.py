@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, SqliteRecorder
@@ -12,7 +12,8 @@ from dymos import Phase, Trajectory
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
 
-def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=True):
+def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=True,
+              connected=False):
     traj = Trajectory()
 
     traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU')
@@ -45,8 +46,6 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
                   transcription_order=transcription_order,
                   compressed=compressed)
 
-    traj.add_phase('coast', coast)
-
     coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 50), duration_ref=50)
     coast.set_state_options('r', fix_initial=False, fix_final=False, defect_scaler=100.0)
     coast.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
@@ -65,15 +64,30 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
                   transcription_order=transcription_order,
                   compressed=compressed)
 
-    traj.add_phase('burn2', burn2)
+    if connected:
+        traj.add_phase('burn2', burn2)
+        traj.add_phase('coast', coast)
 
-    burn2.set_time_options(initial_bounds=(0.5, 50), duration_bounds=(.5, 10), initial_ref=10)
-    burn2.set_state_options('r', fix_initial=False, fix_final=True, defect_scaler=100.0)
-    burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
-    burn2.set_state_options('vr', fix_initial=False, fix_final=True, defect_scaler=1000.0)
-    burn2.set_state_options('vt', fix_initial=False, fix_final=True, defect_scaler=1000.0)
-    burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
-    burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
+        burn2.set_time_options(initial_bounds=(0.5, 50), duration_bounds=(-.5, -10), initial_ref=10)
+        burn2.set_state_options('r', fix_initial=True, fix_final=False, defect_scaler=100.0)
+        burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
+        burn2.set_state_options('vr', fix_initial=True, fix_final=False, defect_scaler=1000.0)
+        burn2.set_state_options('vt', fix_initial=True, fix_final=False, defect_scaler=1000.0)
+        burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
+        burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
+
+    else:
+        traj.add_phase('coast', coast)
+        traj.add_phase('burn2', burn2)
+
+        burn2.set_time_options(initial_bounds=(0.5, 50), duration_bounds=(.5, 10), initial_ref=10)
+        burn2.set_state_options('r', fix_initial=False, fix_final=True, defect_scaler=100.0)
+        burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
+        burn2.set_state_options('vr', fix_initial=False, fix_final=True, defect_scaler=1000.0)
+        burn2.set_state_options('vt', fix_initial=False, fix_final=True, defect_scaler=1000.0)
+        burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
+        burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
+
     burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=0.01)
 
     burn2.add_objective('deltav', loc='final', scaler=100.0)
@@ -87,105 +101,28 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
     burn2.add_timeseries_output('pos_y', units='DU')
 
     # Link Phases
-    traj.link_phases(phases=['burn1', 'coast', 'burn2'],
-                     vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
-    traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
+    if connected:
+        traj.link_phases(phases=['burn1', 'coast'],
+                         vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'],
+                         connected=True)
+        traj.link_phases(phases=['burn2', 'coast'],
+                         vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'],
+                         connected=True, tgt_loc='final')
 
-    return traj
+        traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
+    else:
+        traj.link_phases(phases=['burn1', 'coast', 'burn2'],
+                         vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
 
-def make_traj_connected(transcription='gauss-lobatto', transcription_order=3, compressed=True):
-    # This trajectory is linked with connections. Burn phase 2 is run in reverse by giving it
-    # a negative duration.
-
-    traj = Trajectory()
-
-    traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU')
-
-    # First Phase (burn)
-
-    burn1 = Phase(transcription,
-                  ode_class=FiniteBurnODE,
-                  num_segments=20,
-                  transcription_order=transcription_order,
-                  compressed=compressed)
-
-    burn1 = traj.add_phase('burn1', burn1)
-
-    burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
-    burn1.set_state_options('r', fix_initial=True, fix_final=False, defect_scaler=100.0)
-    burn1.set_state_options('theta', fix_initial=True, fix_final=False, defect_scaler=100.0)
-    burn1.set_state_options('vr', fix_initial=True, fix_final=False, defect_scaler=100.0)
-    burn1.set_state_options('vt', fix_initial=True, fix_final=False, defect_scaler=100.0)
-    burn1.set_state_options('accel', fix_initial=True, fix_final=False)
-    burn1.set_state_options('deltav', fix_initial=True, fix_final=False)
-    burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=0.01,
-                      rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
-                      lower=-30, upper=30)
-
-    # Second Phase (Coast)
-
-    coast = Phase(transcription,
-                  ode_class=FiniteBurnODE,
-                  num_segments=40,
-                  transcription_order=transcription_order,
-                  compressed=compressed)
-
-    traj.add_phase('coast', coast)
-
-    coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 50), duration_ref=50)
-    coast.set_state_options('r', fix_initial=False, fix_final=False, defect_scaler=100.0)
-    coast.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
-    coast.set_state_options('vr', fix_initial=False, fix_final=False, defect_scaler=100.0)
-    coast.set_state_options('vt', fix_initial=False, fix_final=False, defect_scaler=100.0)
-    coast.set_state_options('accel', fix_initial=True, fix_final=True)
-    coast.set_state_options('deltav', fix_initial=False, fix_final=False)
-
-    coast.add_design_parameter('u1', opt=False, val=0.0, units='deg')
-
-    # Third Phase (burn)
-
-    burn2 = Phase(transcription,
-                  ode_class=FiniteBurnODE,
-                  num_segments=20,
-                  transcription_order=transcription_order,
-                  compressed=compressed)
-
-    traj.add_phase('burn2', burn2)
-
-    burn2.set_time_options(initial_bounds=(0.5, 50), duration_bounds=(-.5, -10), initial_ref=10)
-    burn2.set_state_options('r', fix_initial=True, fix_final=False, defect_scaler=100.0)
-    burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
-    burn2.set_state_options('vr', fix_initial=True, fix_final=False, defect_scaler=1000.0)
-    burn2.set_state_options('vt', fix_initial=True, fix_final=False, defect_scaler=1000.0)
-    burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
-    burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
-    burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=0.01)
-
-    burn2.add_objective('deltav', loc='initial', scaler=100.0)
-
-    burn1.add_timeseries_output('pos_x', units='DU')
-    coast.add_timeseries_output('pos_x', units='DU')
-    burn2.add_timeseries_output('pos_x', units='DU')
-
-    burn1.add_timeseries_output('pos_y', units='DU')
-    coast.add_timeseries_output('pos_y', units='DU')
-    burn2.add_timeseries_output('pos_y', units='DU')
-
-    # Link Phases
-    traj.link_phases(phases=['burn1', 'coast'],
-                     vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'],
-                     connected=True)
-    traj.link_phases(phases=['burn2', 'coast'],
-                     vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'],
-                     connected=True)
+        traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
     return traj
 
 
 def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP', r_target=3.0,
                                  transcription_order=3, compressed=True, show_plots=False,
-                                 show_output=True):
+                                 show_output=True, connected=False):
 
     p = Problem(model=Group())
 
@@ -202,7 +139,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         p.driver.options['dynamic_simul_derivs'] = True
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
-                     compressed=compressed)
+                     compressed=compressed, connected=connected)
     p.model.add_subsystem('traj', subsys=traj)
 
     # Finish Problem Setup

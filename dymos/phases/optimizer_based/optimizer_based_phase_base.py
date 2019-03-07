@@ -231,15 +231,15 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         self.create_state_indepvarcomp = False
         self.any_solved_segments = False
+        p_outputs = []
         for name, options in iteritems(self.state_options):
             if options['solve_segments']:
                 self.any_solved_segments = True
+                p_outputs = ['states:*']
             elif not options['connected_initial'] and not options['connected_final']:
                 self.create_state_indepvarcomp = True
-
-        p_outputs = []
-        if not self.create_state_indepvarcomp:
-            p_outputs = ['states:*']
+            else:
+                p_outputs = ['states:*']
 
         self.add_subsystem('collocation_constraint',
                            CollocationComp(grid_data=grid_data,
