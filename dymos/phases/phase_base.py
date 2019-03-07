@@ -1288,10 +1288,11 @@ class PhaseBase(Group):
 
             shape = options['shape'] if shape is None else shape
             if shape is None:
-                logger = get_logger('check_config', use_format=True)
-                logger.warning('Unable to infer shape of boundary constraint {0}. Assuming scalar. '
-                               'If variable is not scalar, provide shape in '
-                               'add_boundary_constraint.'.format(var))
+                warnings.warn('\nUnable to infer shape of boundary constraint {0}. Assuming scalar. '
+                              '\nIf variable is not scalar, provide shape in '
+                              'add_boundary_constraint. \nIn Dymos 1.0 an error will be raised if '
+                              'a constrained ODE output shape is not specified in '
+                              'add_boundary_constraint.'.format(var), DeprecationWarning)
                 shape = (1,)
 
             if options['indices'] is not None:
