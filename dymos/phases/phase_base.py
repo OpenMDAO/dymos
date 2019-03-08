@@ -544,8 +544,6 @@ class PhaseBase(Group):
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
 
-        self.add_timeseries_output(name, constraint_name, units=units, shape=shape)
-
         bc_dict = self._initial_boundary_constraints \
             if loc == 'initial' else self._final_boundary_constraints
 
@@ -616,8 +614,6 @@ class PhaseBase(Group):
         if name not in self._path_constraints:
             self._path_constraints[name] = {}
             self._path_constraints[name]['constraint_name'] = constraint_name
-
-        self.add_timeseries_output(name, constraint_name, units=units, shape=shape)
 
         self._path_constraints[name]['lower'] = lower
         self._path_constraints[name]['upper'] = upper

@@ -131,6 +131,13 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
             constraint_kwargs = {k: kwargs.get(k, None)
                                  for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
                                            'scaler', 'indices', 'linear')}
+
+            # Convert indices from those in one time instance to those in all time instances
+            template = np.zeros(np.prod(kwargs['shape']), dtype=int)
+            template[kwargs['indices']] = 1
+            template = np.tile(template, num_nodes)
+            constraint_kwargs['indices'] = np.nonzero(template)[0]
+
             self.add_constraint(output_name, **constraint_kwargs)
 
             # Setup partials
