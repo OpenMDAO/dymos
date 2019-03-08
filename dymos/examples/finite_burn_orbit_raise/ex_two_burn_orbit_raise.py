@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, SqliteRecorder
@@ -68,7 +68,8 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
         traj.add_phase('burn2', burn2)
         traj.add_phase('coast', coast)
 
-        burn2.set_time_options(initial_bounds=(0.5, 50), duration_bounds=(-.5, -10), initial_ref=10)
+        burn2.set_time_options(initial_bounds=(1.0, 60), duration_bounds=(-10.0, -0.5),
+                               initial_ref=10)
         burn2.set_state_options('r', fix_initial=True, fix_final=False, defect_scaler=100.0)
         burn2.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0)
         burn2.set_state_options('vr', fix_initial=True, fix_final=False, defect_scaler=1000.0)
@@ -76,6 +77,10 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
         burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
         burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
 
+        burn2.add_objective('deltav', loc='initial', scaler=100.0)
+
+        burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
+                          scaler=0.01, lower=-180, upper=180)
     else:
         traj.add_phase('coast', coast)
         traj.add_phase('burn2', burn2)
@@ -88,9 +93,10 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
         burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
         burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
 
-    burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=0.01)
+        burn2.add_objective('deltav', loc='final', scaler=100.0)
 
-    burn2.add_objective('deltav', loc='final', scaler=100.0)
+        burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
+                          scaler=0.01)
 
     burn1.add_timeseries_output('pos_x', units='DU')
     coast.add_timeseries_output('pos_x', units='DU')
@@ -105,11 +111,16 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
         traj.link_phases(phases=['burn1', 'coast'],
                          vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'],
                          connected=True)
-        traj.link_phases(phases=['burn2', 'coast'],
-                         vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'],
-                         connected=True, tgt_loc='final')
 
-        traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
+        # No direct connections to the end of a phase.
+        traj.link_phases(phases=['burn2', 'coast'],
+                         vars=['r', 'theta', 'vr', 'vt', 'deltav'],
+                         locs=('++', '++'))
+        traj.link_phases(phases=['burn2', 'coast'],
+                         vars=['time'], locs=('++', '++'))
+
+        traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'],
+                         locs=('++', '++'))
 
     else:
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],
@@ -161,11 +172,14 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     if burn1 in p.model.traj.phases._subsystems_myproc:
         p.set_val('traj.burn1.t_initial', value=0.0)
         p.set_val('traj.burn1.t_duration', value=2.25)
-        p.set_val('traj.burn1.states:r', value=burn1.interpolate(ys=[1, 1.5], nodes='state_input'))
+        p.set_val('traj.burn1.states:r', value=burn1.interpolate(ys=[1, 1.5],
+                                                                 nodes='state_input'))
         p.set_val('traj.burn1.states:theta', value=burn1.interpolate(ys=[0, 1.7],
                   nodes='state_input'))
-        p.set_val('traj.burn1.states:vr', value=burn1.interpolate(ys=[0, 0], nodes='state_input'))
-        p.set_val('traj.burn1.states:vt', value=burn1.interpolate(ys=[1, 1], nodes='state_input'))
+        p.set_val('traj.burn1.states:vr', value=burn1.interpolate(ys=[0, 0],
+                                                                  nodes='state_input'))
+        p.set_val('traj.burn1.states:vt', value=burn1.interpolate(ys=[1, 1],
+                                                                  nodes='state_input'))
         p.set_val('traj.burn1.states:accel', value=burn1.interpolate(ys=[0.1, 0],
                   nodes='state_input'))
         p.set_val('traj.burn1.states:deltav', value=burn1.interpolate(ys=[0, 0.1],
@@ -192,20 +206,42 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         #           nodes='control_input'))
 
     if burn2 in p.model.traj.phases._subsystems_myproc:
-        p.set_val('traj.burn2.t_initial', value=5.25)
-        p.set_val('traj.burn2.t_duration', value=1.75)
+        if connected:
+            p.set_val('traj.burn2.t_initial', value=7.0)
+            p.set_val('traj.burn2.t_duration', value=-1.75)
 
-        p.set_val('traj.burn2.states:r', value=burn2.interpolate(ys=[1, r_target],
-                  nodes='state_input'))
-        p.set_val('traj.burn2.states:theta', value=burn2.interpolate(ys=[0, 4.0],
-                  nodes='state_input'))
-        p.set_val('traj.burn2.states:vr', value=burn2.interpolate(ys=[0, 0], nodes='state_input'))
-        p.set_val('traj.burn2.states:vt',
-                  value=burn2.interpolate(ys=[1, np.sqrt(1 / r_target)], nodes='state_input'))
-        p.set_val('traj.burn2.states:accel', value=burn2.interpolate(ys=[0.1, 0],
-                  nodes='state_input'))
-        p.set_val('traj.burn2.states:deltav',
-                  value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
+            p.set_val('traj.burn2.states:r', value=burn2.interpolate(ys=[r_target, 1],
+                      nodes='state_input'))
+            p.set_val('traj.burn2.states:theta', value=burn2.interpolate(ys=[4.0, 0.0],
+                      nodes='state_input'))
+            p.set_val('traj.burn2.states:vr', value=burn2.interpolate(ys=[0, 0],
+                                                                      nodes='state_input'))
+            p.set_val('traj.burn2.states:vt',
+                      value=burn2.interpolate(ys=[np.sqrt(1 / r_target), 1],
+                                              nodes='state_input'))
+            p.set_val('traj.burn2.states:deltav',
+                      value=burn2.interpolate(ys=[0.2, 0.1], nodes='state_input'))
+            p.set_val('traj.burn2.states:accel', value=burn2.interpolate(ys=[0., 0.1],
+                      nodes='state_input'))
+
+        else:
+            p.set_val('traj.burn2.t_initial', value=5.25)
+            p.set_val('traj.burn2.t_duration', value=1.75)
+
+            p.set_val('traj.burn2.states:r', value=burn2.interpolate(ys=[1, r_target],
+                      nodes='state_input'))
+            p.set_val('traj.burn2.states:theta', value=burn2.interpolate(ys=[0, 4.0],
+                      nodes='state_input'))
+            p.set_val('traj.burn2.states:vr', value=burn2.interpolate(ys=[0, 0],
+                                                                      nodes='state_input'))
+            p.set_val('traj.burn2.states:vt',
+                      value=burn2.interpolate(ys=[1, np.sqrt(1 / r_target)],
+                                              nodes='state_input'))
+            p.set_val('traj.burn2.states:deltav',
+                      value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
+            p.set_val('traj.burn2.states:accel', value=burn2.interpolate(ys=[0.1, 0],
+                      nodes='state_input'))
+
         p.set_val('traj.burn2.controls:u1', value=burn2.interpolate(ys=[0, 0],
                   nodes='control_input'))
 
@@ -213,7 +249,11 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
     # Plot results
     if show_plots:
-        exp_out = traj.simulate(times=50)
+
+        simulate = True
+
+        if simulate:
+            exp_out = traj.simulate(times=50)
 
         fig = plt.figure(figsize=(8, 4))
         fig.suptitle('Two Burn Orbit Raise Solution')
@@ -249,30 +289,34 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         u1_sol = dict((phs, p.get_val('traj.{0}.timeseries.controls:u1'.format(phs), units='deg'))
                       for phs in ['burn1', 'burn2'])
 
-        t_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.time'.format(phs)))
-                     for phs in ['burn1', 'coast', 'burn2'])
-        x_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.pos_x'.format(phs)))
-                     for phs in ['burn1', 'coast', 'burn2'])
-        y_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.pos_y'.format(phs)))
-                     for phs in ['burn1', 'coast', 'burn2'])
-        dv_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.states:deltav'.format(phs)))
-                      for phs in ['burn1', 'coast', 'burn2'])
-        u1_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.controls:u1'.format(phs),
-                                            units='deg'))
-                      for phs in ['burn1', 'burn2'])
+        if simulate:
+            t_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.time'.format(phs)))
+                         for phs in ['burn1', 'coast', 'burn2'])
+            x_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.pos_x'.format(phs)))
+                         for phs in ['burn1', 'coast', 'burn2'])
+            y_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.pos_y'.format(phs)))
+                         for phs in ['burn1', 'coast', 'burn2'])
+            dv_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.states:deltav'.format(phs)))
+                          for phs in ['burn1', 'coast', 'burn2'])
+            u1_exp = dict((phs, exp_out.get_val('traj.{0}.timeseries.controls:u1'.format(phs),
+                                                units='deg'))
+                          for phs in ['burn1', 'burn2'])
 
         for phs in ['burn1', 'coast', 'burn2']:
             try:
                 ax_u1.plot(t_sol[phs], u1_sol[phs], 'ro', ms=3)
-                ax_u1.plot(t_exp[phs], u1_exp[phs], 'b-')
+                if simulate:
+                    ax_u1.plot(t_exp[phs], u1_exp[phs], 'b-')
             except KeyError:
                 pass
 
             ax_deltav.plot(t_sol[phs], dv_sol[phs], 'ro', ms=3)
-            ax_deltav.plot(t_exp[phs], dv_exp[phs], 'b-')
+            if simulate:
+                ax_deltav.plot(t_exp[phs], dv_exp[phs], 'b-')
 
             ax_xy.plot(x_sol[phs], y_sol[phs], 'ro', ms=3, label='implicit')
-            ax_xy.plot(x_exp[phs], y_exp[phs], 'b-', label='explicit')
+            if simulate:
+                ax_xy.plot(x_exp[phs], y_exp[phs], 'b-', label='explicit')
 
         plt.show()
 

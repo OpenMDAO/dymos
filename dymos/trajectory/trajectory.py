@@ -323,11 +323,14 @@ class Trajectory(Group):
                 if options['connected']:
 
                     if var == 'time':
-                        if options['tgt_loc'] == 'initial':
-                            path = 't_initial'
+                        if options['tgt_loc'] == 'final':
+                            msg = "Connecting to final time is unsupported."
+                            raise ValueError(msg)
 
-                            self.connect('{0}.{1}'.format(phase_name1, source1),
-                                         '{0}.{1}'.format(phase_name2, path))
+                        else:
+                            src = '{0}.{1}'.format(phase_name1, source1)
+                            path = 't_initial'
+                            self.connect(src, '{0}.{1}'.format(phase_name2, path))
 
                     else:
                         p2_opt = p2.state_options[var]

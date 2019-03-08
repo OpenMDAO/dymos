@@ -6,7 +6,8 @@ from six import iteritems
 
 import numpy as np
 
-from openmdao.api import IndepVarComp, DirectSolver, NewtonSolver, BoundsEnforceLS
+from openmdao.api import IndepVarComp, DirectSolver, NewtonSolver, BoundsEnforceLS, \
+     NonlinearBlockGS
 
 from ..optimizer_based.components import CollocationComp, StateInterpComp
 from ..components import TimeComp
@@ -58,8 +59,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         if self.create_state_indepvarcomp:
             order.append('indep_states')
 
-        order += ['time'] + control_interp_comp + \
-            ['indep_jumps', 'initial_conditions', 'final_conditions']
+        order += ['time'] + control_interp_comp + ['indep_jumps']
 
         if transcription == 'gauss-lobatto':
             order = order + ['rhs_disc', 'state_interp', 'rhs_col', 'collocation_constraint']
@@ -67,6 +67,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
             order = order + ['state_interp', 'rhs_all', 'collocation_constraint']
         else:
             raise ValueError('Invalid transcription: {0}'.format(transcription))
+
+        # These need to be after the collocation_constraint for optimized connected segments.
+        # A future refactor will remove these coponents.
+        order += ['initial_conditions', 'final_conditions']
 
         if self.grid_data.num_segments > 1:
             order.append('continuity_comp')
@@ -88,6 +92,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
             newton.linesearch = BoundsEnforceLS()
 
             self.linear_solver = DirectSolver()
+
+        elif self.any_optimized_connected_segments:
+            solver = self.nonlinear_solver = NonlinearBlockGS()
+            solver.options['maxiter'] = 2
 
     def _setup_time(self):
         time_units = self.time_options['units']
@@ -231,6 +239,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         self.create_state_indepvarcomp = False
         self.any_solved_segments = False
+        self.any_optimized_connected_segments = False
         p_outputs = []
         for name, options in iteritems(self.state_options):
             if options['solve_segments']:
@@ -239,6 +248,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
             elif not options['connected_initial'] and not options['connected_final']:
                 self.create_state_indepvarcomp = True
             else:
+                self.any_optimized_connected_segments = True
                 p_outputs = ['states:*']
 
         self.add_subsystem('collocation_constraint',
