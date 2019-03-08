@@ -489,7 +489,7 @@ class PhaseBase(Group):
             self.traj_parameter_options[name]['units'] = units
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
-                                shape=None, indices=None, flat_indices=True,
+                                shape=None, indices=None,
                                 lower=None, upper=None, equals=None, scaler=None, adder=None,
                                 ref=None, ref0=None, linear=False):
         r"""
@@ -515,13 +515,9 @@ class PhaseBase(Group):
             automatically for time, states, controls, and input/design parameters, but is required
             if the constrained variable is an output of the ODE system.
         indices : tuple, list, ndarray, or None
-            The indices of the output variable to be boundary constrained.  If provided, the
-            resulting constraint is always a 1D vector with the number of elements provided in
-            indices.  Indices should be a 1D sequence of tuples, each providing an index into the
-            source output if flat_indices is False, or integers if flat_indices is True.
-        flat_indices : bool
-            Whether or not indices is provided as 'flat' indices per OpenMDAO's flat_source_indices
-            option when connecting variables.
+            The indices of the output variable to be boundary constrained.  Indices assumes C-order
+            flattening.  For instance, when constraining element [0, 1] of a variable of shape
+            [2, 2], indices would be [3].
         lower : float or ndarray, optional
             Lower boundary for the variable
         upper : float or ndarray, optional
@@ -548,6 +544,8 @@ class PhaseBase(Group):
         if constraint_name is None:
             constraint_name = name.split('.')[-1]
 
+        self.add_timeseries_output(name, constraint_name, units=units, shape=shape)
+
         bc_dict = self._initial_boundary_constraints \
             if loc == 'initial' else self._final_boundary_constraints
 
@@ -556,7 +554,6 @@ class PhaseBase(Group):
 
         bc_dict[name]['shape'] = shape
         bc_dict[name]['indices'] = indices
-        bc_dict[name]['flat_indices'] = flat_indices
         bc_dict[name]['lower'] = lower
         bc_dict[name]['upper'] = upper
         bc_dict[name]['equals'] = equals
@@ -567,9 +564,9 @@ class PhaseBase(Group):
         bc_dict[name]['linear'] = linear
         bc_dict[name]['units'] = units
 
-    def add_path_constraint(self, name, constraint_name=None, units=None, lower=None,
-                            upper=None, equals=None, scaler=None, adder=None,
-                            ref=None, ref0=None, linear=False):
+    def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
+                            lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
+                            ref0=None, linear=False):
         r"""
         Add a path constraint to a variable in the phase.
 
@@ -585,6 +582,14 @@ class PhaseBase(Group):
             The units in which the boundary constraint is to be applied.  If None, use the
             units associated with the constrained output.  If provided, must be compatible with
             the variables units.
+        shape : tuple, list, ndarray, or None
+            The shape of the variable being boundary-constrained.  This can be inferred
+            automatically for time, states, controls, and input/design parameters, but is required
+            if the constrained variable is an output of the ODE system.
+        indices : tuple, list, ndarray, or None
+            The indices of the output variable to be path constrained.  Indices assumes C-order
+            flattening.  For instance, when constraining element [0, 1] of a variable of shape
+            [2, 2], indices would be [3].
         lower : float or ndarray, optional
             Lower boundary for the variable
         upper : float or ndarray, optional
@@ -612,6 +617,8 @@ class PhaseBase(Group):
             self._path_constraints[name] = {}
             self._path_constraints[name]['constraint_name'] = constraint_name
 
+        self.add_timeseries_output(name, constraint_name, units=units, shape=shape)
+
         self._path_constraints[name]['lower'] = lower
         self._path_constraints[name]['upper'] = upper
         self._path_constraints[name]['equals'] = equals
@@ -619,6 +626,8 @@ class PhaseBase(Group):
         self._path_constraints[name]['adder'] = adder
         self._path_constraints[name]['ref0'] = ref0
         self._path_constraints[name]['ref'] = ref
+        self._path_constraints[name]['indices'] = indices
+        self._path_constraints[name]['shape'] = shape
         self._path_constraints[name]['linear'] = linear
         self._path_constraints[name]['units'] = units
 
