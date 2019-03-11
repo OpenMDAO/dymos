@@ -40,6 +40,24 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
             assert_rel_error(self, p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
                              tolerance=2.0E-3)
 
+
+# This test is separate because connected phases aren't directly parallelizable.
+class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
+
+    def setUp(self):
+        self.orig_dir = os.getcwd()
+        self.temp_dir = mkdtemp()
+        os.chdir(self.temp_dir)
+
+    def tearDown(self):
+        os.chdir(self.orig_dir)
+        try:
+            rmtree(self.temp_dir)
+        except OSError as e:
+            # If directory already deleted, keep going
+            if e.errno not in (errno.ENOENT, errno.EACCES, errno.EPERM):
+                raise e
+
     def test_ex_two_burn_orbit_raise_connected(self):
         _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
 

@@ -8,8 +8,9 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.optimizer_based.components import CollocationComp
 from dymos.phases.grid_data import GridData
+from dymos.phases.optimizer_based.components import CollocationComp
+from dymos.phases.optimizer_based.components.state_independents import StateIndependentsComp
 
 
 class TestCollocationCompSolOpt(unittest.TestCase):
@@ -24,10 +25,10 @@ class TestCollocationCompSolOpt(unittest.TestCase):
 
         state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
                                'fix_final': False, 'solve_segments': False,
-                               'connected_initial': False, 'connected_final': False},
+                               'connected_initial': False},
                          'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial': False,
                                'fix_final': True, 'solve_segments': True,
-                               'connected_initial': False, 'connected_final': False}}
+                               'connected_initial': False}}
 
         indep_comp = IndepVarComp()
         p.model.add_subsystem('indep', indep_comp, promotes_outputs=['*'])
@@ -54,11 +55,15 @@ class TestCollocationCompSolOpt(unittest.TestCase):
         p.model.add_subsystem('defect_comp',
                               subsys=CollocationComp(grid_data=gd, state_options=state_options))
 
+        indep = StateIndependentsComp(grid_data=gd, state_options=state_options)
+        p.model.add_subsystem('state_indep', indep, promotes_outputs=['*'])
+
         p.model.connect('f_approx:x', 'defect_comp.f_approx:x')
         p.model.connect('f_approx:v', 'defect_comp.f_approx:v')
         p.model.connect('f_computed:x', 'defect_comp.f_computed:x')
         p.model.connect('f_computed:v', 'defect_comp.f_computed:v')
         p.model.connect('dt_dstau', 'defect_comp.dt_dstau')
+        p.model.connect('defect_comp.defects:v', 'state_indep.defects:v')
 
         p.setup(force_alloc_complex=True)
 
@@ -85,8 +90,8 @@ class TestCollocationCompSolOpt(unittest.TestCase):
         assert_almost_equal(p['defect_comp.defects:x'],
                             dt_dstau[:, np.newaxis] * (p['f_approx:x']-p['f_computed:x']))
 
-        solver_nodes = p.model.defect_comp.solver_node_idx[:-1]  # fix_final
-        assert_almost_equal(p.model._residuals['defect_comp.states:v'][solver_nodes],
+        solver_nodes = p.model.state_indep.solver_node_idx[:-1]  # fix_final
+        assert_almost_equal(p.model._residuals['state_indep.states:v'][solver_nodes],
                             dt_dstau[:, np.newaxis, np.newaxis] *
                             (p['f_approx:v']-p['f_computed:v']))
 
@@ -99,8 +104,8 @@ class TestCollocationCompSolOpt(unittest.TestCase):
         assert_almost_equal(p['defect_comp.defects:x'],
                             dt_dstau[:, np.newaxis] * (p['f_approx:x']-p['f_computed:x']))
 
-        solver_nodes = p.model.defect_comp.solver_node_idx[:-1]  # fix_final
-        assert_almost_equal(p.model._residuals['defect_comp.states:v'][solver_nodes],
+        solver_nodes = p.model.state_indep.solver_node_idx[:-1]  # fix_final
+        assert_almost_equal(p.model._residuals['state_indep.states:v'][solver_nodes],
                             dt_dstau[:, np.newaxis, np.newaxis] *
                             (p['f_approx:v']-p['f_computed:v']))
 

@@ -254,28 +254,6 @@ class TestPhaseBase(unittest.TestCase):
         expected = 'Invalid boundary constraint location "foo". Must be "initial" or "final".'
         self.assertEqual(str(e.exception), expected)
 
-    def test_invalid_set_options(self):
-        from openmdao.api import Problem
-        p = Problem(model=Group())
-
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneODE,
-                      num_segments=20,
-                      transcription_order=3,
-                      compressed=True)
-
-        phase.set_state_options('x', connected_initial=True, connected_final=True,
-                                solve_segments=True)
-
-        p.model.add_subsystem('z', phase)
-
-        with self.assertRaises(ValueError) as e:
-            p.setup()
-
-        msg = 'Can not use solver based collocation defects with both "connected_initial" and ' + \
-              '"connected_final" turned on.'
-        self.assertEqual(str(e.exception), msg)
-
     def test_objective_design_parameter_gl(self):
         from openmdao.api import Problem, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error

@@ -6,10 +6,10 @@ from six import iteritems
 
 import numpy as np
 
-from openmdao.api import IndepVarComp, DirectSolver, NewtonSolver, BoundsEnforceLS, \
-     NonlinearBlockGS
+from openmdao.api import IndepVarComp, DirectSolver, NewtonSolver, BoundsEnforceLS
 
 from ..optimizer_based.components import CollocationComp, StateInterpComp
+from ..optimizer_based.components import StateIndependentsComp
 from ..components import TimeComp
 from ..components import EndpointConditionsComp
 from ..phase_base import PhaseBase
@@ -56,8 +56,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         order = self._time_extents + indep_controls + \
             input_params + design_params + traj_params
 
-        if self.create_state_indepvarcomp:
-            order.append('indep_states')
+        order.append('indep_states')
 
         order += ['time'] + control_interp_comp + ['indep_jumps']
 
@@ -85,17 +84,13 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         self.set_order(order)
 
-        if self.any_solved_segments:
+        if self.any_solved_segs:
             newton = self.nonlinear_solver = NewtonSolver()
             newton.options['solve_subsystems'] = True
             newton.options['iprint'] = 0
             newton.linesearch = BoundsEnforceLS()
 
             self.linear_solver = DirectSolver()
-
-        elif self.any_optimized_connected_segments:
-            solver = self.nonlinear_solver = NonlinearBlockGS()
-            solver.options['maxiter'] = 2
 
     def _setup_time(self):
         time_units = self.time_options['units']
@@ -146,20 +141,25 @@ class OptimizerBasedPhaseBase(PhaseBase):
         grid_data = self.grid_data
         num_state_input_nodes = grid_data.subset_num_nodes['state_input']
 
-        indep = IndepVarComp()
+        if self.any_solved_segs or self.any_connected_opt_segs:
+            indep = StateIndependentsComp(grid_data=self.grid_data,
+                                          state_options=self.state_options)
 
-        # create des-vars for any solve_segments=False states
-        # NOTE: solve_segments=True states get their state:<state_name> vars from the output
-        #       of the implicit collocation_comp
-        for name, options in iteritems(self.state_options):
-            if not options['solve_segments'] and not options['connected_initial'] and \
-               not options['connected_final']:
-                indep.add_output(name='states:{0}'.format(name),
-                                 shape=(num_state_input_nodes, np.prod(options['shape'])),
-                                 units=options['units'])
+            for name, options in iteritems(self.state_options):
+                if options['solve_segments']:
+                    self.connect('collocation_constraint.defects:{0}'.format(name),
+                                 'indep_states.defects:{0}'.format(name))
 
-        if self.create_state_indepvarcomp:
-            self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
+        else:
+            indep = IndepVarComp()
+
+            for name, options in iteritems(self.state_options):
+                if not options['solve_segments'] and not options['connected_initial']:
+                    indep.add_output(name='states:{0}'.format(name),
+                                     shape=(num_state_input_nodes, np.prod(options['shape'])),
+                                     units=options['units'])
+
+        self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
 
         # add all the des-vars (either from the IndepVarComp or from the indep-var-like
         # outputs of the collocation comp)
@@ -167,7 +167,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
             size = np.prod(options['shape'])
             if options['opt']:
                 if options['solve_segments']:
-                    desvar_indices = list(self.collocation_constraint.state_idx_map[name]['indep'])
+                    desvar_indices = list(indep.state_idx_map[name]['indep'])
                 else:
                     desvar_indices = list(range(size * num_state_input_nodes))
 
@@ -195,9 +195,6 @@ class OptimizerBasedPhaseBase(PhaseBase):
                         del desvar_indices[-size + idx_to_fix]
                 else:
                     del desvar_indices[-size:]
-
-            elif options['connected_final'] and not options['solve_segments']:
-                del desvar_indices[-size:]
 
             if len(desvar_indices) > 0:
                 coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
@@ -237,25 +234,18 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         time_units = self.time_options['units']
 
-        self.create_state_indepvarcomp = False
-        self.any_solved_segments = False
-        self.any_optimized_connected_segments = False
-        p_outputs = []
+        self.any_solved_segs = False
+        self.any_connected_opt_segs = False
         for name, options in iteritems(self.state_options):
             if options['solve_segments']:
-                self.any_solved_segments = True
-                p_outputs = ['states:*']
-            elif not options['connected_initial'] and not options['connected_final']:
-                self.create_state_indepvarcomp = True
-            else:
-                self.any_optimized_connected_segments = True
-                p_outputs = ['states:*']
+                self.any_solved_segs = True
+            elif options['connected_initial']:
+                self.any_connected_opt_segs = True
 
         self.add_subsystem('collocation_constraint',
                            CollocationComp(grid_data=grid_data,
                                            state_options=self.state_options,
-                                           time_units=time_units),
-                           promotes_outputs=p_outputs)
+                                           time_units=time_units))
 
         self.connect('time.dt_dstau', ('collocation_constraint.dt_dstau'),
                      src_indices=grid_data.subset_node_indices['col'])

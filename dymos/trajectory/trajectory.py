@@ -272,11 +272,7 @@ class Trajectory(Group):
                         p2_opt = p2.state_options[var]
 
                         # Trajectory linkage modifies these options in connected states.
-                        if options['tgt_loc'] == 'final':
-                            p2_opt['connected_final'] = True
-                        else:
-                            p2_opt['connected_initial'] = True
-
+                        p2_opt['connected_initial'] = True
                         p2.time_options['input_initial'] = True
 
                 else:
@@ -323,22 +319,13 @@ class Trajectory(Group):
                 if options['connected']:
 
                     if var == 'time':
-                        if options['tgt_loc'] == 'final':
-                            msg = "Connecting to final time is unsupported."
-                            raise ValueError(msg)
-
-                        else:
-                            src = '{0}.{1}'.format(phase_name1, source1)
-                            path = 't_initial'
-                            self.connect(src, '{0}.{1}'.format(phase_name2, path))
+                        src = '{0}.{1}'.format(phase_name1, source1)
+                        path = 't_initial'
+                        self.connect(src, '{0}.{1}'.format(phase_name2, path))
 
                     else:
                         p2_opt = p2.state_options[var]
-
-                        if options['tgt_loc'] == 'final':
-                            path = 'collocation_constraint.final_states:{0}'.format(var)
-                        else:
-                            path = 'collocation_constraint.initial_states:{0}'.format(var)
+                        path = 'indep_states.initial_states:{0}'.format(var)
 
                         self.connect('{0}.{1}'.format(phase_name1, source1),
                                      '{0}.{1}'.format(phase_name2, path))
@@ -379,8 +366,7 @@ class Trajectory(Group):
         if self._linkages:
             self._setup_linkages()
 
-    def link_phases(self, phases, vars=None, locs=('++', '--'), connected=False, src_loc='final',
-                    tgt_loc='initial'):
+    def link_phases(self, phases, vars=None, locs=('++', '--'), connected=False):
         """
         Specifies that phases in the given sequence are to be assume continuity of the given
         variables.
@@ -418,12 +404,6 @@ class Trajectory(Group):
         connected : bool
             Set to True to directly connect the phases being linked. Otherwise, create constraints
             for the optimizer to solve.
-        src_loc : str
-            Which end of the phase to connect on the source side of the linkage. Can be initial or
-            final. Default is final.
-        tgt_loc : str
-            Which end of the phase to connect on the target side of the linkage. Can be initial or
-            final. Default is initial.
 
         Examples
         --------
@@ -496,9 +476,7 @@ class Trajectory(Group):
 
             for var in sorted(implicitly_linked_vars.union(explicitly_linked_vars)):
                 self._linkages[phase1_name, phase2_name][var] = {'locs': locs, 'units': None,
-                                                                 'connected': connected,
-                                                                 'src_loc': src_loc,
-                                                                 'tgt_loc': tgt_loc}
+                                                                 'connected': connected}
 
     def simulate(self, times='all', record=True, record_file=None, time_units='s'):
         """

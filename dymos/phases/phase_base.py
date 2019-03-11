@@ -97,8 +97,7 @@ class PhaseBase(Group):
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
                           ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
-                          solve_segments=False, propagation='forward', connected_initial=False,
-                          connected_final=False):
+                          solve_segments=False, propagation='forward', connected_initial=False):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -145,9 +144,8 @@ class PhaseBase(Group):
             The direction of time propagation for this state when solve_segments is True.  Must be
             one of 'forward' or 'backward'.
         connected_initial : bool
-            If True, then the initial value for this state comes from an externally connected source.
-        connected_final : bool
-            If True, then the final value for this state comes from an externally connected source.
+            If True, then the initial value for this state comes from an externally connected
+            source.
         """
         if units is not _unspecified:
             self.state_options[name]['units'] = units
@@ -167,8 +165,6 @@ class PhaseBase(Group):
         self.state_options[name]['solve_segments'] = solve_segments
         self.state_options[name]['propagation'] = propagation
         self.state_options[name]['connected_initial'] = connected_initial
-        self.state_options[name]['connected_final'] = connected_final
-
 
     def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,
