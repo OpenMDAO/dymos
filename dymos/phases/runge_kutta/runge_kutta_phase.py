@@ -6,7 +6,6 @@ import warnings
 import numpy as np
 from dymos.phases.components import EndpointConditionsComp
 from dymos.phases.phase_base import PhaseBase, _unspecified
-from dymos.phases.grid_data import GridData
 
 from openmdao.api import IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
     NewtonSolver, BoundsEnforceLS

@@ -60,3 +60,11 @@ Two Burn Orbit Raise
   :titlesonly:
 
   two_burn_orbit_raise
+
+Multibranch Trajectory
+----------------------
+.. toctree::
+  :maxdepth: 1
+  :titlesonly:
+
+  multibranch_trajectory

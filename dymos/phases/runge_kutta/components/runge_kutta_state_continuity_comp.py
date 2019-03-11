@@ -37,7 +37,6 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
         self._var_names = {}
 
         for state_name, options in iteritems(state_options):
-
             self._var_names[state_name] = {
                 'states': 'states:{0}'.format(state_name),
                 'integral': 'state_integrals:{0}'.format(state_name)
