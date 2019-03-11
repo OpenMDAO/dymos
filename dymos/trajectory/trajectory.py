@@ -37,6 +37,12 @@ class Trajectory(Group):
         self._phases = OrderedDict()
         self._phase_add_kwargs = {}
 
+    def initialize(self):
+        """
+        Declare any options for Trajectory.
+        """
+        pass
+
     def add_phase(self, name, phase, **kwargs):
         """
         Add a phase to the trajectory.

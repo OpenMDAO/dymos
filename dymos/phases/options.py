@@ -400,10 +400,6 @@ class TimeOptionsDictionary(OptionsDictionary):
                      desc='targets in the ODE to which the elapsed duration of the phase is '
                           'connected')
 
-        self.declare('solve_continuity', default=False, types=bool,
-                     desc='setting to control if inter-segment state continuity defects are '
-                          'solved with a newton solver')
-
         self.declare(name='t_initial_targets', types=Iterable, allow_none=True, default=None,
                      desc='targets in the ODE to which the initial time of the phase is '
                           'connected')
