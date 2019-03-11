@@ -37,7 +37,7 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
         self._var_names = {}
 
         for state_name, options in iteritems(state_options):
-            direction = options['time_direction']
+            direction = options['propagation']
 
             self._var_names[state_name] = {
                 'states': 'states:{0}'.format(state_name),
@@ -104,7 +104,7 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
 
         for state_name, options in iteritems(state_options):
             names = self._var_names[state_name]
-            direction = options['time_direction']
+            direction = options['propagation']
 
             x_i = outputs[names['states']][:-1, ...]
             x_f = outputs[names['states']][1:, ...]

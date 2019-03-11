@@ -108,9 +108,9 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
 
-        phase.set_state_options('x', fix_initial=False, fix_final=True, time_direction='backward')
-        phase.set_state_options('y', fix_initial=False, fix_final=True, time_direction='backward')
-        phase.set_state_options('v', fix_initial=False, fix_final=False, time_direction='backward')
+        phase.set_state_options('x', fix_initial=False, fix_final=True, propagation='backward')
+        phase.set_state_options('y', fix_initial=False, fix_final=True, propagation='backward')
+        phase.set_state_options('v', fix_initial=False, fix_final=False, propagation='backward')
 
         phase.add_control('theta', units='deg', lower=0.01, upper=179.9, ref0=0, ref=180.0,
                           rate_continuity=True, rate2_continuity=True)
