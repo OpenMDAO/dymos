@@ -32,6 +32,8 @@ they share the same initial time and state of charge.
 Battery and Motor models
 ------------------------
 
+The models are loosely based on the work done in [Chin2019]_
+
 ..  embed-code::
     examples.battery_multibranch.batteries
     :layout: code
