@@ -302,7 +302,7 @@ class RungeKuttaPhase(PhaseBase):
                                         indices=desvar_indices)
 
     def _setup_controls(self):
-        num_dynamic = super(RungeKuttaPhase, self)._setup_controls()
+        super(RungeKuttaPhase, self)._setup_controls()
         grid_data = self.grid_data
 
         for name, options in iteritems(self.control_options):
@@ -312,7 +312,7 @@ class RungeKuttaPhase(PhaseBase):
             all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
 
             if name in self.ode_options._parameters:
-                src_name = 'control_interp_comp.control_values:{0}'.format(name)
+                src_name = 'control_values:{0}'.format(name)
                 targets = self.ode_options._parameters[name]['targets']
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
@@ -345,8 +345,6 @@ class RungeKuttaPhase(PhaseBase):
                 self.connect(src_name,
                              ['rk_solve_group.{0}'.format(t) for t in targets],
                              src_indices=all_src_idxs, flat_src_indices=True)
-
-        return num_dynamic
 
     def _setup_polynomial_controls(self):
         super(RungeKuttaPhase, self)._setup_polynomial_controls()
@@ -419,7 +417,7 @@ class RungeKuttaPhase(PhaseBase):
                 segment_end_idxs = grid_data.subset_node_indices['segment_ends']
                 src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
 
-                self.connect('control_interp_comp.control_values:{0}'.format(name),
+                self.connect('control_values:{0}'.format(name),
                              'continuity_comp.controls:{0}'.format(name),
                              src_indices=src_idxs, flat_src_indices=True)
 
@@ -511,10 +509,10 @@ class RungeKuttaPhase(PhaseBase):
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(control_name))
 
-            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
+            self.connect('control_values:{0}'.format(control_name),
                          'initial_conditions.initial_value:{0}'.format(control_name))
 
-            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
+            self.connect('control_values:{0}'.format(control_name),
                          'final_conditions.final_value:{0}'.format(control_name))
 
             self.connect('initial_jump:{0}'.format(control_name),
@@ -588,7 +586,7 @@ class RungeKuttaPhase(PhaseBase):
                 src_rows = self.grid_data.subset_node_indices['segment_ends']
                 src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
 
-                src = 'control_interp_comp.control_values:{0}'.format(var)
+                src = 'control_values:{0}'.format(var)
 
                 tgt = 'path_constraints.all_values:{0}'.format(con_name)
 
@@ -727,7 +725,7 @@ class RungeKuttaPhase(PhaseBase):
                                                    units=control_units)
             src_rows = gd.subset_node_indices['segment_ends']
             src_idxs = get_src_indices_by_row(src_rows, options['shape'])
-            self.connect(src_name='control_interp_comp.control_values:{0}'.format(name),
+            self.connect(src_name='control_values:{0}'.format(name),
                          tgt_name='timeseries.segend_values:controls:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
@@ -999,9 +997,9 @@ class RungeKuttaPhase(PhaseBase):
         elif var_type == 'state':
             obj_path = 'timeseries.states:{0}'.format(name)
         elif var_type == 'indep_control':
-            obj_path = 'control_interp_comp.control_values:{0}'.format(name)
+            obj_path = 'control_values:{0}'.format(name)
         elif var_type == 'input_control':
-            obj_path = 'control_interp_comp.control_values:{0}'.format(name)
+            obj_path = 'control_values:{0}'.format(name)
         elif var_type == 'control_rate':
             control_name = name[:-5]
             obj_path = 'control_rates:{0}_rate'.format(control_name)

@@ -102,7 +102,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             if name in self.ode_options._parameters:
                 targets = self.ode_options._parameters[name]['targets']
 
-                self.connect('control_interp_comp.control_values:{0}'.format(name),
+                self.connect('control_values:{0}'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
             if options['rate_param']:
@@ -220,7 +220,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 options['shape'] = control_shape
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
-                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+                constraint_path = 'control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
@@ -231,7 +231,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 options['shape'] = control_shape
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
-                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+                constraint_path = 'control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
@@ -349,7 +349,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                    units=control_units)
             src_rows = gd.subset_node_indices['all']
             src_idxs = get_src_indices_by_row(src_rows, options['shape'])
-            self.connect(src_name='control_interp_comp.control_values:{0}'.format(name),
+            self.connect(src_name='control_values:{0}'.format(name),
                          tgt_name='timeseries.all_values:controls:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
@@ -549,10 +549,10 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 rate_path = 'states:{0}'.format(var)
                 node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'indep_control':
-            rate_path = 'control_interp_comp.control_values:{0}'.format(var)
+            rate_path = 'control_values:{0}'.format(var)
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'input_control':
-            rate_path = 'control_interp_comp.control_values:{0}'.format(var)
+            rate_path = 'control_values:{0}'.format(var)
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'control_rate':
             control_name = var[:-5]

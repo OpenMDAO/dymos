@@ -4,13 +4,10 @@ import os
 import unittest
 from numpy.testing import assert_almost_equal
 
-from parameterized import parameterized
-from itertools import product
-
 import dymos.examples.brachistochrone.ex_brachistochrone as ex_brachistochrone
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
-OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
+OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 
 
 class TestBrachistochroneExample(unittest.TestCase):

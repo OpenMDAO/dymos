@@ -117,7 +117,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             state_disc_idxs = grid_data.subset_node_indices['state_disc']
             col_idxs = grid_data.subset_node_indices['col']
 
-            control_src_name = 'control_interp_comp.control_values:{0}'.format(name)
+            control_src_name = 'control_values:{0}'.format(name)
 
             if name in self.ode_options._parameters:
                 targets = self.ode_options._parameters[name]['targets']
@@ -289,7 +289,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
 
-                constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+                constraint_path = 'control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
@@ -400,7 +400,7 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
                                                    units=control_units)
-            self.connect(src_name='control_interp_comp.control_values:{0}'.format(name),
+            self.connect(src_name='control_values:{0}'.format(name),
                          tgt_name='timeseries.all_values:controls:{0}'.format(name))
 
             # # Control rates
@@ -540,10 +540,10 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                 src_idxs = make_subset_map(gd.subset_node_indices['state_input'],
                                            gd.subset_node_indices[nodes])
         elif var_type == 'indep_control':
-            rate_path = 'control_interp_comp.control_values:{0}'.format(var)
+            rate_path = 'control_values:{0}'.format(var)
             src_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'input_control':
-            rate_path = 'control_interp_comp.control_values:{0}'.format(var)
+            rate_path = 'control_values:{0}'.format(var)
             src_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'control_rate':
             control_name = var[:-5]
@@ -681,9 +681,9 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         elif var_type == 'state':
             obj_path = 'states:{0}'.format(name)
         elif var_type == 'indep_control':
-            obj_path = 'control_interp_comp.control_values:{0}'.format(name)
+            obj_path = 'control_values:{0}'.format(name)
         elif var_type == 'input_control':
-            obj_path = 'control_interp_comp.control_values:{0}'.format(name)
+            obj_path = 'control_values:{0}'.format(name)
         elif var_type == 'control_rate':
             control_name = name[:-5]
             obj_path = 'control_rates:{0}_rate'.format(control_name)

@@ -17,6 +17,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,
@@ -104,6 +105,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('radau-ps',
                       ode_class=BrachistochroneODE,
@@ -191,6 +193,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = RungeKuttaPhase(ode_class=BrachistochroneODE,
                                 num_segments=10)
@@ -283,6 +286,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,
@@ -373,6 +377,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('radau-ps',
                       ode_class=BrachistochroneODE,
@@ -463,6 +468,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = RungeKuttaPhase(ode_class=BrachistochroneODE,
                                 num_segments=10)
@@ -558,6 +564,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,
@@ -647,6 +654,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('radau-ps',
                       ode_class=BrachistochroneODE,
@@ -736,6 +744,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = RungeKuttaPhase(ode_class=BrachistochroneODE,
                                 num_segments=10)
@@ -830,6 +839,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,
@@ -919,6 +929,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('radau-ps',
                       ode_class=BrachistochroneODE,
@@ -1008,6 +1019,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = RungeKuttaPhase(ode_class=BrachistochroneODE,
                                 num_segments=10)
@@ -1102,6 +1114,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,
@@ -1191,6 +1204,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('radau-ps',
                       ode_class=BrachistochroneODE,
@@ -1280,6 +1294,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = RungeKuttaPhase(ode_class=BrachistochroneODE,
                                 num_segments=10)
@@ -1372,6 +1387,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,
@@ -1431,6 +1447,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('radau-ps',
                       ode_class=BrachistochroneODE,
@@ -1491,6 +1508,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
 
         phase = RungeKuttaPhase(ode_class=BrachistochroneODE,
                                 num_segments=10)

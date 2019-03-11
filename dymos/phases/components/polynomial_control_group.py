@@ -184,7 +184,7 @@ class PolynomialControlGroup(Group):
 
     def initialize(self):
         self.options.declare('polynomial_control_options', types=dict,
-                             desc='Dictionary of options for the dynamic controls')
+                             desc='Dictionary of options for the polynomial controls')
         self.options.declare('time_units', default=None, allow_none=True, types=string_types,
                              desc='Units of time')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')

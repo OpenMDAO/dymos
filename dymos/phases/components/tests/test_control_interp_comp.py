@@ -11,7 +11,7 @@ from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.phases.components import TimeComp
-from dymos.phases.components import ControlInterpComp
+from dymos.phases.components.control_group import ControlInterpComp
 from dymos.phases.grid_data import GridData
 
 

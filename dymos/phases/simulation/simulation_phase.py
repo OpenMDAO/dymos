@@ -15,7 +15,7 @@ from .simulation_state_mux_comp import SimulationStateMuxComp
 from .simulation_phase_control_interp_comp import SimulationPhaseControlInterpComp
 from .simulation_timeseries_comp import SimulationTimeseriesOutputComp
 from ..options import InputParameterOptionsDictionary, TimeOptionsDictionary
-from ..components import InputParameterComp
+from ..components import InputParameterComp, PolynomialControlGroup
 
 
 class SimulationPhase(Group):
@@ -34,6 +34,7 @@ class SimulationPhase(Group):
 
         self.state_options = {}
         self.control_options = {}
+        self.polynomial_control_options = {}
         self.design_parameter_options = {}
         self.input_parameter_options = {}
         self.traj_parameter_options = {}
@@ -269,6 +270,52 @@ class SimulationPhase(Group):
 
             if options['rate2_param']:
                 self.connect(src_name='interp_comp.control_rates:{0}_rate2'.format(name),
+                             tgt_name=['ode.{0}'.format(tgt) for tgt in options['rate2_param']])
+
+    def _setup_polynomial_controls(self, ivc):
+        gd = self.options['grid_data']
+        nn = gd.subset_num_nodes['all']
+        num_seg = gd.num_segments
+
+        if self.polynomial_control_options:
+
+            c = PolynomialControlGroup(polynomial_control_options=self.polynomial_control_options,
+                                       grid_data=gd,
+                                       time_units=self.time_options['units'])
+
+            self.add_subsystem('polynomial_controls', c)
+
+        for name, options in iteritems(self.polynomial_control_options):
+            ivc.add_output('polynomial_controls:{0}'.format(name),
+                           val=np.ones((nn,) + options['shape']),
+                           units=options['units'])
+
+            for i in range(num_seg):
+                i1, i2 = gd.subset_segment_indices['all'][i, :]
+                seg_idxs = gd.subset_node_indices['all'][i1:i2]
+                src_idxs = get_src_indices_by_row(row_idxs=seg_idxs, shape=options['shape'])
+                self.connect(src_name='polynomial_controls:{0}'.format(name),
+                             tgt_name='segment_{0}.polynomial_controls:{1}'.format(i, name),
+                             src_indices=src_idxs, flat_src_indices=True)
+
+            # connect the control to the interpolator
+
+            row_idxs = gd.subset_node_indices['control_disc']
+            src_idxs = get_src_indices_by_row(row_idxs=row_idxs, shape=options['shape'])
+            self.connect(src_name='polynomial_controls:{0}'.format(name),
+                         tgt_name='polynomial_controls:{0}'.format(name),
+                         src_indices=src_idxs, flat_src_indices=True)
+
+            if options['targets']:
+                self.connect(src_name='polynomial_control_values:{0}'.format(name),
+                             tgt_name=['ode.{0}'.format(tgt) for tgt in options['targets']])
+
+            if options['rate_param']:
+                self.connect(src_name='polynomial_control_rates:{0}_rate'.format(name),
+                             tgt_name=['ode.{0}'.format(tgt) for tgt in options['rate_param']])
+
+            if options['rate2_param']:
+                self.connect(src_name='polynomial_control_rates:{0}_rate2'.format(name),
                              tgt_name=['ode.{0}'.format(tgt) for tgt in options['rate2_param']])
 
     def _setup_design_parameters(self, ivc):

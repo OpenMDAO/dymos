@@ -183,7 +183,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
                          tolerance=2.0E-3)
 
         # Plot results
-        exp_out = traj.simulate(times=50)
+        exp_out = traj.simulate(times=50, record=False)
 
         fig = plt.figure(figsize=(8, 4))
         fig.suptitle('Two Burn Orbit Raise Solution')

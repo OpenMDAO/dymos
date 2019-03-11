@@ -192,7 +192,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
         assert_rel_error(self, p['phase0.rhs_disc.time'], time_disc)
         assert_rel_error(self, p['phase0.rhs_col.time'], time_col)
 
-        exp_out = p.model.phase0.simulate()
+        exp_out = p.model.phase0.simulate(record=False)
 
         for iseg in range(num_seg):
             seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
@@ -233,7 +233,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         assert_rel_error(self, p['phase0.rhs_all.time'], time_all)
 
-        exp_out = p.model.phase0.simulate()
+        exp_out = p.model.phase0.simulate(record=False)
 
         for iseg in range(num_seg):
             seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
@@ -291,7 +291,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         assert_rel_error(self, p['phase0.ode.time'], time_segends)
 
-        exp_out = p.model.phase0.simulate()
+        exp_out = p.model.phase0.simulate(record=False)
 
         for iseg in range(num_seg):
             seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))

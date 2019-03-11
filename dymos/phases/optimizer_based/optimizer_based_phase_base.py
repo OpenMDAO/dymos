@@ -41,25 +41,20 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         transcription = self.options['transcription']
 
-        num_opt_controls = len([name for (name, options) in iteritems(self.control_options)
-                                if options['opt']])
-
         num_controls = len(self.control_options)
 
-        indep_controls = ['indep_controls'] if num_opt_controls > 0 else []
+        control_group = ['control_group'] if num_controls > 0 else []
         design_params = ['design_params'] if self.design_parameter_options else []
         input_params = ['input_params'] if self.input_parameter_options else []
         traj_params = ['traj_params'] if self.traj_parameter_options else []
-        control_interp_comp = ['control_interp_comp'] if num_controls > 0 else []
         polynomial_controls = ['polynomial_controls'] if self.polynomial_control_options else []
 
-        order = self._time_extents + indep_controls + polynomial_controls + \
-            input_params + design_params + traj_params
+        order = self._time_extents + polynomial_controls + input_params + design_params + traj_params
 
         if self.any_optimized_segments:
             order.append('indep_states')
 
-        order += ['time'] + control_interp_comp + \
+        order += ['time'] + control_group + \
             ['indep_jumps', 'initial_conditions', 'final_conditions']
 
         if transcription == 'gauss-lobatto':
@@ -262,7 +257,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                  src_indices=flattened_src_idxs, flat_src_indices=True)
 
             for name, options in iteritems(self.control_options):
-                control_src_name = 'control_interp_comp.control_values:{0}'.format(name)
+                control_src_name = 'control_values:{0}'.format(name)
 
                 # The sub-indices of control_disc indices that are segment ends
                 segment_end_idxs = grid_data.subset_node_indices['segment_ends']
@@ -359,10 +354,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(control_name))
 
-            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
+            self.connect('control_values:{0}'.format(control_name),
                          'initial_conditions.initial_value:{0}'.format(control_name))
 
-            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
+            self.connect('control_values:{0}'.format(control_name),
                          'final_conditions.final_value:{0}'.format(control_name))
 
             self.connect('initial_jump:{0}'.format(control_name),
@@ -401,14 +396,14 @@ class OptimizerBasedPhaseBase(PhaseBase):
             shape = control_shape
             units = control_units
             linear = True
-            constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+            constraint_path = 'control_values:{0}'.format(var)
         elif var_type == 'input_control':
             control_shape = self.control_options[var]['shape']
             control_units = self.control_options[var]['units']
             shape = control_shape
             units = control_units
             linear = False
-            constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+            constraint_path = 'control_values:{0}'.format(var)
         elif var_type in 'indep_polynomial_control':
             control_shape = self.polynomial_control_options[var]['shape']
             control_units = self.polynomial_control_options[var]['units']

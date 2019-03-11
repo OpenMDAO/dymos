@@ -516,7 +516,7 @@ class Trajectory(Group):
 
             # Assign control values at all nodes
             for name, options in iteritems(phs.control_options):
-                op = op_dict['{0}.control_interp_comp.control_values:'
+                op = op_dict['{0}.control_group.control_interp_comp.control_values:'
                              '{1}'.format(phs.pathname, name)]
                 var_name = '{0}.{1}.implicit_controls:{2}'.format(self.name, phase_name, name)
                 sim_prob[var_name] = op['value']

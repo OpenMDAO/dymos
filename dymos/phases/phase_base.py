@@ -18,7 +18,7 @@ from dymos.phases.components import InputParameterComp
 from dymos.phases.options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
     InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary, \
     PolynomialControlOptionsDictionary
-from dymos.phases.components import ControlInterpComp, PolynomialControlGroup
+from dymos.phases.components import PolynomialControlGroup, ControlGroup
 from dymos.ode_options import ODEOptions
 from dymos.utils.constants import INF_BOUND
 from dymos.utils.misc import CoerceDesvar
@@ -1085,16 +1085,7 @@ class PhaseBase(Group):
 
         # The control interpolation comp to which we'll connect controls
         if self.control_options:
-            control_interp_comp = ControlInterpComp(control_options=self.control_options,
-                                                    time_units=self.time_options['units'],
-                                                    grid_data=self.grid_data)
             self._setup_controls()
-
-            self.add_subsystem('control_interp_comp',
-                               subsys=control_interp_comp,
-                               promotes_inputs=['controls:*'],
-                               promotes_outputs=['control_rates:*'])
-            self.connect('time.dt_dstau', 'control_interp_comp.dt_dstau')
 
         if self.polynomial_control_options:
             self._setup_polynomial_controls()
@@ -1188,51 +1179,61 @@ class PhaseBase(Group):
         Adds an IndepVarComp if necessary and issues appropriate connections based
         on transcription.
         """
-        opt_controls = [name for (name, opts) in iteritems(self.control_options) if opts['opt']]
+        if self.control_options:
+            control_group = ControlGroup(control_options=self.control_options,
+                                         time_units=self.time_options['units'],
+                                         grid_data=self.grid_data)
 
-        num_opt_controls = len(opt_controls)
+            self.add_subsystem('control_group',
+                               subsys=control_group,
+                               promotes=['controls:*', 'control_values:*', 'control_rates:*'])
+            self.connect('time.dt_dstau', 'control_group.dt_dstau')
 
-        grid_data = self.grid_data
-
-        if num_opt_controls > 0:
-            indep = self.add_subsystem('indep_controls', subsys=IndepVarComp(),
-                                       promotes_outputs=['*'])
-
-        num_dynamic_controls = 0
-
-        for name, options in iteritems(self.control_options):
-            if options['opt']:
-                num_dynamic_controls = num_dynamic_controls + 1
-                num_input_nodes = grid_data.subset_num_nodes['control_input']
-
-                desvar_indices = list(range(self.grid_data.subset_num_nodes['control_input']))
-                if options['fix_initial']:
-                    desvar_indices.pop(0)
-                if options['fix_final']:
-                    desvar_indices.pop()
-
-                if len(desvar_indices) > 0:
-                    coerce_desvar = CoerceDesvar(grid_data.subset_num_nodes['control_disc'],
-                                                 desvar_indices, options)
-
-                    lb = -INF_BOUND if coerce_desvar('lower') is None else coerce_desvar('lower')
-                    ub = INF_BOUND if coerce_desvar('upper') is None else coerce_desvar('upper')
-
-                    self.add_design_var(name='controls:{0}'.format(name),
-                                        lower=lb,
-                                        upper=ub,
-                                        scaler=coerce_desvar('scaler'),
-                                        adder=coerce_desvar('adder'),
-                                        ref0=coerce_desvar('ref0'),
-                                        ref=coerce_desvar('ref'),
-                                        indices=desvar_indices)
-
-                indep.add_output(name='controls:{0}'.format(name),
-                                 val=options['val'],
-                                 shape=(num_input_nodes, np.prod(options['shape'])),
-                                 units=options['units'])
-
-        return num_dynamic_controls
+        # opt_controls = [name for (name, opts) in iteritems(self.control_options) if opts['opt']]
+        #
+        # num_opt_controls = len(opt_controls)
+        #
+        # grid_data = self.grid_data
+        #
+        # if num_opt_controls > 0:
+        #     indep = self.add_subsystem('indep_controls', subsys=IndepVarComp(),
+        #                                promotes_outputs=['*'])
+        #
+        # num_dynamic_controls = 0
+        #
+        # for name, options in iteritems(self.control_options):
+        #     if options['opt']:
+        #         num_dynamic_controls = num_dynamic_controls + 1
+        #         num_input_nodes = grid_data.subset_num_nodes['control_input']
+        #
+        #         desvar_indices = list(range(self.grid_data.subset_num_nodes['control_input']))
+        #         if options['fix_initial']:
+        #             desvar_indices.pop(0)
+        #         if options['fix_final']:
+        #             desvar_indices.pop()
+        #
+        #         if len(desvar_indices) > 0:
+        #             coerce_desvar = CoerceDesvar(grid_data.subset_num_nodes['control_disc'],
+        #                                          desvar_indices, options)
+        #
+        #             lb = -INF_BOUND if coerce_desvar('lower') is None else coerce_desvar('lower')
+        #             ub = INF_BOUND if coerce_desvar('upper') is None else coerce_desvar('upper')
+        #
+        #             self.add_design_var(name='controls:{0}'.format(name),
+        #                                 lower=lb,
+        #                                 upper=ub,
+        #                                 scaler=coerce_desvar('scaler'),
+        #                                 adder=coerce_desvar('adder'),
+        #                                 ref0=coerce_desvar('ref0'),
+        #                                 ref=coerce_desvar('ref'),
+        #                                 indices=desvar_indices)
+        #
+        #         indep.add_output(name='controls:{0}'.format(name),
+        #                          val=options['val'],
+        #                          shape=(num_input_nodes, np.prod(options['shape'])),
+        #                          units=options['units'])
+        #
+        # return num_dynamic_controls
 
     def _setup_polynomial_controls(self):
         """
@@ -1628,7 +1629,7 @@ class PhaseBase(Group):
 
         # Assign control values at all nodes
         for name in self.control_options:
-            op = op_dict['{0}.control_interp_comp.control_values:{1}'.format(self.name, name)]
+            op = op_dict['{0}.control_group.control_interp_comp.control_values:{1}'.format(self.name, name)]
             sim_prob['{0}.implicit_controls:{1}'.format(self.name, name)] = op['value']
 
         # Assign design parameter values
