@@ -33,6 +33,7 @@ class SegmentSimulationComp(ExplicitComponent):
         self.time_options = TimeOptionsDictionary()
         self.state_options = {}
         self.control_options = {}
+        self.polynomial_control_options = {}
         self.design_parameter_options = {}
         self.input_parameter_options = {}
         self.traj_parameter_options = {}
@@ -71,6 +72,7 @@ class SegmentSimulationComp(ExplicitComponent):
             time_options=self.time_options,
             state_options=self.state_options,
             control_options=self.control_options,
+            polynomial_control_options=self.polynomial_control_options,
             design_parameter_options=self.design_parameter_options,
             input_parameter_options=self.input_parameter_options,
             traj_parameter_options=self.traj_parameter_options,

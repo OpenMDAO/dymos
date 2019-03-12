@@ -13,10 +13,8 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
                 os.remove(filename)
 
     def test_brachistochrone_recording_for_docs(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, \
             SqliteRecorder, CaseReader
         from openmdao.utils.assert_utils import assert_rel_error
@@ -85,16 +83,4 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
                                                                 out_stream=None)])
 
         assert_rel_error(self, p['phase0.controls:theta'],
-                         outputs['phase0.indep_controls.controls:theta']['value'])
-
-        phase0_options = cr.system_metadata['phase0']['component_options']
-
-        num_segments = phase0_options['num_segments']
-        transcription_order = phase0_options['transcription_order']
-        segment_ends = phase0_options['segment_ends']
-        ode_class = phase0_options['ode_class']
-
-        print(num_segments)
-        print(transcription_order)
-        print(ode_class)
-        print(segment_ends)
+                         outputs['phase0.control_group.indep_controls.controls:theta']['value'])

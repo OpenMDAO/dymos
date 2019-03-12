@@ -4,10 +4,11 @@ from six import string_types, iteritems
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+from openmdao.api import ExplicitComponent, Group, IndepVarComp
 
 from dymos.phases.grid_data import GridData
-from dymos.utils.misc import get_rate_units
+from dymos.utils.misc import get_rate_units, CoerceDesvar
+from dymos.utils.constants import INF_BOUND
 
 
 class ControlInterpComp(ExplicitComponent):
@@ -228,3 +229,69 @@ class ControlInterpComp(ExplicitComponent):
             r_nz, c_nz = self.rate2_jac_rows[name], self.rate2_jac_cols[name]
             partials[rate2_name, control_name] = \
                 (self.rate2_jacs[name] / dt_dstau_x_size ** 2)[r_nz, c_nz]
+
+
+class ControlGroup(Group):
+
+    def initialize(self):
+        self.options.declare('control_options', types=dict,
+                             desc='Dictionary of options for the dynamic controls')
+        self.options.declare('time_units', default=None, allow_none=True, types=string_types,
+                             desc='Units of time')
+        self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
+
+    def setup(self):
+
+        ivc = IndepVarComp()
+
+        # opts = self.options
+        gd = self.options['grid_data']
+        control_options = self.options['control_options']
+        time_units = self.options['time_units']
+
+        if len(control_options) < 1:
+            return
+
+        opt_controls = [name for (name, opts) in iteritems(control_options) if opts['opt']]
+
+        if len(opt_controls) > 0:
+            ivc = self.add_subsystem('indep_controls', subsys=IndepVarComp(),
+                                     promotes_outputs=['*'])
+
+        self.add_subsystem(
+            'control_interp_comp',
+            subsys=ControlInterpComp(time_units=time_units, grid_data=gd,
+                                     control_options=control_options),
+            promotes_inputs=['*'],
+            promotes_outputs=['*'])
+
+        for name, options in iteritems(control_options):
+            if options['opt']:
+                num_input_nodes = gd.subset_num_nodes['control_input']
+
+                desvar_indices = list(range(gd.subset_num_nodes['control_input']))
+                if options['fix_initial']:
+                    desvar_indices.pop(0)
+                if options['fix_final']:
+                    desvar_indices.pop()
+
+                if len(desvar_indices) > 0:
+                    coerce_desvar = CoerceDesvar(gd.subset_num_nodes['control_disc'],
+                                                 desvar_indices, options)
+
+                    lb = -INF_BOUND if coerce_desvar('lower') is None else coerce_desvar('lower')
+                    ub = INF_BOUND if coerce_desvar('upper') is None else coerce_desvar('upper')
+
+                    self.add_design_var(name='controls:{0}'.format(name),
+                                        lower=lb,
+                                        upper=ub,
+                                        scaler=coerce_desvar('scaler'),
+                                        adder=coerce_desvar('adder'),
+                                        ref0=coerce_desvar('ref0'),
+                                        ref=coerce_desvar('ref'),
+                                        indices=desvar_indices)
+
+                ivc.add_output(name='controls:{0}'.format(name),
+                               val=options['val'],
+                               shape=(num_input_nodes, np.prod(options['shape'])),
+                               units=options['units'])

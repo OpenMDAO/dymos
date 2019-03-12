@@ -42,23 +42,19 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         transcription = self.options['transcription']
 
-        num_opt_controls = len([name for (name, options) in iteritems(self.control_options)
-                                if options['opt']])
-
         num_controls = len(self.control_options)
 
-        indep_controls = ['indep_controls'] if num_opt_controls > 0 else []
+        control_group = ['control_group'] if num_controls > 0 else []
         design_params = ['design_params'] if self.design_parameter_options else []
         input_params = ['input_params'] if self.input_parameter_options else []
         traj_params = ['traj_params'] if self.traj_parameter_options else []
-        control_interp_comp = ['control_interp_comp'] if num_controls > 0 else []
+        polynomial_controls = ['polynomial_controls'] if self.polynomial_control_options else []
 
-        order = self._time_extents + indep_controls + \
-            input_params + design_params + traj_params
+        order = self._time_extents + polynomial_controls + input_params + design_params + traj_params
 
         order.append('indep_states')
 
-        order += ['time'] + control_interp_comp + ['indep_jumps']
+        order += ['time'] + control_group + ['indep_jumps']
 
         if transcription == 'gauss-lobatto':
             order = order + ['rhs_disc', 'state_interp', 'rhs_col', 'collocation_constraint']
@@ -270,7 +266,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                  src_indices=flattened_src_idxs, flat_src_indices=True)
 
             for name, options in iteritems(self.control_options):
-                control_src_name = 'control_interp_comp.control_values:{0}'.format(name)
+                control_src_name = 'control_values:{0}'.format(name)
 
                 # The sub-indices of control_disc indices that are segment ends
                 segment_end_idxs = grid_data.subset_node_indices['segment_ends']
@@ -367,10 +363,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(control_name))
 
-            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
+            self.connect('control_values:{0}'.format(control_name),
                          'initial_conditions.initial_value:{0}'.format(control_name))
 
-            self.connect('control_interp_comp.control_values:{0}'.format(control_name),
+            self.connect('control_values:{0}'.format(control_name),
                          'final_conditions.final_value:{0}'.format(control_name))
 
             self.connect('initial_jump:{0}'.format(control_name),
@@ -409,14 +405,28 @@ class OptimizerBasedPhaseBase(PhaseBase):
             shape = control_shape
             units = control_units
             linear = True
-            constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+            constraint_path = 'control_values:{0}'.format(var)
         elif var_type == 'input_control':
             control_shape = self.control_options[var]['shape']
             control_units = self.control_options[var]['units']
             shape = control_shape
             units = control_units
             linear = False
-            constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
+            constraint_path = 'control_values:{0}'.format(var)
+        elif var_type in 'indep_polynomial_control':
+            control_shape = self.polynomial_control_options[var]['shape']
+            control_units = self.polynomial_control_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = True
+            constraint_path = 'polynomial_control_values:{0}'.format(var)
+        elif var_type == 'input_polynomial_control':
+            control_shape = self.polynomial_control_options[var]['shape']
+            control_units = self.polynomial_control_options[var]['units']
+            shape = control_shape
+            units = control_units
+            linear = False
+            constraint_path = 'polynomial_control_values:{0}'.format(var)
         elif var_type == 'design_parameter':
             control_shape = self.design_parameter_options[var]['shape']
             control_units = self.design_parameter_options[var]['units']
@@ -431,24 +441,26 @@ class OptimizerBasedPhaseBase(PhaseBase):
             units = control_units
             linear = False
             constraint_path = 'input_parameters:{0}_out'.format(var)
-        elif var_type == 'control_rate':
+        elif var_type in ('control_rate', 'control_rate2'):
+            control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
+            control_shape = self.control_options[control_var]['shape']
+            control_units = self.control_options[control_var]['units']
+            d = 2 if var_type == 'control_rate2' else 1
+            control_rate_units = get_rate_units(control_units, time_units, deriv=d)
+            shape = control_shape
+            units = control_rate_units
+            linear = False
+            constraint_path = 'control_rates:{0}'.format(var)
+        elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
             control_var = var[:-5]
-            control_shape = self.control_options[control_var]['shape']
-            control_units = self.control_options[control_var]['units']
-            control_rate_units = get_rate_units(control_units, time_units, deriv=1)
+            control_shape = self.polynomial_control_options[control_var]['shape']
+            control_units = self.polynomial_control_options[control_var]['units']
+            d = 2 if var_type == 'polynomial_control_rate2' else 1
+            control_rate_units = get_rate_units(control_units, time_units, deriv=d)
             shape = control_shape
             units = control_rate_units
             linear = False
-            constraint_path = 'control_rates:{0}'.format(var)
-        elif var_type == 'control_rate2':
-            control_var = var[:-6]
-            control_shape = self.control_options[control_var]['shape']
-            control_units = self.control_options[control_var]['units']
-            control_rate_units = get_rate_units(control_units, time_units, deriv=2)
-            shape = control_shape
-            units = control_rate_units
-            linear = False
-            constraint_path = 'control_rates:{0}'.format(var)
+            constraint_path = 'polynomial_control_rates:{0}'.format(var)
         else:
             # Failed to find variable, assume it is in the RHS
             if self.options['transcription'] == 'gauss-lobatto':
