@@ -54,8 +54,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
 
         order.append('indep_states')
 
-        order += ['time'] + control_group + \
-            ['indep_jumps', 'initial_conditions', 'final_conditions']
+        order += ['time'] + control_group + ['indep_jumps']
 
         if transcription == 'gauss-lobatto':
             order = order + ['rhs_disc', 'state_interp', 'rhs_col', 'collocation_constraint']

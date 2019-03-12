@@ -222,9 +222,9 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 control_shape = self.control_options[var]['shape']
                 control_units = self.control_options[var]['units']
 
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
                 constraint_path = 'control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
@@ -234,9 +234,9 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 control_shape = self.control_options[var]['shape']
                 control_units = self.control_options[var]['units']
 
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
                 constraint_path = 'control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
@@ -245,9 +245,9 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             elif var_type == 'indep_polynomial_control':
                 control_shape = self.polynomial_control_options[var]['shape']
                 control_units = self.polynomial_control_options[var]['units']
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = False
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = False
                 constraint_path = 'polynomial_control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
@@ -256,9 +256,9 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             elif var_type == 'input_polynomial_control':
                 control_shape = self.polynomial_control_options[var]['shape']
                 control_units = self.polynomial_control_options[var]['units']
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = False
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = False
                 constraint_path = 'polynomial_control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
@@ -290,8 +290,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 control_name = var[:-5]
                 control_shape = self.polynomial_control_options[control_name]['shape']
                 control_units = self.polynomial_control_options[control_name]['units']
-                options['shape'] = control_shape
-                options['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con_units is None else con_units
                 constraint_path = 'polynomial_control_rates:{0}_rate'.format(control_name)
                 self.connect(src_name=constraint_path,
@@ -301,8 +301,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 control_name = var[:-6]
                 control_shape = self.polynomial_control_options[control_name]['shape']
                 control_units = self.polynomial_control_options[control_name]['units']
-                options['shape'] = control_shape
-                options['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con_units is None else con_units
                 constraint_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
                 self.connect(src_name=constraint_path,
