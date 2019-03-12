@@ -138,10 +138,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
-        p.driver.opt_settings['iSumm'] = 6
 
         phase = Phase('radau-ps',
                       ode_class=BrachistochroneVectorStatesODE,
@@ -258,10 +256,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
-        p.driver.opt_settings['iSumm'] = 6
 
         phase = Phase('radau-ps',
                       ode_class=BrachistochroneVectorStatesODE,
@@ -492,10 +488,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
-        p.driver.opt_settings['iSumm'] = 6
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneVectorStatesODE,
@@ -612,10 +606,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
-        p.driver.opt_settings['iSumm'] = 6
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneVectorStatesODE,
@@ -728,17 +720,14 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         return p
 
-    #TODO: Address this when the rk_phase_linkages update is merged
-    @unittest.expectedFailure
     def test_brachistochrone_vector_state_path_constraints_rk_partial_indices(self):
-
         p = Problem(model=Group())
 
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
         phase = RungeKuttaPhase(ode_class=BrachistochroneVectorStatesODE,
-                                num_segments=20,
+                                num_segments=50,
                                 method='rk4')
 
         p.model.add_subsystem('phase0', phase)
@@ -777,7 +766,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_rel_error(self, np.min(p.get_val('phase0.timeseries.states:pos')[:, 1]), 5.0,
+                         tolerance=1.0E-3)
 
         # Plot results
         if SHOW_PLOTS:
@@ -844,16 +834,12 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         return p
 
-    #TODO: Address this when the rk_phase_linkages update is merged
-    @unittest.expectedFailure
     def test_brachistochrone_vector_ode_path_constraints_rk_partial_indices(self):
 
         p = Problem(model=Group())
 
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
-        p.driver.opt_settings['iSumm'] = 6
 
         phase = RungeKuttaPhase(ode_class=BrachistochroneVectorStatesODE,
                                 num_segments=20,
@@ -863,13 +849,15 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.set_state_options('pos', fix_initial=True, fix_final=True)
+        phase.set_state_options('pos', fix_initial=True, fix_final=False)
         phase.set_state_options('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+
+        phase.add_boundary_constraint('pos', loc='final', equals=[10, 5])
 
         phase.add_path_constraint('pos_dot', shape=(2,), units='m/s', indices=[1],
                                   lower=-4, upper=4)
@@ -964,17 +952,13 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
             plt.show()
 
         return p
-    
-    #TODO: Address this when the rk_phase_linkages update is merged
-    @unittest.expectedFailure
+
     def test_brachistochrone_vector_ode_path_constraints_rk_no_indices(self):
 
         p = Problem(model=Group())
 
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
-        p.driver.opt_settings['iSumm'] = 6
 
         phase = RungeKuttaPhase(ode_class=BrachistochroneVectorStatesODE,
                                 num_segments=20,
@@ -984,13 +968,15 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.set_state_options('pos', fix_initial=True, fix_final=True)
+        phase.set_state_options('pos', fix_initial=True, fix_final=False)
         phase.set_state_options('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+
+        phase.add_boundary_constraint('pos', loc='final', equals=[10, 5])
 
         phase.add_path_constraint('pos_dot', shape=(2,), units='m/s',
                                   lower=-4, upper=12)
