@@ -12,7 +12,8 @@ except ImportError:
 
 import numpy as np
 
-from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Problem, SqliteRecorder
+from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Problem
+from openmdao.api import SqliteRecorder, BalanceComp
 
 from ..utils.constants import INF_BOUND
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
@@ -243,7 +244,7 @@ class Trajectory(Group):
                     self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_linkages(self):
-        link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
+        link_comp = None
 
         print('--- Linkage Report [{0}] ---'.format(self.pathname))
 
@@ -264,23 +265,41 @@ class Trajectory(Group):
             p2_design_parameters = set([key for key in p2.design_parameter_options])
 
             varnames = vars.keys()
-            linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
             max_varname_length = max(len(name) for name in varnames)
 
             units_map = {}
+            vars_to_constrain = []
             for var, options in iteritems(vars):
-                if var in p1_states:
-                    units_map[var] = p1.state_options[var]['units']
-                elif var in p1_controls:
-                    units_map[var] = p1.control_options[var]['units']
-                elif var == 'time':
-                    units_map[var] = p1.time_options['units']
-                else:
-                    units_map[var] = None
+                if options['connected']:
 
-            link_comp.add_linkage(name=linkage_name,
-                                  vars=varnames,
-                                  units=units_map)
+                    # If this is a state, and we are linking it, we need to do some checks.
+                    if var in p1_states:
+                        p1_opt = p1.state_options[var]
+                        p2_opt = p2.state_options[var]
+
+                        # Trajectory linkage modifies these options in connected states.
+                        p2_opt['connected_initial'] = True
+                        p2.time_options['input_initial'] = True
+
+                else:
+                    vars_to_constrain.append(var)
+                    if var in p1_states:
+                        units_map[var] = p1.state_options[var]['units']
+                    elif var in p1_controls:
+                        units_map[var] = p1.control_options[var]['units']
+                    elif var == 'time':
+                        units_map[var] = p1.time_options['units']
+                    else:
+                        units_map[var] = None
+
+            if vars_to_constrain:
+                if not link_comp:
+                    link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
+
+                linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
+                link_comp.add_linkage(name=linkage_name,
+                                      vars=vars_to_constrain,
+                                      units=units_map)
 
             for var, options in iteritems(vars):
                 loc1, loc2 = options['locs']
@@ -294,9 +313,6 @@ class Trajectory(Group):
                 elif var in p1_design_parameters:
                     source1 = 'design_parameters:{0}'.format(var)
 
-                self.connect('{0}.{1}'.format(phase_name1, source1),
-                             'linkages.{0}_{1}:lhs'.format(linkage_name, var))
-
                 if var in p2_states:
                     source2 = 'states:{0}{1}'.format(var, loc2)
                 elif var in p2_controls:
@@ -306,8 +322,26 @@ class Trajectory(Group):
                 elif var in p2_design_parameters:
                     source2 = 'design_parameters:{0}'.format(var)
 
-                self.connect('{0}.{1}'.format(phase_name2, source2),
-                             'linkages.{0}_{1}:rhs'.format(linkage_name, var))
+                if options['connected']:
+
+                    if var == 'time':
+                        src = '{0}.{1}'.format(phase_name1, source1)
+                        path = 't_initial'
+                        self.connect(src, '{0}.{1}'.format(phase_name2, path))
+
+                    else:
+                        path = 'initial_states:{0}'.format(var)
+
+                        self.connect('{0}.{1}'.format(phase_name1, source1),
+                                     '{0}.{1}'.format(phase_name2, path))
+
+                else:
+
+                    self.connect('{0}.{1}'.format(phase_name1, source1),
+                                 'linkages.{0}_{1}:lhs'.format(linkage_name, var))
+
+                    self.connect('{0}.{1}'.format(phase_name2, source2),
+                                 'linkages.{0}_{1}:rhs'.format(linkage_name, var))
 
                 print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
                                                               max_varname_length + 9))
@@ -337,7 +371,7 @@ class Trajectory(Group):
         if self._linkages:
             self._setup_linkages()
 
-    def link_phases(self, phases, vars=None, locs=('++', '--')):
+    def link_phases(self, phases, vars=None, locs=('++', '--'), connected=False):
         """
         Specifies that phases in the given sequence are to be assume continuity of the given
         variables.
@@ -350,8 +384,8 @@ class Trajectory(Group):
 
         - '--' specifies the value at the start of the phase before an initial state or control jump
         - '-+' specifies the value at the start of the phase after an initial state or control jump
-        - '+-' specifies the value at the end of the phase before an initial state or control jump
-        - '++' specifies the value at the end of the phase after an initial state or control jump
+        - '+-' specifies the value at the end of the phase before a final state or control jump
+        - '++' specifies the value at the end of the phase after a final state or control jump
 
         Parameters
         ----------
@@ -372,6 +406,9 @@ class Trajectory(Group):
             be determined to be a time, state, control, design parameter, or control rate will
             be assumed to have units None.  If given as a dict, it should map the name of each
             variable in vars to the approprite units.
+        connected : bool
+            Set to True to directly connect the phases being linked. Otherwise, create constraints
+            for the optimizer to solve.
 
         Examples
         --------
@@ -443,7 +480,8 @@ class Trajectory(Group):
             explicitly_linked_vars = [var for var in _vars if var != '*']
 
             for var in sorted(implicitly_linked_vars.union(explicitly_linked_vars)):
-                self._linkages[phase1_name, phase2_name][var] = {'locs': locs, 'units': None}
+                self._linkages[phase1_name, phase2_name][var] = {'locs': locs, 'units': None,
+                                                                 'connected': connected}
 
     def simulate(self, times='all', record=True, record_file=None, time_units='s'):
         """

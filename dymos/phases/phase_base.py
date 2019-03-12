@@ -9,7 +9,7 @@ import numpy as np
 
 from scipy import interpolate
 
-from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder
+from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder, ExplicitComponent
 from openmdao.utils.general_utils import warn_deprecation
 from openmdao.utils.logger_utils import get_logger
 from openmdao.core.system import System
@@ -97,7 +97,7 @@ class PhaseBase(Group):
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
                           ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
-                          solve_segments=False, time_direction='forward'):
+                          solve_segments=False, connected_initial=False):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -140,10 +140,9 @@ class PhaseBase(Group):
             If True, a solver will be used to converge the collocation defects within a segment.
             Note that the state continuity defects between segements will still be
             handled by the optimizer.
-        time_direction : str
-            The direction of time propagation for this state when solve_segments is True.  Must be
-            one of 'forward' or 'backward'.
-
+        connected_initial : bool
+            If True, then the initial value for this state comes from an externally connected
+            source.
         """
         if units is not _unspecified:
             self.state_options[name]['units'] = units
@@ -161,7 +160,7 @@ class PhaseBase(Group):
         self.state_options[name]['defect_scaler'] = defect_scaler
         self.state_options[name]['defect_ref'] = defect_ref
         self.state_options[name]['solve_segments'] = solve_segments
-        self.state_options[name]['time_direction'] = time_direction
+        self.state_options[name]['connected_initial'] = connected_initial
 
     def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
                     fix_initial=False, fix_final=False,
@@ -1026,8 +1025,10 @@ class PhaseBase(Group):
 
         if indeps:
             indep = IndepVarComp()
+
             for var in indeps:
                 indep.add_output(var, val=default_vals[var], units=time_units)
+
             self.add_subsystem('time_extents', indep, promotes_outputs=['*'])
             comps += ['time_extents']
 

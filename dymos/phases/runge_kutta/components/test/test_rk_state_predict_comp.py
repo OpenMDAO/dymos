@@ -29,7 +29,7 @@ class TestRKStatePredictComp(unittest.TestCase):
                                                          state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
-        p.model.connect('y0', 'c.initial_states:y')
+        p.model.connect('y0', 'c.initial_states_per_seg:y')
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -99,7 +99,7 @@ class TestRKStatePredictComp(unittest.TestCase):
                                                          state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
-        p.model.connect('y0', 'c.initial_states:y')
+        p.model.connect('y0', 'c.initial_states_per_seg:y')
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -159,7 +159,7 @@ class TestRKStatePredictComp(unittest.TestCase):
                                                          state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
-        p.model.connect('y0', 'c.initial_states:y')
+        p.model.connect('y0', 'c.initial_states_per_seg:y')
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -207,7 +207,7 @@ class TestRKStatePredictComp(unittest.TestCase):
                                                          state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
-        p.model.connect('y0', 'c.initial_states:y')
+        p.model.connect('y0', 'c.initial_states_per_seg:y')
 
         p.setup(check=True, force_alloc_complex=True)
 
