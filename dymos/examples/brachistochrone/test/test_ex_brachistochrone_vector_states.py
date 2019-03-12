@@ -90,6 +90,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                                                            sim_record='ex_brachvs_gl_compressed.db',
                                                            force_alloc_complex=True,
                                                            run_driver=True)
+
         self.assert_results(p)
         self.assert_partials(p)
         self.tearDown()
@@ -109,6 +110,65 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         self.tearDown()
         if os.path.exists('ex_brach_gl_compressed.db'):
             os.remove('ex_brach_gl_compressed.db')
+
+    # TODO: This test will not correctly run until we can do shaped boundary constraints.
+    @unittest.expectedFailure
+    def test_ex_brachistochrone_rungekutta_compressed(self):
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        from dymos import RungeKuttaPhase
+        from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import \
+            BrachistochroneVectorStatesODE
+
+        p = Problem(model=Group())
+
+        p.driver = ScipyOptimizeDriver()
+
+        p.driver.options['dynamic_simul_derivs'] = True
+
+        phase = RungeKuttaPhase(ode_class=BrachistochroneVectorStatesODE,
+                                num_segments=20,
+                                compressed=True,
+                                k_solver_options={'iprint': 2},
+                                continuity_solver_options={'iprint': 2, 'solve_subsystems': True})
+
+        p.model.add_subsystem('phase0', phase)
+
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.set_state_options('pos', fix_initial=True, fix_final=False)
+        phase.set_state_options('v', fix_initial=True, fix_final=False)
+
+        phase.add_control('theta', continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+
+        phase.add_boundary_constraint('pos', loc='final', lower=[10, 5])
+
+        # Minimize time at the end of the phase
+        phase.add_objective('time', loc='final', scaler=10)
+
+        p.model.linear_solver = DirectSolver()
+        p.setup(check=True, force_alloc_complex=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 1.80162174
+
+        pos0 = [0, 10]
+        posf = [10, 5]
+
+        p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[0.46, 100.22900215],
+                                                       nodes='control_input')
+        p['phase0.design_parameters:g'] = 9.80665
+
+        p.run_model()
+
+        self.assert_results(p)
+        self.tearDown()
+        if os.path.exists('ex_brach_rk_compressed.db'):
+            os.remove('ex_brach_rk_compressed.db')
 
 
 class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):

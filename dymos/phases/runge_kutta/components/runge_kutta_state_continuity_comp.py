@@ -37,21 +37,29 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
         self._var_names = {}
 
         for state_name, options in iteritems(state_options):
-            direction = options['time_direction']
-
             self._var_names[state_name] = {
+                'initial': 'initial_states:{0}'.format(state_name),
                 'states': 'states:{0}'.format(state_name),
                 'integral': 'state_integrals:{0}'.format(state_name)
             }
 
             shape = options['shape']
+            size = np.prod(shape)
             units = options['units']
             var_names = self._var_names[state_name]
+
+            res_ref = 1.0
+            if options['defect_ref']:
+                res_ref = options['defect_ref']
+            elif options['defect_scaler']:
+                res_ref = 1.0 / options['defect_scaler']
 
             # The implicit variable is the state values at all segment endpoints.
             self.add_output(name=var_names['states'],
                             shape=(num_seg + 1,) + shape,
-                            units=units)
+                            units=units,
+                            lower=options['lower'],
+                            upper=options['upper'])
 
             # The value of the state at the end of each segment.
             self.add_input(name=var_names['integral'],
@@ -59,34 +67,42 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
                            desc='Change in the state value over each segment.',
                            units=units)
 
-            if direction == 'forward':
-                r = np.repeat(np.arange(1, num_seg + 1, dtype=int), repeats=2)
-                r = np.concatenate(([0], r))
-                c = np.repeat(np.arange(num_seg, dtype=int), repeats=2)
-                c = np.concatenate((c, [num_seg]))
-                v = np.tile(np.array([1, -1]), num_seg)
-                v = np.concatenate((v, [1]))
-            else:
-                r = np.repeat(np.arange(num_seg, dtype=int), repeats=2)
-                r = np.concatenate((r, [num_seg]))
-                c = np.repeat(np.arange(1, num_seg + 1, dtype=int), repeats=2)
-                c = np.concatenate(([0], c))
-                v = np.tile(np.array([-1, 1]), num_seg)
-                v = np.concatenate((v, [-1]))
-
+            #
+            # Define the partials of the states wrt themselves.
+            #
+            n_rows = size * (1 + num_seg)
+            n_cols = n_rows
+            temp_jac = np.zeros((n_rows, n_cols), dtype=int)
+            eye_size = np.eye(size, dtype=int)
+            pattern = np.zeros((num_seg, num_seg + 1))
+            diag_rows, diag_cols = np.diag_indices(num_seg)
+            pattern[diag_rows, diag_cols] = -1
+            pattern[diag_rows, diag_cols + 1] = 1
+            temp_jac[size:, :] = np.kron(pattern, eye_size)
+            temp_jac[:size, :size] = -np.eye(size)
+            r, c = np.nonzero(temp_jac)
+            v = temp_jac[r, c]
             self.declare_partials(of=var_names['states'], wrt=var_names['states'],
                                   rows=r, cols=c, val=v)
 
-            if direction == 'forward':
-                c = np.arange(num_seg, dtype=int)
-                r = c + 1
-                self.declare_partials(of=var_names['states'], wrt=var_names['integral'],
-                                      rows=r, cols=c, val=-1.0)
-            else:
-                c = np.arange(num_seg, dtype=int)
-                r = c
-                self.declare_partials(of=var_names['states'], wrt=var_names['integral'],
-                                      rows=r, cols=c, val=-1.0)
+            #
+            # Define the partials of the states wrt the state integrals.
+            #
+            n_rows = size * (1 + num_seg)
+            n_cols = size * num_seg
+            temp_jac = np.zeros((n_rows, n_cols), dtype=int)
+            temp_jac[size:, :] = np.eye(n_cols, dtype=int)
+            r, c = np.nonzero(temp_jac)
+            self.declare_partials(of=var_names['states'], wrt=var_names['integral'],
+                                  rows=r, cols=c, val=-1.0)
+
+            # The initial value of the state at the start of the phase, if connected_initial == True
+            if options['connected_initial']:
+                self.add_input(name=var_names['initial'], shape=(1,) + shape, units=units)
+
+                ar = np.arange(size, dtype=int)
+                self.declare_partials(of=var_names['states'], wrt=var_names['initial'],
+                                      rows=ar, cols=ar, val=1.0)
 
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
@@ -104,18 +120,15 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
 
         for state_name, options in iteritems(state_options):
             names = self._var_names[state_name]
-            direction = options['time_direction']
 
             x_i = outputs[names['states']][:-1, ...]
             x_f = outputs[names['states']][1:, ...]
             dx = inputs[names['integral']]
 
-            # Currently the direction of propagation is set at the phase level.  We can
-            # compute this on a state-by-state basis if necessary.
+            if options['connected_initial']:
+                residuals[names['states']][0, ...] = \
+                    inputs[names['initial']][0, ...] - outputs[names['states']][0, ...]
 
-            if direction == 'forward':
-                residuals[names['states']][0, ...] = 0
-                residuals[names['states']][1:, ...] = x_f - x_i - dx
             else:
-                residuals[names['states']][:-1, ...] = x_f - x_i - dx
-                residuals[names['states']][-1, ...] = 0
+                residuals[names['states']][0, ...] = 0
+            residuals[names['states']][1:, ...] = x_f - x_i - dx

@@ -19,6 +19,7 @@ from dymos.phases.options import ControlOptionsDictionary, DesignParameterOption
     InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary, \
     PolynomialControlOptionsDictionary
 from dymos.phases.components import PolynomialControlGroup, ControlGroup
+
 from dymos.ode_options import ODEOptions
 from dymos.utils.constants import INF_BOUND
 from dymos.utils.misc import CoerceDesvar
@@ -98,7 +99,7 @@ class PhaseBase(Group):
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
                           ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
-                          solve_segments=False, time_direction='forward'):
+                          solve_segments=False, connected_initial=False):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -141,10 +142,9 @@ class PhaseBase(Group):
             If True, a solver will be used to converge the collocation defects within a segment.
             Note that the state continuity defects between segements will still be
             handled by the optimizer.
-        time_direction : str
-            The direction of time propagation for this state when solve_segments is True.  Must be
-            one of 'forward' or 'backward'.
-
+        connected_initial : bool
+            If True, then the initial value for this state comes from an externally connected
+            source.
         """
         if units is not _unspecified:
             self.state_options[name]['units'] = units
@@ -162,7 +162,7 @@ class PhaseBase(Group):
         self.state_options[name]['defect_scaler'] = defect_scaler
         self.state_options[name]['defect_ref'] = defect_ref
         self.state_options[name]['solve_segments'] = solve_segments
-        self.state_options[name]['time_direction'] = time_direction
+        self.state_options[name]['connected_initial'] = connected_initial
 
     def _check_parameter(self, name, dynamic):
         """
@@ -621,8 +621,9 @@ class PhaseBase(Group):
         if units != 0:
             self.traj_parameter_options[name]['units'] = units
 
-    def add_boundary_constraint(self, name, loc, constraint_name=None, units=None, lower=None,
-                                upper=None, equals=None, scaler=None, adder=None,
+    def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
+                                shape=None, indices=None,
+                                lower=None, upper=None, equals=None, scaler=None, adder=None,
                                 ref=None, ref0=None, linear=False):
         r"""
         Add a boundary constraint to a variable in the phase.
@@ -642,6 +643,14 @@ class PhaseBase(Group):
             The units in which the boundary constraint is to be applied.  If None, use the
             units associated with the constrained output.  If provided, must be compatible with
             the variables units.
+        shape : tuple, list, ndarray, or None
+            The shape of the variable being boundary-constrained.  This can be inferred
+            automatically for time, states, controls, and input/design parameters, but is required
+            if the constrained variable is an output of the ODE system.
+        indices : tuple, list, ndarray, or None
+            The indices of the output variable to be boundary constrained.  Indices assumes C-order
+            flattening.  For instance, when constraining element [0, 1] of a variable of shape
+            [2, 2], indices would be [3].
         lower : float or ndarray, optional
             Lower boundary for the variable
         upper : float or ndarray, optional
@@ -674,6 +683,8 @@ class PhaseBase(Group):
         bc_dict[name] = {}
         bc_dict[name]['constraint_name'] = constraint_name
 
+        bc_dict[name]['shape'] = shape
+        bc_dict[name]['indices'] = indices
         bc_dict[name]['lower'] = lower
         bc_dict[name]['upper'] = upper
         bc_dict[name]['equals'] = equals
@@ -684,9 +695,9 @@ class PhaseBase(Group):
         bc_dict[name]['linear'] = linear
         bc_dict[name]['units'] = units
 
-    def add_path_constraint(self, name, constraint_name=None, units=None, lower=None,
-                            upper=None, equals=None, scaler=None, adder=None,
-                            ref=None, ref0=None, linear=False):
+    def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
+                            lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
+                            ref0=None, linear=False):
         r"""
         Add a path constraint to a variable in the phase.
 
@@ -702,6 +713,14 @@ class PhaseBase(Group):
             The units in which the boundary constraint is to be applied.  If None, use the
             units associated with the constrained output.  If provided, must be compatible with
             the variables units.
+        shape : tuple, list, ndarray, or None
+            The shape of the variable being boundary-constrained.  This can be inferred
+            automatically for time, states, controls, and input/design parameters, but is required
+            if the constrained variable is an output of the ODE system.
+        indices : tuple, list, ndarray, or None
+            The indices of the output variable to be path constrained.  Indices assumes C-order
+            flattening.  For instance, when constraining element [0, 1] of a variable of shape
+            [2, 2], indices would be [3].
         lower : float or ndarray, optional
             Lower boundary for the variable
         upper : float or ndarray, optional
@@ -736,6 +755,8 @@ class PhaseBase(Group):
         self._path_constraints[name]['adder'] = adder
         self._path_constraints[name]['ref0'] = ref0
         self._path_constraints[name]['ref'] = ref
+        self._path_constraints[name]['indices'] = indices
+        self._path_constraints[name]['shape'] = shape
         self._path_constraints[name]['linear'] = linear
         self._path_constraints[name]['units'] = units
 
@@ -820,7 +841,7 @@ class PhaseBase(Group):
 
         Parameters
         ----------
-        name : str
+        obj_path : str
             Name of the objective variable.  This should be one of 'time', a state or control
             variable, or the path to an output from the top level of the RHS.
         loc : str
@@ -1141,8 +1162,10 @@ class PhaseBase(Group):
 
         if indeps:
             indep = IndepVarComp()
+
             for var in indeps:
                 indep.add_output(var, val=default_vals[var], units=time_units)
+
             self.add_subsystem('time_extents', indep, promotes_outputs=['*'])
             comps += ['time_extents']
 
@@ -1426,17 +1449,69 @@ class PhaseBase(Group):
             src, shape, units, linear = self._get_boundary_constraint_src(var, loc)
 
             con_units = options.get('units', None)
-            con_shape = options.get('shape', (1,))
-            con_size = int(np.prod(con_shape))
-            con_options['shape'] = shape if con_shape is None else con_shape
+
+            shape = options['shape'] if shape is None else shape
+            if shape is None:
+                warnings.warn('\nUnable to infer shape of boundary constraint {0}. Assuming scalar. '
+                              '\nIf variable is not scalar, provide shape in '
+                              'add_boundary_constraint. \nIn Dymos 1.0 an error will be raised if '
+                              'a constrained ODE output shape is not specified in '
+                              'add_boundary_constraint.'.format(var), DeprecationWarning)
+                shape = (1,)
+
+            if options['indices'] is not None:
+                # Indices are provided, make sure lower/upper/equals are compatible.
+                con_shape = (len(options['indices']),)
+                # Indices provided, make sure lower/upper/equals have shape of the indices.
+                if options['lower'] and not np.isscalar(options['lower']) and \
+                        np.asarray(options['lower']).shape != con_shape:
+                    raise ValueError('The lower bounds of boundary constraint on {0} are not '
+                                     'compatible with its shape, and no indices were '
+                                     'provided.'.format(var))
+
+                if options['upper'] and not np.isscalar(options['upper']) and \
+                        np.asarray(options['upper']).shape != con_shape:
+                    raise ValueError('The upper bounds of boundary constraint on {0} are not '
+                                     'compatible with its shape, and no indices were '
+                                     'provided.'.format(var))
+
+                if options['equals'] and not np.isscalar(options['equals']) and \
+                        np.asarray(options['equals']).shape != con_shape:
+                    raise ValueError('The equality boundary constraint value on {0} is not '
+                                     'compatible the provided indices. Provide them as a '
+                                     'flat array with the same size as indices.'.format(var))
+
+            elif options['lower'] or options['upper'] or options['equals']:
+                # Indices not provided, make sure lower/upper/equals have shape of source.
+                if options['lower'] and not np.isscalar(options['lower']) and \
+                        np.asarray(options['lower']).shape != shape:
+                    raise ValueError('The lower bounds of boundary constraint on {0} are not '
+                                     'compatible with its shape, and no indices were '
+                                     'provided.'.format(var))
+
+                if options['upper'] and not np.isscalar(options['upper']) and \
+                        np.asarray(options['upper']).shape != shape:
+                    raise ValueError('The upper bounds of boundary constraint on {0} are not '
+                                     'compatible with its shape, and no indices were '
+                                     'provided.'.format(var))
+
+                if options['equals'] and not np.isscalar(options['equals']) \
+                        and np.asarray(options['equals']).shape != shape:
+                    raise ValueError('The equality boundary constraint value on {0} is not '
+                                     'compatible with its shape, and no indices were '
+                                     'provided.'.format(var))
+                con_shape = (np.prod(shape),)
+
+            size = np.prod(shape)
+            con_options['shape'] = shape if shape is not None else con_shape
             con_options['units'] = units if con_units is None else con_units
             con_options['linear'] = linear
 
             # Build the correct src_indices regardless of shape
             if loc == 'initial':
-                src_idxs = np.arange(con_size, dtype=int).reshape(con_shape)
+                src_idxs = np.arange(size, dtype=int).reshape(shape)
             else:
-                src_idxs = np.arange(-con_size, 0, dtype=int).reshape(con_shape)
+                src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
 
             bc_comp._add_constraint(con_name, **con_options)
 

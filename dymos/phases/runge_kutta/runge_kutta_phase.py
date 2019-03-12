@@ -6,10 +6,9 @@ import warnings
 import numpy as np
 from dymos.phases.components import EndpointConditionsComp
 from dymos.phases.phase_base import PhaseBase, _unspecified
-from dymos.phases.grid_data import GridData
 
 from openmdao.api import IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
-    NewtonSolver, DirectSolver, BalanceComp
+    NewtonSolver, BoundsEnforceLS
 from six import iteritems
 
 from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
@@ -66,18 +65,6 @@ class RungeKuttaPhase(PhaseBase):
                              desc='The options passed to the nonlinear solver used to converge the'
                                   'Runge-Kutta propagation across each step.')
 
-        self.options.declare('continuity_solver_class', default=NewtonSolver,
-                             values=(NewtonSolver, NonlinearRunOnce),
-                             allow_none=True,
-                             desc='The nonlinear solver class used to enforce state continuity '
-                                  'across the segments (steps).  Currently only NewtonSolver is'
-                                  'supported.')
-
-        self.options.declare('continuity_solver_options',
-                             default={'iprint': -1, 'solve_subsystems': True}, types=(dict,),
-                             desc='The options passed to the nonlinear solver used to enforce '
-                                  'state continuity across the segments (steps).')
-
     def setup(self):
         self.grid_data = GridData(num_segments=self.options['num_segments'],
                                   transcription='runge-kutta',
@@ -86,6 +73,15 @@ class RungeKuttaPhase(PhaseBase):
                                   compressed=self.options['compressed'])
 
         super(RungeKuttaPhase, self).setup()
+
+        #
+        # Add a newton solver to converge the continuity between the segments/steps
+        #
+        self.nonlinear_solver = NewtonSolver()
+        self.nonlinear_solver.options['iprint'] = -1
+        self.nonlinear_solver.options['solve_subsystems'] = True
+        self.nonlinear_solver.options['err_on_maxiter'] = True
+        self.nonlinear_solver.linesearch = BoundsEnforceLS()
 
     def _setup_time(self):
         time_units = self.time_options['units']
@@ -144,6 +140,10 @@ class RungeKuttaPhase(PhaseBase):
 
     def _setup_rhs(self):
 
+        num_connected = len([s for s in self.state_options
+                             if self.state_options[s]['connected_initial']])
+        promoted_inputs = ['h'] if num_connected == 0 else ['h', 'initial_states:*']
+
         self.add_subsystem('rk_solve_group',
                            RungeKuttaStateContinuityIterGroup(
                                num_segments=self.options['num_segments'],
@@ -153,10 +153,8 @@ class RungeKuttaPhase(PhaseBase):
                                ode_class=self.options['ode_class'],
                                ode_init_kwargs=self.options['ode_init_kwargs'],
                                k_solver_class=self.options['k_solver_class'],
-                               k_solver_options=self.options['k_solver_options'],
-                               continuity_solver_class=self.options['continuity_solver_class'],
-                               continuity_solver_options=self.options['continuity_solver_options']),
-                           promotes_inputs=['h'],
+                               k_solver_options=self.options['k_solver_options']),
+                           promotes_inputs=promoted_inputs,
                            promotes_outputs=['states:*'])
 
         # Since the RK Solve group evaluates the ODE at *predicted* state values, we need
@@ -240,41 +238,25 @@ class RungeKuttaPhase(PhaseBase):
 
             if options['opt']:
                 # Set the desvar indices accordingly
-                if options['time_direction'] == 'forward':
-                    desvar_indices = list(range(size))
-                else:
-                    desvar_indices = np.arange(num_seg * size, size * (num_seg + 1),
-                                               dtype=int).tolist()
+                desvar_indices = list(range(size))
 
                 if options['fix_initial']:
-                    if options['time_direction'] == 'backward':
-                        raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                                         'time_direction=\'backward\' for state {0} in '
-                                         'RungeKuttaPhase'.format(state_name))
                     if options['initial_bounds'] is not None:
                         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
                                          'initial_bounds for state {0}'.format(state_name))
-                    if isinstance(options['fix_initial'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[idx_to_fix]
-                    else:
-                        del desvar_indices[:size]
+                    if options['connected_initial']:
+                        raise ValueError('Cannot specify \'fix_initial=True\' and specify '
+                                         '\'connected_initial=True\' for state {0} in '
+                                         'phase {1}.'.format(state_name, self.name))
+                    del desvar_indices[:size]
 
                 if options['fix_final']:
-                    if options['time_direction'] == 'forward':
-                        raise ValueError('Cannot specify \'fix_final=True\' and specify '
-                                         'time_direction=\'forward\' for state {0} in '
-                                         'RungeKuttaPhase'.format(state_name))
-                    if options['final_bounds'] is not None:
-                        raise ValueError('Cannot specify \'fix_final=True\' and specify '
-                                         'final_bounds for state {0}'.format(state_name))
-                    if isinstance(options['fix_final'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[idx_to_fix]
-                    else:
-                        del desvar_indices[:size]
+                    raise ValueError('Cannot specify \'fix_final=True\' in '
+                                     'RungeKuttaPhase'.format(state_name))
+
+                if options['final_bounds'] is not None:
+                    raise ValueError('Cannot specify \'final_bounds\' in RungeKuttaPhase '
+                                     '(state {0})'.format(state_name))
 
                 if len(desvar_indices) > 0:
                     coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
@@ -669,10 +651,14 @@ class RungeKuttaPhase(PhaseBase):
             else:
                 # Failed to find variable, assume it is in the ODE
                 options['linear'] = False
-                shape = (1,)
+                if options['shape'] is None:
+                    warnings.warn('Unable to infer shape of path constraint {0}. Assuming scalar.\n'
+                                  'In Dymos 1.0 the shape of ODE outputs must be explictly provided'
+                                  ' via the add_path_constraint method.', DeprecationWarning)
+                    options['shape'] = (1,)
 
                 src_rows = np.arange(num_seg * 2, dtype=int)
-                src_idxs = get_src_indices_by_row(src_rows, shape=shape)
+                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
 
                 src = 'ode.{0}'.format(var)
                 tgt = 'path_constraints.all_values:{0}'.format(con_name)
@@ -890,7 +876,7 @@ class RungeKuttaPhase(PhaseBase):
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
                           ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
-                          time_direction='forward'):
+                          connected_initial=False):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -912,8 +898,6 @@ class RungeKuttaPhase(PhaseBase):
         fix_final : bool(False)
             If True, omit the final value of the state from the design variables (prevent the
             optimizer from changing it).
-        time_direction : str('forward')
-            The direction of propagation for this state variable, either 'forward' or 'backward'.
         lower : float or ndarray or None (None)
             The lower bound of the state at the nodes of the phase.
         upper : float or ndarray or None (None)
@@ -931,6 +915,9 @@ class RungeKuttaPhase(PhaseBase):
         defect_ref : float or ndarray (1.0)
             The unit-reference value of the state defect at the collocation nodes of the phase. If
             provided, this value overrides defect_scaler.
+        connected_initial : bool
+            If True, then the initial value for this state comes from an externally connected
+            source.
 
         """
         super(RungeKuttaPhase, self).set_state_options(name=name,
@@ -948,7 +935,7 @@ class RungeKuttaPhase(PhaseBase):
                                                        ref0=ref0,
                                                        defect_scaler=defect_scaler,
                                                        defect_ref=defect_ref,
-                                                       time_direction=time_direction)
+                                                       connected_initial=connected_initial)
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,

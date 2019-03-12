@@ -23,7 +23,7 @@ class TestInitialScalarBoundaryValue(unittest.TestCase):
         self.p.model.add_design_var('x', lower=0, upper=100)
 
         bv_comp = self.p.model.add_subsystem('bv_comp', BoundaryConstraintComp(loc='initial'))
-        bv_comp._add_constraint(name='x')
+        bv_comp._add_constraint(name='x', shape=(1,))
 
         self.p.model.connect('x', 'bv_comp.initial_value_in:x', src_indices=[0])
 
@@ -52,7 +52,7 @@ class TestFinalScalarBoundaryValue(unittest.TestCase):
         self.p.model.add_design_var('x', lower=0, upper=100)
 
         bv_comp = self.p.model.add_subsystem('bv_comp', BoundaryConstraintComp(loc='final'))
-        bv_comp._add_constraint(name='x')
+        bv_comp._add_constraint(name='x', shape=(1,))
 
         self.p.model.connect('x', 'bv_comp.final_value_in:x', src_indices=[-1])
 

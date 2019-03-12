@@ -8,8 +8,9 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.optimizer_based.components.collocation_comp import CollocationComp
 from dymos.phases.grid_data import GridData
+from dymos.phases.optimizer_based.components.collocation_comp import CollocationComp
+from dymos.phases.optimizer_based.components.state_independents import StateIndependentsComp
 
 
 class TestCollocationBalanceIndex(unittest.TestCase):
@@ -22,13 +23,14 @@ class TestCollocationBalanceIndex(unittest.TestCase):
                       transcription=transcription, transcription_order=order, compressed=compressed)
 
         state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
-                               'fix_final': False, 'solve_segments': True},
+                               'fix_final': False, 'solve_segments': True,
+                               'connected_initial': False, 'connected_final': False},
                          'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial': False,
-                               'fix_final': True, 'solve_segments': True}}
+                               'fix_final': True, 'solve_segments': True,
+                               'connected_initial': False, 'connected_final': False}}
 
-        defect_comp = p.model.add_subsystem('defect_comp',
-                                            subsys=CollocationComp(grid_data=gd,
-                                                                   state_options=state_options))
+        subsys = StateIndependentsComp(grid_data=gd, state_options=state_options)
+        defect_comp = p.model.add_subsystem('defect_comp', subsys=subsys)
 
         p.setup()
         p.final_setup()
@@ -116,9 +118,11 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
             transcription=transcription, transcription_order=order)
 
         state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
-                               'fix_final': False, 'solve_segments': True},
+                               'fix_final': False, 'solve_segments': True,
+                               'connected_initial': False},
                          'v': {'units': 'm/s', 'shape': (3, 2), 'fix_initial': True,
-                               'fix_final': False, 'solve_segments': True}}
+                               'fix_final': False, 'solve_segments': True,
+                               'connected_initial': False}}
 
         num_col_nodes = gd.subset_num_nodes['col']
         num_col_nodes_per_seg = gd.subset_num_nodes_per_segment['col']
@@ -151,11 +155,16 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
                               subsys=CollocationComp(grid_data=gd,
                                                      state_options=state_options))
 
+        indep = StateIndependentsComp(grid_data=gd, state_options=state_options)
+        p.model.add_subsystem('state_indep', indep, promotes_outputs=['*'])
+
         p.model.connect('f_approx:x', 'defect_comp.f_approx:x')
         p.model.connect('f_approx:v', 'defect_comp.f_approx:v')
         p.model.connect('f_computed:x', 'defect_comp.f_computed:x')
         p.model.connect('f_computed:v', 'defect_comp.f_computed:v')
         p.model.connect('dt_dstau', 'defect_comp.dt_dstau')
+        p.model.connect('defect_comp.defects:x', 'state_indep.defects:x')
+        p.model.connect('defect_comp.defects:v', 'state_indep.defects:v')
 
         p.setup(force_alloc_complex=True)
 
@@ -172,10 +181,10 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
 
         expected = np.array([0., -1., 0., -2., 0., -3.])
 
-        assert_almost_equal(p.model._residuals._views['defect_comp.states:x'],
+        assert_almost_equal(p.model._residuals._views['state_indep.states:x'],
                             expected.reshape(6, 1))
 
-        assert_almost_equal(p.model._residuals._views['defect_comp.states:v'],
+        assert_almost_equal(p.model._residuals._views['state_indep.states:v'],
                             expected[:, np.newaxis, np.newaxis]*np.ones((6, 3, 2)))
 
     def test_partials(self):
@@ -213,6 +222,7 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
         cpd = p.check_partials(compact_print=True, method='fd')
         data = cpd['defect_comp']
         assert_partials(data)
+
 
 if __name__ == '__main__':
     unittest.main()

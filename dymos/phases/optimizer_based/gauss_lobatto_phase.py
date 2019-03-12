@@ -276,9 +276,10 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                 options['shape'] = state_shape
                 options['units'] = state_units if con_units is None else con_units
                 options['linear'] = False
+                src_idxs = get_src_indices_by_row(gd.input_maps['state_input_to_disc'], state_shape)
                 self.connect(src_name='states:{0}'.format(var),
                              tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                             src_indices=gd.input_maps['state_input_to_disc'])
+                             src_indices=src_idxs, flat_src_indices=True)
                 self.connect(src_name='state_interp.state_col:{0}'.format(var),
                              tgt_name='path_constraints.col_values:{0}'.format(con_name))
 
@@ -351,8 +352,13 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             else:
-                # Failed to find variable, assume it is in the RHS
+                # Failed to find variable, assume it is in the ODE
                 options['linear'] = False
+                if options['shape'] is None:
+                    warnings.warn('Unable to infer shape of path constraint {0}. Assuming scalar.\n'
+                                  'In Dymos 1.0 the shape of ODE outputs must be explictly provided'
+                                  ' via the add_path_constraint method.', DeprecationWarning)
+                    options['shape'] = (1,)
                 self.connect(src_name='rhs_disc.{0}'.format(var),
                              tgt_name='path_constraints.disc_values:{0}'.format(con_name))
                 self.connect(src_name='rhs_col.{0}'.format(var),

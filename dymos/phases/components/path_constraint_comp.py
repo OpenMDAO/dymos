@@ -1,7 +1,5 @@
 from __future__ import division, print_function
 
-from six import iteritems
-
 import numpy as np
 from openmdao.api import ExplicitComponent
 
@@ -16,9 +14,9 @@ class PathConstraintCompBase(ExplicitComponent):
         self._vars = []
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
-    def _add_path_constraint(self, name, var_class, shape=(1,), units=None, res_units=None, desc='',
-                             lower=None, upper=None, equals=None, scaler=None, adder=None,
-                             ref=None, ref0=None, linear=False, res_ref=1.0, type_=None,
+    def _add_path_constraint(self, name, var_class, shape=None, units=None, res_units=None, desc='',
+                             indices=None, lower=None, upper=None, equals=None, scaler=None,
+                             adder=None, ref=None, ref0=None, linear=False, res_ref=1.0, type_=None,
                              distributed=False):
         """
         Add a final constraint to this component
@@ -31,11 +29,14 @@ class PathConstraintCompBase(ExplicitComponent):
             The 'class' of the variable as given by phase.classify_var.  One of 'time', 'state',
             'indep_control', 'input_control', 'design_parameter', 'input_parameter',
             'control_rate', 'control_rate2', or 'ode'.
-        val : float or list or tuple or ndarray
-            The initial value of the variable being added in user-defined units. Default is 1.0.
         shape : int or tuple or list or None
             Shape of this variable, only required if val is not an array.
             Default is None.
+        indices : tuple or list or ndarray or None
+            Indices that specify which elements in shape are to be path constrained.  If None,
+            then the constraint will apply to all values and lower/upper/equals must be scalar
+            or of the same shape.  Indices assumes C-order flattening.  For instance, if
+            constraining element [0, 1] of a variable with shape [2, 2], indices=[3].
         units : str or None
             Units in which the output variables will be provided to the component during execution.
             Default is None, which means it has no units.
@@ -66,7 +67,7 @@ class PathConstraintCompBase(ExplicitComponent):
             Scaling parameter. The value in the user-defined res_units of this output's residual
             when the scaled value is 1. Default is 1.
         type_ : str
-            One of 'state', 'indep_control', 'input_control', 'control_rate', 'control_rate2'.
+            The kind of variable be constrained, as returned by _classify_var.
         distributed : bool
             If True, this variable is distributed across multiple processes.
         """
@@ -79,9 +80,10 @@ class PathConstraintCompBase(ExplicitComponent):
         lower = -INF_BOUND if upper is not None and lower is None else lower
         upper = INF_BOUND if lower is not None and upper is None else upper
         kwargs = {'shape': shape, 'units': units, 'res_units': res_units, 'desc': desc,
-                  'lower': lower, 'upper': upper, 'equals': equals, 'scaler': scaler,
-                  'adder': adder, 'ref': ref, 'ref0': ref0, 'linear': linear, 'src_all': src_all,
-                  'res_ref': res_ref, 'distributed': distributed, 'type_': type_}
+                  'indices': indices, 'lower': lower, 'upper': upper, 'equals': equals,
+                  'scaler': scaler, 'adder': adder, 'ref': ref, 'ref0': ref0, 'linear': linear,
+                  'src_all': src_all, 'res_ref': res_ref, 'distributed': distributed,
+                  'type_': type_}
         self._path_constraints.append((name, kwargs))
 
 
@@ -129,6 +131,13 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
             constraint_kwargs = {k: kwargs.get(k, None)
                                  for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
                                            'scaler', 'indices', 'linear')}
+
+            # Convert indices from those in one time instance to those in all time instances
+            template = np.zeros(np.prod(kwargs['shape']), dtype=int)
+            template[kwargs['indices']] = 1
+            template = np.tile(template, num_nodes)
+            constraint_kwargs['indices'] = np.nonzero(template)[0]
+
             self.add_constraint(output_name, **constraint_kwargs)
 
             # Setup partials
@@ -186,7 +195,7 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
                     cols=np.arange(col_size),
                     val=1.0)
 
-    def compute(self, inputs, outputs):
+    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         disc_indices = self.options['grid_data'].subset_node_indices['state_disc']
         col_indices = self.options['grid_data'].subset_node_indices['col']
         for (disc_input_name, col_input_name, all_inp_name, src_all, output_name, _) in self._vars:
@@ -222,11 +231,18 @@ class RadauPathConstraintComp(PathConstraintCompBase):
             constraint_kwargs = {k: kwargs.get(k, None)
                                  for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
                                            'scaler', 'indices', 'linear')}
+
+            # Convert indices from those in one time instance to those in all time instances
+            template = np.zeros(np.prod(kwargs['shape']), dtype=int)
+            template[kwargs['indices']] = 1
+            template = np.tile(template, num_nodes)
+            constraint_kwargs['indices'] = np.nonzero(template)[0]
+
             self.add_constraint(output_name, **constraint_kwargs)
 
             self._vars.append((input_name, output_name, kwargs['shape']))
-            # Setup partials
 
+            # Setup partials
             all_shape = (num_nodes,) + kwargs['shape']
             var_size = np.prod(kwargs['shape'])
             all_size = np.prod(all_shape)
@@ -245,6 +261,6 @@ class RadauPathConstraintComp(PathConstraintCompBase):
                 cols=np.arange(all_size),
                 val=1.0)
 
-    def compute(self, inputs, outputs):
+    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for (input_name, output_name, _) in self._vars:
             outputs[output_name] = inputs[input_name]

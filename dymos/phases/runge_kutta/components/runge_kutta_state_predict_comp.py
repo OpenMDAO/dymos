@@ -36,7 +36,7 @@ class RungeKuttaStatePredictComp(ExplicitComponent):
             units = options['units']
 
             self._var_names[name] = {}
-            self._var_names[name]['initial'] = 'initial_states:{0}'.format(name)
+            self._var_names[name]['initial'] = 'initial_states_per_seg:{0}'.format(name)
             self._var_names[name]['k'] = 'k:{0}'.format(name)
             self._var_names[name]['predicted'] = 'predicted_states:{0}'.format(name)
 

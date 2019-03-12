@@ -8,9 +8,6 @@ from shutil import rmtree
 from tempfile import mkdtemp
 import errno
 
-import numpy as np
-from numpy.testing import assert_almost_equal
-
 from parameterized import parameterized
 
 from openmdao.utils.assert_utils import assert_rel_error
