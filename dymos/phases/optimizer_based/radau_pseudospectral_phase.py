@@ -162,8 +162,9 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             self.add_subsystem('path_constraints', subsys=path_comp)
 
         for var, options in iteritems(self._path_constraints):
-            con_units = options.get('units', None)
-            con_name = options['constraint_name']
+            constraint_kwargs = options.copy()
+            con_units = constraint_kwargs['units'] = options.get('units', None)
+            con_name = constraint_kwargs.pop('constraint_name')
 
             # Determine the path to the variable which we will be constraining
             # This is more complicated for path constraints since, for instance,
@@ -172,33 +173,36 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             var_type = self._classify_var(var)
 
             if var_type == 'time':
-                options['shape'] = (1,)
-                options['units'] = time_units if con_units is None else con_units
-                options['linear'] = True
+                constraint_kwargs['shape'] = (1,)
+                constraint_kwargs['units'] = time_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
                 self.connect(src_name='time',
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
             if var_type == 'time_phase':
-                options['shape'] = (1,)
-                options['units'] = time_units if con_units is None else con_units
-                options['linear'] = True
+                constraint_kwargs['shape'] = (1,)
+                constraint_kwargs['units'] = time_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
                 self.connect(src_name='time_phase',
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
             elif var_type == 'state':
                 state_shape = self.state_options[var]['shape']
                 state_units = self.state_options[var]['units']
-                options['shape'] = state_shape
-                options['units'] = state_units if con_units is None else con_units
-                options['linear'] = False
+                constraint_kwargs['shape'] = state_shape
+                constraint_kwargs['units'] = state_units if con_units is None else con_units
+                constraint_kwargs['linear'] = False
+                src_idxs = get_src_indices_by_row(gd.input_maps['state_input_to_disc'], state_shape)
                 self.connect(src_name='states:{0}'.format(var),
                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                             src_indices=gd.input_maps['state_input_to_disc'])
+                             src_indices=src_idxs, flat_src_indices=True)
 
             elif var_type == 'indep_control':
                 control_shape = self.control_options[var]['shape']
                 control_units = self.control_options[var]['units']
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
                 constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
@@ -207,9 +211,9 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             elif var_type == 'input_control':
                 control_shape = self.control_options[var]['shape']
                 control_units = self.control_options[var]['units']
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
                 constraint_path = 'control_interp_comp.control_values:{0}'.format(var)
 
                 self.connect(src_name=constraint_path,
@@ -219,8 +223,8 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 control_name = var[:-5]
                 control_shape = self.control_options[control_name]['shape']
                 control_units = self.control_options[control_name]['units']
-                options['shape'] = control_shape
-                options['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con_units is None else con_units
                 constraint_path = 'control_rates:{0}_rate'.format(control_name)
                 self.connect(src_name=constraint_path,
@@ -230,23 +234,26 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                 control_name = var[:-6]
                 control_shape = self.control_options[control_name]['shape']
                 control_units = self.control_options[control_name]['units']
-                options['shape'] = control_shape
-                options['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con_units is None else con_units
                 constraint_path = 'control_rates:{0}_rate2'.format(control_name)
                 self.connect(src_name=constraint_path,
                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             else:
-                # Failed to find variable, assume it is in the RHS
-                options['linear'] = False
+                # Failed to find variable, assume it is in the ODE
+                constraint_kwargs['linear'] = False
+                constraint_kwargs['shape'] = options.get('shape', None)
+                if constraint_kwargs['shape'] is None:
+                    warnings.warn('Unable to infer shape of path constraint {0}. Assuming scalar.\n'
+                                  'In Dymos 1.0 the shape of ODE outputs must be explictly provided'
+                                  ' via the add_path_constraint method.', DeprecationWarning)
+                    constraint_kwargs['shape'] = (1,)
                 self.connect(src_name='rhs_all.{0}'.format(var),
-                             tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                             src_indices=gd.subset_node_indices['all'])
+                             tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
-            kwargs = options.copy()
-            kwargs.pop('constraint_name', None)
-            path_comp._add_path_constraint(con_name, var_type, **kwargs)
+            path_comp._add_path_constraint(con_name, var_type, **constraint_kwargs)
 
     def _setup_timeseries_outputs(self):
 
@@ -362,10 +369,9 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
             # the path component.
             var_type = self._classify_var(var)
 
-            # Failed to find variable, assume it is in the RHS
+            # Failed to find variable, assume it is in the ODE
             self.connect(src_name='rhs_all.{0}'.format(var),
-                         tgt_name='timeseries.all_values:{0}'.format(output_name),
-                         src_indices=gd.subset_node_indices['all'])
+                         tgt_name='timeseries.all_values:{0}'.format(output_name))
 
             kwargs = options.copy()
             kwargs.pop('output_name', None)

@@ -457,8 +457,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
                 constraint_path = 'rhs_all.{0}'.format(var)
             else:
                 raise ValueError('Invalid transcription')
-            # TODO: Account for non-scalar variables here.
-            shape = (1,)
+            shape = None
             units = None
             linear = False
 

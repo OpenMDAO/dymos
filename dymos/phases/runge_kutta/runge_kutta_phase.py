@@ -566,10 +566,14 @@ class RungeKuttaPhase(PhaseBase):
             else:
                 # Failed to find variable, assume it is in the ODE
                 options['linear'] = False
-                shape = (1,)
+                if options['shape'] is None:
+                    warnings.warn('Unable to infer shape of path constraint {0}. Assuming scalar.\n'
+                                  'In Dymos 1.0 the shape of ODE outputs must be explictly provided'
+                                  ' via the add_path_constraint method.', DeprecationWarning)
+                    options['shape'] = (1,)
 
                 src_rows = np.arange(num_seg * 2, dtype=int)
-                src_idxs = get_src_indices_by_row(src_rows, shape=shape)
+                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
 
                 src = 'ode.{0}'.format(var)
                 tgt = 'path_constraints.all_values:{0}'.format(con_name)

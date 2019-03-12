@@ -28,8 +28,6 @@ class BoundaryConstraintComp(ExplicitComponent):
                                 'output_name': output_name,
                                 'shape': kwargs['shape']}
 
-            # self._vars.append((input_name, output_name, kwargs['shape']))
-
             input_kwargs = {k: kwargs[k] for k in ('units', 'shape', 'desc')}
             self.add_input(input_name, **input_kwargs)
 
@@ -59,7 +57,8 @@ class BoundaryConstraintComp(ExplicitComponent):
         for name, options in iteritems(self._vars):
             outputs[options['output_name']] = inputs[options['input_name']]
 
-    def _add_constraint(self, name, shape=(1,), units=None, res_units=None, desc='',
+    def _add_constraint(self, name, units=None, res_units=None, desc='',
+                        shape=None, indices=None, flat_indices=True,
                         lower=None, upper=None, equals=None,
                         scaler=None, adder=None, ref=1.0, ref0=0.0,
                         linear=False, res_ref=1.0, distributed=False):
@@ -75,11 +74,16 @@ class BoundaryConstraintComp(ExplicitComponent):
         shape : int or tuple or list or None
             Shape of this variable, only required if val is not an array.
             Default is None.
+        indices : tuple, list, ndarray, or None
+            The indices of the output variable to be boundary constrained.  If provided, the
+            resulting constraint is always a 1D vector with the number of elements provided in
+            indices.  Indices should be a 1D sequence of tuples, each providing an index into the
+            source output if flat_indices is False, or integers if flat_indices is True.
+        flat_indices : bool
+            Whether or not indices is provided as 'flat' indices per OpenMDAO's flat_source_indices
+            option when connecting variables.
         units : str or None
             Units in which the output variables will be provided to the component during execution.
-            Default is None, which means it has no units.
-        res_units : str or None
-            Units in which the residuals of this output will be given to the user when requested.
             Default is None, which means it has no units.
         desc : str
             description of the variable
@@ -106,15 +110,13 @@ class BoundaryConstraintComp(ExplicitComponent):
             the scaled value is 0. Default is 0.
         linear : bool
             True if the *total* derivative of the constrained variable is linear, otherwise False.
-        res_ref : float
-            Scaling parameter. The value in the user-defined res_units of this output's residual
-            when the scaled value is 1. Default is 1.
         distributed : bool
             If True, this variable is distributed across multiple processes.
         """
         lower = -INF_BOUND if upper is not None and lower is None else lower
         upper = INF_BOUND if lower is not None and upper is None else upper
-        kwargs = {'shape': shape, 'units': units, 'res_units': res_units, 'desc': desc,
+        kwargs = {'units': units, 'res_units': res_units, 'desc': desc,
+                  'shape': shape, 'indices': indices, 'flat_indices': flat_indices,
                   'lower': lower, 'upper': upper, 'equals': equals,
                   'scaler': scaler, 'adder': adder, 'ref': ref, 'ref0': ref0, 'linear': linear,
                   'res_ref': res_ref, 'distributed': distributed}
