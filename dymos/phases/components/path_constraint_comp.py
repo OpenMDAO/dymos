@@ -1,7 +1,5 @@
 from __future__ import division, print_function
 
-from six import iteritems
-
 import numpy as np
 from openmdao.api import ExplicitComponent
 
@@ -31,8 +29,6 @@ class PathConstraintCompBase(ExplicitComponent):
             The 'class' of the variable as given by phase.classify_var.  One of 'time', 'state',
             'indep_control', 'input_control', 'design_parameter', 'input_parameter',
             'control_rate', 'control_rate2', or 'ode'.
-        val : float or list or tuple or ndarray
-            The initial value of the variable being added in user-defined units. Default is 1.0.
         shape : int or tuple or list or None
             Shape of this variable, only required if val is not an array.
             Default is None.

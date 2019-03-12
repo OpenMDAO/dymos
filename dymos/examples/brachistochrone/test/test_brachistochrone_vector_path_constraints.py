@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
+from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos import Phase, RungeKuttaPhase
