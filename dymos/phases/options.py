@@ -322,6 +322,7 @@ class StateOptionsDictionary(OptionsDictionary):
                      desc='Whether an input is created to pass in the initial state. This may be '
                           'set by a trajectory that links phases.')
 
+
 class TimeOptionsDictionary(OptionsDictionary):
     """
     An OptionsDictionary for time options

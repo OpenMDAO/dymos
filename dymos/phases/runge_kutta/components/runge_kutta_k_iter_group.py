@@ -56,7 +56,7 @@ class RungeKuttaKIterGroup(Group):
                            RungeKuttaStatePredictComp(method=self.options['method'],
                                                       num_segments=num_seg,
                                                       state_options=state_options),
-                           promotes_inputs=['initial_states:*'])
+                           promotes_inputs=['initial_states_per_seg:*'])
         self.add_subsystem('ode',
                            subsys=self.options['ode_class'](num_nodes=num_nodes,
                                                             **self.options['ode_init_kwargs']))
@@ -72,13 +72,6 @@ class RungeKuttaKIterGroup(Group):
             # Connect the state predicted (assumed) value to its targets in the ode
             self.connect('state_predict_comp.predicted_states:{0}'.format(state_name),
                          ['ode.{0}'.format(tgt) for tgt in options['targets']])
-
-            # # Connect the state rate source to the k comp
-            # rate_path, src_idxs = self._get_rate_source_path(state_name)
-            # self.connect(rate_path,
-            #              'k_comp.f:{0}'.format(state_name),
-            #              src_indices=src_idxs,
-            #              flat_src_indices=True)
 
             # Connect the k value associated with the state to the state predict comp
             self.connect('k_comp.k:{0}'.format(state_name),

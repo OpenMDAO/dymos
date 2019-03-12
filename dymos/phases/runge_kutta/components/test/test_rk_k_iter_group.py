@@ -24,7 +24,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
 
-        ivc.add_output('initial_states:y', shape=(num_seg, 1), units='m')
+        ivc.add_output('initial_states_per_seg:y', shape=(num_seg, 1), units='m')
         ivc.add_output('h', shape=(num_seg, 1), units='s')
         ivc.add_output('t', shape=(num_seg * num_stages, 1), units='s')
 
@@ -39,7 +39,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         p.model.connect('t', 'k_iter_group.ode.t')
         p.model.connect('h', 'k_iter_group.h')
-        p.model.connect('initial_states:y', 'k_iter_group.initial_states:y')
+        p.model.connect('initial_states_per_seg:y', 'k_iter_group.initial_states_per_seg:y')
 
         src_idxs = np.arange(16, dtype=int).reshape((num_seg, num_stages, 1))
         p.model.connect('k_iter_group.ode.ydot', 'k_iter_group.k_comp.f:y',
@@ -54,10 +54,10 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         p['h'] = np.array([[0.5, 0.5, 0.5, 0.5]]).T
 
-        p['initial_states:y'] = np.array([[0.50000000],
-                                          [1.425130208333333],
-                                          [2.639602661132812],
-                                          [4.006818970044454]])
+        p['initial_states_per_seg:y'] = np.array([[0.50000000],
+                                                  [1.425130208333333],
+                                                  [2.639602661132812],
+                                                  [4.006818970044454]])
 
         p['k_iter_group.k_comp.k:y'] = np.array([[[0.75000000],
                                                   [0.90625000],
@@ -99,7 +99,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
 
-        ivc.add_output('initial_states:y', shape=(num_seg, 1), units='m')
+        ivc.add_output('initial_states_per_seg:y', shape=(num_seg, 1), units='m')
         ivc.add_output('h', shape=(num_seg, 1), units='s')
         ivc.add_output('t', shape=(num_seg * num_stages, 1), units='s')
 
@@ -115,7 +115,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         p.model.connect('t', 'k_iter_group.ode.t')
         p.model.connect('h', 'k_iter_group.h')
-        p.model.connect('initial_states:y', 'k_iter_group.initial_states:y')
+        p.model.connect('initial_states_per_seg:y', 'k_iter_group.initial_states_per_seg:y')
 
         src_idxs = np.arange(16, dtype=int).reshape((num_seg, num_stages, 1))
         p.model.connect('k_iter_group.ode.ydot', 'k_iter_group.k_comp.f:y',
@@ -130,10 +130,10 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         p['h'] = np.array([[0.5, 0.5, 0.5, 0.5]]).T
 
-        p['initial_states:y'] = np.array([[0.50000000],
-                                          [1.425130208333333],
-                                          [2.639602661132812],
-                                          [4.006818970044454]])
+        p['initial_states_per_seg:y'] = np.array([[0.50000000],
+                                                  [1.425130208333333],
+                                                  [2.639602661132812],
+                                                  [4.006818970044454]])
 
         # Start k with a terrible guess
         p['k_iter_group.k_comp.k:y'][...] = 0
@@ -158,7 +158,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
 
-        ivc.add_output('initial_states:y', shape=(num_seg, 1), units='m')
+        ivc.add_output('initial_states_per_seg:y', shape=(num_seg, 1), units='m')
         ivc.add_output('h', shape=(num_seg, 1), units='s')
         ivc.add_output('t', shape=(num_seg * num_stages, 1), units='s')
 
@@ -174,7 +174,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         p.model.connect('t', 'k_iter_group.ode.t')
         p.model.connect('h', 'k_iter_group.h')
-        p.model.connect('initial_states:y', 'k_iter_group.initial_states:y')
+        p.model.connect('initial_states_per_seg:y', 'k_iter_group.initial_states_per_seg:y')
 
         src_idxs = np.arange(16, dtype=int).reshape((num_seg, num_stages, 1))
         p.model.connect('k_iter_group.ode.ydot', 'k_iter_group.k_comp.f:y',
@@ -189,10 +189,10 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         p['h'] = np.array([[0.5, 0.5, 0.5, 0.5]]).T
 
-        p['initial_states:y'] = np.array([[0.50000000],
-                                          [1.425130208333333],
-                                          [2.639602661132812],
-                                          [4.006818970044454]])
+        p['initial_states_per_seg:y'] = np.array([[0.50000000],
+                                                  [1.425130208333333],
+                                                  [2.639602661132812],
+                                                  [4.006818970044454]])
 
         # Start k with a terrible guess
         p['k_iter_group.k_comp.k:y'][...] = 0

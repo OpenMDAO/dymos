@@ -3,7 +3,8 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 from six import string_types, iteritems
 
-from openmdao.api import Group, DirectSolver, NonlinearBlockGS, NewtonSolver, NonlinearRunOnce
+from openmdao.api import Group, IndepVarComp, DirectSolver, NonlinearBlockGS, NewtonSolver, \
+    NonlinearRunOnce
 
 from .runge_kutta_k_iter_group import RungeKuttaKIterGroup
 from .runge_kutta_state_advance_comp import RungeKuttaStateAdvanceComp
@@ -67,14 +68,21 @@ class RungeKuttaStateContinuityIterGroup(Group):
                            RungeKuttaStateAdvanceComp(num_segments=self.options['num_segments'],
                                                       method=self.options['method'],
                                                       state_options=self.options['state_options']),
-                           promotes_inputs=['initial_states:*'],
+                           promotes_inputs=['initial_states_per_seg:*'],
                            promotes_outputs=['state_integrals:*', 'final_states:*'])
+
+        num_connected = len([state for state in self.options['state_options'] if
+                             self.options['state_options'][state]['connected_initial']])
+        if num_connected > 0:
+            promoted_inputs = ['state_integrals:*', 'initial_states:*']
+        else:
+            promoted_inputs = ['state_integrals:*']
 
         self.add_subsystem('continuity_comp',
                            RungeKuttaStateContinuityComp(
                                num_segments=self.options['num_segments'],
                                state_options=self.options['state_options']),
-                           promotes_inputs=['state_integrals:*'],
+                           promotes_inputs=promoted_inputs,
                            promotes_outputs=['states:*'])
 
         for state_name, options in iteritems(self.options['state_options']):
@@ -83,7 +91,7 @@ class RungeKuttaStateContinuityIterGroup(Group):
             row_idxs = np.arange(self.options['num_segments'], dtype=int)
             src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
             self.connect('states:{0}'.format(state_name),
-                         'initial_states:{0}'.format(state_name),
+                         'initial_states_per_seg:{0}'.format(state_name),
                          src_indices=src_idxs, flat_src_indices=True)
 
         self.linear_solver = DirectSolver()

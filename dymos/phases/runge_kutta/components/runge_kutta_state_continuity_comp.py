@@ -38,6 +38,7 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
 
         for state_name, options in iteritems(state_options):
             self._var_names[state_name] = {
+                'initial': 'initial_states:{0}'.format(state_name),
                 'states': 'states:{0}'.format(state_name),
                 'integral': 'state_integrals:{0}'.format(state_name)
             }
@@ -56,7 +57,6 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
             # The implicit variable is the state values at all segment endpoints.
             self.add_output(name=var_names['states'],
                             shape=(num_seg + 1,) + shape,
-                            res_ref=res_ref,
                             units=units,
                             lower=options['lower'],
                             upper=options['upper'])
@@ -96,6 +96,14 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
             self.declare_partials(of=var_names['states'], wrt=var_names['integral'],
                                   rows=r, cols=c, val=-1.0)
 
+            # The initial value of the state at the start of the phase, if connected_initial == True
+            if options['connected_initial']:
+                self.add_input(name=var_names['initial'], shape=(1,) + shape, units=units)
+
+                ar = np.arange(size, dtype=int)
+                self.declare_partials(of=var_names['states'], wrt=var_names['initial'],
+                                      rows=ar, cols=ar, val=1.0)
+
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
         Calculate the residual for each state value.
@@ -117,5 +125,10 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
             x_f = outputs[names['states']][1:, ...]
             dx = inputs[names['integral']]
 
-            residuals[names['states']][0, ...] = 0
+            if options['connected_initial']:
+                residuals[names['states']][0, ...] = \
+                    inputs[names['initial']][0, ...] - outputs[names['states']][0, ...]
+
+            else:
+                residuals[names['states']][0, ...] = 0
             residuals[names['states']][1:, ...] = x_f - x_i - dx

@@ -140,6 +140,10 @@ class RungeKuttaPhase(PhaseBase):
 
     def _setup_rhs(self):
 
+        num_connected = len([s for s in self.state_options
+                             if self.state_options[s]['connected_initial']])
+        promoted_inputs = ['h'] if num_connected == 0 else ['h', 'initial_states:*']
+
         self.add_subsystem('rk_solve_group',
                            RungeKuttaStateContinuityIterGroup(
                                num_segments=self.options['num_segments'],
@@ -150,7 +154,7 @@ class RungeKuttaPhase(PhaseBase):
                                ode_init_kwargs=self.options['ode_init_kwargs'],
                                k_solver_class=self.options['k_solver_class'],
                                k_solver_options=self.options['k_solver_options']),
-                           promotes_inputs=['h'],
+                           promotes_inputs=promoted_inputs,
                            promotes_outputs=['states:*'])
 
         # Since the RK Solve group evaluates the ODE at *predicted* state values, we need
@@ -240,12 +244,11 @@ class RungeKuttaPhase(PhaseBase):
                     if options['initial_bounds'] is not None:
                         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
                                          'initial_bounds for state {0}'.format(state_name))
-                    if isinstance(options['fix_initial'], Iterable):
-                        idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
-                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                            del desvar_indices[idx_to_fix]
-                    else:
-                        del desvar_indices[:size]
+                    if options['connected_initial']:
+                        raise ValueError('Cannot specify \'fix_initial=True\' and specify '
+                                         '\'connected_initial=True\' for state {0} in '
+                                         'phase {1}.'.format(state_name, self.name))
+                    del desvar_indices[:size]
 
                 if options['fix_final']:
                     raise ValueError('Cannot specify \'fix_final=True\' in '
@@ -468,7 +471,6 @@ class RungeKuttaPhase(PhaseBase):
         gd = self.grid_data
         time_units = self.time_options['units']
         num_seg = gd.num_segments
-        num_stages = rk_methods[self.options['method']]['num_stages']
 
         if self._path_constraints:
             path_comp = RungeKuttaPathConstraintComp(grid_data=gd)
@@ -747,7 +749,8 @@ class RungeKuttaPhase(PhaseBase):
     def set_state_options(self, name, units=_unspecified, val=1.0,
                           fix_initial=False, fix_final=False, initial_bounds=None,
                           final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
-                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None):
+                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
+                          connected_initial=False):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -786,6 +789,9 @@ class RungeKuttaPhase(PhaseBase):
         defect_ref : float or ndarray (1.0)
             The unit-reference value of the state defect at the collocation nodes of the phase. If
             provided, this value overrides defect_scaler.
+        connected_initial : bool
+            If True, then the initial value for this state comes from an externally connected
+            source.
 
         """
         super(RungeKuttaPhase, self).set_state_options(name=name,
@@ -802,7 +808,8 @@ class RungeKuttaPhase(PhaseBase):
                                                        ref=ref,
                                                        ref0=ref0,
                                                        defect_scaler=defect_scaler,
-                                                       defect_ref=defect_ref)
+                                                       defect_ref=defect_ref,
+                                                       connected_initial=connected_initial)
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
