@@ -46,7 +46,7 @@ class TestPep8(unittest.TestCase):
         pyfiles = _discover_python_files(dymos_path)
 
         style = pep8.StyleGuide(ignore=['E201', 'E226', 'E241', 'E402'])
-        style.options.max_line_length = 100
+        style.options.max_line_length = 120
 
         save = sys.stdout
         sys.stdout = msg = StringIO()

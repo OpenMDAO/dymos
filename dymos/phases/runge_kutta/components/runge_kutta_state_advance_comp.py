@@ -41,7 +41,7 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
             units = options['units']
 
             self._var_names[name] = {}
-            self._var_names[name]['initial'] = 'initial_states:{0}'.format(name)
+            self._var_names[name]['initial'] = 'initial_states_per_seg:{0}'.format(name)
             self._var_names[name]['k'] = 'k:{0}'.format(name)
             self._var_names[name]['final'] = 'final_states:{0}'.format(name)
             self._var_names[name]['integral'] = 'state_integrals:{0}'.format(name)

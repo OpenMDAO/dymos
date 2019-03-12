@@ -159,7 +159,10 @@ class OptimizerBasedPhaseBase(PhaseBase):
                                      shape=(num_state_input_nodes, np.prod(options['shape'])),
                                      units=options['units'])
 
-        self.add_subsystem('indep_states', indep, promotes_outputs=['*'])
+        num_connected = len([s for (s, opts) in iteritems(self.state_options) if opts['connected_initial']])
+        prom_inputs = ['initial_states:*'] if num_connected > 0 else None
+        self.add_subsystem('indep_states', indep, promotes_inputs=prom_inputs,
+                           promotes_outputs=['*'])
 
         # add all the des-vars (either from the IndepVarComp or from the indep-var-like
         # outputs of the collocation comp)

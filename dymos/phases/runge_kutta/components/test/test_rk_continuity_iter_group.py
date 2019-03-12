@@ -3,14 +3,12 @@ from __future__ import print_function, division, absolute_import
 import unittest
 
 import numpy as np
-from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
-    NewtonSolver, ExecComp, DirectSolver
-from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
+from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, \
+    NewtonSolver, DirectSolver
+from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos.phases.runge_kutta.components import RungeKuttaStateContinuityIterGroup, \
-    RungeKuttaStepsizeComp
+from dymos.phases.runge_kutta.components import RungeKuttaStateContinuityIterGroup
 from dymos.phases.runge_kutta.test.rk_test_ode import TestODE
 
 
@@ -19,7 +17,9 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
     def test_continuity_comp_no_iteration(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'propagation': 'forward'}}
+                               'fix_final': False, 'propagation': 'forward', 'defect_scaler': None,
+                               'defect_ref': 1.0, 'lower': None, 'upper': None,
+                               'connected_initial': False}}
 
         p = Problem(model=Group())
 
@@ -40,8 +40,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
                                   time_units='s',
                                   ode_class=TestODE,
                                   ode_init_kwargs={},
-                                  k_solver_class=NonlinearRunOnce,
-                                  continuity_solver_class=NonlinearRunOnce),
+                                  k_solver_class=NonlinearRunOnce),
                               promotes_outputs=['states:*'])
 
         p.model.connect('h', 'cnty_iter_group.h')
@@ -107,7 +106,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         J_rev = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_fd']
 
-        J_fd[0, 0] = 1.0
+        J_fd[0, 0] = -1.0
 
         assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
@@ -115,7 +114,9 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
     def test_continuity_comp_newtonsolver(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'propagation': 'forward'}}
+                               'fix_final': False, 'propagation': 'forward', 'defect_scaler': None,
+                               'defect_ref': 1.0, 'lower': None, 'upper': None,
+                               'connected_initial': False}}
 
         p = Problem(model=Group())
 
@@ -136,8 +137,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
                                   time_units='s',
                                   ode_class=TestODE,
                                   ode_init_kwargs={},
-                                  k_solver_class=None,
-                                  continuity_solver_class=NewtonSolver),
+                                  k_solver_class=None),
                               promotes_outputs=['states:*'])
 
         p.model.connect('h', 'cnty_iter_group.h')
@@ -147,7 +147,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         p.model.connect('cnty_iter_group.ode.ydot', 'cnty_iter_group.k_comp.f:y',
                         src_indices=src_idxs, flat_src_indices=True)
 
-        p.model.nonlinear_solver = NonlinearRunOnce()
+        p.model.nonlinear_solver = NewtonSolver()
         p.model.linear_solver = DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
@@ -180,7 +180,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         J_rev = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_fd']
 
-        J_fd[0, 0] = 1.0
+        J_fd[0, 0] = -1.0
 
         assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
