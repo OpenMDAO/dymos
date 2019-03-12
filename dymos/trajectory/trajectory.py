@@ -330,8 +330,7 @@ class Trajectory(Group):
                         self.connect(src, '{0}.{1}'.format(phase_name2, path))
 
                     else:
-                        p2_opt = p2.state_options[var]
-                        path = 'indep_states.initial_states:{0}'.format(var)
+                        path = 'initial_states:{0}'.format(var)
 
                         self.connect('{0}.{1}'.format(phase_name1, source1),
                                      '{0}.{1}'.format(phase_name2, path))
