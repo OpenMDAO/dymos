@@ -18,7 +18,8 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
                                'fix_final': False, 'propagation': 'forward', 'defect_scaler': None,
-                               'defect_ref': 1.0, 'lower': None, 'upper': None}}
+                               'defect_ref': 1.0, 'lower': None, 'upper': None,
+                               'connected_initial': False}}
 
         p = Problem(model=Group())
 
@@ -114,7 +115,8 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
                                'fix_final': False, 'propagation': 'forward', 'defect_scaler': None,
-                               'defect_ref': 1.0, 'lower': None, 'upper': None}}
+                               'defect_ref': 1.0, 'lower': None, 'upper': None,
+                               'connected_initial': False}}
 
         p = Problem(model=Group())
 

@@ -153,7 +153,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
                                'fix_final': False, 'defect_scaler': 1.0, 'defect_ref': None,
-                               'lower': None, 'upper': None}}
+                               'lower': None, 'upper': None, 'connected_initial': False}}
 
         p = Problem(model=Group())
 
@@ -288,7 +288,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
                                'fix_final': False, 'defect_scaler': 1.0, 'defect_ref': None,
-                               'lower': None, 'upper': None}}
+                               'lower': None, 'upper': None, 'connected_initial': False}}
 
         p = Problem(model=Group())
 
@@ -345,7 +345,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         num_seg = 2
         state_options = {'y': {'shape': (2,), 'units': 'm', 'targets': ['y'],
                                'defect_ref': None, 'defect_scaler': None,
-                               'lower': None, 'upper': None, 'lower': None, 'upper': None}}
+                               'lower': None, 'upper': None, 'lower': None, 'upper': None,
+                               'connected_initial': False}}
 
         p = Problem(model=Group())
 
@@ -406,7 +407,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_vector_nonlinearblockgs_fwd(self):
         num_seg = 2
         state_options = {'y': {'shape': (2,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'defect_ref': 1, 'lower': None, 'upper': None}}
+                               'fix_final': False, 'defect_ref': 1, 'lower': None, 'upper': None,
+                               'connected_initial': False}}
 
         p = Problem(model=Group())
 
@@ -518,7 +520,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_vector_newton_fwd(self):
         num_seg = 2
         state_options = {'y': {'shape': (2,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'defect_ref': 1, 'lower': None, 'upper': None}}
+                               'fix_final': False, 'defect_ref': 1, 'lower': None, 'upper': None,
+                               'connected_initial': False}}
 
         p = Problem(model=Group())
 
