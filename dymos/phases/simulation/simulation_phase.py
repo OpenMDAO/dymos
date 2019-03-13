@@ -264,13 +264,13 @@ class SimulationPhase(Group):
                 self.connect(src_name='interp_comp.control_values:{0}'.format(name),
                              tgt_name=['ode.{0}'.format(tgt) for tgt in options['targets']])
 
-            if options['rate_param']:
+            if options['rate_targets']:
                 self.connect(src_name='interp_comp.control_rates:{0}_rate'.format(name),
-                             tgt_name=['ode.{0}'.format(tgt) for tgt in options['rate_param']])
+                             tgt_name=['ode.{0}'.format(tgt) for tgt in options['rate_targets']])
 
-            if options['rate2_param']:
+            if options['rate2_targets']:
                 self.connect(src_name='interp_comp.control_rates:{0}_rate2'.format(name),
-                             tgt_name=['ode.{0}'.format(tgt) for tgt in options['rate2_param']])
+                             tgt_name=['ode.{0}'.format(tgt) for tgt in options['rate2_targets']])
 
     def _setup_polynomial_controls(self, ivc):
         gd = self.options['grid_data']

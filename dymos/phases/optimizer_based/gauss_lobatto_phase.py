@@ -110,27 +110,26 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         return comps
 
     def _setup_controls(self):
-        num_dynamic = super(GaussLobattoPhase, self)._setup_controls()
+        super(GaussLobattoPhase, self)._setup_controls()
         grid_data = self.grid_data
 
         for name, options in iteritems(self.control_options):
             state_disc_idxs = grid_data.subset_node_indices['state_disc']
             col_idxs = grid_data.subset_node_indices['col']
 
-            control_src_name = 'control_values:{0}'.format(name)
+            if self.control_options[name]['targets']:
+                targets = self.control_options[name]['targets']
 
-            if name in self.ode_options._parameters:
-                targets = self.ode_options._parameters[name]['targets']
-                self.connect(control_src_name,
+                self.connect('control_values:{0}'.format(name),
                              ['rhs_disc.{0}'.format(t) for t in targets],
                              src_indices=state_disc_idxs)
 
-                self.connect(control_src_name,
+                self.connect('control_values:{0}'.format(name),
                              ['rhs_col.{0}'.format(t) for t in targets],
                              src_indices=col_idxs)
 
-            if options['rate_param']:
-                targets = self.ode_options._parameters[options['rate_param']]['targets']
+            if self.control_options[name]['rate_targets']:
+                targets = self.control_options[name]['rate_targets']
 
                 self.connect('control_rates:{0}_rate'.format(name),
                              ['rhs_disc.{0}'.format(t) for t in targets],
@@ -140,8 +139,8 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                              ['rhs_col.{0}'.format(t) for t in targets],
                              src_indices=col_idxs)
 
-            if options['rate2_param']:
-                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+            if self.control_options[name]['rate2_targets']:
+                targets = self.control_options[name]['rate2_targets']
 
                 self.connect('control_rates:{0}_rate2'.format(name),
                              ['rhs_disc.{0}'.format(t) for t in targets],
@@ -150,8 +149,6 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                 self.connect('control_rates:{0}_rate2'.format(name),
                              ['rhs_col.{0}'.format(t) for t in targets],
                              src_indices=col_idxs)
-
-        return num_dynamic
 
     def _setup_polynomial_controls(self):
         super(GaussLobattoPhase, self)._setup_polynomial_controls()
@@ -204,14 +201,23 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         -------
         connection_info : list of (paths, indices)
             A list containing a tuple of target paths and corresponding src_indices to which the
-            given design variable is to be connected.
+            given design/input/traj parameter is to be connected.
         """
         connection_info = []
 
-        if name in self.ode_options._parameters:
-            targets = self.ode_options._parameters[name]['targets']
-            dynamic = self.ode_options._parameters[name]['dynamic']
-            shape = self.ode_options._parameters[name]['shape']
+        parameter_options = self.design_parameter_options.copy()
+        parameter_options.update(self.input_parameter_options)
+        parameter_options.update(self.traj_parameter_options)
+        parameter_options.update(self.control_options)
+
+        if name in parameter_options:
+            try:
+                targets = parameter_options[name]['targets']
+            except KeyError:
+                raise KeyError('Could not find any ODE targets associated with parameter {0}.'.format(name))
+
+            dynamic = parameter_options[name]['dynamic']
+            shape = parameter_options[name]['shape']
 
             if dynamic:
                 disc_rows = np.zeros(self.grid_data.subset_num_nodes['state_disc'], dtype=int)

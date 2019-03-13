@@ -52,6 +52,9 @@ class TestBrachistochroneExample(unittest.TestCase):
         # Solve for the optimal trajectory
         p.run_driver()
 
+        from openmdao.api import view_model
+        view_model(p.model)
+
         # Test the results
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 

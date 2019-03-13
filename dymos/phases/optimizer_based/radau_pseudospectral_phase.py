@@ -99,19 +99,19 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
         for name, options in iteritems(self.control_options):
 
-            if name in self.ode_options._parameters:
-                targets = self.ode_options._parameters[name]['targets']
+            if self.control_options[name]['targets']:
+                targets = self.control_options[name]['targets']
 
                 self.connect('control_values:{0}'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
-            if options['rate_param']:
-                targets = self.ode_options._parameters[options['rate_param']]['targets']
+            if self.control_options[name]['rate_targets']:
+                targets = self.control_options[name]['rate_targets']
                 self.connect('control_rates:{0}_rate'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
-            if options['rate2_param']:
-                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+            if self.control_options[name]['rate2_targets']:
+                targets = self.control_options[name]['rate2_targets']
                 self.connect('control_rates:{0}_rate2'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
@@ -149,12 +149,21 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         """
         connection_info = []
 
-        if name in self.ode_options._parameters:
-            shape = self.ode_options._parameters[name]['shape']
-            dynamic = self.ode_options._parameters[name]['dynamic']
-            targets = self.ode_options._parameters[name]['targets']
+        parameter_options = self.design_parameter_options.copy()
+        parameter_options.update(self.input_parameter_options)
+        parameter_options.update(self.traj_parameter_options)
+        parameter_options.update(self.control_options)
 
-            if self.ode_options._parameters[name]['dynamic']:
+        if name in parameter_options:
+            try:
+                targets = parameter_options[name]['targets']
+            except KeyError:
+                raise KeyError('Could not find any ODE targets associated with parameter {0}.'.format(name))
+
+            dynamic = parameter_options[name]['dynamic']
+            shape = parameter_options[name]['shape']
+
+            if dynamic:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
                 if shape == (1,):

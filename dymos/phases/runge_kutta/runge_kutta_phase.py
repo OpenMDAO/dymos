@@ -224,9 +224,10 @@ class RungeKuttaPhase(PhaseBase):
             row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
             row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
             src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
-            self.connect('states:{0}'.format(state_name),
-                         ['ode.{0}'.format(tgt) for tgt in options['targets']],
-                         src_indices=src_idxs.ravel(), flat_src_indices=True)
+            if options['targets']:
+                self.connect('states:{0}'.format(state_name),
+                             ['ode.{0}'.format(tgt) for tgt in options['targets']],
+                             src_indices=src_idxs.ravel(), flat_src_indices=True)
 
             # Connect the state rate source to the k comp
             rate_path, src_idxs = self._get_rate_source_path(state_name)
@@ -293,9 +294,9 @@ class RungeKuttaPhase(PhaseBase):
             segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=options['shape'])
             all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
 
-            if name in self.ode_options._parameters:
+            if self.control_options[name]['targets']:
                 src_name = 'control_values:{0}'.format(name)
-                targets = self.ode_options._parameters[name]['targets']
+                targets = self.control_options[name]['targets']
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
                              src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
@@ -304,9 +305,9 @@ class RungeKuttaPhase(PhaseBase):
                              ['rk_solve_group.ode.{0}'.format(t) for t in targets],
                              src_indices=all_src_idxs.ravel(), flat_src_indices=True)
 
-            if options['rate_param']:
+            if self.control_options[name]['rate_targets']:
                 src_name = 'control_rates:{0}_rate'.format(name)
-                targets = self.ode_options._parameters[options['rate_param']]['targets']
+                targets = self.control_options[name]['rate_targets']
 
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
@@ -316,9 +317,9 @@ class RungeKuttaPhase(PhaseBase):
                              ['rk_solve_group.{0}'.format(t) for t in targets],
                              src_indices=all_src_idxs, flat_src_indices=True)
 
-            if options['rate2_param']:
+            if self.control_options[name]['rate2_targets']:
                 src_name = 'control_rates:{0}_rate2'.format(name)
-                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+                targets = self.control_options[name]['rate2_targets']
 
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
@@ -327,6 +328,8 @@ class RungeKuttaPhase(PhaseBase):
                 self.connect(src_name,
                              ['rk_solve_group.{0}'.format(t) for t in targets],
                              src_indices=all_src_idxs, flat_src_indices=True)
+
+
 
     def _setup_polynomial_controls(self):
         super(RungeKuttaPhase, self)._setup_polynomial_controls()
@@ -781,7 +784,7 @@ class RungeKuttaPhase(PhaseBase):
                                                    shape=options['shape'],
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
+            if self.design_parameter_options[name]['dynamic']:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
             else:
@@ -798,7 +801,7 @@ class RungeKuttaPhase(PhaseBase):
                                                    var_class=self._classify_var(name),
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
+            if self.input_parameter_options[name]['dynamic']:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
             else:
@@ -815,7 +818,7 @@ class RungeKuttaPhase(PhaseBase):
                                                    var_class=self._classify_var(name),
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
+            if self.traj_parameter_options[name]['dynamic']:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
             else:
@@ -860,8 +863,13 @@ class RungeKuttaPhase(PhaseBase):
         num_iter_ode_nodes = num_seg * num_stages
         num_final_ode_nodes = 2 * num_seg
 
-        if name in self.ode_options._parameters:
-            ode_tgts = self.ode_options._parameters[name]['targets']
+        parameter_options = self.design_parameter_options.copy()
+        parameter_options.update(self.input_parameter_options)
+        parameter_options.update(self.traj_parameter_options)
+        parameter_options.update(self.control_options)
+
+        if name in parameter_options:
+            ode_tgts = parameter_options[name]['targets']
 
             src_idxs = np.zeros(num_final_ode_nodes, dtype=int)
             connection_info.append((['ode.{0}'.format(tgt) for tgt in ode_tgts], src_idxs))
@@ -872,70 +880,70 @@ class RungeKuttaPhase(PhaseBase):
 
         return connection_info
 
-    def set_state_options(self, name, units=_unspecified, val=1.0,
-                          fix_initial=False, fix_final=False, initial_bounds=None,
-                          final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
-                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
-                          connected_initial=False):
-        """
-        Set options that apply the EOM state variable of the given name.
-
-        Parameters
-        ----------
-        name : str
-            Name of the state variable in the RHS.
-        units : str or None
-            Units in which the state variable is defined.  Internally components may use different
-            units for the state variable, but the IndepVarComp which provides its value will provide
-            it in these units, and collocation defects will use these units.  If units is not
-            specified here then the value as defined in the ODEOptions (@declare_state) will be
-            used.
-        val :  ndarray
-            The default value of the state at the state discretization nodes of the phase.
-        fix_initial : bool(False)
-            If True, omit the first value of the state from the design variables (prevent the
-            optimizer from changing it).
-        fix_final : bool(False)
-            If True, omit the final value of the state from the design variables (prevent the
-            optimizer from changing it).
-        lower : float or ndarray or None (None)
-            The lower bound of the state at the nodes of the phase.
-        upper : float or ndarray or None (None)
-            The upper bound of the state at the nodes of the phase.
-        scaler : float or ndarray or None (None)
-            The scaler of the state value at the nodes of the phase.
-        adder : float or ndarray or None (None)
-            The adder of the state value at the nodes of the phase.
-        ref0 : float or ndarray or None (None)
-            The zero-reference value of the state at the nodes of the phase.
-        ref : float or ndarray or None (None)
-            The unit-reference value of the state at the nodes of the phase
-        defect_scaler : float or ndarray (1.0)
-            The scaler of the state defect at the collocation nodes of the phase.
-        defect_ref : float or ndarray (1.0)
-            The unit-reference value of the state defect at the collocation nodes of the phase. If
-            provided, this value overrides defect_scaler.
-        connected_initial : bool
-            If True, then the initial value for this state comes from an externally connected
-            source.
-
-        """
-        super(RungeKuttaPhase, self).set_state_options(name=name,
-                                                       units=units,
-                                                       val=val,
-                                                       fix_initial=fix_initial,
-                                                       fix_final=fix_final,
-                                                       initial_bounds=initial_bounds,
-                                                       final_bounds=final_bounds,
-                                                       lower=lower,
-                                                       upper=upper,
-                                                       scaler=scaler,
-                                                       adder=adder,
-                                                       ref=ref,
-                                                       ref0=ref0,
-                                                       defect_scaler=defect_scaler,
-                                                       defect_ref=defect_ref,
-                                                       connected_initial=connected_initial)
+    # def set_state_options(self, name, units=_unspecified, val=1.0,
+    #                       fix_initial=False, fix_final=False, initial_bounds=None,
+    #                       final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
+    #                       ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
+    #                       connected_initial=False):
+    #     """
+    #     Set options that apply the EOM state variable of the given name.
+    #
+    #     Parameters
+    #     ----------
+    #     name : str
+    #         Name of the state variable in the RHS.
+    #     units : str or None
+    #         Units in which the state variable is defined.  Internally components may use different
+    #         units for the state variable, but the IndepVarComp which provides its value will provide
+    #         it in these units, and collocation defects will use these units.  If units is not
+    #         specified here then the value as defined in the ODEOptions (@declare_state) will be
+    #         used.
+    #     val :  ndarray
+    #         The default value of the state at the state discretization nodes of the phase.
+    #     fix_initial : bool(False)
+    #         If True, omit the first value of the state from the design variables (prevent the
+    #         optimizer from changing it).
+    #     fix_final : bool(False)
+    #         If True, omit the final value of the state from the design variables (prevent the
+    #         optimizer from changing it).
+    #     lower : float or ndarray or None (None)
+    #         The lower bound of the state at the nodes of the phase.
+    #     upper : float or ndarray or None (None)
+    #         The upper bound of the state at the nodes of the phase.
+    #     scaler : float or ndarray or None (None)
+    #         The scaler of the state value at the nodes of the phase.
+    #     adder : float or ndarray or None (None)
+    #         The adder of the state value at the nodes of the phase.
+    #     ref0 : float or ndarray or None (None)
+    #         The zero-reference value of the state at the nodes of the phase.
+    #     ref : float or ndarray or None (None)
+    #         The unit-reference value of the state at the nodes of the phase
+    #     defect_scaler : float or ndarray (1.0)
+    #         The scaler of the state defect at the collocation nodes of the phase.
+    #     defect_ref : float or ndarray (1.0)
+    #         The unit-reference value of the state defect at the collocation nodes of the phase. If
+    #         provided, this value overrides defect_scaler.
+    #     connected_initial : bool
+    #         If True, then the initial value for this state comes from an externally connected
+    #         source.
+    #
+    #     """
+    #     super(RungeKuttaPhase, self).set_state_options(name=name,
+    #                                                    units=units,
+    #                                                    val=val,
+    #                                                    fix_initial=fix_initial,
+    #                                                    fix_final=fix_final,
+    #                                                    initial_bounds=initial_bounds,
+    #                                                    final_bounds=final_bounds,
+    #                                                    lower=lower,
+    #                                                    upper=upper,
+    #                                                    scaler=scaler,
+    #                                                    adder=adder,
+    #                                                    ref=ref,
+    #                                                    ref0=ref0,
+    #                                                    defect_scaler=defect_scaler,
+    #                                                    defect_ref=defect_ref,
+    #                                                    connected_initial=connected_initial)
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
