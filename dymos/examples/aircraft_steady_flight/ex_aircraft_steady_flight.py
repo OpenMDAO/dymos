@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
-from openmdao.api import IndepVarComp, ScipyOptimizeDriver
+from openmdao.api import Problem, Group, pyOptSparseDriver
+from openmdao.api import IndepVarComp
 
 from dymos import Phase
 
@@ -17,7 +17,7 @@ from dymos.utils.lgl import lgl
 
 
 def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
-                              solve_segments=False, show_plots=False,
+                              solve_segments=False, show_plots=True,
                               use_boundary_constraints=False, compressed=False):
     p = Problem(model=Group())
     p.driver = pyOptSparseDriver()
@@ -139,15 +139,6 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
 
 
 if __name__ == '__main__':
-    import time
-
-    st = time.time()
 
     ex_aircraft_steady_flight(optimizer='SNOPT', transcription='radau-ps',
                               compressed=True, show_plots=False)
-
-    # ex_aircraft_steady_flight(optimizer='SNOPT', transcription='gauss-lobatto',
-    #                           solve_segments=True, use_boundary_constraints=True,
-    #                           compressed=False, show_plots=False)
-
-    print('time: ', time.time() - st)
