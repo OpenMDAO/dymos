@@ -48,7 +48,7 @@ class Battery(ExplicitComponent):
                         units='1/s',
                         desc='Time derivative of state of charge')
 
-        self.add_output('V_oc', val=np.ones(num_nodes), units='A',
+        self.add_output('V_oc', val=np.ones(num_nodes), units='V',
                         desc='Open Circuit Voltage')
         self.add_output('I_pack', val=0.1*np.ones(num_nodes), units='A',
                         desc='Total Pack Current')
