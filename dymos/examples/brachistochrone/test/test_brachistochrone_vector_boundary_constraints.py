@@ -6,14 +6,14 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
+from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos import Phase
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
-SHOW_PLOTS = False
+SHOW_PLOTS = True
 
 
 class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):

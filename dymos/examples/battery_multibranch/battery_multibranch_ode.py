@@ -48,22 +48,3 @@ class BatteryODE(Group):
         self.nonlinear_solver = NewtonSolver()
         self.nonlinear_solver.options['maxiter'] = 20
         self.linear_solver = DirectSolver()
-
-
-if __name__ == '__main__':
-
-    from openmdao.api import Problem, IndepVarComp
-    num_nodes = 1
-
-    prob = Problem(model=BatteryODE(num_nodes=num_nodes))
-    model = prob.model
-
-    prob.setup()
-
-    prob.run_model()
-
-    derivs = prob.check_partials(compact_print=True)
-
-    prob.model.list_outputs()
-
-    print('done')
