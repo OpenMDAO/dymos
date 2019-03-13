@@ -65,7 +65,7 @@ class Trajectory(Group):
         self._phase_add_kwargs[name] = kwargs
         return phase
 
-    def add_input_parameter(self, name, target_params=None, val=0.0, units=0):
+    def add_input_parameter(self, name, **kwargs):
         """
         Add a design parameter (static control) to the trajectory.
 
@@ -85,20 +85,16 @@ class Trajectory(Group):
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         """
-        if name in self.input_parameter_options:
-            raise ValueError('{0} has already been added as an input parameter.'.format(name))
+        if name not in self.input_parameter_options:
+            self.input_parameter_options[name] = InputParameterOptionsDictionary()
 
-        self.input_parameter_options[name] = InputParameterOptionsDictionary()
+        for kw in kwargs:
+            if kw not in self.input_parameter_options[name]:
+                raise KeyError('Invalid argument to add_input_parameter: {0}'.format(kw))
 
-        self.input_parameter_options[name]['val'] = val
-        self.input_parameter_options[name]['target_params'] = target_params
+        self.input_parameter_options[name].update(kwargs)
 
-        if units != 0:
-            self.input_parameter_options[name]['units'] = units
-
-    def add_design_parameter(self, name, target_params=None, val=0.0, units=0, opt=True,
-                             lower=None, upper=None, scaler=None, adder=None,
-                             ref=None, ref0=None):
+    def add_design_parameter(self, name, **kwargs):
         """
         Add a design parameter (static control) to the trajectory.
 
@@ -108,7 +104,7 @@ class Trajectory(Group):
             Name of the design parameter.
         val : float or ndarray
             Default value of the design parameter at all nodes.
-        target_params : dict or None
+        targets : dict or None
             If None, then the design parameter will be connected to the controllable parameter
             in the ODE of each phase.  For each phase where no such controllable parameter exists,
             a warning will be issued.  If targets is given as a dict, the dict should provide
@@ -137,43 +133,14 @@ class Trajectory(Group):
             The unit-reference value of the design parameter for the optimizer.
 
         """
-        if name in self.design_parameter_options:
-            raise ValueError('{0} has already been added as a design parameter.'.format(name))
+        if name not in self.design_parameter_options:
+            self.design_parameter_options[name] = DesignParameterOptionsDictionary()
 
-        self.design_parameter_options[name] = DesignParameterOptionsDictionary()
+        for kw in kwargs:
+            if kw not in self.design_parameter_options[name]:
+                raise KeyError('Invalid argument to add_design_parameter: {0}'.format(kw))
 
-        # Don't allow the user to provide desvar options if the design parameter is not a desvar
-        if not opt:
-            illegal_options = []
-            if lower is not None:
-                illegal_options.append('lower')
-            if upper is not None:
-                illegal_options.append('upper')
-            if scaler is not None:
-                illegal_options.append('scaler')
-            if adder is not None:
-                illegal_options.append('adder')
-            if ref is not None:
-                illegal_options.append('ref')
-            if ref0 is not None:
-                illegal_options.append('ref0')
-            if illegal_options:
-                msg = 'Invalid options for non-optimal/input design parameter "{0}":'.format(name) \
-                      + ', '.join(illegal_options)
-                warnings.warn(msg, RuntimeWarning)
-
-        self.design_parameter_options[name]['val'] = val
-        self.design_parameter_options[name]['opt'] = opt
-        self.design_parameter_options[name]['target_params'] = target_params
-        self.design_parameter_options[name]['lower'] = lower
-        self.design_parameter_options[name]['upper'] = upper
-        self.design_parameter_options[name]['scaler'] = scaler
-        self.design_parameter_options[name]['adder'] = adder
-        self.design_parameter_options[name]['ref'] = ref
-        self.design_parameter_options[name]['ref0'] = ref0
-
-        if units != 0:
-            self.design_parameter_options[name]['units'] = units
+        self.design_parameter_options[name].update(kwargs)
 
     def _setup_input_parameters(self):
         """
@@ -197,9 +164,9 @@ class Trajectory(Group):
                     if isinstance(target_params, dict) else name
                 if tgt_param_name:
                     if tgt_param_name not in phs.traj_parameter_options:
-                        phs._add_traj_parameter(tgt_param_name, val=options['val'],
+                        phs.add_input_parameter(tgt_param_name, val=options['val'],
                                                 units=options['units'])
-                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
+                    tgt = '{0}.input_parameters:{1}'.format(phase_name, tgt_param_name)
                     self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_design_parameters(self):
@@ -232,15 +199,15 @@ class Trajectory(Group):
             # Connect the design parameter to its target in each phase
             src_name = 'design_parameters:{0}'.format(name)
 
-            target_params = options['target_params']
+            targets = options['targets']
             for phase_name, phs in iteritems(self._phases):
-                tgt_param_name = target_params.get(phase_name, None) \
-                    if isinstance(target_params, dict) else name
+                tgt_param_name = targets.get(phase_name, None) \
+                    if isinstance(targets, dict) else name
                 if tgt_param_name:
                     if tgt_param_name not in phs.traj_parameter_options:
-                        phs._add_traj_parameter(tgt_param_name, val=options['val'],
+                        phs.add_input_parameter(tgt_param_name, val=options['val'],
                                                 units=options['units'])
-                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
+                    tgt = '{0}.input_parameters:{1}'.format(phase_name, tgt_param_name)
                     self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_linkages(self):

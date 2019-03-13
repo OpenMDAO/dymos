@@ -511,7 +511,7 @@ class PhaseBase(Group):
 
         self.design_parameter_options[name].update(kwargs)
 
-    def add_input_parameter(self, name, val=0.0, units=0):
+    def add_input_parameter(self, name, **kwargs):
         """
         Add an input parameter (static control variable) to the phase.
 
@@ -527,23 +527,19 @@ class PhaseBase(Group):
         """
         self._check_parameter(name, dynamic=False)
 
-        self.input_parameter_options[name] = InputParameterOptionsDictionary()
+        if name not in self.input_parameter_options:
+            self.input_parameter_options[name] = InputParameterOptionsDictionary()
+            if self.ode_options:
+                if name in self.ode_options._parameters:
+                    self.input_parameter_options[name].update(self.ode_options._parameters[name])
 
-        if name in self.ode_options._parameters:
-            ode_param_info = self.ode_options._parameters[name]
-            self.input_parameter_options[name]['units'] = ode_param_info['units']
-            self.input_parameter_options[name]['shape'] = ode_param_info['shape']
-            self.input_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
-        else:
-            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
-            raise ValueError(err_msg)
+        for kw in kwargs:
+            if kw not in self.input_parameter_options[name]:
+                raise KeyError('Invalid argument to add_control: {0}'.format(kw))
 
-        self.input_parameter_options[name]['val'] = val
+        self.input_parameter_options[name].update(kwargs)
 
-        if units != 0:
-            self.input_parameter_options[name]['units'] = units
-
-    def _add_traj_parameter(self, name, val=0.0, units=0):
+    def _add_traj_parameter(self, name, **kwargs):
         """
         Add an input parameter to the phase that is connected to an input or design parameter
         in the parent trajectory.
@@ -558,31 +554,19 @@ class PhaseBase(Group):
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.        """
 
-        if name in self.control_options:
-            raise ValueError('{0} has already been added as a control.'.format(name))
-        if name in self.design_parameter_options:
-            raise ValueError('{0} has already been added as a design parameter.'.format(name))
-        if name in self.input_parameter_options:
-            raise ValueError('{0} has already been added as an input parameter.'.format(name))
-        if name in self.traj_parameter_options:
-            raise ValueError('{0} has already been added as a trajectory input '
-                             'parameter.'.format(name))
+        self._check_parameter(name, dynamic=False)
 
-        self.traj_parameter_options[name] = InputParameterOptionsDictionary()
+        if name not in self.traj_parameter_options:
+            self.traj_parameter_options[name] = InputParameterOptionsDictionary()
+            if self.ode_options:
+                if name in self.ode_options._parameters:
+                    self.traj_parameter_options[name].update(self.ode_options._parameters[name])
 
-        if name in self.ode_options._parameters:
-            ode_param_info = self.ode_options._parameters[name]
-            self.traj_parameter_options[name]['units'] = ode_param_info['units']
-            self.traj_parameter_options[name]['shape'] = ode_param_info['shape']
-            self.traj_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
-        else:
-            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
-            raise ValueError(err_msg)
+        for kw in kwargs:
+            if kw not in self.traj_parameter_options[name]:
+                raise KeyError('Invalid argument to add_control: {0}'.format(kw))
 
-        self.traj_parameter_options[name]['val'] = val
-
-        if units != 0:
-            self.traj_parameter_options[name]['units'] = units
+        self.traj_parameter_options[name].update(kwargs)
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None,
