@@ -134,16 +134,16 @@ class ODEIntegrationInterface(object):
                 targets = ode_class.ode_options._parameters[name]['targets']
                 model.connect('controls:{0}'.format(name),
                               ['ode.{0}'.format(tgt) for tgt in targets])
-            if options['rate_param']:
-                rate_param = options['rate_param']
-                rate_targets = ode_class.ode_options._parameters[rate_param]['targets']
-                model.connect('control_rates:{0}_rate'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in rate_targets])
-            if options['rate2_param']:
-                rate2_param = options['rate2_param']
-                rate2_targets = ode_class.ode_options._parameters[rate2_param]['targets']
-                model.connect('control_rates:{0}_rate2'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in rate2_targets])
+            # if options['rate_param']:
+            #     rate_param = options['rate_param']
+            #     rate_targets = ode_class.ode_options._parameters[rate_param]['targets']
+            #     model.connect('control_rates:{0}_rate'.format(name),
+            #                   ['ode.{0}'.format(tgt) for tgt in rate_targets])
+            # if options['rate2_param']:
+            #     rate2_param = options['rate2_param']
+            #     rate2_targets = ode_class.ode_options._parameters[rate2_param]['targets']
+            #     model.connect('control_rates:{0}_rate2'.format(name),
+            #                   ['ode.{0}'.format(tgt) for tgt in rate2_targets])
 
         for name, options in iteritems(self.polynomial_control_options):
             if name in ode_class.ode_options._parameters:

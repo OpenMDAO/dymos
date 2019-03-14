@@ -297,3 +297,57 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         # ax.legend(loc='upper right')
         #
         # plt.show()
+
+
+class TestBrachistochroneBasePhaseClass(unittest.TestCase):
+
+    def test_brachistochrone_base_phase_class_gl(self):
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        from openmdao.utils.assert_utils import assert_rel_error
+        from dymos import GaussLobattoPhase
+
+        class BrachistochronePhase(GaussLobattoPhase):
+
+            def setup(self):
+
+                self.options['ode_class'] = BrachistochroneODE
+
+                self.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
+                self.set_state_options('x', fix_initial=True, rate_source='xdot', units='m')
+                self.set_state_options('y', fix_initial=True, rate_source='ydot', units='m')
+                self.set_state_options('v', fix_initial=True, rate_source='vdot', targets=['v'], units='m/s')
+                self.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9, targets=['theta'])
+                self.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
+
+                super(BrachistochronePhase, self).setup()
+
+
+        p = Problem(model=Group())
+        p.driver = ScipyOptimizeDriver()
+
+        phase = BrachistochronePhase(num_segments=20, transcription_order=3)
+        p.model.add_subsystem('phase0', phase)
+
+        phase.add_boundary_constraint('x', loc='final', equals=10)
+        phase.add_boundary_constraint('y', loc='final', equals=5)
+
+        # Minimize time at the end of the phase
+        phase.add_objective('time', loc='final', scaler=10)
+
+        p.model.linear_solver = DirectSolver()
+
+        p.setup()
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 2.0
+
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+        p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
+
+        # Solve for the optimal trajectory
+        p.run_driver()
+
+        # Test the results
+        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
