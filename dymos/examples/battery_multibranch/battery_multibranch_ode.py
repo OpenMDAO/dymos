@@ -8,7 +8,7 @@ import numpy as np
 
 from openmdao.api import Group, BalanceComp, NewtonSolver, DirectSolver
 
-from dymos import declare_time, declare_state
+from dymos import declare_time, declare_state, declare_parameter
 
 from dymos.examples.battery_multibranch.batteries import Battery
 from dymos.examples.battery_multibranch.motors import Motors
@@ -16,6 +16,7 @@ from dymos.examples.battery_multibranch.motors import Motors
 
 @declare_time(units='s')
 @declare_state('state_of_charge', targets=['SOC'], rate_source='dXdt:SOC')
+@declare_parameter('P_demand', targets=['motors.power_out_gearbox'], dynamic=False)
 class BatteryODE(Group):
 
     def initialize(self):
