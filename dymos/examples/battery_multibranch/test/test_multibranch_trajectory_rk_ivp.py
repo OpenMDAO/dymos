@@ -7,6 +7,7 @@ from __future__ import division, print_function, absolute_import
 import unittest
 
 from openmdao.api import Problem, Group
+from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos import Phase, Trajectory, RungeKuttaPhase
 from dymos.utils.lgl import lgl
@@ -92,7 +93,6 @@ class TestBatteryRKIVP(unittest.TestCase):
         traj.add_phase('phase1_mfail', phase1_mfail)
 
 
-
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'], connected=True)
         traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'], connected=True)
         traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'], connected=True)
@@ -117,6 +117,15 @@ class TestBatteryRKIVP(unittest.TestCase):
         prob.set_solver_print(level=0)
         prob.run_model()
 
+        soc0 = prob['traj.phase0.states:state_of_charge']
+        soc1 = prob['traj.phase1.states:state_of_charge']
+        soc1b = prob['traj.phase1_bfail.states:state_of_charge']
+        soc1m = prob['traj.phase1_mfail.states:state_of_charge']
+
+        assert_rel_error(self, soc0[-1], 0.63464982, 5e-5)
+        assert_rel_error(self, soc1[-1], 0.23794217, 5e-5)
+        assert_rel_error(self, soc1b[-1], 0.0281523, 5e-5)
+        assert_rel_error(self, soc1m[-1], 0.18625395, 5e-5)
 
         plot = True
         if plot:
@@ -270,27 +279,38 @@ class TestBatteryRKIVP(unittest.TestCase):
         # prob.model.linear_solver = DirectSolver(assemble_jac=True)
 
         prob.setup()
-        prob.final_setup()
 
-        prob['traj.phases.phase0.time_extents.t_initial'] = 0
-        prob['traj.phases.phase0.time_extents.t_duration'] = 1.0 * 3600
+        prob['traj.phase0.t_initial'] = 0
+        prob['traj.phase0.t_duration'] = 1.0*3600
 
-        # prob['traj.phases.phase1.time_extents.t_initial'] = 1.0*3600
-        prob['traj.phases.phase1.time_extents.t_duration'] = 1.0 * 3600
+        prob['traj.phase1.t_initial'] = 1.0*3600
+        prob['traj.phase1.t_duration'] = 1.0*3600
 
-        # prob['traj.phases.phase1_bfail.time_extents.t_initial'] = 1.0*3600
-        prob['traj.phases.phase1_bfail.time_extents.t_duration'] = 1.0 * 3600
+        prob['traj.phase1_bfail.t_initial'] = 1.0*3600
+        prob['traj.phase1_bfail.t_duration'] = 1.0*3600
 
-        # prob['traj.phases.phase1_mfail.time_extents.t_initial'] = 1.0*3600
-        prob['traj.phases.phase1_mfail.time_extents.t_duration'] = 1.0 * 3600
+        prob['traj.phase1_mfail.t_initial'] = 1.0*3600
+        prob['traj.phase1_mfail.t_duration'] = 1.0*3600
+
+        prob['traj.phase0.states:state_of_charge'][:] = 1.0
 
         prob.set_solver_print(level=0)
         prob.run_model()
 
+        soc0 = prob['traj.phase0.states:state_of_charge']
+        soc1 = prob['traj.phase1.states:state_of_charge']
+        soc1b = prob['traj.phase1_bfail.states:state_of_charge']
+        soc1m = prob['traj.phase1_mfail.states:state_of_charge']
+
+        assert_rel_error(self, soc0[-1], 0.63464982, 5e-5)
+        assert_rel_error(self, soc1[-1], 0.23794217, 5e-5)
+        assert_rel_error(self, soc1b[-1], 0.0281523, 5e-5)
+        assert_rel_error(self, soc1m[-1], 0.18625395, 5e-5)
+
         plot = True
         if plot:
             import matplotlib
-            matplotlib.use('Agg')
+            # matplotlib.use('Agg')
             import matplotlib.pyplot as plt
             traj = prob.model.traj
 

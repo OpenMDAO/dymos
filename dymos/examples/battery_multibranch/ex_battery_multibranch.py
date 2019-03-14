@@ -11,7 +11,7 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, IndepVarComp, Direct
 from dymos import Phase, Trajectory
 from dymos.utils.lgl import lgl
 
-from battery_multibranch_ode import BatteryODE
+from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
 
 
 def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
