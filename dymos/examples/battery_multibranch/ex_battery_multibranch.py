@@ -11,7 +11,7 @@ from openmdao.api import Problem, Group, pyOptSparseDriver, IndepVarComp, Direct
 from dymos import Phase, Trajectory
 from dymos.utils.lgl import lgl
 
-from battery_multibranch_ode import BatteryODE
+from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
 
 
 def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
@@ -42,11 +42,12 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
                    segment_ends=seg_ends,
                    transcription_order=5,
                    compressed=False)
-
-    traj_p0 = traj.add_phase('phase0', phase0)
-
-    traj_p0.set_time_options(fix_initial=True, fix_duration=True)
-    traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False)
+    phase0.set_time_options(fix_initial=True, fix_duration=True)
+    phase0.set_state_options('state_of_charge', fix_initial=True, fix_final=False)
+    phase0.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
+    phase0.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
+    phase0.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+    traj.add_phase('phase0', phase0)
 
     # Second phase: normal operation.
 
@@ -57,12 +58,14 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
                    transcription_order=5,
                    compressed=False)
 
-    traj_p1 = traj.add_phase('phase1', phase1)
+    phase1.set_time_options(fix_initial=False, fix_duration=True)
+    phase1.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+    phase1.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
+    phase1.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
+    phase1.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+    traj.add_phase('phase1', phase1)
 
-    traj_p1.set_time_options(fix_initial=False, fix_duration=True)
-    traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
-    traj_p1.add_objective('time', loc='final')
-
+    phase1.add_objective('time', loc='final')
     # Second phase, but with battery failure.
 
     phase1_bfail = Phase(transcription,
@@ -72,11 +75,12 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
                          transcription_order=5,
                          ode_init_kwargs={'num_battery': 2},
                          compressed=False)
-
-    traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
-
-    traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
-    traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+    phase1_bfail.set_time_options(fix_initial=False, fix_duration=True)
+    phase1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+    phase1_bfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
+    phase1_bfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
+    phase1_bfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+    traj.add_phase('phase1_bfail', phase1_bfail)
 
     # Second phase, but with motor failure.
 
@@ -88,10 +92,12 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
                          ode_init_kwargs={'num_motor': 2},
                          compressed=False)
 
-    traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
-
-    traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
-    traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+    phase1_mfail.set_time_options(fix_initial=False, fix_duration=True)
+    phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+    phase1_mfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
+    phase1_mfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
+    phase1_mfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+    traj.add_phase('phase1_mfail', phase1_mfail)
 
     traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'])
     traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'])
@@ -128,14 +134,14 @@ if __name__ == '__main__':
         import matplotlib.pyplot as plt
         traj = prob.model.traj
 
-        t0 = prob['traj.phases.phase0.time.time']/3600
-        t1 = prob['traj.phases.phase1.time.time']/3600
-        t1b = prob['traj.phases.phase1_bfail.time.time']/3600
-        t1m = prob['traj.phases.phase1_mfail.time.time']/3600
-        soc0 = prob['traj.phases.phase0.indep_states.states:state_of_charge']
-        soc1 = prob['traj.phases.phase1.indep_states.states:state_of_charge']
-        soc1b = prob['traj.phases.phase1_bfail.indep_states.states:state_of_charge']
-        soc1m = prob['traj.phases.phase1_mfail.indep_states.states:state_of_charge']
+        t0 = prob['traj.phase0.timeseries.time']
+        t1 = prob['traj.phase1.timeseries.time']
+        t1b = prob['traj.phase1_bfail.timeseries.time']
+        t1m = prob['traj.phase1_mfail.timeseries.time']
+        soc0 = prob['traj.phase0.timeseries.states:state_of_charge']
+        soc1 = prob['traj.phase1.timeseries.states:state_of_charge']
+        soc1b = prob['traj.phase1_bfail.timeseries.states:state_of_charge']
+        soc1m = prob['traj.phase1_mfail.timeseries.states:state_of_charge']
 
         plt.subplot(2, 2, 1)
         plt.plot(t0, soc0, 'b')
@@ -145,10 +151,10 @@ if __name__ == '__main__':
         plt.xlabel('Time (hour)')
         plt.ylabel('State of Charge (percent)')
 
-        V_oc0 = prob['traj.phases.phase0.rhs_all.battery.V_oc']
-        V_oc1 = prob['traj.phases.phase1.rhs_all.battery.V_oc']
-        V_oc1b = prob['traj.phases.phase1_bfail.rhs_all.battery.V_oc']
-        V_oc1m = prob['traj.phases.phase1_mfail.rhs_all.battery.V_oc']
+        V_oc0 = prob['traj.phase0.timeseries.V_oc']
+        V_oc1 = prob['traj.phase1.timeseries.V_oc']
+        V_oc1b = prob['traj.phase1_bfail.timeseries.V_oc']
+        V_oc1m = prob['traj.phase1_mfail.timeseries.V_oc']
 
         plt.subplot(2, 2, 2)
         plt.plot(t0, V_oc0, 'b')
@@ -158,10 +164,10 @@ if __name__ == '__main__':
         plt.xlabel('Time (hour)')
         plt.ylabel('Open Circuit Voltage (V)')
 
-        V_pack0 = prob['traj.phases.phase0.rhs_all.battery.V_pack']
-        V_pack1 = prob['traj.phases.phase1.rhs_all.battery.V_pack']
-        V_pack1b = prob['traj.phases.phase1_bfail.rhs_all.battery.V_pack']
-        V_pack1m = prob['traj.phases.phase1_mfail.rhs_all.battery.V_pack']
+        V_pack0 = prob['traj.phase0.timeseries.V_pack']
+        V_pack1 = prob['traj.phase1.timeseries.V_pack']
+        V_pack1b = prob['traj.phase1_bfail.timeseries.V_pack']
+        V_pack1m = prob['traj.phase1_mfail.timeseries.V_pack']
 
         plt.subplot(2, 2, 3)
         plt.plot(t0, V_pack0, 'b')
@@ -171,10 +177,10 @@ if __name__ == '__main__':
         plt.xlabel('Time (hour)')
         plt.ylabel('Terminal Voltage (V)')
 
-        I_Li0 = prob['traj.phases.phase0.rhs_all.pwr_balance.I_Li']
-        I_Li1 = prob['traj.phases.phase1.rhs_all.pwr_balance.I_Li']
-        I_Li1b = prob['traj.phases.phase1_bfail.rhs_all.pwr_balance.I_Li']
-        I_Li1m = prob['traj.phases.phase1_mfail.rhs_all.pwr_balance.I_Li']
+        I_Li0 = prob['traj.phase0.timeseries.I_Li']
+        I_Li1 = prob['traj.phase1.timeseries.I_Li']
+        I_Li1b = prob['traj.phase1_bfail.timeseries.I_Li']
+        I_Li1m = prob['traj.phase1_mfail.timeseries.I_Li']
 
         plt.subplot(2, 2, 4)
         plt.plot(t0, I_Li0, 'b')

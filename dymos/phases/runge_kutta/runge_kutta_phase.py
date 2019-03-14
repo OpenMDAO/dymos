@@ -781,12 +781,8 @@ class RungeKuttaPhase(PhaseBase):
                                                    shape=options['shape'],
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='design_parameters:{0}'.format(name),
                          tgt_name='timeseries.segend_values:design_parameters:{0}'.format(name),
@@ -798,12 +794,8 @@ class RungeKuttaPhase(PhaseBase):
                                                    var_class=self._classify_var(name),
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='input_parameters:{0}_out'.format(name),
                          tgt_name='timeseries.segend_values:input_parameters:{0}'.format(name),
@@ -815,12 +807,8 @@ class RungeKuttaPhase(PhaseBase):
                                                    var_class=self._classify_var(name),
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='traj_parameters:{0}_out'.format(name),
                          tgt_name='timeseries.segend_values:traj_parameters:{0}'.format(name),
@@ -862,11 +850,31 @@ class RungeKuttaPhase(PhaseBase):
 
         if name in self.ode_options._parameters:
             ode_tgts = self.ode_options._parameters[name]['targets']
+            dynamic = self.ode_options._parameters[name]['dynamic']
+            shape = self.ode_options._parameters[name]['shape']
 
-            src_idxs = np.zeros(num_final_ode_nodes, dtype=int)
+            if dynamic:
+                src_idxs_raw = np.zeros(num_final_ode_nodes, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                if shape == (1,):
+                    src_idxs = src_idxs.ravel()
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                src_idxs = np.squeeze(src_idxs, axis=0)
+
             connection_info.append((['ode.{0}'.format(tgt) for tgt in ode_tgts], src_idxs))
 
-            src_idxs = np.zeros(num_iter_ode_nodes, dtype=int)
+            if dynamic:
+                src_idxs_raw = np.zeros(num_iter_ode_nodes, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                if shape == (1,):
+                    src_idxs = src_idxs.ravel()
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                src_idxs = np.squeeze(src_idxs, axis=0)
+
             connection_info.append((['rk_solve_group.ode.{0}'.format(tgt) for tgt in ode_tgts],
                                     src_idxs))
 
