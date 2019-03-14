@@ -5,8 +5,6 @@ from six import iteritems
 
 import numpy as np
 
-from openmdao.utils.units import convert_units, valid_units
-
 from ..grid_data import GridData, make_subset_map
 from .optimizer_based_phase_base import OptimizerBasedPhaseBase
 from ..components import GaussLobattoPathConstraintComp, GaussLobattoContinuityComp, \
@@ -158,20 +156,19 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
             state_disc_idxs = grid_data.subset_node_indices['state_disc']
             col_idxs = grid_data.subset_node_indices['col']
 
-            control_src_name = 'polynomial_control_values:{0}'.format(name)
+            if self.polynomial_control_options[name]['targets']:
+                targets = self.polynomial_control_options[name]['targets']
 
-            if name in self.ode_options._parameters:
-                targets = self.ode_options._parameters[name]['targets']
-                self.connect(control_src_name,
+                self.connect('polynomial_control_values:{0}'.format(name),
                              ['rhs_disc.{0}'.format(t) for t in targets],
                              src_indices=state_disc_idxs)
 
-                self.connect(control_src_name,
+                self.connect('polynomial_control_values:{0}'.format(name),
                              ['rhs_col.{0}'.format(t) for t in targets],
                              src_indices=col_idxs)
 
-            if options['rate_param']:
-                targets = self.ode_options._parameters[options['rate_param']]['targets']
+            if self.polynomial_control_options[name]['rate_targets']:
+                targets = self.polynomial_control_options[name]['rate_targets']
 
                 self.connect('polynomial_control_rates:{0}_rate'.format(name),
                              ['rhs_disc.{0}'.format(t) for t in targets],
@@ -181,8 +178,8 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
                              ['rhs_col.{0}'.format(t) for t in targets],
                              src_indices=col_idxs)
 
-            if options['rate2_param']:
-                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+            if self.polynomial_control_options[name]['rate2_targets']:
+                targets = self.polynomial_control_options[name]['rate2_targets']
 
                 self.connect('polynomial_control_rates:{0}_rate2'.format(name),
                              ['rhs_disc.{0}'.format(t) for t in targets],

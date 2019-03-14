@@ -329,8 +329,6 @@ class RungeKuttaPhase(PhaseBase):
                              ['rk_solve_group.{0}'.format(t) for t in targets],
                              src_indices=all_src_idxs, flat_src_indices=True)
 
-
-
     def _setup_polynomial_controls(self):
         super(RungeKuttaPhase, self)._setup_polynomial_controls()
         grid_data = self.grid_data
@@ -341,9 +339,9 @@ class RungeKuttaPhase(PhaseBase):
             segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=options['shape'])
             all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
 
-            if name in self.ode_options._parameters:
+            if self.polynomial_control_options[name]['targets']:
                 src_name = 'polynomial_control_values:{0}'.format(name)
-                targets = self.ode_options._parameters[name]['targets']
+                targets = self.polynomial_control_options[name]['targets']
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
                              src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
@@ -352,9 +350,9 @@ class RungeKuttaPhase(PhaseBase):
                              ['rk_solve_group.ode.{0}'.format(t) for t in targets],
                              src_indices=all_src_idxs.ravel(), flat_src_indices=True)
 
-            if options['rate_param']:
+            if self.polynomial_control_options[name]['rate_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate'.format(name)
-                targets = self.ode_options._parameters[options['rate_param']]['targets']
+                targets = self.polynomial_control_options[name]['rate_targets']
 
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
@@ -364,9 +362,9 @@ class RungeKuttaPhase(PhaseBase):
                              ['rk_solve_group.{0}'.format(t) for t in targets],
                              src_indices=all_src_idxs, flat_src_indices=True)
 
-            if options['rate2_param']:
+            if self.polynomial_control_options[name]['rate2_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate2'.format(name)
-                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+                targets = self.polynomial_control_options[name]['rate2_targets']
 
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
@@ -858,8 +856,8 @@ class RungeKuttaPhase(PhaseBase):
 
         if name in parameter_options:
             ode_tgts = parameter_options[name]['targets']
-            dynamic = self.ode_options._parameters[name]['dynamic']
-            shape = self.ode_options._parameters[name]['shape']
+            dynamic = parameter_options[name]['dynamic']
+            shape = parameter_options[name]['shape']
 
             if dynamic:
                 src_idxs_raw = np.zeros(num_final_ode_nodes, dtype=int)

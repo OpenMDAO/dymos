@@ -403,17 +403,17 @@ class PhaseBase(Group):
         """
         self._check_parameter(name, dynamic=True)
 
-        if name not in self.control_options:
-            self.polynomial_control_options[name] = PolynomialControlOptionsDictionary()
+        if name not in self.user_polynomial_control_options:
+            self.user_polynomial_control_options[name] = {}
             # if self.ode_options:
             #     if name in self.ode_options._parameters:
             #         self.control_options[name].update(self.ode_options._parameters[name])
 
         for kw in kwargs:
-            if kw not in self.polynomial_control_options[name]:
+            if kw not in PolynomialControlOptionsDictionary():
                 raise KeyError('Invalid argument to add_polynomial_control: {0}'.format(kw))
 
-        self.polynomial_control_options[name].update(kwargs)
+        self.user_polynomial_control_options[name].update(kwargs)
 
     def add_design_parameter(self, name, **kwargs):
         """
@@ -1035,18 +1035,26 @@ class PhaseBase(Group):
             self.control_options[control] = ControlOptionsDictionary()
             if ode_options and control in ode_options._parameters:
                 self.control_options[control].update(ode_options._parameters[control])
+            # TODO: verify target parameter is dynamic here
             self.control_options[control].update(self.user_control_options[control])
+
+        for pc in list(self.user_polynomial_control_options.keys()):
+            self.polynomial_control_options[pc] = PolynomialControlOptionsDictionary()
+            if ode_options and pc in ode_options._parameters:
+                self.polynomial_control_options[pc].update(ode_options._parameters[pc])
+            # TODO: verify target parameter is dynamic here
+            self.polynomial_control_options[pc].update(self.user_polynomial_control_options[pc])
 
         for dp in list(self.user_design_parameter_options.keys()):
             self.design_parameter_options[dp] = DesignParameterOptionsDictionary()
             if ode_options and dp in ode_options._parameters:
-                self.control_options[control].update(ode_options._parameters[control])
+                self.design_parameter_options[dp].update(ode_options._parameters[dp])
             self.design_parameter_options[dp].update(self.user_design_parameter_options[dp])
 
         for ip in list(self.user_input_parameter_options.keys()):
             self.input_parameter_options[ip] = InputParameterOptionsDictionary()
             if ode_options and ip in ode_options._parameters:
-                self.control_options[control].update(ode_options._parameters[control])
+                self.input_parameter_options[ip].update(ode_options._parameters[ip])
             self.input_parameter_options[ip].update(self.user_input_parameter_options[ip])
 
     def setup(self):

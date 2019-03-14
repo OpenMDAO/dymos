@@ -120,19 +120,19 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
         for name, options in iteritems(self.polynomial_control_options):
 
-            if name in self.ode_options._parameters:
-                targets = self.ode_options._parameters[name]['targets']
+            if self.polynomial_control_options[name]['targets']:
+                targets = self.polynomial_control_options[name]['targets']
 
                 self.connect('polynomial_control_values:{0}'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
-            if options['rate_param']:
-                targets = self.ode_options._parameters[options['rate_param']]['targets']
+            if self.polynomial_control_options[name]['rate_targets']:
+                targets = self.polynomial_control_options[name]['rate_targets']
                 self.connect('polynomial_control_rates:{0}_rate'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
-            if options['rate2_param']:
-                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+            if self.polynomial_control_options[name]['rate2_targets']:
+                targets = self.polynomial_control_options[name]['rate2_targets']
                 self.connect('polynomial_control_rates:{0}_rate2'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
@@ -461,7 +461,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                    var_class=self._classify_var(name),
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
+            if options['dynamic']:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
             else:
