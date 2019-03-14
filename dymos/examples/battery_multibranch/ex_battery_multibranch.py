@@ -58,8 +58,6 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
                    transcription_order=5,
                    compressed=False)
 
-    
-
     phase1.set_time_options(fix_initial=False, fix_duration=True)
     phase1.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
     phase1.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
@@ -94,14 +92,12 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
                          ode_init_kwargs={'num_motor': 2},
                          compressed=False)
 
-
     phase1_mfail.set_time_options(fix_initial=False, fix_duration=True)
     phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
     phase1_mfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
     phase1_mfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
     phase1_mfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
     traj.add_phase('phase1_mfail', phase1_mfail)
-
 
     traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'])
     traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'])

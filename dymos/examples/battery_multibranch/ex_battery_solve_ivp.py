@@ -91,8 +91,6 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1_mfail.add_input_parameter('P_demand', val=P_DEMAND, units='W')
         traj.add_phase('phase1_mfail', phase1_mfail)
 
-
-
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'], connected=True)
         traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'], connected=True)
         traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'], connected=True)
@@ -116,7 +114,6 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         prob.set_solver_print(level=0)
         prob.run_model()
-
 
         plot = True
         if plot:

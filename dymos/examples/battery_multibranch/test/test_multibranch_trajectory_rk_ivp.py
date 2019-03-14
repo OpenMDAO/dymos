@@ -21,7 +21,7 @@ class TestBatteryRKIVP(unittest.TestCase):
     def test_dynamic_input_params(self):
         prob = Problem(model=Group())
 
-        num_seg = 5
+        num_seg = 20
         seg_ends, _ = lgl(num_seg + 1)
 
         traj = prob.model.add_subsystem('traj', Trajectory())
@@ -29,11 +29,12 @@ class TestBatteryRKIVP(unittest.TestCase):
         # First phase: normal operation.
         # NOTE: using RK4 integration here
 
-        P_DEMAND = 2.0
+        P_DEMAND = 3.6
 
         phase0 = RungeKuttaPhase(method='rk4',
                                  ode_class=BatteryODE,
-                                 num_segments=200)
+                                 segment_ends=seg_ends,
+                                 num_segments=num_seg)
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.set_state_options('state_of_charge', fix_initial=True, fix_final=False)
         phase0.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
@@ -44,14 +45,12 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase: normal operation.
 
-        phase1 = Phase(transcription='radau-ps',
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
+        phase1 = RungeKuttaPhase(method='rk4',
+                                 ode_class=BatteryODE,
+                                 num_segments=num_seg,
+                                 segment_ends=seg_ends)
         phase1.set_time_options(fix_initial=False, fix_duration=True)
-        phase1.set_state_options('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True)
+        phase1.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
         phase1.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
         phase1.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
         phase1.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
@@ -60,15 +59,14 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = Phase(transcription='radau-ps',
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_battery': 2},
-                             compressed=True)
+        phase1_bfail = RungeKuttaPhase(method='rk4',
+                                       ode_class=BatteryODE,
+                                       num_segments=num_seg,
+                                       segment_ends=seg_ends,
+                                       ode_init_kwargs={'num_battery': 2})
+
         phase1_bfail.set_time_options(fix_initial=False, fix_duration=True)
-        phase1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True)
+        phase1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
         phase1_bfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
         phase1_bfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
         phase1_bfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
@@ -77,21 +75,19 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = Phase(transcription='radau-ps',
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_motor': 2},
-                             compressed=True)
+        phase1_mfail = RungeKuttaPhase(method='rk4',
+                                       ode_class=BatteryODE,
+                                       num_segments=num_seg,
+                                       segment_ends=seg_ends,
+                                       ode_init_kwargs={'num_motor': 2})
+
         phase1_mfail.set_time_options(fix_initial=False, fix_duration=True)
-        phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True)
+        phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
         phase1_mfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
         phase1_mfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
         phase1_mfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
         phase1_mfail.add_input_parameter('P_demand', val=P_DEMAND, units='W')
         traj.add_phase('phase1_mfail', phase1_mfail)
-
 
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'], connected=True)
         traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'], connected=True)
@@ -203,7 +199,7 @@ class TestBatteryRKIVP(unittest.TestCase):
         # First phase: normal operation.
         # NOTE: using RK4 integration here
 
-        P_DEMAND = 2.0
+        P_DEMAND = 3.6
 
         phase0 = RungeKuttaPhase(method='rk4',
                                  ode_class=BatteryODEStaticGearboxMotorPower,
@@ -310,7 +306,7 @@ class TestBatteryRKIVP(unittest.TestCase):
         plot = True
         if plot:
             import matplotlib
-            # matplotlib.use('Agg')
+            matplotlib.use('Agg')
             import matplotlib.pyplot as plt
             traj = prob.model.traj
 
