@@ -24,6 +24,8 @@ traj = prob.model.add_subsystem('traj', Trajectory())
 # First phase: normal operation. 
 # NOTE: using RK4 integration here
 
+P_DEMAND = 2.0
+
 phase0 = RungeKuttaPhase(method='rk4', 
                          ode_class=BatteryODE,
                          num_segments=200)
@@ -32,7 +34,7 @@ phase0.set_state_options('state_of_charge', fix_initial=True, fix_final=False)
 phase0.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
 phase0.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
 phase0.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
-
+phase0.add_input_parameter('P_demand', val=P_DEMAND, units='W')
 traj.add_phase('phase0', phase0)
 
 # Second phase: normal operation.
@@ -48,6 +50,7 @@ phase1.set_state_options('state_of_charge', fix_initial=False, fix_final=False, 
 phase1.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
 phase1.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
 phase1.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+phase1.add_input_parameter('P_demand', val=P_DEMAND, units='W', shape=1)
 traj.add_phase('phase1', phase1)
 
 # Second phase, but with battery failure.
@@ -64,6 +67,7 @@ phase1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=F
 phase1_bfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
 phase1_bfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
 phase1_bfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+phase1_bfail.add_input_parameter('P_demand', val=P_DEMAND, units='W')
 traj.add_phase('phase1_bfail', phase1_bfail)
 
 # Second phase, but with motor failure.
@@ -80,6 +84,7 @@ phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=F
 phase1_mfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
 phase1_mfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
 phase1_mfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+phase1_mfail.add_input_parameter('P_demand', val=P_DEMAND, units='W')
 traj.add_phase('phase1_mfail', phase1_mfail)
 
 
