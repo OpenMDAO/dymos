@@ -784,12 +784,8 @@ class RungeKuttaPhase(PhaseBase):
                                                    shape=options['shape'],
                                                    units=units)
 
-            if self.design_parameter_options[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='design_parameters:{0}'.format(name),
                          tgt_name='timeseries.segend_values:design_parameters:{0}'.format(name),
@@ -801,12 +797,8 @@ class RungeKuttaPhase(PhaseBase):
                                                    var_class=self._classify_var(name),
                                                    units=units)
 
-            if self.input_parameter_options[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='input_parameters:{0}_out'.format(name),
                          tgt_name='timeseries.segend_values:input_parameters:{0}'.format(name),
@@ -818,12 +810,8 @@ class RungeKuttaPhase(PhaseBase):
                                                    var_class=self._classify_var(name),
                                                    units=units)
 
-            if self.traj_parameter_options[name]['dynamic']:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='traj_parameters:{0}_out'.format(name),
                          tgt_name='timeseries.segend_values:traj_parameters:{0}'.format(name),
@@ -870,80 +858,35 @@ class RungeKuttaPhase(PhaseBase):
 
         if name in parameter_options:
             ode_tgts = parameter_options[name]['targets']
+            dynamic = self.ode_options._parameters[name]['dynamic']
+            shape = self.ode_options._parameters[name]['shape']
 
-            src_idxs = np.zeros(num_final_ode_nodes, dtype=int)
+            if dynamic:
+                src_idxs_raw = np.zeros(num_final_ode_nodes, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                if shape == (1,):
+                    src_idxs = src_idxs.ravel()
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                src_idxs = np.squeeze(src_idxs, axis=0)
+
             connection_info.append((['ode.{0}'.format(tgt) for tgt in ode_tgts], src_idxs))
 
-            src_idxs = np.zeros(num_iter_ode_nodes, dtype=int)
+            if dynamic:
+                src_idxs_raw = np.zeros(num_iter_ode_nodes, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                if shape == (1,):
+                    src_idxs = src_idxs.ravel()
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                src_idxs = np.squeeze(src_idxs, axis=0)
+
             connection_info.append((['rk_solve_group.ode.{0}'.format(tgt) for tgt in ode_tgts],
                                     src_idxs))
 
         return connection_info
-
-    # def set_state_options(self, name, units=_unspecified, val=1.0,
-    #                       fix_initial=False, fix_final=False, initial_bounds=None,
-    #                       final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
-    #                       ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
-    #                       connected_initial=False):
-    #     """
-    #     Set options that apply the EOM state variable of the given name.
-    #
-    #     Parameters
-    #     ----------
-    #     name : str
-    #         Name of the state variable in the RHS.
-    #     units : str or None
-    #         Units in which the state variable is defined.  Internally components may use different
-    #         units for the state variable, but the IndepVarComp which provides its value will provide
-    #         it in these units, and collocation defects will use these units.  If units is not
-    #         specified here then the value as defined in the ODEOptions (@declare_state) will be
-    #         used.
-    #     val :  ndarray
-    #         The default value of the state at the state discretization nodes of the phase.
-    #     fix_initial : bool(False)
-    #         If True, omit the first value of the state from the design variables (prevent the
-    #         optimizer from changing it).
-    #     fix_final : bool(False)
-    #         If True, omit the final value of the state from the design variables (prevent the
-    #         optimizer from changing it).
-    #     lower : float or ndarray or None (None)
-    #         The lower bound of the state at the nodes of the phase.
-    #     upper : float or ndarray or None (None)
-    #         The upper bound of the state at the nodes of the phase.
-    #     scaler : float or ndarray or None (None)
-    #         The scaler of the state value at the nodes of the phase.
-    #     adder : float or ndarray or None (None)
-    #         The adder of the state value at the nodes of the phase.
-    #     ref0 : float or ndarray or None (None)
-    #         The zero-reference value of the state at the nodes of the phase.
-    #     ref : float or ndarray or None (None)
-    #         The unit-reference value of the state at the nodes of the phase
-    #     defect_scaler : float or ndarray (1.0)
-    #         The scaler of the state defect at the collocation nodes of the phase.
-    #     defect_ref : float or ndarray (1.0)
-    #         The unit-reference value of the state defect at the collocation nodes of the phase. If
-    #         provided, this value overrides defect_scaler.
-    #     connected_initial : bool
-    #         If True, then the initial value for this state comes from an externally connected
-    #         source.
-    #
-    #     """
-    #     super(RungeKuttaPhase, self).set_state_options(name=name,
-    #                                                    units=units,
-    #                                                    val=val,
-    #                                                    fix_initial=fix_initial,
-    #                                                    fix_final=fix_final,
-    #                                                    initial_bounds=initial_bounds,
-    #                                                    final_bounds=final_bounds,
-    #                                                    lower=lower,
-    #                                                    upper=upper,
-    #                                                    scaler=scaler,
-    #                                                    adder=adder,
-    #                                                    ref=ref,
-    #                                                    ref0=ref0,
-    #                                                    defect_scaler=defect_scaler,
-    #                                                    defect_ref=defect_ref,
-    #                                                    connected_initial=connected_initial)
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,
