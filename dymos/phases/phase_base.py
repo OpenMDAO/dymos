@@ -35,7 +35,7 @@ class PhaseBase(Group):
 
         # Dictioanries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
-        self.user_time_options = TimeOptionsDictionary()
+        self.user_time_options = {}
         self.user_state_options = {}
         self.user_control_options = {}
         self.user_polynomial_control_options = {}
@@ -54,7 +54,7 @@ class PhaseBase(Group):
         self._final_boundary_constraints = {}
         self._path_constraints = {}
         self._timeseries_outputs = {}
-        self._objectives = []
+        self._objectives = {}
         self._ode_controls = {}
         self.grid_data = None
         self._time_extents = []
@@ -729,92 +729,58 @@ class PhaseBase(Group):
         vectorize_derivs : bool
             If True, vectorize derivative calculations.
         """
-        raise NotImplementedError('This class does not implement add_objective')
+        obj_dict = {'loc': loc,
+                    'index': index,
+                    'shape': shape,
+                    'ref': ref,
+                    'ref0': ref0,
+                    'adder': adder,
+                    'scaler': scaler,
+                    'parallel_deriv_color': parallel_deriv_color,
+                    'vectorize_derivs': vectorize_derivs}
+        self._objectives[name] = obj_dict
 
-    def _add_objective(self, obj_path, loc='final', index=None, shape=(1,), ref=None, ref0=None,
-                       adder=None, scaler=None, parallel_deriv_color=None, vectorize_derivs=False):
+    def _setup_objective(self):
         """
-        Called by add_objective in classes that derive from PhaseBase.  Each subclass is responsible
-        for determining the objective path in the system.  This method then figures out the correct
-        index based on the given loc and index attributes, and calls the standard add_objective
-        method.
-
-        Parameters
-        ----------
-        obj_path : str
-            Name of the objective variable.  This should be one of 'time', a state or control
-            variable, or the path to an output from the top level of the RHS.
-        loc : str
-            Where in the phase the objective is to be evaluated.  Valid
-            options are 'initial' and 'final'.  The default is 'final'.
-        index : int, optional
-            If variable is an array at each point in time, this indicates which index is to be
-            used as the objective, assuming C-ordered flattening.
-        shape : int, optional
-
-
-        Parameters
-        ----------
-        obj_path : str
-            The name of the variable in the phase to be used as an objective.
-        loc : str
-            One of 'initial' or 'final', depending on where in the phase the objective should be
-            measured.
-        index : int or None
-            The index into the flattened shape giving the index at an instance in time to be used
-            as the objective.  This index assumes row-major (C) ordering when flattening.
-        shape : tuple
-            The shape of the objective variable, at a point in time
-        ref : float or ndarray, optional
-            Value of response variable that scales to 1.0 in the driver.
-        ref0 : float or ndarray, optional
-            Value of response variable that scales to 0.0 in the driver.
-        adder : float or ndarray, optional
-            Value to add to the model value to get the scaled value. Adder
-            is first in precedence.
-        scaler : float or ndarray, optional
-            value to multiply the model value to get the scaled value. Scaler
-            is second in precedence.
-        parallel_deriv_color : string
-            If specified, this design var will be grouped for parallel derivative
-            calculations with other variables sharing the same parallel_deriv_color.
-        vectorize_derivs : bool
-            If True, vectorize derivative calculations.
+        Find the path of the objective(s) and add the objective using the standard OpenMDAO method.
         """
-        size = int(np.prod(shape))
+        for name, options in iteritems(self._objectives):
+            index = options['index']
+            loc = options['loc']
 
-        if size > 1 and index is None:
-            raise ValueError('Objective variable is non-scaler {0} but no index specified '
-                             'for objective'.format(shape))
+            obj_path, shape, units, _ = self._get_boundary_constraint_src(name, loc)
 
-        idx = 0 if index is None else index
-        if idx < 0:
-            idx = size + idx
+            shape = options['shape'] if shape is None else shape
 
-        if idx >= size or idx < -size:
-            raise ValueError('Objective index={0}, but the shape of the objective '
-                             'variable is {1}'.format(index, shape))
+            size = int(np.prod(shape))
 
-        if loc == 'final':
-            obj_index = -size + idx
-        elif loc == 'initial':
-            obj_index = idx
-        else:
-            raise ValueError('Invalid value for objective loc: {0}. Must be '
-                             'one of \'initial\' or \'final\'.')
+            if size > 1 and index is None:
+                raise ValueError('Objective variable is non-scaler {0} but no index specified '
+                                 'for objective'.format(shape))
 
-        super(PhaseBase, self).add_objective(obj_path, ref=ref, ref0=ref0, index=obj_index,
-                                             adder=adder, scaler=scaler,
-                                             parallel_deriv_color=parallel_deriv_color,
-                                             vectorize_derivs=vectorize_derivs)
+            idx = 0 if index is None else index
+            if idx < 0:
+                idx = size + idx
 
-    def set_time_options(self, opt_initial=None, opt_duration=None, fix_initial=False,
-                         fix_duration=False, input_initial=False, input_duration=False,
-                         initial_val=0.0, initial_bounds=(None, None), initial_scaler=None,
-                         initial_adder=None, initial_ref=None, initial_ref0=None,
-                         duration_val=1.0, duration_bounds=(None, None),
-                         duration_scaler=None, duration_adder=None, duration_ref=None,
-                         duration_ref0=None, units=_unspecified):
+            if idx >= size or idx < -size:
+                raise ValueError('Objective index={0}, but the shape of the objective '
+                                 'variable is {1}'.format(index, shape))
+
+            if loc == 'final':
+                obj_index = -size + idx
+            elif loc == 'initial':
+                obj_index = idx
+            else:
+                raise ValueError('Invalid value for objective loc: {0}. Must be '
+                                 'one of \'initial\' or \'final\'.'.format(loc))
+
+            super(PhaseBase, self).add_objective(obj_path, ref=options['ref'], ref0=options['ref0'],
+                                                 index=obj_index, adder=options['adder'],
+                                                 scaler=options['scaler'],
+                                                 parallel_deriv_color=options['parallel_deriv_color'],
+                                                 vectorize_derivs=options['vectorize_derivs'])
+
+    def set_time_options(self, **kwargs):
         """
         Set options for the time (or the integration variable) in the Phase.
 
@@ -862,84 +828,69 @@ class PhaseBase(Group):
         duration_ref : float
             Unit-reference value for the duration of time across the phase.
         """
-        if opt_initial is not None:
-            self.user_time_options['fix_initial'] = not opt_initial
-            warn_deprecation('opt_initial has been deprecated in favor of fix_initial, which has '
-                             'the opposite meaning. If the user desires to input the initial '
-                             'phase time from an exterior source, set input_initial=True.')
-        else:
-            self.user_time_options['fix_initial'] = fix_initial
-
-        if opt_duration is not None:
-            self.user_time_options['fix_duration'] = not opt_duration
-            warn_deprecation('opt_duration has been deprecated in favor of fix_duration, which has '
-                             'the opposite meaning. If the user desires to input the phase '
-                             'duration from an exterior source, set input_duration=True.')
-        else:
-            self.user_time_options['fix_duration'] = fix_duration
-
-        # Don't allow the user to provide desvar options if the time is not a desvar or is input.
-        if input_initial and self.user_time_options['fix_initial']:
-            warnings.warn('Phase "{0}" initial time is an externally-connected input, '
-                          'therefore fix_initial has no effect.'.format(self.name), RuntimeWarning)
-        elif input_initial or self.user_time_options['fix_initial']:
-            illegal_options = []
-            if initial_bounds != (None, None):
-                illegal_options.append('initial_bounds')
-            if initial_scaler is not None:
-                illegal_options.append('initial_scaler')
-            if initial_adder is not None:
-                illegal_options.append('initial_adder')
-            if initial_ref is not None:
-                illegal_options.append('initial_ref')
-            if initial_ref0 is not None:
-                illegal_options.append('initial_ref0')
-            if illegal_options:
-                reason = 'input_initial=True' if input_initial else 'fix_initial=True'
-                msg = 'Phase time options have no effect because {2} for phase ' \
-                      '"{0}": {1}'.format(self.name, ', '.join(illegal_options), reason)
-                warnings.warn(msg, RuntimeWarning)
-
-        if input_duration and self.user_time_options['fix_duration']:
-            warnings.warn('Phase "{0}" time duration is an externally-connected input, '
-                          'therefore fix_duration has no effect.'.format(self.name),
-                          RuntimeWarning)
-        elif input_duration or self.user_time_options['fix_duration']:
-            illegal_options = []
-            if duration_bounds != (None, None):
-                illegal_options.append('duration_bounds')
-            if duration_scaler is not None:
-                illegal_options.append('duration_scaler')
-            if duration_adder is not None:
-                illegal_options.append('duration_adder')
-            if duration_ref is not None:
-                illegal_options.append('duration_ref')
-            if duration_ref0 is not None:
-                illegal_options.append('duration_ref0')
-            if illegal_options:
-                reason = 'input_duration=True' if input_duration else 'fix_duration=True'
-                msg = 'Phase time options have no effect because {2} for phase ' \
-                      '"{0}": {1}'.format(self.name, ', '.join(illegal_options), reason)
-                warnings.warn(msg, RuntimeWarning)
-
-        self.user_time_options['input_initial'] = input_initial
-        self.user_time_options['initial_val'] = initial_val
-        self.user_time_options['initial_bounds'] = initial_bounds
-        self.user_time_options['initial_scaler'] = initial_scaler
-        self.user_time_options['initial_adder'] = initial_adder
-        self.user_time_options['initial_ref'] = initial_ref
-        self.user_time_options['initial_ref0'] = initial_ref0
-
-        self.user_time_options['input_duration'] = input_duration
-        self.user_time_options['duration_val'] = duration_val
-        self.user_time_options['duration_bounds'] = duration_bounds
-        self.user_time_options['duration_scaler'] = duration_scaler
-        self.user_time_options['duration_adder'] = duration_adder
-        self.user_time_options['duration_ref'] = duration_ref
-        self.user_time_options['duration_ref0'] = duration_ref0
-
-        if units is not _unspecified:
-            self.user_time_options['units'] = units
+        # # Don't allow the user to provide desvar options if the time is not a desvar or is input.
+        # if input_initial and self.user_time_options['fix_initial']:
+        #     warnings.warn('Phase "{0}" initial time is an externally-connected input, '
+        #                   'therefore fix_initial has no effect.'.format(self.name), RuntimeWarning)
+        # elif input_initial or self.user_time_options['fix_initial']:
+        #     illegal_options = []
+        #     if initial_bounds != (None, None):
+        #         illegal_options.append('initial_bounds')
+        #     if initial_scaler is not None:
+        #         illegal_options.append('initial_scaler')
+        #     if initial_adder is not None:
+        #         illegal_options.append('initial_adder')
+        #     if initial_ref is not None:
+        #         illegal_options.append('initial_ref')
+        #     if initial_ref0 is not None:
+        #         illegal_options.append('initial_ref0')
+        #     if illegal_options:
+        #         reason = 'input_initial=True' if input_initial else 'fix_initial=True'
+        #         msg = 'Phase time options have no effect because {2} for phase ' \
+        #               '"{0}": {1}'.format(self.name, ', '.join(illegal_options), reason)
+        #         warnings.warn(msg, RuntimeWarning)
+        #
+        # if input_duration and self.user_time_options['fix_duration']:
+        #     warnings.warn('Phase "{0}" time duration is an externally-connected input, '
+        #                   'therefore fix_duration has no effect.'.format(self.name),
+        #                   RuntimeWarning)
+        # elif input_duration or self.user_time_options['fix_duration']:
+        #     illegal_options = []
+        #     if duration_bounds != (None, None):
+        #         illegal_options.append('duration_bounds')
+        #     if duration_scaler is not None:
+        #         illegal_options.append('duration_scaler')
+        #     if duration_adder is not None:
+        #         illegal_options.append('duration_adder')
+        #     if duration_ref is not None:
+        #         illegal_options.append('duration_ref')
+        #     if duration_ref0 is not None:
+        #         illegal_options.append('duration_ref0')
+        #     if illegal_options:
+        #         reason = 'input_duration=True' if input_duration else 'fix_duration=True'
+        #         msg = 'Phase time options have no effect because {2} for phase ' \
+        #               '"{0}": {1}'.format(self.name, ', '.join(illegal_options), reason)
+        #         warnings.warn(msg, RuntimeWarning)
+        #
+        # self.user_time_options['input_initial'] = input_initial
+        # self.user_time_options['initial_val'] = initial_val
+        # self.user_time_options['initial_bounds'] = initial_bounds
+        # self.user_time_options['initial_scaler'] = initial_scaler
+        # self.user_time_options['initial_adder'] = initial_adder
+        # self.user_time_options['initial_ref'] = initial_ref
+        # self.user_time_options['initial_ref0'] = initial_ref0
+        #
+        # self.user_time_options['input_duration'] = input_duration
+        # self.user_time_options['duration_val'] = duration_val
+        # self.user_time_options['duration_bounds'] = duration_bounds
+        # self.user_time_options['duration_scaler'] = duration_scaler
+        # self.user_time_options['duration_adder'] = duration_adder
+        # self.user_time_options['duration_ref'] = duration_ref
+        # self.user_time_options['duration_ref0'] = duration_ref0
+        #
+        # if units is not _unspecified:
+        #     self.user_time_options['units'] = units
+        self.user_time_options.update(kwargs)
 
     def _classify_var(self, var):
         """
@@ -1093,6 +1044,7 @@ class PhaseBase(Group):
         self._setup_boundary_constraints('initial')
         self._setup_boundary_constraints('final')
         self._setup_path_constraints()
+        self._setup_objective()
 
         self._setup_timeseries_outputs()
 

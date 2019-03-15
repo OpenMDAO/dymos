@@ -29,8 +29,6 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
         p.setup(check=True, force_alloc_complex=True)
 
-        p.final_setup()
-
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
 

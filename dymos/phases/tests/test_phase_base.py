@@ -352,14 +352,17 @@ class TestPhaseBase(unittest.TestCase):
         assert_rel_error(self, p['phase0.t_duration'], 10, tolerance=1.0E-3)
 
     def test_control_boundary_constraint_gl(self):
-        from openmdao.api import Problem, ScipyOptimizeDriver, DirectSolver
+        from openmdao.api import Problem, ScipyOptimizeDriver, DirectSolver, pyOptSparseDriver
         from openmdao.utils.assert_utils import assert_rel_error
 
         p = Problem(model=Group())
 
         p.driver = ScipyOptimizeDriver()
+        p.driver = pyOptSparseDriver()
+        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver.opt_settings['iSumm'] = 6
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        # p.driver.options['dynamic_simul_derivs'] = True
 
         phase = Phase('gauss-lobatto',
                       ode_class=BrachistochroneODE,
@@ -382,7 +385,7 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.add_boundary_constraint('theta', loc='final', lower=90.0, upper=90.0, units='deg')
         phase.add_boundary_constraint('theta_rate', loc='final', equals=0.0, units='deg/s')
-        phase.add_boundary_constraint('theta_rate2', loc='final', equals=0.0, units='deg/s**2')
+        # phase.add_boundary_constraint('theta_rate2', loc='final', equals=0.0, units='deg/s**2')
         phase.add_boundary_constraint('g', loc='initial', equals=9.80665, units='m/s**2')
 
         # Minimize time at the end of the phase
@@ -401,6 +404,23 @@ class TestPhaseBase(unittest.TestCase):
         p['phase0.design_parameters:g'] = 8
 
         p.run_driver()
+
+        import matplotlib.pyplot as plt
+
+        plt.plot(p.get_val('phase0.timeseries.states:x'),
+                 p.get_val('phase0.timeseries.states:y'), 'ko')
+
+        plt.figure()
+
+        plt.plot(p.get_val('phase0.timeseries.time'),
+                 p.get_val('phase0.timeseries.controls:theta'), 'go')
+
+        plt.plot(p.get_val('phase0.timeseries.time'),
+                 p.get_val('phase0.timeseries.control_rates:theta_rate'), 'bo')
+
+        plt.plot(p.get_val('phase0.timeseries.time'),
+                 p.get_val('phase0.timeseries.control_rates:theta_rate2'), 'ro')
+        plt.show()
 
         assert_rel_error(self, p.get_val('phase0.timeseries.controls:theta', units='deg')[-1], 90.0)
         assert_rel_error(self, p.get_val('phase0.timeseries.control_rates:theta_rate')[-1], 0,
