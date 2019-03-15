@@ -828,68 +828,6 @@ class PhaseBase(Group):
         duration_ref : float
             Unit-reference value for the duration of time across the phase.
         """
-        # # Don't allow the user to provide desvar options if the time is not a desvar or is input.
-        # if input_initial and self.user_time_options['fix_initial']:
-        #     warnings.warn('Phase "{0}" initial time is an externally-connected input, '
-        #                   'therefore fix_initial has no effect.'.format(self.name), RuntimeWarning)
-        # elif input_initial or self.user_time_options['fix_initial']:
-        #     illegal_options = []
-        #     if initial_bounds != (None, None):
-        #         illegal_options.append('initial_bounds')
-        #     if initial_scaler is not None:
-        #         illegal_options.append('initial_scaler')
-        #     if initial_adder is not None:
-        #         illegal_options.append('initial_adder')
-        #     if initial_ref is not None:
-        #         illegal_options.append('initial_ref')
-        #     if initial_ref0 is not None:
-        #         illegal_options.append('initial_ref0')
-        #     if illegal_options:
-        #         reason = 'input_initial=True' if input_initial else 'fix_initial=True'
-        #         msg = 'Phase time options have no effect because {2} for phase ' \
-        #               '"{0}": {1}'.format(self.name, ', '.join(illegal_options), reason)
-        #         warnings.warn(msg, RuntimeWarning)
-        #
-        # if input_duration and self.user_time_options['fix_duration']:
-        #     warnings.warn('Phase "{0}" time duration is an externally-connected input, '
-        #                   'therefore fix_duration has no effect.'.format(self.name),
-        #                   RuntimeWarning)
-        # elif input_duration or self.user_time_options['fix_duration']:
-        #     illegal_options = []
-        #     if duration_bounds != (None, None):
-        #         illegal_options.append('duration_bounds')
-        #     if duration_scaler is not None:
-        #         illegal_options.append('duration_scaler')
-        #     if duration_adder is not None:
-        #         illegal_options.append('duration_adder')
-        #     if duration_ref is not None:
-        #         illegal_options.append('duration_ref')
-        #     if duration_ref0 is not None:
-        #         illegal_options.append('duration_ref0')
-        #     if illegal_options:
-        #         reason = 'input_duration=True' if input_duration else 'fix_duration=True'
-        #         msg = 'Phase time options have no effect because {2} for phase ' \
-        #               '"{0}": {1}'.format(self.name, ', '.join(illegal_options), reason)
-        #         warnings.warn(msg, RuntimeWarning)
-        #
-        # self.user_time_options['input_initial'] = input_initial
-        # self.user_time_options['initial_val'] = initial_val
-        # self.user_time_options['initial_bounds'] = initial_bounds
-        # self.user_time_options['initial_scaler'] = initial_scaler
-        # self.user_time_options['initial_adder'] = initial_adder
-        # self.user_time_options['initial_ref'] = initial_ref
-        # self.user_time_options['initial_ref0'] = initial_ref0
-        #
-        # self.user_time_options['input_duration'] = input_duration
-        # self.user_time_options['duration_val'] = duration_val
-        # self.user_time_options['duration_bounds'] = duration_bounds
-        # self.user_time_options['duration_scaler'] = duration_scaler
-        # self.user_time_options['duration_adder'] = duration_adder
-        # self.user_time_options['duration_ref'] = duration_ref
-        # self.user_time_options['duration_ref0'] = duration_ref0
-        #
-        # if units is not _unspecified:
-        #     self.user_time_options['units'] = units
         self.user_time_options.update(kwargs)
 
     def _classify_var(self, var):
@@ -1048,6 +986,50 @@ class PhaseBase(Group):
 
         self._setup_timeseries_outputs()
 
+    def _check_time_options(self):
+        """
+        Check that time options are valid and issue warnings if invalid options are provided.
+
+        Warnings
+        --------
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        if self.time_options['fix_initial'] or self.time_options['input_initial']:
+            invalid_options = []
+            init_bounds = self.time_options['initial_bounds']
+            if init_bounds is not None and init_bounds != (None, None):
+                invalid_options.append('initial_bounds')
+            for opt in 'initial_scaler', 'initial_adder', 'initial_ref', 'initial_ref0':
+                if self.time_options[opt] is not None:
+                    invalid_options.append(opt)
+            if invalid_options:
+                warnings.warn('Phase time options have no effect because fix_initial=True for '
+                              'phase \'{0}\': {1}'.format(self.name, ', '.join(invalid_options)),
+                              RuntimeWarning)
+
+        if self.time_options['fix_initial'] and self.time_options['input_initial']:
+            warnings.warn('Phase \'{0}\' initial time is an externally-connected input, '
+                          'therefore fix_initial has no effect.'.format(self.name),
+                          RuntimeWarning)
+
+        if self.time_options['fix_duration'] or self.time_options['input_duration']:
+            invalid_options = []
+            duration_bounds = self.time_options['duration_bounds']
+            if duration_bounds is not None and duration_bounds != (None, None):
+                invalid_options.append('duration_bounds')
+            for opt in 'duration_scaler', 'duration_adder', 'duration_ref', 'duration_ref0':
+                if self.time_options[opt] is not None:
+                    invalid_options.append(opt)
+            if invalid_options:
+                warnings.warn('Phase time options have no effect because fix_duration=True for '
+                              'phase \'{0}\': {1}'.format(self.name, ', '.join(invalid_options)))
+
+        if self.time_options['fix_duration'] and self.time_options['input_duration']:
+            warnings.warn('Phase \'{0}\' time duration is an externally-connected input, '
+                          'therefore fix_duration has no effect.'.format(self.name),
+                          RuntimeWarning)
+
     def _setup_time(self):
         """
         Setup up the time component and time extents for the phase.
@@ -1064,6 +1046,9 @@ class PhaseBase(Group):
                         't_duration': self.time_options['duration_val']}
         externals = []
         comps = []
+
+        # Warn about invalid options
+        self._check_time_options()
 
         if self.time_options['input_initial']:
             externals.append('t_initial')
