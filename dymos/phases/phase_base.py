@@ -482,9 +482,6 @@ class PhaseBase(Group):
 
         if name not in self.user_input_parameter_options:
             self.user_input_parameter_options[name] = {}
-            # if self.ode_options:
-            #     if name in self.ode_options._parameters:
-            #         self.input_parameter_options[name].update(self.ode_options._parameters[name])
 
         for kw in kwargs:
             if kw not in InputParameterOptionsDictionary():
@@ -492,39 +489,35 @@ class PhaseBase(Group):
 
         self.user_input_parameter_options[name].update(kwargs)
 
-    # def _add_traj_parameter(self, name, **kwargs):
-    #     """
-    #     Add an input parameter to the phase that is connected to an input or design parameter
-    #     in the parent trajectory.
-    #
-    #     Parameters
-    #     ----------
-    #     name : str
-    #         Name of the ODE parameter to be controlled via this input parameter.
-    #     val : float or ndarray
-    #         Default value of the design parameter at all nodes.
-    #     units : str or None or 0
-    #         Units in which the design parameter is defined.  If 0, use the units declared
-    #         for the parameter in the ODE.        """
-    #
-    #     self._check_parameter(name, dynamic=False)
-    #
-    #     if name not in self.traj_parameter_options:
-    #         self.traj_parameter_options[name] = InputParameterOptionsDictionary()
-    #         # if self.ode_options:
-    #         #     if name in self.ode_options._parameters:
-    #         #         self.traj_parameter_options[name].update(self.ode_options._parameters[name])
-    #
-    #     for kw in kwargs:
-    #         if kw not in self.traj_parameter_options[name]:
-    #             raise KeyError('Invalid argument to add_control: {0}'.format(kw))
-    #
-    #     self.traj_parameter_options[name].update(kwargs)
+    def _add_traj_parameter(self, name, **kwargs):
+        """
+        Add an input parameter to the phase that is connected to an input or design parameter
+        in the parent trajectory.
+
+        Parameters
+        ----------
+        name : str
+            Name of the ODE parameter to be controlled via this input parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.        """
+
+        self._check_parameter(name, dynamic=False)
+
+        if name not in self.traj_parameter_options:
+            self.traj_parameter_options[name] = InputParameterOptionsDictionary()
+
+        for kw in kwargs:
+            if kw not in self.traj_parameter_options[name]:
+                raise KeyError('Invalid argument to add_control: {0}'.format(kw))
+
+        self.traj_parameter_options[name].update(kwargs)
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
-                                shape=None, indices=None,
-                                lower=None, upper=None, equals=None, scaler=None, adder=None,
-                                ref=None, ref0=None, linear=False):
+                                shape=None, indices=None, lower=None, upper=None, equals=None,
+                                scaler=None, adder=None, ref=None, ref0=None, linear=False):
         r"""
         Add a boundary constraint to a variable in the phase.
 
@@ -1030,6 +1023,46 @@ class PhaseBase(Group):
                           'therefore fix_duration has no effect.'.format(self.name),
                           RuntimeWarning)
 
+    def _check_control_options(self):
+        """
+        Check that time options are valid and issue warnings if invalid options are provided.
+
+        Warnings
+        --------
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        for name, options in iteritems(self.control_options):
+            if not options['opt']:
+                invalid_options = []
+                for opt in 'lower', 'upper', 'scaler', 'adder', 'ref', 'ref0':
+                    if options[opt] is not None:
+                        invalid_options.append(opt)
+                if invalid_options:
+                    warnings.warn('Invalid options for non-optimal control \'{0}\' in phase \'{1}\': '
+                                  '{2}'.format(name, self.name, ', '.join(invalid_options)),
+                                  RuntimeWarning)
+
+    def _check_design_parameter_options(self):
+        """
+        Check that time options are valid and issue warnings if invalid options are provided.
+
+        Warnings
+        --------
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        for name, options in iteritems(self.design_parameter_options):
+            if not options['opt']:
+                invalid_options = []
+                for opt in 'lower', 'upper', 'scaler', 'adder', 'ref', 'ref0':
+                    if options[opt] is not None:
+                        invalid_options.append(opt)
+                if invalid_options:
+                    warnings.warn('Invalid options for non-optimal design_parameter \'{0}\' in '
+                                  'phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
+                                  RuntimeWarning)
+
     def _setup_time(self):
         """
         Setup up the time component and time extents for the phase.
@@ -1104,6 +1137,8 @@ class PhaseBase(Group):
         Adds an IndepVarComp if necessary and issues appropriate connections based
         on transcription.
         """
+        self._check_control_options()
+
         if self.control_options:
             control_group = ControlGroup(control_options=self.control_options,
                                          time_units=self.time_options['units'],
@@ -1176,6 +1211,8 @@ class PhaseBase(Group):
         Adds an IndepVarComp if necessary and issues appropriate connections based
         on transcription.
         """
+        self._check_design_parameter_options()
+
         if self.design_parameter_options:
             indep = self.add_subsystem('design_params', subsys=IndepVarComp(),
                                        promotes_outputs=['*'])
@@ -1280,7 +1317,10 @@ class PhaseBase(Group):
         raise NotImplementedError()
 
     def _setup_rhs(self):
-        raise NotImplementedError()
+        if not inspect.isclass(self.options['ode_class']):
+            raise ValueError('ode_class must be a class, not an instance.')
+        if not issubclass(self.options['ode_class'], System):
+            raise ValueError('ode_class must be derived from openmdao.core.System.')
 
     def _setup_defects(self):
         raise NotImplementedError()

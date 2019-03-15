@@ -103,6 +103,8 @@ class OptimizerBasedPhaseBase(PhaseBase):
         return comps
 
     def _setup_rhs(self):
+        super(OptimizerBasedPhaseBase, self)._setup_rhs()
+
         grid_data = self.grid_data
         time_units = self.time_options['units']
         map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']

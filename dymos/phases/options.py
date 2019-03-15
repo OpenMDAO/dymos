@@ -100,7 +100,7 @@ class ControlOptionsDictionary(OptionsDictionary):
                           'segment boundaries. '
                           'This option is invalid if opt=False.')
 
-        self.declare(name='rate2_continuity', types=(bool, dict), default=True,
+        self.declare(name='rate2_continuity', types=(bool, dict), default=False,
                      desc='Enforce continuity of control second derivatives at segment boundaries. '
                           'This option is invalid if opt=False.')
 
