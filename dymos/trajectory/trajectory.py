@@ -251,16 +251,12 @@ class Trajectory(Group):
 
             for var, options in iteritems(_vars):
                 if options['connected']:
-
                     # If this is a state, and we are linking it, we need to do some checks.
-                    if var in p1_states:
-                        p1_opt = p1.state_options[var]
-                        p2_opt = p2.state_options[var]
-
+                    if var in p2_states:
                         # Trajectory linkage modifies these options in connected states.
-                        p2_opt['connected_initial'] = True
-                        p2.time_options['input_initial'] = True
-
+                        p2.set_state_options(var, connected_initial=True)
+                    elif var == 'time':
+                        p2.set_time_options(input_initial=True)
                 else:
                     vars_to_constrain.append(var)
                     if var in p1_states:

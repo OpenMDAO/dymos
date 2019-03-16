@@ -315,12 +315,14 @@ class TestBrachistochroneBasePhaseClass(unittest.TestCase):
                 self.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
                 self.set_state_options('x', fix_initial=True, rate_source='xdot', units='m')
                 self.set_state_options('y', fix_initial=True, rate_source='ydot', units='m')
-                self.set_state_options('v', fix_initial=True, rate_source='vdot', targets=['v'], units='m/s')
-                self.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9, targets=['theta'])
-                self.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
+                self.set_state_options('v', fix_initial=True, rate_source='vdot', targets=['v'],
+                                       units='m/s')
+                self.add_control('theta', units='deg', rate_continuity=False,
+                                 lower=0.01, upper=179.9, targets=['theta'])
+                self.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665,
+                                          targets=['g'])
 
                 super(BrachistochronePhase, self).setup()
-
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()

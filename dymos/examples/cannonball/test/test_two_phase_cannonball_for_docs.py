@@ -4,7 +4,7 @@ import os
 import unittest
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -211,8 +211,8 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
         for i, param in enumerate(params):
             p_imp = {
-                'ascent': p.get_val('traj.ascent.timeseries.input_parameters:{0}'.format(param)),
-                'descent': p.get_val('traj.descent.timeseries.input_parameters:{0}'.format(param))}
+                'ascent': p.get_val('traj.ascent.timeseries.traj_parameters:{0}'.format(param)),
+                'descent': p.get_val('traj.descent.timeseries.traj_parameters:{0}'.format(param))}
 
             # p_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.'
             #                                    'traj_parameters:{0}'.format(param)),
