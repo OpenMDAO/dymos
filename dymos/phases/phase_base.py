@@ -41,6 +41,7 @@ class PhaseBase(Group):
         self.user_polynomial_control_options = {}
         self.user_design_parameter_options = {}
         self.user_input_parameter_options = {}
+        self.user_traj_parameter_options = {}
 
         #
         # self.state_options = {}
@@ -48,7 +49,7 @@ class PhaseBase(Group):
         # self.polynomial_control_options = {}
         # self.design_parameter_options = {}
         # self.input_parameter_options = {}
-        self.traj_parameter_options = {}
+        # self.traj_parameter_options = {}
         # self.time_options = TimeOptionsDictionary()
         self._initial_boundary_constraints = {}
         self._final_boundary_constraints = {}
@@ -198,9 +199,9 @@ class PhaseBase(Group):
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
         if name in self.user_polynomial_control_options:
             raise ValueError('{0} has already been added as an interpolated control.'.format(name))
-        # if name in self.user_traj_parameter_options:
-        #     raise ValueError('{0} has already been added as a trajectory-level '
-        #                      'parameter.'.format(name))
+        if name in self.user_traj_parameter_options:
+            raise ValueError('{0} has already been added as a trajectory-level '
+                             'parameter.'.format(name))
         # if ode_params and name in ode_params and dynamic and not ode_params[name]['dynamic']:
         #     raise ValueError('{0} is declared as a static parameter and therefore cannot be '
         #                      'used as a dynamic control'.format(name))
@@ -485,11 +486,11 @@ class PhaseBase(Group):
 
         for kw in kwargs:
             if kw not in InputParameterOptionsDictionary():
-                raise KeyError('Invalid argument to add_control: {0}'.format(kw))
+                raise KeyError('Invalid argument to add_input_parameter: {0}'.format(kw))
 
         self.user_input_parameter_options[name].update(kwargs)
 
-    def _add_traj_parameter(self, name, **kwargs):
+    def add_traj_parameter(self, name, **kwargs):
         """
         Add an input parameter to the phase that is connected to an input or design parameter
         in the parent trajectory.
@@ -506,14 +507,14 @@ class PhaseBase(Group):
 
         self._check_parameter(name, dynamic=False)
 
-        if name not in self.traj_parameter_options:
-            self.traj_parameter_options[name] = InputParameterOptionsDictionary()
+        if name not in self.user_traj_parameter_options:
+            self.user_traj_parameter_options[name] = {}
 
         for kw in kwargs:
-            if kw not in self.traj_parameter_options[name]:
-                raise KeyError('Invalid argument to add_control: {0}'.format(kw))
+            if kw not in InputParameterOptionsDictionary():
+                raise KeyError('Invalid argument to add_traj_parameter: {0}'.format(kw))
 
-        self.traj_parameter_options[name].update(kwargs)
+        self.user_traj_parameter_options[name].update(kwargs)
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
@@ -880,8 +881,8 @@ class PhaseBase(Group):
         else:
             return 'ode'
 
-    def _setup_variable_options(self):
-        """ Set the variable options.
+    def finalize_variables(self):
+        """ Finalize the variable options by combining the user-defined options and the ODE options.
 
         First apply any variable options that may be defined via ODEOptions properties on the ODE
         class.  Then apply any user-specified options over those.
@@ -892,6 +893,7 @@ class PhaseBase(Group):
         self.polynomial_control_options = {}
         self.design_parameter_options = {}
         self.input_parameter_options = {}
+        self.traj_parameter_options = {}
 
         # First apply any defaults set in the ode options
         if hasattr(self.options['ode_class'], 'ode_options'):
@@ -939,11 +941,18 @@ class PhaseBase(Group):
                 self.input_parameter_options[ip].update(ode_options._parameters[ip])
             self.input_parameter_options[ip].update(self.user_input_parameter_options[ip])
 
+        for tp in list(self.user_traj_parameter_options.keys()):
+            self.traj_parameter_options[tp] = InputParameterOptionsDictionary()
+            if ode_options and tp in ode_options._parameters:
+                self.traj_parameter_options[tp].update(ode_options._parameters[tp])
+            self.traj_parameter_options[tp].update(self.user_traj_parameter_options[tp])
+
     def setup(self):
+        # Finalize the variables if it hasn't happened already.
+        # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
+        self.finalize_variables()
 
         transcription_order = self.options['transcription_order']
-
-        self._setup_variable_options()
 
         if np.any(np.asarray(transcription_order) < 3):
             raise ValueError('Given transcription order ({0}) is less than '
@@ -978,6 +987,8 @@ class PhaseBase(Group):
         self._setup_objective()
 
         self._setup_timeseries_outputs()
+
+        self.is_setup = True
 
     def _check_time_options(self):
         """

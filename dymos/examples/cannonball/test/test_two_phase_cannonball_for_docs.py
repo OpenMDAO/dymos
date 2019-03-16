@@ -147,12 +147,6 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         assert_rel_error(self, p.get_val('traj.descent.states:r')[-1],
                          3183.25, tolerance=1.0E-2)
 
-        # from openmdao.api import view_model
-        # view_model(p.model)
-
-        p.model.list_inputs()
-        p.model.list_outputs()
-
         # exp_out = traj.simulate(times=100, record_file='ex_two_phase_cannonball_sim.db')
 
         # exp_out_loaded = load_simulation_results('ex_two_phase_cannonball_sim.db')

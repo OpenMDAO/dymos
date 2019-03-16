@@ -163,10 +163,9 @@ class Trajectory(Group):
                 tgt_param_name = target_params.get(phase_name, None) \
                     if isinstance(target_params, dict) else name
                 if tgt_param_name:
-                    if tgt_param_name not in phs.traj_parameter_options:
-                        phs.add_input_parameter(tgt_param_name, val=options['val'],
-                                                units=options['units'])
-                    tgt = '{0}.input_parameters:{1}'.format(phase_name, tgt_param_name)
+                    # if tgt_param_name not in phs.traj_parameter_options:
+                    phs.add_traj_parameter(tgt_param_name, val=options['val'], units=options['units'])
+                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
                     self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_design_parameters(self):
@@ -204,10 +203,9 @@ class Trajectory(Group):
                 tgt_param_name = targets.get(phase_name, None) \
                     if isinstance(targets, dict) else name
                 if tgt_param_name:
-                    if tgt_param_name not in phs.traj_parameter_options:
-                        phs.add_input_parameter(tgt_param_name, val=options['val'],
-                                                units=options['units'])
-                    tgt = '{0}.input_parameters:{1}'.format(phase_name, tgt_param_name)
+                    # if tgt_param_name not in phs.user_traj_parameter_options:
+                    phs.add_traj_parameter(tgt_param_name, val=options['val'], units=options['units'])
+                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
                     self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_linkages(self):
@@ -231,12 +229,27 @@ class Trajectory(Group):
             p1_design_parameters = set([key for key in p1.design_parameter_options])
             p2_design_parameters = set([key for key in p2.design_parameter_options])
 
-            varnames = vars.keys()
-            max_varname_length = max(len(name) for name in varnames)
+            p1_input_parameters = set([key for key in p1.input_parameter_options])
+            p1_input_parameters = set([key for key in p2.input_parameter_options])
+
+            print(sorted(vars.keys()))
+
+            # Dict of vars that expands '*' to include time and states
+            _vars = {}
+            for var in sorted(vars.keys()):
+                if var == '*':
+                    _vars['time'] = vars[var].copy()
+                    for state in p2_states:
+                        _vars[state] = vars[var].copy()
+                else:
+                    _vars[var] = vars[var].copy()
+
+            max_varname_length = max(len(name) for name in _vars.keys())
 
             units_map = {}
             vars_to_constrain = []
-            for var, options in iteritems(vars):
+
+            for var, options in iteritems(_vars):
                 if options['connected']:
 
                     # If this is a state, and we are linking it, we need to do some checks.
@@ -268,7 +281,7 @@ class Trajectory(Group):
                                       vars=vars_to_constrain,
                                       units=units_map)
 
-            for var, options in iteritems(vars):
+            for var, options in iteritems(_vars):
                 loc1, loc2 = options['locs']
 
                 if var in p1_states:
@@ -334,6 +347,7 @@ class Trajectory(Group):
             g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
             # DirectSolvers were moved down into the phases for use with MPI
             g.linear_solver = DirectSolver()
+            phs.finalize_variables()
 
         if self._linkages:
             self._setup_linkages()
@@ -436,17 +450,17 @@ class Trajectory(Group):
             if (phase1_name, phase2_name) not in self._linkages:
                 self._linkages[phase1_name, phase2_name] = OrderedDict()
 
-            if '*' in _vars:
-                p1_states = set([key for key in self._phases[phase1_name].state_options])
-                p2_states = set([key for key in self._phases[phase2_name].state_options])
-                implicitly_linked_vars = p1_states.intersection(p2_states)
-                implicitly_linked_vars.add('time')
-            else:
-                implicitly_linked_vars = set()
+            # if '*' in _vars:
+            #     p1_states = set([key for key in self._phases[phase1_name].state_options])
+            #     p2_states = set([key for key in self._phases[phase2_name].state_options])
+            #     implicitly_linked_vars = p1_states.intersection(p2_states)
+            #     implicitly_linked_vars.add('time')
+            # else:
+            #     implicitly_linked_vars = set()
+            #
+            # explicitly_linked_vars = [var for var in _vars if var != '*']
 
-            explicitly_linked_vars = [var for var in _vars if var != '*']
-
-            for var in sorted(implicitly_linked_vars.union(explicitly_linked_vars)):
+            for var in _vars:
                 self._linkages[phase1_name, phase2_name][var] = {'locs': locs, 'units': None,
                                                                  'connected': connected}
 
