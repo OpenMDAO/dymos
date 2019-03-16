@@ -1043,6 +1043,15 @@ class PhaseBase(Group):
                                   '{2}'.format(name, self.name, ', '.join(invalid_options)),
                                   RuntimeWarning)
 
+                warnings.warn('Invalid options for non-optimal control \'{0}\' in phase \'{1}\': '
+                              '{2}'.format(name, self.name, ', '.join(invalid_options)),
+                              RuntimeWarning)
+
+                # Do not enforce rate continuity/rate continuity for non-optimal controls
+                self.control_options[name]['continuity'] = False
+                self.control_options[name]['rate_continuity'] = False
+                self.control_options[name]['rate2_continuity'] = False
+
     def _check_design_parameter_options(self):
         """
         Check that time options are valid and issue warnings if invalid options are provided.

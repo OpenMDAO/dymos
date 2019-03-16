@@ -18,13 +18,13 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
                 os.remove(filename)
 
     def test_ex_aircraft_steady_flight_opt(self):
-        p = ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps',
+        p = ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
                                       solve_segments=False)
         assert_rel_error(self, p.get_val('phase0.timeseries.states:range', units='NM')[-1],
                          726.85, tolerance=1.0E-2)
 
     def test_ex_aircraft_steady_flight_solve(self):
-        p = ex_aircraft_steady_flight(optimizer='SLSQP', transcription='radau-ps',
+        p = ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
                                       solve_segments=True, use_boundary_constraints=True)
         assert_rel_error(self, p.get_val('phase0.timeseries.states:range', units='NM')[-1],
                          726.85, tolerance=1.0E-2)

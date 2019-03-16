@@ -120,7 +120,6 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
         mass_fuel_imp = p.get_val('phase0.timeseries.states:mass_fuel', units='kg')
         mass_fuel_exp = exp_out.get_val('phase0.timeseries.states:mass_fuel', units='kg')
 
-        plt.plot(t_imp.ravel(), alt_imp.ravel(), 'ro')
         plt.show()
         plt.plot(t_imp, alt_imp, 'b-')
         plt.plot(t_exp, alt_exp, 'b-')
