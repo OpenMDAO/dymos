@@ -11,7 +11,8 @@ from openmdao.api import IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
     NewtonSolver, BoundsEnforceLS
 from six import iteritems
 
-from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
+from ..runge_kutta.runge_kutta_phase import RungeKuttaPhase
+from ..runge_kutta.components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
     RungeKuttaTimeseriesOutputComp, RungeKuttaPathConstraintComp, RungeKuttaControlContinuityComp
 from ..components import TimeComp
 from ...utils.rk_methods import rk_methods
@@ -21,45 +22,38 @@ from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 
 
-class RungeKuttaPhase(PhaseBase):
+class SolveIVPPhase(PhaseBase):
     """
-    RungeKuttaPhase provides explicitly integrated phases where each segment is assumed to be
-    a single RK timestep.
+    SolveIVPPhase provides explicit integration via the scipy.integrate.solve_ivp function.
+
+    SolveIVPPhase is conceptually similar to the RungeKuttaPhase, where the ODE is integrated
+    segment to segment.  However, whereas RungeKuttaPhase evaluates the ODE simultaneously across
+    segments to quickly solve the integration, SolveIVPPhase utilizes scipy.integrate.solve_ivp
+    to accurately propagate each segment with a variable time-step integration routine.
+
+    Currently SolveIVPPhase provides no design variables, constraints, or objectives for
+    optimization since we currently don't provide analytic derivatives across the integration steps.
+
     """
     def initialize(self):
-        super(RungeKuttaPhase, self).initialize()
-        self.options['transcription'] = 'explicit'
+        # Note we're calling super on RungeKuttaPhase, and bypassing RungeKuttaPhase's initialize!
+        super(SolveIVPPhase, self).initialize()
+        self.options['transcription'] = 'solve_ivp'
 
-        self.options.declare('method', default='rk4', values=('rk4',),
-                             desc='The integrator used within the explicit phase.')
+        self.options.declare('method', default='RK45', values=('RK45', 'RK23', 'BDF'),
+                             desc='The integrator used within scipy.integrate.solve_ivp. Currently '
+                                  'supports \'RK45\', \'RK23\', and \'BDF\'.')
 
-        self.options.declare('k_solver_class', default=NonlinearBlockGS,
-                             values=(NonlinearBlockGS, NewtonSolver, NonlinearRunOnce),
-                             allow_none=True,
-                             desc='The nonlinear solver class used to converge the numerical '
-                                  'integration across each segment.')
+        self.options.declare('grid_data', _types=[GridData],
+                             desc='The GridData object containing information on the control '
+                                  'parameterization.  Unlike other Phases, SolveIVPPhase should '
+                                  'be instantiated with the GridData of whichever phase it is '
+                                  'simulating.')
 
-        self.options.declare('k_solver_options', default={'iprint': -1}, types=(dict,),
-                             desc='The options passed to the nonlinear solver used to converge the'
-                                  'Runge-Kutta propagation across each step.')
-
-    def setup(self):
-        self.grid_data = GridData(num_segments=self.options['num_segments'],
-                                  transcription='runge-kutta',
-                                  transcription_order=self.options['method'],
-                                  segment_ends=self.options['segment_ends'],
-                                  compressed=self.options['compressed'])
-
-        super(RungeKuttaPhase, self).setup()
-
-        #
-        # Add a newton solver to converge the continuity between the segments/steps
-        #
-        self.nonlinear_solver = NewtonSolver()
-        self.nonlinear_solver.options['iprint'] = -1
-        self.nonlinear_solver.options['solve_subsystems'] = True
-        self.nonlinear_solver.options['err_on_maxiter'] = True
-        self.nonlinear_solver.linesearch = BoundsEnforceLS()
+    # def setup(self):
+    #
+    #     # Note we're calling super on RungeKuttaPhase, and bypassing RungeKuttaPhase's setup!
+    #     super(SolveIVPPhase, self).setup()
 
     def _setup_time(self):
         time_units = self.time_options['units']
@@ -68,7 +62,7 @@ class RungeKuttaPhase(PhaseBase):
         num_nodes = num_seg * rk_data['num_stages']
         grid_data = self.grid_data
 
-        indeps, externals, comps = super(RungeKuttaPhase, self)._setup_time()
+        indeps, externals, comps = super(SolveIVPPhase, self)._setup_time()
 
         time_comp = TimeComp(num_nodes=num_nodes, node_ptau=grid_data.node_ptau,
                              node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units)
@@ -88,29 +82,29 @@ class RungeKuttaPhase(PhaseBase):
         if self.time_options['targets']:
             time_tgts = self.time_options['targets']
 
-            self.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts],
-                         src_indices=self.grid_data.subset_node_indices['all'])
+            # self.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts],
+            #              src_indices=self.grid_data.subset_node_indices['all'])
 
             self.connect('time', ['ode.{0}'.format(t) for t in time_tgts],
                          src_indices=self.grid_data.subset_node_indices['segment_ends'])
 
         if self.time_options['time_phase_targets']:
             time_phase_tgts = self.time_options['time_phase_targets']
-            self.connect('time_phase',
-                         ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
+            # self.connect('time_phase',
+            #              ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
             self.connect('time_phase',
                          ['ode.{0}'.format(t) for t in time_phase_tgts],
                          src_indices=self.grid_data.subset_node_indices['segment_ends'])
 
         if self.time_options['t_initial_targets']:
             time_phase_tgts = self.time_options['t_initial_targets']
-            self.connect('t_initial', ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
+            # self.connect('t_initial', ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
             self.connect('t_initial', ['ode.{0}'.format(t) for t in time_phase_tgts])
 
         if self.time_options['t_duration_targets']:
             time_phase_tgts = self.time_options['t_duration_targets']
-            self.connect('t_duration',
-                         ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
+            # self.connect('t_duration',
+            #              ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
             self.connect('t_duration',
                          ['ode.{0}'.format(t) for t in time_phase_tgts])
 
