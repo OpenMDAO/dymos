@@ -1309,9 +1309,10 @@ class PhaseBase(Group):
             A list containing a tuple of target paths and corresponding src_indices to which the
             given design variable is to be connected.
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Phase class {0} does not implement '
+                                  '_get_parameter_connections'.format(self.__class__.__name__))
 
-    def _get_rate_source_path(self, state_name, nodes, **kwargs):
+    def _get_rate_source_path(self, state_name, nodes=None, **kwargs):
         """
         Given the name of a variable to be used as a rate source, provide the source connection
         path for that variable in the Phase.
@@ -1330,7 +1331,8 @@ class PhaseBase(Group):
         src_idxs : np.ndarray
             The source indices in the resulting src that provide the values at the given nodes.
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Phase class {0} does not implement '
+                                  '_get_rate_source_path'.format(self.__class__.__name__))
 
     def _setup_rhs(self):
         if not inspect.isclass(self.options['ode_class']):

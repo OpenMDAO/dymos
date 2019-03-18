@@ -30,6 +30,7 @@ class TestSegmentSimulationComp(unittest.TestCase):
         state_options['y']['rate_source'] = 'ydot'
 
         seg0_comp = SegmentSimulationComp(index=0, grid_data=None, method='RK45',
+                                          atol=1.0E-9, rtol=1.0E-9,
                                           ode_class=TestODE, time_options=time_options,
                                           state_options=state_options)
 
