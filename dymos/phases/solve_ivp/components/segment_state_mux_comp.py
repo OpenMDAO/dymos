@@ -12,13 +12,22 @@ class SegmentStateMuxComp(ExplicitComponent):
         self.options.declare('grid_data', desc='the grid data of the corresponding phase.')
         self.options.declare('state_options', types=dict)
 
+        self.options.declare('output_nodes_per_seg', default=None, types=(int,), allow_none=True,
+                             desc='If None, results are provided at the all nodes within each'
+                                  'segment.  If an int (n) then results are provided at n '
+                                  'equally distributed points in time within each segment.')
+
     def setup(self):
         """
         Define the independent variables as output variables.
         """
         gd = self.options['grid_data']
         num_seg = gd.num_segments
-        num_nodes = gd.subset_num_nodes['all']
+
+        if self.options['output_nodes_per_seg'] is None:
+            num_nodes = gd.subset_num_nodes['all']
+        else:
+            num_nodes = num_seg * self.options['output_nodes_per_seg']
 
         self._vars = {}
 
@@ -28,7 +37,10 @@ class SegmentStateMuxComp(ExplicitComponent):
                                 'shape': {}}
 
             for i in range(num_seg):
-                nnps_i = gd.subset_num_nodes_per_segment['all'][i]
+                if self.options['output_nodes_per_seg'] is None:
+                    nnps_i = gd.subset_num_nodes_per_segment['all'][i]
+                else:
+                    nnps_i = self.options['output_nodes_per_seg']
                 self._vars[name]['inputs'][i] = 'segment_{0}_states:{1}'.format(i, name)
                 self._vars[name]['shape'][i] = (nnps_i,) + options['shape']
 

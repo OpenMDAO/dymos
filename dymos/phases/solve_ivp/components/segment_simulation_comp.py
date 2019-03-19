@@ -77,15 +77,23 @@ class SegmentSimulationComp(ExplicitComponent):
 
         self.options.declare('ode_integration_interface', default=None, allow_none=True,
                              types=ODEIntegrationInterface,
-                             desc='The instance of the ODE integration interface used to provide ' \
-                                  'the ODE to scipy.integrate.solve_ivp in the segment.  If None,' \
+                             desc='The instance of the ODE integration interface used to provide '
+                                  'the ODE to scipy.integrate.solve_ivp in the segment.  If None,'
                                   ' a new one will be instantiated for this segment.')
 
+        self.options.declare('output_nodes_per_seg', default=None, types=(int,), allow_none=True,
+                             desc='If None, results are provided at the all nodes within each'
+                                  'segment.  If an int (n) then results are provided at n '
+                                  'equally distributed points in time within each segment.')
 
     def setup(self):
         idx = self.options['index']
         gd = self.options['grid_data']
-        nnps_i = gd.subset_num_nodes_per_segment['all'][idx]
+
+        if self.options['output_nodes_per_seg'] is None:
+            nnps_i = gd.subset_num_nodes_per_segment['all'][idx]
+        else:
+            nnps_i = self.options['output_nodes_per_seg']
 
         # # Number of control discretization nodes per segment
         # ncdsps = gd.subset_num_nodes_per_segment['control_disc'][idx]
@@ -113,11 +121,11 @@ class SegmentSimulationComp(ExplicitComponent):
                 traj_parameter_options=self.options['traj_parameter_options'],
                 ode_init_kwargs=self.options['ode_init_kwargs'])
 
-        self.add_input(name='time', val=np.ones(gd.subset_num_nodes_per_segment['all'][idx]),
+        self.add_input(name='time', val=np.ones(nnps_i),
                        units=self.options['time_options']['units'],
                        desc='Time at all nodes within the segment.')
 
-        self.add_input(name='time_phase', val=np.ones(gd.subset_num_nodes_per_segment['all'][idx]),
+        self.add_input(name='time_phase', val=np.ones(nnps_i),
                        units=self.options['time_options']['units'],
                        desc='Phase elapsed time at all nodes within the segment.')
 
@@ -150,11 +158,11 @@ class SegmentSimulationComp(ExplicitComponent):
                                desc='Values of control {0} at control discretization '
                                     'nodes within the .'.format(name))
                 interp = LagrangeBarycentricInterpolant(control_disc_seg_stau, options['shape'])
-                self.ode_integration_interface.control_interpolants[name] = interp
+                self.options['ode_integration_interface'].control_interpolants[name] = interp
 
         if self.options['polynomial_control_options']:
             for name, options in iteritems(self.options['polynomial_control_options']):
-                self.ode_integration_interface.polynomial_control_interpolants[name] = \
+                self.options['ode_integration_interface'].polynomial_control_interpolants[name] = \
                     self.polynomial_control_interpolants[name]
 
         if self.options['design_parameter_options']:
@@ -180,8 +188,9 @@ class SegmentSimulationComp(ExplicitComponent):
         self.declare_partials(of='*', wrt='*', method='fd')
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+        idx = self.options['index']
+        gd = self.options['grid_data']
         iface_prob = self.options['ode_integration_interface'].prob
-        # t_eval = self.options['t_eval']
 
         # Create the vector of initial state values
         self.initial_state_vec[:] = 0.0
@@ -197,9 +206,9 @@ class SegmentSimulationComp(ExplicitComponent):
             t0_seg, tf_seg = inputs['t_seg_ends']
             for name, options in iteritems(self.options['control_options']):
                 ctrl_vals = inputs['controls:{0}'.format(name)]
-                self.ode_integration_interface.control_interpolants[name].setup(x0=t0_seg,
-                                                                                xf=tf_seg,
-                                                                                f_j=ctrl_vals)
+                self.options['ode_integration_interface'].control_interpolants[name].setup(x0=t0_seg,
+                                                                                           xf=tf_seg,
+                                                                                           f_j=ctrl_vals)
 
         # Setup the polynomial control interpolants
         if self.options['control_options']:
@@ -207,9 +216,9 @@ class SegmentSimulationComp(ExplicitComponent):
             tf_phase = inputs['t_initial'] + inputs['t_duration']
             for name, options in iteritems(self.options['control_options']):
                 ctrl_vals = inputs['polynomial_controls:{0}'.format(name)]
-                self.ode_integration_interface.control_interpolants[name].setup(x0=t0_phase,
-                                                                                xf=tf_phase,
-                                                                                f_j=ctrl_vals)
+                self.options['ode_integration_interface'].control_interpolants[name].setup(x0=t0_phase,
+                                                                                           xf=tf_phase,
+                                                                                           f_j=ctrl_vals)
 
         # Set the values of t_initial and t_duration
         iface_prob.set_val('t_initial',
@@ -242,6 +251,20 @@ class SegmentSimulationComp(ExplicitComponent):
                                    value=inputs['traj_parameters:{0}'.format(param_name)],
                                    units=options['units'])
 
+        # Setup the evaluation times.
+        if self.options['output_nodes_per_seg'] is None:
+            # Output nodes given as subset, convert segment tau of nodes to time
+            i1, i2 = gd.subset_segment_indices['all'][idx, :]
+            indices = gd.subset_node_indices['all'][i1:i2]
+            nodes_eval = gd.node_stau[indices]  # evaluation nodes in segment tau space
+            t_initial = inputs['time'][0]
+            t_duration = inputs['time'][-1] - t_initial
+            t_eval = t_initial + 0.5 * (nodes_eval + 1) * t_duration
+        else:
+            # Output nodes given as number, linspace them across the segment
+            t_eval = np.linspace(inputs['time'][0], inputs['time'][-1],
+                                 self.options['output_nodes_per_seg'])
+
         # Perform the integration using solve_ivp
         sol = solve_ivp(fun=self.options['ode_integration_interface'],
                         t_span=(inputs['time'][0], inputs['time'][-1]),
@@ -249,7 +272,7 @@ class SegmentSimulationComp(ExplicitComponent):
                         method=self.options['method'],
                         atol=self.options['atol'],
                         rtol=self.options['rtol'],
-                        t_eval=inputs['time'])
+                        t_eval=t_eval)
                         # TODO: Eventually we need to return states at evaluation nodes
                         # t_eval=np.concatenate((inputs['t0_seg'], inputs['tf_seg'])))
 

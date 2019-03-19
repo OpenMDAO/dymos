@@ -1,27 +1,19 @@
 from __future__ import division, print_function, absolute_import
 
-from collections import Sequence
-import warnings
-
 import numpy as np
-from dymos.phases.components import EndpointConditionsComp
-from dymos.phases.phase_base import PhaseBase, _unspecified
+from dymos.phases.phase_base import PhaseBase
 
-from openmdao.api import Group, IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
-    NewtonSolver, BoundsEnforceLS
+from openmdao.api import Group, IndepVarComp
 from six import iteritems
-
-from ..runge_kutta.runge_kutta_phase import RungeKuttaPhase
-from ..runge_kutta.components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
-    RungeKuttaTimeseriesOutputComp, RungeKuttaPathConstraintComp, RungeKuttaControlContinuityComp
 
 from .components.segment_simulation_comp import SegmentSimulationComp
 from .components.ode_integration_interface import ODEIntegrationInterface
 from .components.segment_state_mux_comp import SegmentStateMuxComp
+from .components.solve_ivp_timeseries_comp import SolveIVPimeseriesOutputComp
+
 from ..components import TimeComp
 from ...utils.rk_methods import rk_methods
-from ...utils.misc import CoerceDesvar, get_rate_units
-from ...utils.constants import INF_BOUND
+from ...utils.misc import get_rate_units
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 
@@ -53,6 +45,11 @@ class SolveIVPPhase(PhaseBase):
         self.options.declare('rtol', default=1.0E-6, types=(float,),
                              desc='Relative tolerance passed to scipy.integrate.solve_ivp.')
 
+        self.options.declare('output_nodes_per_seg', default=None, types=(int,), allow_none=True,
+                             desc='If None, results are provided at the all nodes within each'
+                                  'segment.  If an int (n) then results are provided at n '
+                                  'equally distributed points in time within each segment.')
+
         self.options.declare('grid_data', default=None, types=(GridData,), allow_none=True,
                              desc='The GridData object containing information on the control '
                                   'parameterization.  Unlike other Phases, SolveIVPPhase should '
@@ -79,12 +76,31 @@ class SolveIVPPhase(PhaseBase):
         time_units = time_options['units']
         num_seg = self.options['num_segments']
         grid_data = self.options['grid_data']
-        num_nodes = grid_data.num_nodes
+        output_nodes_per_seg = self.options['output_nodes_per_seg']
 
         indeps, externals, comps = super(SolveIVPPhase, self)._setup_time()
 
-        time_comp = TimeComp(num_nodes=num_nodes, node_ptau=grid_data.node_ptau,
-                             node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units)
+        if output_nodes_per_seg is None:
+            # Case 1:  Compute times at 'all' node set.
+            num_nodes = grid_data.num_nodes
+            node_ptau = grid_data.node_ptau
+            node_dptau_dstau = grid_data.node_dptau_dstau
+        else:
+            # Case 2:  Compute times at n equally distributed points per segment.
+            num_nodes = num_seg * output_nodes_per_seg
+            node_stau = np.linspace(-1, 1, output_nodes_per_seg)
+            node_ptau = np.empty(0, )
+            node_dptau_dstau = np.empty(0, )
+            # Append our nodes in phase tau space
+            for iseg in range(num_seg):
+                v0 = grid_data.segment_ends[iseg]
+                v1 = grid_data.segment_ends[iseg + 1]
+                node_ptau = np.concatenate((node_ptau, v0 + 0.5 * (node_stau + 1) * (v1 - v0)))
+                node_dptau_dstau = np.concatenate((node_dptau_dstau,
+                                                   0.5 * (v1 - v0) * np.ones_like(node_stau)))
+
+        time_comp = TimeComp(num_nodes=num_nodes, node_ptau=node_ptau,
+                             node_dptau_dstau=node_dptau_dstau, units=time_units)
 
         self.add_subsystem('time', time_comp, promotes_outputs=['time', 'time_phase'],
                            promotes_inputs=externals)
@@ -93,35 +109,29 @@ class SolveIVPPhase(PhaseBase):
         for i in range(num_seg):
             self.connect('t_initial', 'segment_{0}.t_initial'.format(i))
             self.connect('t_duration', 'segment_{0}.t_duration'.format(i))
-            i1, i2 = grid_data.subset_segment_indices['all'][i, :]
-            src_idxs = grid_data.subset_node_indices['all'][i1:i2]
+            if output_nodes_per_seg is None:
+                i1, i2 = grid_data.subset_segment_indices['all'][i, :]
+                src_idxs = grid_data.subset_node_indices['all'][i1:i2]
+            else:
+                src_idxs = np.arange(i * output_nodes_per_seg, output_nodes_per_seg * (i + 1),
+                                     dtype=int)
             self.connect('time', 'segment_{0}.time'.format(i), src_indices=src_idxs)
             self.connect('time_phase', 'segment_{0}.time_phase'.format(i), src_indices=src_idxs)
 
         if self.time_options['targets']:
-            # self.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts],
-            #              src_indices=self.grid_data.subset_node_indices['all'])
-
-            self.connect('time', ['ode.{0}'.format(t) for t in time_options['targets']],
-                         src_indices=grid_data.subset_node_indices['all'])
+            self.connect('time', ['ode.{0}'.format(t) for t in time_options['targets']])
 
         if self.time_options['time_phase_targets']:
             time_phase_tgts = time_options['time_phase_targets']
-            # self.connect('time_phase',
-            #              ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
             self.connect('time_phase',
-                         ['ode.{0}'.format(t) for t in time_phase_tgts],
-                         src_indices=grid_data.subset_node_indices['all'])
+                         ['ode.{0}'.format(t) for t in time_phase_tgts])
 
         if self.time_options['t_initial_targets']:
             time_phase_tgts = time_options['t_initial_targets']
-            # self.connect('t_initial', ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
             self.connect('t_initial', ['ode.{0}'.format(t) for t in time_phase_tgts])
 
         if self.time_options['t_duration_targets']:
             time_phase_tgts = time_options['t_duration_targets']
-            # self.connect('t_duration',
-            #              ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
             self.connect('t_duration',
                          ['ode.{0}'.format(t) for t in time_phase_tgts])
 
@@ -168,7 +178,8 @@ class SolveIVPPhase(PhaseBase):
                 design_parameter_options=self.design_parameter_options,
                 input_parameter_options=self.input_parameter_options,
                 traj_parameter_options=self.traj_parameter_options,
-                ode_integration_interface=ode_interface)
+                ode_integration_interface=ode_interface,
+                output_nodes_per_seg=self.options['output_nodes_per_seg'])
 
             segments_group.add_subsystem('segment_{0}'.format(i), subsys=seg_i_comp)
 
@@ -177,11 +188,16 @@ class SolveIVPPhase(PhaseBase):
         # to instantiate a second ODE group that will call the ODE at those points so that we can
         # accurately obtain timeseries for ODE outputs.
         self.add_subsystem('state_mux_comp',
-                           SegmentStateMuxComp(grid_data=gd, state_options=self.state_options))
+                           SegmentStateMuxComp(grid_data=gd, state_options=self.state_options,
+                                               output_nodes_per_seg=self.options['output_nodes_per_seg']))
 
+        if self.options['output_nodes_per_seg'] is None:
+            num_output_nodes = gd.subset_num_nodes['all']
+        else:
+            num_output_nodes = num_seg * self.options['output_nodes_per_seg']
 
         self.add_subsystem('ode',
-                           self.options['ode_class'](num_nodes=gd.subset_num_nodes['all'],
+                           self.options['ode_class'](num_nodes=num_output_nodes,
                                                      **self.options['ode_init_kwargs']))
 
     def _setup_states(self):
@@ -211,7 +227,11 @@ class SolveIVPPhase(PhaseBase):
 
             # Connect the final state in segment n to the initial state in segment n + 1
             for i in range(1, num_seg):
-                nnps_i = self.options['grid_data'].subset_num_nodes_per_segment['all'][i]
+                if self.options['output_nodes_per_seg'] is None:
+                    nnps_i = self.options['grid_data'].subset_num_nodes_per_segment['all'][i]
+                else:
+                    nnps_i = self.options['output_nodes_per_seg']
+
                 src_idxs = get_src_indices_by_row([nnps_i-1], shape=options['shape'])
                 self.connect('segment_{0}.states:{1}'.format(i-1, state_name),
                              'segment_{0}.initial_states:{1}'.format(i, state_name),
@@ -220,18 +240,8 @@ class SolveIVPPhase(PhaseBase):
                 self.connect('segment_{0}.states:{1}'.format(i, state_name),
                              'state_mux_comp.segment_{0}_states:{1}'.format(i, state_name))
 
-                # self.connect('segment_{0}.states')
-
-            # # Connect the state rate source to the k comp
-            # rate_path, src_idxs = self._get_rate_source_path(state_name)
-            #
-            # self.connect(rate_path,
-            #              'rk_solve_group.k_comp.f:{0}'.format(state_name),
-            #              src_indices=src_idxs,
-            #              flat_src_indices=True)
-
     def _setup_controls(self):
-        super(RungeKuttaPhase, self)._setup_controls()
+        super(SolveIVPPhase, self)._setup_controls()
         grid_data = self.grid_data
 
         for name, options in iteritems(self.control_options):
@@ -588,38 +598,36 @@ class SolveIVPPhase(PhaseBase):
         #     path_comp._add_path_constraint(con_name, var_type, **kwargs)
 
     def _setup_timeseries_outputs(self):
-        return
-
         gd = self.options['grid_data']
         num_seg = gd.num_segments
         time_units = self.time_options['units']
-        timeseries_comp = RungeKuttaTimeseriesOutputComp(grid_data=gd)
+        output_nodes_per_seg = self.options['output_nodes_per_seg']
+
+        timeseries_comp = \
+            SolveIVPimeseriesOutputComp(grid_data=gd,
+                                        output_nodes_per_seg=self.options['output_nodes_per_seg'])
+
         self.add_subsystem('timeseries', subsys=timeseries_comp)
-        src_idxs = get_src_indices_by_row(gd.subset_node_indices['segment_ends'], (1,))
+        src_idxs = get_src_indices_by_row(gd.subset_node_indices['all'], (1,))
 
         timeseries_comp._add_timeseries_output('time',
-                                               var_class=self._classify_var('time'),
+                                               var_class='time',
                                                units=time_units)
-        self.connect(src_name='time', tgt_name='timeseries.segend_values:time',
-                     src_indices=src_idxs, flat_src_indices=True)
+
+        self.connect(src_name='time', tgt_name='timeseries.all_values:time')
 
         timeseries_comp._add_timeseries_output('time_phase',
                                                var_class=self._classify_var('time_phase'),
                                                units=time_units)
-        self.connect(src_name='time_phase', tgt_name='timeseries.segend_values:time_phase',
-                     src_indices=src_idxs, flat_src_indices=True)
+        self.connect(src_name='time_phase', tgt_name='timeseries.all_values:time_phase')
 
         for name, options in iteritems(self.state_options):
             timeseries_comp._add_timeseries_output('states:{0}'.format(name),
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
                                                    units=options['units'])
-            row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
-            row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
-            src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
-            self.connect(src_name='states:{0}'.format(name),
-                         tgt_name='timeseries.segend_values:states:{0}'.format(name),
-                         src_indices=src_idxs, flat_src_indices=True)
+            self.connect(src_name='state_mux_comp.states:{0}'.format(name),
+                         tgt_name='timeseries.all_values:states:{0}'.format(name))
 
         for name, options in iteritems(self.control_options):
             control_units = options['units']
@@ -630,7 +638,7 @@ class SolveIVPPhase(PhaseBase):
             src_rows = gd.subset_node_indices['segment_ends']
             src_idxs = get_src_indices_by_row(src_rows, options['shape'])
             self.connect(src_name='control_values:{0}'.format(name),
-                         tgt_name='timeseries.segend_values:controls:{0}'.format(name),
+                         tgt_name='timeseries.all_values:controls:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
             # # Control rates
@@ -641,7 +649,7 @@ class SolveIVPPhase(PhaseBase):
                                                                         time_units,
                                                                         deriv=1))
             self.connect(src_name='control_rates:{0}_rate'.format(name),
-                         tgt_name='timeseries.segend_values:control_rates:{0}_rate'.format(name),
+                         tgt_name='timeseries.all_values:control_rates:{0}_rate'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
             # Control second derivatives
@@ -652,7 +660,7 @@ class SolveIVPPhase(PhaseBase):
                                                                         time_units,
                                                                         deriv=2))
             self.connect(src_name='control_rates:{0}_rate2'.format(name),
-                         tgt_name='timeseries.segend_values:control_rates:{0}_rate2'.format(name),
+                         tgt_name='timeseries.all_values:control_rates:{0}_rate2'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in iteritems(self.polynomial_control_options):
@@ -664,7 +672,7 @@ class SolveIVPPhase(PhaseBase):
             src_rows = gd.subset_node_indices['segment_ends']
             src_idxs = get_src_indices_by_row(src_rows, options['shape'])
             self.connect(src_name='polynomial_control_values:{0}'.format(name),
-                         tgt_name='timeseries.segend_values:polynomial_controls:{0}'.format(name),
+                         tgt_name='timeseries.all_values:polynomial_controls:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
             # # Control rates
@@ -675,7 +683,7 @@ class SolveIVPPhase(PhaseBase):
                                                                         time_units,
                                                                         deriv=1))
             self.connect(src_name='polynomial_control_rates:{0}_rate'.format(name),
-                         tgt_name='timeseries.segend_values:polynomial_control_rates'
+                         tgt_name='timeseries.all_values:polynomial_control_rates'
                                   ':{0}_rate'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
@@ -688,7 +696,7 @@ class SolveIVPPhase(PhaseBase):
                                                                         time_units,
                                                                         deriv=2))
             self.connect(src_name='polynomial_control_rates:{0}_rate2'.format(name),
-                         tgt_name='timeseries.segend_values:polynomial_control_rates'
+                         tgt_name='timeseries.all_values:polynomial_control_rates'
                                   ':{0}_rate2'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
@@ -703,7 +711,7 @@ class SolveIVPPhase(PhaseBase):
             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='design_parameters:{0}'.format(name),
-                         tgt_name='timeseries.segend_values:design_parameters:{0}'.format(name),
+                         tgt_name='timeseries.all_values:design_parameters:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in iteritems(self.input_parameter_options):
@@ -716,7 +724,7 @@ class SolveIVPPhase(PhaseBase):
             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='input_parameters:{0}_out'.format(name),
-                         tgt_name='timeseries.segend_values:input_parameters:{0}'.format(name),
+                         tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in iteritems(self.traj_parameter_options):
@@ -729,7 +737,7 @@ class SolveIVPPhase(PhaseBase):
             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='traj_parameters:{0}_out'.format(name),
-                         tgt_name='timeseries.segend_values:traj_parameters:{0}'.format(name),
+                         tgt_name='timeseries.all_values:traj_parameters:{0}'.format(name),
                          src_indices=src_idxs, flat_src_indices=True)
 
         for var, options in iteritems(self._timeseries_outputs):
@@ -743,7 +751,7 @@ class SolveIVPPhase(PhaseBase):
 
             # Failed to find variable, assume it is in the RHS
             self.connect(src_name='ode.{0}'.format(var),
-                         tgt_name='timeseries.segend_values:{0}'.format(output_name))
+                         tgt_name='timeseries.all_values:{0}'.format(output_name))
 
             kwargs = options.copy()
             kwargs.pop('output_name', None)
