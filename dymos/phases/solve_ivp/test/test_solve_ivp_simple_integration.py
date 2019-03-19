@@ -56,8 +56,6 @@ class TestSolveIVPSimpleIntegration(unittest.TestCase):
 
         p.setup(check=True, force_alloc_complex=True)
 
-        p.final_setup()
-
         p['phase0.t_initial'] = 2.0
         p['phase0.t_duration'] = -2.0
 
@@ -111,8 +109,6 @@ class TestSolveIVPSimpleIntegration(unittest.TestCase):
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
         p.setup(check=True, force_alloc_complex=True)
-
-        p.final_setup()
 
         p['phase0.t_initial'] = 2.0
         p['phase0.t_duration'] = -2.0

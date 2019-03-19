@@ -18,7 +18,8 @@ class ODEIntControlInterpolationComp(ExplicitComponent):
                              desc='Dictionary of options for the dynamic controls')
         self.options.declare('polynomial_control_options', types=dict, allow_none=True,
                              default=None, desc='Dictionary of options for the polynomial controls')
-        self.interpolants = {}
+        self.control_interpolants = {}
+        self.polynomial_control_interpolants = {}
 
     def setup(self):
         time_units = self.options['time_units']
@@ -58,25 +59,26 @@ class ODEIntControlInterpolationComp(ExplicitComponent):
         time = inputs['time']
 
         for name in self.options['control_options']:
-            if name not in self.interpolants:
+            if name not in self.control_interpolants:
                 raise(ValueError('No interpolant has been specified for {0}'.format(name)))
 
-            outputs['controls:{0}'.format(name)] = self.interpolants[name].eval(time)
+            outputs['controls:{0}'.format(name)] = self.control_interpolants[name].eval(time)
 
             outputs['control_rates:{0}_rate'.format(name)] = \
-                self.interpolants[name].eval_deriv(time)
+                self.control_interpolants[name].eval_deriv(time)
 
             outputs['control_rates:{0}_rate2'.format(name)] = \
-                self.interpolants[name].eval_deriv(time, der=2)
+                self.control_interpolants[name].eval_deriv(time, der=2)
 
         for name in self.options['polynomial_control_options']:
-            if name not in self.interpolants:
+            if name not in self.polynomial_control_interpolants:
                 raise(ValueError('No interpolant has been specified for {0}'.format(name)))
 
-            outputs['polynomial_controls:{0}'.format(name)] = self.interpolants[name].eval(time)
+            outputs['polynomial_controls:{0}'.format(name)] = \
+                self.polynomial_control_interpolants[name].eval(time)
 
             outputs['polynomial_control_rates:{0}_rate'.format(name)] = \
-                self.interpolants[name].eval_deriv(time)
+                self.polynomial_control_interpolants[name].eval_deriv(time)
 
             outputs['polynomial_control_rates:{0}_rate2'.format(name)] = \
-                self.interpolants[name].eval_deriv(time, der=2)
+                self.polynomial_control_interpolants[name].eval_deriv(time, der=2)

@@ -95,19 +95,17 @@ class SegmentSimulationComp(ExplicitComponent):
         else:
             nnps_i = self.options['output_nodes_per_seg']
 
-        # # Number of control discretization nodes per segment
-        # ncdsps = gd.subset_num_nodes_per_segment['control_disc'][idx]
-        #
-        # # Indices of the control disc nodes belonging to the current segment
-        # control_disc_seg_idxs = gd.subset_segment_indices['control_disc'][idx]
-        #
-        # # Segment tau values for the control disc nodes in the phase
-        # control_disc_stau = gd.node_stau[gd.subset_node_indices['control_disc']]
-        #
-        # # Segment tau values for the control disc nodes in the current segment
-        # control_disc_seg_stau = control_disc_stau[control_disc_seg_idxs[0]:control_disc_seg_idxs[1]]
+        # Number of control discretization nodes per segment
+        ncdsps = gd.subset_num_nodes_per_segment['control_disc'][idx]
 
-        #num_output_points = len(self.options['t_eval'])
+        # Indices of the control disc nodes belonging to the current segment
+        control_disc_seg_idxs = gd.subset_segment_indices['control_disc'][idx]
+
+        # Segment tau values for the control disc nodes in the phase
+        control_disc_stau = gd.node_stau[gd.subset_node_indices['control_disc']]
+
+        # Segment tau values for the control disc nodes in the current segment
+        control_disc_seg_stau = control_disc_stau[control_disc_seg_idxs[0]:control_disc_seg_idxs[1]]
 
         if self.options['ode_integration_interface'] is None:
             self.options['ode_integration_interface'] = ODEIntegrationInterface(
@@ -203,7 +201,8 @@ class SegmentSimulationComp(ExplicitComponent):
 
         # Setup the control interpolants
         if self.options['control_options']:
-            t0_seg, tf_seg = inputs['t_seg_ends']
+            t0_seg = inputs['time'][0]
+            tf_seg = inputs['time'][-1]
             for name, options in iteritems(self.options['control_options']):
                 ctrl_vals = inputs['controls:{0}'.format(name)]
                 self.options['ode_integration_interface'].control_interpolants[name].setup(x0=t0_seg,
@@ -211,7 +210,7 @@ class SegmentSimulationComp(ExplicitComponent):
                                                                                            f_j=ctrl_vals)
 
         # Setup the polynomial control interpolants
-        if self.options['control_options']:
+        if self.options['polynomial_control_options']:
             t0_phase = inputs['t_initial']
             tf_phase = inputs['t_initial'] + inputs['t_duration']
             for name, options in iteritems(self.options['control_options']):
