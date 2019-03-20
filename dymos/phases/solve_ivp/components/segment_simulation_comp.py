@@ -15,6 +15,7 @@ from scipy.integrate import solve_ivp
 from openmdao.api import ExplicitComponent
 
 from ....utils.interpolate import LagrangeBarycentricInterpolant
+from ....utils.lgl import lgl
 from .ode_integration_interface import ODEIntegrationInterface
 from ...options import TimeOptionsDictionary
 
@@ -154,14 +155,21 @@ class SegmentSimulationComp(ExplicitComponent):
                                val=np.ones(((ncdsps,) + options['shape'])),
                                units=options['units'],
                                desc='Values of control {0} at control discretization '
-                                    'nodes within the .'.format(name))
+                                    'nodes within the segment.'.format(name))
                 interp = LagrangeBarycentricInterpolant(control_disc_seg_stau, options['shape'])
                 self.options['ode_integration_interface'].control_interpolants[name] = interp
 
         if self.options['polynomial_control_options']:
             for name, options in iteritems(self.options['polynomial_control_options']):
+                poly_control_disc_ptau, _ = lgl(options['order'] + 1)
+                self.add_input(name='polynomial_controls:{0}'.format(name),
+                               val=np.ones(((options['order'] + 1,) + options['shape'])),
+                               units=options['units'],
+                               desc='Values of polynomial control {0} at control discretization '
+                                    'nodes within the phase.'.format(name))
+                interp = LagrangeBarycentricInterpolant(poly_control_disc_ptau, options['shape'])
                 self.options['ode_integration_interface'].polynomial_control_interpolants[name] = \
-                    self.polynomial_control_interpolants[name]
+                    interp
 
         if self.options['design_parameter_options']:
             for name, options in iteritems(self.options['design_parameter_options']):
@@ -213,11 +221,11 @@ class SegmentSimulationComp(ExplicitComponent):
         if self.options['polynomial_control_options']:
             t0_phase = inputs['t_initial']
             tf_phase = inputs['t_initial'] + inputs['t_duration']
-            for name, options in iteritems(self.options['control_options']):
+            for name, options in iteritems(self.options['polynomial_control_options']):
                 ctrl_vals = inputs['polynomial_controls:{0}'.format(name)]
-                self.options['ode_integration_interface'].control_interpolants[name].setup(x0=t0_phase,
-                                                                                           xf=tf_phase,
-                                                                                           f_j=ctrl_vals)
+                self.options['ode_integration_interface'].polynomial_control_interpolants[name].setup(x0=t0_phase,
+                                                                                                      xf=tf_phase,
+                                                                                                      f_j=ctrl_vals)
 
         # Set the values of t_initial and t_duration
         iface_prob.set_val('t_initial',
@@ -272,13 +280,10 @@ class SegmentSimulationComp(ExplicitComponent):
                         atol=self.options['atol'],
                         rtol=self.options['rtol'],
                         t_eval=t_eval)
-                        # TODO: Eventually we need to return states at evaluation nodes
-                        # t_eval=np.concatenate((inputs['t0_seg'], inputs['tf_seg'])))
 
         # Extract the solution
         pos = 0
         for name, options in iteritems(self.options['state_options']):
             size = np.prod(options['shape'])
-            # TODO: Eventually we need to return states at evaluation nodes
             outputs['states:{0}'.format(name)] = sol.y[pos:pos+size, :].T
             pos += size

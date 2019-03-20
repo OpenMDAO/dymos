@@ -144,10 +144,10 @@ class ODEIntegrationInterface(object):
                 if options['targets']:
                     model.connect('polynomial_controls:{0}'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in options['targets']])
-                if options['polynomial_rate_targets']:
+                if options['rate_targets']:
                     model.connect('polynomial_control_rates:{0}_rate'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in options['rate_targets']])
-                if options['polynomial_rate2_targets']:
+                if options['rate2_targets']:
                     model.connect('polynomial_control_rates:{0}_rate2'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in options['rate2_targets']])
 
@@ -208,13 +208,17 @@ class ODEIntegrationInterface(object):
             rate_path = 'input_parameters:{0}'.format(var)
         elif self.traj_parameter_options is not None and var in self.traj_parameter_options:
             rate_path = 'traj_parameters:{0}'.format(var)
-        elif var.endswith('_rate') and self.control_options is not None and var[:-5] in self.control_options:
+        elif var.endswith('_rate') and self.control_options is not None and \
+                var[:-5] in self.control_options:
             rate_path = 'control_rates:{0}'.format(var)
-        elif var.endswith('_rate2') and self.control_options is not None and var[:-6] in self.control_options:
+        elif var.endswith('_rate2') and self.control_options is not None and \
+                var[:-6] in self.control_options:
             rate_path = 'control_rates:{0}'.format(var)
-        elif var.endswith('_rate') and self.polynomial_control_options is not None and var[:-5] in self.polynomial_control_options:
+        elif var.endswith('_rate') and self.polynomial_control_options is not None and \
+                var[:-5] in self.polynomial_control_options:
             rate_path = 'polynomial_control_rates:{0}'.format(var)
-        elif var.endswith('_rate2') and self.polynomial_control_options is not None and var[:-6] in self.polynomial_control_options:
+        elif var.endswith('_rate2') and self.polynomial_control_options is not None and \
+                var[:-6] in self.polynomial_control_options:
             rate_path = 'polynomial_control_rates:{0}'.format(var)
         else:
             rate_path = 'ode.{0}'.format(var)

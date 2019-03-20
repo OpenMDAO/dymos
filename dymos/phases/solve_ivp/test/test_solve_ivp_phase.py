@@ -120,6 +120,7 @@ class TestSolveIVPSimpleIntegration(unittest.TestCase):
         expected = np.atleast_2d(_test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])).T
         assert_rel_error(self, p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
 
+
 class TestSolveIVPWithControls(unittest.TestCase):
 
     def test_solve_ivp_brachistochrone_solution(self):
@@ -186,6 +187,147 @@ class TestSolveIVPWithControls(unittest.TestCase):
 
         p['phase0.controls:theta'] = phase.interpolate(ys=[0.01, 1.00501645e+02],
                                                        nodes='control_input')
+        p['phase0.input_parameters:g'] = 9.80665
+
+        p.run_model()
+
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:x')[-1], 10.0, tolerance=1.0E-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:y')[-1], 5.0, tolerance=1.0E-4)
+
+    def test_solve_ivp_brachistochrone_solution_design_param(self):
+        p = Problem(model=Group())
+        phase = p.model.add_subsystem('phase0', SolveIVPPhase(num_segments=4,
+                                                              method='RK45',
+                                                              atol=1.0E-12,
+                                                              rtol=1.0E-12,
+                                                              ode_class=BrachistochroneODE))
+
+        phase.set_state_options('x', fix_initial=True, fix_final=True)
+        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('v', fix_initial=True, fix_final=False)
+
+        phase.add_control('theta', continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', units='m/s**2', val=1.0)
+
+        p.setup(check=True, force_alloc_complex=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 1.8016043
+
+        p['phase0.initial_states:x'] = 0.0
+        p['phase0.initial_states:y'] = 10.0
+        p['phase0.initial_states:v'] = 0.0
+
+        p['phase0.controls:theta'] = phase.interpolate(ys=[0.01, 1.00501645e+02],
+                                                       nodes='control_input')
+        p['phase0.design_parameters:g'] = 9.80665
+
+        p.run_model()
+
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:x')[-1], 10.0, tolerance=1.0E-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:y')[-1], 5.0, tolerance=1.0E-4)
+
+    def test_solve_ivp_brachistochrone_solution_dense_design_param(self):
+        p = Problem(model=Group())
+        phase = p.model.add_subsystem('phase0', SolveIVPPhase(num_segments=4,
+                                                              method='RK45',
+                                                              atol=1.0E-12,
+                                                              rtol=1.0E-12,
+                                                              ode_class=BrachistochroneODE,
+                                                              output_nodes_per_seg=20))
+
+        phase.set_state_options('x', fix_initial=True, fix_final=True)
+        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('v', fix_initial=True, fix_final=False)
+
+        phase.add_control('theta', continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', units='m/s**2', val=1.0)
+
+        p.setup(check=True, force_alloc_complex=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 1.8016
+
+        p['phase0.initial_states:x'] = 0.0
+        p['phase0.initial_states:y'] = 10.0
+        p['phase0.initial_states:v'] = 0.0
+
+        p['phase0.controls:theta'] = phase.interpolate(ys=[0.01, 1.00501645e+02],
+                                                       nodes='control_input')
+        p['phase0.design_parameters:g'] = 9.80665
+
+        p.run_model()
+
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:x')[-1], 10.0, tolerance=1.0E-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:y')[-1], 5.0, tolerance=1.0E-4)
+
+
+class TestSolveIVPWithPolynomialControls(unittest.TestCase):
+
+    def test_solve_ivp_brachistochrone_solution(self):
+        p = Problem(model=Group())
+        phase = p.model.add_subsystem('phase0', SolveIVPPhase(num_segments=4,
+                                                              method='RK45',
+                                                              atol=1.0E-12,
+                                                              rtol=1.0E-12,
+                                                              ode_class=BrachistochroneODE))
+
+        phase.set_state_options('x', fix_initial=True, fix_final=True)
+        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('v', fix_initial=True, fix_final=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+
+        phase.add_input_parameter('g', units='m/s**2', val=9.80665)
+
+        p.setup(check=True, force_alloc_complex=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 1.8016043
+
+        p['phase0.initial_states:x'] = 0.0
+        p['phase0.initial_states:y'] = 10.0
+        p['phase0.initial_states:v'] = 0.0
+
+        p['phase0.polynomial_controls:theta'] = [[0.01], [1.00501645e+02]]
+        p['phase0.input_parameters:g'] = 9.80665
+
+        p.run_model()
+
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:x')[-1], 10.0, tolerance=1.0E-4)
+        assert_rel_error(self, p.get_val('phase0.timeseries.states:y')[-1], 5.0, tolerance=1.0E-4)
+
+    def test_solve_ivp_brachistochrone_solution_dense(self):
+        p = Problem(model=Group())
+        phase = p.model.add_subsystem('phase0', SolveIVPPhase(num_segments=4,
+                                                              method='RK45',
+                                                              atol=1.0E-12,
+                                                              rtol=1.0E-12,
+                                                              ode_class=BrachistochroneODE,
+                                                              output_nodes_per_seg=20))
+
+        phase.set_state_options('x', fix_initial=True, fix_final=True)
+        phase.set_state_options('y', fix_initial=True, fix_final=True)
+        phase.set_state_options('v', fix_initial=True, fix_final=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+
+        phase.add_input_parameter('g', units='m/s**2', val=9.80665)
+
+        p.setup(check=True, force_alloc_complex=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 1.8016043
+
+        p['phase0.initial_states:x'] = 0.0
+        p['phase0.initial_states:y'] = 10.0
+        p['phase0.initial_states:v'] = 0.0
+
+        p['phase0.polynomial_controls:theta'] = [[0.01], [1.00501645e+02]]
         p['phase0.input_parameters:g'] = 9.80665
 
         p.run_model()

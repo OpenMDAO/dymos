@@ -48,4 +48,3 @@ class TestSegmentSimulationComp(unittest.TestCase):
                          p.get_val('segment_0.final_states:y', units='m')[-1, ...],
                          1.425639364649936,
                          tolerance=1.0E-6)
-

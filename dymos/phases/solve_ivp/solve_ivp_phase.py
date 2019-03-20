@@ -11,6 +11,7 @@ from .components.ode_integration_interface import ODEIntegrationInterface
 from .components.segment_state_mux_comp import SegmentStateMuxComp
 from .components.solve_ivp_timeseries_comp import SolveIVPimeseriesOutputComp
 from .components.solve_ivp_control_group import SolveIVPControlGroup
+from .components.solve_ivp_polynomial_control_group import SolveIVPPolynomialControlGroup
 
 from ..components import TimeComp
 from ...utils.misc import get_rate_units
@@ -68,7 +69,6 @@ class SolveIVPPhase(PhaseBase):
                                                  transcription_order=transcription_order,
                                                  segment_ends=seg_ends, compressed=compressed)
 
-        # TODO: refactor
         self.grid_data = self.options['grid_data']
 
         super(SolveIVPPhase, self).setup()
@@ -263,13 +263,7 @@ class SolveIVPPhase(PhaseBase):
                                          'control_rates:*'])
             self.connect('time.dt_dstau', 'control_group.dt_dstau')
 
-
         for name, options in iteritems(self.control_options):
-            segment_end_idxs = grid_data.subset_node_indices['segment_ends']
-            all_idxs = grid_data.subset_node_indices['all']
-            segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=options['shape'])
-            all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
-
             for i in range(grid_data.num_segments):
                 i1, i2 = grid_data.subset_segment_indices['control_disc'][i, :]
                 seg_idxs = grid_data.subset_node_indices['control_disc'][i1:i2]
@@ -284,20 +278,12 @@ class SolveIVPPhase(PhaseBase):
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets])
 
-                # self.connect(src_name,
-                #              ['rk_solve_group.ode.{0}'.format(t) for t in targets],
-                #              src_indices=all_src_idxs.ravel(), flat_src_indices=True)
-
             if self.control_options[name]['rate_targets']:
                 src_name = 'control_rates:{0}_rate'.format(name)
                 targets = self.control_options[name]['rate_targets']
 
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets])
-
-                # self.connect(src_name,
-                #              ['rk_solve_group.{0}'.format(t) for t in targets],
-                #              src_indices=all_src_idxs, flat_src_indices=True)
 
             if self.control_options[name]['rate2_targets']:
                 src_name = 'control_rates:{0}_rate2'.format(name)
@@ -306,61 +292,54 @@ class SolveIVPPhase(PhaseBase):
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets])
 
-                # self.connect(src_name,
-                #              ['rk_solve_group.{0}'.format(t) for t in targets],
-                #              src_indices=all_src_idxs, flat_src_indices=True)
-
     def _setup_polynomial_controls(self):
-        super(RungeKuttaPhase, self)._setup_polynomial_controls()
-        grid_data = self.grid_data
+        if self.polynomial_control_options:
+            sys = SolveIVPPolynomialControlGroup(grid_data=self.grid_data,
+                                                 polynomial_control_options=self.polynomial_control_options,
+                                                 time_units=self.time_options['units'],
+                                                 output_nodes_per_seg=self.options['output_nodes_per_seg'])
+            self.add_subsystem('polynomial_controls', subsys=sys,
+                               promotes_inputs=['*'], promotes_outputs=['*'])
 
         for name, options in iteritems(self.polynomial_control_options):
-            segment_end_idxs = grid_data.subset_node_indices['segment_ends']
-            all_idxs = grid_data.subset_node_indices['all']
-            segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=options['shape'])
-            all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
+
+            for iseg in range(self.grid_data.num_segments):
+                self.connect(src_name='polynomial_controls:{0}'.format(name),
+                             tgt_name='segment_{0}.polynomial_controls:{1}'.format(iseg, name))
 
             if self.polynomial_control_options[name]['targets']:
                 src_name = 'polynomial_control_values:{0}'.format(name)
                 targets = self.polynomial_control_options[name]['targets']
                 self.connect(src_name,
-                             ['ode.{0}'.format(t) for t in targets],
-                             src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
-
-                self.connect(src_name,
-                             ['rk_solve_group.ode.{0}'.format(t) for t in targets],
-                             src_indices=all_src_idxs.ravel(), flat_src_indices=True)
+                             ['ode.{0}'.format(t) for t in targets])
 
             if self.polynomial_control_options[name]['rate_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate'.format(name)
                 targets = self.polynomial_control_options[name]['rate_targets']
 
                 self.connect(src_name,
-                             ['ode.{0}'.format(t) for t in targets],
-                             src_indices=segend_src_idxs, flat_src_indices=True)
-
-                self.connect(src_name,
-                             ['rk_solve_group.{0}'.format(t) for t in targets],
-                             src_indices=all_src_idxs, flat_src_indices=True)
+                             ['ode.{0}'.format(t) for t in targets])
 
             if self.polynomial_control_options[name]['rate2_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate2'.format(name)
                 targets = self.polynomial_control_options[name]['rate2_targets']
 
                 self.connect(src_name,
-                             ['ode.{0}'.format(t) for t in targets],
-                             src_indices=segend_src_idxs, flat_src_indices=True)
+                             ['ode.{0}'.format(t) for t in targets])
 
-                self.connect(src_name,
-                             ['rk_solve_group.{0}'.format(t) for t in targets],
-                             src_indices=all_src_idxs, flat_src_indices=True)
+    def _setup_design_parameters(self):
+        super(SolveIVPPhase, self)._setup_design_parameters()
+        num_seg = self.grid_data.num_segments
+        for name, options in iteritems(self.design_parameter_options):
+            self.connect('design_parameters:{0}'.format(name),
+                         ['segment_{0}.design_parameters:{1}'.format(iseg, name) for iseg in range(num_seg)])
 
     def _setup_input_parameters(self):
         super(SolveIVPPhase, self)._setup_input_parameters()
         num_seg = self.grid_data.num_segments
-        for ip_name, options in iteritems(self.input_parameter_options):
-            self.connect('input_parameters:{0}_out'.format(ip_name),
-                         ['segment_{0}.input_parameters:{1}'.format(iseg, ip_name) for iseg in range(num_seg)])
+        for name, options in iteritems(self.input_parameter_options):
+            self.connect('input_parameters:{0}_out'.format(name),
+                         ['segment_{0}.input_parameters:{1}'.format(iseg, name) for iseg in range(num_seg)])
 
     def _setup_defects(self):
         """
@@ -469,165 +448,6 @@ class SolveIVPPhase(PhaseBase):
         part of the setup stack.
         """
         pass
-        # path_comp = None
-        # gd = self.grid_data
-        # time_units = self.time_options['units']
-        # num_seg = gd.num_segments
-        #
-        # if self._path_constraints:
-        #     path_comp = RungeKuttaPathConstraintComp(grid_data=gd)
-        #     self.add_subsystem('path_constraints', subsys=path_comp)
-        #
-        # for var, options in iteritems(self._path_constraints):
-        #     con_units = options.get('units', None)
-        #     con_name = options['constraint_name']
-        #
-        #     # Determine the path to the variable which we will be constraining
-        #     # This is more complicated for path constraints since, for instance,
-        #     # a single state variable has two sources which must be connected to
-        #     # the path component.
-        #     var_type = self._classify_var(var)
-        #
-        #     if var_type == 'time':
-        #         options['shape'] = (1,)
-        #         options['units'] = time_units if con_units is None else con_units
-        #         options['linear'] = True
-        #         for iseg in range(gd.num_segments):
-        #             self.connect(src_name='time',
-        #                          tgt_name='path_constraints.all_values:{0}'.format(con_name),
-        #                          src_indices=self.grid_data.subset_node_indices['segment_ends'])
-        #     elif var_type == 'time_phase':
-        #         options['shape'] = (1,)
-        #         options['units'] = time_units if con_units is None else con_units
-        #         options['linear'] = True
-        #         for iseg in range(gd.num_segments):
-        #             self.connect(src_name='time_phase',
-        #                          tgt_name='path_constraints.all_values:{0}'.format(con_name),
-        #                          src_indices=self.grid_data.subset_node_indices['segment_ends'])
-        #     elif var_type == 'state':
-        #         state_shape = self.state_options[var]['shape']
-        #         state_units = self.state_options[var]['units']
-        #         options['shape'] = state_shape
-        #         options['units'] = state_units if con_units is None else con_units
-        #         options['linear'] = False
-        #         row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
-        #         row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
-        #         src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
-        #         self.connect('states:{0}'.format(var),
-        #                      'path_constraints.all_values:{0}'.format(var),
-        #                      src_indices=src_idxs, flat_src_indices=True)
-        #
-        #     elif var_type in ('indep_control', 'input_control'):
-        #         control_shape = self.control_options[var]['shape']
-        #         control_units = self.control_options[var]['units']
-        #         options['shape'] = control_shape
-        #         options['units'] = control_units if con_units is None else con_units
-        #         options['linear'] = True if var_type == 'indep_control' else False
-        #
-        #         src_rows = self.grid_data.subset_node_indices['segment_ends']
-        #         src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
-        #
-        #         src = 'control_values:{0}'.format(var)
-        #
-        #         tgt = 'path_constraints.all_values:{0}'.format(con_name)
-        #
-        #         self.connect(src_name=src, tgt_name=tgt,
-        #                      src_indices=src_idxs, flat_src_indices=True)
-        #
-        #     elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
-        #         control_shape = self.polynomial_control_options[var]['shape']
-        #         control_units = self.polynomial_control_options[var]['units']
-        #         options['shape'] = control_shape
-        #         options['units'] = control_units if con_units is None else con_units
-        #         options['linear'] = False
-        #
-        #         src_rows = self.grid_data.subset_node_indices['segment_ends']
-        #         src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
-        #
-        #         src = 'polynomial_control_values:{0}'.format(var)
-        #
-        #         tgt = 'path_constraints.all_values:{0}'.format(con_name)
-        #
-        #         self.connect(src_name=src, tgt_name=tgt,
-        #                      src_indices=src_idxs, flat_src_indices=True)
-        #
-        #     elif var_type in ('control_rate', 'control_rate2'):
-        #         if var.endswith('_rate'):
-        #             control_name = var[:-5]
-        #         elif var.endswith('_rate2'):
-        #             control_name = var[:-6]
-        #         control_shape = self.control_options[control_name]['shape']
-        #         control_units = self.control_options[control_name]['units']
-        #         options['shape'] = control_shape
-        #
-        #         if var_type == 'control_rate':
-        #             options['units'] = get_rate_units(control_units, time_units) \
-        #                 if con_units is None else con_units
-        #         elif var_type == 'control_rate2':
-        #             options['units'] = get_rate_units(control_units, time_units, deriv=2) \
-        #                 if con_units is None else con_units
-        #
-        #         options['linear'] = False
-        #
-        #         src_rows = self.grid_data.subset_node_indices['segment_ends']
-        #         src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
-        #
-        #         src = 'control_rates:{0}'.format(var)
-        #
-        #         tgt = 'path_constraints.all_values:{0}'.format(con_name)
-        #
-        #         self.connect(src_name=src, tgt_name=tgt,
-        #                      src_indices=src_idxs, flat_src_indices=True)
-        #
-        #     elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
-        #         if var.endswith('_rate'):
-        #             control_name = var[:-5]
-        #         elif var.endswith('_rate2'):
-        #             control_name = var[:-6]
-        #         control_shape = self.polynomial_control_options[control_name]['shape']
-        #         control_units = self.polynomial_control_options[control_name]['units']
-        #         options['shape'] = control_shape
-        #
-        #         if var_type == 'polynomial_control_rate':
-        #             options['units'] = get_rate_units(control_units, time_units) \
-        #                 if con_units is None else con_units
-        #         elif var_type == 'polynomial_control_rate2':
-        #             options['units'] = get_rate_units(control_units, time_units, deriv=2) \
-        #                 if con_units is None else con_units
-        #
-        #         options['linear'] = False
-        #
-        #         src_rows = self.grid_data.subset_node_indices['segment_ends']
-        #         src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
-        #
-        #         src = 'polynomial_control_rates:{0}'.format(var)
-        #
-        #         tgt = 'path_constraints.all_values:{0}'.format(con_name)
-        #
-        #         self.connect(src_name=src, tgt_name=tgt,
-        #                      src_indices=src_idxs, flat_src_indices=True)
-        #
-        #     else:
-        #         # Failed to find variable, assume it is in the ODE
-        #         options['linear'] = False
-        #         if options['shape'] is None:
-        #             warnings.warn('Unable to infer shape of path constraint {0}. Assuming scalar.\n'
-        #                           'In Dymos 1.0 the shape of ODE outputs must be explictly provided'
-        #                           ' via the add_path_constraint method.', DeprecationWarning)
-        #             options['shape'] = (1,)
-        #
-        #         src_rows = np.arange(num_seg * 2, dtype=int)
-        #         src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
-        #
-        #         src = 'ode.{0}'.format(var)
-        #         tgt = 'path_constraints.all_values:{0}'.format(con_name)
-        #
-        #         self.connect(src_name=src, tgt_name=tgt,
-        #                      src_indices=src_idxs, flat_src_indices=True)
-        #
-        #     kwargs = options.copy()
-        #     kwargs.pop('constraint_name', None)
-        #     path_comp._add_path_constraint(con_name, var_type, **kwargs)
 
     def _setup_timeseries_outputs(self):
         gd = self.options['grid_data']
@@ -640,7 +460,6 @@ class SolveIVPPhase(PhaseBase):
                                         output_nodes_per_seg=self.options['output_nodes_per_seg'])
 
         self.add_subsystem('timeseries', subsys=timeseries_comp)
-        src_idxs = get_src_indices_by_row(gd.subset_node_indices['all'], (1,))
 
         timeseries_comp._add_timeseries_output('time',
                                                var_class='time',
@@ -700,10 +519,9 @@ class SolveIVPPhase(PhaseBase):
             src_rows = gd.subset_node_indices['segment_ends']
             src_idxs = get_src_indices_by_row(src_rows, options['shape'])
             self.connect(src_name='polynomial_control_values:{0}'.format(name),
-                         tgt_name='timeseries.all_values:polynomial_controls:{0}'.format(name),
-                         src_indices=src_idxs, flat_src_indices=True)
+                         tgt_name='timeseries.all_values:polynomial_controls:{0}'.format(name))
 
-            # # Control rates
+            # Polynomial control rates
             timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(name),
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
@@ -712,10 +530,9 @@ class SolveIVPPhase(PhaseBase):
                                                                         deriv=1))
             self.connect(src_name='polynomial_control_rates:{0}_rate'.format(name),
                          tgt_name='timeseries.all_values:polynomial_control_rates'
-                                  ':{0}_rate'.format(name),
-                         src_indices=src_idxs, flat_src_indices=True)
+                                  ':{0}_rate'.format(name))
 
-            # Control second derivatives
+            # Polynomial control second derivatives
             timeseries_comp._add_timeseries_output('polynomial_control_rates:'
                                                    '{0}_rate2'.format(name),
                                                    var_class=self._classify_var(name),
@@ -725,8 +542,7 @@ class SolveIVPPhase(PhaseBase):
                                                                         deriv=2))
             self.connect(src_name='polynomial_control_rates:{0}_rate2'.format(name),
                          tgt_name='timeseries.all_values:polynomial_control_rates'
-                                  ':{0}_rate2'.format(name),
-                         src_indices=src_idxs, flat_src_indices=True)
+                                  ':{0}_rate2'.format(name))
 
         for name, options in iteritems(self.design_parameter_options):
             units = options['units']
@@ -738,7 +554,7 @@ class SolveIVPPhase(PhaseBase):
             if output_nodes_per_seg is None:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
             else:
-                src_idxs_raw = output_nodes_per_seg
+                src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='design_parameters:{0}'.format(name),
@@ -771,7 +587,8 @@ class SolveIVPPhase(PhaseBase):
             if output_nodes_per_seg is None:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
             else:
-                src_idxs_raw = output_nodes_per_seg
+                src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
+
             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='traj_parameters:{0}_out'.format(name),

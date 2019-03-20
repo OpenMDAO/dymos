@@ -406,9 +406,10 @@ class PhaseBase(Group):
 
         if name not in self.user_polynomial_control_options:
             self.user_polynomial_control_options[name] = {}
-            # if self.ode_options:
-            #     if name in self.ode_options._parameters:
-            #         self.control_options[name].update(self.ode_options._parameters[name])
+
+        if 'order' not in kwargs:
+            raise RuntimeError('Keyword argument \'order\' must be specified for polynomial '
+                               'control \'{0}\''.format(name))
 
         for kw in kwargs:
             if kw not in PolynomialControlOptionsDictionary():
