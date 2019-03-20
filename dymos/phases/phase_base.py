@@ -1165,52 +1165,6 @@ class PhaseBase(Group):
                                promotes=['controls:*', 'control_values:*', 'control_rates:*'])
             self.connect('time.dt_dstau', 'control_group.dt_dstau')
 
-        # opt_controls = [name for (name, opts) in iteritems(self.control_options) if opts['opt']]
-        #
-        # num_opt_controls = len(opt_controls)
-        #
-        # grid_data = self.grid_data
-        #
-        # if num_opt_controls > 0:
-        #     indep = self.add_subsystem('indep_controls', subsys=IndepVarComp(),
-        #                                promotes_outputs=['*'])
-        #
-        # num_dynamic_controls = 0
-        #
-        # for name, options in iteritems(self.control_options):
-        #     if options['opt']:
-        #         num_dynamic_controls = num_dynamic_controls + 1
-        #         num_input_nodes = grid_data.subset_num_nodes['control_input']
-        #
-        #         desvar_indices = list(range(self.grid_data.subset_num_nodes['control_input']))
-        #         if options['fix_initial']:
-        #             desvar_indices.pop(0)
-        #         if options['fix_final']:
-        #             desvar_indices.pop()
-        #
-        #         if len(desvar_indices) > 0:
-        #             coerce_desvar = CoerceDesvar(grid_data.subset_num_nodes['control_disc'],
-        #                                          desvar_indices, options)
-        #
-        #             lb = -INF_BOUND if coerce_desvar('lower') is None else coerce_desvar('lower')
-        #             ub = INF_BOUND if coerce_desvar('upper') is None else coerce_desvar('upper')
-        #
-        #             self.add_design_var(name='controls:{0}'.format(name),
-        #                                 lower=lb,
-        #                                 upper=ub,
-        #                                 scaler=coerce_desvar('scaler'),
-        #                                 adder=coerce_desvar('adder'),
-        #                                 ref0=coerce_desvar('ref0'),
-        #                                 ref=coerce_desvar('ref'),
-        #                                 indices=desvar_indices)
-        #
-        #         indep.add_output(name='controls:{0}'.format(name),
-        #                          val=options['val'],
-        #                          shape=(num_input_nodes, np.prod(options['shape'])),
-        #                          units=options['units'])
-        #
-        # return num_dynamic_controls
-
     def _setup_polynomial_controls(self):
         """
         Adds the polynomial control group to the model if any polynomial controls are present.
@@ -1275,7 +1229,6 @@ class PhaseBase(Group):
             src_name = 'input_parameters:{0}_out'.format(name)
 
             for tgts, src_idxs in self._get_parameter_connections(name):
-                print(name, src_name, tgts)
                 self.connect(src_name, [t for t in tgts],
                              src_indices=src_idxs, flat_src_indices=True)
 

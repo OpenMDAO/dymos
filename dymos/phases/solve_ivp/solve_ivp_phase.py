@@ -10,10 +10,9 @@ from .components.segment_simulation_comp import SegmentSimulationComp
 from .components.ode_integration_interface import ODEIntegrationInterface
 from .components.segment_state_mux_comp import SegmentStateMuxComp
 from .components.solve_ivp_timeseries_comp import SolveIVPimeseriesOutputComp
+from .components.solve_ivp_control_group import SolveIVPControlGroup
 
 from ..components import TimeComp
-from .components.solve_ivp_control_interp_comp import SolveIVPControlInterpComp
-from ...utils.rk_methods import rk_methods
 from ...utils.misc import get_rate_units
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
@@ -33,7 +32,6 @@ class SolveIVPPhase(PhaseBase):
 
     """
     def initialize(self):
-        # Note we're calling super on RungeKuttaPhase, and bypassing RungeKuttaPhase's initialize!
         super(SolveIVPPhase, self).initialize()
 
         self.options.declare('method', default='RK45', values=('RK45', 'RK23', 'BDF'),
@@ -245,22 +243,26 @@ class SolveIVPPhase(PhaseBase):
                              'state_mux_comp.segment_{0}_states:{1}'.format(i, state_name))
 
     def _setup_controls(self):
-        super(SolveIVPPhase, self)._setup_controls()
         grid_data = self.options['grid_data']
         time_units = self.time_options['units']
+        output_nodes_per_seg = self.options['output_nodes_per_seg']
 
-        # The standard control group always provides values at all nodes.
-        # We need to interpolate those values to the output nodes as well.
+        self._check_control_options()
+
+        self._check_control_options()
+
         if self.control_options:
-            output_interp_comp = SolveIVPControlInterpComp(control_options=self.control_options,
-                                                           time_units=time_units,
-                                                           grid_data=grid_data)
+            control_group = SolveIVPControlGroup(control_options=self.control_options,
+                                                 time_units=self.time_options['units'],
+                                                 grid_data=self.grid_data,
+                                                 output_nodes_per_seg=output_nodes_per_seg)
 
-            self.add_subsystem('output_control_interp_comp',
-                               subsys=output_interp_comp,
-                               promotes_inputs=['controls:*'])
+            self.add_subsystem('control_group',
+                               subsys=control_group,
+                               promotes=['controls:*', 'control_values:*', 'control_values_all:*',
+                                         'control_rates:*'])
+            self.connect('time.dt_dstau', 'control_group.dt_dstau')
 
-            self.connect('time.dt_dstau', 'output_control_interp_comp.dt_dstau')
 
         for name, options in iteritems(self.control_options):
             segment_end_idxs = grid_data.subset_node_indices['segment_ends']
@@ -272,12 +274,12 @@ class SolveIVPPhase(PhaseBase):
                 i1, i2 = grid_data.subset_segment_indices['control_disc'][i, :]
                 seg_idxs = grid_data.subset_node_indices['control_disc'][i1:i2]
                 src_idxs = get_src_indices_by_row(row_idxs=seg_idxs, shape=options['shape'])
-                self.connect(src_name='control_values:{0}'.format(name),
+                self.connect(src_name='control_values_all:{0}'.format(name),
                              tgt_name='segment_{0}.controls:{1}'.format(i, name),
                              src_indices=src_idxs, flat_src_indices=True)
 
             if self.control_options[name]['targets']:
-                src_name = 'output_control_interp_comp.control_values:{0}'.format(name)
+                src_name = 'control_values:{0}'.format(name)
                 targets = self.control_options[name]['targets']
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets])
@@ -287,7 +289,7 @@ class SolveIVPPhase(PhaseBase):
                 #              src_indices=all_src_idxs.ravel(), flat_src_indices=True)
 
             if self.control_options[name]['rate_targets']:
-                src_name = 'output_control_interp_comp.control_rates:{0}_rate'.format(name)
+                src_name = 'control_rates:{0}_rate'.format(name)
                 targets = self.control_options[name]['rate_targets']
 
                 self.connect(src_name,
@@ -298,7 +300,7 @@ class SolveIVPPhase(PhaseBase):
                 #              src_indices=all_src_idxs, flat_src_indices=True)
 
             if self.control_options[name]['rate2_targets']:
-                src_name = 'output_control_interp_comp.control_rates:{0}_rate2'.format(name)
+                src_name = 'control_rates:{0}_rate2'.format(name)
                 targets = self.control_options[name]['rate2_targets']
 
                 self.connect(src_name,
@@ -352,6 +354,13 @@ class SolveIVPPhase(PhaseBase):
                 self.connect(src_name,
                              ['rk_solve_group.{0}'.format(t) for t in targets],
                              src_indices=all_src_idxs, flat_src_indices=True)
+
+    def _setup_input_parameters(self):
+        super(SolveIVPPhase, self)._setup_input_parameters()
+        num_seg = self.grid_data.num_segments
+        for ip_name, options in iteritems(self.input_parameter_options):
+            self.connect('input_parameters:{0}_out'.format(ip_name),
+                         ['segment_{0}.input_parameters:{1}'.format(iseg, ip_name) for iseg in range(num_seg)])
 
     def _setup_defects(self):
         """
@@ -658,9 +667,8 @@ class SolveIVPPhase(PhaseBase):
                                                    var_class=self._classify_var(name),
                                                    shape=options['shape'],
                                                    units=control_units)
-            src_rows = gd.subset_node_indices['segment_ends']
-            src_idxs = get_src_indices_by_row(src_rows, options['shape'])
-            self.connect(src_name='output_control_interp_comp.control_values:{0}'.format(name),
+
+            self.connect(src_name='control_values:{0}'.format(name),
                          tgt_name='timeseries.all_values:controls:{0}'.format(name))
 
             # # Control rates
@@ -670,7 +678,7 @@ class SolveIVPPhase(PhaseBase):
                                                    units=get_rate_units(control_units,
                                                                         time_units,
                                                                         deriv=1))
-            self.connect(src_name='output_control_interp_comp.control_rates:{0}_rate'.format(name),
+            self.connect(src_name='control_rates:{0}_rate'.format(name),
                          tgt_name='timeseries.all_values:control_rates:{0}_rate'.format(name))
 
             # Control second derivatives
@@ -680,7 +688,7 @@ class SolveIVPPhase(PhaseBase):
                                                    units=get_rate_units(control_units,
                                                                         time_units,
                                                                         deriv=2))
-            self.connect(src_name='output_control_interp_comp.control_rates:{0}_rate2'.format(name),
+            self.connect(src_name='control_rates:{0}_rate2'.format(name),
                          tgt_name='timeseries.all_values:control_rates:{0}_rate2'.format(name))
 
         for name, options in iteritems(self.polynomial_control_options):
@@ -746,7 +754,8 @@ class SolveIVPPhase(PhaseBase):
             if output_nodes_per_seg is None:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
             else:
-                src_idxs_raw = output_nodes_per_seg
+                src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
+
             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             self.connect(src_name='input_parameters:{0}_out'.format(name),
@@ -798,9 +807,10 @@ class SolveIVPPhase(PhaseBase):
             given design variable is to be connected.
         """
         connection_info = []
+        num_seg = self.grid_data.num_segments
         output_nodes_per_seg = self.options['output_nodes_per_seg']
         num_final_ode_nodes = self.grid_data.subset_num_nodes['all'] \
-            if output_nodes_per_seg is None else output_nodes_per_seg
+            if output_nodes_per_seg is None else num_seg * output_nodes_per_seg
 
         parameter_options = self.design_parameter_options.copy()
         parameter_options.update(self.input_parameter_options)
