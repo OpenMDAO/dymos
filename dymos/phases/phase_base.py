@@ -43,14 +43,6 @@ class PhaseBase(Group):
         self.user_input_parameter_options = {}
         self.user_traj_parameter_options = {}
 
-        #
-        # self.state_options = {}
-        # self.control_options = {}
-        # self.polynomial_control_options = {}
-        # self.design_parameter_options = {}
-        # self.input_parameter_options = {}
-        # self.traj_parameter_options = {}
-        # self.time_options = TimeOptionsDictionary()
         self._initial_boundary_constraints = {}
         self._final_boundary_constraints = {}
         self._path_constraints = {}
@@ -59,25 +51,6 @@ class PhaseBase(Group):
         self._ode_controls = {}
         self.grid_data = None
         self._time_extents = []
-
-        # # check that ode_class is appropriate
-        # if not inspect.isclass(self.options['ode_class']):
-        #     raise ValueError('ode_class must be a class, not an instance.')
-        # if not issubclass(self.options['ode_class'], System):
-        #     raise ValueError('ode_class must be derived from openmdao.core.System.')
-
-        # self.ode_options = None if not hasattr(self.options['ode_class'], 'ode_options') \
-        #     else self.options['ode_class'].ode_options
-        #
-        # # Copy default value for options from the ODEOptions if available
-        # if self.ode_options:
-        #     for state_name, options in iteritems(self.ode_options._states):
-        #         self.state_options[state_name] = StateOptionsDictionary()
-        #         self.state_options[state_name].update(self.ode_options._states[state_name])
-        #
-        # # Integration variable options default to values from the ODE
-        # if self.ode_options:
-        #     self.time_options.update(self.ode_options._time_options)
 
     def initialize(self):
         self.options.declare('num_segments', types=int, desc='Number of segments')
@@ -150,21 +123,6 @@ class PhaseBase(Group):
                 raise KeyError('Invalid argument to set_state_options: {0}'.format(kw))
 
         self.user_state_options[name].update(kwargs)
-        # self.state_options[name]['val'] = val
-        # self.state_options[name]['fix_initial'] = fix_initial
-        # self.state_options[name]['fix_final'] = fix_final
-        # self.state_options[name]['initial_bounds'] = initial_bounds
-        # self.state_options[name]['final_bounds'] = final_bounds
-        # self.state_options[name]['lower'] = lower
-        # self.state_options[name]['upper'] = upper
-        # self.state_options[name]['scaler'] = scaler
-        # self.state_options[name]['adder'] = adder
-        # self.state_options[name]['ref'] = ref
-        # self.state_options[name]['ref0'] = ref0
-        # self.state_options[name]['defect_scaler'] = defect_scaler
-        # self.state_options[name]['defect_ref'] = defect_ref
-        # self.state_options[name]['solve_segments'] = solve_segments
-        # self.state_options[name]['connected_initial'] = connected_initial
 
     def _check_parameter(self, name, dynamic):
         """
@@ -202,9 +160,6 @@ class PhaseBase(Group):
         if name in self.user_traj_parameter_options:
             raise ValueError('{0} has already been added as a trajectory-level '
                              'parameter.'.format(name))
-        # if ode_params and name in ode_params and dynamic and not ode_params[name]['dynamic']:
-        #     raise ValueError('{0} is declared as a static parameter and therefore cannot be '
-        #                      'used as a dynamic control'.format(name))
 
     def add_control(self, name, **kwargs):
         """
@@ -279,82 +234,6 @@ class PhaseBase(Group):
                 raise KeyError('Invalid argument to add_control: {0}'.format(kw))
 
         self.user_control_options[name].update(kwargs)
-        #
-        # # if name in ode_params:
-        # #     self.control_options[name].update(ode_params[name])
-        # # else:
-        # #     rate_used = \
-        # #         rate_param is not None and rate_param in ode_params
-        # #     rate2_used = \
-        # #         rate2_param is not None and rate2_param in ode_params
-        # #     if not rate_used and not rate2_used:
-        # #         err_msg = '{0} is not a controllable parameter in the ODE system, nor is it ' \
-        # #                   'connected to one through its rate or second derivative.'.format(name)
-        # #         raise ValueError(err_msg)
-        #
-        # if rate_param is not None:
-        #     ode_rate_param_info = ode_params[rate_param]
-        #     self.control_options[name]['rate_param'] = rate_param
-        #     self.control_options[name]['shape'] = ode_rate_param_info['shape']
-        # if rate2_param is not None:
-        #     ode_rate2_param_info = ode_params[rate2_param]
-        #     self.control_options[name]['rate2_param'] = rate2_param
-        #     self.control_options[name]['shape'] = ode_rate2_param_info['shape']
-        #
-        # # Don't allow the user to provide desvar options if the control is not optimal
-        # if not opt:
-        #     illegal_options = []
-        #     if lower is not None:
-        #         illegal_options.append('lower')
-        #     if upper is not None:
-        #         illegal_options.append('upper')
-        #     if scaler is not None:
-        #         illegal_options.append('scaler')
-        #     if adder is not None:
-        #         illegal_options.append('adder')
-        #     if ref is not None:
-        #         illegal_options.append('ref')
-        #     if ref0 is not None:
-        #         illegal_options.append('ref0')
-        #     if continuity is not None:
-        #         illegal_options.append('continuity')
-        #     if rate_continuity is not None:
-        #         illegal_options.append('rate_continuity')
-        #     if illegal_options:
-        #         msg = 'Invalid options for non-optimal control "{0}":'.format(name) + \
-        #               ', '.join(illegal_options)
-        #         warnings.warn(msg, RuntimeWarning)
-        #
-        # self.control_options[name]['val'] = val
-        # self.control_options[name]['opt'] = opt
-        # self.control_options[name]['fix_initial'] = fix_initial
-        # self.control_options[name]['fix_final'] = fix_final
-        # self.control_options[name]['lower'] = lower
-        # self.control_options[name]['upper'] = upper
-        # self.control_options[name]['scaler'] = scaler
-        # self.control_options[name]['adder'] = adder
-        # self.control_options[name]['ref'] = ref
-        # self.control_options[name]['ref0'] = ref0
-        # self.control_options[name]['rate_continuity_scaler'] = rate_continuity_scaler
-        # self.control_options[name]['rate2_continuity_scaler'] = rate2_continuity_scaler
-        #
-        # if continuity is None:
-        #     self.control_options[name]['continuity'] = opt
-        # else:
-        #     self.control_options[name]['continuity'] = continuity
-        #
-        # if rate_continuity is None:
-        #     self.control_options[name]['rate_continuity'] = False
-        # else:
-        #     self.control_options[name]['rate_continuity'] = rate_continuity
-        #
-        # if rate2_continuity is None:
-        #     self.control_options[name]['rate2_continuity'] = False
-        # else:
-        #     self.control_options[name]['rate2_continuity'] = rate2_continuity
-        #
-        # if units != 0:
-        #     self.control_options[name]['units'] = units
 
     def add_polynomial_control(self, name, **kwargs):
         """
@@ -453,12 +332,6 @@ class PhaseBase(Group):
 
         if name not in self.user_design_parameter_options:
             self.user_design_parameter_options[name] = {}
-            # if self.ode_options:
-            #     if name in self.ode_options._parameters:
-            #         self.design_parameter_options[name].update(self.ode_options._parameters[name])
-            #     else:
-            #         err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
-            #         raise ValueError(err_msg)
 
         for kw in kwargs:
             if kw not in DesignParameterOptionsDictionary():
@@ -920,14 +793,12 @@ class PhaseBase(Group):
             self.control_options[control] = ControlOptionsDictionary()
             if ode_options and control in ode_options._parameters:
                 self.control_options[control].update(ode_options._parameters[control])
-            # TODO: verify target parameter is dynamic here
             self.control_options[control].update(self.user_control_options[control])
 
         for pc in list(self.user_polynomial_control_options.keys()):
             self.polynomial_control_options[pc] = PolynomialControlOptionsDictionary()
             if ode_options and pc in ode_options._parameters:
                 self.polynomial_control_options[pc].update(ode_options._parameters[pc])
-            # TODO: verify target parameter is dynamic here
             self.polynomial_control_options[pc].update(self.user_polynomial_control_options[pc])
 
         for dp in list(self.user_design_parameter_options.keys()):
@@ -1529,17 +1400,22 @@ class PhaseBase(Group):
             res = res.T
         return res
 
-    def _init_simulation_phase(self, times):
+    def _init_simulation_phase(self, times_per_seg=None, method='RK45', atol=1.0E-9, rtol=1.0E-9):
         """
         Return a SimulationPhase initialized based on data from this Phase instance and
         the given simulation times.
 
         Parameters
         ----------
-        times : str or Sequence of float
-            Times at which outputs of the simulation are requested.  If given as a str, it should
-            be one of the node subsets (default is 'all').  If given as a sequence, output will
-            be provided at those times *in addition to times at the boundary of each segment*.
+        times_per_seg : int or None
+            Number of equally distributed output times per segment in the phase simulation.  If
+            None, output to all nodes provided by this phases GridData.
+        method : str
+            The scipy.integrate.solve_ivp integration method.
+        atol : float
+            Absolute convergence tolerance for the scipy.integrate.solve_ivp method.
+        rtol : float
+            Relative convergence tolerance for the scipy.integrate.solve_ivp method.
 
         Returns
         -------
@@ -1548,45 +1424,35 @@ class PhaseBase(Group):
             times.  This instance has not yet been setup.
         """
 
-        from .simulation.simulation_phase import SimulationPhase
+        from .solve_ivp.solve_ivp_phase import SolveIVPPhase
 
-        op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
-                                                                                 out_stream=None)])
-
-        time = op_dict['{0}.time.time'.format(self.pathname)]['value']
-
-        sim_phase = SimulationPhase(grid_data=self.grid_data,
-                                    ode_class=self.options['ode_class'],
-                                    ode_init_kwargs=self.options['ode_init_kwargs'],
-                                    times=times,
-                                    t_initial=time[0],
-                                    t_duration=time[-1]-time[0],
-                                    timeseries_outputs=self._timeseries_outputs)
-
-        sim_phase.time_options.update(self.time_options)
-        sim_phase.state_options.update(self.state_options)
-        sim_phase.control_options.update(self.control_options)
-        sim_phase.design_parameter_options.update(self.design_parameter_options)
-        sim_phase.input_parameter_options.update(self.input_parameter_options)
-        sim_phase.traj_parameter_options.update(self.traj_parameter_options)
+        sim_phase = SolveIVPPhase(from_phase=self,
+                                  method=method,
+                                  atol=atol,
+                                  rtol=rtol,
+                                  output_nodes_per_seg=times_per_seg)
 
         return sim_phase
 
-    def simulate(self, times='all', record_file=None, record=True):
+    def simulate(self, times_per_seg=None, method='RK45', atol=1.0E-9, rtol=1.0E-9,
+                 record_file=None):
         """
         Simulate the Phase using scipy.integrate.solve_ivp.
 
         Parameters
         ----------
-        times : str or Sequence of float
-            Times at which outputs of the simulation are requested.  If given as a str, it should
-            be one of the node subsets (default is 'all').  If given as a sequence, output will
-            be provided at those times *in addition to times at the boundary of each segment*.
+        times_per_seg : int or None
+            Number of equally spaced times per segment at which output is requested.  If None,
+            output will be provided at all Nodes.
+        method : str
+            The scipy.integrate.solve_ivp integration method.
+        atol : float
+            Absolute convergence tolerance for scipy.integrate.solve_ivp.
+        rtol : float
+            Relative convergence tolerance for scipy.integrate.solve_ivp.
         record_file : str or None
-            If recording is enabled, the name of the file to which the results will be recorded.
-            If None, use the default filename '<phase_name>_sim.db'.
-        record : bool
-            If True, recording the results of the simulation is enabled.
+            If a string, the file to which the result of the simulation will be saved.
+            If None, no record of the simulation will be saved.
 
         Returns
         -------
@@ -1594,17 +1460,17 @@ class PhaseBase(Group):
             An OpenMDAO Problem in which the simulation is implemented.  This Problem interface
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
+
         """
 
         sim_prob = Problem(model=Group())
 
-        sim_phase = self._init_simulation_phase(times)
+        sim_phase = self._init_simulation_phase(times_per_seg, method=method, atol=atol, rtol=rtol)
 
         sim_prob.model.add_subsystem(self.name, sim_phase)
 
-        if record:
-            filename = '{0}_sim.sql'.format(self.name) if record_file is None else record_file
-            rec = SqliteRecorder(filename)
+        if record_file is not None:
+            rec = SqliteRecorder(record_file)
             sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
             sim_prob.model.add_recorder(rec)
 
@@ -1612,15 +1478,25 @@ class PhaseBase(Group):
 
         op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
                                                                                  out_stream=None)])
+        # Set the integration times
+        op = op_dict['{0}.timeseries.time'.format(self.name)]
+        sim_prob.set_val('phase0.t_initial', op['value'][0, ...])
+        sim_prob.set_val('phase0.t_duration', op['value'][-1, ...] - op['value'][0, ...])
+
         # Assign initial state values
         for name in self.state_options:
             op = op_dict['{0}.timeseries.states:{1}'.format(self.name, name)]
             sim_prob['{0}.initial_states:{1}'.format(self.name, name)] = op['value'][0, ...]
 
-        # Assign control values at all nodes
+        # Assign control values
         for name in self.control_options:
-            op = op_dict['{0}.control_group.control_interp_comp.control_values:{1}'.format(self.name, name)]
-            sim_prob['{0}.implicit_controls:{1}'.format(self.name, name)] = op['value']
+            op = op_dict['{0}.control_group.indep_controls.controls:{1}'.format(self.name, name)]
+            sim_prob['{0}.controls:{1}'.format(self.name, name)] = op['value']
+
+        # Assign polynomial control values
+        for name in self.polynomial_control_options:
+            op = op_dict['{0}.polynomial_control_group.polynomial_control_interp_comp.control_values:{1}'.format(self.name, name)]
+            sim_prob['{0}.polynomial_controls:{1}'.format(self.name, name)] = op['value']
 
         # Assign design parameter values
         for name in self.design_parameter_options:
@@ -1631,6 +1507,11 @@ class PhaseBase(Group):
         for name in self.input_parameter_options:
             op = op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.name, name)]
             sim_prob['{0}.input_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
+
+        # Assign input parameter values
+        for name in self.traj_parameter_options:
+            op = op_dict['{0}.traj_params.traj_parameters:{1}_out'.format(self.name, name)]
+            sim_prob['{0}.traj_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
 
         print('\nSimulating phase {0}'.format(self.pathname))
         sim_prob.run_model()

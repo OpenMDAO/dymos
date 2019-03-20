@@ -6,6 +6,7 @@ from dymos.phases.phase_base import PhaseBase
 from openmdao.api import Group, IndepVarComp
 from six import iteritems
 
+from ..options import TimeOptionsDictionary
 from .components.segment_simulation_comp import SegmentSimulationComp
 from .components.ode_integration_interface import ODEIntegrationInterface
 from .components.segment_state_mux_comp import SegmentStateMuxComp
@@ -32,8 +33,16 @@ class SolveIVPPhase(PhaseBase):
     optimization since we currently don't provide analytic derivatives across the integration steps.
 
     """
+    def __init__(self, from_phase=None, **kwargs):
+        super(SolveIVPPhase, self).__init__(**kwargs)
+
+        self._from_phase = from_phase
+        """The phase whose results we are simulating explicitly."""
+
     def initialize(self):
         super(SolveIVPPhase, self).initialize()
+        self.options.declare('from_phase', default=None, types=(PhaseBase,), allow_none=True,
+                             desc='Phase from which this phase is being instantiated.')
 
         self.options.declare('method', default='RK45', values=('RK45', 'RK23', 'BDF'),
                              desc='The integrator used within scipy.integrate.solve_ivp. Currently '
@@ -50,26 +59,37 @@ class SolveIVPPhase(PhaseBase):
                                   'segment.  If an int (n) then results are provided at n '
                                   'equally distributed points in time within each segment.')
 
-        self.options.declare('grid_data', default=None, types=(GridData,), allow_none=True,
-                             desc='The GridData object containing information on the control '
-                                  'parameterization.  Unlike other Phases, SolveIVPPhase should '
-                                  'be instantiated with the GridData of whichever phase it is '
-                                  'simulating.')
-
     def setup(self):
 
-        if self.options['grid_data'] is None:
+        if self._from_phase is not None:
+            self.user_time_options = TimeOptionsDictionary()
+            self.user_time_options.update(self._from_phase.time_options)
+            self.user_state_options = self._from_phase.state_options.copy()
+            self.user_control_options = self._from_phase.control_options.copy()
+            self.user_polynomial_control_options = self._from_phase.polynomial_control_options.copy()
+            self.user_design_parameter_options = self._from_phase.design_parameter_options.copy()
+            self.user_input_parameter_options = self._from_phase.input_parameter_options.copy()
+            self.user_traj_parameter_options = self._from_phase.traj_parameter_options.copy()
+
+            self.options['ode_class'] = self._from_phase.options['ode_class']
+            self.options['ode_init_kwargs'] = self._from_phase.options['ode_init_kwargs']
+
+            self.grid_data = self._from_phase.grid_data
+            self.options['num_segments'] = self.grid_data.num_segments
+            self.options['transcription_order'] = self.grid_data.transcription_order
+            self.options['segment_ends'] = self.grid_data.segment_ends
+            self.options['compressed'] = self.grid_data.compressed
+
+        if self.grid_data is None:
             num_seg = self.options['num_segments']
             transcription_order = self.options['transcription_order']
             seg_ends = self.options['segment_ends']
             compressed = self.options['compressed']
 
-            self.options['grid_data'] = GridData(num_segments=num_seg,
-                                                 transcription='gauss-lobatto',
-                                                 transcription_order=transcription_order,
-                                                 segment_ends=seg_ends, compressed=compressed)
-
-        self.grid_data = self.options['grid_data']
+            self.grid_data = GridData(num_segments=num_seg,
+                                      transcription='gauss-lobatto',
+                                      transcription_order=transcription_order,
+                                      segment_ends=seg_ends, compressed=compressed)
 
         super(SolveIVPPhase, self).setup()
 
@@ -77,7 +97,7 @@ class SolveIVPPhase(PhaseBase):
         time_options = self.time_options
         time_units = time_options['units']
         num_seg = self.options['num_segments']
-        grid_data = self.options['grid_data']
+        grid_data = self.grid_data
         output_nodes_per_seg = self.options['output_nodes_per_seg']
 
         indeps, externals, comps = super(SolveIVPPhase, self)._setup_time()
@@ -141,7 +161,7 @@ class SolveIVPPhase(PhaseBase):
 
     def _setup_rhs(self):
 
-        gd = self.options['grid_data']
+        gd = self.grid_data
         num_seg = gd.num_segments
 
         self._indep_states_ivc = self.add_subsystem('indep_states', IndepVarComp(),
@@ -170,7 +190,7 @@ class SolveIVPPhase(PhaseBase):
                 method=self.options['method'],
                 atol=self.options['atol'],
                 rtol=self.options['rtol'],
-                grid_data=self.options['grid_data'],
+                grid_data=self.grid_data,
                 ode_class=self.options['ode_class'],
                 ode_init_kwargs=self.options['ode_init_kwargs'],
                 time_options=self.time_options,
@@ -206,7 +226,7 @@ class SolveIVPPhase(PhaseBase):
         """
         Add an IndepVarComp for the states and setup the states as design variables.
         """
-        num_seg = self.options['grid_data'].num_segments
+        num_seg = self.grid_data.num_segments
 
         for state_name, options in iteritems(self.state_options):
             self._indep_states_ivc.add_output('initial_states:{0}'.format(state_name),
@@ -230,7 +250,7 @@ class SolveIVPPhase(PhaseBase):
             # Connect the final state in segment n to the initial state in segment n + 1
             for i in range(1, num_seg):
                 if self.options['output_nodes_per_seg'] is None:
-                    nnps_i = self.options['grid_data'].subset_num_nodes_per_segment['all'][i]
+                    nnps_i = self.grid_data.subset_num_nodes_per_segment['all'][i]
                 else:
                     nnps_i = self.options['output_nodes_per_seg']
 
@@ -243,7 +263,7 @@ class SolveIVPPhase(PhaseBase):
                              'state_mux_comp.segment_{0}_states:{1}'.format(i, state_name))
 
     def _setup_controls(self):
-        grid_data = self.options['grid_data']
+        grid_data = self.grid_data
         time_units = self.time_options['units']
         output_nodes_per_seg = self.options['output_nodes_per_seg']
 
@@ -450,7 +470,7 @@ class SolveIVPPhase(PhaseBase):
         pass
 
     def _setup_timeseries_outputs(self):
-        gd = self.options['grid_data']
+        gd = self.grid_data
         num_seg = gd.num_segments
         time_units = self.time_options['units']
         output_nodes_per_seg = self.options['output_nodes_per_seg']
