@@ -199,8 +199,8 @@ class Trajectory(Group):
 
             targets = options['targets']
             for phase_name, phs in iteritems(self._phases):
-                tgt_param_name = targets.get(phase_name, None) \
-                    if isinstance(targets, dict) else name
+                tgt_param_name = targets.get(phase_name, None) if isinstance(targets, dict) else name
+
                 if tgt_param_name:
                     # if tgt_param_name not in phs.user_traj_parameter_options:
                     phs.add_traj_parameter(tgt_param_name, val=options['val'], units=options['units'])
@@ -522,35 +522,8 @@ class Trajectory(Group):
                 var_name = '{0}.input_parameters:{1}'.format(self.name, name)
                 sim_prob[var_name] = op['value'][0, ...]
 
-        for phase_name, phs in iteritems(self._phases):
-
-            op_dict = dict([(name, opts) for (name, opts) in phs.list_outputs(units=True,
-                                                                              out_stream=None)])
-
-            # Assign initial state values
-            for name, options in iteritems(phs.state_options):
-                op = op_dict['{0}.timeseries.states:{1}'.format(phs.pathname, name)]
-                tgt_var = '{0}.{1}.initial_states:{2}'.format(self.name, phase_name, name)
-                sim_prob[tgt_var] = op['value'][0, ...]
-
-            # Assign control values at all nodes
-            for name, options in iteritems(phs.control_options):
-                op = op_dict['{0}.control_group.control_interp_comp.control_values:'
-                             '{1}'.format(phs.pathname, name)]
-                var_name = '{0}.{1}.implicit_controls:{2}'.format(self.name, phase_name, name)
-                sim_prob[var_name] = op['value']
-
-            # Assign design parameter values
-            for name, options in iteritems(phs.design_parameter_options):
-                op = op_dict['{0}.design_params.design_parameters:{1}'.format(phs.pathname, name)]
-                var_name = '{0}.{1}.design_parameters:{2}'.format(self.name, phase_name, name)
-                sim_prob[var_name] = op['value'][0, ...]
-
-            # Assign input parameter values
-            for name, options in iteritems(phs.input_parameter_options):
-                op = op_dict['{0}.input_params.input_parameters:{1}_out'.format(phs.pathname, name)]
-                var_name = '{0}.{1}.input_parameters:{2}'.format(self.name, phase_name, name)
-                sim_prob[var_name] = op['value'][0, ...]
+        for phase_name, phs in iteritems(sim_traj._phases):
+            phs.initialize_values_from_phase(sim_prob)
 
         print('\nSimulating trajectory {0}'.format(self.pathname))
         sim_prob.run_model()

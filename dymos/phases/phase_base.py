@@ -126,6 +126,8 @@ class PhaseBase(Group):
         if name not in self.user_state_options:
             self.user_state_options[name] = {}
 
+        kwargs['name'] = name
+
         for kw in kwargs:
             if kw not in StateOptionsDictionary():
                 raise KeyError('Invalid argument to set_state_options: {0}'.format(kw))
@@ -237,6 +239,8 @@ class PhaseBase(Group):
         if name not in self.user_control_options:
             self.user_control_options[name] = {}
 
+        kwargs['name'] = name
+
         for kw in kwargs:
             if kw not in ControlOptionsDictionary():
                 raise KeyError('Invalid argument to add_control: {0}'.format(kw))
@@ -298,6 +302,8 @@ class PhaseBase(Group):
             raise RuntimeError('Keyword argument \'order\' must be specified for polynomial '
                                'control \'{0}\''.format(name))
 
+        kwargs['name'] = name
+
         for kw in kwargs:
             if kw not in PolynomialControlOptionsDictionary():
                 raise KeyError('Invalid argument to add_polynomial_control: {0}'.format(kw))
@@ -341,6 +347,8 @@ class PhaseBase(Group):
         if name not in self.user_design_parameter_options:
             self.user_design_parameter_options[name] = {}
 
+        kwargs['name'] = name
+
         for kw in kwargs:
             if kw not in DesignParameterOptionsDictionary():
                 raise KeyError('Invalid argument to add_design_parameter: {0}'.format(kw))
@@ -365,6 +373,8 @@ class PhaseBase(Group):
 
         if name not in self.user_input_parameter_options:
             self.user_input_parameter_options[name] = {}
+
+        kwargs['name'] = name
 
         for kw in kwargs:
             if kw not in InputParameterOptionsDictionary():
@@ -391,6 +401,8 @@ class PhaseBase(Group):
 
         if name not in self.user_traj_parameter_options:
             self.user_traj_parameter_options[name] = {}
+
+        kwargs['name'] = name
 
         for kw in kwargs:
             if kw not in InputParameterOptionsDictionary():
@@ -1478,53 +1490,7 @@ class PhaseBase(Group):
 
         sim_prob.setup(check=True)
 
-        op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
-                                                                                 out_stream=None)])
-        ip_dict = dict([(name, options) for (name, options) in self.list_inputs(units=True,
-                                                                                out_stream=None)])
-
-        # Set the integration times
-        op = op_dict['{0}.timeseries.time'.format(self.name)]
-        sim_prob.set_val('phase0.t_initial', op['value'][0, ...])
-        sim_prob.set_val('phase0.t_duration', op['value'][-1, ...] - op['value'][0, ...])
-
-        # Assign initial state values
-        for name in self.state_options:
-            op = op_dict['{0}.timeseries.states:{1}'.format(self.name, name)]
-            sim_prob['{0}.initial_states:{1}'.format(self.name, name)][...] = op['value'][0, ...]
-
-        # Assign control values
-        for name, options in iteritems(self.control_options):
-            if options['opt']:
-                op = op_dict['{0}.control_group.indep_controls.controls:{1}'.format(self.name, name)]
-                sim_prob['{0}.controls:{1}'.format(self.name, name)][...] = op['value']
-            else:
-                ip = ip_dict['{0}.control_group.control_interp_comp.controls:{1}'.format(self.name, name)]
-                sim_prob['{0}.controls:{1}'.format(self.name, name)][...] = ip['value']
-
-        # Assign polynomial control values
-        for name, options in iteritems(self.polynomial_control_options):
-            if options['opt']:
-                op = op_dict['{0}.polynomial_control_group.indep_polynomial_controls.polynomial_controls:{1}'.format(self.name, name)]
-                sim_prob['{0}.polynomial_controls:{1}'.format(self.name, name)][...] = op['value']
-            else:
-                ip = ip_dict['{0}.polynomial_control_group.interp_comp.polynomial_controls:{1}'.format(self.name, name)]
-                sim_prob['{0}.polynomial_controls:{1}'.format(self.name, name)][...] = ip['value']
-
-        # Assign design parameter values
-        for name in self.design_parameter_options:
-            op = op_dict['{0}.design_params.design_parameters:{1}'.format(self.name, name)]
-            sim_prob['{0}.design_parameters:{1}'.format(self.name, name)][...] = op['value']
-
-        # Assign input parameter values
-        for name in self.input_parameter_options:
-            op = op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.name, name)]
-            sim_prob['{0}.input_parameters:{1}'.format(self.name, name)][...] = op['value']
-
-        # Assign input parameter values
-        for name in self.traj_parameter_options:
-            op = op_dict['{0}.traj_params.traj_parameters:{1}_out'.format(self.name, name)]
-            sim_prob['{0}.traj_parameters:{1}'.format(self.name, name)][...] = op['value']
+        sim_phase.initialize_values_from_phase(sim_prob)
 
         print('\nSimulating phase {0}'.format(self.pathname))
         sim_prob.run_model()

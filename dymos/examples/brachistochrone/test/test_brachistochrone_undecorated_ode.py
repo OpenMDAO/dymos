@@ -274,30 +274,6 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         # Test the results
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
-        # # Generate the explicitly simulated trajectory
-        # t0 = p['phase0.t_initial']
-        # tf = t0 + p['phase0.t_duration']
-        # exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
-        #
-        # fig, ax = plt.subplots()
-        # fig.suptitle('Brachistochrone Solution')
-        #
-        # x_imp = p.get_val('phase0.timeseries.states:x')
-        # y_imp = p.get_val('phase0.timeseries.states:y')
-        #
-        # x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        # y_exp = exp_out.get_val('phase0.timeseries.states:y')
-        #
-        # ax.plot(x_imp, y_imp, 'ro', label='solution')
-        # ax.plot(x_exp, y_exp, 'b-', label='simulated')
-        #
-        # ax.set_xlabel('x (m)')
-        # ax.set_ylabel('y (m)')
-        # ax.grid(True)
-        # ax.legend(loc='upper right')
-        #
-        # plt.show()
-
 
 class TestBrachistochroneBasePhaseClass(unittest.TestCase):
 
@@ -308,9 +284,11 @@ class TestBrachistochroneBasePhaseClass(unittest.TestCase):
 
         class BrachistochronePhase(GaussLobattoPhase):
 
-            def setup(self):
+            def __init__(self, **kwargs):
+                super(BrachistochronePhase, self).__init__(**kwargs)
+                self._ode_class = BrachistochroneODE
 
-                self.options['ode_class'] = BrachistochroneODE
+            def setup(self):
 
                 self.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
                 self.set_state_options('x', fix_initial=True, rate_source='xdot', units='m')
@@ -353,3 +331,8 @@ class TestBrachistochroneBasePhaseClass(unittest.TestCase):
 
         # Test the results
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+
+        exp_out = phase.simulate()
+
+        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:x')[-1], 10, tolerance=1.0E-3)
+        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1], 5, tolerance=1.0E-3)

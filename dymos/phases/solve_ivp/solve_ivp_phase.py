@@ -78,9 +78,6 @@ class SolveIVPPhase(PhaseBase):
 
             self._timeseries_outputs = self._from_phase._timeseries_outputs.copy()
 
-            self.options['ode_class'] = self._from_phase.options['ode_class']
-            self.options['ode_init_kwargs'] = self._from_phase.options['ode_init_kwargs']
-
             self.grid_data = self._from_phase.grid_data
             self.options['num_segments'] = self.grid_data.num_segments
             self.options['transcription_order'] = self.grid_data.transcription_order
@@ -181,7 +178,7 @@ class SolveIVPPhase(PhaseBase):
         # If this phase is ever converted to a multiple-shooting formulation, this will
         # have to change.
         ode_interface = ODEIntegrationInterface(
-            ode_class=self.options['ode_class'],
+            ode_class=self._ode_class,
             time_options=self.time_options,
             state_options=self.state_options,
             control_options=self.control_options,
@@ -189,7 +186,7 @@ class SolveIVPPhase(PhaseBase):
             design_parameter_options=self.design_parameter_options,
             input_parameter_options=self.input_parameter_options,
             traj_parameter_options=self.traj_parameter_options,
-            ode_init_kwargs=self.options['ode_init_kwargs'])
+            ode_init_kwargs=self._ode_init_kwargs)
 
         for i in range(num_seg):
             seg_i_comp = SegmentSimulationComp(
@@ -198,8 +195,8 @@ class SolveIVPPhase(PhaseBase):
                 atol=self.options['atol'],
                 rtol=self.options['rtol'],
                 grid_data=self.grid_data,
-                ode_class=self.options['ode_class'],
-                ode_init_kwargs=self.options['ode_init_kwargs'],
+                ode_class=self._ode_class,
+                ode_init_kwargs=self._ode_init_kwargs,
                 time_options=self.time_options,
                 state_options=self.state_options,
                 control_options=self.control_options,
@@ -225,9 +222,7 @@ class SolveIVPPhase(PhaseBase):
         else:
             num_output_nodes = num_seg * self.options['output_nodes_per_seg']
 
-        self.add_subsystem('ode',
-                           self.options['ode_class'](num_nodes=num_output_nodes,
-                                                     **self.options['ode_init_kwargs']))
+        self.add_subsystem('ode', self._ode_class(num_nodes=num_output_nodes, **self._ode_init_kwargs))
 
     def _setup_states(self):
         """
@@ -366,6 +361,13 @@ class SolveIVPPhase(PhaseBase):
         for name, options in iteritems(self.input_parameter_options):
             self.connect('input_parameters:{0}_out'.format(name),
                          ['segment_{0}.input_parameters:{1}'.format(iseg, name) for iseg in range(num_seg)])
+
+    def _setup_traj_input_parameters(self):
+        super(SolveIVPPhase, self)._setup_traj_input_parameters()
+        num_seg = self.grid_data.num_segments
+        for name, options in iteritems(self.traj_parameter_options):
+            self.connect('traj_parameters:{0}_out'.format(name),
+                         ['segment_{0}.traj_parameters:{1}'.format(iseg, name) for iseg in range(num_seg)])
 
     def _setup_defects(self):
         """
@@ -759,3 +761,71 @@ class SolveIVPPhase(PhaseBase):
             linear = False
 
         return constraint_path, shape, units, linear
+
+    def initialize_values_from_phase(self, sim_prob):
+        """
+        Initializes values in the SolveIVPPhase using the phase from which it was created.
+
+        Parameters
+        ----------
+        sim_prob : Problem
+            The problem instance under which the simulation is being performed.
+        """
+        phs = self._from_phase
+
+        op_dict = dict([(name, options) for (name, options) in phs.list_outputs(units=True,
+                                                                                out_stream=None)])
+        ip_dict = dict([(name, options) for (name, options) in phs.list_inputs(units=True,
+                                                                               out_stream=None)])
+
+        phs_path = phs.pathname + '.' if phs.pathname else ''
+
+        if self.pathname.split('.')[0] == self.name:
+            self_path = self.name + '.'
+        else:
+            self_path = self.pathname.split('.')[0] + '.' + self.name + '.'
+
+        # Set the integration times
+        op = op_dict['{0}timeseries.time'.format(phs_path)]
+        sim_prob.set_val('{0}t_initial'.format(self_path), op['value'][0, ...])
+        sim_prob.set_val('{0}t_duration'.format(self_path), op['value'][-1, ...] - op['value'][0, ...])
+
+        # Assign initial state values
+        for name in phs.state_options:
+            op = op_dict['{0}timeseries.states:{1}'.format(phs_path, name)]
+            sim_prob['{0}initial_states:{1}'.format(self_path, name)][...] = op['value'][0, ...]
+
+        # Assign control values
+        for name, options in iteritems(phs.control_options):
+            if options['opt']:
+                op = op_dict['{0}control_group.indep_controls.controls:{1}'.format(phs_path, name)]
+                sim_prob['{0}controls:{1}'.format(self_path, name)][...] = op['value']
+            else:
+                ip = ip_dict['{0}control_group.control_interp_comp.controls:{1}'.format(phs_path, name)]
+                sim_prob['{0}controls:{1}'.format(self_path, name)][...] = ip['value']
+
+        # Assign polynomial control values
+        for name, options in iteritems(phs.polynomial_control_options):
+            if options['opt']:
+                op = op_dict['{0}polynomial_control_group.indep_polynomial_controls.'
+                             'polynomial_controls:{1}'.format(phs_path, name)]
+                sim_prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = op['value']
+            else:
+                ip = ip_dict['{0}polynomial_control_group.interp_comp.'
+                             'polynomial_controls:{1}'.format(phs_path, name)]
+                sim_prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
+
+        # Assign design parameter values
+        for name in phs.design_parameter_options:
+            op = op_dict['{0}design_params.design_parameters:{1}'.format(phs_path, name)]
+            sim_prob['{0}design_parameters:{1}'.format(self_path, name)][...] = op['value']
+
+        # Assign input parameter values
+        for name in phs.input_parameter_options:
+            op = op_dict['{0}input_params.input_parameters:{1}_out'.format(phs_path, name)]
+            sim_prob['{0}input_parameters:{1}'.format(self_path, name)][...] = op['value']
+
+        # Assign traj parameter values
+        for name in phs.traj_parameter_options:
+            op = op_dict['{0}traj_params.traj_parameters:{1}_out'.format(phs_path, name)]
+            sim_prob['{0}traj_parameters:{1}'.format(self_path, name)][...] = op['value']

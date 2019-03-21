@@ -238,10 +238,11 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         for iseg in range(num_seg):
             seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
-            t_initial_i = seg_comp_i.ode_integration_interface.prob.get_val('ode.t_initial')
-            t_duration_i = seg_comp_i.ode_integration_interface.prob.get_val('ode.t_duration')
-            time_phase_i = seg_comp_i.ode_integration_interface.prob.get_val('ode.time_phase')
-            time_i = seg_comp_i.ode_integration_interface.prob.get_val('ode.time')
+            iface = seg_comp_i.options['ode_integration_interface']
+            t_initial_i = iface.prob.get_val('ode.t_initial')
+            t_duration_i = iface.prob.get_val('ode.t_duration')
+            time_phase_i = iface.prob.get_val('ode.time_phase')
+            time_i = iface.prob.get_val('ode.time')
 
             # Since the phase has simulated, all times should be equal to their respective value
             # at the end of each segment.
@@ -296,10 +297,11 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         for iseg in range(num_seg):
             seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
-            t_initial_i = seg_comp_i.ode_integration_interface.prob.get_val('ode.t_initial')
-            t_duration_i = seg_comp_i.ode_integration_interface.prob.get_val('ode.t_duration')
-            time_phase_i = seg_comp_i.ode_integration_interface.prob.get_val('ode.time_phase')
-            time_i = seg_comp_i.ode_integration_interface.prob.get_val('ode.time')
+            iface = seg_comp_i.options['ode_integration_interface']
+            t_initial_i = iface.prob.get_val('ode.t_initial')
+            t_duration_i = iface.prob.get_val('ode.t_duration')
+            time_phase_i = iface.prob.get_val('ode.time_phase')
+            time_i = iface.prob.get_val('ode.time')
 
             # Since the phase has simulated, all times should be equal to their respective value
             # at the end of each segment.

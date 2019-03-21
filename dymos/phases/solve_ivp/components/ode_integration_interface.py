@@ -78,7 +78,7 @@ class ODEIntegrationInterface(object):
 
         # The time IVC
         ivc = IndepVarComp()
-        time_units = ode_class.ode_options._time_options['units']
+        time_units = self.time_options['units']
         ivc.add_output('time', val=0.0, units=time_units)
         ivc.add_output('time_phase', val=-88.0, units=time_units)
         ivc.add_output('t_initial', val=-99.0, units=time_units)
@@ -87,18 +87,18 @@ class ODEIntegrationInterface(object):
         model.add_subsystem('time_input', ivc, promotes_outputs=['*'])
 
         model.connect('time', ['ode.{0}'.format(tgt) for tgt in
-                               ode_class.ode_options._time_options['targets']])
+                               self.time_options['targets']])
 
         model.connect('time_phase', ['ode.{0}'.format(tgt) for tgt in
-                                     ode_class.ode_options._time_options['time_phase_targets']])
+                                     self.time_options['time_phase_targets']])
 
         model.connect('t_initial',
                       ['ode.{0}'.format(tgt) for tgt in
-                       ode_class.ode_options._time_options['t_initial_targets']])
+                       self.time_options['t_initial_targets']])
 
         model.connect('t_duration',
                       ['ode.{0}'.format(tgt) for tgt in
-                       ode_class.ode_options._time_options['t_duration_targets']])
+                       self.time_options['t_duration_targets']])
 
         # The States Comp
         for name, options in iteritems(self.state_options):
