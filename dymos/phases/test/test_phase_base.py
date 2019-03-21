@@ -37,7 +37,7 @@ class _D(ExplicitComponent):
 
 class TestPhaseBase(unittest.TestCase):
 
-    def test_invalid_ode_class_wrong_class(self):
+    def test_invalid_ode_wrong_class(self):
 
         p = Problem(model=Group())
 
@@ -73,7 +73,7 @@ class TestPhaseBase(unittest.TestCase):
 
         self.assertEqual(str(e.exception), 'ode_class must be derived from openmdao.core.System.')
 
-    def test_invalid_ode_class_instance(self):
+    def test_invalid_ode_instance(self):
 
         p = Problem(model=Group())
 

@@ -128,8 +128,8 @@ class RungeKuttaPhase(PhaseBase):
                                method=self.options['method'],
                                state_options=self.state_options,
                                time_units=self.time_options['units'],
-                               ode_class=self._ode_class,
-                               ode_init_kwargs=self._ode_init_kwargs,
+                               ode_class=self.options['ode_class'],
+                               ode_init_kwargs=self.options['ode_init_kwargs'],
                                k_solver_class=self.options['k_solver_class'],
                                k_solver_options=self.options['k_solver_options']),
                            promotes_inputs=promoted_inputs,
@@ -140,8 +140,8 @@ class RungeKuttaPhase(PhaseBase):
         # state values so that we can accurate evaluate path and boundary constraints and
         # obtain timeseries for ODE outputs.
         self.add_subsystem('ode',
-                           self._ode_class(num_nodes=2*self.options['num_segments'],
-                                           **self._ode_init_kwargs))
+                           self.options['ode_class'](num_nodes=2*self.options['num_segments'],
+                                                     **self.options['ode_init_kwargs']))
 
     def _get_rate_source_path(self, state_name, nodes=None, **kwargs):
         var = self.state_options[state_name]['rate_source']

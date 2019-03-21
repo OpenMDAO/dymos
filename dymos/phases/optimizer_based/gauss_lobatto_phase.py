@@ -583,10 +583,10 @@ class GaussLobattoPhase(OptimizerBasedPhaseBase):
         super(GaussLobattoPhase, self)._setup_rhs()
 
         grid_data = self.grid_data
-        ODEClass = self._ode_class
+        ODEClass = self.options['ode_class']
         num_input_nodes = self.grid_data.subset_num_nodes['state_input']
 
-        kwargs = self._ode_init_kwargs
+        kwargs = self.options['ode_init_kwargs']
         rhs_disc = ODEClass(num_nodes=grid_data.subset_num_nodes['state_disc'], **kwargs)
         rhs_col = ODEClass(num_nodes=grid_data.subset_num_nodes['col'], **kwargs)
 

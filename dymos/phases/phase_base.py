@@ -1,6 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
-from collections import Iterable, Mapping
+from collections import Iterable
 import inspect
 from six import iteritems
 import warnings
@@ -10,7 +10,6 @@ import numpy as np
 from scipy import interpolate
 
 from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder
-from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
 from dymos.phases.components import BoundaryConstraintComp
@@ -20,9 +19,7 @@ from dymos.phases.options import ControlOptionsDictionary, DesignParameterOption
     PolynomialControlOptionsDictionary
 from dymos.phases.components import PolynomialControlGroup, ControlGroup
 
-from dymos.ode_options import ODEOptions
 from dymos.utils.constants import INF_BOUND
-from dymos.utils.misc import CoerceDesvar
 
 
 _unspecified = object()
@@ -31,13 +28,13 @@ _unspecified = object()
 class PhaseBase(Group):
     def __init__(self, **kwargs):
 
-        self._ode_class = kwargs['ode_class'] if 'ode_class' in kwargs else None
-        self._ode_init_kwargs = kwargs['ode_init_kwargs'] if 'ode_init_kwargs' in kwargs else {}
-
-        if 'ode_class' in kwargs:
-            kwargs.pop('ode_class')
-        if 'ode_init_kwargs' in kwargs:
-            kwargs.pop('ode_init_kwargs')
+        # self.options['ode_class'] = kwargs['ode_class'] if 'ode_class' in kwargs else None
+        # self.options['ode_init_kwargs'] = kwargs['ode_init_kwargs'] if 'ode_init_kwargs' in kwargs else {}
+        #
+        # if 'ode_class' in kwargs:
+        #     kwargs.pop('ode_class')
+        # if 'ode_init_kwargs' in kwargs:
+        #     kwargs.pop('ode_init_kwargs')
 
         super(PhaseBase, self).__init__(**kwargs)
 
@@ -62,10 +59,10 @@ class PhaseBase(Group):
 
     def initialize(self):
         self.options.declare('num_segments', types=int, desc='Number of segments')
-        # self.options.declare('ode_class',
-        #                      desc='System defining the ODE')
-        # self.options.declare('ode_init_kwargs', types=dict, default={},
-        #                      desc='Keyword arguments provided when initializing the ODE System')
+        self.options.declare('ode_class',
+                             desc='System defining the ODE')
+        self.options.declare('ode_init_kwargs', types=dict, default={},
+                             desc='Keyword arguments provided when initializing the ODE System')
         self.options.declare('transcription', values=['gauss-lobatto', 'radau-ps', 'explicit'],
                              desc='Transcription technique of the optimal control problem.')
         self.options.declare('segment_ends', default=None, types=Iterable, allow_none=True,
@@ -790,8 +787,8 @@ class PhaseBase(Group):
         self.traj_parameter_options = {}
 
         # First apply any defaults set in the ode options
-        if self._ode_class is not None and hasattr(self._ode_class, 'ode_options'):
-            ode_options = self._ode_class.ode_options
+        if self.options['ode_class'] is not None and hasattr(self.options['ode_class'], 'ode_options'):
+            ode_options = self.options['ode_class'].ode_options
         else:
             ode_options = None
 
@@ -1174,9 +1171,9 @@ class PhaseBase(Group):
                                   '_get_rate_source_path'.format(self.__class__.__name__))
 
     def _setup_rhs(self):
-        if not inspect.isclass(self._ode_class):
+        if not inspect.isclass(self.options['ode_class']):
             raise ValueError('ode_class must be a class, not an instance.')
-        if not issubclass(self._ode_class, System):
+        if not issubclass(self.options['ode_class'], System):
             raise ValueError('ode_class must be derived from openmdao.core.System.')
 
     def _setup_defects(self):

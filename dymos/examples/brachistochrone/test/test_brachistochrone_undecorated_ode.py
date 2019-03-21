@@ -284,12 +284,9 @@ class TestBrachistochroneBasePhaseClass(unittest.TestCase):
 
         class BrachistochronePhase(GaussLobattoPhase):
 
-            def __init__(self, **kwargs):
-                super(BrachistochronePhase, self).__init__(**kwargs)
-                self._ode_class = BrachistochroneODE
-
             def setup(self):
 
+                self.options['ode_class'] = BrachistochroneODE
                 self.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
                 self.set_state_options('x', fix_initial=True, rate_source='xdot', units='m')
                 self.set_state_options('y', fix_initial=True, rate_source='ydot', units='m')

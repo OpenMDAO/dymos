@@ -40,9 +40,9 @@ class SolveIVPPhase(PhaseBase):
         """The phase whose results we are simulating explicitly."""
 
         if from_phase is not None:
-            self._ode_class = from_phase._ode_class
+            self.options['ode_class'] = from_phase.options['ode_class']
         else:
-            self._ode_class is None
+            self.options['ode_class'] is None
 
     def initialize(self):
         super(SolveIVPPhase, self).initialize()
@@ -178,7 +178,7 @@ class SolveIVPPhase(PhaseBase):
         # If this phase is ever converted to a multiple-shooting formulation, this will
         # have to change.
         ode_interface = ODEIntegrationInterface(
-            ode_class=self._ode_class,
+            ode_class=self.options['ode_class'],
             time_options=self.time_options,
             state_options=self.state_options,
             control_options=self.control_options,
@@ -186,7 +186,7 @@ class SolveIVPPhase(PhaseBase):
             design_parameter_options=self.design_parameter_options,
             input_parameter_options=self.input_parameter_options,
             traj_parameter_options=self.traj_parameter_options,
-            ode_init_kwargs=self._ode_init_kwargs)
+            ode_init_kwargs=self.options['ode_init_kwargs'])
 
         for i in range(num_seg):
             seg_i_comp = SegmentSimulationComp(
@@ -195,8 +195,8 @@ class SolveIVPPhase(PhaseBase):
                 atol=self.options['atol'],
                 rtol=self.options['rtol'],
                 grid_data=self.grid_data,
-                ode_class=self._ode_class,
-                ode_init_kwargs=self._ode_init_kwargs,
+                ode_class=self.options['ode_class'],
+                ode_init_kwargs=self.options['ode_init_kwargs'],
                 time_options=self.time_options,
                 state_options=self.state_options,
                 control_options=self.control_options,
@@ -222,7 +222,8 @@ class SolveIVPPhase(PhaseBase):
         else:
             num_output_nodes = num_seg * self.options['output_nodes_per_seg']
 
-        self.add_subsystem('ode', self._ode_class(num_nodes=num_output_nodes, **self._ode_init_kwargs))
+        self.add_subsystem('ode', self.options['ode_class'](num_nodes=num_output_nodes,
+                                                            **self.options['ode_init_kwargs']))
 
     def _setup_states(self):
         """
