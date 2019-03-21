@@ -13,14 +13,13 @@ except ImportError:
 import numpy as np
 
 from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Problem
-from openmdao.api import SqliteRecorder, BalanceComp
+from openmdao.api import SqliteRecorder
 
 from ..utils.constants import INF_BOUND
 from ..phases.components.phase_linkage_comp import PhaseLinkageComp
 from ..phases.phase_base import PhaseBase
 from ..phases.components.input_parameter_comp import InputParameterComp
 from ..phases.options import DesignParameterOptionsDictionary, InputParameterOptionsDictionary
-from ..phases.simulation.simulation_trajectory import SimulationTrajectory
 
 
 class Trajectory(Group):

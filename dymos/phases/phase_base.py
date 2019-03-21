@@ -31,6 +31,14 @@ _unspecified = object()
 class PhaseBase(Group):
     def __init__(self, **kwargs):
 
+        self._ode_class = kwargs['ode_class'] if 'ode_class' in kwargs else None
+        self._ode_init_kwargs = kwargs['ode_init_kwargs'] if 'ode_init_kwargs' in kwargs else {}
+
+        if 'ode_class' in kwargs:
+            kwargs.pop('ode_class')
+        if 'ode_init_kwargs' in kwargs:
+            kwargs.pop('ode_init_kwargs')
+
         super(PhaseBase, self).__init__(**kwargs)
 
         # Dictioanries of variable options that are set by the user via the API
@@ -51,9 +59,6 @@ class PhaseBase(Group):
         self._ode_controls = {}
         self.grid_data = None
         self._time_extents = []
-
-        self._ode_class = kwargs['ode_class'] if 'ode_class' in kwargs else None
-        self._ode_init_kwargs = kwargs['ode_init_kwargs'] if 'ode_init_kwargs' in kwargs else None
 
     def initialize(self):
         self.options.declare('num_segments', types=int, desc='Number of segments')
@@ -773,8 +778,8 @@ class PhaseBase(Group):
         self.traj_parameter_options = {}
 
         # First apply any defaults set in the ode options
-        if hasattr(self.options['ode_class'], 'ode_options'):
-            ode_options = self.options['ode_class'].ode_options
+        if self._ode_class is not None and hasattr(self._ode_class, 'ode_options'):
+            ode_options = self._ode_class.ode_options
         else:
             ode_options = None
 
@@ -1157,9 +1162,9 @@ class PhaseBase(Group):
                                   '_get_rate_source_path'.format(self.__class__.__name__))
 
     def _setup_rhs(self):
-        if not inspect.isclass(self.options['ode_class']):
+        if not inspect.isclass(self._ode_class):
             raise ValueError('ode_class must be a class, not an instance.')
-        if not issubclass(self.options['ode_class'], System):
+        if not issubclass(self._ode_class, System):
             raise ValueError('ode_class must be derived from openmdao.core.System.')
 
     def _setup_defects(self):

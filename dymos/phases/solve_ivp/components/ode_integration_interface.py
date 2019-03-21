@@ -3,9 +3,8 @@ from __future__ import print_function, division, absolute_import
 from collections import OrderedDict
 
 import numpy as np
-from dymos.phases.simulation.odeint_control_interpolation_comp import \
-    ODEIntControlInterpolationComp
-from dymos.phases.simulation.state_rate_collector_comp import StateRateCollectorComp
+from .odeint_control_interpolation_comp import ODEIntControlInterpolationComp
+from .state_rate_collector_comp import StateRateCollectorComp
 from openmdao.core.group import Group
 from openmdao.core.indepvarcomp import IndepVarComp
 from openmdao.core.problem import Problem
