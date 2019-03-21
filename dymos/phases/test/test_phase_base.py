@@ -189,6 +189,9 @@ class TestPhaseBase(unittest.TestCase):
             warnings.simplefilter('always')
             p.setup(check=True)
 
+        for ww in w:
+            print(str(ww.message))
+
         expected = 'Invalid options for non-optimal design_parameter \'g\' in phase \'phase0\': ' \
                    'lower, upper, scaler, adder, ref, ref0'
 
@@ -272,6 +275,9 @@ class TestPhaseBase(unittest.TestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             p.setup(check=True)
+
+        for ww in w:
+            print(str(ww.message))
 
         expected = 'Invalid options for non-optimal control \'theta\' in phase \'phase0\': ' \
                    'lower, upper, scaler, ref, ref0'
