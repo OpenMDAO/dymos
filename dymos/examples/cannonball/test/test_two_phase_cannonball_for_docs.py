@@ -147,9 +147,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         assert_rel_error(self, p.get_val('traj.descent.states:r')[-1],
                          3183.25, tolerance=1.0E-2)
 
-        # exp_out = traj.simulate(times=100, record_file='ex_two_phase_cannonball_sim.db')
-
-        # exp_out_loaded = load_simulation_results('ex_two_phase_cannonball_sim.db')
+        exp_out = traj.simulate()
 
         print('optimal radius: {0:6.4f} m '.format(p.get_val('external_params.radius',
                                                              units='m')[0]))
@@ -165,28 +163,28 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         time_imp = {'ascent': p.get_val('traj.ascent.timeseries.time'),
                     'descent': p.get_val('traj.descent.timeseries.time')}
 
-        # time_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.time'),
-        #             'descent': exp_out.get_val('traj.descent.timeseries.time')}
+        time_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.time'),
+                    'descent': exp_out.get_val('traj.descent.timeseries.time')}
 
         r_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:r'),
                  'descent': p.get_val('traj.descent.timeseries.states:r')}
 
-        # r_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:r'),
-        #          'descent': exp_out.get_val('traj.descent.timeseries.states:r')}
+        r_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:r'),
+                 'descent': exp_out.get_val('traj.descent.timeseries.states:r')}
 
         h_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:h'),
                  'descent': p.get_val('traj.descent.timeseries.states:h')}
 
-        # h_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:h'),
-        #          'descent': exp_out.get_val('traj.descent.timeseries.states:h')}
+        h_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:h'),
+                 'descent': exp_out.get_val('traj.descent.timeseries.states:h')}
 
         axes.plot(r_imp['ascent'], h_imp['ascent'], 'bo')
 
         axes.plot(r_imp['descent'], h_imp['descent'], 'ro')
 
-        # axes.plot(r_exp['ascent'], h_exp['ascent'], 'b--')
-        #
-        # axes.plot(r_exp['descent'], h_exp['descent'], 'r--')
+        axes.plot(r_exp['ascent'], h_exp['ascent'], 'b--')
+
+        axes.plot(r_exp['descent'], h_exp['descent'], 'r--')
 
         axes.set_xlabel('range (m)')
         axes.set_ylabel('altitude (m)')
@@ -197,15 +195,15 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
             x_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:{0}'.format(state)),
                      'descent': p.get_val('traj.descent.timeseries.states:{0}'.format(state))}
 
-            # x_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:{0}'.format(state)),
-            #          'descent': exp_out.get_val('traj.descent.timeseries.states:{0}'.format(state))}
+            x_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:{0}'.format(state)),
+                     'descent': exp_out.get_val('traj.descent.timeseries.states:{0}'.format(state))}
 
             axes[i].set_ylabel(state)
 
             axes[i].plot(time_imp['ascent'], x_imp['ascent'], 'bo')
             axes[i].plot(time_imp['descent'], x_imp['descent'], 'ro')
-            # axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
-            # axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
+            axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
+            axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
 
         params = ['CL', 'CD', 'T', 'alpha', 'm', 'S']
         fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
@@ -214,17 +212,17 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                 'ascent': p.get_val('traj.ascent.timeseries.traj_parameters:{0}'.format(param)),
                 'descent': p.get_val('traj.descent.timeseries.traj_parameters:{0}'.format(param))}
 
-            # p_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.'
-            #                                    'traj_parameters:{0}'.format(param)),
-            #          'descent': exp_out.get_val('traj.descent.timeseries.'
-            #                                     'traj_parameters:{0}'.format(param))}
+            p_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.'
+                                               'traj_parameters:{0}'.format(param)),
+                     'descent': exp_out.get_val('traj.descent.timeseries.'
+                                                'traj_parameters:{0}'.format(param))}
 
             axes[i].set_ylabel(param)
 
             axes[i].plot(time_imp['ascent'], p_imp['ascent'], 'bo')
             axes[i].plot(time_imp['descent'], p_imp['descent'], 'ro')
-            # axes[i].plot(time_exp['ascent'], p_exp['ascent'], 'b--')
-            # axes[i].plot(time_exp['descent'], p_exp['descent'], 'r--')
+            axes[i].plot(time_exp['ascent'], p_exp['ascent'], 'b--')
+            axes[i].plot(time_exp['descent'], p_exp['descent'], 'r--')
 
         plt.show()
 

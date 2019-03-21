@@ -272,8 +272,7 @@ class GridData(object):
     """
 
     def __init__(self, num_segments, transcription, transcription_order=None,
-                 segment_ends=None, compressed=False, num_steps_per_segment=1,
-                 shooting='single', **kwargs):
+                 segment_ends=None, compressed=False, num_steps_per_segment=1):
         """
         Initialize and compute all attributes.
 
@@ -295,9 +294,6 @@ class GridData(object):
             to the appropriate indices.
         num_steps_per_segment : int or None
             The number of steps to take in each segment, for explicitly integrated phases.
-        shooting : str
-            The type of shooting method to use in explicitly integrated phases, one of 'single',
-            'multiple', or 'hybrid'.
 
         Attributes
         ----------

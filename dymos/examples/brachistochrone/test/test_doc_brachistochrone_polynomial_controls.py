@@ -6,7 +6,6 @@ import unittest
 class TestBrachistochronePolynomialControl(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -60,7 +59,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -148,7 +147,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -238,7 +237,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -332,7 +331,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -423,7 +422,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -516,7 +515,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -609,7 +608,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -699,7 +698,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -791,7 +790,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -884,7 +883,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -974,7 +973,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -1066,7 +1065,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -1157,9 +1156,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -1247,9 +1244,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -1339,9 +1334,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -1377,9 +1370,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
 class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
-    @unittest.expectedFailure
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
-        import numpy as np
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
@@ -1427,9 +1418,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
         theta_exp = exp_out.get_val('phase0.timeseries.polynomial_controls:theta')
@@ -1437,9 +1426,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         assert_rel_error(self, theta_exp[0], theta_imp[0])
         assert_rel_error(self, theta_exp[-1], theta_imp[-1])
 
-    @unittest.expectedFailure
     def test_brachistochrone_polynomial_control_radau(self):
-        import numpy as np
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase
@@ -1488,9 +1475,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
         theta_exp = exp_out.get_val('phase0.timeseries.polynomial_controls:theta')
@@ -1498,9 +1483,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         assert_rel_error(self, theta_exp[0], theta_imp[0])
         assert_rel_error(self, theta_exp[-1], theta_imp[-1])
 
-    @unittest.expectedFailure
     def test_brachistochrone_polynomial_control_rungekutta(self):
-        import numpy as np
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import RungeKuttaPhase
@@ -1551,9 +1534,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
         theta_exp = exp_out.get_val('phase0.timeseries.polynomial_controls:theta')

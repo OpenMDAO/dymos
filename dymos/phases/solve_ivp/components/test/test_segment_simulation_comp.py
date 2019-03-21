@@ -1,15 +1,13 @@
 from __future__ import print_function, absolute_import, division
 
-import os
 import unittest
 
-from openmdao.api import Problem, Group, IndepVarComp
+from openmdao.api import Problem, Group
 from openmdao.utils.assert_utils import assert_rel_error
 from dymos.phases.solve_ivp.components.segment_simulation_comp import SegmentSimulationComp
 from dymos.phases.runge_kutta.test.rk_test_ode import TestODE
-from dymos.phases.options import TimeOptionsDictionary, StateOptionsDictionary, \
-    ControlOptionsDictionary, PolynomialControlOptionsDictionary, InputParameterOptionsDictionary, \
-    DesignParameterOptionsDictionary
+from dymos.phases.options import TimeOptionsDictionary, StateOptionsDictionary
+from dymos.phases.grid_data import GridData
 
 
 class TestSegmentSimulationComp(unittest.TestCase):
@@ -29,7 +27,9 @@ class TestSegmentSimulationComp(unittest.TestCase):
         state_options['y']['targets'] = 'y'
         state_options['y']['rate_source'] = 'ydot'
 
-        seg0_comp = SegmentSimulationComp(index=0, grid_data=None, method='RK45',
+        gd = GridData(num_segments=4, transcription='gauss-lobatto', transcription_order=3)
+
+        seg0_comp = SegmentSimulationComp(index=0, grid_data=gd, method='RK45',
                                           atol=1.0E-9, rtol=1.0E-9,
                                           ode_class=TestODE, time_options=time_options,
                                           state_options=state_options)
@@ -38,13 +38,12 @@ class TestSegmentSimulationComp(unittest.TestCase):
 
         p.setup(check=True)
 
-        p.set_val('segment_0.t0_seg', 0.0)
-        p.set_val('segment_0.tf_seg', 0.5)
+        p.set_val('segment_0.time', [0, 0.25, 0.5])
         p.set_val('segment_0.initial_states:y', 0.5)
 
         p.run_model()
 
         assert_rel_error(self,
-                         p.get_val('segment_0.final_states:y', units='m')[-1, ...],
+                         p.get_val('segment_0.states:y', units='m')[-1, ...],
                          1.425639364649936,
                          tolerance=1.0E-6)

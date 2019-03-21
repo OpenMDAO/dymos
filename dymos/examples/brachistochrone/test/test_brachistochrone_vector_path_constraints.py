@@ -71,7 +71,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         # Plot results
         if SHOW_PLOTS:
-            exp_out = phase.simulate(times=50, record=False)
+            exp_out = phase.simulate(times_per_seg=10)
 
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
@@ -189,7 +189,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         # Plot results
         if SHOW_PLOTS:
-            exp_out = phase.simulate(times=50, record=False)
+            exp_out = phase.simulate(times_per_seg=20)
 
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
@@ -307,7 +307,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         # Plot results
         if SHOW_PLOTS:
-            exp_out = phase.simulate(times=50, record=False)
+            exp_out = phase.simulate(times_per_seg=50)
 
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
@@ -421,7 +421,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         # Plot results
         if SHOW_PLOTS:
-            exp_out = phase.simulate(times=50, record=False)
+            exp_out = phase.simulate(times_per_seg=20)
 
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
@@ -539,7 +539,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         # Plot results
         if SHOW_PLOTS:
-            exp_out = phase.simulate(times=50, record=False)
+            exp_out = phase.simulate(times_per_seg=20)
 
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
@@ -657,7 +657,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         # Plot results
         if SHOW_PLOTS:
-            exp_out = phase.simulate(times=50, record=False)
+            exp_out = phase.simulate(times_per_seg=20)
 
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
@@ -771,7 +771,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         # Plot results
         if SHOW_PLOTS:
-            exp_out = phase.simulate(times=50, record=False)
+            exp_out = phase.simulate(times_per_seg=20)
 
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
@@ -890,7 +890,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         # Plot results
         if SHOW_PLOTS:
-            exp_out = phase.simulate(times=50, record=False)
+            exp_out = phase.simulate(times_per_seg=20)
 
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')
@@ -1009,7 +1009,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         # Plot results
         if SHOW_PLOTS:
-            exp_out = phase.simulate(times=50, record=False)
+            exp_out = phase.simulate(times_per_seg=20)
 
             fig, ax = plt.subplots()
             fig.suptitle('Brachistochrone Solution')

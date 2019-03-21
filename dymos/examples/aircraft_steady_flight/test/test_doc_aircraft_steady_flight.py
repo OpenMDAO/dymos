@@ -96,8 +96,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         p.run_driver()
 
-        exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True,
-                                 record_file='test_doc_aircraft_steady_flight_rec.db')
+        exp_out = phase.simulate()
 
         time_imp = p.get_val('phase0.timeseries.time', units='s')
         time_exp = exp_out.get_val('phase0.timeseries.time', units='s')

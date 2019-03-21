@@ -460,23 +460,24 @@ class Trajectory(Group):
                 self._linkages[phase1_name, phase2_name][var] = {'locs': locs, 'units': None,
                                                                  'connected': connected}
 
-    def simulate(self, times='all', record=True, record_file=None, time_units='s'):
+    def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9, record_file=None):
         """
         Simulate the Trajectory using scipy.integrate.solve_ivp.
 
         Parameters
         ----------
-        times : str or Sequence of float
-            Times at which outputs of the simulation are requested.  If given as a str, it should
-            be one of the node subsets (default is 'all').  If given as a sequence, output will
-            be provided at those times *in addition to times at the boundary of each segment*.
+        times_per_seg : int or None
+            Number of equally spaced times per segment at which output is requested.  If None,
+            output will be provided at all Nodes.
+        method : str
+            The scipy.integrate.solve_ivp integration method.
+        atol : float
+            Absolute convergence tolerance for scipy.integrate.solve_ivp.
+        rtol : float
+            Relative convergence tolerance for scipy.integrate.solve_ivp.
         record_file : str or None
-            If recording is enabled, the name of the file to which the results will be recorded.
-            If None, use the default filename '<phase_name>_sim.db'.
-        record : bool
-            If True, recording the results of the simulation is enabled.
-        time_units : str
-            Units in which times are specified, if numeric.
+            If a string, the file to which the result of the simulation will be saved.
+            If None, no record of the simulation will be saved.
 
         Returns
         -------
@@ -485,7 +486,12 @@ class Trajectory(Group):
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
         """
-        sim_traj = SimulationTrajectory(phases=self._phases, times=times, time_units=time_units)
+        sim_traj = Trajectory()
+
+        for name, phs in iteritems(self._phases):
+            sim_phs = phs.get_simulation_phase(times_per_seg=times_per_seg, method=method,
+                                               atol=atol, rtol=rtol)
+            sim_traj.add_phase(name, sim_phs)
 
         sim_traj.design_parameter_options.update(self.design_parameter_options)
         sim_traj.input_parameter_options.update(self.input_parameter_options)
@@ -494,9 +500,8 @@ class Trajectory(Group):
 
         sim_prob.model.add_subsystem(self.name, sim_traj)
 
-        if record:
-            filename = '{0}_sim.sql'.format(self.name) if record_file is None else record_file
-            rec = SqliteRecorder(filename)
+        if record_file is not None:
+            rec = SqliteRecorder(record_file)
             sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
             sim_prob.model.add_recorder(rec)
 
@@ -513,8 +518,8 @@ class Trajectory(Group):
 
         # Assign trajectory input parameter values
         for name, options in iteritems(self.input_parameter_options):
-                op = traj_op_dict['{0}.input_params.input_parameters:'
-                                  '{1}_out'.format(self.pathname, name)]
+                op = traj_op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.pathname,
+                                                                                     name)]
                 var_name = '{0}.input_parameters:{1}'.format(self.name, name)
                 sim_prob[var_name] = op['value'][0, ...]
 
@@ -550,6 +555,6 @@ class Trajectory(Group):
 
         print('\nSimulating trajectory {0}'.format(self.pathname))
         sim_prob.run_model()
-        print('Done simulating phase {0}'.format(self.pathname))
+        print('Done simulating trajectory {0}'.format(self.pathname))
 
         return sim_prob

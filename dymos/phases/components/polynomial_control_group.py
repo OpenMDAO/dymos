@@ -207,7 +207,7 @@ class PolynomialControlGroup(Group):
             ivc = self.add_subsystem('indep_polynomial_controls', subsys=ivc, promotes_outputs=['*'])
 
         self.add_subsystem(
-            'control_comp',
+            'interp_comp',
             subsys=LGLPolynomialControlComp(time_units=opts['time_units'],
                                             grid_data=opts['grid_data'],
                                             polynomial_control_options=opts['polynomial_control_'

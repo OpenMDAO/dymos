@@ -9,7 +9,6 @@ matplotlib.use('Agg')
 class TestDoubleIntegratorForDocs(unittest.TestCase):
 
     def test_double_integrator_for_docs(self):
-        import numpy as np
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from dymos import Phase
@@ -51,10 +50,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
 
         p.run_driver()
 
-        exp_out = phase.simulate(times=np.linspace(p['phase0.t_initial'],
-                                                   p['phase0.t_duration'],
-                                                   100),
-                                 record=False)
+        exp_out = phase.simulate()
 
         # Plot results
         fig, axes = plt.subplots(3, 1)

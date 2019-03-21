@@ -87,7 +87,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         # Test the results
         assert_rel_error(self, p.get_val('phase0.t_duration'), 321.0, tolerance=2)
 
-        exp_out = phase.simulate(times=50, record=False)
+        exp_out = phase.simulate()
 
         fig, axes = plt.subplots(2, 1, sharex=True)
 

@@ -129,7 +129,7 @@ class ODEIntegrationInterface(object):
 
         if self.control_options:
             for name, options in iteritems(self.control_options):
-                if name in options['targets']:
+                if options['targets']:
                     model.connect('controls:{0}'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in options['targets']])
                 if options['rate_targets']:

@@ -60,7 +60,7 @@ if __name__ == '__main__':  # pragma: no cover
     plt.plot(time, v, 'bo')
     plt.plot(time, u, 'go')
 
-    expout = prob.model.phase0.simulate(times=100)
+    expout = prob.model.phase0.simulate()
 
     time = expout.get_val('phase0.timeseries.time')
     x = expout.get_val('phase0.timeseries.states:x')

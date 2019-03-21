@@ -192,21 +192,22 @@ class TestPhaseTimeTargets(unittest.TestCase):
         assert_rel_error(self, p['phase0.rhs_disc.time'], time_disc)
         assert_rel_error(self, p['phase0.rhs_col.time'], time_col)
 
-        exp_out = p.model.phase0.simulate(record=False)
+        exp_out = p.model.phase0.simulate()
 
         for iseg in range(num_seg):
             seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
-            t_initial_i = seg_comp_i.ode_integration_interface.prob.get_val('ode.t_initial')
-            t_duration_i = seg_comp_i.ode_integration_interface.prob.get_val('ode.t_duration')
-            time_phase_i = seg_comp_i.ode_integration_interface.prob.get_val('ode.time_phase')
-            time_i = seg_comp_i.ode_integration_interface.prob.get_val('ode.time')
+            iface = seg_comp_i.options['ode_integration_interface']
+            t_initial_i = iface.prob.get_val('ode.t_initial')
+            t_duration_i = iface.prob.get_val('ode.t_duration')
+            time_phase_i = iface.prob.get_val('ode.time_phase')
+            time_i = iface.prob.get_val('ode.time')
 
             # Since the phase has simulated, all times should be equal to their respective value
             # at the end of each segment.
             assert_rel_error(self, t_initial_i, p['phase0.t_initial'])
             assert_rel_error(self, t_duration_i, p['phase0.t_duration'])
-            assert_rel_error(self, time_phase_i, time_phase_segends[2*iseg + 1], tolerance=1.0E-12)
-            assert_rel_error(self, time_i, time_segends[2*iseg + 1], tolerance=1.0E-12)
+            assert_rel_error(self, time_phase_i, time_phase_segends[2*num_seg - 1], tolerance=1.0E-12)
+            assert_rel_error(self, time_i, time_segends[2*num_seg - 1], tolerance=1.0E-12)
 
     def test_radau(self):
         num_seg = 20
@@ -233,7 +234,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         assert_rel_error(self, p['phase0.rhs_all.time'], time_all)
 
-        exp_out = p.model.phase0.simulate(record=False)
+        exp_out = p.model.phase0.simulate()
 
         for iseg in range(num_seg):
             seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
@@ -246,9 +247,9 @@ class TestPhaseTimeTargets(unittest.TestCase):
             # at the end of each segment.
             assert_rel_error(self, t_initial_i, p['phase0.t_initial'])
             assert_rel_error(self, t_duration_i, p['phase0.t_duration'])
-            assert_rel_error(self, time_phase_i, time_phase_segends[2 * iseg + 1],
+            assert_rel_error(self, time_phase_i, time_phase_segends[2 * num_seg - 1],
                              tolerance=1.0E-12)
-            assert_rel_error(self, time_i, time_segends[2 * iseg + 1], tolerance=1.0E-12)
+            assert_rel_error(self, time_i, time_segends[2 * num_seg - 1], tolerance=1.0E-12)
 
     def test_runge_kutta(self):
         num_seg = 20
@@ -291,7 +292,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         assert_rel_error(self, p['phase0.ode.time'], time_segends)
 
-        exp_out = p.model.phase0.simulate(record=False)
+        exp_out = p.model.phase0.simulate()
 
         for iseg in range(num_seg):
             seg_comp_i = exp_out.model.phase0._get_subsystem('segments.segment_{0}'.format(iseg))
@@ -304,9 +305,9 @@ class TestPhaseTimeTargets(unittest.TestCase):
             # at the end of each segment.
             assert_rel_error(self, t_initial_i, p['phase0.t_initial'])
             assert_rel_error(self, t_duration_i, p['phase0.t_duration'])
-            assert_rel_error(self, time_phase_i, time_phase_segends[2 * iseg + 1],
+            assert_rel_error(self, time_phase_i, time_phase_segends[2 * num_seg - 1],
                              tolerance=1.0E-12)
-            assert_rel_error(self, time_i, time_segends[2 * iseg + 1], tolerance=1.0E-12)
+            assert_rel_error(self, time_i, time_segends[2 * num_seg - 1], tolerance=1.0E-12)
 
 
 if __name__ == "__main__":

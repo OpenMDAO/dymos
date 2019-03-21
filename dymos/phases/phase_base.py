@@ -52,12 +52,15 @@ class PhaseBase(Group):
         self.grid_data = None
         self._time_extents = []
 
+        self._ode_class = kwargs['ode_class'] if 'ode_class' in kwargs else None
+        self._ode_init_kwargs = kwargs['ode_init_kwargs'] if 'ode_init_kwargs' in kwargs else None
+
     def initialize(self):
         self.options.declare('num_segments', types=int, desc='Number of segments')
-        self.options.declare('ode_class',
-                             desc='System defining the ODE')
-        self.options.declare('ode_init_kwargs', types=dict, default={},
-                             desc='Keyword arguments provided when initializing the ODE System')
+        # self.options.declare('ode_class',
+        #                      desc='System defining the ODE')
+        # self.options.declare('ode_init_kwargs', types=dict, default={},
+        #                      desc='Keyword arguments provided when initializing the ODE System')
         self.options.declare('transcription', values=['gauss-lobatto', 'radau-ps', 'explicit'],
                              desc='Transcription technique of the optimal control problem.')
         self.options.declare('segment_ends', default=None, types=Iterable, allow_none=True,
@@ -824,12 +827,6 @@ class PhaseBase(Group):
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         self.finalize_variables()
 
-        transcription_order = self.options['transcription_order']
-
-        if np.any(np.asarray(transcription_order) < 3):
-            raise ValueError('Given transcription order ({0}) is less than '
-                             'the minimum allowed value (3)'.format(transcription_order))
-
         self._time_extents = self._setup_time()
 
         # The control interpolation comp to which we'll connect controls
@@ -1045,7 +1042,7 @@ class PhaseBase(Group):
             sys = PolynomialControlGroup(grid_data=self.grid_data,
                                          polynomial_control_options=self.polynomial_control_options,
                                          time_units=self.time_options['units'])
-            self.add_subsystem('polynomial_controls', subsys=sys,
+            self.add_subsystem('polynomial_control_group', subsys=sys,
                                promotes_inputs=['*'], promotes_outputs=['*'])
 
     def _setup_design_parameters(self):
@@ -1400,9 +1397,9 @@ class PhaseBase(Group):
             res = res.T
         return res
 
-    def _init_simulation_phase(self, times_per_seg=None, method='RK45', atol=1.0E-9, rtol=1.0E-9):
+    def get_simulation_phase(self, times_per_seg=None, method='RK45', atol=1.0E-9, rtol=1.0E-9):
         """
-        Return a SimulationPhase initialized based on data from this Phase instance and
+        Return a SolveIVPPhase initialized based on data from this Phase instance and
         the given simulation times.
 
         Parameters
@@ -1434,7 +1431,7 @@ class PhaseBase(Group):
 
         return sim_phase
 
-    def simulate(self, times_per_seg=None, method='RK45', atol=1.0E-9, rtol=1.0E-9,
+    def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9,
                  record_file=None):
         """
         Simulate the Phase using scipy.integrate.solve_ivp.
@@ -1465,7 +1462,7 @@ class PhaseBase(Group):
 
         sim_prob = Problem(model=Group())
 
-        sim_phase = self._init_simulation_phase(times_per_seg, method=method, atol=atol, rtol=rtol)
+        sim_phase = self.get_simulation_phase(times_per_seg, method=method, atol=atol, rtol=rtol)
 
         sim_prob.model.add_subsystem(self.name, sim_phase)
 
@@ -1478,6 +1475,9 @@ class PhaseBase(Group):
 
         op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
                                                                                  out_stream=None)])
+        ip_dict = dict([(name, options) for (name, options) in self.list_inputs(units=True,
+                                                                                out_stream=None)])
+
         # Set the integration times
         op = op_dict['{0}.timeseries.time'.format(self.name)]
         sim_prob.set_val('phase0.t_initial', op['value'][0, ...])
@@ -1486,32 +1486,40 @@ class PhaseBase(Group):
         # Assign initial state values
         for name in self.state_options:
             op = op_dict['{0}.timeseries.states:{1}'.format(self.name, name)]
-            sim_prob['{0}.initial_states:{1}'.format(self.name, name)] = op['value'][0, ...]
+            sim_prob['{0}.initial_states:{1}'.format(self.name, name)][...] = op['value'][0, ...]
 
         # Assign control values
-        for name in self.control_options:
-            op = op_dict['{0}.control_group.indep_controls.controls:{1}'.format(self.name, name)]
-            sim_prob['{0}.controls:{1}'.format(self.name, name)] = op['value']
+        for name, options in iteritems(self.control_options):
+            if options['opt']:
+                op = op_dict['{0}.control_group.indep_controls.controls:{1}'.format(self.name, name)]
+                sim_prob['{0}.controls:{1}'.format(self.name, name)][...] = op['value']
+            else:
+                ip = ip_dict['{0}.control_group.control_interp_comp.controls:{1}'.format(self.name, name)]
+                sim_prob['{0}.controls:{1}'.format(self.name, name)][...] = ip['value']
 
         # Assign polynomial control values
-        for name in self.polynomial_control_options:
-            op = op_dict['{0}.polynomial_control_group.polynomial_control_interp_comp.control_values:{1}'.format(self.name, name)]
-            sim_prob['{0}.polynomial_controls:{1}'.format(self.name, name)] = op['value']
+        for name, options in iteritems(self.polynomial_control_options):
+            if options['opt']:
+                op = op_dict['{0}.polynomial_control_group.indep_polynomial_controls.polynomial_controls:{1}'.format(self.name, name)]
+                sim_prob['{0}.polynomial_controls:{1}'.format(self.name, name)][...] = op['value']
+            else:
+                ip = ip_dict['{0}.polynomial_control_group.interp_comp.polynomial_controls:{1}'.format(self.name, name)]
+                sim_prob['{0}.polynomial_controls:{1}'.format(self.name, name)][...] = ip['value']
 
         # Assign design parameter values
         for name in self.design_parameter_options:
             op = op_dict['{0}.design_params.design_parameters:{1}'.format(self.name, name)]
-            sim_prob['{0}.design_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
+            sim_prob['{0}.design_parameters:{1}'.format(self.name, name)][...] = op['value']
 
         # Assign input parameter values
         for name in self.input_parameter_options:
             op = op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.name, name)]
-            sim_prob['{0}.input_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
+            sim_prob['{0}.input_parameters:{1}'.format(self.name, name)][...] = op['value']
 
         # Assign input parameter values
         for name in self.traj_parameter_options:
             op = op_dict['{0}.traj_params.traj_parameters:{1}_out'.format(self.name, name)]
-            sim_prob['{0}.traj_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
+            sim_prob['{0}.traj_parameters:{1}'.format(self.name, name)][...] = op['value']
 
         print('\nSimulating phase {0}'.format(self.pathname))
         sim_prob.run_model()

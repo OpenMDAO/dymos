@@ -41,6 +41,11 @@ class OptimizerBasedPhaseBase(PhaseBase):
         super(OptimizerBasedPhaseBase, self).setup()
 
         transcription = self.options['transcription']
+        transcription_order = self.options['transcription_order']
+
+        if np.any(np.asarray(transcription_order) < 3):
+            raise ValueError('Given transcription order ({0}) is less than '
+                             'the minimum allowed value (3)'.format(transcription_order))
 
         num_controls = len(self.control_options)
 
@@ -48,7 +53,7 @@ class OptimizerBasedPhaseBase(PhaseBase):
         design_params = ['design_params'] if self.design_parameter_options else []
         input_params = ['input_params'] if self.input_parameter_options else []
         traj_params = ['traj_params'] if self.traj_parameter_options else []
-        polynomial_controls = ['polynomial_controls'] if self.polynomial_control_options else []
+        polynomial_controls = ['polynomial_control_group'] if self.polynomial_control_options else []
 
         order = self._time_extents + polynomial_controls + input_params + design_params + traj_params
 

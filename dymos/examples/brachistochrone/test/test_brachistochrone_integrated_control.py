@@ -4,6 +4,7 @@ import os
 import unittest
 
 import numpy as np
+from scipy.interpolate import interp1d
 
 from openmdao.api import ExplicitComponent
 from dymos import declare_time, declare_state, declare_parameter
@@ -144,10 +145,33 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         # Test the results
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
-        # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        phase.simulate(times=np.linspace(t0, tf, 50))
+        sim_out = phase.simulate(times_per_seg=20)
+
+        x_sol = p.get_val('phase0.timeseries.states:x')
+        y_sol = p.get_val('phase0.timeseries.states:y')
+        v_sol = p.get_val('phase0.timeseries.states:v')
+        theta_sol = p.get_val('phase0.timeseries.states:theta')
+        theta_dot_sol = p.get_val('phase0.timeseries.controls:theta_dot')
+        time_sol = p.get_val('phase0.timeseries.time')
+
+        x_sim = sim_out.get_val('phase0.timeseries.states:x')
+        y_sim = sim_out.get_val('phase0.timeseries.states:y')
+        v_sim = sim_out.get_val('phase0.timeseries.states:v')
+        theta_sim = sim_out.get_val('phase0.timeseries.states:theta')
+        theta_dot_sim = sim_out.get_val('phase0.timeseries.controls:theta_dot')
+        time_sim = sim_out.get_val('phase0.timeseries.time')
+
+        x_interp = interp1d(time_sim[:, 0], x_sim[:, 0])
+        y_interp = interp1d(time_sim[:, 0], y_sim[:, 0])
+        v_interp = interp1d(time_sim[:, 0], v_sim[:, 0])
+        theta_interp = interp1d(time_sim[:, 0], theta_sim[:, 0])
+        theta_dot_interp = interp1d(time_sim[:, 0], theta_dot_sim[:, 0])
+
+        assert_rel_error(self, x_interp(time_sol), x_sol, tolerance=1.0E-5)
+        assert_rel_error(self, y_interp(time_sol), y_sol, tolerance=1.0E-5)
+        assert_rel_error(self, v_interp(time_sol), v_sol, tolerance=1.0E-5)
+        assert_rel_error(self, theta_interp(time_sol), theta_sol, tolerance=1.0E-5)
+        assert_rel_error(self, theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-5)
 
     def test_brachistochrone_integrated_control_radau_ps(self):
         import numpy as np
@@ -197,10 +221,32 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        tf = p.get_val('phase0.time')[-1]
-        assert_rel_error(self, tf, 1.8016, tolerance=1.0E-3)
+        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
-        # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        phase.simulate(times=np.linspace(t0, tf, 50))
+        sim_out = phase.simulate(times_per_seg=20)
+
+        x_sol = p.get_val('phase0.timeseries.states:x')
+        y_sol = p.get_val('phase0.timeseries.states:y')
+        v_sol = p.get_val('phase0.timeseries.states:v')
+        theta_sol = p.get_val('phase0.timeseries.states:theta')
+        theta_dot_sol = p.get_val('phase0.timeseries.controls:theta_dot')
+        time_sol = p.get_val('phase0.timeseries.time')
+
+        x_sim = sim_out.get_val('phase0.timeseries.states:x')
+        y_sim = sim_out.get_val('phase0.timeseries.states:y')
+        v_sim = sim_out.get_val('phase0.timeseries.states:v')
+        theta_sim = sim_out.get_val('phase0.timeseries.states:theta')
+        theta_dot_sim = sim_out.get_val('phase0.timeseries.controls:theta_dot')
+        time_sim = sim_out.get_val('phase0.timeseries.time')
+
+        x_interp = interp1d(time_sim[:, 0], x_sim[:, 0])
+        y_interp = interp1d(time_sim[:, 0], y_sim[:, 0])
+        v_interp = interp1d(time_sim[:, 0], v_sim[:, 0])
+        theta_interp = interp1d(time_sim[:, 0], theta_sim[:, 0])
+        theta_dot_interp = interp1d(time_sim[:, 0], theta_dot_sim[:, 0])
+
+        assert_rel_error(self, x_interp(time_sol), x_sol, tolerance=1.0E-5)
+        assert_rel_error(self, y_interp(time_sol), y_sol, tolerance=1.0E-5)
+        assert_rel_error(self, v_interp(time_sol), v_sol, tolerance=1.0E-5)
+        assert_rel_error(self, theta_interp(time_sol), theta_sol, tolerance=1.0E-5)
+        assert_rel_error(self, theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-5)

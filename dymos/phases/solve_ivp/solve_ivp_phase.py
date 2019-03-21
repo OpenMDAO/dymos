@@ -39,6 +39,11 @@ class SolveIVPPhase(PhaseBase):
         self._from_phase = from_phase
         """The phase whose results we are simulating explicitly."""
 
+        if from_phase is not None:
+            self._ode_class = from_phase._ode_class
+        else:
+            self._ode_class is None
+
     def initialize(self):
         super(SolveIVPPhase, self).initialize()
         self.options.declare('from_phase', default=None, types=(PhaseBase,), allow_none=True,
@@ -70,6 +75,8 @@ class SolveIVPPhase(PhaseBase):
             self.user_design_parameter_options = self._from_phase.design_parameter_options.copy()
             self.user_input_parameter_options = self._from_phase.input_parameter_options.copy()
             self.user_traj_parameter_options = self._from_phase.traj_parameter_options.copy()
+
+            self._timeseries_outputs = self._from_phase._timeseries_outputs.copy()
 
             self.options['ode_class'] = self._from_phase.options['ode_class']
             self.options['ode_init_kwargs'] = self._from_phase.options['ode_init_kwargs']
@@ -264,7 +271,6 @@ class SolveIVPPhase(PhaseBase):
 
     def _setup_controls(self):
         grid_data = self.grid_data
-        time_units = self.time_options['units']
         output_nodes_per_seg = self.options['output_nodes_per_seg']
 
         self._check_control_options()
@@ -318,7 +324,7 @@ class SolveIVPPhase(PhaseBase):
                                                  polynomial_control_options=self.polynomial_control_options,
                                                  time_units=self.time_options['units'],
                                                  output_nodes_per_seg=self.options['output_nodes_per_seg'])
-            self.add_subsystem('polynomial_controls', subsys=sys,
+            self.add_subsystem('polynomial_control_group', subsys=sys,
                                promotes_inputs=['*'], promotes_outputs=['*'])
 
         for name, options in iteritems(self.polynomial_control_options):
