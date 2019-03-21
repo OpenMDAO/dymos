@@ -189,14 +189,10 @@ class TestPhaseBase(unittest.TestCase):
             warnings.simplefilter('always')
             p.setup(check=True)
 
-        for ww in w:
-            print(str(ww.message))
-
         expected = 'Invalid options for non-optimal design_parameter \'g\' in phase \'phase0\': ' \
                    'lower, upper, scaler, adder, ref, ref0'
 
-        self.assertEqual(len(w), 1)
-        self.assertEqual(str(w[0].message), expected)
+        self.assertIn(expected, [str(ww.message) for ww in w])
 
     def test_add_existing_design_parameter_as_input_parameter(self):
         p = Phase('gauss-lobatto',
@@ -276,14 +272,10 @@ class TestPhaseBase(unittest.TestCase):
             warnings.simplefilter('always')
             p.setup(check=True)
 
-        for ww in w:
-            print(str(ww.message))
-
         expected = 'Invalid options for non-optimal control \'theta\' in phase \'phase0\': ' \
                    'lower, upper, scaler, ref, ref0'
 
-        self.assertEqual(len(w), 1)
-        self.assertEqual(str(w[0].message), expected)
+        self.assertIn(expected, [str(ww.message) for ww in w])
 
     def test_invalid_boundary_loc(self):
         p = Phase('gauss-lobatto',

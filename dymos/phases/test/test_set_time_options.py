@@ -68,10 +68,8 @@ class TestPhaseTimeOptions(unittest.TestCase):
             warnings.simplefilter('always')
             p.setup(check=True)
 
-        self.assertEqual(len(ctx), 2,
-                         msg='setup failed to raise two warnings')
-        self.assertEqual(str(ctx[0].message), expected_msg0)
-        self.assertEqual(str(ctx[1].message), expected_msg1)
+        self.assertIn(expected_msg0, [str(w.message) for w in ctx])
+        self.assertIn(expected_msg1, [str(w.message) for w in ctx])
 
     def test_initial_val_and_final_val_stick(self):
         p = Problem(model=Group())
@@ -149,15 +147,14 @@ class TestPhaseTimeOptions(unittest.TestCase):
             warnings.simplefilter('always')
             p.setup(check=True)
 
-        self.assertTrue(len(ctx) == 2,
-                        'Expected 2 warnings, got {0}'.format(len(ctx)))
+        expected_msg0 = 'Phase \'phase0\' initial time is an externally-connected input, therefore ' \
+                        'fix_initial has no effect.'
 
-        expected = 'Phase \'phase0\' initial time is an externally-connected input, therefore ' \
-                   'fix_initial has no effect.'
-        self.assertEqual(str(ctx[0].message), expected)
-        expected = 'Phase \'phase0\' time duration is an externally-connected input, ' \
-                   'therefore fix_duration has no effect.'
-        self.assertEqual(str(ctx[1].message), expected)
+        expected_msg1 = 'Phase \'phase0\' time duration is an externally-connected input, ' \
+                        'therefore fix_duration has no effect.'
+
+        self.assertIn(expected_msg0, [str(w.message) for w in ctx])
+        self.assertIn(expected_msg1, [str(w.message) for w in ctx])
 
     def test_input_time_invalid_options(self):
         p = Problem(model=Group())
@@ -207,10 +204,8 @@ class TestPhaseTimeOptions(unittest.TestCase):
             warnings.simplefilter('always')
             p.setup(check=True)
 
-        self.assertEqual(len(ctx), 2,
-                         msg='setup failed to raise two warnings')
-        self.assertEqual(str(ctx[0].message), expected_msg0)
-        self.assertEqual(str(ctx[1].message), expected_msg1)
+        self.assertIn(expected_msg0, [str(w.message) for w in ctx])
+        self.assertIn(expected_msg1, [str(w.message) for w in ctx])
 
     def test_unbounded_time(self):
             p = Problem(model=Group())
