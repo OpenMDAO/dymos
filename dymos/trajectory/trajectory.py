@@ -214,6 +214,12 @@ class Trajectory(Group):
 
         for pair, vars in iteritems(self._linkages):
             phase_name1, phase_name2 = pair
+
+            for name in pair:
+                if name not in self._phases:
+                    raise ValueError('Invalid linkage.  Phase \'{0}\' does not exist in '
+                                     'trajectory \'{1}\'.'.format(name, self.pathname))
+
             p1 = self._phases[phase_name1]
             p2 = self._phases[phase_name2]
 
