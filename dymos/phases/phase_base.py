@@ -28,14 +28,6 @@ _unspecified = object()
 class PhaseBase(Group):
     def __init__(self, **kwargs):
 
-        # self.options['ode_class'] = kwargs['ode_class'] if 'ode_class' in kwargs else None
-        # self.options['ode_init_kwargs'] = kwargs['ode_init_kwargs'] if 'ode_init_kwargs' in kwargs else {}
-        #
-        # if 'ode_class' in kwargs:
-        #     kwargs.pop('ode_class')
-        # if 'ode_init_kwargs' in kwargs:
-        #     kwargs.pop('ode_init_kwargs')
-
         super(PhaseBase, self).__init__(**kwargs)
 
         # Dictioanries of variable options that are set by the user via the API
@@ -119,6 +111,10 @@ class PhaseBase(Group):
         connected_initial : bool
             If True, then the initial value for this state comes from an externally connected
             source.
+        rate_source : str
+            The path to the ODE output which provides the rate of this state variable.
+        targets : Sequence of str
+            The path to the targets of the state variable in the ODE system.
         """
         if name not in self.user_state_options:
             self.user_state_options[name] = {}
@@ -131,7 +127,7 @@ class PhaseBase(Group):
 
         self.user_state_options[name].update(kwargs)
 
-    def _check_parameter(self, name, dynamic):
+    def _check_parameter(self, name):
         """
         Checks that the parameter of the given name is valid.
 
@@ -144,13 +140,11 @@ class PhaseBase(Group):
         ----------
         name : str
             The name of the controllable parameter.
-        dynamic : bool
-            True if attempting to use the given name as a dynamic control, otherwise False.
 
         Raises
         ------
         ValueError
-            Raised if the parameter of the given name is previously assigned, non-existent, or
+            Raised if the parameter of the given name is previously assigned or
             incompatible with the type of control to which it is assigned.
 
 
@@ -175,63 +169,79 @@ class PhaseBase(Group):
         Parameters
         ----------
         name : str
-            Name of the controllable parameter in the ODE.
-        val : float or ndarray
-            Default value of the control at all nodes.  If val scalar and the control
-            is dynamic it will be broadcast.
-        units : str or None or 0
-            Units in which the control variable is defined.  If 0, use the units declared
-            for the parameter in the ODE.
+            The name assigned to the control variable.  If the ODE has been decorated with
+            parameters, this should be the name of a control in the system.
+        units : str or None
+            The units with which the control parameter in this phase will be defined.  It must be
+            compatible with the units of the targets to which the control is connected.
+        desc : str
+            A description of the control variable.
         opt : bool
-            If True (default) the value(s) of this control will be design variables in
-            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the values of this control will exist as aainput controls:{name}
-        lower : float or ndarray
-            The lower bound of the control at the nodes of the phase.
-        upper : float or ndarray
-            The upper bound of the control at the nodes of the phase.
-        scaler : float or ndarray
-            The scaler of the control value at the nodes of the phase.
-        adder : float or ndarray
-            The adder of the control value at the nodes of the phase.
-        ref0 : float or ndarray
-            The zero-reference value of the control at the nodes of the phase.
-        ref : float or ndarray
-            The unit-reference value of the control at the nodes of the phase
-        continuity : bool or None
-            True if continuity in the value of the control is desired at the segment bounds.
-            See notes about default values for continuity.
-        rate_continuity : bool or None
-            True if continuity in the rate of the control is desired at the segment bounds.  This
-            rate is normalized to segment tau space.
-            See notes about default values for continuity.
-        rate_continuity_scaler : float or ndarray
-            The scaler to use for the rate_continuity constraint given to the optimizer.
-        rate2_continuity : bool or None
-            True if continuity in the second derivative of the control is desired at the
-            segment bounds. This second derivative is normalized to segment tau space.
-            See notes about default values for continuity.
-        rate2_continuity_scaler : float or ndarray
-            The scaler to use for the rate2_continuity constraint given to the optimizer.
-        rate_param : None or str
-            The name of the parameter in the ODE to which the first time-derivative
-            of the control value is connected.
-        rate2_param : None or str
-            The name of the parameter in the ODE to which the second time-derivative
-            of the control value is connected.
+            If True, the control value will be a design variable for the optimization problem.
+            If False, allow the control to be connected externally.
+        fix_initial : bool
+            If True, the initial value of this control is fixed and not a design variable.
+            This option is invalid if opt=False.
+        fix_final : bool
+            If True, the final value of this control is fixed and not a design variable.
+            This option is invalid if opt=False.
+        targets : Sequence of str or None
+            Targets in the ODE to which this control is connected.
+        rate_targets : Sequence of str or None
+            The targets in the ODE to which the control rate is connected.
+        rate2_targets : Sequence of str or None
+            The parameter in the ODE to which the control 2nd derivative is connected.
+        val : float
+            The default value of the control variable at the control input nodes.
+        shape : Sequence of int
+            The shape of the control variable at each point in time.
+        lower : Sequence of Number or None
+            The lower bound of the control variable at the nodes.
+            This option is invalid if opt=False.
+        upper : Sequence or Number or None
+            The upper bound of the control variable at the nodes.
+            This option is invalid if opt=False.
+        scaler : float or None
+            The scaler of the control variable at the nodes.
+            This option is invalid if opt=False.
+        adder : float or None
+            The adder of the control variable at the nodes.
+            This option is invalid if opt=False.
+        ref0 : float or None
+            The zero-reference value of the control variable at the nodes.
+            This option is invalid if opt=False.
+        ref : float or None
+            The unit-reference value of the control variable at the nodes.
+            This option is invalid if opt=False.
+        continuity : bool
+            Enforce continuity of control values at segment boundaries.
+            This option is invalid if opt=False.
+        rate_continuity : bool
+            Enforce continuity of control first derivatives  (in dimensionless time) at
+            segment boundaries.
+            This option is invalid if opt=False.
+        rate_continuity_scaler : float
+            Scaler of the rate continuity constraint at segment boundaries.
+            This option is invalid if opt=False.
+        rate2_continuity : bool
+            Enforce continuity of control second derivatives at segment boundaries.
+            This option is invalid if opt=False.
+        rate2_continuity_scaler : float
+            Scaler of the dimensionless rate continuity constraint at segment boundaries.
+            This option is invalid if opt=False.
+        dynamic : bool
+            If True, the value of the shape of the parameter will be (num_nodes, ...),
+            allowing the variable to be used as either a static or dynamic control.
+            This impacts the shape of the partial derivatives matrix.  Unless a parameter is
+            large and broadcasting a value to each individual node would be inefficient,
+            users should stick to the default value of True.)
 
         Notes
         -----
-        If continuity is None or rate continuity is None, the default value for
-        continuity is True and rate continuity of False.
-
-        The default value of continuity and rate continuity for input controls (opt=False)
-        is False.
-
-        The user may override these defaults by specifying them as True or False.
+        rate and rate2 continuity are not enforced for input controls.
 
         """
-        self._check_parameter(name, dynamic=True)
+        self._check_parameter(name)
 
         if name not in self.user_control_options:
             self.user_control_options[name] = {}
@@ -289,8 +299,10 @@ class PhaseBase(Group):
         rate2_param : None or str
             The name of the parameter in the ODE to which the second time-derivative
             of the control value is connected.
+        targets : Sequence of str or None
+            Targets in the ODE to which this polynomial control is connected.
         """
-        self._check_parameter(name, dynamic=True)
+        self._check_parameter(name)
 
         if name not in self.user_polynomial_control_options:
             self.user_polynomial_control_options[name] = {}
@@ -337,9 +349,11 @@ class PhaseBase(Group):
             The zero-reference value of the design parameter for the optimizer.
         ref : float or ndarray
             The unit-reference value of the design parameter for the optimizer.
+        targets : Sequence of str or None
+            Targets in the ODE to which this parameter is connected.
 
         """
-        self._check_parameter(name, dynamic=False)
+        self._check_parameter(name)
 
         if name not in self.user_design_parameter_options:
             self.user_design_parameter_options[name] = {}
@@ -365,8 +379,10 @@ class PhaseBase(Group):
         units : str or None or 0
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
+        targets : Sequence of str or None
+            Targets in the ODE to which this parameter is connected.
         """
-        self._check_parameter(name, dynamic=False)
+        self._check_parameter(name)
 
         if name not in self.user_input_parameter_options:
             self.user_input_parameter_options[name] = {}
@@ -392,9 +408,11 @@ class PhaseBase(Group):
             Default value of the design parameter at all nodes.
         units : str or None or 0
             Units in which the design parameter is defined.  If 0, use the units declared
-            for the parameter in the ODE.        """
-
-        self._check_parameter(name, dynamic=False)
+            for the parameter in the ODE.
+        targets : Sequence of str or None
+            Targets in the ODE to which this parameter is connected.
+        """
+        self._check_parameter(name)
 
         if name not in self.user_traj_parameter_options:
             self.user_traj_parameter_options[name] = {}

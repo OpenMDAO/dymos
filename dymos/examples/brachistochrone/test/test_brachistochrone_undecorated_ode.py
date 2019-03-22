@@ -127,30 +127,6 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         # Test the results
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
-        # # Generate the explicitly simulated trajectory
-        # t0 = p['phase0.t_initial']
-        # tf = t0 + p['phase0.t_duration']
-        # exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
-        #
-        # fig, ax = plt.subplots()
-        # fig.suptitle('Brachistochrone Solution')
-        #
-        # x_imp = p.get_val('phase0.timeseries.states:x')
-        # y_imp = p.get_val('phase0.timeseries.states:y')
-        #
-        # x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        # y_exp = exp_out.get_val('phase0.timeseries.states:y')
-        #
-        # ax.plot(x_imp, y_imp, 'ro', label='solution')
-        # ax.plot(x_exp, y_exp, 'b-', label='simulated')
-        #
-        # ax.set_xlabel('x (m)')
-        # ax.set_ylabel('y (m)')
-        # ax.grid(True)
-        # ax.legend(loc='upper right')
-        #
-        # plt.show()
-
     def test_brachistochrone_undecorated_ode_radau(self):
         import numpy as np
         import matplotlib
@@ -199,30 +175,6 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
 
         # Test the results
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
-
-        # # Generate the explicitly simulated trajectory
-        # t0 = p['phase0.t_initial']
-        # tf = t0 + p['phase0.t_duration']
-        # exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
-        #
-        # fig, ax = plt.subplots()
-        # fig.suptitle('Brachistochrone Solution')
-        #
-        # x_imp = p.get_val('phase0.timeseries.states:x')
-        # y_imp = p.get_val('phase0.timeseries.states:y')
-        #
-        # x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        # y_exp = exp_out.get_val('phase0.timeseries.states:y')
-        #
-        # ax.plot(x_imp, y_imp, 'ro', label='solution')
-        # ax.plot(x_exp, y_exp, 'b-', label='simulated')
-        #
-        # ax.set_xlabel('x (m)')
-        # ax.set_ylabel('y (m)')
-        # ax.grid(True)
-        # ax.legend(loc='upper right')
-        #
-        # plt.show()
 
     def test_brachistochrone_undecorated_ode_rk(self):
         import numpy as np
