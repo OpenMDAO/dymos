@@ -32,7 +32,7 @@ differential equations to be integrated.  The user first builds an OpenMDAO mode
 that provide the rates of the state variables.  This model can be an OpenMDAO model of arbitrary
 complexity, including nested groups and components, layers of nonlinear solvers, etc.
 
-Next we wrap our system with decorators that provide information regarding the states to be
+Next we can wrap our system with decorators that provide information regarding the states to be
 integrated, which sources in the model provide their rates, and where any externally provided
 parameters should be connected.  When used in an optimal control context, these external parameters
 may serve as controls.
@@ -142,9 +142,21 @@ may serve as controls.
 Integrating Ordinary Differential Equations
 -------------------------------------------
 
-dymos's `ScipyODEIntegrator` provides an OpenMDAO group which simulates the ODE system it is given.
-This explicit integration capability can be used to check solutions of the implicit collocation 
-techniques or to generate an initial guess for state-time histories of the implicit collocation.
+Dymos's `RungeKutta` and solver-based pseudspectral transcriptions
+provide the ability to numerically integrate the ODE system it is given.
+Used in an optimal control context, these provide a shooting method in 
+which each iteration provides a physically viable trajectory.
+
+Pseudospectral Methods
+----------------------
+
+dymos currently supports the Radau Pseudospectral Method and high-order
+Gauss-Lobatto transcriptions.  These implicit techniques rely on the
+optimizer to impose "defect" constraints which enforce the physical
+accuracy of the resulting trajectories.  To verify the physical
+accuracy of the solutions, Dymos can explicitly integrate them using
+variable-step methods.
+
 
 Solving Optimal Control Problems
 --------------------------------
@@ -153,9 +165,10 @@ dymos uses the concept of *phases* to support optimal control of dynamical syste
 Users connect one or more phases to construct trajectories.
 Each phase can have its own:
 
-- Optimal Control Transcription (Gauss-Lobatto, Radau Pseudospectral, or GLM)
+- Optimal Control Transcription (Gauss-Lobatto, Radau Pseudospectral, or RungeKutta)
 - Equations of motion
 - Boundary and path constraints
 
-Each dymos `Phase` is ultimately just an OpenMDAO Group that can exist in
-a problem along with numerous other groups.
+dymos Phases and Trajectories are ultimately just OpenMDAO Groups that can exist in
+a problem along with numerous other models, allowing for the simultaneous
+optimization of systems and dynamics.

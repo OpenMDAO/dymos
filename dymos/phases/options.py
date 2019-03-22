@@ -38,14 +38,13 @@ class ControlOptionsDictionary(OptionsDictionary):
                           'design variable. This option is invalid if opt=False.')
 
         self.declare(name='targets', types=Iterable, default=[],
-                     desc='Used to store target information for ShootingPhase.  Should not be'
-                          'set by the user in add_control.')
+                     desc='Used to store target information for the control.')
 
-        self.declare(name='rate_param', types=Iterable, allow_none=True,
+        self.declare(name='rate_targets', types=Iterable, allow_none=True,
                      default=None,
-                     desc='The parameter in the ODE to which the control rate is connected')
+                     desc='The targets in the ODE to which the control rate is connected')
 
-        self.declare(name='rate2_param', types=Iterable, allow_none=True,
+        self.declare(name='rate2_targets', types=Iterable, allow_none=True,
                      default=None,
                      desc='The parameter in the ODE to which the control 2nd derivative '
                           'is connected.')
@@ -101,7 +100,7 @@ class ControlOptionsDictionary(OptionsDictionary):
                           'segment boundaries. '
                           'This option is invalid if opt=False.')
 
-        self.declare(name='rate2_continuity', types=(bool, dict), default=True,
+        self.declare(name='rate2_continuity', types=(bool, dict), default=False,
                      desc='Enforce continuity of control second derivatives at segment boundaries. '
                           'This option is invalid if opt=False.')
 
@@ -110,10 +109,13 @@ class ControlOptionsDictionary(OptionsDictionary):
                           'segment boundaries. '
                           'This option is invalid if opt=False.')
 
-        self.declare(name='interp_order', types=(int,), default=None, allow_none=True,
-                     desc='A integer that provides the interpolation order when the control is'
-                          'to assume a single polynomial basis across the entire phase, or None'
-                          'to use the default control behavior.')
+        self.declare('dynamic', default=True, types=bool,
+                     desc='If True, the value of the shape of the parameter will '
+                          'be (num_nodes, ...), allowing the variable to be used as either a '
+                          'static or dynamic control.  This impacts the shape of the partial '
+                          'derivatives matrix.  Unless a parameter is large and broadcasting a '
+                          'value to each individual node would be inefficient, users should stick '
+                          'to the default value of True.')
 
 
 class PolynomialControlOptionsDictionary(OptionsDictionary):
@@ -149,11 +151,11 @@ class PolynomialControlOptionsDictionary(OptionsDictionary):
         self.declare(name='targets', types=Iterable, default=[],
                      desc='Used to store target information.')
 
-        self.declare(name='rate_param', types=Iterable, allow_none=True,
+        self.declare(name='rate_targets', types=Iterable, allow_none=True,
                      default=None,
-                     desc='The parameter in the ODE to which the control rate is connected')
+                     desc='The targets in the ODE to which the control rate is connected')
 
-        self.declare(name='rate2_param', types=Iterable, allow_none=True,
+        self.declare(name='rate2_targets', types=Iterable, allow_none=True,
                      default=None,
                      desc='The parameter in the ODE to which the control 2nd derivative '
                           'is connected.')
@@ -200,6 +202,14 @@ class PolynomialControlOptionsDictionary(OptionsDictionary):
                           'to assume a single polynomial basis across the entire phase, or None'
                           'to use the default control behavior.')
 
+        self.declare('dynamic', default=True, types=bool,
+                     desc='If True, the value of the shape of the parameter will '
+                          'be (num_nodes, ...), allowing the variable to be used as either a '
+                          'static or dynamic control.  This impacts the shape of the partial '
+                          'derivatives matrix.  Unless a parameter is large and broadcasting a '
+                          'value to each individual node would be inefficient, users should stick '
+                          'to the default value of True.')
+
 
 class DesignParameterOptionsDictionary(OptionsDictionary):
     """
@@ -226,8 +236,8 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
         self.declare(name='dynamic', types=bool, default=True,
                      desc='True if this parameter can be used as a dynamic control, else False')
 
-        self.declare(name='target_params', types=dict, default=None, allow_none=True,
-                     desc='Used to store target information on a per-phase basis for trajectories.')
+        self.declare(name='targets', types=Iterable, default=[],
+                     desc='Used to store target information for the design parameter.')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the design parameter in the phase.')
@@ -290,6 +300,9 @@ class InputParameterOptionsDictionary(OptionsDictionary):
 
         self.declare(name='target_params', types=dict, default=None, allow_none=True,
                      desc='Used to store target information on a per-phase basis for trajectories.')
+
+        self.declare(name='targets', types=Iterable, default=[],
+                     desc='Used to store target information for the input parameter.')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the design parameter in the phase.')
@@ -478,18 +491,18 @@ class TimeOptionsDictionary(OptionsDictionary):
                      desc='Unit-reference value for the duration of the integration variable '
                           'across the phase.')
 
-        self.declare(name='targets', types=Iterable, allow_none=True, default=None,
+        self.declare(name='targets', types=Iterable, allow_none=True, default=[],
                      desc='targets in the ODE to which the integration variable is connected')
 
-        self.declare(name='time_phase_targets', types=Iterable, allow_none=True, default=None,
+        self.declare(name='time_phase_targets', types=Iterable, allow_none=True, default=[],
                      desc='targets in the ODE to which the elapsed duration of the phase is '
                           'connected')
 
-        self.declare(name='t_initial_targets', types=Iterable, allow_none=True, default=None,
+        self.declare(name='t_initial_targets', types=Iterable, allow_none=True, default=[],
                      desc='targets in the ODE to which the initial time of the phase is '
                           'connected')
 
-        self.declare(name='t_duration_targets', types=Iterable, allow_none=True, default=None,
+        self.declare(name='t_duration_targets', types=Iterable, allow_none=True, default=[],
                      desc='targets in the ODE to which the total duration of the phase is '
                           'connected')
 

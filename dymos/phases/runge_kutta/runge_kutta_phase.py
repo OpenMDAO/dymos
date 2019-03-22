@@ -25,32 +25,10 @@ class RungeKuttaPhase(PhaseBase):
     """
     RungeKuttaPhase provides explicitly integrated phases where each segment is assumed to be
     a single RK timestep.
-
-    Attributes
-    ----------
-    self.time_options : dict of TimeOptionsDictionary
-        A dictionary of options for time (integration variable) in the phase.
-
-    self.state_options : dict of StateOptionsDictionary
-        A dictionary of options for the RHS states in the Phase.
-
-    self.control_options : dict of ControlOptionsDictionary
-        A dictionary of options for the controls in the Phase.
-
-    self._ode_controls : dict of ControlOptionsDictionary
-        A dictionary of the default options for controllable inputs of the Phase RHS
-
     """
     def initialize(self):
         super(RungeKuttaPhase, self).initialize()
         self.options['transcription'] = 'explicit'
-        self.options.declare('num_segments', types=(int,),
-                             desc='The number of segments in the Phase.  In RungeKuttaPhase, each'
-                                  'segment is a single timestep of the integration scheme.')
-
-        self.options.declare('segment_ends', default=None, types=(int, Iterable), allow_none=True,
-                             desc='The relative endpoint locations for each segment. Must be of '
-                                  'length (num_segments + 1).')
 
         self.options.declare('method', default='rk4', values=('rk4',),
                              desc='The integrator used within the explicit phase.')
@@ -224,9 +202,10 @@ class RungeKuttaPhase(PhaseBase):
             row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
             row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
             src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
-            self.connect('states:{0}'.format(state_name),
-                         ['ode.{0}'.format(tgt) for tgt in options['targets']],
-                         src_indices=src_idxs.ravel(), flat_src_indices=True)
+            if options['targets']:
+                self.connect('states:{0}'.format(state_name),
+                             ['ode.{0}'.format(tgt) for tgt in options['targets']],
+                             src_indices=src_idxs.ravel(), flat_src_indices=True)
 
             # Connect the state rate source to the k comp
             rate_path, src_idxs = self._get_rate_source_path(state_name)
@@ -293,9 +272,9 @@ class RungeKuttaPhase(PhaseBase):
             segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=options['shape'])
             all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
 
-            if name in self.ode_options._parameters:
+            if self.control_options[name]['targets']:
                 src_name = 'control_values:{0}'.format(name)
-                targets = self.ode_options._parameters[name]['targets']
+                targets = self.control_options[name]['targets']
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
                              src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
@@ -304,9 +283,9 @@ class RungeKuttaPhase(PhaseBase):
                              ['rk_solve_group.ode.{0}'.format(t) for t in targets],
                              src_indices=all_src_idxs.ravel(), flat_src_indices=True)
 
-            if options['rate_param']:
+            if self.control_options[name]['rate_targets']:
                 src_name = 'control_rates:{0}_rate'.format(name)
-                targets = self.ode_options._parameters[options['rate_param']]['targets']
+                targets = self.control_options[name]['rate_targets']
 
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
@@ -316,9 +295,9 @@ class RungeKuttaPhase(PhaseBase):
                              ['rk_solve_group.{0}'.format(t) for t in targets],
                              src_indices=all_src_idxs, flat_src_indices=True)
 
-            if options['rate2_param']:
+            if self.control_options[name]['rate2_targets']:
                 src_name = 'control_rates:{0}_rate2'.format(name)
-                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+                targets = self.control_options[name]['rate2_targets']
 
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
@@ -338,9 +317,9 @@ class RungeKuttaPhase(PhaseBase):
             segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=options['shape'])
             all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
 
-            if name in self.ode_options._parameters:
+            if self.polynomial_control_options[name]['targets']:
                 src_name = 'polynomial_control_values:{0}'.format(name)
-                targets = self.ode_options._parameters[name]['targets']
+                targets = self.polynomial_control_options[name]['targets']
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
                              src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
@@ -349,9 +328,9 @@ class RungeKuttaPhase(PhaseBase):
                              ['rk_solve_group.ode.{0}'.format(t) for t in targets],
                              src_indices=all_src_idxs.ravel(), flat_src_indices=True)
 
-            if options['rate_param']:
+            if self.polynomial_control_options[name]['rate_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate'.format(name)
-                targets = self.ode_options._parameters[options['rate_param']]['targets']
+                targets = self.polynomial_control_options[name]['rate_targets']
 
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
@@ -361,9 +340,9 @@ class RungeKuttaPhase(PhaseBase):
                              ['rk_solve_group.{0}'.format(t) for t in targets],
                              src_indices=all_src_idxs, flat_src_indices=True)
 
-            if options['rate2_param']:
+            if self.polynomial_control_options[name]['rate2_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate2'.format(name)
-                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+                targets = self.polynomial_control_options[name]['rate2_targets']
 
                 self.connect(src_name,
                              ['ode.{0}'.format(t) for t in targets],
@@ -848,10 +827,15 @@ class RungeKuttaPhase(PhaseBase):
         num_iter_ode_nodes = num_seg * num_stages
         num_final_ode_nodes = 2 * num_seg
 
-        if name in self.ode_options._parameters:
-            ode_tgts = self.ode_options._parameters[name]['targets']
-            dynamic = self.ode_options._parameters[name]['dynamic']
-            shape = self.ode_options._parameters[name]['shape']
+        parameter_options = self.design_parameter_options.copy()
+        parameter_options.update(self.input_parameter_options)
+        parameter_options.update(self.traj_parameter_options)
+        parameter_options.update(self.control_options)
+
+        if name in parameter_options:
+            ode_tgts = parameter_options[name]['targets']
+            dynamic = parameter_options[name]['dynamic']
+            shape = parameter_options[name]['shape']
 
             if dynamic:
                 src_idxs_raw = np.zeros(num_final_ode_nodes, dtype=int)
@@ -879,141 +863,6 @@ class RungeKuttaPhase(PhaseBase):
                                     src_idxs))
 
         return connection_info
-
-    def set_state_options(self, name, units=_unspecified, val=1.0,
-                          fix_initial=False, fix_final=False, initial_bounds=None,
-                          final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
-                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
-                          connected_initial=False):
-        """
-        Set options that apply the EOM state variable of the given name.
-
-        Parameters
-        ----------
-        name : str
-            Name of the state variable in the RHS.
-        units : str or None
-            Units in which the state variable is defined.  Internally components may use different
-            units for the state variable, but the IndepVarComp which provides its value will provide
-            it in these units, and collocation defects will use these units.  If units is not
-            specified here then the value as defined in the ODEOptions (@declare_state) will be
-            used.
-        val :  ndarray
-            The default value of the state at the state discretization nodes of the phase.
-        fix_initial : bool(False)
-            If True, omit the first value of the state from the design variables (prevent the
-            optimizer from changing it).
-        fix_final : bool(False)
-            If True, omit the final value of the state from the design variables (prevent the
-            optimizer from changing it).
-        lower : float or ndarray or None (None)
-            The lower bound of the state at the nodes of the phase.
-        upper : float or ndarray or None (None)
-            The upper bound of the state at the nodes of the phase.
-        scaler : float or ndarray or None (None)
-            The scaler of the state value at the nodes of the phase.
-        adder : float or ndarray or None (None)
-            The adder of the state value at the nodes of the phase.
-        ref0 : float or ndarray or None (None)
-            The zero-reference value of the state at the nodes of the phase.
-        ref : float or ndarray or None (None)
-            The unit-reference value of the state at the nodes of the phase
-        defect_scaler : float or ndarray (1.0)
-            The scaler of the state defect at the collocation nodes of the phase.
-        defect_ref : float or ndarray (1.0)
-            The unit-reference value of the state defect at the collocation nodes of the phase. If
-            provided, this value overrides defect_scaler.
-        connected_initial : bool
-            If True, then the initial value for this state comes from an externally connected
-            source.
-
-        """
-        super(RungeKuttaPhase, self).set_state_options(name=name,
-                                                       units=units,
-                                                       val=val,
-                                                       fix_initial=fix_initial,
-                                                       fix_final=fix_final,
-                                                       initial_bounds=initial_bounds,
-                                                       final_bounds=final_bounds,
-                                                       lower=lower,
-                                                       upper=upper,
-                                                       scaler=scaler,
-                                                       adder=adder,
-                                                       ref=ref,
-                                                       ref0=ref0,
-                                                       defect_scaler=defect_scaler,
-                                                       defect_ref=defect_ref,
-                                                       connected_initial=connected_initial)
-
-    def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
-                      adder=None, scaler=None, parallel_deriv_color=None,
-                      vectorize_derivs=False):
-        """
-        Allows the user to add an objective in the phase.  If name is not a state,
-        control, control rate, or 'time', then this is assumed to be the path of the variable
-        to be constrained in the RHS.
-
-        Parameters
-        ----------
-        name : str
-            Name of the objective variable.  This should be one of 'time', a state or control
-            variable, or the path to an output from the top level of the RHS.
-        loc : str
-            Where in the phase the objective is to be evaluated.  Valid
-            options are 'initial' and 'final'.  The default is 'final'.
-        index : int, optional
-            If variable is an array at each point in time, this indicates which index is to be
-            used as the objective, assuming C-ordered flattening.
-        shape : int, optional
-            The shape of the objective variable, at a point in time
-        ref : float or ndarray, optional
-            Value of response variable that scales to 1.0 in the driver.
-        ref0 : float or ndarray, optional
-            Value of response variable that scales to 0.0 in the driver.
-        adder : float or ndarray, optional
-            Value to add to the model value to get the scaled value. Adder
-            is first in precedence.
-        scaler : float or ndarray, optional
-            value to multiply the model value to get the scaled value. Scaler
-            is second in precedence.
-        parallel_deriv_color : string
-            If specified, this design var will be grouped for parallel derivative
-            calculations with other variables sharing the same parallel_deriv_color.
-        vectorize_derivs : bool
-            If True, vectorize derivative calculations.
-        """
-        var_type = self._classify_var(name)
-
-        # Determine the path to the variable
-        if var_type == 'time':
-            obj_path = 'time'
-        elif var_type == 'time_phase':
-            obj_path = 'time_phase'
-        elif var_type == 'state':
-            obj_path = 'timeseries.states:{0}'.format(name)
-        elif var_type == 'indep_control':
-            obj_path = 'control_values:{0}'.format(name)
-        elif var_type == 'input_control':
-            obj_path = 'control_values:{0}'.format(name)
-        elif var_type == 'control_rate':
-            control_name = name[:-5]
-            obj_path = 'control_rates:{0}_rate'.format(control_name)
-        elif var_type == 'control_rate2':
-            control_name = name[:-6]
-            obj_path = 'control_rates:{0}_rate2'.format(control_name)
-        elif var_type == 'design_parameter':
-            obj_path = 'design_parameters:{0}'.format(name)
-        elif var_type == 'input_parameter':
-            obj_path = 'input_parameters:{0}_out'.format(name)
-        else:
-            # Failed to find variable, assume it is in the RHS
-            obj_path = 'ode.{0}'.format(name)
-
-        super(RungeKuttaPhase, self)._add_objective(obj_path, loc=loc, index=index, shape=shape,
-                                                    ref=ref, ref0=ref0, adder=adder,
-                                                    scaler=scaler,
-                                                    parallel_deriv_color=parallel_deriv_color,
-                                                    vectorize_derivs=vectorize_derivs)
 
     def _get_boundary_constraint_src(self, var, loc):
         # Determine the path to the variable which we will be constraining

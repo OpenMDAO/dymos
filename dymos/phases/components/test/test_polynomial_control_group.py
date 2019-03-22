@@ -106,7 +106,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                                                           polynomial_control_options=controls,
                                                           time_units='s')
 
-        p.model.add_subsystem('polynomial_controls',
+        p.model.add_subsystem('polynomial_control_group',
                               subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
@@ -200,7 +200,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                                                           polynomial_control_options=controls,
                                                           time_units='s')
 
-        p.model.add_subsystem('polynomial_controls',
+        p.model.add_subsystem('polynomial_control_group',
                               subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
@@ -296,7 +296,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                                                           polynomial_control_options=controls,
                                                           time_units='s')
 
-        p.model.add_subsystem('polynomial_controls',
+        p.model.add_subsystem('polynomial_control_group',
                               subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
@@ -386,7 +386,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                                                           polynomial_control_options=controls,
                                                           time_units='s')
 
-        p.model.add_subsystem('polynomial_controls',
+        p.model.add_subsystem('polynomial_control_group',
                               subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
@@ -492,7 +492,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                                                           polynomial_control_options=controls,
                                                           time_units='s')
 
-        p.model.add_subsystem('polynomial_controls',
+        p.model.add_subsystem('polynomial_control_group',
                               subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
@@ -598,7 +598,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                                                           polynomial_control_options=controls,
                                                           time_units='s')
 
-        p.model.add_subsystem('polynomial_controls',
+        p.model.add_subsystem('polynomial_control_group',
                               subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
@@ -704,7 +704,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                                                           polynomial_control_options=controls,
                                                           time_units='s')
 
-        p.model.add_subsystem('polynomial_controls',
+        p.model.add_subsystem('polynomial_control_group',
                               subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
@@ -810,7 +810,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                                                           polynomial_control_options=controls,
                                                           time_units='s')
 
-        p.model.add_subsystem('polynomial_controls',
+        p.model.add_subsystem('polynomial_control_group',
                               subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
@@ -916,7 +916,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                                                           polynomial_control_options=controls,
                                                           time_units='s')
 
-        p.model.add_subsystem('polynomial_controls',
+        p.model.add_subsystem('polynomial_control_group',
                               subsys=polynomial_control_group,
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])

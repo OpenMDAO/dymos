@@ -68,7 +68,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     # Plot results
     if SHOW_PLOTS:
-        exp_out = phase.simulate(times=50, record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')

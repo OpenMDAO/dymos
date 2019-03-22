@@ -64,7 +64,6 @@ class TestExampleSSTOEarth(unittest.TestCase):
 
     def test_simulate_plot(self):
         from matplotlib import pyplot as plt
-        import numpy as np
         from openmdao.utils.assert_utils import assert_rel_error
 
         import dymos.examples.ssto.ex_ssto_earth as ex_ssto_earth
@@ -85,7 +84,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
 
         p.run_driver()
 
-        exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 100))
+        exp_out = phase.simulate()
 
         ##############################
         # quick check of the results
@@ -145,6 +144,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
         axarr.legend(loc='best', ncol=2)
 
         plt.show()
+
 
 if __name__ == "__main__":
     unittest.main()

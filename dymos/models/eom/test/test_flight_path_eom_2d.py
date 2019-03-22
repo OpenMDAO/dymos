@@ -81,7 +81,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         self.p.run_model()
 
-        exp_out = phase.simulate(times='all', record=False)
+        exp_out = phase.simulate()
 
         assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:h', units='km')[-1], 0.0,
                          tolerance=0.001)
@@ -113,7 +113,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         self.p.run_driver()
 
-        exp_out = phase.simulate(times='all', record=False)
+        exp_out = phase.simulate(times_per_seg=None)
 
         assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:r')[-1], v0**2 / g,
                          tolerance=0.001)

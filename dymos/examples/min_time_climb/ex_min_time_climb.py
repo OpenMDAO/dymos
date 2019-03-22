@@ -95,7 +95,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     p.run_driver()
 
     if SHOW_PLOTS:
-        exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 100))
+        exp_out = phase.simulate()
 
         t_sol = p.get_val('phase0.timeseries.time')
         t_exp = exp_out.get_val('phase0.timeseries.time')

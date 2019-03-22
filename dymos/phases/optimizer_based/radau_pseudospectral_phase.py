@@ -99,19 +99,19 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
         for name, options in iteritems(self.control_options):
 
-            if name in self.ode_options._parameters:
-                targets = self.ode_options._parameters[name]['targets']
+            if self.control_options[name]['targets']:
+                targets = self.control_options[name]['targets']
 
                 self.connect('control_values:{0}'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
-            if options['rate_param']:
-                targets = self.ode_options._parameters[options['rate_param']]['targets']
+            if self.control_options[name]['rate_targets']:
+                targets = self.control_options[name]['rate_targets']
                 self.connect('control_rates:{0}_rate'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
-            if options['rate2_param']:
-                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+            if self.control_options[name]['rate2_targets']:
+                targets = self.control_options[name]['rate2_targets']
                 self.connect('control_rates:{0}_rate2'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
@@ -120,19 +120,19 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
 
         for name, options in iteritems(self.polynomial_control_options):
 
-            if name in self.ode_options._parameters:
-                targets = self.ode_options._parameters[name]['targets']
+            if self.polynomial_control_options[name]['targets']:
+                targets = self.polynomial_control_options[name]['targets']
 
                 self.connect('polynomial_control_values:{0}'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
-            if options['rate_param']:
-                targets = self.ode_options._parameters[options['rate_param']]['targets']
+            if self.polynomial_control_options[name]['rate_targets']:
+                targets = self.polynomial_control_options[name]['rate_targets']
                 self.connect('polynomial_control_rates:{0}_rate'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
-            if options['rate2_param']:
-                targets = self.ode_options._parameters[options['rate2_param']]['targets']
+            if self.polynomial_control_options[name]['rate2_targets']:
+                targets = self.polynomial_control_options[name]['rate2_targets']
                 self.connect('polynomial_control_rates:{0}_rate2'.format(name),
                              ['rhs_all.{0}'.format(t) for t in targets])
 
@@ -149,10 +149,19 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         """
         connection_info = []
 
-        if name in self.ode_options._parameters:
-            shape = self.ode_options._parameters[name]['shape']
-            dynamic = self.ode_options._parameters[name]['dynamic']
-            targets = self.ode_options._parameters[name]['targets']
+        parameter_options = self.design_parameter_options.copy()
+        parameter_options.update(self.input_parameter_options)
+        parameter_options.update(self.traj_parameter_options)
+        parameter_options.update(self.control_options)
+
+        if name in parameter_options:
+            try:
+                targets = parameter_options[name]['targets']
+            except KeyError:
+                raise KeyError('Could not find any ODE targets associated with parameter {0}.'.format(name))
+
+            dynamic = parameter_options[name]['dynamic']
+            shape = parameter_options[name]['shape']
 
             if dynamic:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
@@ -452,7 +461,7 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
                                                    var_class=self._classify_var(name),
                                                    units=units)
 
-            if self.ode_options._parameters[name]['dynamic']:
+            if options['dynamic']:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
             else:
@@ -592,74 +601,3 @@ class RadauPseudospectralPhase(OptimizerBasedPhaseBase):
         src_idxs = get_src_indices_by_row(node_idxs, shape=shape)
 
         return rate_path, src_idxs
-
-    def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
-                      adder=None, scaler=None, parallel_deriv_color=None,
-                      vectorize_derivs=False):
-        """
-        Allows the user to add an objective in the phase.  If name is not a state,
-        control, control rate, or 'time', then this is assumed to be the path of the variable
-        to be constrained in the RHS.
-
-        Parameters
-        ----------
-        name : str
-            Name of the objective variable.  This should be one of 'time', a state or control
-            variable, or the path to an output from the top level of the RHS.
-        loc : str
-            Where in the phase the objective is to be evaluated.  Valid
-            options are 'initial' and 'final'.  The default is 'final'.
-        index : int, optional
-            If variable is an array at each point in time, this indicates which index is to be
-            used as the objective, assuming C-ordered flattening.
-        shape : int, optional
-            The shape of the objective variable, at a point in time
-        ref : float or ndarray, optional
-            Value of response variable that scales to 1.0 in the driver.
-        ref0 : float or ndarray, optional
-            Value of response variable that scales to 0.0 in the driver.
-        adder : float or ndarray, optional
-            Value to add to the model value to get the scaled value. Adder
-            is first in precedence.
-        scaler : float or ndarray, optional
-            value to multiply the model value to get the scaled value. Scaler
-            is second in precedence.
-        parallel_deriv_color : string
-            If specified, this design var will be grouped for parallel derivative
-            calculations with other variables sharing the same parallel_deriv_color.
-        vectorize_derivs : bool
-            If True, vectorize derivative calculations.
-        """
-        var_type = self._classify_var(name)
-
-        # Determine the path to the variable
-        if var_type == 'time':
-            obj_path = 'time'
-        elif var_type == 'time_phase':
-            obj_path = 'time_phase'
-        elif var_type == 'state':
-            obj_path = 'states:{0}'.format(name)
-        elif var_type == 'indep_control':
-            obj_path = 'controls:{0}'.format(name)
-        elif var_type == 'input_control':
-            obj_path = 'controls:{0}'.format(name)
-        elif var_type == 'control_rate':
-            control_name = name[:-5]
-            obj_path = 'control_rates:{0}_rate'.format(control_name)
-        elif var_type == 'control_rate2':
-            control_name = name[:-6]
-            obj_path = 'control_rates:{0}_rate2'.format(control_name)
-        elif var_type == 'design_parameter':
-            obj_path = 'design_parameters:{0}'.format(name)
-        elif var_type == 'input_parameter':
-            obj_path = 'input_parameters:{0}_out'.format(name)
-        else:
-            # Failed to find variable, assume it is in the RHS
-            obj_path = 'rhs_all.{0}'.format(name)
-
-        pdc = parallel_deriv_color
-        super(RadauPseudospectralPhase, self)._add_objective(obj_path, loc=loc, index=index,
-                                                             shape=shape, ref=ref, ref0=ref0,
-                                                             adder=adder, scaler=scaler,
-                                                             parallel_deriv_color=pdc,
-                                                             vectorize_derivs=vectorize_derivs)

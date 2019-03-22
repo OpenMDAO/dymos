@@ -3,9 +3,8 @@ from __future__ import print_function, division, absolute_import
 from collections import OrderedDict
 
 import numpy as np
-from dymos.phases.simulation.odeint_control_interpolation_comp import \
-    ODEIntControlInterpolationComp
-from dymos.phases.simulation.state_rate_collector_comp import StateRateCollectorComp
+from .odeint_control_interpolation_comp import ODEIntControlInterpolationComp
+from .state_rate_collector_comp import StateRateCollectorComp
 from openmdao.core.group import Group
 from openmdao.core.indepvarcomp import IndepVarComp
 from openmdao.core.problem import Problem
@@ -26,8 +25,6 @@ class ODEIntegrationInterface(object):
 
     Parameters
     ----------
-    phase_name : str
-        The name of the phase being simulated.
     ode_class : class
         The ODEClass belonging to the phase being simulated.
     time_options : dict of {str: TimeOptionsDictionary}
@@ -43,11 +40,9 @@ class ODEIntegrationInterface(object):
     ode_init_kwargs : dict
         Keyword argument dictionary passed to the ODE at initialization.
     """
-    def __init__(self, phase_name, ode_class, time_options, state_options, control_options,
+    def __init__(self, ode_class, time_options, state_options, control_options,
                  polynomial_control_options, design_parameter_options, input_parameter_options,
                  traj_parameter_options, ode_init_kwargs=None):
-
-        self.phase_name = phase_name
 
         # Get the state vector.  This isn't necessarily ordered
         # so just pick the default ordering and go with it.
@@ -59,6 +54,7 @@ class ODEIntegrationInterface(object):
         self.input_parameter_options = input_parameter_options
         self.traj_parameter_options = traj_parameter_options
         self.control_interpolants = {}
+        self.polynomial_control_interpolants = {}
 
         pos = 0
 
@@ -82,7 +78,7 @@ class ODEIntegrationInterface(object):
 
         # The time IVC
         ivc = IndepVarComp()
-        time_units = ode_class.ode_options._time_options['units']
+        time_units = self.time_options['units']
         ivc.add_output('time', val=0.0, units=time_units)
         ivc.add_output('time_phase', val=-88.0, units=time_units)
         ivc.add_output('t_initial', val=-99.0, units=time_units)
@@ -91,18 +87,18 @@ class ODEIntegrationInterface(object):
         model.add_subsystem('time_input', ivc, promotes_outputs=['*'])
 
         model.connect('time', ['ode.{0}'.format(tgt) for tgt in
-                               ode_class.ode_options._time_options['targets']])
+                               self.time_options['targets']])
 
         model.connect('time_phase', ['ode.{0}'.format(tgt) for tgt in
-                                     ode_class.ode_options._time_options['time_phase_targets']])
+                                     self.time_options['time_phase_targets']])
 
         model.connect('t_initial',
                       ['ode.{0}'.format(tgt) for tgt in
-                       ode_class.ode_options._time_options['t_initial_targets']])
+                       self.time_options['t_initial_targets']])
 
         model.connect('t_duration',
                       ['ode.{0}'.format(tgt) for tgt in
-                       ode_class.ode_options._time_options['t_duration_targets']])
+                       self.time_options['t_duration_targets']])
 
         # The States Comp
         for name, options in iteritems(self.state_options):
@@ -124,69 +120,62 @@ class ODEIntegrationInterface(object):
                 ODEIntControlInterpolationComp(time_units=time_units,
                                                control_options=self.control_options,
                                                polynomial_control_options=self.polynomial_control_options)
-            self._interp_comp.interpolants = self.control_interpolants
+            self._interp_comp.control_interpolants = self.control_interpolants
+            self._interp_comp.polynomial_control_interpolants = self.polynomial_control_interpolants
 
             model.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])
             model.connect('time', ['indep_controls.time'])
 
-        for name, options in iteritems(self.control_options):
-            if name in ode_class.ode_options._parameters:
-                targets = ode_class.ode_options._parameters[name]['targets']
-                model.connect('controls:{0}'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in targets])
-            if options['rate_param']:
-                rate_param = options['rate_param']
-                rate_targets = ode_class.ode_options._parameters[rate_param]['targets']
-                model.connect('control_rates:{0}_rate'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in rate_targets])
-            if options['rate2_param']:
-                rate2_param = options['rate2_param']
-                rate2_targets = ode_class.ode_options._parameters[rate2_param]['targets']
-                model.connect('control_rates:{0}_rate2'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in rate2_targets])
+        if self.control_options:
+            for name, options in iteritems(self.control_options):
+                if options['targets']:
+                    model.connect('controls:{0}'.format(name),
+                                  ['ode.{0}'.format(tgt) for tgt in options['targets']])
+                if options['rate_targets']:
+                    model.connect('control_rates:{0}_rate'.format(name),
+                                  ['ode.{0}'.format(tgt) for tgt in options['rate_targets']])
+                if options['rate2_targets']:
+                    model.connect('control_rates:{0}_rate2'.format(name),
+                                  ['ode.{0}'.format(tgt) for tgt in options['rate2_targets']])
 
-        for name, options in iteritems(self.polynomial_control_options):
-            if name in ode_class.ode_options._parameters:
-                targets = ode_class.ode_options._parameters[name]['targets']
-                model.connect('polynomial_controls:{0}'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in targets])
-            if options['rate_param']:
-                rate_param = options['rate_param']
-                rate_targets = ode_class.ode_options._parameters[rate_param]['targets']
-                model.connect('polynomial_control_rates:{0}_rate'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in rate_targets])
-            if options['rate2_param']:
-                rate2_param = options['rate2_param']
-                rate2_targets = ode_class.ode_options._parameters[rate2_param]['targets']
-                model.connect('polynomial_control_rates:{0}_rate2'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in rate2_targets])
+        if self.polynomial_control_options:
+            for name, options in iteritems(self.polynomial_control_options):
+                if options['targets']:
+                    model.connect('polynomial_controls:{0}'.format(name),
+                                  ['ode.{0}'.format(tgt) for tgt in options['targets']])
+                if options['rate_targets']:
+                    model.connect('polynomial_control_rates:{0}_rate'.format(name),
+                                  ['ode.{0}'.format(tgt) for tgt in options['rate_targets']])
+                if options['rate2_targets']:
+                    model.connect('polynomial_control_rates:{0}_rate2'.format(name),
+                                  ['ode.{0}'.format(tgt) for tgt in options['rate2_targets']])
 
-        for name, options in iteritems(self.design_parameter_options):
-            ivc.add_output('design_parameters:{0}'.format(name),
-                           shape=np.prod(options['shape']),
-                           units=options['units'])
-            targets = ode_class.ode_options._parameters[name]['targets']
-            if targets is not None:
-                model.connect('design_parameters:{0}'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in targets])
+        if self.design_parameter_options:
+            for name, options in iteritems(self.design_parameter_options):
+                ivc.add_output('design_parameters:{0}'.format(name),
+                               shape=options['shape'],
+                               units=options['units'])
+                if options['targets'] is not None:
+                    model.connect('design_parameters:{0}'.format(name),
+                                  ['ode.{0}'.format(tgt) for tgt in options['targets']])
 
-        for name, options in iteritems(self.input_parameter_options):
-            ivc.add_output('input_parameters:{0}'.format(name),
-                           shape=options['shape'],
-                           units=options['units'])
-            targets = ode_class.ode_options._parameters[name]['targets']
-            if targets is not None:
-                model.connect('input_parameters:{0}'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in targets])
+        if self.input_parameter_options:
+            for name, options in iteritems(self.input_parameter_options):
+                ivc.add_output('input_parameters:{0}'.format(name),
+                               shape=options['shape'],
+                               units=options['units'])
+                if options['targets'] is not None:
+                    model.connect('input_parameters:{0}'.format(name),
+                                  ['ode.{0}'.format(tgt) for tgt in options['targets']])
 
-        for name, options in iteritems(self.traj_parameter_options):
-            ivc.add_output('traj_parameters:{0}'.format(name),
-                           shape=options['shape'],
-                           units=options['units'])
-            targets = ode_class.ode_options._parameters[name]['targets']
-            if targets is not None:
-                model.connect('traj_parameters:{0}'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in targets])
+        if self.traj_parameter_options:
+            for name, options in iteritems(self.traj_parameter_options):
+                ivc.add_output('traj_parameters:{0}'.format(name),
+                               shape=options['shape'],
+                               units=options['units'])
+                if options['targets'] is not None:
+                    model.connect('traj_parameters:{0}'.format(name),
+                                  ['ode.{0}'.format(tgt) for tgt in options['targets']])
 
         # The ODE System
         model.add_subsystem('ode', subsys=ode_class(num_nodes=1, **ode_init_kwargs))
@@ -206,23 +195,29 @@ class ODEIntegrationInterface(object):
             rate_path = 'time'
         elif var == 'time_phase':
             rate_path = 'time_phase'
-        elif var in self.state_options:
+        elif self.state_options is not None and var in self.state_options:
             rate_path = 'states:{0}'.format(var)
-        elif var in self.control_options:
+        elif self.control_options is not None and var in self.control_options:
             rate_path = 'controls:{0}'.format(var)
-        elif var in self.polynomial_control_options:
+        elif self.polynomial_control_options is not None and var in self.polynomial_control_options:
             rate_path = 'polynomial_controls:{0}'.format(var)
-        elif var in self.design_parameter_options:
+        elif self.design_parameter_options is not None and var in self.design_parameter_options:
             rate_path = 'design_parameters:{0}'.format(var)
-        elif var in self.input_parameter_options:
+        elif self.input_parameter_options is not None and var in self.input_parameter_options:
             rate_path = 'input_parameters:{0}'.format(var)
-        elif var.endswith('_rate') and var[:-5] in self.control_options:
+        elif self.traj_parameter_options is not None and var in self.traj_parameter_options:
+            rate_path = 'traj_parameters:{0}'.format(var)
+        elif var.endswith('_rate') and self.control_options is not None and \
+                var[:-5] in self.control_options:
             rate_path = 'control_rates:{0}'.format(var)
-        elif var.endswith('_rate2') and var[:-6] in self.control_options:
+        elif var.endswith('_rate2') and self.control_options is not None and \
+                var[:-6] in self.control_options:
             rate_path = 'control_rates:{0}'.format(var)
-        elif var.endswith('_rate') and var[:-5] in self.polynomial_control_options:
+        elif var.endswith('_rate') and self.polynomial_control_options is not None and \
+                var[:-5] in self.polynomial_control_options:
             rate_path = 'polynomial_control_rates:{0}'.format(var)
-        elif var.endswith('_rate2') and var[:-6] in self.polynomial_control_options:
+        elif var.endswith('_rate2') and self.polynomial_control_options is not None and \
+                var[:-6] in self.polynomial_control_options:
             rate_path = 'polynomial_control_rates:{0}'.format(var)
         else:
             rate_path = 'ode.{0}'.format(var)

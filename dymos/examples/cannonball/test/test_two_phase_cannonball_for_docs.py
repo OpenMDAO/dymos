@@ -63,7 +63,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         # Limit the muzzle energy
         ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
-                                       upper=400000, lower=0, ref=100000)
+                                       upper=400000, lower=0, ref=100000, shape=(1,))
 
         # Second Phase (descent)
         descent = Phase('gauss-lobatto',
@@ -145,11 +145,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.run_driver()
 
         assert_rel_error(self, p.get_val('traj.descent.states:r')[-1],
-                         3191.83945861, tolerance=1.0E-2)
+                         3183.25, tolerance=1.0E-2)
 
-        exp_out = traj.simulate(times=100, record_file='ex_two_phase_cannonball_sim.db')
-
-        # exp_out_loaded = load_simulation_results('ex_two_phase_cannonball_sim.db')
+        exp_out = traj.simulate()
 
         print('optimal radius: {0:6.4f} m '.format(p.get_val('external_params.radius',
                                                              units='m')[0]))

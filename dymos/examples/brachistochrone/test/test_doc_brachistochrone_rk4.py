@@ -6,7 +6,6 @@ import unittest
 class TestBrachistochroneRK4Example(unittest.TestCase):
 
     def test_brachistochrone_for_docs_forward_shooting(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -63,9 +62,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -87,7 +84,6 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         plt.show()
 
     def test_brachistochrone_for_docs_backward_shooting(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -145,9 +141,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         assert_rel_error(self, p['phase0.time'][-1], -1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -169,7 +163,6 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         plt.show()
 
     def test_brachistochrone_for_docs_forward_shooting_path_constrained_state(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -226,9 +219,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         # Test the results
         assert_rel_error(self, p['phase0.time'][-1], 1.805, tolerance=1.0E-2)
 
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -250,7 +241,6 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         plt.show()
 
     def test_brachistochrone_for_docs_forward_shooting_path_constrained_control(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -309,9 +299,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -333,7 +321,6 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         plt.show()
 
     def test_brachistochrone_for_docs_forward_shooting_path_constrained_control_rate(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -391,9 +378,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
@@ -415,7 +400,6 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         plt.show()
 
     def test_brachistochrone_for_docs_forward_shooting_path_constrained_ode_output(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -473,9 +457,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')

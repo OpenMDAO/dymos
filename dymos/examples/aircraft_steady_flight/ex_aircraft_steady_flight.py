@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-from openmdao.api import Problem, Group, pyOptSparseDriver
-from openmdao.api import IndepVarComp
+from openmdao.api import Problem, Group, pyOptSparseDriver, IndepVarComp
+from openmdao.utils.general_utils import set_pyoptsparse_opt
 
 from dymos import Phase
 
@@ -21,6 +21,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
                               use_boundary_constraints=False, compressed=False):
     p = Problem(model=Group())
     p.driver = pyOptSparseDriver()
+    _, optimizer = set_pyoptsparse_opt(optimizer, fallback=False)
     p.driver.options['optimizer'] = optimizer
     p.driver.options['dynamic_simul_derivs'] = True
     if optimizer == 'SNOPT':
@@ -71,7 +72,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
                             solve_segments=solve_segments)
 
     phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
-                      rate_continuity=True)
+                      rate_continuity=True, rate2_continuity=False)
 
     phase.add_control('mach', units=None, opt=False)
 
@@ -104,8 +105,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
     p.run_driver()
 
     if show_plots:
-        exp_out = phase.simulate(times=np.linspace(0, p['phase0.t_duration'], 500), record=True,
-                                 record_file='test_ex_aircraft_steady_flight_rec.db')
+        exp_out = phase.simulate()
 
         t_imp = p.get_val('phase0.timeseries.time')
         t_exp = exp_out.get_val('phase0.timeseries.time')
@@ -119,7 +119,8 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
         mass_fuel_imp = p.get_val('phase0.timeseries.states:mass_fuel', units='kg')
         mass_fuel_exp = exp_out.get_val('phase0.timeseries.states:mass_fuel', units='kg')
 
-        plt.plot(t_imp, alt_imp, 'ro')
+        plt.show()
+        plt.plot(t_imp, alt_imp, 'b-')
         plt.plot(t_exp, alt_exp, 'b-')
         plt.suptitle('altitude vs time')
 

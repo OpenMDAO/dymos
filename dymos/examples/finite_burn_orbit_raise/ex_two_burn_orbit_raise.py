@@ -253,7 +253,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         simulate = True
 
         if simulate:
-            exp_out = traj.simulate(times=50)
+            exp_out = traj.simulate()
 
         fig = plt.figure(figsize=(8, 4))
         fig.suptitle('Two Burn Orbit Raise Solution')

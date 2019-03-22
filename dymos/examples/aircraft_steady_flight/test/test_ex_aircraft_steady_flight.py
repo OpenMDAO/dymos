@@ -29,5 +29,6 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
         assert_rel_error(self, p.get_val('phase0.timeseries.states:range', units='NM')[-1],
                          726.85, tolerance=1.0E-2)
 
+
 if __name__ == '__main__':
     unittest.main()

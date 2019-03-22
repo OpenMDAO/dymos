@@ -5,14 +5,13 @@ from six import iteritems, string_types
 
 from openmdao.api import Group, ExplicitComponent, IndepVarComp
 
-from ..grid_data import GridData
-from ...utils.lgl import lgl
-from ...utils.lagrange import lagrange_matrices
-from ...utils.misc import get_rate_units
-from ...utils.constants import INF_BOUND
+from ...grid_data import GridData
+from ....utils.lgl import lgl
+from ....utils.lagrange import lagrange_matrices
+from ....utils.misc import get_rate_units
 
 
-class LGLPolynomialControlComp(ExplicitComponent):
+class SolveIVPLGLPolynomialControlComp(ExplicitComponent):
     """
     Component which interpolates controls as a single polynomial across the entire phase.
     """
@@ -23,14 +22,32 @@ class LGLPolynomialControlComp(ExplicitComponent):
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
         self.options.declare('polynomial_control_options', types=dict,
                              desc='Dictionary of options for the polynomial controls')
+        self.options.declare('output_nodes_per_seg', default=None, types=(int,), allow_none=True,
+                             desc='If None, results are provided at the all nodes within each'
+                                  'segment.  If an int (n) then results are provided at n '
+                                  'equally distributed points in time within each segment.')
 
         self._matrices = {}
 
     def setup(self):
-
+        output_nodes_per_seg = self.options['output_nodes_per_seg']
         gd = self.options['grid_data']
+        num_seg = gd.num_segments
         num_nodes = gd.subset_num_nodes['all']
-        eval_nodes = gd.node_ptau
+        all_nodes_ptau = gd.node_ptau
+
+        if output_nodes_per_seg is None:
+            output_nodes_ptau = all_nodes_ptau
+        else:
+            output_nodes_ptau = np.empty(0, dtype=float)
+            for iseg in range(num_seg):
+                i1, i2 = gd.subset_segment_indices['all'][iseg, :]
+                ptau1 = all_nodes_ptau[i1]
+                ptau2 = all_nodes_ptau[i2-1]
+                output_nodes_ptau = np.concatenate((output_nodes_ptau,
+                                                    np.linspace(ptau1, ptau2, output_nodes_per_seg)))
+
+        num_output_nodes = len(output_nodes_ptau)
 
         self._input_names = {}
         self._output_val_names = {}
@@ -61,13 +78,13 @@ class LGLPolynomialControlComp(ExplicitComponent):
             rate2_units = get_rate_units(units, self.options['time_units'], deriv=2)
 
             input_shape = (num_control_input_nodes,) + shape
-            output_shape = (num_nodes,) + shape
+            output_shape = (num_output_nodes,) + shape
 
-            L_de, D_de = lagrange_matrices(disc_nodes, eval_nodes)
+            L_do, D_do = lagrange_matrices(disc_nodes, output_nodes_ptau)
             _, D_dd = lagrange_matrices(disc_nodes, disc_nodes)
-            D2_de = np.dot(D_de, D_dd)
+            D2_do = np.dot(D_do, D_dd)
 
-            self._matrices[name] = L_de, D_de, D2_de
+            self._matrices[name] = L_do, D_do, D2_do
 
             self._input_names[name] = 'polynomial_controls:{0}'.format(name)
             self._output_val_names[name] = 'polynomial_control_values:{0}'.format(name)
@@ -79,22 +96,22 @@ class LGLPolynomialControlComp(ExplicitComponent):
             self.add_output(self._output_rate_names[name], shape=output_shape, units=rate_units)
             self.add_output(self._output_rate2_names[name], shape=output_shape, units=rate2_units)
 
-            self.val_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
-            self.rate_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
-            self.rate2_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
+            self.val_jacs[name] = np.zeros((num_output_nodes, size, num_control_input_nodes, size))
+            self.rate_jacs[name] = np.zeros((num_output_nodes, size, num_control_input_nodes, size))
+            self.rate2_jacs[name] = np.zeros((num_output_nodes, size, num_control_input_nodes, size))
 
             for i in range(size):
-                self.val_jacs[name][:, i, :, i] = L_de
-                self.rate_jacs[name][:, i, :, i] = D_de
-                self.rate2_jacs[name][:, i, :, i] = D2_de
+                self.val_jacs[name][:, i, :, i] = L_do
+                self.rate_jacs[name][:, i, :, i] = D_do
+                self.rate2_jacs[name][:, i, :, i] = D2_do
 
-            self.val_jacs[name] = self.val_jacs[name].reshape((num_nodes * size,
+            self.val_jacs[name] = self.val_jacs[name].reshape((num_output_nodes * size,
                                                               num_control_input_nodes * size),
                                                               order='C')
-            self.rate_jacs[name] = self.rate_jacs[name].reshape((num_nodes * size,
+            self.rate_jacs[name] = self.rate_jacs[name].reshape((num_output_nodes * size,
                                                                 num_control_input_nodes * size),
                                                                 order='C')
-            self.rate2_jacs[name] = self.rate2_jacs[name].reshape((num_nodes * size,
+            self.rate2_jacs[name] = self.rate2_jacs[name].reshape((num_output_nodes * size,
                                                                   num_control_input_nodes * size),
                                                                   order='C')
             self.val_jac_rows[name], self.val_jac_cols[name] = \
@@ -133,15 +150,15 @@ class LGLPolynomialControlComp(ExplicitComponent):
         dt_dptau = 0.5 * inputs['t_duration']
 
         for name, options in iteritems(self.options['polynomial_control_options']):
-            L_de, D_de, D2_de = self._matrices[name]
+            L_do, D_do, D2_do = self._matrices[name]
 
             u = inputs[self._input_names[name]]
 
-            a = np.tensordot(D_de, u, axes=(1, 0)).T
-            b = np.tensordot(D2_de, u, axes=(1, 0)).T
+            a = np.tensordot(D_do, u, axes=(1, 0)).T
+            b = np.tensordot(D2_do, u, axes=(1, 0)).T
 
-            # divide each "row" by dt_dptau or dt_dptau**2
-            outputs[self._output_val_names[name]] = np.tensordot(L_de, u, axes=(1, 0))
+            # divide each "row" of the rates by dt_dptau or dt_dptau**2
+            outputs[self._output_val_names[name]] = np.tensordot(L_do, u, axes=(1, 0))
             outputs[self._output_rate_names[name]] = (a / dt_dptau).T
             outputs[self._output_rate2_names[name]] = (b / dt_dptau ** 2).T
 
@@ -151,7 +168,7 @@ class LGLPolynomialControlComp(ExplicitComponent):
         for name, options in iteritems(self.options['polynomial_control_options']):
             control_name = self._input_names[name]
             num_input_nodes = options['order'] + 1
-            L_de, D_de, D2_de = self._matrices[name]
+            L_do, D_do, D2_do = self._matrices[name]
 
             size = self.sizes[name]
             rate_name = self._output_rate_names[name]
@@ -164,10 +181,10 @@ class LGLPolynomialControlComp(ExplicitComponent):
             t_duration_tile = np.tile(t_duration, size * nn)
 
             partials[rate_name, 't_duration'] = \
-                0.5 * (-np.dot(D_de, u_d).ravel(order='F') / (0.5 * t_duration_tile) ** 2)
+                0.5 * (-np.dot(D_do, u_d).ravel(order='F') / (0.5 * t_duration_tile) ** 2)
 
             partials[rate2_name, 't_duration'] = \
-                -1.0 * (np.dot(D2_de, u_d).ravel(order='F') / (0.5 * t_duration_tile) ** 3)
+                -1.0 * (np.dot(D2_do, u_d).ravel(order='F') / (0.5 * t_duration_tile) ** 3)
 
             t_duration_x_size = np.repeat(t_duration, size * nn)[:, np.newaxis]
 
@@ -180,7 +197,7 @@ class LGLPolynomialControlComp(ExplicitComponent):
                 (self.rate2_jacs[name] / (0.5 * t_duration_x_size) ** 2)[r_nz, c_nz]
 
 
-class PolynomialControlGroup(Group):
+class SolveIVPPolynomialControlGroup(Group):
 
     def initialize(self):
         self.options.declare('polynomial_control_options', types=dict,
@@ -188,12 +205,18 @@ class PolynomialControlGroup(Group):
         self.options.declare('time_units', default=None, allow_none=True, types=string_types,
                              desc='Units of time')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
+        self.options.declare('output_nodes_per_seg', default=None, types=(int,), allow_none=True,
+                             desc='If None, results are provided at the all nodes within each'
+                                  'segment.  If an int (n) then results are provided at n '
+                                  'equally distributed points in time within each segment.')
 
     def setup(self):
 
         ivc = IndepVarComp()
 
         opts = self.options
+        pcos = self.options['polynomial_control_options']
+        output_nodes_per_seg = self.options['output_nodes_per_seg']
 
         # Pull out the interpolated controls
         num_opt = 0
@@ -204,14 +227,14 @@ class PolynomialControlGroup(Group):
                 num_opt += 1
 
         if num_opt > 0:
-            ivc = self.add_subsystem('indep_polynomial_controls', subsys=ivc, promotes_outputs=['*'])
+            ivc = self.add_subsystem('control_inputs', subsys=ivc, promotes_outputs=['*'])
 
         self.add_subsystem(
-            'interp_comp',
-            subsys=LGLPolynomialControlComp(time_units=opts['time_units'],
-                                            grid_data=opts['grid_data'],
-                                            polynomial_control_options=opts['polynomial_control_'
-                                                                            'options']),
+            'control_comp',
+            subsys=SolveIVPLGLPolynomialControlComp(time_units=opts['time_units'],
+                                                    grid_data=opts['grid_data'],
+                                                    polynomial_control_options=pcos,
+                                                    output_nodes_per_seg=output_nodes_per_seg),
             promotes_inputs=['*'],
             promotes_outputs=['*'])
 
@@ -224,21 +247,3 @@ class PolynomialControlGroup(Group):
                 ivc.add_output('polynomial_controls:{0}'.format(name),
                                val=np.ones((num_input_nodes,) + shape),
                                units=options['units'])
-
-                desvar_indices = list(range(num_input_nodes))
-                if options['fix_initial']:
-                    desvar_indices.pop(0)
-                if options['fix_final']:
-                    desvar_indices.pop()
-
-                lb = -INF_BOUND if options['lower'] is None else options['lower']
-                ub = INF_BOUND if options['upper'] is None else options['upper']
-
-                self.add_design_var('polynomial_controls:{0}'.format(name),
-                                    lower=lb,
-                                    upper=ub,
-                                    ref=options['ref'],
-                                    ref0=options['ref0'],
-                                    adder=options['adder'],
-                                    scaler=options['scaler'],
-                                    indices=desvar_indices)

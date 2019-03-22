@@ -10,7 +10,6 @@ import numpy as np
 from scipy import interpolate
 
 from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder
-from openmdao.utils.general_utils import warn_deprecation
 from openmdao.core.system import System
 
 from dymos.phases.components import BoundaryConstraintComp
@@ -20,9 +19,7 @@ from dymos.phases.options import ControlOptionsDictionary, DesignParameterOption
     PolynomialControlOptionsDictionary
 from dymos.phases.components import PolynomialControlGroup, ControlGroup
 
-from dymos.ode_options import ODEOptions
 from dymos.utils.constants import INF_BOUND
-from dymos.utils.misc import CoerceDesvar
 
 
 _unspecified = object()
@@ -33,51 +30,24 @@ class PhaseBase(Group):
 
         super(PhaseBase, self).__init__(**kwargs)
 
-        self.state_options = {}
-        self.control_options = {}
-        self.polynomial_control_options = {}
-        self.design_parameter_options = {}
-        self.input_parameter_options = {}
-        self.traj_parameter_options = {}
-        self.time_options = TimeOptionsDictionary()
+        # Dictioanries of variable options that are set by the user via the API
+        # These will be applied over any defaults specified by decorators on the ODE
+        self.user_time_options = {}
+        self.user_state_options = {}
+        self.user_control_options = {}
+        self.user_polynomial_control_options = {}
+        self.user_design_parameter_options = {}
+        self.user_input_parameter_options = {}
+        self.user_traj_parameter_options = {}
+
         self._initial_boundary_constraints = {}
         self._final_boundary_constraints = {}
         self._path_constraints = {}
         self._timeseries_outputs = {}
-        self._objectives = []
+        self._objectives = {}
         self._ode_controls = {}
         self.grid_data = None
         self._time_extents = []
-
-        # check that ode_class is appropriate
-        if not inspect.isclass(self.options['ode_class']):
-            raise ValueError('ode_class must be a class, not an instance.')
-        if not issubclass(self.options['ode_class'], System):
-            raise ValueError('ode_class must be derived from openmdao.core.System.')
-        if not hasattr(self.options['ode_class'], 'ode_options') or \
-                not isinstance(self.options['ode_class'].ode_options, ODEOptions):
-            raise ValueError('ode_class has no ODE metadata.  Use @declare_time, @declare_state'
-                             'and @declare_control to assign ODE metadata.')
-
-        self.ode_options = self.options['ode_class'].ode_options
-
-        # Copy default value for options from the ODEOptions
-        for state_name, options in iteritems(self.ode_options._states):
-            self.state_options[state_name] = StateOptionsDictionary()
-            self.state_options[state_name]['shape'] = options['shape']
-            self.state_options[state_name]['units'] = options['units']
-            self.state_options[state_name]['targets'] = options['targets']
-            self.state_options[state_name]['rate_source'] = options['rate_source']
-
-        # Integration variable options default to values from the RHS
-        self.time_options['units'] = self.ode_options._time_options['units']
-        self.time_options['targets'] = self.ode_options._time_options['targets']
-        self.time_options['time_phase_targets'] = \
-            self.ode_options._time_options['time_phase_targets']
-        self.time_options['t_initial_targets'] = \
-            self.ode_options._time_options['t_initial_targets']
-        self.time_options['t_duration_targets'] = \
-            self.ode_options._time_options['t_duration_targets']
 
     def initialize(self):
         self.options.declare('num_segments', types=int, desc='Number of segments')
@@ -95,11 +65,7 @@ class PhaseBase(Group):
         self.options.declare('compressed', default=True, types=bool,
                              desc='Use compressed transcription')
 
-    def set_state_options(self, name, units=_unspecified, val=1.0,
-                          fix_initial=False, fix_final=False, initial_bounds=None,
-                          final_bounds=None, lower=None, upper=None, scaler=None, adder=None,
-                          ref=None, ref0=None, defect_scaler=1.0, defect_ref=None,
-                          solve_segments=False, connected_initial=False):
+    def set_state_options(self, name, **kwargs):
         """
         Set options that apply the EOM state variable of the given name.
 
@@ -145,26 +111,23 @@ class PhaseBase(Group):
         connected_initial : bool
             If True, then the initial value for this state comes from an externally connected
             source.
+        rate_source : str
+            The path to the ODE output which provides the rate of this state variable.
+        targets : Sequence of str
+            The path to the targets of the state variable in the ODE system.
         """
-        if units is not _unspecified:
-            self.state_options[name]['units'] = units
-        self.state_options[name]['val'] = val
-        self.state_options[name]['fix_initial'] = fix_initial
-        self.state_options[name]['fix_final'] = fix_final
-        self.state_options[name]['initial_bounds'] = initial_bounds
-        self.state_options[name]['final_bounds'] = final_bounds
-        self.state_options[name]['lower'] = lower
-        self.state_options[name]['upper'] = upper
-        self.state_options[name]['scaler'] = scaler
-        self.state_options[name]['adder'] = adder
-        self.state_options[name]['ref'] = ref
-        self.state_options[name]['ref0'] = ref0
-        self.state_options[name]['defect_scaler'] = defect_scaler
-        self.state_options[name]['defect_ref'] = defect_ref
-        self.state_options[name]['solve_segments'] = solve_segments
-        self.state_options[name]['connected_initial'] = connected_initial
+        if name not in self.user_state_options:
+            self.user_state_options[name] = {}
 
-    def _check_parameter(self, name, dynamic):
+        kwargs['name'] = name
+
+        for kw in kwargs:
+            if kw not in StateOptionsDictionary():
+                raise KeyError('Invalid argument to set_state_options: {0}'.format(kw))
+
+        self.user_state_options[name].update(kwargs)
+
+    def _check_parameter(self, name):
         """
         Checks that the parameter of the given name is valid.
 
@@ -177,190 +140,121 @@ class PhaseBase(Group):
         ----------
         name : str
             The name of the controllable parameter.
-        dynamic : bool
-            True if attempting to use the given name as a dynamic control, otherwise False.
 
         Raises
         ------
         ValueError
-            Raised if the parameter of the given name is previously assigned, non-existent, or
+            Raised if the parameter of the given name is previously assigned or
             incompatible with the type of control to which it is assigned.
 
 
         """
-        ode_params = self.ode_options._parameters
-        if name in self.control_options:
+        # ode_params = None if self.ode_options is None else self.ode_options._parameters
+        if name in self.user_control_options:
             raise ValueError('{0} has already been added as a control.'.format(name))
-        if name in self.design_parameter_options:
+        if name in self.user_design_parameter_options:
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
-        if name in self.input_parameter_options:
+        if name in self.user_input_parameter_options:
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
-        if name in self.polynomial_control_options:
+        if name in self.user_polynomial_control_options:
             raise ValueError('{0} has already been added as an interpolated control.'.format(name))
-        if name in self.traj_parameter_options:
+        if name in self.user_traj_parameter_options:
             raise ValueError('{0} has already been added as a trajectory-level '
                              'parameter.'.format(name))
-        if name in ode_params and dynamic and not ode_params[name]['dynamic']:
-            raise ValueError('{0} is declared as a static parameter and therefore cannot be '
-                             'used as a dynamic control'.format(name))
 
-    def add_control(self, name, val=0.0, units=0, opt=True, lower=None, upper=None,
-                    fix_initial=False, fix_final=False,
-                    scaler=None, adder=None, ref=None, ref0=None, continuity=None,
-                    rate_continuity=None, rate_continuity_scaler=1.0,
-                    rate2_continuity=None, rate2_continuity_scaler=1.0,
-                    rate_param=None, rate2_param=None):
+    def add_control(self, name, **kwargs):
         """
         Adds a dynamic control variable to be tied to a parameter in the ODE.
 
         Parameters
         ----------
         name : str
-            Name of the controllable parameter in the ODE.
-        val : float or ndarray
-            Default value of the control at all nodes.  If val scalar and the control
-            is dynamic it will be broadcast.
-        units : str or None or 0
-            Units in which the control variable is defined.  If 0, use the units declared
-            for the parameter in the ODE.
+            The name assigned to the control variable.  If the ODE has been decorated with
+            parameters, this should be the name of a control in the system.
+        units : str or None
+            The units with which the control parameter in this phase will be defined.  It must be
+            compatible with the units of the targets to which the control is connected.
+        desc : str
+            A description of the control variable.
         opt : bool
-            If True (default) the value(s) of this control will be design variables in
-            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the values of this control will exist as aainput controls:{name}
-        lower : float or ndarray
-            The lower bound of the control at the nodes of the phase.
-        upper : float or ndarray
-            The upper bound of the control at the nodes of the phase.
-        scaler : float or ndarray
-            The scaler of the control value at the nodes of the phase.
-        adder : float or ndarray
-            The adder of the control value at the nodes of the phase.
-        ref0 : float or ndarray
-            The zero-reference value of the control at the nodes of the phase.
-        ref : float or ndarray
-            The unit-reference value of the control at the nodes of the phase
-        continuity : bool or None
-            True if continuity in the value of the control is desired at the segment bounds.
-            See notes about default values for continuity.
-        rate_continuity : bool or None
-            True if continuity in the rate of the control is desired at the segment bounds.  This
-            rate is normalized to segment tau space.
-            See notes about default values for continuity.
-        rate_continuity_scaler : float or ndarray
-            The scaler to use for the rate_continuity constraint given to the optimizer.
-        rate2_continuity : bool or None
-            True if continuity in the second derivative of the control is desired at the
-            segment bounds. This second derivative is normalized to segment tau space.
-            See notes about default values for continuity.
-        rate2_continuity_scaler : float or ndarray
-            The scaler to use for the rate2_continuity constraint given to the optimizer.
-        rate_param : None or str
-            The name of the parameter in the ODE to which the first time-derivative
-            of the control value is connected.
-        rate2_param : None or str
-            The name of the parameter in the ODE to which the second time-derivative
-            of the control value is connected.
+            If True, the control value will be a design variable for the optimization problem.
+            If False, allow the control to be connected externally.
+        fix_initial : bool
+            If True, the initial value of this control is fixed and not a design variable.
+            This option is invalid if opt=False.
+        fix_final : bool
+            If True, the final value of this control is fixed and not a design variable.
+            This option is invalid if opt=False.
+        targets : Sequence of str or None
+            Targets in the ODE to which this control is connected.
+        rate_targets : Sequence of str or None
+            The targets in the ODE to which the control rate is connected.
+        rate2_targets : Sequence of str or None
+            The parameter in the ODE to which the control 2nd derivative is connected.
+        val : float
+            The default value of the control variable at the control input nodes.
+        shape : Sequence of int
+            The shape of the control variable at each point in time.
+        lower : Sequence of Number or None
+            The lower bound of the control variable at the nodes.
+            This option is invalid if opt=False.
+        upper : Sequence or Number or None
+            The upper bound of the control variable at the nodes.
+            This option is invalid if opt=False.
+        scaler : float or None
+            The scaler of the control variable at the nodes.
+            This option is invalid if opt=False.
+        adder : float or None
+            The adder of the control variable at the nodes.
+            This option is invalid if opt=False.
+        ref0 : float or None
+            The zero-reference value of the control variable at the nodes.
+            This option is invalid if opt=False.
+        ref : float or None
+            The unit-reference value of the control variable at the nodes.
+            This option is invalid if opt=False.
+        continuity : bool
+            Enforce continuity of control values at segment boundaries.
+            This option is invalid if opt=False.
+        rate_continuity : bool
+            Enforce continuity of control first derivatives  (in dimensionless time) at
+            segment boundaries.
+            This option is invalid if opt=False.
+        rate_continuity_scaler : float
+            Scaler of the rate continuity constraint at segment boundaries.
+            This option is invalid if opt=False.
+        rate2_continuity : bool
+            Enforce continuity of control second derivatives at segment boundaries.
+            This option is invalid if opt=False.
+        rate2_continuity_scaler : float
+            Scaler of the dimensionless rate continuity constraint at segment boundaries.
+            This option is invalid if opt=False.
+        dynamic : bool
+            If True, the value of the shape of the parameter will be (num_nodes, ...),
+            allowing the variable to be used as either a static or dynamic control.
+            This impacts the shape of the partial derivatives matrix.  Unless a parameter is
+            large and broadcasting a value to each individual node would be inefficient,
+            users should stick to the default value of True.)
 
         Notes
         -----
-        If continuity is None or rate continuity is None, the default value for
-        continuity is True and rate continuity of False.
-
-        The default value of continuity and rate continuity for input controls (opt=False)
-        is False.
-
-        The user may override these defaults by specifying them as True or False.
+        rate and rate2 continuity are not enforced for input controls.
 
         """
-        ode_params = self.ode_options._parameters
-        self._check_parameter(name, dynamic=True)
+        self._check_parameter(name)
 
-        self.control_options[name] = ControlOptionsDictionary()
+        if name not in self.user_control_options:
+            self.user_control_options[name] = {}
 
-        if name in ode_params:
-            ode_param_info = ode_params[name]
-            self.control_options[name]['units'] = ode_param_info['units']
-            self.control_options[name]['shape'] = ode_param_info['shape']
-            self.control_options[name]['targets'] = ode_param_info['targets']
-        else:
-            rate_used = \
-                rate_param is not None and rate_param in ode_params
-            rate2_used = \
-                rate2_param is not None and rate2_param in ode_params
-            if not rate_used and not rate2_used:
-                err_msg = '{0} is not a controllable parameter in the ODE system, nor is it ' \
-                          'connected to one through its rate or second derivative.'.format(name)
-                raise ValueError(err_msg)
+        kwargs['name'] = name
 
-        if rate_param is not None:
-            ode_rate_param_info = ode_params[rate_param]
-            self.control_options[name]['rate_param'] = rate_param
-            self.control_options[name]['shape'] = ode_rate_param_info['shape']
-        if rate2_param is not None:
-            ode_rate2_param_info = ode_params[rate2_param]
-            self.control_options[name]['rate2_param'] = rate2_param
-            self.control_options[name]['shape'] = ode_rate2_param_info['shape']
+        for kw in kwargs:
+            if kw not in ControlOptionsDictionary():
+                raise KeyError('Invalid argument to add_control: {0}'.format(kw))
 
-        # Don't allow the user to provide desvar options if the control is not optimal
-        if not opt:
-            illegal_options = []
-            if lower is not None:
-                illegal_options.append('lower')
-            if upper is not None:
-                illegal_options.append('upper')
-            if scaler is not None:
-                illegal_options.append('scaler')
-            if adder is not None:
-                illegal_options.append('adder')
-            if ref is not None:
-                illegal_options.append('ref')
-            if ref0 is not None:
-                illegal_options.append('ref0')
-            if continuity is not None:
-                illegal_options.append('continuity')
-            if rate_continuity is not None:
-                illegal_options.append('rate_continuity')
-            if illegal_options:
-                msg = 'Invalid options for non-optimal control "{0}":'.format(name) + \
-                      ', '.join(illegal_options)
-                warnings.warn(msg, RuntimeWarning)
+        self.user_control_options[name].update(kwargs)
 
-        self.control_options[name]['val'] = val
-        self.control_options[name]['opt'] = opt
-        self.control_options[name]['fix_initial'] = fix_initial
-        self.control_options[name]['fix_final'] = fix_final
-        self.control_options[name]['lower'] = lower
-        self.control_options[name]['upper'] = upper
-        self.control_options[name]['scaler'] = scaler
-        self.control_options[name]['adder'] = adder
-        self.control_options[name]['ref'] = ref
-        self.control_options[name]['ref0'] = ref0
-        self.control_options[name]['rate_continuity_scaler'] = rate_continuity_scaler
-        self.control_options[name]['rate2_continuity_scaler'] = rate2_continuity_scaler
-
-        if continuity is None:
-            self.control_options[name]['continuity'] = opt
-        else:
-            self.control_options[name]['continuity'] = continuity
-
-        if rate_continuity is None:
-            self.control_options[name]['rate_continuity'] = False
-        else:
-            self.control_options[name]['rate_continuity'] = rate_continuity
-
-        if rate2_continuity is None:
-            self.control_options[name]['rate2_continuity'] = False
-        else:
-            self.control_options[name]['rate2_continuity'] = rate2_continuity
-
-        if units != 0:
-            self.control_options[name]['units'] = units
-
-    def add_polynomial_control(self, name, order, val=0.0, units=0,
-                               opt=True, lower=None, upper=None,
-                               fix_initial=False, fix_final=False,
-                               scaler=None, adder=None, ref=None, ref0=None,
-                               rate_param=None, rate2_param=None):
+    def add_polynomial_control(self, name, **kwargs):
         """
         Adds an polynomial control variable to be tied to a parameter in the ODE.
 
@@ -405,73 +299,27 @@ class PhaseBase(Group):
         rate2_param : None or str
             The name of the parameter in the ODE to which the second time-derivative
             of the control value is connected.
+        targets : Sequence of str or None
+            Targets in the ODE to which this polynomial control is connected.
         """
-        ode_params = self.ode_options._parameters
-        self._check_parameter(name, dynamic=True)
+        self._check_parameter(name)
 
-        self.polynomial_control_options[name] = PolynomialControlOptionsDictionary()
+        if name not in self.user_polynomial_control_options:
+            self.user_polynomial_control_options[name] = {}
 
-        if name in ode_params:
-            ode_param_info = ode_params[name]
-            self.polynomial_control_options[name]['units'] = ode_param_info['units']
-            self.polynomial_control_options[name]['shape'] = ode_param_info['shape']
-            self.polynomial_control_options[name]['targets'] = ode_param_info['targets']
-        else:
-            rate_used = \
-                rate_param is not None and rate_param in ode_params
-            rate2_used = \
-                rate2_param is not None and rate2_param in ode_params
-            if not rate_used and not rate2_used:
-                err_msg = '{0} is not a controllable parameter in the ODE system, nor is it ' \
-                          'connected to one through its rate or second derivative.'.format(name)
-                raise ValueError(err_msg)
+        if 'order' not in kwargs:
+            raise RuntimeError('Keyword argument \'order\' must be specified for polynomial '
+                               'control \'{0}\''.format(name))
 
-        if rate_param is not None:
-            ode_rate_param_info = ode_params[rate_param]
-            self.polynomial_control_options[name]['rate_param'] = rate_param
-            self.polynomial_control_options[name]['shape'] = ode_rate_param_info['shape']
-        if rate2_param is not None:
-            ode_rate2_param_info = ode_params[rate2_param]
-            self.polynomial_control_options[name]['rate2_param'] = rate2_param
-            self.polynomial_control_options[name]['shape'] = ode_rate2_param_info['shape']
+        kwargs['name'] = name
 
-        # Don't allow the user to provide desvar options if the control is not optimal
-        if not opt:
-            illegal_options = []
-            if lower is not None:
-                illegal_options.append('lower')
-            if upper is not None:
-                illegal_options.append('upper')
-            if scaler is not None:
-                illegal_options.append('scaler')
-            if adder is not None:
-                illegal_options.append('adder')
-            if ref is not None:
-                illegal_options.append('ref')
-            if ref0 is not None:
-                illegal_options.append('ref0')
-            if illegal_options:
-                msg = 'Invalid options for non-optimal control "{0}":'.format(name) + \
-                      ', '.join(illegal_options)
-                warnings.warn(msg, RuntimeWarning)
+        for kw in kwargs:
+            if kw not in PolynomialControlOptionsDictionary():
+                raise KeyError('Invalid argument to add_polynomial_control: {0}'.format(kw))
 
-        self.polynomial_control_options[name]['val'] = val
-        self.polynomial_control_options[name]['order'] = order
-        self.polynomial_control_options[name]['opt'] = opt
-        self.polynomial_control_options[name]['fix_initial'] = fix_initial
-        self.polynomial_control_options[name]['fix_final'] = fix_final
-        self.polynomial_control_options[name]['lower'] = lower
-        self.polynomial_control_options[name]['upper'] = upper
-        self.polynomial_control_options[name]['scaler'] = scaler
-        self.polynomial_control_options[name]['adder'] = adder
-        self.polynomial_control_options[name]['ref'] = ref
-        self.polynomial_control_options[name]['ref0'] = ref0
+        self.user_polynomial_control_options[name].update(kwargs)
 
-        if units != 0:
-            self.polynomial_control_options[name]['units'] = units
-
-    def add_design_parameter(self, name, val=0.0, units=0, opt=True,
-                             lower=None, upper=None, scaler=None, adder=None, ref=None, ref0=None):
+    def add_design_parameter(self, name, **kwargs):
         """
         Add a design parameter (static control variable) to the phase.
 
@@ -501,54 +349,24 @@ class PhaseBase(Group):
             The zero-reference value of the design parameter for the optimizer.
         ref : float or ndarray
             The unit-reference value of the design parameter for the optimizer.
+        targets : Sequence of str or None
+            Targets in the ODE to which this parameter is connected.
 
         """
-        self._check_parameter(name, dynamic=False)
+        self._check_parameter(name)
 
-        self.design_parameter_options[name] = DesignParameterOptionsDictionary()
+        if name not in self.user_design_parameter_options:
+            self.user_design_parameter_options[name] = {}
 
-        if name in self.ode_options._parameters:
-            ode_param_info = self.ode_options._parameters[name]
-            self.design_parameter_options[name]['units'] = ode_param_info['units']
-            self.design_parameter_options[name]['shape'] = ode_param_info['shape']
-            self.design_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
-        else:
-            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
-            raise ValueError(err_msg)
+        kwargs['name'] = name
 
-        # Don't allow the user to provide desvar options if the design parameter is not a desvar
-        if not opt:
-            illegal_options = []
-            if lower is not None:
-                illegal_options.append('lower')
-            if upper is not None:
-                illegal_options.append('upper')
-            if scaler is not None:
-                illegal_options.append('scaler')
-            if adder is not None:
-                illegal_options.append('adder')
-            if ref is not None:
-                illegal_options.append('ref')
-            if ref0 is not None:
-                illegal_options.append('ref0')
-            if illegal_options:
-                msg = 'Invalid options for non-optimal design parameter "{0}":'.format(name) \
-                      + ', '.join(illegal_options)
-                warnings.warn(msg, RuntimeWarning)
+        for kw in kwargs:
+            if kw not in DesignParameterOptionsDictionary():
+                raise KeyError('Invalid argument to add_design_parameter: {0}'.format(kw))
 
-        self.design_parameter_options[name]['val'] = val
-        self.design_parameter_options[name]['opt'] = opt
-        self.design_parameter_options[name]['lower'] = lower
-        self.design_parameter_options[name]['upper'] = upper
-        self.design_parameter_options[name]['scaler'] = scaler
-        self.design_parameter_options[name]['adder'] = adder
-        self.design_parameter_options[name]['ref'] = ref
-        self.design_parameter_options[name]['ref0'] = ref0
+        self.user_design_parameter_options[name].update(kwargs)
 
-        if units != 0:
-            self.design_parameter_options[name]['units'] = units
-
-    def add_input_parameter(self, name, val=0.0, units=0):
+    def add_input_parameter(self, name, **kwargs):
         """
         Add an input parameter (static control variable) to the phase.
 
@@ -561,26 +379,23 @@ class PhaseBase(Group):
         units : str or None or 0
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
+        targets : Sequence of str or None
+            Targets in the ODE to which this parameter is connected.
         """
-        self._check_parameter(name, dynamic=False)
+        self._check_parameter(name)
 
-        self.input_parameter_options[name] = InputParameterOptionsDictionary()
+        if name not in self.user_input_parameter_options:
+            self.user_input_parameter_options[name] = {}
 
-        if name in self.ode_options._parameters:
-            ode_param_info = self.ode_options._parameters[name]
-            self.input_parameter_options[name]['units'] = ode_param_info['units']
-            self.input_parameter_options[name]['shape'] = ode_param_info['shape']
-            self.input_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
-        else:
-            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
-            raise ValueError(err_msg)
+        kwargs['name'] = name
 
-        self.input_parameter_options[name]['val'] = val
+        for kw in kwargs:
+            if kw not in InputParameterOptionsDictionary():
+                raise KeyError('Invalid argument to add_input_parameter: {0}'.format(kw))
 
-        if units != 0:
-            self.input_parameter_options[name]['units'] = units
+        self.user_input_parameter_options[name].update(kwargs)
 
-    def _add_traj_parameter(self, name, val=0.0, units=0):
+    def add_traj_parameter(self, name, **kwargs):
         """
         Add an input parameter to the phase that is connected to an input or design parameter
         in the parent trajectory.
@@ -593,38 +408,26 @@ class PhaseBase(Group):
             Default value of the design parameter at all nodes.
         units : str or None or 0
             Units in which the design parameter is defined.  If 0, use the units declared
-            for the parameter in the ODE.        """
+            for the parameter in the ODE.
+        targets : Sequence of str or None
+            Targets in the ODE to which this parameter is connected.
+        """
+        self._check_parameter(name)
 
-        if name in self.control_options:
-            raise ValueError('{0} has already been added as a control.'.format(name))
-        if name in self.design_parameter_options:
-            raise ValueError('{0} has already been added as a design parameter.'.format(name))
-        if name in self.input_parameter_options:
-            raise ValueError('{0} has already been added as an input parameter.'.format(name))
-        if name in self.traj_parameter_options:
-            raise ValueError('{0} has already been added as a trajectory input '
-                             'parameter.'.format(name))
+        if name not in self.user_traj_parameter_options:
+            self.user_traj_parameter_options[name] = {}
 
-        self.traj_parameter_options[name] = InputParameterOptionsDictionary()
+        kwargs['name'] = name
 
-        if name in self.ode_options._parameters:
-            ode_param_info = self.ode_options._parameters[name]
-            self.traj_parameter_options[name]['units'] = ode_param_info['units']
-            self.traj_parameter_options[name]['shape'] = ode_param_info['shape']
-            self.traj_parameter_options[name]['dynamic'] = ode_param_info['dynamic']
-        else:
-            err_msg = '{0} is not a controllable parameter in the ODE system.'.format(name)
-            raise ValueError(err_msg)
+        for kw in kwargs:
+            if kw not in InputParameterOptionsDictionary():
+                raise KeyError('Invalid argument to add_traj_parameter: {0}'.format(kw))
 
-        self.traj_parameter_options[name]['val'] = val
-
-        if units != 0:
-            self.traj_parameter_options[name]['units'] = units
+        self.user_traj_parameter_options[name].update(kwargs)
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
-                                shape=None, indices=None,
-                                lower=None, upper=None, equals=None, scaler=None, adder=None,
-                                ref=None, ref0=None, linear=False):
+                                shape=None, indices=None, lower=None, upper=None, equals=None,
+                                scaler=None, adder=None, ref=None, ref0=None, linear=False):
         r"""
         Add a boundary constraint to a variable in the phase.
 
@@ -829,92 +632,58 @@ class PhaseBase(Group):
         vectorize_derivs : bool
             If True, vectorize derivative calculations.
         """
-        raise NotImplementedError('This class does not implement add_objective')
+        obj_dict = {'loc': loc,
+                    'index': index,
+                    'shape': shape,
+                    'ref': ref,
+                    'ref0': ref0,
+                    'adder': adder,
+                    'scaler': scaler,
+                    'parallel_deriv_color': parallel_deriv_color,
+                    'vectorize_derivs': vectorize_derivs}
+        self._objectives[name] = obj_dict
 
-    def _add_objective(self, obj_path, loc='final', index=None, shape=(1,), ref=None, ref0=None,
-                       adder=None, scaler=None, parallel_deriv_color=None, vectorize_derivs=False):
+    def _setup_objective(self):
         """
-        Called by add_objective in classes that derive from PhaseBase.  Each subclass is responsible
-        for determining the objective path in the system.  This method then figures out the correct
-        index based on the given loc and index attributes, and calls the standard add_objective
-        method.
-
-        Parameters
-        ----------
-        obj_path : str
-            Name of the objective variable.  This should be one of 'time', a state or control
-            variable, or the path to an output from the top level of the RHS.
-        loc : str
-            Where in the phase the objective is to be evaluated.  Valid
-            options are 'initial' and 'final'.  The default is 'final'.
-        index : int, optional
-            If variable is an array at each point in time, this indicates which index is to be
-            used as the objective, assuming C-ordered flattening.
-        shape : int, optional
-
-
-        Parameters
-        ----------
-        obj_path : str
-            The name of the variable in the phase to be used as an objective.
-        loc : str
-            One of 'initial' or 'final', depending on where in the phase the objective should be
-            measured.
-        index : int or None
-            The index into the flattened shape giving the index at an instance in time to be used
-            as the objective.  This index assumes row-major (C) ordering when flattening.
-        shape : tuple
-            The shape of the objective variable, at a point in time
-        ref : float or ndarray, optional
-            Value of response variable that scales to 1.0 in the driver.
-        ref0 : float or ndarray, optional
-            Value of response variable that scales to 0.0 in the driver.
-        adder : float or ndarray, optional
-            Value to add to the model value to get the scaled value. Adder
-            is first in precedence.
-        scaler : float or ndarray, optional
-            value to multiply the model value to get the scaled value. Scaler
-            is second in precedence.
-        parallel_deriv_color : string
-            If specified, this design var will be grouped for parallel derivative
-            calculations with other variables sharing the same parallel_deriv_color.
-        vectorize_derivs : bool
-            If True, vectorize derivative calculations.
+        Find the path of the objective(s) and add the objective using the standard OpenMDAO method.
         """
-        size = int(np.prod(shape))
+        for name, options in iteritems(self._objectives):
+            index = options['index']
+            loc = options['loc']
 
-        if size > 1 and index is None:
-            raise ValueError('Objective variable is non-scaler {0} but no index specified '
-                             'for objective'.format(shape))
+            obj_path, shape, units, _ = self._get_boundary_constraint_src(name, loc)
 
-        idx = 0 if index is None else index
-        if idx < 0:
-            idx = size + idx
+            shape = options['shape'] if shape is None else shape
 
-        if idx >= size or idx < -size:
-            raise ValueError('Objective index={0}, but the shape of the objective '
-                             'variable is {1}'.format(index, shape))
+            size = int(np.prod(shape))
 
-        if loc == 'final':
-            obj_index = -size + idx
-        elif loc == 'initial':
-            obj_index = idx
-        else:
-            raise ValueError('Invalid value for objective loc: {0}. Must be '
-                             'one of \'initial\' or \'final\'.')
+            if size > 1 and index is None:
+                raise ValueError('Objective variable is non-scaler {0} but no index specified '
+                                 'for objective'.format(shape))
 
-        super(PhaseBase, self).add_objective(obj_path, ref=ref, ref0=ref0, index=obj_index,
-                                             adder=adder, scaler=scaler,
-                                             parallel_deriv_color=parallel_deriv_color,
-                                             vectorize_derivs=vectorize_derivs)
+            idx = 0 if index is None else index
+            if idx < 0:
+                idx = size + idx
 
-    def set_time_options(self, opt_initial=None, opt_duration=None, fix_initial=False,
-                         fix_duration=False, input_initial=False, input_duration=False,
-                         initial_val=0.0, initial_bounds=(None, None), initial_scaler=None,
-                         initial_adder=None, initial_ref=None, initial_ref0=None,
-                         duration_val=1.0, duration_bounds=(None, None),
-                         duration_scaler=None, duration_adder=None, duration_ref=None,
-                         duration_ref0=None):
+            if idx >= size or idx < -size:
+                raise ValueError('Objective index={0}, but the shape of the objective '
+                                 'variable is {1}'.format(index, shape))
+
+            if loc == 'final':
+                obj_index = -size + idx
+            elif loc == 'initial':
+                obj_index = idx
+            else:
+                raise ValueError('Invalid value for objective loc: {0}. Must be '
+                                 'one of \'initial\' or \'final\'.'.format(loc))
+
+            super(PhaseBase, self).add_objective(obj_path, ref=options['ref'], ref0=options['ref0'],
+                                                 index=obj_index, adder=options['adder'],
+                                                 scaler=options['scaler'],
+                                                 parallel_deriv_color=options['parallel_deriv_color'],
+                                                 vectorize_derivs=options['vectorize_derivs'])
+
+    def set_time_options(self, **kwargs):
         """
         Set options for the time (or the integration variable) in the Phase.
 
@@ -962,81 +731,7 @@ class PhaseBase(Group):
         duration_ref : float
             Unit-reference value for the duration of time across the phase.
         """
-        if opt_initial is not None:
-            self.time_options['fix_initial'] = not opt_initial
-            warn_deprecation('opt_initial has been deprecated in favor of fix_initial, which has '
-                             'the opposite meaning. If the user desires to input the initial '
-                             'phase time from an exterior source, set input_initial=True.')
-        else:
-            self.time_options['fix_initial'] = fix_initial
-
-        if opt_duration is not None:
-            self.time_options['fix_duration'] = not opt_duration
-            warn_deprecation('opt_duration has been deprecated in favor of fix_duration, which has '
-                             'the opposite meaning. If the user desires to input the phase '
-                             'duration from an exterior source, set input_duration=True.')
-        else:
-            self.time_options['fix_duration'] = fix_duration
-
-        # Don't allow the user to provide desvar options if the time is not a desvar or is input.
-        if input_initial and self.time_options['fix_initial']:
-            warnings.warn('Phase "{0}" initial time is an externally-connected input, '
-                          'therefore fix_initial has no effect.'.format(self.name), RuntimeWarning)
-        elif input_initial or self.time_options['fix_initial']:
-            illegal_options = []
-            if initial_bounds != (None, None):
-                illegal_options.append('initial_bounds')
-            if initial_scaler is not None:
-                illegal_options.append('initial_scaler')
-            if initial_adder is not None:
-                illegal_options.append('initial_adder')
-            if initial_ref is not None:
-                illegal_options.append('initial_ref')
-            if initial_ref0 is not None:
-                illegal_options.append('initial_ref0')
-            if illegal_options:
-                reason = 'input_initial=True' if input_initial else 'fix_initial=True'
-                msg = 'Phase time options have no effect because {2} for phase ' \
-                      '"{0}": {1}'.format(self.name, ', '.join(illegal_options), reason)
-                warnings.warn(msg, RuntimeWarning)
-
-        if input_duration and self.time_options['fix_duration']:
-            warnings.warn('Phase "{0}" time duration is an externally-connected input, '
-                          'therefore fix_duration has no effect.'.format(self.name),
-                          RuntimeWarning)
-        elif input_duration or self.time_options['fix_duration']:
-            illegal_options = []
-            if duration_bounds != (None, None):
-                illegal_options.append('duration_bounds')
-            if duration_scaler is not None:
-                illegal_options.append('duration_scaler')
-            if duration_adder is not None:
-                illegal_options.append('duration_adder')
-            if duration_ref is not None:
-                illegal_options.append('duration_ref')
-            if duration_ref0 is not None:
-                illegal_options.append('duration_ref0')
-            if illegal_options:
-                reason = 'input_duration=True' if input_duration else 'fix_duration=True'
-                msg = 'Phase time options have no effect because {2} for phase ' \
-                      '"{0}": {1}'.format(self.name, ', '.join(illegal_options), reason)
-                warnings.warn(msg, RuntimeWarning)
-
-        self.time_options['input_initial'] = input_initial
-        self.time_options['initial_val'] = initial_val
-        self.time_options['initial_bounds'] = initial_bounds
-        self.time_options['initial_scaler'] = initial_scaler
-        self.time_options['initial_adder'] = initial_adder
-        self.time_options['initial_ref'] = initial_ref
-        self.time_options['initial_ref0'] = initial_ref0
-
-        self.time_options['input_duration'] = input_duration
-        self.time_options['duration_val'] = duration_val
-        self.time_options['duration_bounds'] = duration_bounds
-        self.time_options['duration_scaler'] = duration_scaler
-        self.time_options['duration_adder'] = duration_adder
-        self.time_options['duration_ref'] = duration_ref
-        self.time_options['duration_ref0'] = duration_ref0
+        self.user_time_options.update(kwargs)
 
     def _classify_var(self, var):
         """
@@ -1095,12 +790,74 @@ class PhaseBase(Group):
         else:
             return 'ode'
 
-    def setup(self):
-        transcription_order = self.options['transcription_order']
+    def finalize_variables(self):
+        """ Finalize the variable options by combining the user-defined options and the ODE options.
 
-        if np.any(np.asarray(transcription_order) < 3):
-            raise ValueError('Given transcription order ({0}) is less than '
-                             'the minimum allowed value (3)'.format(transcription_order))
+        First apply any variable options that may be defined via ODEOptions properties on the ODE
+        class.  Then apply any user-specified options over those.
+        """
+        self.time_options = TimeOptionsDictionary()
+        self.state_options = {}
+        self.control_options = {}
+        self.polynomial_control_options = {}
+        self.design_parameter_options = {}
+        self.input_parameter_options = {}
+        self.traj_parameter_options = {}
+
+        # First apply any defaults set in the ode options
+        if self.options['ode_class'] is not None and hasattr(self.options['ode_class'], 'ode_options'):
+            ode_options = self.options['ode_class'].ode_options
+        else:
+            ode_options = None
+
+        # Now update with any user-supplied options
+        if ode_options:
+            self.time_options.update(ode_options._time_options)
+        self.time_options.update(self.user_time_options)
+
+        if ode_options:
+            for state in ode_options._states:
+                self.state_options[state] = StateOptionsDictionary()
+                self.state_options[state].update(ode_options._states[state])
+        for state in list(self.user_state_options.keys()):
+            if state not in self.state_options:
+                self.state_options[state] = StateOptionsDictionary()
+            self.state_options[state].update(self.user_state_options[state])
+
+        for control in list(self.user_control_options.keys()):
+            self.control_options[control] = ControlOptionsDictionary()
+            if ode_options and control in ode_options._parameters:
+                self.control_options[control].update(ode_options._parameters[control])
+            self.control_options[control].update(self.user_control_options[control])
+
+        for pc in list(self.user_polynomial_control_options.keys()):
+            self.polynomial_control_options[pc] = PolynomialControlOptionsDictionary()
+            if ode_options and pc in ode_options._parameters:
+                self.polynomial_control_options[pc].update(ode_options._parameters[pc])
+            self.polynomial_control_options[pc].update(self.user_polynomial_control_options[pc])
+
+        for dp in list(self.user_design_parameter_options.keys()):
+            self.design_parameter_options[dp] = DesignParameterOptionsDictionary()
+            if ode_options and dp in ode_options._parameters:
+                self.design_parameter_options[dp].update(ode_options._parameters[dp])
+            self.design_parameter_options[dp].update(self.user_design_parameter_options[dp])
+
+        for ip in list(self.user_input_parameter_options.keys()):
+            self.input_parameter_options[ip] = InputParameterOptionsDictionary()
+            if ode_options and ip in ode_options._parameters:
+                self.input_parameter_options[ip].update(ode_options._parameters[ip])
+            self.input_parameter_options[ip].update(self.user_input_parameter_options[ip])
+
+        for tp in list(self.user_traj_parameter_options.keys()):
+            self.traj_parameter_options[tp] = InputParameterOptionsDictionary()
+            if ode_options and tp in ode_options._parameters:
+                self.traj_parameter_options[tp].update(ode_options._parameters[tp])
+            self.traj_parameter_options[tp].update(self.user_traj_parameter_options[tp])
+
+    def setup(self):
+        # Finalize the variables if it hasn't happened already.
+        # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
+        self.finalize_variables()
 
         self._time_extents = self._setup_time()
 
@@ -1128,8 +885,100 @@ class PhaseBase(Group):
         self._setup_boundary_constraints('initial')
         self._setup_boundary_constraints('final')
         self._setup_path_constraints()
+        self._setup_objective()
 
         self._setup_timeseries_outputs()
+
+        self.is_setup = True
+
+    def _check_time_options(self):
+        """
+        Check that time options are valid and issue warnings if invalid options are provided.
+
+        Warnings
+        --------
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        if self.time_options['fix_initial'] or self.time_options['input_initial']:
+            invalid_options = []
+            init_bounds = self.time_options['initial_bounds']
+            if init_bounds is not None and init_bounds != (None, None):
+                invalid_options.append('initial_bounds')
+            for opt in 'initial_scaler', 'initial_adder', 'initial_ref', 'initial_ref0':
+                if self.time_options[opt] is not None:
+                    invalid_options.append(opt)
+            if invalid_options:
+                warnings.warn('Phase time options have no effect because fix_initial=True for '
+                              'phase \'{0}\': {1}'.format(self.name, ', '.join(invalid_options)),
+                              RuntimeWarning)
+
+        if self.time_options['fix_initial'] and self.time_options['input_initial']:
+            warnings.warn('Phase \'{0}\' initial time is an externally-connected input, '
+                          'therefore fix_initial has no effect.'.format(self.name),
+                          RuntimeWarning)
+
+        if self.time_options['fix_duration'] or self.time_options['input_duration']:
+            invalid_options = []
+            duration_bounds = self.time_options['duration_bounds']
+            if duration_bounds is not None and duration_bounds != (None, None):
+                invalid_options.append('duration_bounds')
+            for opt in 'duration_scaler', 'duration_adder', 'duration_ref', 'duration_ref0':
+                if self.time_options[opt] is not None:
+                    invalid_options.append(opt)
+            if invalid_options:
+                warnings.warn('Phase time options have no effect because fix_duration=True for '
+                              'phase \'{0}\': {1}'.format(self.name, ', '.join(invalid_options)))
+
+        if self.time_options['fix_duration'] and self.time_options['input_duration']:
+            warnings.warn('Phase \'{0}\' time duration is an externally-connected input, '
+                          'therefore fix_duration has no effect.'.format(self.name),
+                          RuntimeWarning)
+
+    def _check_control_options(self):
+        """
+        Check that time options are valid and issue warnings if invalid options are provided.
+
+        Warnings
+        --------
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        for name, options in iteritems(self.control_options):
+            if not options['opt']:
+                invalid_options = []
+                for opt in 'lower', 'upper', 'scaler', 'adder', 'ref', 'ref0':
+                    if options[opt] is not None:
+                        invalid_options.append(opt)
+                if invalid_options:
+                    warnings.warn('Invalid options for non-optimal control \'{0}\' in phase \'{1}\': '
+                                  '{2}'.format(name, self.name, ', '.join(invalid_options)),
+                                  RuntimeWarning)
+
+                # Do not enforce rate continuity/rate continuity for non-optimal controls
+                self.control_options[name]['continuity'] = False
+                self.control_options[name]['rate_continuity'] = False
+                self.control_options[name]['rate2_continuity'] = False
+
+    def _check_design_parameter_options(self):
+        """
+        Check that time options are valid and issue warnings if invalid options are provided.
+
+        Warnings
+        --------
+        RuntimeWarning
+            RuntimeWarning is issued in the case of one or more invalid time options.
+        """
+        for name, options in iteritems(self.design_parameter_options):
+            if not options['opt']:
+                invalid_options = []
+                for opt in 'lower', 'upper', 'scaler', 'adder', 'ref', 'ref0':
+                    if options[opt] is not None:
+                        invalid_options.append(opt)
+                if invalid_options:
+                    warnings.warn('Invalid options for non-optimal design_parameter \'{0}\' in '
+                                  'phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
+                                  RuntimeWarning)
 
     def _setup_time(self):
         """
@@ -1147,6 +996,9 @@ class PhaseBase(Group):
                         't_duration': self.time_options['duration_val']}
         externals = []
         comps = []
+
+        # Warn about invalid options
+        self._check_time_options()
 
         if self.time_options['input_initial']:
             externals.append('t_initial')
@@ -1202,6 +1054,8 @@ class PhaseBase(Group):
         Adds an IndepVarComp if necessary and issues appropriate connections based
         on transcription.
         """
+        self._check_control_options()
+
         if self.control_options:
             control_group = ControlGroup(control_options=self.control_options,
                                          time_units=self.time_options['units'],
@@ -1212,52 +1066,6 @@ class PhaseBase(Group):
                                promotes=['controls:*', 'control_values:*', 'control_rates:*'])
             self.connect('time.dt_dstau', 'control_group.dt_dstau')
 
-        # opt_controls = [name for (name, opts) in iteritems(self.control_options) if opts['opt']]
-        #
-        # num_opt_controls = len(opt_controls)
-        #
-        # grid_data = self.grid_data
-        #
-        # if num_opt_controls > 0:
-        #     indep = self.add_subsystem('indep_controls', subsys=IndepVarComp(),
-        #                                promotes_outputs=['*'])
-        #
-        # num_dynamic_controls = 0
-        #
-        # for name, options in iteritems(self.control_options):
-        #     if options['opt']:
-        #         num_dynamic_controls = num_dynamic_controls + 1
-        #         num_input_nodes = grid_data.subset_num_nodes['control_input']
-        #
-        #         desvar_indices = list(range(self.grid_data.subset_num_nodes['control_input']))
-        #         if options['fix_initial']:
-        #             desvar_indices.pop(0)
-        #         if options['fix_final']:
-        #             desvar_indices.pop()
-        #
-        #         if len(desvar_indices) > 0:
-        #             coerce_desvar = CoerceDesvar(grid_data.subset_num_nodes['control_disc'],
-        #                                          desvar_indices, options)
-        #
-        #             lb = -INF_BOUND if coerce_desvar('lower') is None else coerce_desvar('lower')
-        #             ub = INF_BOUND if coerce_desvar('upper') is None else coerce_desvar('upper')
-        #
-        #             self.add_design_var(name='controls:{0}'.format(name),
-        #                                 lower=lb,
-        #                                 upper=ub,
-        #                                 scaler=coerce_desvar('scaler'),
-        #                                 adder=coerce_desvar('adder'),
-        #                                 ref0=coerce_desvar('ref0'),
-        #                                 ref=coerce_desvar('ref'),
-        #                                 indices=desvar_indices)
-        #
-        #         indep.add_output(name='controls:{0}'.format(name),
-        #                          val=options['val'],
-        #                          shape=(num_input_nodes, np.prod(options['shape'])),
-        #                          units=options['units'])
-        #
-        # return num_dynamic_controls
-
     def _setup_polynomial_controls(self):
         """
         Adds the polynomial control group to the model if any polynomial controls are present.
@@ -1266,7 +1074,7 @@ class PhaseBase(Group):
             sys = PolynomialControlGroup(grid_data=self.grid_data,
                                          polynomial_control_options=self.polynomial_control_options,
                                          time_units=self.time_options['units'])
-            self.add_subsystem('polynomial_controls', subsys=sys,
+            self.add_subsystem('polynomial_control_group', subsys=sys,
                                promotes_inputs=['*'], promotes_outputs=['*'])
 
     def _setup_design_parameters(self):
@@ -1274,6 +1082,8 @@ class PhaseBase(Group):
         Adds an IndepVarComp if necessary and issues appropriate connections based
         on transcription.
         """
+        self._check_design_parameter_options()
+
         if self.design_parameter_options:
             indep = self.add_subsystem('design_params', subsys=IndepVarComp(),
                                        promotes_outputs=['*'])
@@ -1353,9 +1163,10 @@ class PhaseBase(Group):
             A list containing a tuple of target paths and corresponding src_indices to which the
             given design variable is to be connected.
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Phase class {0} does not implement '
+                                  '_get_parameter_connections'.format(self.__class__.__name__))
 
-    def _get_rate_source_path(self, state_name, nodes, **kwargs):
+    def _get_rate_source_path(self, state_name, nodes=None, **kwargs):
         """
         Given the name of a variable to be used as a rate source, provide the source connection
         path for that variable in the Phase.
@@ -1374,10 +1185,14 @@ class PhaseBase(Group):
         src_idxs : np.ndarray
             The source indices in the resulting src that provide the values at the given nodes.
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Phase class {0} does not implement '
+                                  '_get_rate_source_path'.format(self.__class__.__name__))
 
     def _setup_rhs(self):
-        raise NotImplementedError()
+        if not inspect.isclass(self.options['ode_class']):
+            raise ValueError('ode_class must be a class, not an instance.')
+        if not issubclass(self.options['ode_class'], System):
+            raise ValueError('ode_class must be derived from openmdao.core.System.')
 
     def _setup_defects(self):
         raise NotImplementedError()
@@ -1614,17 +1429,22 @@ class PhaseBase(Group):
             res = res.T
         return res
 
-    def _init_simulation_phase(self, times):
+    def get_simulation_phase(self, times_per_seg=None, method='RK45', atol=1.0E-9, rtol=1.0E-9):
         """
-        Return a SimulationPhase initialized based on data from this Phase instance and
+        Return a SolveIVPPhase initialized based on data from this Phase instance and
         the given simulation times.
 
         Parameters
         ----------
-        times : str or Sequence of float
-            Times at which outputs of the simulation are requested.  If given as a str, it should
-            be one of the node subsets (default is 'all').  If given as a sequence, output will
-            be provided at those times *in addition to times at the boundary of each segment*.
+        times_per_seg : int or None
+            Number of equally distributed output times per segment in the phase simulation.  If
+            None, output to all nodes provided by this phases GridData.
+        method : str
+            The scipy.integrate.solve_ivp integration method.
+        atol : float
+            Absolute convergence tolerance for the scipy.integrate.solve_ivp method.
+        rtol : float
+            Relative convergence tolerance for the scipy.integrate.solve_ivp method.
 
         Returns
         -------
@@ -1633,45 +1453,35 @@ class PhaseBase(Group):
             times.  This instance has not yet been setup.
         """
 
-        from .simulation.simulation_phase import SimulationPhase
+        from .solve_ivp.solve_ivp_phase import SolveIVPPhase
 
-        op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
-                                                                                 out_stream=None)])
-
-        time = op_dict['{0}.time.time'.format(self.pathname)]['value']
-
-        sim_phase = SimulationPhase(grid_data=self.grid_data,
-                                    ode_class=self.options['ode_class'],
-                                    ode_init_kwargs=self.options['ode_init_kwargs'],
-                                    times=times,
-                                    t_initial=time[0],
-                                    t_duration=time[-1]-time[0],
-                                    timeseries_outputs=self._timeseries_outputs)
-
-        sim_phase.time_options.update(self.time_options)
-        sim_phase.state_options.update(self.state_options)
-        sim_phase.control_options.update(self.control_options)
-        sim_phase.design_parameter_options.update(self.design_parameter_options)
-        sim_phase.input_parameter_options.update(self.input_parameter_options)
-        sim_phase.traj_parameter_options.update(self.traj_parameter_options)
+        sim_phase = SolveIVPPhase(from_phase=self,
+                                  method=method,
+                                  atol=atol,
+                                  rtol=rtol,
+                                  output_nodes_per_seg=times_per_seg)
 
         return sim_phase
 
-    def simulate(self, times='all', record_file=None, record=True):
+    def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9,
+                 record_file=None):
         """
         Simulate the Phase using scipy.integrate.solve_ivp.
 
         Parameters
         ----------
-        times : str or Sequence of float
-            Times at which outputs of the simulation are requested.  If given as a str, it should
-            be one of the node subsets (default is 'all').  If given as a sequence, output will
-            be provided at those times *in addition to times at the boundary of each segment*.
+        times_per_seg : int or None
+            Number of equally spaced times per segment at which output is requested.  If None,
+            output will be provided at all Nodes.
+        method : str
+            The scipy.integrate.solve_ivp integration method.
+        atol : float
+            Absolute convergence tolerance for scipy.integrate.solve_ivp.
+        rtol : float
+            Relative convergence tolerance for scipy.integrate.solve_ivp.
         record_file : str or None
-            If recording is enabled, the name of the file to which the results will be recorded.
-            If None, use the default filename '<phase_name>_sim.db'.
-        record : bool
-            If True, recording the results of the simulation is enabled.
+            If a string, the file to which the result of the simulation will be saved.
+            If None, no record of the simulation will be saved.
 
         Returns
         -------
@@ -1679,43 +1489,23 @@ class PhaseBase(Group):
             An OpenMDAO Problem in which the simulation is implemented.  This Problem interface
             can be interrogated to obtain timeseries outputs in the same manner as other Phases
             to obtain results at the requested times.
+
         """
 
         sim_prob = Problem(model=Group())
 
-        sim_phase = self._init_simulation_phase(times)
+        sim_phase = self.get_simulation_phase(times_per_seg, method=method, atol=atol, rtol=rtol)
 
         sim_prob.model.add_subsystem(self.name, sim_phase)
 
-        if record:
-            filename = '{0}_sim.sql'.format(self.name) if record_file is None else record_file
-            rec = SqliteRecorder(filename)
+        if record_file is not None:
+            rec = SqliteRecorder(record_file)
             sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
             sim_prob.model.add_recorder(rec)
 
         sim_prob.setup(check=True)
 
-        op_dict = dict([(name, options) for (name, options) in self.list_outputs(units=True,
-                                                                                 out_stream=None)])
-        # Assign initial state values
-        for name in self.state_options:
-            op = op_dict['{0}.timeseries.states:{1}'.format(self.name, name)]
-            sim_prob['{0}.initial_states:{1}'.format(self.name, name)] = op['value'][0, ...]
-
-        # Assign control values at all nodes
-        for name in self.control_options:
-            op = op_dict['{0}.control_group.control_interp_comp.control_values:{1}'.format(self.name, name)]
-            sim_prob['{0}.implicit_controls:{1}'.format(self.name, name)] = op['value']
-
-        # Assign design parameter values
-        for name in self.design_parameter_options:
-            op = op_dict['{0}.design_params.design_parameters:{1}'.format(self.name, name)]
-            sim_prob['{0}.design_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
-
-        # Assign input parameter values
-        for name in self.input_parameter_options:
-            op = op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.name, name)]
-            sim_prob['{0}.input_parameters:{1}'.format(self.name, name)] = op['value'][0, ...]
+        sim_phase.initialize_values_from_phase(sim_prob)
 
         print('\nSimulating phase {0}'.format(self.pathname))
         sim_prob.run_model()

@@ -167,7 +167,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                          tolerance=2.0E-3)
 
         # Plot results
-        exp_out = traj.simulate(times=50, record=False)
+        exp_out = traj.simulate()
 
         fig = plt.figure(figsize=(8, 4))
         fig.suptitle('Two Burn Orbit Raise Solution')

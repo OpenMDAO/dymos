@@ -6,16 +6,16 @@ import numpy as np
 from openmdao.api import ExplicitComponent
 
 
-class SimulationStateMuxComp(ExplicitComponent):
+class SegmentStateMuxComp(ExplicitComponent):
 
     def initialize(self):
         self.options.declare('grid_data', desc='the grid data of the corresponding phase.')
-        self.options.declare('times_per_seg', desc='number of points collected per segment')
-        # self.options.declare('time_options', types=OptionsDictionary)
         self.options.declare('state_options', types=dict)
-        # self.options.declare('control_options', types=dict)
-        # self.options.declare('design_parameter_options', types=dict)
-        # self.options.declare('input_parameter_options', types=dict)
+
+        self.options.declare('output_nodes_per_seg', default=None, types=(int,), allow_none=True,
+                             desc='If None, results are provided at the all nodes within each'
+                                  'segment.  If an int (n) then results are provided at n '
+                                  'equally distributed points in time within each segment.')
 
     def setup(self):
         """
@@ -23,7 +23,11 @@ class SimulationStateMuxComp(ExplicitComponent):
         """
         gd = self.options['grid_data']
         num_seg = gd.num_segments
-        num_points = sum([len(self.options['times_per_seg'][i]) for i in range(num_seg)])
+
+        if self.options['output_nodes_per_seg'] is None:
+            num_nodes = gd.subset_num_nodes['all']
+        else:
+            num_nodes = num_seg * self.options['output_nodes_per_seg']
 
         self._vars = {}
 
@@ -33,16 +37,23 @@ class SimulationStateMuxComp(ExplicitComponent):
                                 'shape': {}}
 
             for i in range(num_seg):
+                if self.options['output_nodes_per_seg'] is None:
+                    nnps_i = gd.subset_num_nodes_per_segment['all'][i]
+                else:
+                    nnps_i = self.options['output_nodes_per_seg']
                 self._vars[name]['inputs'][i] = 'segment_{0}_states:{1}'.format(i, name)
-                self._vars[name]['shape'][i] = (len(self.options['times_per_seg'][i]),) + \
-                    options['shape']
+                self._vars[name]['shape'][i] = (nnps_i,) + options['shape']
 
                 self.add_input(name=self._vars[name]['inputs'][i],
                                val=np.ones(self._vars[name]['shape'][i]),
                                units=options['units'])
 
+                self.declare_partials(of=self._vars[name]['output'],
+                                      wrt=self._vars[name]['inputs'][i],
+                                      method='fd')
+
             self.add_output(name=self._vars[name]['output'],
-                            val=np.ones((num_points,) + options['shape']),
+                            val=np.ones((num_nodes,) + options['shape']),
                             units=options['units'])
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):

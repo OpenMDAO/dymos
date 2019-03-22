@@ -58,7 +58,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         t0 = p['phase0.t_initial']
         tf = t0 + p['phase0.t_duration']
-        exp_out = phase.simulate(times=np.linspace(t0, tf, 50), record=False)
+        exp_out = phase.simulate(times_per_seg=10)
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
