@@ -228,7 +228,7 @@ class TestInvalidLinkages(unittest.TestCase):
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],
                          vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
 
-        traj.link_phases(phases=['burn1', 'burn2'], vars=['foo', 'bar'])
+        traj.link_phases(phases=['burn1', 'burn2'], vars=['u1', 'bar'])
 
         # Finish Problem Setup
         p.model.linear_solver = DirectSolver()
