@@ -229,9 +229,7 @@ class Trajectory(Group):
             p2_design_parameters = set([key for key in p2.design_parameter_options])
 
             p1_input_parameters = set([key for key in p1.input_parameter_options])
-            p1_input_parameters = set([key for key in p2.input_parameter_options])
-
-            print(sorted(vars.keys()))
+            p2_input_parameters = set([key for key in p2.input_parameter_options])
 
             # Dict of vars that expands '*' to include time and states
             _vars = {}
@@ -287,6 +285,12 @@ class Trajectory(Group):
                     source1 = '{0}{1}'.format(var, loc1)
                 elif var in p1_design_parameters:
                     source1 = 'design_parameters:{0}'.format(var)
+                elif var in p1_input_parameters:
+                    source1 = 'input_parameters:{0}'.format(var)
+                else:
+                    raise ValueError('Cannot find linkage variable \'{0}\' in '
+                                     'phase \'{1}\'.  Only states, time, controls, or parameters '
+                                     'may be linked via link_phases.'.format(var, pair[0]))
 
                 if var in p2_states:
                     source2 = 'states:{0}{1}'.format(var, loc2)
@@ -296,6 +300,12 @@ class Trajectory(Group):
                     source2 = '{0}{1}'.format(var, loc2)
                 elif var in p2_design_parameters:
                     source2 = 'design_parameters:{0}'.format(var)
+                elif var in p2_input_parameters:
+                    source2 = 'input_parameters:{0}'.format(var)
+                else:
+                    raise ValueError('Cannot find linkage variable \'{0}\' in '
+                                     'phase \'{1}\'.  Only states, time, controls, or parameters '
+                                     'may be linked via link_phases.'.format(var, pair[1]))
 
                 if options['connected']:
 
@@ -310,6 +320,9 @@ class Trajectory(Group):
                         self.connect('{0}.{1}'.format(phase_name1, source1),
                                      '{0}.{1}'.format(phase_name2, path))
 
+                    print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
+                                                                  max_varname_length + 9))
+
                 else:
 
                     self.connect('{0}.{1}'.format(phase_name1, source1),
@@ -318,8 +331,8 @@ class Trajectory(Group):
                     self.connect('{0}.{1}'.format(phase_name2, source2),
                                  'linkages.{0}_{1}:rhs'.format(linkage_name, var))
 
-                print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
-                                                              max_varname_length + 9))
+                    print('       {0:<{2}s} = {1:<{2}s}'.format(source1, source2,
+                                                                max_varname_length + 9))
 
         print('----------------------------')
 
