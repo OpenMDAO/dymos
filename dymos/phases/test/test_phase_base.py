@@ -187,7 +187,9 @@ class TestPhaseBase(unittest.TestCase):
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
-            p.setup(check=True)
+            p.setup(check=False)
+
+        print('\n'.join([str(ww.message) for ww in w]))
 
         expected = 'Invalid options for non-optimal design_parameter \'g\' in phase \'phase0\': ' \
                    'lower, upper, scaler, adder, ref, ref0'
