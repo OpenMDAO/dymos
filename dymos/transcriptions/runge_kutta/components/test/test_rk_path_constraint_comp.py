@@ -7,9 +7,9 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.runge_kutta.components import RungeKuttaPathConstraintComp
-from dymos.phases.grid_data import GridData
-from dymos.phases.options import ControlOptionsDictionary
+from dymos.transcriptions.runge_kutta.components import RungeKuttaPathConstraintComp
+from dymos.transcriptions.grid_data import GridData
+from dymos.phase.options import ControlOptionsDictionary
 
 
 class TestPathConstraintCompExplicit(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestPathConstraintCompExplicit(unittest.TestCase):
         transcription = 'runge-kutta'
 
         self.gd = gd = GridData(num_segments=2,
-                                transcription_order='rk4',
+                                transcription_order='RK4',
                                 segment_ends=[0.0, 3.0, 10.0],
                                 transcription=transcription)
 

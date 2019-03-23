@@ -8,8 +8,8 @@ from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, \
     NewtonSolver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos.phases.runge_kutta.components import RungeKuttaStateContinuityIterGroup
-from dymos.phases.runge_kutta.test.rk_test_ode import TestODE
+from dymos.transcriptions.runge_kutta.components import RungeKuttaStateContinuityIterGroup
+from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
 
 
 class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
@@ -35,7 +35,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         p.model.add_subsystem('cnty_iter_group',
                               RungeKuttaStateContinuityIterGroup(
                                   num_segments=num_seg,
-                                  method='rk4',
+                                  method='RK4',
                                   state_options=state_options,
                                   time_units='s',
                                   ode_class=TestODE,
@@ -132,7 +132,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         p.model.add_subsystem('cnty_iter_group',
                               RungeKuttaStateContinuityIterGroup(
                                   num_segments=num_seg,
-                                  method='rk4',
+                                  method='RK4',
                                   state_options=state_options,
                                   time_units='s',
                                   ode_class=TestODE,

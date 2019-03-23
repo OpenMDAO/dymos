@@ -8,7 +8,7 @@ from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, Nonline
     NewtonSolver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos.phases.runge_kutta.components.runge_kutta_state_continuity_comp import \
+from dymos.transcriptions.runge_kutta.components.runge_kutta_state_continuity_comp import \
     RungeKuttaStateContinuityComp
 
 

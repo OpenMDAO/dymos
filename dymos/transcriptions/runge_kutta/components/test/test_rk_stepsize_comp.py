@@ -7,7 +7,7 @@ import numpy as np
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
-from dymos.phases.runge_kutta.components.runge_kutta_stepsize_comp import RungeKuttaStepsizeComp
+from dymos.transcriptions.runge_kutta.components.runge_kutta_stepsize_comp import RungeKuttaStepsizeComp
 
 
 class TestRKStepsizeComp(unittest.TestCase):

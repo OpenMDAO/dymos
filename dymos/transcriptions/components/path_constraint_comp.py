@@ -3,7 +3,7 @@ from __future__ import division, print_function
 import numpy as np
 from openmdao.api import ExplicitComponent
 
-from dymos.phases.grid_data import GridData
+from dymos.transcriptions.grid_data import GridData
 from dymos.utils.constants import INF_BOUND
 
 

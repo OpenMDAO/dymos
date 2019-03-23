@@ -17,9 +17,8 @@ class TestRK4SimpleIntegration(unittest.TestCase):
     def test_simple_integration_forward(self):
 
         p = Problem(model=Group())
-        phase = p.model.add_subsystem('phase0',
-                                      Phase(ode_class=TestODE,
-                                            transcription=RungeKutta(num_segments=200, method='RK4')))
+        phase = Phase(ode_class=TestODE, transcription=RungeKutta(num_segments=200, method='RK4'))
+        p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
         phase.set_state_options('y', fix_initial=True)
@@ -35,20 +34,15 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
         p.run_model()
 
-        from openmdao.api import view_model
-        view_model(p.model)
-
         expected = _test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])
         assert_rel_error(self, p['phase0.ode.y'], expected, tolerance=1.0E-3)
 
     def test_simple_integration_forward_connected_initial(self):
 
         p = Problem(model=Group())
-        phase = p.model.add_subsystem(
-            'phase0',
-            RungeKuttaPhase(num_segments=200,
-                            method='rk4',
-                            ode_class=TestODE))
+
+        phase = Phase(ode_class=TestODE, transcription=RungeKutta(num_segments=200, method='RK4'))
+        p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
         phase.set_state_options('y', fix_initial=False, connected_initial=True)
@@ -56,8 +50,6 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
         p.setup(check=True, force_alloc_complex=True)
-
-        p.final_setup()
 
         p['phase0.t_initial'] = 0.0
         p['phase0.t_duration'] = 2.0
@@ -76,11 +68,9 @@ class TestRK4SimpleIntegration(unittest.TestCase):
     def test_simple_integration_forward_connected_initial_fixed_initial(self):
 
         p = Problem(model=Group())
-        phase = p.model.add_subsystem(
-            'phase0',
-            RungeKuttaPhase(num_segments=200,
-                            method='rk4',
-                            ode_class=TestODE))
+
+        phase = Phase(ode_class=TestODE, transcription=RungeKutta(num_segments=200, method='RK4'))
+        p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
         phase.set_state_options('y', fix_initial=True, connected_initial=True)
@@ -96,9 +86,9 @@ class TestRK4SimpleIntegration(unittest.TestCase):
     def test_simple_integration_backward(self):
 
         p = Problem(model=Group())
-        phase = p.model.add_subsystem('phase0',
-                                      RungeKuttaPhase(num_segments=4, method='rk4',
-                                                      ode_class=TestODE))
+
+        phase = Phase(ode_class=TestODE, transcription=RungeKutta(num_segments=4, method='RK4'))
+        p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
         phase.set_state_options('y', fix_initial=True)
@@ -106,8 +96,6 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
         p.setup(check=True, force_alloc_complex=True)
-
-        p.final_setup()
 
         p['phase0.t_initial'] = 2.0
         p['phase0.t_duration'] = -2.0
@@ -122,9 +110,9 @@ class TestRK4SimpleIntegration(unittest.TestCase):
     def test_simple_integration_backward_connected_initial(self):
 
         p = Problem(model=Group())
-        phase = p.model.add_subsystem('phase0',
-                                      RungeKuttaPhase(num_segments=4, method='rk4',
-                                                      ode_class=TestODE))
+
+        phase = Phase(ode_class=TestODE, transcription=RungeKutta(num_segments=4, method='RK4'))
+        p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
         phase.set_state_options('y', connected_initial=True)
@@ -132,8 +120,6 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
         p.setup(check=True, force_alloc_complex=True)
-
-        p.final_setup()
 
         p['phase0.t_initial'] = 2.0
         p['phase0.t_duration'] = -2.0

@@ -7,7 +7,7 @@ import numpy as np
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
-from dymos.phases.runge_kutta.components.runge_kutta_state_advance_comp import \
+from dymos.transcriptions.runge_kutta.components.runge_kutta_state_advance_comp import \
     RungeKuttaStateAdvanceComp
 
 
@@ -24,7 +24,7 @@ class TestRKStateAdvanceComp(unittest.TestCase):
         ivc.add_output('y0', shape=(4, 1), units='m')
 
         p.model.add_subsystem('c',
-                              RungeKuttaStateAdvanceComp(num_segments=4, method='rk4',
+                              RungeKuttaStateAdvanceComp(num_segments=4, method='RK4',
                                                          state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
@@ -78,7 +78,7 @@ class TestRKStateAdvanceComp(unittest.TestCase):
         ivc.add_output('y0', shape=(2, 2), units='m')
 
         p.model.add_subsystem('c',
-                              RungeKuttaStateAdvanceComp(num_segments=2, method='rk4',
+                              RungeKuttaStateAdvanceComp(num_segments=2, method='RK4',
                                                          state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
@@ -116,7 +116,7 @@ class TestRKStateAdvanceComp(unittest.TestCase):
 
         p.model.add_subsystem('c',
                               RungeKuttaStateAdvanceComp(num_segments=1,
-                                                         method='rk4',
+                                                         method='RK4',
                                                          state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')

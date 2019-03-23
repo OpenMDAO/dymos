@@ -9,8 +9,8 @@ from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, Nonline
     NewtonSolver
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.runge_kutta.components.runge_kutta_k_iter_group import RungeKuttaKIterGroup
-from dymos.phases.runge_kutta.test.rk_test_ode import TestODE
+from dymos.transcriptions.runge_kutta.components.runge_kutta_k_iter_group import RungeKuttaKIterGroup
+from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
 
 
 class TestRungeKuttaKIterGroup(unittest.TestCase):
@@ -30,7 +30,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         p.model.add_subsystem('k_iter_group',
                               RungeKuttaKIterGroup(num_segments=num_seg,
-                                                   method='rk4',
+                                                   method='RK4',
                                                    state_options=state_options,
                                                    time_units='s',
                                                    ode_class=TestODE,
@@ -105,7 +105,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         p.model.add_subsystem('k_iter_group',
                               RungeKuttaKIterGroup(num_segments=num_seg,
-                                                   method='rk4',
+                                                   method='RK4',
                                                    state_options=state_options,
                                                    time_units='s',
                                                    ode_class=TestODE,
@@ -164,7 +164,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         p.model.add_subsystem('k_iter_group',
                               RungeKuttaKIterGroup(num_segments=num_seg,
-                                                   method='rk4',
+                                                   method='RK4',
                                                    state_options=state_options,
                                                    time_units='s',
                                                    ode_class=TestODE,
