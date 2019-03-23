@@ -9,7 +9,7 @@ import unittest
 from openmdao.api import Problem, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, Trajectory, RungeKuttaPhase
+from dymos import DeprecatedPhaseFactory, Trajectory, RungeKuttaPhase
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
 from dymos.utils.lgl import lgl
 
@@ -44,12 +44,12 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # First phase: normal operation.
 
-        phase0 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=False)
+        phase0 = DeprecatedPhaseFactory(transcription,
+                                        ode_class=BatteryODE,
+                                        num_segments=num_seg,
+                                        segment_ends=seg_ends,
+                                        transcription_order=5,
+                                        compressed=False)
 
         traj_p0 = traj.add_phase('phase0', phase0)
 
@@ -58,12 +58,12 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase: normal operation.
 
-        phase1 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=False)
+        phase1 = DeprecatedPhaseFactory(transcription,
+                                        ode_class=BatteryODE,
+                                        num_segments=num_seg,
+                                        segment_ends=seg_ends,
+                                        transcription_order=5,
+                                        compressed=False)
 
         traj_p1 = traj.add_phase('phase1', phase1)
 
@@ -73,13 +73,13 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = Phase(transcription,
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_battery': 2},
-                             compressed=False)
+        phase1_bfail = DeprecatedPhaseFactory(transcription,
+                                              ode_class=BatteryODE,
+                                              num_segments=num_seg,
+                                              segment_ends=seg_ends,
+                                              transcription_order=5,
+                                              ode_init_kwargs={'num_battery': 2},
+                                              compressed=False)
 
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
@@ -88,13 +88,13 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = Phase(transcription,
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_motor': 2},
-                             compressed=False)
+        phase1_mfail = DeprecatedPhaseFactory(transcription,
+                                              ode_class=BatteryODE,
+                                              num_segments=num_seg,
+                                              segment_ends=seg_ends,
+                                              transcription_order=5,
+                                              ode_init_kwargs={'num_motor': 2},
+                                              compressed=False)
 
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
 
@@ -147,12 +147,12 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # First phase: normal operation.
 
-        phase0 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
+        phase0 = DeprecatedPhaseFactory(transcription,
+                                        ode_class=BatteryODE,
+                                        num_segments=num_seg,
+                                        segment_ends=seg_ends,
+                                        transcription_order=5,
+                                        compressed=True)
 
         traj_p0 = traj.add_phase('phase0', phase0)
 
@@ -162,12 +162,12 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase: normal operation.
 
-        phase1 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
+        phase1 = DeprecatedPhaseFactory(transcription,
+                                        ode_class=BatteryODE,
+                                        num_segments=num_seg,
+                                        segment_ends=seg_ends,
+                                        transcription_order=5,
+                                        compressed=True)
 
         traj_p1 = traj.add_phase('phase1', phase1)
 
@@ -178,13 +178,13 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = Phase(transcription,
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_battery': 2},
-                             compressed=True)
+        phase1_bfail = DeprecatedPhaseFactory(transcription,
+                                              ode_class=BatteryODE,
+                                              num_segments=num_seg,
+                                              segment_ends=seg_ends,
+                                              transcription_order=5,
+                                              ode_init_kwargs={'num_battery': 2},
+                                              compressed=True)
 
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
@@ -194,13 +194,13 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = Phase(transcription,
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_motor': 2},
-                             compressed=True)
+        phase1_mfail = DeprecatedPhaseFactory(transcription,
+                                              ode_class=BatteryODE,
+                                              num_segments=num_seg,
+                                              segment_ends=seg_ends,
+                                              transcription_order=5,
+                                              ode_init_kwargs={'num_motor': 2},
+                                              compressed=True)
 
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
 
@@ -254,12 +254,12 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # First phase: normal operation.
 
-        phase0 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
+        phase0 = DeprecatedPhaseFactory(transcription,
+                                        ode_class=BatteryODE,
+                                        num_segments=num_seg,
+                                        segment_ends=seg_ends,
+                                        transcription_order=5,
+                                        compressed=True)
 
         traj_p0 = prob.model.add_subsystem('phase0', phase0)
 
@@ -290,12 +290,12 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # First phase: normal operation.
 
-        phase0 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
+        phase0 = DeprecatedPhaseFactory(transcription,
+                                        ode_class=BatteryODE,
+                                        num_segments=num_seg,
+                                        segment_ends=seg_ends,
+                                        transcription_order=5,
+                                        compressed=True)
 
         traj_p0 = traj.add_phase('phase0', phase0)
 
@@ -305,12 +305,12 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase: normal operation.
 
-        phase1 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
+        phase1 = DeprecatedPhaseFactory(transcription,
+                                        ode_class=BatteryODE,
+                                        num_segments=num_seg,
+                                        segment_ends=seg_ends,
+                                        transcription_order=5,
+                                        compressed=True)
 
         traj_p1 = traj.add_phase('phase1', phase1)
 
@@ -363,12 +363,12 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # First phase: normal operation.
 
-        phase0 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
+        phase0 = DeprecatedPhaseFactory(transcription,
+                                        ode_class=BatteryODE,
+                                        num_segments=num_seg,
+                                        segment_ends=seg_ends,
+                                        transcription_order=5,
+                                        compressed=True)
 
         traj_p0 = traj.add_phase('phase0', phase0)
 
@@ -377,12 +377,12 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase: normal operation.
 
-        phase1 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
+        phase1 = DeprecatedPhaseFactory(transcription,
+                                        ode_class=BatteryODE,
+                                        num_segments=num_seg,
+                                        segment_ends=seg_ends,
+                                        transcription_order=5,
+                                        compressed=True)
 
         traj_p1 = traj.add_phase('phase1', phase1)
 
@@ -392,13 +392,13 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = Phase(transcription,
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_battery': 2},
-                             compressed=True)
+        phase1_bfail = DeprecatedPhaseFactory(transcription,
+                                              ode_class=BatteryODE,
+                                              num_segments=num_seg,
+                                              segment_ends=seg_ends,
+                                              transcription_order=5,
+                                              ode_init_kwargs={'num_battery': 2},
+                                              compressed=True)
 
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
@@ -407,13 +407,13 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = Phase(transcription,
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_motor': 2},
-                             compressed=True)
+        phase1_mfail = DeprecatedPhaseFactory(transcription,
+                                              ode_class=BatteryODE,
+                                              num_segments=num_seg,
+                                              segment_ends=seg_ends,
+                                              transcription_order=5,
+                                              ode_init_kwargs={'num_motor': 2},
+                                              compressed=True)
 
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
 

@@ -15,7 +15,7 @@ from openmdao.utils.assert_utils import assert_rel_error
 
 import numpy as np
 from openmdao.api import ExplicitComponent
-from dymos import declare_time, declare_state, declare_parameter, Phase
+from dymos import declare_time, declare_state, declare_parameter, DeprecatedPhaseFactory
 
 
 @declare_time(units='s', time_phase_targets=['time_phase'], t_duration_targets=['t_duration'],
@@ -115,17 +115,17 @@ class TestPhaseTimeTargets(unittest.TestCase):
         p.driver.options['dynamic_simul_derivs'] = True
 
         if transcription == 'runge-kutta':
-            phase = Phase(transcription=transcription,
-                          ode_class=_BrachistochroneTestODE,
-                          num_segments=num_seg,
-                          method='rk4',
-                          compressed=True)
+            phase = DeprecatedPhaseFactory(transcription=transcription,
+                                           ode_class=_BrachistochroneTestODE,
+                                           num_segments=num_seg,
+                                           method='rk4',
+                                           compressed=True)
         else:
-            phase = Phase(transcription=transcription,
-                          ode_class=_BrachistochroneTestODE,
-                          num_segments=num_seg,
-                          transcription_order=transcription_order,
-                          compressed=True)
+            phase = DeprecatedPhaseFactory(transcription=transcription,
+                                           ode_class=_BrachistochroneTestODE,
+                                           num_segments=num_seg,
+                                           transcription_order=transcription_order,
+                                           compressed=True)
 
         p.model.add_subsystem('phase0', phase)
 

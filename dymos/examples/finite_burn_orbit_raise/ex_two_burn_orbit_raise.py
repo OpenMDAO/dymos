@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, SqliteRecorder
 
-from dymos import Phase, Trajectory
+from dymos import DeprecatedPhaseFactory, Trajectory
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
 
@@ -20,11 +20,11 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
 
     # First Phase (burn)
 
-    burn1 = Phase(transcription,
-                  ode_class=FiniteBurnODE,
-                  num_segments=20,
-                  transcription_order=transcription_order,
-                  compressed=compressed)
+    burn1 = DeprecatedPhaseFactory(transcription,
+                                   ode_class=FiniteBurnODE,
+                                   num_segments=20,
+                                   transcription_order=transcription_order,
+                                   compressed=compressed)
 
     burn1 = traj.add_phase('burn1', burn1)
 
@@ -40,11 +40,11 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
                       lower=-30, upper=30)
     # Second Phase (Coast)
 
-    coast = Phase(transcription,
-                  ode_class=FiniteBurnODE,
-                  num_segments=40,
-                  transcription_order=transcription_order,
-                  compressed=compressed)
+    coast = DeprecatedPhaseFactory(transcription,
+                                   ode_class=FiniteBurnODE,
+                                   num_segments=40,
+                                   transcription_order=transcription_order,
+                                   compressed=compressed)
 
     coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 50), duration_ref=50)
     coast.set_state_options('r', fix_initial=False, fix_final=False, defect_scaler=100.0)
@@ -58,11 +58,11 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
 
     # Third Phase (burn)
 
-    burn2 = Phase(transcription,
-                  ode_class=FiniteBurnODE,
-                  num_segments=20,
-                  transcription_order=transcription_order,
-                  compressed=compressed)
+    burn2 = DeprecatedPhaseFactory(transcription,
+                                   ode_class=FiniteBurnODE,
+                                   num_segments=20,
+                                   transcription_order=transcription_order,
+                                   compressed=compressed)
 
     if connected:
         traj.add_phase('burn2', burn2)

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
-from dymos import Phase
+from dymos import DeprecatedPhaseFactory
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
@@ -35,11 +35,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     if transcription == 'runge-kutta':
         transcription_order = 'rk4'
 
-    phase = Phase(transcription,
-                  ode_class=BrachistochroneVectorStatesODE,
-                  num_segments=num_segments,
-                  transcription_order=transcription_order,
-                  compressed=compressed)
+    phase = DeprecatedPhaseFactory(transcription,
+                                   ode_class=BrachistochroneVectorStatesODE,
+                                   num_segments=num_segments,
+                                   transcription_order=transcription_order,
+                                   compressed=compressed)
 
     p.model.add_subsystem('phase0', phase)
 

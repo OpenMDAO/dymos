@@ -2,7 +2,7 @@ from __future__ import print_function, division, absolute_import
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
-from dymos import Phase
+from dymos import DeprecatedPhaseFactory
 from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
 
@@ -20,12 +20,12 @@ def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-    phase = Phase(transcription,
-                  ode_class=LaunchVehicleODE,
-                  ode_init_kwargs={'central_body': 'earth'},
-                  num_segments=num_seg,
-                  transcription_order=transcription_order,
-                  compressed=compressed)
+    phase = DeprecatedPhaseFactory(transcription,
+                                   ode_class=LaunchVehicleODE,
+                                   ode_init_kwargs={'central_body': 'earth'},
+                                   num_segments=num_seg,
+                                   transcription_order=transcription_order,
+                                   compressed=compressed)
 
     p.model.add_subsystem('phase0', phase)
 

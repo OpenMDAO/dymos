@@ -4,7 +4,7 @@ import numpy as np
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
 
-from dymos import Phase
+from dymos import DeprecatedPhaseFactory
 
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
@@ -33,11 +33,11 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Major step limit'] = 0.5
         # p.driver.opt_settings['Verify level'] = 3
 
-    phase = Phase(transcription,
-                  ode_class=MinTimeClimbODE,
-                  num_segments=num_seg,
-                  compressed=True,
-                  transcription_order=transcription_order)
+    phase = DeprecatedPhaseFactory(transcription,
+                                   ode_class=MinTimeClimbODE,
+                                   num_segments=num_seg,
+                                   compressed=True,
+                                   transcription_order=transcription_order)
 
     p.model.add_subsystem('phase0', phase)
 

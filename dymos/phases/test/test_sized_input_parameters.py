@@ -5,7 +5,7 @@ from openmdao.api import DirectSolver, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos import declare_time, declare_state, declare_parameter
-from dymos import Phase
+from dymos import DeprecatedPhaseFactory
 from dymos.utils.lgl import lgl
 from dymos.models.eom import FlightPathEOM2D
 
@@ -47,11 +47,11 @@ class TestInputParameterConnections(unittest.TestCase):
 
         seg_ends, _ = lgl(num_segments + 1)
 
-        phase = Phase(transcription='radau-ps',
-                      ode_class=TrajectoryODE,
-                      num_segments=num_segments, transcription_order=transcription_order,
-                      segment_ends=seg_ends,
-                      )
+        phase = DeprecatedPhaseFactory(transcription='radau-ps',
+                                       ode_class=TrajectoryODE,
+                                       num_segments=num_segments, transcription_order=transcription_order,
+                                       segment_ends=seg_ends,
+                                       )
 
         p.model.add_subsystem('phase0', phase)
 
@@ -111,11 +111,11 @@ class TestInputParameterConnections(unittest.TestCase):
 
         seg_ends, _ = lgl(num_segments + 1)
 
-        phase = Phase(transcription='radau-ps',
-                      ode_class=TrajectoryODE,
-                      num_segments=num_segments, transcription_order=transcription_order,
-                      segment_ends=seg_ends,
-                      )
+        phase = DeprecatedPhaseFactory(transcription='radau-ps',
+                                       ode_class=TrajectoryODE,
+                                       num_segments=num_segments, transcription_order=transcription_order,
+                                       segment_ends=seg_ends,
+                                       )
 
         p.model.add_subsystem('phase0', phase)
 

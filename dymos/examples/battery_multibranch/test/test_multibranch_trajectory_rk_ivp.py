@@ -9,7 +9,7 @@ import unittest
 from openmdao.api import Problem, Group
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, Trajectory, RungeKuttaPhase
+from dymos import DeprecatedPhaseFactory, Trajectory, RungeKuttaPhase
 from dymos.utils.lgl import lgl
 
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE, \
@@ -214,12 +214,12 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase: normal operation.
 
-        phase1 = Phase(transcription='radau-ps',
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
+        phase1 = DeprecatedPhaseFactory(transcription='radau-ps',
+                                        ode_class=BatteryODE,
+                                        num_segments=num_seg,
+                                        segment_ends=seg_ends,
+                                        transcription_order=5,
+                                        compressed=True)
         phase1.set_time_options(fix_initial=False, fix_duration=True)
         phase1.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
                                  solve_segments=True)
@@ -231,13 +231,13 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = Phase(transcription='radau-ps',
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_battery': 2},
-                             compressed=True)
+        phase1_bfail = DeprecatedPhaseFactory(transcription='radau-ps',
+                                              ode_class=BatteryODE,
+                                              num_segments=num_seg,
+                                              segment_ends=seg_ends,
+                                              transcription_order=5,
+                                              ode_init_kwargs={'num_battery': 2},
+                                              compressed=True)
         phase1_bfail.set_time_options(fix_initial=False, fix_duration=True)
         phase1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
                                        solve_segments=True)
@@ -249,13 +249,13 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = Phase(transcription='radau-ps',
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_motor': 2},
-                             compressed=True)
+        phase1_mfail = DeprecatedPhaseFactory(transcription='radau-ps',
+                                              ode_class=BatteryODE,
+                                              num_segments=num_seg,
+                                              segment_ends=seg_ends,
+                                              transcription_order=5,
+                                              ode_init_kwargs={'num_motor': 2},
+                                              compressed=True)
         phase1_mfail.set_time_options(fix_initial=False, fix_duration=True)
         phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
                                        solve_segments=True)
@@ -394,12 +394,12 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase: normal operation.
 
-        phase1 = Phase(transcription='radau-ps',
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
+        phase1 = DeprecatedPhaseFactory(transcription='radau-ps',
+                                        ode_class=BatteryODE,
+                                        num_segments=num_seg,
+                                        segment_ends=seg_ends,
+                                        transcription_order=5,
+                                        compressed=True)
         phase1.set_time_options(fix_initial=False, fix_duration=True)
         phase1.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
                                  solve_segments=True)
@@ -411,13 +411,13 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = Phase(transcription='radau-ps',
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_battery': 2},
-                             compressed=True)
+        phase1_bfail = DeprecatedPhaseFactory(transcription='radau-ps',
+                                              ode_class=BatteryODE,
+                                              num_segments=num_seg,
+                                              segment_ends=seg_ends,
+                                              transcription_order=5,
+                                              ode_init_kwargs={'num_battery': 2},
+                                              compressed=True)
         phase1_bfail.set_time_options(fix_initial=False, fix_duration=True)
         phase1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
                                        solve_segments=True)
@@ -429,13 +429,13 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = Phase(transcription='radau-ps',
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_motor': 2},
-                             compressed=True)
+        phase1_mfail = DeprecatedPhaseFactory(transcription='radau-ps',
+                                              ode_class=BatteryODE,
+                                              num_segments=num_seg,
+                                              segment_ends=seg_ends,
+                                              transcription_order=5,
+                                              ode_init_kwargs={'num_motor': 2},
+                                              compressed=True)
         phase1_mfail.set_time_options(fix_initial=False, fix_duration=True)
         phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
                                        solve_segments=True)

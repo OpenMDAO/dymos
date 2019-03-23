@@ -12,15 +12,15 @@ class TestBrachistochroneExample(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase
+        from dymos import DeprecatedPhaseFactory
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneODE,
-                      num_segments=10)
+        phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=BrachistochroneODE,
+                                       num_segments=10)
 
         p.model.add_subsystem('phase0', phase)
 

@@ -2,7 +2,7 @@ from __future__ import print_function, division, absolute_import
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
-from dymos import Phase
+from dymos import DeprecatedPhaseFactory
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 
 
@@ -11,11 +11,11 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
     p.driver = pyOptSparseDriver()
     p.driver.options['dynamic_simul_derivs'] = True
 
-    phase = Phase(transcription,
-                  ode_class=DoubleIntegratorODE,
-                  num_segments=30,
-                  transcription_order=3,
-                  compressed=compressed)
+    phase = DeprecatedPhaseFactory(transcription,
+                                   ode_class=DoubleIntegratorODE,
+                                   num_segments=30,
+                                   transcription_order=3,
+                                   compressed=compressed)
 
     p.model.add_subsystem('phase0', phase)
 

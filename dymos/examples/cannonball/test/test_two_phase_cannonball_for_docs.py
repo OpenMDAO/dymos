@@ -22,7 +22,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
             pyOptSparseDriver
         from openmdao.utils.assert_utils import assert_rel_error
 
-        from dymos import Phase, Trajectory
+        from dymos import DeprecatedPhaseFactory, Trajectory
         from dymos.examples.cannonball.cannonball_ode import CannonballODE
 
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
@@ -45,11 +45,11 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', Trajectory())
 
         # First Phase (ascent)
-        ascent = Phase('radau-ps',
-                       ode_class=CannonballODE,
-                       num_segments=5,
-                       transcription_order=3,
-                       compressed=True)
+        ascent = DeprecatedPhaseFactory('radau-ps',
+                                        ode_class=CannonballODE,
+                                        num_segments=5,
+                                        transcription_order=3,
+                                        compressed=True)
 
         ascent = traj.add_phase('ascent', ascent)
 
@@ -66,11 +66,11 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                                        upper=400000, lower=0, ref=100000, shape=(1,))
 
         # Second Phase (descent)
-        descent = Phase('gauss-lobatto',
-                        ode_class=CannonballODE,
-                        num_segments=5,
-                        transcription_order=3,
-                        compressed=True)
+        descent = DeprecatedPhaseFactory('gauss-lobatto',
+                                         ode_class=CannonballODE,
+                                         num_segments=5,
+                                         transcription_order=3,
+                                         compressed=True)
 
         traj.add_phase('descent', descent)
 

@@ -7,12 +7,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group
-from dymos import Phase
+from dymos import DeprecatedPhaseFactory
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 p = Problem(model=Group())
-phase = Phase('gauss-lobatto', ode_class=BrachistochroneODE, num_segments=4,
-              transcription_order=[3, 5, 3, 5])
+phase = DeprecatedPhaseFactory('gauss-lobatto', ode_class=BrachistochroneODE, num_segments=4,
+                               transcription_order=[3, 5, 3, 5])
 p.model.add_subsystem('phase0', phase)
 
 p.setup()

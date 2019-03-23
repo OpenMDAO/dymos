@@ -13,7 +13,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
 
-        from dymos import Phase
+        from dymos import DeprecatedPhaseFactory
         from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
         p = Problem(model=Group())
@@ -22,11 +22,11 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=MinTimeClimbODE,
-                      num_segments=12,
-                      compressed=True,
-                      transcription_order=3)
+        phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=MinTimeClimbODE,
+                                       num_segments=12,
+                                       compressed=True,
+                                       transcription_order=3)
 
         p.model.add_subsystem('phase0', phase)
 

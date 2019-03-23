@@ -22,7 +22,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, IndepVarComp
         from openmdao.utils.assert_utils import assert_rel_error
 
-        from dymos import Phase
+        from dymos import DeprecatedPhaseFactory
 
         from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
         from dymos.utils.lgl import lgl
@@ -35,12 +35,12 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=AircraftODE,
-                      num_segments=num_seg,
-                      segment_ends=seg_ends,
-                      transcription_order=3,
-                      compressed=False)
+        phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=AircraftODE,
+                                       num_segments=num_seg,
+                                       segment_ends=seg_ends,
+                                       transcription_order=3,
+                                       compressed=False)
 
         # Pass design parameters in externally from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())

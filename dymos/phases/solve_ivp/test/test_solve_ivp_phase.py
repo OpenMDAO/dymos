@@ -341,15 +341,15 @@ class TestSolveIVPPhaseCopy(unittest.TestCase):
 
     def test_copy_brachistochrone(self):
         from openmdao.api import ScipyOptimizeDriver, DirectSolver
-        from dymos import Phase
+        from dymos import DeprecatedPhaseFactory
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneODE,
-                      transcription_order=3,
-                      num_segments=20)
+        phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=BrachistochroneODE,
+                                       transcription_order=3,
+                                       num_segments=20)
 
         p.model.add_subsystem('phase0', phase)
 

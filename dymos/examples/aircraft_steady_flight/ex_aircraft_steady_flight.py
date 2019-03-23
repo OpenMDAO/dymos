@@ -10,7 +10,7 @@ import numpy as np
 from openmdao.api import Problem, Group, pyOptSparseDriver, IndepVarComp
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 
-from dymos import Phase
+from dymos import DeprecatedPhaseFactory
 
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 from dymos.utils.lgl import lgl
@@ -36,12 +36,12 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
     num_seg = 15
     seg_ends, _ = lgl(num_seg + 1)
 
-    phase = Phase(transcription,
-                  ode_class=AircraftODE,
-                  num_segments=num_seg,
-                  segment_ends=seg_ends,
-                  transcription_order=3,
-                  compressed=compressed)
+    phase = DeprecatedPhaseFactory(transcription,
+                                   ode_class=AircraftODE,
+                                   num_segments=num_seg,
+                                   segment_ends=seg_ends,
+                                   transcription_order=3,
+                                   compressed=compressed)
 
     # Pass Reference Area from an external source
     assumptions = p.model.add_subsystem('assumptions', IndepVarComp())

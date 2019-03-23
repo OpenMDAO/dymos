@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, RungeKuttaPhase
+from dymos import DeprecatedPhaseFactory, RungeKuttaPhase
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
@@ -27,10 +27,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('radau-ps',
-                      ode_class=BrachistochroneVectorStatesODE,
-                      num_segments=20,
-                      transcription_order=3)
+        phase = DeprecatedPhaseFactory('radau-ps',
+                                       ode_class=BrachistochroneVectorStatesODE,
+                                       num_segments=20,
+                                       transcription_order=3)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -141,10 +141,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('radau-ps',
-                      ode_class=BrachistochroneVectorStatesODE,
-                      num_segments=20,
-                      transcription_order=3)
+        phase = DeprecatedPhaseFactory('radau-ps',
+                                       ode_class=BrachistochroneVectorStatesODE,
+                                       num_segments=20,
+                                       transcription_order=3)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -259,10 +259,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('radau-ps',
-                      ode_class=BrachistochroneVectorStatesODE,
-                      num_segments=20,
-                      transcription_order=3)
+        phase = DeprecatedPhaseFactory('radau-ps',
+                                       ode_class=BrachistochroneVectorStatesODE,
+                                       num_segments=20,
+                                       transcription_order=3)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -377,10 +377,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneVectorStatesODE,
-                      num_segments=20,
-                      transcription_order=3)
+        phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=BrachistochroneVectorStatesODE,
+                                       num_segments=20,
+                                       transcription_order=3)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -491,10 +491,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneVectorStatesODE,
-                      num_segments=20,
-                      transcription_order=3)
+        phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=BrachistochroneVectorStatesODE,
+                                       num_segments=20,
+                                       transcription_order=3)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -609,10 +609,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneVectorStatesODE,
-                      num_segments=20,
-                      transcription_order=3)
+        phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=BrachistochroneVectorStatesODE,
+                                       num_segments=20,
+                                       transcription_order=3)
 
         p.model.add_subsystem('phase0', phase)
 

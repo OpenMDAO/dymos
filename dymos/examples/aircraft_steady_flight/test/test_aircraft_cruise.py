@@ -7,7 +7,7 @@ from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, \
     pyOptSparseDriver, ScipyOptimizeDriver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase
+from dymos import DeprecatedPhaseFactory
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
@@ -37,10 +37,10 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver = ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=AircraftODE,
-                      num_segments=1,
-                      transcription_order=13)
+        phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=AircraftODE,
+                                       num_segments=1,
+                                       transcription_order=13)
 
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
@@ -118,10 +118,10 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver = ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('radau-ps',
-                      ode_class=AircraftODE,
-                      num_segments=1,
-                      transcription_order=13)
+        phase = DeprecatedPhaseFactory('radau-ps',
+                                       ode_class=AircraftODE,
+                                       num_segments=1,
+                                       transcription_order=13)
 
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())

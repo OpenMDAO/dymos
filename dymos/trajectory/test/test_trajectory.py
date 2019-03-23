@@ -8,7 +8,7 @@ import numpy as np
 from openmdao.api import Problem, DirectSolver, SqliteRecorder, Group
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, Trajectory
+from dymos import DeprecatedPhaseFactory, Trajectory
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
 
@@ -30,11 +30,11 @@ class TestTrajectory(unittest.TestCase):
         # solution, no driver is attached.  We'll just invoke run_model.
 
         # First Phase (burn)
-        burn1 = Phase('gauss-lobatto',
-                      ode_class=FiniteBurnODE,
-                      num_segments=4,
-                      transcription_order=3,
-                      compressed=True)
+        burn1 = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=FiniteBurnODE,
+                                       num_segments=4,
+                                       transcription_order=3,
+                                       compressed=True)
 
         cls.traj.add_phase('burn1', burn1)
 
@@ -50,11 +50,11 @@ class TestTrajectory(unittest.TestCase):
 
         # Second Phase (Coast)
 
-        coast = Phase('gauss-lobatto',
-                      ode_class=FiniteBurnODE,
-                      num_segments=10,
-                      transcription_order=3,
-                      compressed=True)
+        coast = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=FiniteBurnODE,
+                                       num_segments=10,
+                                       transcription_order=3,
+                                       compressed=True)
 
         cls.traj.add_phase('coast', coast)
 
@@ -70,11 +70,11 @@ class TestTrajectory(unittest.TestCase):
 
         # Third Phase (burn)
 
-        burn2 = Phase('gauss-lobatto',
-                      ode_class=FiniteBurnODE,
-                      num_segments=3,
-                      transcription_order=3,
-                      compressed=True)
+        burn2 = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=FiniteBurnODE,
+                                       num_segments=3,
+                                       transcription_order=3,
+                                       compressed=True)
 
         cls.traj.add_phase('burn2', burn2)
 
@@ -163,11 +163,11 @@ class TestInvalidLinkages(unittest.TestCase):
         # solution, no driver is attached.  We'll just invoke run_model.
 
         # First Phase (burn)
-        burn1 = Phase('gauss-lobatto',
-                      ode_class=FiniteBurnODE,
-                      num_segments=4,
-                      transcription_order=3,
-                      compressed=True)
+        burn1 = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=FiniteBurnODE,
+                                       num_segments=4,
+                                       transcription_order=3,
+                                       compressed=True)
 
         traj.add_phase('burn1', burn1)
 
@@ -183,11 +183,11 @@ class TestInvalidLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
 
-        coast = Phase('gauss-lobatto',
-                      ode_class=FiniteBurnODE,
-                      num_segments=10,
-                      transcription_order=3,
-                      compressed=True)
+        coast = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=FiniteBurnODE,
+                                       num_segments=10,
+                                       transcription_order=3,
+                                       compressed=True)
 
         traj.add_phase('coast', coast)
 
@@ -203,11 +203,11 @@ class TestInvalidLinkages(unittest.TestCase):
 
         # Third Phase (burn)
 
-        burn2 = Phase('gauss-lobatto',
-                      ode_class=FiniteBurnODE,
-                      num_segments=3,
-                      transcription_order=3,
-                      compressed=True)
+        burn2 = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=FiniteBurnODE,
+                                       num_segments=3,
+                                       transcription_order=3,
+                                       compressed=True)
 
         traj.add_phase('burn2', burn2)
 
@@ -252,11 +252,11 @@ class TestInvalidLinkages(unittest.TestCase):
         # solution, no driver is attached.  We'll just invoke run_model.
 
         # First Phase (burn)
-        burn1 = Phase('gauss-lobatto',
-                      ode_class=FiniteBurnODE,
-                      num_segments=4,
-                      transcription_order=3,
-                      compressed=True)
+        burn1 = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=FiniteBurnODE,
+                                       num_segments=4,
+                                       transcription_order=3,
+                                       compressed=True)
 
         traj.add_phase('burn1', burn1)
 
@@ -272,11 +272,11 @@ class TestInvalidLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
 
-        coast = Phase('gauss-lobatto',
-                      ode_class=FiniteBurnODE,
-                      num_segments=10,
-                      transcription_order=3,
-                      compressed=True)
+        coast = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=FiniteBurnODE,
+                                       num_segments=10,
+                                       transcription_order=3,
+                                       compressed=True)
 
         traj.add_phase('coast', coast)
 
@@ -292,11 +292,11 @@ class TestInvalidLinkages(unittest.TestCase):
 
         # Third Phase (burn)
 
-        burn2 = Phase('gauss-lobatto',
-                      ode_class=FiniteBurnODE,
-                      num_segments=3,
-                      transcription_order=3,
-                      compressed=True)
+        burn2 = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=FiniteBurnODE,
+                                       num_segments=3,
+                                       transcription_order=3,
+                                       compressed=True)
 
         traj.add_phase('burn2', burn2)
 

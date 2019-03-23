@@ -7,7 +7,7 @@ import warnings
 from openmdao.api import Problem, Group, IndepVarComp, ScipyOptimizeDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase
+from dymos import DeprecatedPhaseFactory
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 
@@ -26,10 +26,10 @@ class TestPhaseTimeOptions(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneODE,
-                      num_segments=8,
-                      transcription_order=3)
+        phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=BrachistochroneODE,
+                                       num_segments=8,
+                                       transcription_order=3)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -77,10 +77,10 @@ class TestPhaseTimeOptions(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneODE,
-                      num_segments=8,
-                      transcription_order=3)
+        phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=BrachistochroneODE,
+                                       num_segments=8,
+                                       transcription_order=3)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -117,10 +117,10 @@ class TestPhaseTimeOptions(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneODE,
-                      num_segments=8,
-                      transcription_order=3)
+        phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=BrachistochroneODE,
+                                       num_segments=8,
+                                       transcription_order=3)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -162,10 +162,10 @@ class TestPhaseTimeOptions(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneODE,
-                      num_segments=8,
-                      transcription_order=3)
+        phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                       ode_class=BrachistochroneODE,
+                                       num_segments=8,
+                                       transcription_order=3)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -213,10 +213,10 @@ class TestPhaseTimeOptions(unittest.TestCase):
             p.driver = ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
 
-            phase = Phase('gauss-lobatto',
-                          ode_class=BrachistochroneODE,
-                          num_segments=8,
-                          transcription_order=3)
+            phase = DeprecatedPhaseFactory('gauss-lobatto',
+                                           ode_class=BrachistochroneODE,
+                                           num_segments=8,
+                                           transcription_order=3)
 
             p.model.add_subsystem('phase0', phase)
 

@@ -10,7 +10,7 @@ _transcriptions = {'gauss-lobatto': GaussLobattoPhase,
                    'runge-kutta': RungeKuttaPhase}
 
 
-def Phase(transcription, **kwargs):
+def DeprecatedPhaseFactory(transcription, **kwargs):
     """
     Instantiates and returns a phase of the given transcription.
 

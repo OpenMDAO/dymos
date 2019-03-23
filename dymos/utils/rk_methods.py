@@ -27,7 +27,7 @@ rk_methods : dict of dict of {str: object}
 
 import numpy as np
 
-rk_methods = {'rk4': {'num_stages': 4,
+rk_methods = {'RK4': {'num_stages': 4,
                       'c': np.array([0., 0.5, 0.5, 1.0]),
                       'control_disc_indices': [0, 1, 3],
                       'b': np.array([1/6, 1/3, 1/3, 1/6]),
