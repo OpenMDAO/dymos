@@ -6,9 +6,9 @@ import numpy as np
 
 from openmdao.api import ExplicitComponent, Group, IndepVarComp
 
-from dymos.phases.grid_data import GridData
-from dymos.utils.misc import get_rate_units, CoerceDesvar
-from dymos.utils.constants import INF_BOUND
+from ..grid_data import GridData
+from ...utils.misc import get_rate_units, CoerceDesvar
+from ...utils.constants import INF_BOUND
 
 
 class ControlInterpComp(ExplicitComponent):

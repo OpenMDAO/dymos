@@ -19,7 +19,7 @@ from dymos.phases.options import ControlOptionsDictionary, DesignParameterOption
     PolynomialControlOptionsDictionary
 from dymos.phases.components import PolynomialControlGroup, ControlGroup
 
-from ..transcriptions import TranscriptionBase
+from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.constants import INF_BOUND
 
 
@@ -649,45 +649,45 @@ class Phase(Group):
                     'vectorize_derivs': vectorize_derivs}
         self._objectives[name] = obj_dict
 
-    def _setup_objective(self):
-        """
-        Find the path of the objective(s) and add the objective using the standard OpenMDAO method.
-        """
-        for name, options in iteritems(self._objectives):
-            index = options['index']
-            loc = options['loc']
-
-            obj_path, shape, units, _ = self._get_boundary_constraint_src(name, loc)
-
-            shape = options['shape'] if shape is None else shape
-
-            size = int(np.prod(shape))
-
-            if size > 1 and index is None:
-                raise ValueError('Objective variable is non-scaler {0} but no index specified '
-                                 'for objective'.format(shape))
-
-            idx = 0 if index is None else index
-            if idx < 0:
-                idx = size + idx
-
-            if idx >= size or idx < -size:
-                raise ValueError('Objective index={0}, but the shape of the objective '
-                                 'variable is {1}'.format(index, shape))
-
-            if loc == 'final':
-                obj_index = -size + idx
-            elif loc == 'initial':
-                obj_index = idx
-            else:
-                raise ValueError('Invalid value for objective loc: {0}. Must be '
-                                 'one of \'initial\' or \'final\'.'.format(loc))
-
-            super(PhaseBase, self).add_objective(obj_path, ref=options['ref'], ref0=options['ref0'],
-                                                 index=obj_index, adder=options['adder'],
-                                                 scaler=options['scaler'],
-                                                 parallel_deriv_color=options['parallel_deriv_color'],
-                                                 vectorize_derivs=options['vectorize_derivs'])
+    # def _setup_objective(self):
+    #     """
+    #     Find the path of the objective(s) and add the objective using the standard OpenMDAO method.
+    #     """
+    #     for name, options in iteritems(self._objectives):
+    #         index = options['index']
+    #         loc = options['loc']
+    #
+    #         obj_path, shape, units, _ = self._get_boundary_constraint_src(name, loc)
+    #
+    #         shape = options['shape'] if shape is None else shape
+    #
+    #         size = int(np.prod(shape))
+    #
+    #         if size > 1 and index is None:
+    #             raise ValueError('Objective variable is non-scaler {0} but no index specified '
+    #                              'for objective'.format(shape))
+    #
+    #         idx = 0 if index is None else index
+    #         if idx < 0:
+    #             idx = size + idx
+    #
+    #         if idx >= size or idx < -size:
+    #             raise ValueError('Objective index={0}, but the shape of the objective '
+    #                              'variable is {1}'.format(index, shape))
+    #
+    #         if loc == 'final':
+    #             obj_index = -size + idx
+    #         elif loc == 'initial':
+    #             obj_index = idx
+    #         else:
+    #             raise ValueError('Invalid value for objective loc: {0}. Must be '
+    #                              'one of \'initial\' or \'final\'.'.format(loc))
+    #
+    #         super(PhaseBase, self).add_objective(obj_path, ref=options['ref'], ref0=options['ref0'],
+    #                                              index=obj_index, adder=options['adder'],
+    #                                              scaler=options['scaler'],
+    #                                              parallel_deriv_color=options['parallel_deriv_color'],
+    #                                              vectorize_derivs=options['vectorize_derivs'])
 
     def set_time_options(self, **kwargs):
         """
@@ -739,7 +739,7 @@ class Phase(Group):
         """
         self.user_time_options.update(kwargs)
 
-    def _classify_var(self, var):
+    def classify_var(self, var):
         """
         Classifies a variable of the given name or path.
 
@@ -873,19 +873,19 @@ class Phase(Group):
 
         # The control interpolation comp to which we'll connect controls
         if self.control_options:
-            transcription.setup_controls()
+            transcription.setup_controls(self)
 
         if self.polynomial_control_options:
-            transcription.setup_polynomial_controls()
-
-        if self.input_parameter_options:
-            transcription.setup_input_parameters()
+            transcription.setup_polynomial_controls(self)
 
         if self.design_parameter_options:
-            transcription.setup_design_parameters()
+            transcription.setup_design_parameters(self)
+
+        if self.input_parameter_options:
+            transcription.setup_input_parameters(self)
 
         if self.traj_parameter_options:
-            transcription.setup_traj_input_parameters()
+            transcription.setup_traj_parameters(self)
 
         transcription.setup_states(self)
         transcription.setup_ode(self)
@@ -947,7 +947,7 @@ class Phase(Group):
 
     def _check_control_options(self):
         """
-        Check that time options are valid and issue warnings if invalid options are provided.
+        Check that control options are valid and issue warnings if invalid options are provided.
 
         Warnings
         --------
@@ -972,7 +972,8 @@ class Phase(Group):
 
     def _check_design_parameter_options(self):
         """
-        Check that time options are valid and issue warnings if invalid options are provided.
+        Check that design parameter options are valid and issue warnings if invalid
+        options are provided.
 
         Warnings
         --------
@@ -989,266 +990,6 @@ class Phase(Group):
                     warnings.warn('Invalid options for non-optimal design_parameter \'{0}\' in '
                                   'phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
                                   RuntimeWarning)
-
-    def _setup_time(self):
-        """
-        Setup up the time component and time extents for the phase.
-
-        Returns
-        -------
-        comps
-            A list of the component names needed for time extents.
-        """
-        time_units = self.time_options['units']
-
-        indeps = []
-        default_vals = {'t_initial': self.time_options['initial_val'],
-                        't_duration': self.time_options['duration_val']}
-        externals = []
-        comps = []
-
-        # Warn about invalid options
-        self.check_time_options()
-
-        if self.time_options['input_initial']:
-            externals.append('t_initial')
-        else:
-            indeps.append('t_initial')
-            self.connect('t_initial', 'time.t_initial')
-
-        if self.time_options['input_duration']:
-            externals.append('t_duration')
-        else:
-            indeps.append('t_duration')
-            self.connect('t_duration', 'time.t_duration')
-
-        if indeps:
-            indep = IndepVarComp()
-
-            for var in indeps:
-                indep.add_output(var, val=default_vals[var], units=time_units)
-
-            self.add_subsystem('time_extents', indep, promotes_outputs=['*'])
-            comps += ['time_extents']
-
-        if not (self.time_options['input_initial'] or self.time_options['fix_initial']):
-            lb, ub = self.time_options['initial_bounds']
-            lb = -INF_BOUND if lb is None else lb
-            ub = INF_BOUND if ub is None else ub
-
-            self.add_design_var('t_initial',
-                                lower=lb,
-                                upper=ub,
-                                scaler=self.time_options['initial_scaler'],
-                                adder=self.time_options['initial_adder'],
-                                ref0=self.time_options['initial_ref0'],
-                                ref=self.time_options['initial_ref'])
-
-        if not (self.time_options['input_duration'] or self.time_options['fix_duration']):
-            lb, ub = self.time_options['duration_bounds']
-            lb = -INF_BOUND if lb is None else lb
-            ub = INF_BOUND if ub is None else ub
-
-            self.add_design_var('t_duration',
-                                lower=lb,
-                                upper=ub,
-                                scaler=self.time_options['duration_scaler'],
-                                adder=self.time_options['duration_adder'],
-                                ref0=self.time_options['duration_ref0'],
-                                ref=self.time_options['duration_ref'])
-
-        return indeps, externals, comps
-
-    def _setup_controls(self):
-        """
-        Adds an IndepVarComp if necessary and issues appropriate connections based
-        on transcription.
-        """
-        self._check_control_options()
-
-        if self.control_options:
-            control_group = ControlGroup(control_options=self.control_options,
-                                         time_units=self.time_options['units'],
-                                         grid_data=self.grid_data)
-
-            self.add_subsystem('control_group',
-                               subsys=control_group,
-                               promotes=['controls:*', 'control_values:*', 'control_rates:*'])
-            self.connect('time.dt_dstau', 'control_group.dt_dstau')
-
-    def _setup_polynomial_controls(self):
-        """
-        Adds the polynomial control group to the model if any polynomial controls are present.
-        """
-        if self.polynomial_control_options:
-            sys = PolynomialControlGroup(grid_data=self.grid_data,
-                                         polynomial_control_options=self.polynomial_control_options,
-                                         time_units=self.time_options['units'])
-            self.add_subsystem('polynomial_control_group', subsys=sys,
-                               promotes_inputs=['*'], promotes_outputs=['*'])
-
-    def _setup_design_parameters(self):
-        """
-        Adds an IndepVarComp if necessary and issues appropriate connections based
-        on transcription.
-        """
-        self._check_design_parameter_options()
-
-        if self.design_parameter_options:
-            indep = self.add_subsystem('design_params', subsys=IndepVarComp(),
-                                       promotes_outputs=['*'])
-
-        for name, options in iteritems(self.design_parameter_options):
-            src_name = 'design_parameters:{0}'.format(name)
-
-            if options['opt']:
-                lb = -INF_BOUND if options['lower'] is None else options['lower']
-                ub = INF_BOUND if options['upper'] is None else options['upper']
-
-                self.add_design_var(name=src_name,
-                                    lower=lb,
-                                    upper=ub,
-                                    scaler=options['scaler'],
-                                    adder=options['adder'],
-                                    ref0=options['ref0'],
-                                    ref=options['ref'])
-
-            _shape = (1,) + options['shape']
-
-            indep.add_output(name=src_name,
-                             val=options['val'],
-                             shape=_shape,
-                             units=options['units'])
-
-            for tgts, src_idxs in self._get_parameter_connections(name):
-                self.connect(src_name, [t for t in tgts],
-                             src_indices=src_idxs, flat_src_indices=True)
-
-    def _setup_input_parameters(self):
-        """
-        Adds a InputParameterComp to allow input parameters to be connected from sources
-        external to the phase.
-        """
-        if self.input_parameter_options:
-            passthru = \
-                InputParameterComp(input_parameter_options=self.input_parameter_options)
-
-            self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
-                               promotes_outputs=['*'])
-
-        for name in self.input_parameter_options:
-            src_name = 'input_parameters:{0}_out'.format(name)
-
-            for tgts, src_idxs in self._get_parameter_connections(name):
-                self.connect(src_name, [t for t in tgts],
-                             src_indices=src_idxs, flat_src_indices=True)
-
-    def _setup_traj_input_parameters(self):
-        """
-        Adds a InputParameterComp to allow input parameters to be connected from sources
-        external to the phase.
-        """
-        if self.traj_parameter_options:
-            passthru = \
-                InputParameterComp(input_parameter_options=self.traj_parameter_options,
-                                   traj_params=True)
-
-            self.add_subsystem('traj_params', subsys=passthru, promotes_inputs=['*'],
-                               promotes_outputs=['*'])
-
-        for name, options in iteritems(self.traj_parameter_options):
-            src_name = 'traj_parameters:{0}_out'.format(name)
-
-            for tgts, src_idxs in self._get_parameter_connections(name):
-                self.connect(src_name, [t for t in tgts], src_indices=src_idxs)
-
-    def _get_parameter_connections(self, name):
-        """
-        Returns a list containing tuples of each path and related indices to which the
-        given parameter name is to be connected.
-
-        Returns
-        -------
-        connection_info : list of (paths, indices)
-            A list containing a tuple of target paths and corresponding src_indices to which the
-            given design variable is to be connected.
-        """
-        raise NotImplementedError('Phase class {0} does not implement '
-                                  '_get_parameter_connections'.format(self.__class__.__name__))
-
-    def _get_rate_source_path(self, state_name, nodes=None, **kwargs):
-        """
-        Given the name of a variable to be used as a rate source, provide the source connection
-        path for that variable in the Phase.
-
-        Parameters
-        ----------
-        state_name : str
-            The name of the state variable whose source path and indices is desired.
-        nodes : str
-            The name of the node subset from which the rate source is desired.
-
-        Returns
-        -------
-        path : str
-            The full path to the rate source in the system.
-        src_idxs : np.ndarray
-            The source indices in the resulting src that provide the values at the given nodes.
-        """
-        raise NotImplementedError('Phase class {0} does not implement '
-                                  '_get_rate_source_path'.format(self.__class__.__name__))
-
-    def _setup_rhs(self):
-        if not inspect.isclass(self.options['ode_class']):
-            raise ValueError('ode_class must be a class, not an instance.')
-        if not issubclass(self.options['ode_class'], System):
-            raise ValueError('ode_class must be derived from openmdao.core.System.')
-
-    def _setup_defects(self):
-        raise NotImplementedError()
-
-    def setup_states(self):
-        raise NotImplementedError()
-
-    def _setup_endpoint_conditions(self):
-        raise NotImplementedError()
-
-    def _get_boundary_constraint_src(self, var, loc):
-        """
-        Get the path of the boundary constraint source within the phase.
-
-        Parameters
-        ----------
-        var : str
-            The variable within the phase whose value is to be constrained at a boundary.
-        loc : str
-            The location of the boundary constraint in the phase.  Must be one of 'initial' or
-            'final'.
-
-        Returns
-        -------
-        src : str
-            The phase-relative path of the boundary constraint source.
-        src_idxs : np.array of int
-            The source indices that of src that provide the boundary constraint values.
-        shape : tuple of int
-            The shape of the variable being boundary-constrained.
-        units : str
-            The units of the output to be boundary-constrained.
-        linear : bool
-            True if this boundary constraint is constrained linearly, otherwise False.
-
-        """
-        raise NotImplementedError('This phase class does not implement '
-                                  '_get_boundary_constraint_src.')
-
-    def _setup_path_constraints(self):
-        raise NotImplementedError('_setup_path_constraints has not been implemented '
-                                  'for phase type {0}'.format(self.__class__))
-
-    def _setup_timeseries_outputs(self):
-        raise NotImplementedError('_setup_timeseries_outputs has not been implemented '
-                                  'for phase type {0}'.format(self.__class__))
 
     def interpolate(self, xs=None, ys=None, nodes='all', kind='linear', axis=0):
         """
@@ -1293,7 +1034,8 @@ class Phase(Group):
         elif len(xs) != np.prod(np.asarray(xs).shape):
             raise ValueError('xs must be viewable as a 1D array')
 
-        node_locations = self.grid_data.node_ptau[self.grid_data.subset_node_indices[nodes]]
+        gd = self.options['transcription'].grid_data
+        node_locations = gd.node_ptau[gd.subset_node_indices[nodes]]
         # if self.options['compressed']:
         #     node_locations = np.array(sorted(list(set(node_locations))))
         # Affine transform xs into tau space [-1, 1]

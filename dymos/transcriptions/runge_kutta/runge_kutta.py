@@ -1,11 +1,9 @@
 from __future__ import division, print_function, absolute_import
 
-from collections import Sequence
 import warnings
 
 import numpy as np
 from dymos.phases.components import EndpointConditionsComp
-from dymos.phases.phase_base import PhaseBase, _unspecified
 
 from openmdao.api import IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
     NewtonSolver, BoundsEnforceLS
@@ -14,7 +12,7 @@ from six import iteritems
 from ..transcription_base import TranscriptionBase
 from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
     RungeKuttaTimeseriesOutputComp, RungeKuttaPathConstraintComp, RungeKuttaControlContinuityComp
-from ..components import TimeComp
+from ..common import TimeComp
 from ...utils.rk_methods import rk_methods
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.constants import INF_BOUND
@@ -149,7 +147,7 @@ class RungeKutta(TranscriptionBase):
     def _get_rate_source_path(self, state_name, phase, nodes=None, **kwargs):
         var = phase.state_options[state_name]['rate_source']
         shape = phase.state_options[state_name]['shape']
-        var_type = phase._classify_var(var)
+        var_type = phase.classify_var(var)
         num_segments = self.options['num_segments']
         num_stages = rk_methods[self.options['method']]['num_stages']
 
@@ -509,7 +507,7 @@ class RungeKutta(TranscriptionBase):
             # This is more complicated for path constraints since, for instance,
             # a single state variable has two sources which must be connected to
             # the path component.
-            var_type = phase._classify_var(var)
+            var_type = phase.classify_var(var)
 
             if var_type == 'time':
                 options['shape'] = (1,)
@@ -662,20 +660,20 @@ class RungeKutta(TranscriptionBase):
         src_idxs = get_src_indices_by_row(gd.subset_node_indices['segment_ends'], (1,))
 
         timeseries_comp._add_timeseries_output('time',
-                                               var_class=phase._classify_var('time'),
+                                               var_class=phase.classify_var('time'),
                                                units=time_units)
         phase.connect(src_name='time', tgt_name='timeseries.segend_values:time',
                       src_indices=src_idxs, flat_src_indices=True)
 
         timeseries_comp._add_timeseries_output('time_phase',
-                                               var_class=phase._classify_var('time_phase'),
+                                               var_class=phase.classify_var('time_phase'),
                                                units=time_units)
         phase.connect(src_name='time_phase', tgt_name='timeseries.segend_values:time_phase',
                       src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in iteritems(phase.state_options):
             timeseries_comp._add_timeseries_output('states:{0}'.format(name),
-                                                   var_class=phase._classify_var(name),
+                                                   var_class=phase.classify_var(name),
                                                    shape=options['shape'],
                                                    units=options['units'])
             row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
@@ -688,7 +686,7 @@ class RungeKutta(TranscriptionBase):
         for name, options in iteritems(phase.control_options):
             control_units = options['units']
             timeseries_comp._add_timeseries_output('controls:{0}'.format(name),
-                                                   var_class=phase._classify_var(name),
+                                                   var_class=phase.classify_var(name),
                                                    shape=options['shape'],
                                                    units=control_units)
             src_rows = gd.subset_node_indices['segment_ends']
@@ -699,7 +697,7 @@ class RungeKutta(TranscriptionBase):
 
             # # Control rates
             timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(name),
-                                                   var_class=phase._classify_var(name),
+                                                   var_class=phase.classify_var(name),
                                                    shape=options['shape'],
                                                    units=get_rate_units(control_units,
                                                                         time_units,
@@ -710,7 +708,7 @@ class RungeKutta(TranscriptionBase):
 
             # Control second derivatives
             timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(name),
-                                                   var_class=phase._classify_var(name),
+                                                   var_class=phase.classify_var(name),
                                                    shape=options['shape'],
                                                    units=get_rate_units(control_units,
                                                                         time_units,
@@ -722,7 +720,7 @@ class RungeKutta(TranscriptionBase):
         for name, options in iteritems(phase.polynomial_control_options):
             control_units = options['units']
             timeseries_comp._add_timeseries_output('polynomial_controls:{0}'.format(name),
-                                                   var_class=phase._classify_var(name),
+                                                   var_class=phase.classify_var(name),
                                                    shape=options['shape'],
                                                    units=control_units)
             src_rows = gd.subset_node_indices['segment_ends']
@@ -733,7 +731,7 @@ class RungeKutta(TranscriptionBase):
 
             # # Control rates
             timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(name),
-                                                   var_class=phase._classify_var(name),
+                                                   var_class=phase.classify_var(name),
                                                    shape=options['shape'],
                                                    units=get_rate_units(control_units,
                                                                         time_units,
@@ -746,7 +744,7 @@ class RungeKutta(TranscriptionBase):
             # Control second derivatives
             timeseries_comp._add_timeseries_output('polynomial_control_rates:'
                                                    '{0}_rate2'.format(name),
-                                                   var_class=phase._classify_var(name),
+                                                   var_class=phase.classify_var(name),
                                                    shape=options['shape'],
                                                    units=get_rate_units(control_units,
                                                                         time_units,
@@ -759,7 +757,7 @@ class RungeKutta(TranscriptionBase):
         for name, options in iteritems(phase.design_parameter_options):
             units = options['units']
             timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
-                                                   var_class=phase._classify_var(name),
+                                                   var_class=phase.classify_var(name),
                                                    shape=options['shape'],
                                                    units=units)
 
@@ -786,7 +784,7 @@ class RungeKutta(TranscriptionBase):
         for name, options in iteritems(phase.traj_parameter_options):
             units = options['units']
             timeseries_comp._add_timeseries_output('traj_parameters:{0}'.format(name),
-                                                   var_class=phase._classify_var(name),
+                                                   var_class=phase.classify_var(name),
                                                    units=units)
 
             src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
@@ -803,7 +801,7 @@ class RungeKutta(TranscriptionBase):
             # This is more complicated for path constraints since, for instance,
             # a single state variable has two sources which must be connected to
             # the path component.
-            var_type = phase._classify_var(var)
+            var_type = phase.classify_var(var)
 
             # Failed to find variable, assume it is in the RHS
             phase.connect(src_name='ode.{0}'.format(var),
@@ -894,7 +892,7 @@ class RungeKutta(TranscriptionBase):
         """
         # Determine the path to the variable which we will be constraining
         time_units = phase.time_options['units']
-        var_type = phase._classify_var(var)
+        var_type = phase.classify_var(var)
 
         if var_type == 'time':
             shape = (1,)

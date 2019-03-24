@@ -4,8 +4,8 @@ import numpy as np
 from openmdao.api import ExplicitComponent
 from six import iteritems, string_types
 
-from dymos.phases.grid_data import GridData
-from dymos.utils.misc import get_rate_units
+from ..grid_data import GridData
+from ...utils.misc import get_rate_units
 
 
 class ContinuityCompBase(ExplicitComponent):

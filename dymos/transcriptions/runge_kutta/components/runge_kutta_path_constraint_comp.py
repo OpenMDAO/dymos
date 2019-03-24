@@ -2,7 +2,7 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from ...components.path_constraint_comp import PathConstraintCompBase
+from ...common.path_constraint_comp import PathConstraintCompBase
 
 
 class RungeKuttaPathConstraintComp(PathConstraintCompBase):

@@ -2,7 +2,7 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from ...components.timeseries_output_comp import TimeseriesOutputCompBase
+from ...common.timeseries_output_comp import TimeseriesOutputCompBase
 
 
 class RungeKuttaTimeseriesOutputComp(TimeseriesOutputCompBase):

@@ -67,7 +67,7 @@ class PathConstraintCompBase(ExplicitComponent):
             Scaling parameter. The value in the user-defined res_units of this output's residual
             when the scaled value is 1. Default is 1.
         type_ : str
-            The kind of variable be constrained, as returned by _classify_var.
+            The kind of variable be constrained, as returned by classify_var.
         distributed : bool
             If True, this variable is distributed across multiple processes.
         """

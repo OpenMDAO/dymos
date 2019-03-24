@@ -9,7 +9,10 @@ import numpy as np
 
 from openmdao.api import IndepVarComp, OptionsDictionary
 
+from .common import BoundaryConstraintComp, InputParameterComp, ControlGroup, \
+    PolynomialControlGroup
 from ..utils.constants import INF_BOUND
+from ..utils.indexing import get_src_indices_by_row
 
 
 class TranscriptionBase(object):
@@ -36,6 +39,18 @@ class TranscriptionBase(object):
 
     def initialize(self):
         pass
+
+    def setup_grid(self, phase):
+        """
+        Setup the GridData object for the Transcription
+
+        Parameters
+        ----------
+        phase
+            The phase to which this transcription applies.
+        """
+        raise NotImplementedError('Transcription {0} does not implement method'
+                                  'setup_grid.'.format(self.__class__.__name__))
 
     def setup_time(self, phase):
         """
@@ -105,14 +120,112 @@ class TranscriptionBase(object):
                                  ref0=time_options['duration_ref0'],
                                  ref=time_options['duration_ref'])
 
+    def setup_controls(self, phase):
+        """
+        Adds an IndepVarComp if necessary and issues appropriate connections based
+        on transcription.
+        """
+        phase._check_control_options()
+
+        if phase.control_options:
+            control_group = ControlGroup(control_options=phase.control_options,
+                                         time_units=phase.time_options['units'],
+                                         grid_data=self.grid_data)
+
+            phase.add_subsystem('control_group',
+                                subsys=control_group,
+                                promotes=['controls:*', 'control_values:*', 'control_rates:*',
+                                          'dt_dstau'])
+
+    def setup_polynomial_controls(self, phase):
+        raise NotImplementedError('Transcription {0} does not implement method'
+                                  'setup_polynomial_controls.'.format(self.__class__.__name__))
+
+    def setup_design_parameters(self, phase):
+        """
+        Adds an IndepVarComp if necessary and issues appropriate connections based
+        on transcription.
+        """
+        phase._check_design_parameter_options()
+
+        if phase.design_parameter_options:
+            indep = phase.add_subsystem('design_params', subsys=IndepVarComp(),
+                                        promotes_outputs=['*'])
+
+            for name, options in iteritems(phase.design_parameter_options):
+                src_name = 'design_parameters:{0}'.format(name)
+
+                if options['opt']:
+                    lb = -INF_BOUND if options['lower'] is None else options['lower']
+                    ub = INF_BOUND if options['upper'] is None else options['upper']
+
+                    phase.add_design_var(name=src_name,
+                                         lower=lb,
+                                         upper=ub,
+                                         scaler=options['scaler'],
+                                         adder=options['adder'],
+                                         ref0=options['ref0'],
+                                         ref=options['ref'])
+
+                _shape = (1,) + options['shape']
+
+                indep.add_output(name=src_name,
+                                 val=options['val'],
+                                 shape=_shape,
+                                 units=options['units'])
+
+                for tgts, src_idxs in self.get_parameter_connections(name):
+                    phase.connect(src_name, [t for t in tgts],
+                                  src_indices=src_idxs, flat_src_indices=True)
+
+    def setup_input_parameters(self, phase):
+        """
+        Adds a InputParameterComp to allow input parameters to be connected from sources
+        external to the phase.
+        """
+        if phase.input_parameter_options:
+            passthru = InputParameterComp(input_parameter_options=phase.input_parameter_options)
+
+            phase.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
+                                promotes_outputs=['*'])
+
+        for name in phase.input_parameter_options:
+            src_name = 'input_parameters:{0}_out'.format(name)
+
+            for tgts, src_idxs in self.get_parameter_connections(name, phase):
+                phase.connect(src_name, [t for t in tgts],
+                              src_indices=src_idxs, flat_src_indices=True)
+
+    def setup_traj_input_parameters(self, phase):
+        """
+        Adds a InputParameterComp to allow input parameters to be connected from sources
+        external to the phase.
+        """
+        if phase.traj_parameter_options:
+            passthru = \
+                InputParameterComp(input_parameter_options=phase.traj_parameter_options,
+                                   traj_params=True)
+
+            phase.add_subsystem('traj_params', subsys=passthru, promotes_inputs=['*'],
+                                promotes_outputs=['*'])
+
+        for name, options in iteritems(phase.traj_parameter_options):
+            src_name = 'traj_parameters:{0}_out'.format(name)
+
+            for tgts, src_idxs in self.get_parameter_connections(name):
+                phase.connect(src_name, [t for t in tgts], src_indices=src_idxs)
+
     def setup_states(self, phase):
-        pass
+        raise NotImplementedError('Transcription {0} does not implement method '
+                                  'setup_states.'.format(self.__class__.__name__))
 
     def setup_ode(self, phase):
-        pass
+        raise NotImplementedError('Transcription {0} does not implement method '
+                                  'setup_ode.'.format(self.__class__.__name__))
 
     def setup_timeseries_outputs(self, phase):
-        pass
+        raise NotImplementedError('Transcription {0} does not implement method '
+                                  'setup_timeseries_outputs.'.format(self.__class__.__name__))
 
     def setup_boundary_constraints(self, loc, phase):
         """
@@ -214,13 +327,10 @@ class TranscriptionBase(object):
 
             bc_comp._add_constraint(con_name, **con_options)
 
-            self.connect(src,
-                         '{0}_boundary_constraints.{0}_value_in:{1}'.format(loc, con_name),
-                         src_indices=src_idxs,
-                         flat_src_indices=True)
-
-    def _get_boundary_constraint_src(self, name, loc, phase):
-        raise NotImplementedError('This transcription does not implement _get_boundary_constraint_src')
+            phase.connect(src,
+                          '{0}_boundary_constraints.{0}_value_in:{1}'.format(loc, con_name),
+                          src_indices=src_idxs,
+                          flat_src_indices=True)
 
     def setup_objective(self, phase):
         """
@@ -256,8 +366,28 @@ class TranscriptionBase(object):
                 raise ValueError('Invalid value for objective loc: {0}. Must be '
                                  'one of \'initial\' or \'final\'.'.format(loc))
 
-            phase.add_objective(obj_path, ref=options['ref'], ref0=options['ref0'],
-                                index=obj_index, adder=options['adder'],
-                                scaler=options['scaler'],
-                                parallel_deriv_color=options['parallel_deriv_color'],
-                                vectorize_derivs=options['vectorize_derivs'])
+            from dymos.phase.phase import Phase
+            super(Phase, phase).add_objective(obj_path, ref=options['ref'], ref0=options['ref0'],
+                                             index=obj_index, adder=options['adder'],
+                                             scaler=options['scaler'],
+                                             parallel_deriv_color=options['parallel_deriv_color'],
+                                             vectorize_derivs=options['vectorize_derivs'])
+
+    def get_boundary_constraint_src(self, name, loc, phase):
+        raise NotImplementedError('Transcription {0} does not implement method'
+                                  'get_boundary_constraint_source.'.format(self.__class__.__name__))
+
+    def get_parameter_connections(self, name, phase):
+        """
+        Returns a list containing tuples of each path and related indices to which the
+        given parameter name is to be connected.
+
+        Returns
+        -------
+        connection_info : list of (paths, indices)
+            A list containing a tuple of target paths and corresponding src_indices to which the
+            given design variable is to be connected.
+        """
+        raise NotImplementedError('Transcription class {0} does not implement '
+                                  'get_parameter_connections'.format(self.__class__.__name__))
+
