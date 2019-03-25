@@ -55,7 +55,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
 
-    def test_ex_brachistochrone_radau_compressed(self):
+    def test_ex_brachistochrone_vs_radau_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
                                                            compressed=True,
@@ -69,7 +69,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         if os.path.exists('ex_brach_radau_compressed.db'):
             os.remove('ex_brach_radau_compressed.db')
 
-    def test_ex_brachistochrone_radau_uncompressed(self):
+    def test_ex_brachistochrone_vs_radau_uncompressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
                                                            compressed=False,
@@ -83,7 +83,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         if os.path.exists('ex_brach_radau_uncompressed.db'):
             os.remove('ex_brach_radau_uncompressed.db')
 
-    def test_ex_brachistochrone_gl_compressed(self):
+    def test_ex_brachistochrone_vs_gl_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
                                                            compressed=True,
@@ -97,7 +97,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         if os.path.exists('ex_brach_gl_compressed.db'):
             os.remove('ex_brach_gl_compressed.db')
 
-    def test_ex_brachistochrone_gl_uncompressed(self):
+    def test_ex_brachistochrone_vs_gl_uncompressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
                                                            transcription_order=5,
@@ -111,7 +111,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         if os.path.exists('ex_brach_gl_compressed.db'):
             os.remove('ex_brach_gl_compressed.db')
 
-    def test_ex_brachistochrone_rungekutta_compressed(self):
+    def test_ex_brachistochrone_vs_rungekutta_compressed(self):
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import \
@@ -202,7 +202,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
-    def test_ex_brachistochrone_radau_compressed(self):
+    def test_ex_brachistochrone_vs_radau_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
                                                            compressed=True,
@@ -213,7 +213,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 
         p.final_setup()
         # set the final optimized control profile from
-        # TestBrachistochroneVectorStatesExample.test_ex_brachistochrone_radau_compressed
+        # TestBrachistochroneVectorStatesExample.test_ex_brachistochrone_vs_radau_compressed
         # and see if we get the right state history
         theta = np.array([2.54206362, 4.8278643, 10.11278149, 12.30024503, 17.35332815,
                           23.53948016, 25.30747573, 29.39010464, 35.47854735, 37.51549822,
@@ -238,7 +238,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         if os.path.exists('ex_brach_radau_compressed.db'):
             os.remove('ex_brach_radau_compressed.db')
 
-    def test_ex_brachistochrone_gl_compressed(self):
+    def test_ex_brachistochrone_vs_gl_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
                                                            compressed=True,

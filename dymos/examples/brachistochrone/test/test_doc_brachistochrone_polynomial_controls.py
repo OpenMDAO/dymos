@@ -11,16 +11,15 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, GaussLobatto
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('gauss-lobatto',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -99,16 +98,15 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, Radau
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -187,15 +185,15 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import RungeKuttaPhase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = RungeKuttaPhase(ode_class=BrachistochroneODE,
-                                num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=RungeKutta(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -280,16 +278,15 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, GaussLobatto
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('gauss-lobatto',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -371,16 +368,15 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, Radau
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -462,15 +458,15 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import RungeKuttaPhase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = RungeKuttaPhase(ode_class=BrachistochroneODE,
-                                num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=RungeKutta(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -558,16 +554,15 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, GaussLobatto
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('gauss-lobatto',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -648,16 +643,15 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, Radau
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -738,15 +732,15 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import RungeKuttaPhase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = RungeKuttaPhase(ode_class=BrachistochroneODE,
-                                num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=RungeKutta(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -833,16 +827,15 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, GaussLobatto
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('gauss-lobatto',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -923,16 +916,15 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, Radau
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1013,15 +1005,15 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import RungeKuttaPhase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = RungeKuttaPhase(ode_class=BrachistochroneODE,
-                                num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=RungeKutta(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1108,16 +1100,15 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, GaussLobatto
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('gauss-lobatto',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1196,16 +1187,15 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, Radau
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1284,15 +1274,15 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import RungeKuttaPhase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = RungeKuttaPhase(ode_class=BrachistochroneODE,
-                                num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=RungeKutta(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1373,16 +1363,15 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, GaussLobatto
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('gauss-lobatto',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1429,16 +1418,15 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
     def test_brachistochrone_polynomial_control_radau(self):
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, Radau
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1486,15 +1474,15 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
     def test_brachistochrone_polynomial_control_rungekutta(self):
         from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import RungeKuttaPhase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = RungeKuttaPhase(ode_class=BrachistochroneODE,
-                                num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=RungeKutta(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 

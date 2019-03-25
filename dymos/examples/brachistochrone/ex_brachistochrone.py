@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
-from dymos import DeprecatedPhaseFactory
+from dymos import Phase, GaussLobatto, Radau, RungeKutta
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 SHOW_PLOTS = True
@@ -19,28 +19,30 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # if optimizer == 'SNOPT':
     p.driver = pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    #     p.driver.opt_settings['Major iterations limit'] = 100
-    #     p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
-    #     p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-    #     p.driver.opt_settings['iSumm'] = 6
-    # else:
-    #     p.driver = ScipyOptimizeDriver()
-
     p.driver.options['dynamic_simul_derivs'] = True
 
-    phase = DeprecatedPhaseFactory(transcription,
-                                   ode_class=BrachistochroneODE,
-                                   num_segments=num_segments,
-                                   transcription_order=transcription_order,
-                                   compressed=compressed)
+    if transcription == 'gauss-lobatto':
+        t = GaussLobatto(num_segments=num_segments,
+                         order=transcription_order,
+                         compressed=compressed)
+    elif transcription == 'radau-ps':
+        t = Radau(num_segments=num_segments,
+                  order=transcription_order,
+                  compressed=compressed)
+    elif transcription == 'runge-kutta':
+        t = RungeKutta(num_segments=num_segments,
+                       order=transcription_order,
+                       compressed=compressed)
+
+    phase = Phase(ode_class=BrachistochroneODE, transcription=t)
 
     p.model.add_subsystem('phase0', phase)
 
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-    phase.set_state_options('x', fix_initial=True, fix_final=False, solve_segments=True)
-    phase.set_state_options('y', fix_initial=True, fix_final=False, solve_segments=True)
-    phase.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=True)
+    phase.set_state_options('x', fix_initial=True, fix_final=False, solve_segments=False)
+    phase.set_state_options('y', fix_initial=True, fix_final=False, solve_segments=False)
+    phase.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=False)
 
     phase.add_control('theta', continuity=True, rate_continuity=True,
                       units='deg', lower=0.01, upper=179.9)

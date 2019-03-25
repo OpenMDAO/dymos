@@ -85,14 +85,12 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, GaussLobatto
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = DeprecatedPhaseFactory('gauss-lobatto',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE, transcription=GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -134,14 +132,12 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, Radau
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE, transcription=Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -183,12 +179,12 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import RungeKuttaPhase
+        from dymos import Phase, RungeKutta
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = RungeKuttaPhase(ode_class=BrachistochroneODE, num_segments=20)
+        phase = Phase(ode_class=BrachistochroneODE, transcription=RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -232,9 +228,9 @@ class TestBrachistochroneBasePhaseClass(unittest.TestCase):
     def test_brachistochrone_base_phase_class_gl(self):
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import GaussLobattoPhase
+        from dymos import Phase, GaussLobatto
 
-        class BrachistochronePhase(GaussLobattoPhase):
+        class BrachistochronePhase(Phase):
 
             def setup(self):
 
@@ -254,7 +250,7 @@ class TestBrachistochroneBasePhaseClass(unittest.TestCase):
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = BrachistochronePhase(num_segments=20, transcription_order=3)
+        phase = BrachistochronePhase(transcription=GaussLobatto(num_segments=20, order=3))
         p.model.add_subsystem('phase0', phase)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import DeprecatedPhaseFactory
+from dymos import Phase, GaussLobatto, Radau, RungeKutta
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
@@ -25,10 +25,8 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneVectorStatesODE,
-                                       num_segments=20,
-                                       transcription_order=3)
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=Radau(num_segments=20, order=3))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -114,10 +112,8 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneVectorStatesODE,
-                                       num_segments=20,
-                                       transcription_order=3)
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=Radau(num_segments=20, order=3))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -203,10 +199,8 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneVectorStatesODE,
-                                       num_segments=20,
-                                       transcription_order=3)
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=Radau(num_segments=20, order=3))
 
         p.model.add_subsystem('phase0', phase)
 

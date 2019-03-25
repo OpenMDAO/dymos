@@ -400,7 +400,7 @@ class SolveIVP(TranscriptionBase):
 
             # Polynomial control rates
             timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(name),
-                                                   var_class=self._classify_var(name),
+                                                   var_class=phase.classify_var(name),
                                                    shape=options['shape'],
                                                    units=get_rate_units(control_units,
                                                                         time_units,
@@ -412,7 +412,7 @@ class SolveIVP(TranscriptionBase):
             # Polynomial control second derivatives
             timeseries_comp._add_timeseries_output('polynomial_control_rates:'
                                                    '{0}_rate2'.format(name),
-                                                   var_class=self._classify_var(name),
+                                                   var_class=phase.classify_var(name),
                                                    shape=options['shape'],
                                                    units=get_rate_units(control_units,
                                                                         time_units,
