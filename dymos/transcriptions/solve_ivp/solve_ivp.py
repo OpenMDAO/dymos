@@ -298,8 +298,8 @@ class SolveIVP(TranscriptionBase):
             phase.connect('input_parameters:{0}_out'.format(name),
                           ['segment_{0}.input_parameters:{1}'.format(iseg, name) for iseg in range(num_seg)])
 
-    def _setup_traj_input_parameters(self, phase):
-        super(SolveIVP, self).setup_traj_input_parameters(phase)
+    def setup_traj_parameters(self, phase):
+        super(SolveIVP, self).setup_traj_parameters(phase)
         num_seg = self.grid_data.num_segments
         for name, options in iteritems(phase.traj_parameter_options):
             phase.connect('traj_parameters:{0}_out'.format(name),

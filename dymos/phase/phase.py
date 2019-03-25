@@ -77,7 +77,9 @@ class Phase(Group):
             self.user_polynomial_control_options = from_phase.polynomial_control_options.copy()
             self.user_design_parameter_options = from_phase.design_parameter_options.copy()
             self.user_input_parameter_options = from_phase.input_parameter_options.copy()
-            self.user_traj_parameter_options = from_phase.traj_parameter_options.copy()
+            # Don't copy over the trajectory parameters.  The owning trajectory object will
+            # handle that.
+            self.user_traj_parameter_options = {} # from_phase.traj_parameter_options.copy()
             self._timeseries_outputs = from_phase._timeseries_outputs.copy()
 
             self._initial_boundary_constraints = from_phase._initial_boundary_constraints.copy()

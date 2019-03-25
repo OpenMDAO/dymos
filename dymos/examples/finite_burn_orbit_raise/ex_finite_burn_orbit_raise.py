@@ -8,23 +8,24 @@ import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, SqliteRecorder
 
-from dymos import DeprecatedPhaseFactory, Trajectory
+from dymos import Phase, Trajectory, GaussLobatto, Radau, RungeKutta
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
 
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=True,
               connected=False):
+
+    t = {'gauss-lobatto': GaussLobatto(num_segments=20, order=transcription_order, compressed=compressed),
+         'radau': Radau(num_segments=20, order=transcription_order, compressed=compressed),
+         'runge-kutta': RungeKutta(num_segments=20, compressed=compressed)}
+
     traj = Trajectory()
 
     traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU')
 
     # First Phase (burn)
 
-    burn1 = DeprecatedPhaseFactory(transcription,
-                                   ode_class=FiniteBurnODE,
-                                   num_segments=20,
-                                   transcription_order=transcription_order,
-                                   compressed=compressed)
+    burn1 = Phase(ode_class=FiniteBurnODE, transcription=t[transcription])
 
     burn1 = traj.add_phase('burn1', burn1)
 
@@ -39,12 +40,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
                       rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
                       lower=-30, upper=30)
     # Second Phase (Coast)
-
-    coast = DeprecatedPhaseFactory(transcription,
-                                   ode_class=FiniteBurnODE,
-                                   num_segments=40,
-                                   transcription_order=transcription_order,
-                                   compressed=compressed)
+    coast = Phase(ode_class=FiniteBurnODE, transcription=t[transcription])
 
     coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 50), duration_ref=50)
     coast.set_state_options('r', fix_initial=False, fix_final=False, defect_scaler=100.0)
@@ -57,12 +53,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=T
     coast.add_design_parameter('u1', opt=False, val=0.0, units='deg')
 
     # Third Phase (burn)
-
-    burn2 = DeprecatedPhaseFactory(transcription,
-                                   ode_class=FiniteBurnODE,
-                                   num_segments=20,
-                                   transcription_order=transcription_order,
-                                   compressed=compressed)
+    burn2 = Phase(ode_class=FiniteBurnODE, transcription=t[transcription])
 
     if connected:
         traj.add_phase('burn2', burn2)
