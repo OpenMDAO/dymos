@@ -30,7 +30,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         p.model.add_subsystem('k_iter_group',
                               RungeKuttaKIterGroup(num_segments=num_seg,
-                                                   method='RK4,
+                                                   method='RK4',
                                                    state_options=state_options,
                                                    time_units='s',
                                                    ode_class=TestODE,
@@ -105,7 +105,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         p.model.add_subsystem('k_iter_group',
                               RungeKuttaKIterGroup(num_segments=num_seg,
-                                                   method='RK4,
+                                                   method='RK4',
                                                    state_options=state_options,
                                                    time_units='s',
                                                    ode_class=TestODE,
@@ -164,7 +164,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
 
         p.model.add_subsystem('k_iter_group',
                               RungeKuttaKIterGroup(num_segments=num_seg,
-                                                   method='RK4,
+                                                   method='RK4',
                                                    state_options=state_options,
                                                    time_units='s',
                                                    ode_class=TestODE,

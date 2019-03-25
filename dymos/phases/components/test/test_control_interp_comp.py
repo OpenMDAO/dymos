@@ -171,7 +171,7 @@ class TestControlRateComp(unittest.TestCase):
         gd = GridData(num_segments=2,
                       segment_ends=segends,
                       transcription='runge-kutta',
-                      transcription_order='RK4,
+                      transcription_order='RK4',
                       compressed=compressed)
 
         p = Problem(model=Group())

@@ -111,11 +111,9 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         if os.path.exists('ex_brach_gl_compressed.db'):
             os.remove('ex_brach_gl_compressed.db')
 
-    # TODO: This test will not correctly run until we can do shaped boundary constraints.
-    @unittest.expectedFailure
     def test_ex_brachistochrone_rungekutta_compressed(self):
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
-        from dymos import RungeKuttaPhase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import \
             BrachistochroneVectorStatesODE
 
@@ -125,11 +123,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = RungeKuttaPhase(ode_class=BrachistochroneVectorStatesODE,
-                                num_segments=20,
-                                compressed=True,
-                                k_solver_options={'iprint': 2},
-                                continuity_solver_options={'iprint': 2, 'solve_subsystems': True})
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=RungeKutta(num_segments=20, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -163,12 +158,10 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                                                        nodes='control_input')
         p['phase0.design_parameters:g'] = 9.80665
 
-        p.run_model()
+        p.run_driver()
 
         self.assert_results(p)
         self.tearDown()
-        if os.path.exists('ex_brach_rk_compressed.db'):
-            os.remove('ex_brach_rk_compressed.db')
 
 
 class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
@@ -274,6 +267,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         self.tearDown()
         if os.path.exists('ex_brach_gl_compressed.db'):
             os.remove('ex_brach_gl_compressed.db')
+
 
 if __name__ == "__main__":
     unittest.main()

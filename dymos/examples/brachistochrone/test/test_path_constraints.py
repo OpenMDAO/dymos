@@ -8,15 +8,14 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
     def test_control_rate_path_constraint_gl(self):
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, GaussLobatto
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = DeprecatedPhaseFactory('gauss-lobatto',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -56,16 +55,14 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
     def test_control_rate2_path_constraint_gl(self):
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, GaussLobatto
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = DeprecatedPhaseFactory('gauss-lobatto',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10,
-                                       transcription_order=5)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=GaussLobatto(num_segments=10, order=5))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -106,16 +103,15 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
     def test_control_rate_path_constraint_radau(self):
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, Radau
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10,
-                                       compressed=False)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=Radau(num_segments=10,
+                                          compressed=False))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -155,16 +151,15 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
     def test_control_rate2_path_constraint_radau(self):
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, Radau
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=10,
-                                       transcription_order=5)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=Radau(num_segments=10,
+                                          compressed=False))
 
         p.model.add_subsystem('phase0', phase)
 

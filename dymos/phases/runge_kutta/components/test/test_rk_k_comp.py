@@ -22,7 +22,7 @@ class TestRKKComp(unittest.TestCase):
         ivc.add_output('h', shape=(4,), units='s')
         ivc.add_output('f:y', shape=(4, 4, 1), units='m/s')
 
-        p.model.add_subsystem('c', RungeKuttaKComp(num_segments=4, method='RK4,
+        p.model.add_subsystem('c', RungeKuttaKComp(num_segments=4, method='RK4',
                                                    state_options=state_options, time_units='s'))
 
         p.model.connect('f:y', 'c.f:y')
@@ -93,7 +93,7 @@ class TestRKKComp(unittest.TestCase):
         ivc.add_output('h', shape=(num_seg,), units='s')
         ivc.add_output('f:y', shape=(num_seg, 4, 2), units='m/s')
 
-        p.model.add_subsystem('c', RungeKuttaKComp(num_segments=num_seg, method='RK4,
+        p.model.add_subsystem('c', RungeKuttaKComp(num_segments=num_seg, method='RK4',
                                                    state_options=state_options, time_units='s'))
 
         p.model.connect('f:y', 'c.f:y')
@@ -141,7 +141,7 @@ class TestRKKComp(unittest.TestCase):
         ivc.add_output('h', shape=(num_seg,), units='s')
         ivc.add_output('f:y', shape=(num_seg, num_stages, 2, 2), units='m/s')
 
-        p.model.add_subsystem('c', RungeKuttaKComp(num_segments=num_seg, method='RK4,
+        p.model.add_subsystem('c', RungeKuttaKComp(num_segments=num_seg, method='RK4',
                                                    state_options=state_options, time_units='s'))
 
         p.model.connect('f:y', 'c.f:y')

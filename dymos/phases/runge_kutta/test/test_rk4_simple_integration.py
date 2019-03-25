@@ -19,7 +19,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         phase = p.model.add_subsystem(
             'phase0',
             RungeKuttaPhase(num_segments=200,
-                            method='RK4,
+                            method='RK4',
                             ode_class=TestODE))
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
@@ -45,7 +45,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         phase = p.model.add_subsystem(
             'phase0',
             RungeKuttaPhase(num_segments=200,
-                            method='RK4,
+                            method='RK4',
                             ode_class=TestODE))
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
@@ -77,7 +77,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         phase = p.model.add_subsystem(
             'phase0',
             RungeKuttaPhase(num_segments=200,
-                            method='RK4,
+                            method='RK4',
                             ode_class=TestODE))
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
@@ -95,7 +95,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
         p = Problem(model=Group())
         phase = p.model.add_subsystem('phase0',
-                                      RungeKuttaPhase(num_segments=4, method='RK4,
+                                      RungeKuttaPhase(num_segments=4, method='RK4',
                                                       ode_class=TestODE))
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
@@ -121,7 +121,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
         p = Problem(model=Group())
         phase = p.model.add_subsystem('phase0',
-                                      RungeKuttaPhase(num_segments=4, method='RK4,
+                                      RungeKuttaPhase(num_segments=4, method='RK4',
                                                       ode_class=TestODE))
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
