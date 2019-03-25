@@ -1,7 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 from collections import Iterable
-import inspect
+
 from six import iteritems
 import warnings
 
@@ -9,18 +9,13 @@ import numpy as np
 
 from scipy import interpolate
 
-from openmdao.api import Problem, Group, IndepVarComp, SqliteRecorder
-from openmdao.core.system import System
+from openmdao.api import Problem, Group, SqliteRecorder
 
-from dymos.phases.components import BoundaryConstraintComp
-from dymos.phases.components import InputParameterComp
-from dymos.phases.options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
+from .options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
     InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary, \
     PolynomialControlOptionsDictionary
-from dymos.phases.components import PolynomialControlGroup, ControlGroup
 
 from ..transcriptions.transcription_base import TranscriptionBase
-from ..utils.constants import INF_BOUND
 
 
 _unspecified = object()
@@ -41,27 +36,60 @@ class Phase(Group):
     On setup, the Phase runs through its setup stack which will add the appropriate OpenMDAO
     systems as prescribed by its associated Transcription.
 
+    Parameters
+    ----------
+    from_phase: Phase or None
+        A phase instance from which the initialized phase should copy its data.
+    transcription: TranscriptionBase
+        The transcription to be utilized within the Phase.
+    ode_class
+        An OpenMDAO system class serving as the ODE for the phase.
+    ode_init_kwargs: dict
+        Keyword arguments used to initialize ode_class.
+
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, from_phase=None, **kwargs):
 
-        super(Phase, self).__init__(**kwargs)
+        _kwargs = kwargs.copy()
 
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
-        self.user_time_options = {}
-        self.user_state_options = {}
-        self.user_control_options = {}
-        self.user_polynomial_control_options = {}
-        self.user_design_parameter_options = {}
-        self.user_input_parameter_options = {}
-        self.user_traj_parameter_options = {}
+        if from_phase is None:
+            self.user_time_options = {}
+            self.user_state_options = {}
+            self.user_control_options = {}
+            self.user_polynomial_control_options = {}
+            self.user_design_parameter_options = {}
+            self.user_input_parameter_options = {}
+            self.user_traj_parameter_options = {}
 
-        self._initial_boundary_constraints = {}
-        self._final_boundary_constraints = {}
-        self._path_constraints = {}
-        self._timeseries_outputs = {}
-        self._objectives = {}
+            self._initial_boundary_constraints = {}
+            self._final_boundary_constraints = {}
+            self._path_constraints = {}
+            self._timeseries_outputs = {}
+            self._objectives = {}
+        else:
+            self.user_time_options = TimeOptionsDictionary()
+            self.user_time_options.update(from_phase.time_options)
+            self.user_state_options = from_phase.state_options.copy()
+            self.user_control_options = from_phase.control_options.copy()
+            self.user_polynomial_control_options = from_phase.polynomial_control_options.copy()
+            self.user_design_parameter_options = from_phase.design_parameter_options.copy()
+            self.user_input_parameter_options = from_phase.input_parameter_options.copy()
+            self.user_traj_parameter_options = from_phase.traj_parameter_options.copy()
+            self._timeseries_outputs = from_phase._timeseries_outputs.copy()
+
+            self._initial_boundary_constraints = from_phase._initial_boundary_constraints.copy()
+            self._final_boundary_constraints = from_phase._final_boundary_constraints.copy()
+            self._path_constraints = from_phase._path_constraints.copy()
+            self._timeseries_outputs = from_phase._timeseries_outputs.copy()
+            self._objectives = from_phase._objectives.copy()
+
+            _kwargs['ode_class'] = from_phase.options['ode_class']
+            _kwargs['ode_init_kwargs'] = from_phase.options['ode_init_kwargs']
+
+        super(Phase, self).__init__(**_kwargs)
 
     def initialize(self):
         self.options.declare('ode_class',
@@ -1074,16 +1102,88 @@ class Phase(Group):
             An instance of SimulationPhase initialized based on data from this Phase and the given
             times.  This instance has not yet been setup.
         """
+        from ..transcriptions import SolveIVP
 
-        from .solve_ivp.solve_ivp_phase import SolveIVPPhase
+        t = self.options['transcription']
 
-        sim_phase = SolveIVPPhase(from_phase=self,
-                                  method=method,
-                                  atol=atol,
-                                  rtol=rtol,
-                                  output_nodes_per_seg=times_per_seg)
+        sim_phase = Phase(from_phase=self,
+                          transcription=SolveIVP(grid_data=t.grid_data,
+                                                 method=method,
+                                                 atol=atol,
+                                                 rtol=rtol,
+                                                 output_nodes_per_seg=times_per_seg))
 
         return sim_phase
+
+    def initialize_values_from_phase(self, prob, from_phase):
+        """
+        Initializes values in the Phase using the phase from which it was created.
+
+        Parameters
+        ----------
+        prob : Problem
+            The problem instance under used to set values in this phase instance.
+        from_phase : Phase
+            The Phase instance from which the values in this phase are being initialized.
+        """
+        phs = from_phase
+
+        op_dict = dict([(name, options) for (name, options) in phs.list_outputs(units=True,
+                                                                                out_stream=None)])
+        ip_dict = dict([(name, options) for (name, options) in phs.list_inputs(units=True,
+                                                                               out_stream=None)])
+
+        phs_path = phs.pathname + '.' if phs.pathname else ''
+
+        if self.pathname.split('.')[0] == self.name:
+            self_path = self.name + '.'
+        else:
+            self_path = self.pathname.split('.')[0] + '.' + self.name + '.'
+
+        # Set the integration times
+        op = op_dict['{0}timeseries.time'.format(phs_path)]
+        prob.set_val('{0}t_initial'.format(self_path), op['value'][0, ...])
+        prob.set_val('{0}t_duration'.format(self_path), op['value'][-1, ...] - op['value'][0, ...])
+
+        # Assign initial state values
+        for name in phs.state_options:
+            op = op_dict['{0}timeseries.states:{1}'.format(phs_path, name)]
+            prob['{0}initial_states:{1}'.format(self_path, name)][...] = op['value'][0, ...]
+
+        # Assign control values
+        for name, options in iteritems(phs.control_options):
+            if options['opt']:
+                op = op_dict['{0}control_group.indep_controls.controls:{1}'.format(phs_path, name)]
+                prob['{0}controls:{1}'.format(self_path, name)][...] = op['value']
+            else:
+                ip = ip_dict['{0}control_group.control_interp_comp.controls:{1}'.format(phs_path, name)]
+                prob['{0}controls:{1}'.format(self_path, name)][...] = ip['value']
+
+        # Assign polynomial control values
+        for name, options in iteritems(phs.polynomial_control_options):
+            if options['opt']:
+                op = op_dict['{0}polynomial_control_group.indep_polynomial_controls.'
+                             'polynomial_controls:{1}'.format(phs_path, name)]
+                prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = op['value']
+            else:
+                ip = ip_dict['{0}polynomial_control_group.interp_comp.'
+                             'polynomial_controls:{1}'.format(phs_path, name)]
+                prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
+
+        # Assign design parameter values
+        for name in phs.design_parameter_options:
+            op = op_dict['{0}design_params.design_parameters:{1}'.format(phs_path, name)]
+            prob['{0}design_parameters:{1}'.format(self_path, name)][...] = op['value']
+
+        # Assign input parameter values
+        for name in phs.input_parameter_options:
+            op = op_dict['{0}input_params.input_parameters:{1}_out'.format(phs_path, name)]
+            prob['{0}input_parameters:{1}'.format(self_path, name)][...] = op['value']
+
+        # Assign traj parameter values
+        for name in phs.traj_parameter_options:
+            op = op_dict['{0}traj_params.traj_parameters:{1}_out'.format(phs_path, name)]
+            prob['{0}traj_parameters:{1}'.format(self_path, name)][...] = op['value']
 
     def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9,
                  record_file=None):
@@ -1126,8 +1226,7 @@ class Phase(Group):
             sim_prob.model.add_recorder(rec)
 
         sim_prob.setup(check=True)
-
-        sim_phase.initialize_values_from_phase(sim_prob)
+        sim_phase.initialize_values_from_phase(sim_prob, self)
 
         print('\nSimulating phase {0}'.format(self.pathname))
         sim_prob.run_model()

@@ -10,7 +10,7 @@ from ..options import TimeOptionsDictionary
 from .components.segment_simulation_comp import SegmentSimulationComp
 from .components.ode_integration_interface import ODEIntegrationInterface
 from .components.segment_state_mux_comp import SegmentStateMuxComp
-from .components.solve_ivp_timeseries_comp import SolveIVPimeseriesOutputComp
+from .components.solve_ivp_timeseries_comp import SolveIVPTimeseriesOutputComp
 from .components.solve_ivp_control_group import SolveIVPControlGroup
 from .components.solve_ivp_polynomial_control_group import SolveIVPPolynomialControlGroup
 
@@ -42,7 +42,7 @@ class SolveIVPPhase(PhaseBase):
         if from_phase is not None:
             self.options['ode_class'] = from_phase.options['ode_class']
         else:
-            self.options['ode_class'] is None
+            self.options['ode_class'] = None
 
     def initialize(self):
         super(SolveIVPPhase, self).initialize()
@@ -393,8 +393,8 @@ class SolveIVPPhase(PhaseBase):
         output_nodes_per_seg = self.options['output_nodes_per_seg']
 
         timeseries_comp = \
-            SolveIVPimeseriesOutputComp(grid_data=gd,
-                                        output_nodes_per_seg=self.options['output_nodes_per_seg'])
+            SolveIVPTimeseriesOutputComp(grid_data=gd,
+                                         output_nodes_per_seg=self.options['output_nodes_per_seg'])
 
         self.add_subsystem('timeseries', subsys=timeseries_comp)
 

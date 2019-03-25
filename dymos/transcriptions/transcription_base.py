@@ -380,7 +380,7 @@ class TranscriptionBase(object):
                 raise ValueError('Invalid value for objective loc: {0}. Must be '
                                  'one of \'initial\' or \'final\'.'.format(loc))
 
-            from dymos.phase.phase import Phase
+            from ..phase import Phase
             super(Phase, phase).add_objective(obj_path, ref=options['ref'], ref0=options['ref0'],
                                               index=obj_index, adder=options['adder'],
                                               scaler=options['scaler'],
@@ -400,51 +400,18 @@ class TranscriptionBase(object):
         Returns a list containing tuples of each path and related indices to which the
         given parameter name is to be connected.
 
+        Parameters
+        ----------
+        name : str
+            The name of the parameter for which connection information is desired.
+        phase
+            The phase object to which this transcription applies.
+
         Returns
         -------
         connection_info : list of (paths, indices)
             A list containing a tuple of target paths and corresponding src_indices to which the
             given design variable is to be connected.
         """
-        connection_info = []
-        num_seg = self.grid_data.num_segments
-        num_stages = rk_methods[self.options['method']]['num_stages']
-        num_iter_ode_nodes = num_seg * num_stages
-        num_final_ode_nodes = 2 * num_seg
-
-        parameter_options = phase.design_parameter_options.copy()
-        parameter_options.update(phase.input_parameter_options)
-        parameter_options.update(phase.traj_parameter_options)
-        parameter_options.update(phase.control_options)
-
-        if name in parameter_options:
-            ode_tgts = parameter_options[name]['targets']
-            dynamic = parameter_options[name]['dynamic']
-            shape = parameter_options[name]['shape']
-
-            if dynamic:
-                src_idxs_raw = np.zeros(num_final_ode_nodes, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
-                if shape == (1,):
-                    src_idxs = src_idxs.ravel()
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
-                src_idxs = np.squeeze(src_idxs, axis=0)
-
-            connection_info.append((['ode.{0}'.format(tgt) for tgt in ode_tgts], src_idxs))
-
-            if dynamic:
-                src_idxs_raw = np.zeros(num_iter_ode_nodes, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
-                if shape == (1,):
-                    src_idxs = src_idxs.ravel()
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
-                src_idxs = np.squeeze(src_idxs, axis=0)
-
-            connection_info.append((['rk_solve_group.ode.{0}'.format(tgt) for tgt in ode_tgts],
-                                    src_idxs))
-
-        return connection_info
+        raise NotImplementedError('Transcription {0} does not implement method '
+                                  'get_parameter_connections.'.format(self.__class__.__name__))

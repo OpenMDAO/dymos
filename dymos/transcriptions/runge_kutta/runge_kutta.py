@@ -23,6 +23,9 @@ from ..grid_data import GridData
 class RungeKutta(TranscriptionBase):
     """
     The RungeKutta Transcription class.
+
+    RungeKutta transcription in Dymos uses the RungeKutta-based shooting method which propagates
+    the states from the phase initial time to the phase final time.
     """
     def initialize(self):
 
@@ -807,7 +810,7 @@ class RungeKutta(TranscriptionBase):
             kwargs.pop('output_name', None)
             timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
 
-    def _get_parameter_connections(self, name, phase):
+    def get_parameter_connections(self, name, phase):
         """
         Returns a list containing tuples of each path and related indices to which the
         given design variable name is to be connected.
