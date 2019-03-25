@@ -31,7 +31,7 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         P_DEMAND = 3.6
 
-        phase0 = RungeKuttaPhase(method='rk4',
+        phase0 = RungeKuttaPhase(method='RK4',
                                  ode_class=BatteryODE,
                                  segment_ends=seg_ends,
                                  num_segments=num_seg)
@@ -45,7 +45,7 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase: normal operation.
 
-        phase1 = RungeKuttaPhase(method='rk4',
+        phase1 = RungeKuttaPhase(method='RK4',
                                  ode_class=BatteryODE,
                                  num_segments=num_seg,
                                  segment_ends=seg_ends)
@@ -59,7 +59,7 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = RungeKuttaPhase(method='rk4',
+        phase1_bfail = RungeKuttaPhase(method='RK4',
                                        ode_class=BatteryODE,
                                        num_segments=num_seg,
                                        segment_ends=seg_ends,
@@ -75,7 +75,7 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = RungeKuttaPhase(method='rk4',
+        phase1_mfail = RungeKuttaPhase(method='RK4',
                                        ode_class=BatteryODE,
                                        num_segments=num_seg,
                                        segment_ends=seg_ends,
@@ -201,7 +201,7 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         P_DEMAND = 3.6
 
-        phase0 = RungeKuttaPhase(method='rk4',
+        phase0 = RungeKuttaPhase(method='RK4',
                                  ode_class=BatteryODEStaticGearboxMotorPower,
                                  num_segments=200)
         phase0.set_time_options(fix_initial=True, fix_duration=True)
@@ -381,7 +381,7 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         P_DEMAND = 3.6
 
-        phase0 = RungeKuttaPhase(method='rk4',
+        phase0 = RungeKuttaPhase(method='RK4',
                                  ode_class=BatteryODEStaticGearboxMotorPower,
                                  num_segments=200)
         phase0.set_time_options(fix_initial=True, fix_duration=True)

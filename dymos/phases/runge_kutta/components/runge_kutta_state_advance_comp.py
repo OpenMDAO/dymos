@@ -21,7 +21,7 @@ class RungeKuttaStateAdvanceComp(ExplicitComponent):
         self.options.declare('num_segments', types=int,
                              desc='The number of segments (time steps) in the phase')
 
-        self.options.declare('method', default='rk4', values=('rk4',),
+        self.options.declare('method', default='RK4', values=('RK4',),
                              desc='Specific Runge-Kutta Method to use.')
 
         self.options.declare('state_options', types=dict,

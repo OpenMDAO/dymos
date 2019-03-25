@@ -35,7 +35,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         p.model.add_subsystem('cnty_iter_group',
                               RungeKuttaStateContinuityIterGroup(
                                   num_segments=num_seg,
-                                  method='rk4',
+                                  method='RK4,
                                   state_options=state_options,
                                   time_units='s',
                                   ode_class=TestODE,
@@ -132,7 +132,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         p.model.add_subsystem('cnty_iter_group',
                               RungeKuttaStateContinuityIterGroup(
                                   num_segments=num_seg,
-                                  method='rk4',
+                                  method='RK4,
                                   state_options=state_options,
                                   time_units='s',
                                   ode_class=TestODE,

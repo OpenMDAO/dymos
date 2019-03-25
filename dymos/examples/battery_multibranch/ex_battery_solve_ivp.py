@@ -30,7 +30,7 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         P_DEMAND = 2.0
 
-        phase0 = RungeKuttaPhase(method='rk4',
+        phase0 = RungeKuttaPhase(method='RK4',
                                  ode_class=BatteryODE,
                                  num_segments=200)
         phase0.set_time_options(fix_initial=True, fix_duration=True)
@@ -193,7 +193,7 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         P_DEMAND = 2.0
 
-        phase0 = RungeKuttaPhase(method='rk4',
+        phase0 = RungeKuttaPhase(method='RK4',
                                  ode_class=BatteryODEStaticGearboxMotorPower,
                                  num_segments=200)
         phase0.set_time_options(fix_initial=True, fix_duration=True)

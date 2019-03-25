@@ -16,16 +16,12 @@ from .components import StateIndependentsComp, StateInterpComp, CollocationComp
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
-from ..grid_data import GridData
 
 
 class PseudospectralBase(TranscriptionBase):
     """
     Base class for the pseudospectral transcriptions.
     """
-    def setup_grid(self, phase):
-        pass
-
     def setup_time(self, phase):
         time_units = phase.time_options['units']
         grid_data = self.grid_data
@@ -36,18 +32,6 @@ class PseudospectralBase(TranscriptionBase):
                              node_dptau_dstau=grid_data.node_dptau_dstau, units=time_units)
 
         phase.add_subsystem('time', time_comp, promotes_inputs=['*'], promotes_outputs=['*'])
-
-    # def setup_controls(self, phase):
-    #     #     pass
-
-    def setup_polynomial_controls(self, phase):
-        pass
-
-    def setup_design_parameters(self, phase):
-        pass
-
-    def setup_traj_parameters(self, phase):
-        pass
 
     def setup_states(self, phase):
         """
@@ -60,9 +44,9 @@ class PseudospectralBase(TranscriptionBase):
         self.any_connected_opt_segs = False
         for name, options in iteritems(phase.state_options):
             if options['solve_segments']:
-                phase.any_solved_segs = True
+                self.any_solved_segs = True
             elif options['connected_initial']:
-                phase.any_connected_opt_segs = True
+                self.any_connected_opt_segs = True
 
         if self.any_solved_segs or self.any_connected_opt_segs:
             indep = StateIndependentsComp(grid_data=grid_data,
@@ -231,20 +215,103 @@ class PseudospectralBase(TranscriptionBase):
                               'continuity_comp.control_rates:{}_rate2'.format(name),
                               src_indices=src_idxs, flat_src_indices=True)
 
-    # def setup_boundary_constraints(self, loc, phase):
-    #     pass
-    #
-    # def setup_path_constraints(self, phase):
-    #     pass
-    #
-    # def setup_timeseries_outputs(self, phase):
-    #     pass
+    def setup_endpoint_conditions(self, phase):
+        jump_comp = phase.add_subsystem('indep_jumps', subsys=IndepVarComp(),
+                                        promotes_outputs=['*'])
+
+        jump_comp.add_output('initial_jump:time', val=0.0, units=phase.time_options['units'],
+                             desc='discontinuity in time at the start of the phase')
+
+        jump_comp.add_output('final_jump:time', val=0.0, units=phase.time_options['units'],
+                             desc='discontinuity in time at the end of the phase')
+
+        ic_comp = EndpointConditionsComp(loc='initial',
+                                         time_options=phase.time_options,
+                                         state_options=phase.state_options,
+                                         control_options=phase.control_options)
+
+        phase.add_subsystem(name='initial_conditions', subsys=ic_comp, promotes_outputs=['*'])
+
+        fc_comp = EndpointConditionsComp(loc='final',
+                                         time_options=phase.time_options,
+                                         state_options=phase.state_options,
+                                         control_options=phase.control_options)
+
+        phase.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
+
+        phase.connect('time', 'initial_conditions.initial_value:time')
+        phase.connect('time', 'final_conditions.final_value:time')
+
+        phase.connect('initial_jump:time',
+                      'initial_conditions.initial_jump:time')
+
+        phase.connect('final_jump:time',
+                      'final_conditions.final_jump:time')
+
+        for state_name, options in iteritems(phase.state_options):
+            size = np.prod(options['shape'])
+            ar = np.arange(size)
+
+            jump_comp.add_output('initial_jump:{0}'.format(state_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'start of the phase'.format(state_name))
+
+            jump_comp.add_output('final_jump:{0}'.format(state_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'end of the phase'.format(state_name))
+
+            phase.connect('states:{0}'.format(state_name),
+                          'initial_conditions.initial_value:{0}'.format(state_name))
+            phase.connect('states:{0}'.format(state_name),
+                          'final_conditions.final_value:{0}'.format(state_name))
+
+            phase.connect('initial_jump:{0}'.format(state_name),
+                          'initial_conditions.initial_jump:{0}'.format(state_name),
+                          src_indices=ar, flat_src_indices=True)
+
+            phase.connect('final_jump:{0}'.format(state_name),
+                          'final_conditions.final_jump:{0}'.format(state_name),
+                          src_indices=ar, flat_src_indices=True)
+
+        for control_name, options in iteritems(phase.control_options):
+            size = np.prod(options['shape'])
+            ar = np.arange(size)
+
+            jump_comp.add_output('initial_jump:{0}'.format(control_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'start of the phase'.format(control_name))
+
+            jump_comp.add_output('final_jump:{0}'.format(control_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'end of the phase'.format(control_name))
+
+            phase.connect('control_values:{0}'.format(control_name),
+                          'initial_conditions.initial_value:{0}'.format(control_name))
+
+            phase.connect('control_values:{0}'.format(control_name),
+                          'final_conditions.final_value:{0}'.format(control_name))
+
+            phase.connect('initial_jump:{0}'.format(control_name),
+                          'initial_conditions.initial_jump:{0}'.format(control_name),
+                          src_indices=ar, flat_src_indices=True)
+
+            phase.connect('final_jump:{0}'.format(control_name),
+                          'final_conditions.final_jump:{0}'.format(control_name),
+                          src_indices=ar, flat_src_indices=True)
 
     def setup_solvers(self, phase):
         if self.any_solved_segs:
             newton = phase.nonlinear_solver = NewtonSolver()
             newton.options['solve_subsystems'] = True
-            newton.options['iprint'] = 0
+            newton.options['iprint'] = -1
             newton.linesearch = BoundsEnforceLS()
             phase.linear_solver = DirectSolver()
 
@@ -268,7 +335,8 @@ class PseudospectralBase(TranscriptionBase):
             state_units = phase.state_options[var]['units']
             shape = state_shape
             units = state_units
-            linear = True
+            linear = True if loc == 'initial' and not phase.state_options[var]['connected_initial'] \
+                or loc == 'final' and not phase.state_options[var]['solve_segments'] else False
             constraint_path = 'states:{0}'.format(var)
         elif var_type in 'indep_control':
             control_shape = phase.control_options[var]['shape']
@@ -334,9 +402,9 @@ class PseudospectralBase(TranscriptionBase):
             constraint_path = 'polynomial_control_rates:{0}'.format(var)
         else:
             # Failed to find variable, assume it is in the RHS
-            if self.options['transcription'] == 'gauss-lobatto':
+            if self.grid_data.transcription == 'gauss-lobatto':
                 constraint_path = 'rhs_disc.{0}'.format(var)
-            elif self.options['transcription'] == 'radau-ps':
+            elif self.grid_data.transcription == 'radau-ps':
                 constraint_path = 'rhs_all.{0}'.format(var)
             else:
                 raise ValueError('Invalid transcription')

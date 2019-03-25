@@ -118,7 +118,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
             phase = DeprecatedPhaseFactory(transcription=transcription,
                                            ode_class=_BrachistochroneTestODE,
                                            num_segments=num_seg,
-                                           method='rk4',
+                                           method='RK4',
                                            compressed=True)
         else:
             phase = DeprecatedPhaseFactory(transcription=transcription,

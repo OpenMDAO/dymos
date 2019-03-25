@@ -263,95 +263,95 @@ class RungeKutta(TranscriptionBase):
                                          ref=coerce_desvar_option('ref'),
                                          indices=desvar_indices)
 
-    def setup_controls(self):
-        super(RungeKuttaPhase, self).setup_controls()
+    def setup_controls(self, phase):
+        super(RungeKutta, self).setup_controls(phase)
         grid_data = self.grid_data
 
-        for name, options in iteritems(self.control_options):
+        for name, options in iteritems(phase.control_options):
             segment_end_idxs = grid_data.subset_node_indices['segment_ends']
             all_idxs = grid_data.subset_node_indices['all']
             segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=options['shape'])
             all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
 
-            if self.control_options[name]['targets']:
+            if phase.control_options[name]['targets']:
                 src_name = 'control_values:{0}'.format(name)
-                targets = self.control_options[name]['targets']
-                self.connect(src_name,
-                             ['ode.{0}'.format(t) for t in targets],
-                             src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
+                targets = phase.control_options[name]['targets']
+                phase.connect(src_name,
+                              ['ode.{0}'.format(t) for t in targets],
+                              src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
 
-                self.connect(src_name,
-                             ['rk_solve_group.ode.{0}'.format(t) for t in targets],
-                             src_indices=all_src_idxs.ravel(), flat_src_indices=True)
+                phase.connect(src_name,
+                              ['rk_solve_group.ode.{0}'.format(t) for t in targets],
+                              src_indices=all_src_idxs.ravel(), flat_src_indices=True)
 
-            if self.control_options[name]['rate_targets']:
+            if phase.control_options[name]['rate_targets']:
                 src_name = 'control_rates:{0}_rate'.format(name)
-                targets = self.control_options[name]['rate_targets']
+                targets = phase.control_options[name]['rate_targets']
 
-                self.connect(src_name,
-                             ['ode.{0}'.format(t) for t in targets],
-                             src_indices=segend_src_idxs, flat_src_indices=True)
+                phase.connect(src_name,
+                              ['ode.{0}'.format(t) for t in targets],
+                              src_indices=segend_src_idxs, flat_src_indices=True)
 
-                self.connect(src_name,
-                             ['rk_solve_group.{0}'.format(t) for t in targets],
-                             src_indices=all_src_idxs, flat_src_indices=True)
+                phase.connect(src_name,
+                              ['rk_solve_group.{0}'.format(t) for t in targets],
+                              src_indices=all_src_idxs, flat_src_indices=True)
 
-            if self.control_options[name]['rate2_targets']:
+            if phase.control_options[name]['rate2_targets']:
                 src_name = 'control_rates:{0}_rate2'.format(name)
-                targets = self.control_options[name]['rate2_targets']
+                targets = phase.control_options[name]['rate2_targets']
 
-                self.connect(src_name,
-                             ['ode.{0}'.format(t) for t in targets],
-                             src_indices=segend_src_idxs, flat_src_indices=True)
+                phase.connect(src_name,
+                              ['ode.{0}'.format(t) for t in targets],
+                              src_indices=segend_src_idxs, flat_src_indices=True)
 
-                self.connect(src_name,
-                             ['rk_solve_group.{0}'.format(t) for t in targets],
-                             src_indices=all_src_idxs, flat_src_indices=True)
+                phase.connect(src_name,
+                              ['rk_solve_group.{0}'.format(t) for t in targets],
+                              src_indices=all_src_idxs, flat_src_indices=True)
 
-    def setup_polynomial_controls(self):
-        super(RungeKuttaPhase, self).setup_polynomial_controls()
+    def setup_polynomial_controls(self, phase):
+        super(RungeKutta, self).setup_polynomial_controls(phase)
         grid_data = self.grid_data
 
-        for name, options in iteritems(self.polynomial_control_options):
+        for name, options in iteritems(phase.polynomial_control_options):
             segment_end_idxs = grid_data.subset_node_indices['segment_ends']
             all_idxs = grid_data.subset_node_indices['all']
             segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=options['shape'])
             all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
 
-            if self.polynomial_control_options[name]['targets']:
+            if phase.polynomial_control_options[name]['targets']:
                 src_name = 'polynomial_control_values:{0}'.format(name)
-                targets = self.polynomial_control_options[name]['targets']
-                self.connect(src_name,
-                             ['ode.{0}'.format(t) for t in targets],
-                             src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
+                targets = phase.polynomial_control_options[name]['targets']
+                phase.connect(src_name,
+                              ['ode.{0}'.format(t) for t in targets],
+                              src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
 
-                self.connect(src_name,
-                             ['rk_solve_group.ode.{0}'.format(t) for t in targets],
-                             src_indices=all_src_idxs.ravel(), flat_src_indices=True)
+                phase.connect(src_name,
+                              ['rk_solve_group.ode.{0}'.format(t) for t in targets],
+                              src_indices=all_src_idxs.ravel(), flat_src_indices=True)
 
-            if self.polynomial_control_options[name]['rate_targets']:
+            if phase.polynomial_control_options[name]['rate_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate'.format(name)
-                targets = self.polynomial_control_options[name]['rate_targets']
+                targets = phase.polynomial_control_options[name]['rate_targets']
 
-                self.connect(src_name,
-                             ['ode.{0}'.format(t) for t in targets],
-                             src_indices=segend_src_idxs, flat_src_indices=True)
+                phase.connect(src_name,
+                              ['ode.{0}'.format(t) for t in targets],
+                              src_indices=segend_src_idxs, flat_src_indices=True)
 
-                self.connect(src_name,
-                             ['rk_solve_group.{0}'.format(t) for t in targets],
-                             src_indices=all_src_idxs, flat_src_indices=True)
+                phase.connect(src_name,
+                              ['rk_solve_group.{0}'.format(t) for t in targets],
+                              src_indices=all_src_idxs, flat_src_indices=True)
 
-            if self.polynomial_control_options[name]['rate2_targets']:
+            if phase.polynomial_control_options[name]['rate2_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate2'.format(name)
-                targets = self.polynomial_control_options[name]['rate2_targets']
+                targets = phase.polynomial_control_options[name]['rate2_targets']
 
-                self.connect(src_name,
-                             ['ode.{0}'.format(t) for t in targets],
-                             src_indices=segend_src_idxs, flat_src_indices=True)
+                phase.connect(src_name,
+                              ['ode.{0}'.format(t) for t in targets],
+                              src_indices=segend_src_idxs, flat_src_indices=True)
 
-                self.connect(src_name,
-                             ['rk_solve_group.{0}'.format(t) for t in targets],
-                             src_indices=all_src_idxs, flat_src_indices=True)
+                phase.connect(src_name,
+                              ['rk_solve_group.{0}'.format(t) for t in targets],
+                              src_indices=all_src_idxs, flat_src_indices=True)
 
     def setup_defects(self, phase):
         """
@@ -391,41 +391,37 @@ class RungeKutta(TranscriptionBase):
                               'continuity_comp.control_rates:{}_rate2'.format(name),
                               src_indices=src_idxs, flat_src_indices=True)
 
-    def setup_endpoint_conditions(self):
+    def setup_endpoint_conditions(self, phase):
 
-        jump_comp = self.add_subsystem('indep_jumps', subsys=IndepVarComp(),
-                                       promotes_outputs=['*'])
+        jump_comp = phase.add_subsystem('indep_jumps', subsys=IndepVarComp(),
+                                        promotes_outputs=['*'])
 
-        jump_comp.add_output('initial_jump:time', val=0.0, units=self.time_options['units'],
+        jump_comp.add_output('initial_jump:time', val=0.0, units=phase.time_options['units'],
                              desc='discontinuity in time at the start of the phase')
 
-        jump_comp.add_output('final_jump:time', val=0.0, units=self.time_options['units'],
+        jump_comp.add_output('final_jump:time', val=0.0, units=phase.time_options['units'],
                              desc='discontinuity in time at the end of the phase')
 
         ic_comp = EndpointConditionsComp(loc='initial',
-                                         time_options=self.time_options,
-                                         state_options=self.state_options,
-                                         control_options=self.control_options)
+                                         time_options=phase.time_options,
+                                         state_options=phase.state_options,
+                                         control_options=phase.control_options)
 
-        self.add_subsystem(name='initial_conditions', subsys=ic_comp, promotes_outputs=['*'])
+        phase.add_subsystem(name='initial_conditions', subsys=ic_comp, promotes_outputs=['*'])
 
         fc_comp = EndpointConditionsComp(loc='final',
-                                         time_options=self.time_options,
-                                         state_options=self.state_options,
-                                         control_options=self.control_options)
+                                         time_options=phase.time_options,
+                                         state_options=phase.state_options,
+                                         control_options=phase.control_options)
 
-        self.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
+        phase.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
 
-        self.connect('time', 'initial_conditions.initial_value:time')
-        self.connect('time', 'final_conditions.final_value:time')
+        phase.connect('time', 'initial_conditions.initial_value:time')
+        phase.connect('time', 'final_conditions.final_value:time')
+        phase.connect('initial_jump:time', 'initial_conditions.initial_jump:time')
+        phase.connect('final_jump:time', 'final_conditions.final_jump:time')
 
-        self.connect('initial_jump:time',
-                     'initial_conditions.initial_jump:time')
-
-        self.connect('final_jump:time',
-                     'final_conditions.final_jump:time')
-
-        for state_name, options in iteritems(self.state_options):
+        for state_name, options in iteritems(phase.state_options):
             size = np.prod(options['shape'])
             ar = np.arange(size)
 
@@ -441,21 +437,21 @@ class RungeKutta(TranscriptionBase):
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(state_name))
 
-            self.connect('states:{0}'.format(state_name),
-                         'initial_conditions.initial_value:{0}'.format(state_name))
+            phase.connect('states:{0}'.format(state_name),
+                          'initial_conditions.initial_value:{0}'.format(state_name))
 
-            self.connect('states:{0}'.format(state_name),
-                         'final_conditions.final_value:{0}'.format(state_name))
+            phase.connect('states:{0}'.format(state_name),
+                          'final_conditions.final_value:{0}'.format(state_name))
 
-            self.connect('initial_jump:{0}'.format(state_name),
-                         'initial_conditions.initial_jump:{0}'.format(state_name),
-                         src_indices=ar, flat_src_indices=True)
+            phase.connect('initial_jump:{0}'.format(state_name),
+                          'initial_conditions.initial_jump:{0}'.format(state_name),
+                          src_indices=ar, flat_src_indices=True)
 
-            self.connect('final_jump:{0}'.format(state_name),
-                         'final_conditions.final_jump:{0}'.format(state_name),
-                         src_indices=ar, flat_src_indices=True)
+            phase.connect('final_jump:{0}'.format(state_name),
+                          'final_conditions.final_jump:{0}'.format(state_name),
+                          src_indices=ar, flat_src_indices=True)
 
-        for control_name, options in iteritems(self.control_options):
+        for control_name, options in iteritems(phase.control_options):
             size = np.prod(options['shape'])
             ar = np.arange(size)
 
@@ -471,19 +467,19 @@ class RungeKutta(TranscriptionBase):
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(control_name))
 
-            self.connect('control_values:{0}'.format(control_name),
-                         'initial_conditions.initial_value:{0}'.format(control_name))
+            phase.connect('control_values:{0}'.format(control_name),
+                          'initial_conditions.initial_value:{0}'.format(control_name))
 
-            self.connect('control_values:{0}'.format(control_name),
-                         'final_conditions.final_value:{0}'.format(control_name))
+            phase.connect('control_values:{0}'.format(control_name),
+                          'final_conditions.final_value:{0}'.format(control_name))
 
-            self.connect('initial_jump:{0}'.format(control_name),
-                         'initial_conditions.initial_jump:{0}'.format(control_name),
-                         src_indices=ar, flat_src_indices=True)
+            phase.connect('initial_jump:{0}'.format(control_name),
+                          'initial_conditions.initial_jump:{0}'.format(control_name),
+                          src_indices=ar, flat_src_indices=True)
 
-            self.connect('final_jump:{0}'.format(control_name),
-                         'final_conditions.final_jump:{0}'.format(control_name),
-                         src_indices=ar, flat_src_indices=True)
+            phase.connect('final_jump:{0}'.format(control_name),
+                          'final_conditions.final_jump:{0}'.format(control_name),
+                          src_indices=ar, flat_src_indices=True)
 
     def setup_path_constraints(self, phase):
         """

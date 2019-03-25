@@ -4,6 +4,8 @@ __version__ = '0.12.0'
 
 from .ode_options import ODEOptions, declare_time, declare_state, declare_parameter
 from .phases.phase_factory import DeprecatedPhaseFactory
+from .phase import Phase
+from .transcriptions import GaussLobatto, Radau, RungeKutta
 from .phases.components.phase_linkage_comp import PhaseLinkageComp
 from .phases.optimizer_based.gauss_lobatto_phase import GaussLobattoPhase
 from .phases.optimizer_based.radau_pseudospectral_phase import RadauPseudospectralPhase

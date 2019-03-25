@@ -19,7 +19,7 @@ class TestPathConstraintCompExplicit(unittest.TestCase):
         transcription = 'runge-kutta'
 
         self.gd = gd = GridData(num_segments=2,
-                                transcription_order='rk4',
+                                transcription_order='RK4,
                                 segment_ends=[0.0, 3.0, 10.0],
                                 transcription=transcription)
 

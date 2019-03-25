@@ -728,7 +728,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase = RungeKuttaPhase(ode_class=BrachistochroneVectorStatesODE,
                                 num_segments=50,
-                                method='rk4')
+                                method='RK4')
 
         p.model.add_subsystem('phase0', phase)
 
@@ -843,7 +843,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase = RungeKuttaPhase(ode_class=BrachistochroneVectorStatesODE,
                                 num_segments=20,
-                                method='rk4')
+                                method='RK4')
 
         p.model.add_subsystem('phase0', phase)
 
@@ -962,7 +962,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase = RungeKuttaPhase(ode_class=BrachistochroneVectorStatesODE,
                                 num_segments=20,
-                                method='rk4')
+                                method='RK4')
 
         p.model.add_subsystem('phase0', phase)
 

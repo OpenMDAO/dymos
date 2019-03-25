@@ -13,11 +13,14 @@ from .common import BoundaryConstraintComp, InputParameterComp, ControlGroup, \
     PolynomialControlGroup
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_src_indices_by_row
+from ..utils.rk_methods import rk_methods
 
 
 class TranscriptionBase(object):
 
     def __init__(self, **kwargs):
+
+        self.grid_data = None
 
         self.options = OptionsDictionary()
 
@@ -28,7 +31,10 @@ class TranscriptionBase(object):
         self.options.declare('order', default=3, types=(int, Sequence),
                              desc='Order of the state transcription')
         self.options.declare('compressed', default=True, types=bool,
-                             desc='Use compressed transcription')
+                             desc='Use compressed transcription, meaning state and control values'
+                                  'at segment boundaries are not duplicated on input.  This '
+                                  'implicitly enforces value continuity between segments but in '
+                                  'some cases may make the problem more difficult to solve.')
 
         self._declare_options()
         self.initialize()
@@ -134,12 +140,20 @@ class TranscriptionBase(object):
 
             phase.add_subsystem('control_group',
                                 subsys=control_group,
-                                promotes=['controls:*', 'control_values:*', 'control_rates:*',
-                                          'dt_dstau'])
+                                promotes=['controls:*', 'control_values:*', 'control_rates:*'])
+
+            phase.connect('dt_dstau', 'control_group.dt_dstau')
 
     def setup_polynomial_controls(self, phase):
-        raise NotImplementedError('Transcription {0} does not implement method'
-                                  'setup_polynomial_controls.'.format(self.__class__.__name__))
+        """
+        Adds the polynomial control group to the model if any polynomial controls are present.
+        """
+        if phase.polynomial_control_options:
+            sys = PolynomialControlGroup(grid_data=self.grid_data,
+                                         polynomial_control_options=phase.polynomial_control_options,
+                                         time_units=phase.time_options['units'])
+            phase.add_subsystem('polynomial_control_group', subsys=sys,
+                                promotes_inputs=['*'], promotes_outputs=['*'])
 
     def setup_design_parameters(self, phase):
         """
@@ -174,7 +188,7 @@ class TranscriptionBase(object):
                                  shape=_shape,
                                  units=options['units'])
 
-                for tgts, src_idxs in self.get_parameter_connections(name):
+                for tgts, src_idxs in self.get_parameter_connections(name, phase):
                     phase.connect(src_name, [t for t in tgts],
                                   src_indices=src_idxs, flat_src_indices=True)
 
@@ -258,7 +272,7 @@ class TranscriptionBase(object):
             con_options = options.copy()
             con_options.pop('constraint_name')
 
-            src, shape, units, linear = self._get_boundary_constraint_src(var, loc)
+            src, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
 
             con_units = options.get('units', None)
 
@@ -368,14 +382,18 @@ class TranscriptionBase(object):
 
             from dymos.phase.phase import Phase
             super(Phase, phase).add_objective(obj_path, ref=options['ref'], ref0=options['ref0'],
-                                             index=obj_index, adder=options['adder'],
-                                             scaler=options['scaler'],
-                                             parallel_deriv_color=options['parallel_deriv_color'],
-                                             vectorize_derivs=options['vectorize_derivs'])
+                                              index=obj_index, adder=options['adder'],
+                                              scaler=options['scaler'],
+                                              parallel_deriv_color=options['parallel_deriv_color'],
+                                              vectorize_derivs=options['vectorize_derivs'])
 
-    def get_boundary_constraint_src(self, name, loc, phase):
+    def _get_boundary_constraint_src(self, name, loc, phase):
         raise NotImplementedError('Transcription {0} does not implement method'
-                                  'get_boundary_constraint_source.'.format(self.__class__.__name__))
+                                  '_get_boundary_constraint_source.'.format(self.__class__.__name__))
+
+    def _get_rate_source_path(self, name, loc, phase):
+        raise NotImplementedError('Transcription {0} does not implement method'
+                                  '_get_rate_source_path.'.format(self.__class__.__name__))
 
     def get_parameter_connections(self, name, phase):
         """
@@ -388,6 +406,45 @@ class TranscriptionBase(object):
             A list containing a tuple of target paths and corresponding src_indices to which the
             given design variable is to be connected.
         """
-        raise NotImplementedError('Transcription class {0} does not implement '
-                                  'get_parameter_connections'.format(self.__class__.__name__))
+        connection_info = []
+        num_seg = self.grid_data.num_segments
+        num_stages = rk_methods[self.options['method']]['num_stages']
+        num_iter_ode_nodes = num_seg * num_stages
+        num_final_ode_nodes = 2 * num_seg
 
+        parameter_options = phase.design_parameter_options.copy()
+        parameter_options.update(phase.input_parameter_options)
+        parameter_options.update(phase.traj_parameter_options)
+        parameter_options.update(phase.control_options)
+
+        if name in parameter_options:
+            ode_tgts = parameter_options[name]['targets']
+            dynamic = parameter_options[name]['dynamic']
+            shape = parameter_options[name]['shape']
+
+            if dynamic:
+                src_idxs_raw = np.zeros(num_final_ode_nodes, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                if shape == (1,):
+                    src_idxs = src_idxs.ravel()
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                src_idxs = np.squeeze(src_idxs, axis=0)
+
+            connection_info.append((['ode.{0}'.format(tgt) for tgt in ode_tgts], src_idxs))
+
+            if dynamic:
+                src_idxs_raw = np.zeros(num_iter_ode_nodes, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                if shape == (1,):
+                    src_idxs = src_idxs.ravel()
+            else:
+                src_idxs_raw = np.zeros(1, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                src_idxs = np.squeeze(src_idxs, axis=0)
+
+            connection_info.append((['rk_solve_group.ode.{0}'.format(tgt) for tgt in ode_tgts],
+                                    src_idxs))
+
+        return connection_info

@@ -8,7 +8,7 @@ import numpy as np
 
 from openmdao.api import ImplicitComponent
 
-from dymos.phases.grid_data import GridData
+from dymos.transcriptions.grid_data import GridData
 
 
 class StateIndependentsComp(ImplicitComponent):

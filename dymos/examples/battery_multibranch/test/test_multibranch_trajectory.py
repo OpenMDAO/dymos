@@ -488,7 +488,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         phase0 = RungeKuttaPhase(ode_class=BatteryODE,
                                  num_segments=num_seg,
-                                 method='rk4',
+                                 method='RK4',
                                  compressed=False)
 
         traj_p0 = traj.add_phase('phase0', phase0)
@@ -501,7 +501,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         phase1 = RungeKuttaPhase(ode_class=BatteryODE,
                                  num_segments=num_seg,
                                  segment_ends=seg_ends,
-                                 method='rk4',
+                                 method='RK4',
                                  compressed=False)
 
         traj_p1 = traj.add_phase('phase1', phase1)
@@ -581,7 +581,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         phase0 = RungeKuttaPhase(ode_class=BatteryODE,
                                  num_segments=num_seg,
-                                 method='rk4',
+                                 method='RK4',
                                  compressed=False)
 
         traj_p0 = prob.model.add_subsystem('phase0', phase0)
@@ -628,7 +628,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         phase0 = RungeKuttaPhase(ode_class=BatteryODE,
                                  num_segments=num_seg,
-                                 method='rk4',
+                                 method='RK4',
                                  compressed=False)
 
         traj_p0 = traj.add_phase('phase0', phase0)
@@ -640,7 +640,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         phase1 = RungeKuttaPhase(ode_class=BatteryODE,
                                  num_segments=num_seg,
-                                 method='rk4',
+                                 method='RK4',
                                  compressed=True)
 
         traj_p1 = traj.add_phase('phase1', phase1)
@@ -653,7 +653,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         phase1_bfail = RungeKuttaPhase(ode_class=BatteryODE,
                                        num_segments=num_seg,
-                                       method='rk4',
+                                       method='RK4',
                                        ode_init_kwargs={'num_battery': 2},
                                        compressed=False)
 
@@ -666,7 +666,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         phase1_mfail = RungeKuttaPhase(ode_class=BatteryODE,
                                        num_segments=num_seg,
-                                       method='rk4',
+                                       method='RK4',
                                        ode_init_kwargs={'num_motor': 2},
                                        compressed=False)
 

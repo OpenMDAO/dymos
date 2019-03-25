@@ -38,15 +38,17 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-    phase.set_state_options('x', fix_initial=True, fix_final=True)
-    phase.set_state_options('y', fix_initial=True, fix_final=True)
-    phase.set_state_options('v', fix_initial=True, fix_final=False)
+    phase.set_state_options('x', fix_initial=True, fix_final=False, solve_segments=True)
+    phase.set_state_options('y', fix_initial=True, fix_final=False, solve_segments=True)
+    phase.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=True)
 
     phase.add_control('theta', continuity=True, rate_continuity=True,
                       units='deg', lower=0.01, upper=179.9)
 
     phase.add_input_parameter('g', units='m/s**2', val=9.80665)
 
+    phase.add_boundary_constraint('x', loc='final', equals=10)
+    phase.add_boundary_constraint('y', loc='final', equals=5)
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
 
@@ -63,6 +65,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['phase0.input_parameters:g'] = 9.80665
 
     p.run_model()
+
     if run_driver:
         p.run_driver()
 

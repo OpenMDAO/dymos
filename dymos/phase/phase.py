@@ -895,6 +895,7 @@ class Phase(Group):
         transcription.setup_boundary_constraints('initial', self)
         transcription.setup_boundary_constraints('final', self)
         transcription.setup_path_constraints(self)
+        transcription.setup_endpoint_conditions(self)
         transcription.setup_objective(self)
 
         transcription.setup_timeseries_outputs(self)

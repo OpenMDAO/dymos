@@ -30,7 +30,7 @@ class RungeKuttaPhase(PhaseBase):
         super(RungeKuttaPhase, self).initialize()
         self.options['transcription'] = 'explicit'
 
-        self.options.declare('method', default='rk4', values=('rk4',),
+        self.options.declare('method', default='RK4', values=('RK4',),
                              desc='The integrator used within the explicit phase.')
 
         self.options.declare('k_solver_class', default=NonlinearBlockGS,

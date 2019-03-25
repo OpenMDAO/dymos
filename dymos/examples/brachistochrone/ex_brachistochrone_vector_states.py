@@ -33,7 +33,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p.driver.options['dynamic_simul_derivs'] = dynamic_simul_derivs
 
     if transcription == 'runge-kutta':
-        transcription_order = 'rk4'
+        transcription_order = 'RK4'
 
     phase = DeprecatedPhaseFactory(transcription,
                                    ode_class=BrachistochroneVectorStatesODE,

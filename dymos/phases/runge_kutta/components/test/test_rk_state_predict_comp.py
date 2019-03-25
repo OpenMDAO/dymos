@@ -25,7 +25,7 @@ class TestRKStatePredictComp(unittest.TestCase):
         ivc.add_output('y0', shape=(num_seg, 1), units='m')
 
         p.model.add_subsystem('c',
-                              RungeKuttaStatePredictComp(num_segments=4, method='rk4',
+                              RungeKuttaStatePredictComp(num_segments=4, method='RK4',
                                                          state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
@@ -95,7 +95,7 @@ class TestRKStatePredictComp(unittest.TestCase):
         ivc.add_output('y0', shape=(num_seg, 1), units='m')
 
         p.model.add_subsystem('c',
-                              RungeKuttaStatePredictComp(num_segments=num_seg, method='rk4',
+                              RungeKuttaStatePredictComp(num_segments=num_seg, method='RK4',
                                                          state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
@@ -155,7 +155,7 @@ class TestRKStatePredictComp(unittest.TestCase):
         ivc.add_output('y0', shape=(num_seg, 2), units='m')
 
         p.model.add_subsystem('c',
-                              RungeKuttaStatePredictComp(num_segments=num_seg, method='rk4',
+                              RungeKuttaStatePredictComp(num_segments=num_seg, method='RK4',
                                                          state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
@@ -203,7 +203,7 @@ class TestRKStatePredictComp(unittest.TestCase):
         ivc.add_output('y0', shape=(1, 2, 2), units='m')
 
         p.model.add_subsystem('c',
-                              RungeKuttaStatePredictComp(num_segments=1, method='rk4',
+                              RungeKuttaStatePredictComp(num_segments=1, method='RK4',
                                                          state_options=state_options))
 
         p.model.connect('k:y', 'c.k:y')
