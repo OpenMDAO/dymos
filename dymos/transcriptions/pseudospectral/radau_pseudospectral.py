@@ -19,7 +19,7 @@ class Radau(PseudospectralBase):
 
     References
     ----------
-    ﻿Garg, Divya et al. "Direct Trajectory Optimization and Costate Estimation of General Optimal
+    Garg, Divya et al. "Direct Trajectory Optimization and Costate Estimation of General Optimal
     Control Problems Using a Radau Pseudospectral Method." American Institute of Aeronautics
     and Astronautics, 2009.
     """
