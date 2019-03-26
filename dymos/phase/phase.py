@@ -1,15 +1,17 @@
 from __future__ import division, print_function, absolute_import
 
 from collections import Iterable
+import inspect
+import warnings
 
 from six import iteritems
-import warnings
 
 import numpy as np
 
 from scipy import interpolate
 
 from openmdao.api import Problem, Group, SqliteRecorder
+from openmdao.core.system import System
 
 from .options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
     InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary, \
@@ -182,8 +184,6 @@ class Phase(Group):
         ValueError
             Raised if the parameter of the given name is previously assigned or
             incompatible with the type of control to which it is assigned.
-
-
         """
         # ode_params = None if self.ode_options is None else self.ode_options._parameters
         if name in self.user_control_options:
@@ -890,6 +890,25 @@ class Phase(Group):
                 self.traj_parameter_options[tp].update(ode_options._parameters[tp])
             self.traj_parameter_options[tp].update(self.user_traj_parameter_options[tp])
 
+    def _check_ode(self):
+        """
+        Check that the provided ODE class meets minimum requirements.
+
+        * The ode_class must be a class, not an instance.
+        * The ode_class must derive from openmdao.core.System
+
+        Raises
+        ------
+        ValueError
+            ValueError is raised if the ODE does not meet one of the the requirements above.
+
+        """
+        ode_class = self.options['ode_class']
+        if not inspect.isclass(ode_class):
+            raise ValueError('ode_class must be a class, not an instance.')
+        if not issubclass(ode_class, System):
+            raise ValueError('ode_class must be derived from openmdao.core.System.')
+
     def setup(self):
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
@@ -918,6 +937,7 @@ class Phase(Group):
             transcription.setup_traj_parameters(self)
 
         transcription.setup_states(self)
+        self._check_ode()
         transcription.setup_ode(self)
         transcription.setup_defects(self)
 

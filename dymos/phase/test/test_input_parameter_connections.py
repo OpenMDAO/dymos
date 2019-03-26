@@ -2,7 +2,7 @@ import numpy as np
 
 import unittest
 from openmdao.api import ExplicitComponent, Group, Problem
-from dymos import DeprecatedPhaseFactory, ODEOptions
+from dymos import ODEOptions, Phase, Radau, GaussLobatto
 
 
 n_traj = 4
@@ -54,12 +54,11 @@ class TestStaticInputParameters(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        phase = DeprecatedPhaseFactory(transcription='radau-ps',
-                                       ode_class=MyODE,
-                                       ode_init_kwargs={'n_traj': n_traj},
-                                       num_segments=25,
-                                       transcription_order=3,
-                                       compressed=True)
+        phase = Phase(ode_class=MyODE,
+                      ode_init_kwargs={'n_traj': n_traj},
+                      transcription=Radau(num_segments=25,
+                                          order=3,
+                                          compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -74,12 +73,11 @@ class TestStaticInputParameters(unittest.TestCase):
 
         p = Problem(model=Group())
 
-        phase = DeprecatedPhaseFactory(transcription='gauss-lobatto',
-                                       ode_class=MyODE,
-                                       ode_init_kwargs={'n_traj': n_traj},
-                                       num_segments=25,
-                                       transcription_order=3,
-                                       compressed=True)
+        phase = Phase(ode_class=MyODE,
+                      ode_init_kwargs={'n_traj': n_traj},
+                      transcription=GaussLobatto(num_segments=25,
+                                                 order=3,
+                                                 compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 

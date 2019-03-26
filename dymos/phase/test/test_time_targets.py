@@ -15,7 +15,8 @@ from openmdao.utils.assert_utils import assert_rel_error
 
 import numpy as np
 from openmdao.api import ExplicitComponent
-from dymos import declare_time, declare_state, declare_parameter, DeprecatedPhaseFactory
+from dymos import declare_time, declare_state, declare_parameter, Phase, \
+    GaussLobatto, Radau, RungeKutta
 
 
 @declare_time(units='s', time_phase_targets=['time_phase'], t_duration_targets=['t_duration'],
@@ -114,18 +115,11 @@ class TestPhaseTimeTargets(unittest.TestCase):
         # Compute sparsity/coloring when run_driver is called
         p.driver.options['dynamic_simul_derivs'] = True
 
-        if transcription == 'runge-kutta':
-            phase = DeprecatedPhaseFactory(transcription=transcription,
-                                           ode_class=_BrachistochroneTestODE,
-                                           num_segments=num_seg,
-                                           method='RK4',
-                                           compressed=True)
-        else:
-            phase = DeprecatedPhaseFactory(transcription=transcription,
-                                           ode_class=_BrachistochroneTestODE,
-                                           num_segments=num_seg,
-                                           transcription_order=transcription_order,
-                                           compressed=True)
+        t = {'gauss-lobatto': GaussLobatto(num_segments=num_seg, order=transcription_order),
+             'radau-ps': Radau(num_segments=num_seg, order=transcription_order),
+             'runge-kutta': RungeKutta(num_segments=num_seg)}
+
+        phase = Phase(ode_class=_BrachistochroneTestODE, transcription=t[transcription])
 
         p.model.add_subsystem('phase0', phase)
 
@@ -166,7 +160,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
         # Solve for the optimal trajectory
         p.run_driver()
 
-        gd = p.model.phase0.grid_data
+        gd = p.model.phase0.options['transcription'].grid_data
 
         time_all = p['phase0.time']
         time_col = time_all[gd.subset_node_indices['col']]
@@ -216,7 +210,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
         # Solve for the optimal trajectory
         p.run_driver()
 
-        gd = p.model.phase0.grid_data
+        gd = p.model.phase0.options['transcription'].grid_data
 
         time_all = p['phase0.time']
         time_segends = time_all[gd.subset_node_indices['segment_ends']]
@@ -259,7 +253,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
         # Solve for the optimal trajectory
         p.run_driver()
 
-        gd = p.model.phase0.grid_data
+        gd = p.model.phase0.options['transcription'].grid_data
 
         time_all = p['phase0.time']
         time_segends = time_all[gd.subset_node_indices['segment_ends']]
