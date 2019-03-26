@@ -24,7 +24,7 @@ fixed initial time or duration, or input initial time or duration, the optimizat
 have no effect and a warning will be raised if they are used.
 
 .. embed-options::
-    dymos.phases.options
+    dymos.phase.options
     _ForDocs
     time_options
 
@@ -48,7 +48,7 @@ Users can specify bounds, scaling, and units of the state variables with the
 phase method `set_state_options`.  The following options are valid:
 
 .. embed-options::
-    dymos.phases.options
+    dymos.phase.options
     _ForDocs
     state_options
 
@@ -83,12 +83,12 @@ assigned to controllable parameters to the ODE.  Therefore, the method name to a
 a phase is `add_control`. Valid options for controls and design parameters are as follows:
 
 .. embed-options::
-    dymos.phases.options
+    dymos.phase.options
     _ForDocs
     control_options
 
 .. embed-options::
-    dymos.phases.options
+    dymos.phase.options
     _ForDocs
     design_parameter_options
 

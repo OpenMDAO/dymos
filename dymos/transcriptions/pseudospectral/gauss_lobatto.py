@@ -162,18 +162,6 @@ class GaussLobatto(PseudospectralBase):
                               ['rhs_col.{0}'.format(t) for t in targets],
                               src_indices=col_src_idxs, flat_src_indices=True)
 
-    # def setup_design_parameters(self, phase):
-    #     pass
-    #
-    # def setup_input_parameters(self, phase):
-    #     pass
-    #
-    # def setup_traj_parameters(self, phase):
-    #     super(GaussLobatto, self.setup)
-    #
-    # def setup_states(self, phase):
-    #     super(GaussLobatto, self).setup_states(phase)
-
     def setup_ode(self, phase):
         grid_data = self.grid_data
         ode_class = phase.options['ode_class']
