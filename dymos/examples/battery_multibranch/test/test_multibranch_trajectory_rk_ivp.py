@@ -53,7 +53,7 @@ class TestBatteryRKIVP(unittest.TestCase):
         # Second phase, but with battery failure.
 
         phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2}, 
-                         transcription=transcription)
+                             transcription=transcription)
         phase1_bfail.set_time_options(fix_initial=False, fix_duration=True)
         phase1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True)
         phase1_bfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
@@ -65,7 +65,7 @@ class TestBatteryRKIVP(unittest.TestCase):
         # Second phase, but with motor failure.
 
         phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2}, 
-                         transcription=transcription)
+                             transcription=transcription)
         phase1_mfail.set_time_options(fix_initial=False, fix_duration=True)
         phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True)
         phase1_mfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
