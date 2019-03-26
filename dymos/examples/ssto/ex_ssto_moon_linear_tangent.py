@@ -2,7 +2,7 @@ from __future__ import print_function, division, absolute_import
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
-from dymos import DeprecatedPhaseFactory
+from dymos import Phase, GaussLobatto, Radau
 from dymos.examples.ssto.launch_vehicle_linear_tangent_ode import LaunchVehicleLinearTangentODE
 
 
@@ -45,12 +45,12 @@ def ssto_moon_linear_tangent(transcription='gauss-lobatto', num_seg=10, transcri
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-    phase = DeprecatedPhaseFactory(transcription,
-                                   ode_class=LaunchVehicleLinearTangentODE,
-                                   ode_init_kwargs={'central_body': 'moon'},
-                                   num_segments=num_seg,
-                                   transcription_order=transcription_order,
-                                   compressed=compressed)
+    t = {'gauss-lobatto': GaussLobatto(num_segments=num_seg, order=transcription_order, compressed=compressed),
+         'radau-ps': Radau(num_segments=num_seg, order=transcription_order, compressed=compressed)}
+
+    phase = Phase(ode_class=LaunchVehicleLinearTangentODE,
+                  ode_init_kwargs={'central_body': 'moon'},
+                  transcription=t[transcription])
 
     p.model.add_subsystem('phase0', phase)
 
