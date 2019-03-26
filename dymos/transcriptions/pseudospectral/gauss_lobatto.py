@@ -22,7 +22,6 @@ class GaussLobatto(PseudospectralBase):
     Herman, Albert L, and Bruce A Conway. "Direct Optimization Using Collocation Based on
     High-Order Gauss-Lobatto Quadrature Rules." Journal of Guidance, Control, and
     Dynamics 19.3 (1996): 592–599.
-..
     """
     def setup_grid(self, phase):
         self.grid_data = GridData(num_segments=self.options['num_segments'],
