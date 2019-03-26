@@ -8,8 +8,7 @@ from ...grid_data import GridData
 
 
 class ControlEndpointDefectComp(ExplicitComponent):
-    """
-    Compute and enforce the control endpoint defect constraint when using the Radau Pseudospectral
+    """ Compute and enforce the control endpoint defect constraint when using the Radau Pseudospectral
     method.
 
     For each dynamic control, take the control values at all nodes.  Use a Radau interpolation
