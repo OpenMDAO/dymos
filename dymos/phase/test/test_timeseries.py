@@ -10,7 +10,7 @@ import numpy as np
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import DeprecatedPhaseFactory
+from dymos import Phase, GaussLobatto, Radau, RungeKutta
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 SHOW_PLOTS = True
@@ -24,11 +24,8 @@ class TestTimeseriesOutput(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('gauss-lobatto',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=8,
-                                       transcription_order=3,
-                                       compressed=True)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=GaussLobatto(num_segments=8, order=3, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -60,7 +57,7 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         p.run_driver()
 
-        gd = phase.grid_data
+        gd = phase.options['transcription'].grid_data
         state_input_idxs = gd.subset_node_indices['state_input']
         control_input_idxs = gd.subset_node_indices['control_input']
         col_idxs = gd.subset_node_indices['col']
@@ -102,11 +99,8 @@ class TestTimeseriesOutput(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=BrachistochroneODE,
-                                       num_segments=8,
-                                       transcription_order=3,
-                                       compressed=True)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=Radau(num_segments=8, order=3, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -139,7 +133,7 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         p.run_driver()
 
-        gd = phase.grid_data
+        gd = phase.options['transcription'].grid_data
         state_input_idxs = gd.subset_node_indices['state_input']
         control_input_idxs = gd.subset_node_indices['control_input']
 

@@ -25,10 +25,10 @@ class TranscriptionBase(object):
         self.options = OptionsDictionary()
 
         self.options.declare('num_segments', types=int, desc='Number of segments')
-        self.options.declare('segment_ends', default=None, types=(Sequence, np.ndarray), allow_none=True,
-                             desc='Iterable of locations of segment ends or None for equally'
-                                  'spaced segments')
-        self.options.declare('order', default=3, types=(int, Sequence),
+        self.options.declare('segment_ends', default=None, types=(Sequence, np.ndarray),
+                             allow_none=True, desc='Locations of segment ends or None for equally '
+                             'spaced segments')
+        self.options.declare('order', default=3, types=(int, Sequence, np.ndarray),
                              desc='Order of the state transcription')
         self.options.declare('compressed', default=True, types=bool,
                              desc='Use compressed transcription, meaning state and control values'
