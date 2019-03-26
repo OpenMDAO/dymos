@@ -95,7 +95,7 @@ author = u'Rob Falck and John Hwang'
 # built documents.
 #
 # The short X.Y version.
-version = u'0.12.0'
+version = u'1.0.0'
 # The full version, including alpha/beta/rc tags.
 release = version
 
