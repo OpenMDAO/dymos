@@ -22,7 +22,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, IndepVarComp
         from openmdao.utils.assert_utils import assert_rel_error
 
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, GaussLobatto
 
         from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
         from dymos.utils.lgl import lgl
@@ -35,12 +35,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
 
-        phase = DeprecatedPhaseFactory('gauss-lobatto',
-                                       ode_class=AircraftODE,
-                                       num_segments=num_seg,
-                                       segment_ends=seg_ends,
-                                       transcription_order=3,
-                                       compressed=False)
+        
 
         # Pass design parameters in externally from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
@@ -49,6 +44,12 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
 
+
+        transcription = GaussLobatto(num_segments=num_seg,
+                                     segment_ends=seg_ends,
+                                     order=3,
+                                     compressed=False)
+        phase = Phase(ode_class=AircraftODE, transcription=transcription)
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(fix_initial=True,
@@ -56,13 +57,13 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
                                duration_ref=3600)
 
         phase.set_state_options('range', units='NM', fix_initial=True, fix_final=False,
-                                ref=1e-3, defect_ref=1e-3,)
+                                ref=1e2, defect_ref=1e2)
 
         phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=True,
-                                upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2)
+                                upper=1.5E5, lower=0.0, ref=1e3, defect_ref=1e3)
 
         phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=True,
-                                upper=60, lower=0, ref=1e-3, defect_ref=1e-3)
+                                upper=60, lower=0, ref=1e1, defect_ref=1e1)
 
         phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
                           rate_continuity=True)
@@ -72,14 +73,14 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         phase.add_input_parameter('mass_empty', units='kg')
         phase.add_input_parameter('mass_payload', units='kg')
 
-        phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0)
+        phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0, ref=1e-5, shape=1)
 
         p.model.connect('assumptions.mach', 'phase0.input_parameters:mach')
         p.model.connect('assumptions.S', 'phase0.input_parameters:S')
         p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
         p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
 
-        phase.add_objective('range', loc='final', ref=-1.0e-4)
+        phase.add_objective('range', loc='final', ref=-1.0e-7)
 
         p.setup()
 

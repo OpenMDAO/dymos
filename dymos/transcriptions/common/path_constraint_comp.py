@@ -101,6 +101,13 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
         for (name, kwargs) in self._path_constraints:
             input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             shape = kwargs['shape']
+
+            if isinstance(shape, list): 
+                shape = tuple(shape)
+
+            if not isinstance(shape, tuple): 
+                shape = (shape,)
+
             if kwargs['src_all']:
                 all_input_name = 'all_values:{0}'.format(name)
                 disc_input_name = col_input_name = ''

@@ -57,7 +57,6 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         times_ivc.add_output(name='tp', val=1.0, units='s')
 
         transcription = Radau(num_segments=20, order=3, compressed=compressed)
-
         phase = Phase(ode_class=DoubleIntegratorODE, transcription=transcription)
         p.model.add_subsystem('phase0', phase)
 
