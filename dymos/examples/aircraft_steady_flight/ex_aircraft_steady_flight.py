@@ -36,7 +36,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP',
 
     phase = Phase(ode_class=AircraftODE,
                   transcription=Radau(num_segments=num_seg, segment_ends=seg_ends,
-                  order=3, compressed=compressed))
+                                      order=3, compressed=compressed))
 
     # Pass Reference Area from an external source
     assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
