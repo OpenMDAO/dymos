@@ -148,7 +148,10 @@ class RungeKutta(TranscriptionBase):
                                                        **phase.options['ode_init_kwargs']))
 
     def _get_rate_source_path(self, state_name, phase, nodes=None, **kwargs):
-        var = phase.state_options[state_name]['rate_source']
+        try: 
+            var = phase.state_options[state_name]['rate_source']
+        except RuntimeError: 
+            raise ValueError('state "%s" in phase "%s" was not given a rate_source'%(state_name, phase.name))
         shape = phase.state_options[state_name]['shape']
         var_type = phase.classify_var(var)
         num_segments = self.options['num_segments']

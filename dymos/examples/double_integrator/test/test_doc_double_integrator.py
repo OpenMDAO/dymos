@@ -11,19 +11,15 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
     def test_double_integrator_for_docs(self):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
-        from dymos import DeprecatedPhaseFactory
+        from dymos import Phase, Radau
         from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=DoubleIntegratorODE,
-                                       num_segments=20,
-                                       transcription_order=3,
-                                       compressed=True)
-
+        transcription = Radau(num_segments=20, order=3, compressed=False)
+        phase = Phase(ode_class=DoubleIntegratorODE, transcription=transcription)
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(1.0, 1.0))
@@ -91,3 +87,8 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         axes[2].legend(loc='best')
 
         plt.show()
+
+
+if __name__ == "__main__": 
+
+    unittest.main()

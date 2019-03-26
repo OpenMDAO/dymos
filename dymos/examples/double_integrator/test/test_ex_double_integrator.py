@@ -10,7 +10,7 @@ from parameterized import parameterized
 from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, IndepVarComp
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import DeprecatedPhaseFactory
+from dymos import Phase, Radau
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 import dymos.examples.double_integrator.ex_double_integrator as ex_double_integrator
 
@@ -56,12 +56,9 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         times_ivc.add_output(name='t0', val=0.0, units='s')
         times_ivc.add_output(name='tp', val=1.0, units='s')
 
-        phase = DeprecatedPhaseFactory(transcription,
-                                       ode_class=DoubleIntegratorODE,
-                                       num_segments=20,
-                                       transcription_order=3,
-                                       compressed=compressed)
+        transcription = Radau(num_segments=20, order=3, compressed=compressed)
 
+        phase = Phase(ode_class=DoubleIntegratorODE, transcription=transcription)
         p.model.add_subsystem('phase0', phase)
 
         p.model.connect('t0', 'phase0.t_initial')
@@ -90,3 +87,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         p['phase0.controls:u'] = phase.interpolate(ys=[1, -1], nodes='control_input')
 
         p.run_driver()
+
+if __name__ == "__main__": 
+
+    unittest.main()
