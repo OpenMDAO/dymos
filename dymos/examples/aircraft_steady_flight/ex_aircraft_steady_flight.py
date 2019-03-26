@@ -10,7 +10,7 @@ import numpy as np
 from openmdao.api import Problem, Group, pyOptSparseDriver, IndepVarComp
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 
-from dymos import DeprecatedPhaseFactory
+from dymos import Phase, Radau, GaussLobatto
 
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 from dymos.utils.lgl import lgl
@@ -36,12 +36,17 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
     num_seg = 15
     seg_ends, _ = lgl(num_seg + 1)
 
-    phase = DeprecatedPhaseFactory(transcription,
-                                   ode_class=AircraftODE,
-                                   num_segments=num_seg,
-                                   segment_ends=seg_ends,
-                                   transcription_order=3,
-                                   compressed=compressed)
+    if transcription == 'gauss-lobatto': 
+        transcription = GaussLobatto(num_segments=num_seg,
+                                     segment_ends=seg_ends,
+                                     order=3,
+                                     compressed=compressed)
+    elif transcription == 'radau-ps': 
+        transcription = Radau(num_segments=num_seg,
+                              segment_ends=seg_ends,
+                              order=3,
+                              compressed=compressed)
+    phase = Phase(ode_class=AircraftODE, transcription=transcription)
 
     # Pass Reference Area from an external source
     assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
@@ -68,7 +73,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
                             upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2,
                             solve_segments=solve_segments)
     phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=fix_final, lower=0.0,
-                            upper=60, ref=1e-3, defect_ref=1e-3,
+                            upper=60, ref=1e1, defect_ref=1e1,
                             solve_segments=solve_segments)
 
     phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
@@ -80,7 +85,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
     phase.add_input_parameter('mass_empty', units='kg')
     phase.add_input_parameter('mass_payload', units='kg')
 
-    phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0)
+    phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0, shape=1)
 
     p.model.connect('assumptions.S', 'phase0.input_parameters:S')
     p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')

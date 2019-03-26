@@ -67,3 +67,7 @@ class TestAircraftODEGroup(unittest.TestCase):
     #     np.set_printoptions(linewidth=1024)
     #     cpd = self.p.check_partials(suppress_output=False)
     #     assert_check_partials(cpd, atol=1.0E-6, rtol=1.0)
+
+
+if __name__ == "__main__": 
+    unittest.main()

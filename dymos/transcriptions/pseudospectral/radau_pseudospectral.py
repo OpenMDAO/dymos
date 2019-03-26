@@ -467,7 +467,11 @@ class Radau(PseudospectralBase):
 
     def get_rate_source_path(self, state_name, nodes, phase):
         gd = self.grid_data
-        var = phase.state_options[state_name]['rate_source']
+        try: 
+            var = phase.state_options[state_name]['rate_source']
+        except RuntimeError: 
+            raise ValueError('state "%s" in phase "%s" was not given a rate_source'%(state_name, phase.name))        
+
         # Note the rate source must be shape-compatible with the state
         shape = phase.state_options[state_name]['shape']
         var_type = phase.classify_var(var)

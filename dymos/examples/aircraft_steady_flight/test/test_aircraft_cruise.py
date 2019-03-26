@@ -7,7 +7,7 @@ from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, \
     pyOptSparseDriver, ScipyOptimizeDriver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import DeprecatedPhaseFactory
+from dymos import Phase, GaussLobatto
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
@@ -37,10 +37,11 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver = ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('gauss-lobatto',
-                                       ode_class=AircraftODE,
-                                       num_segments=1,
-                                       transcription_order=13)
+        transcription = GaussLobatto(num_segments=1,
+                                     order=13,
+                                     compressed=False)
+        phase = Phase(ode_class=AircraftODE, transcription=transcription)
+        p.model.add_subsystem('phase0', phase)
 
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
@@ -48,7 +49,6 @@ class TestAircraftCruise(unittest.TestCase):
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
 
-        p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(initial_bounds=(0, 0),
                                duration_bounds=(3600, 3600),
@@ -118,10 +118,11 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver = ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = DeprecatedPhaseFactory('radau-ps',
-                                       ode_class=AircraftODE,
-                                       num_segments=1,
-                                       transcription_order=13)
+        transcription = GaussLobatto(num_segments=1,
+                                     order=13,
+                                     compressed=False)
+        phase = Phase(ode_class=AircraftODE, transcription=transcription)
+        p.model.add_subsystem('phase0', phase)
 
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
@@ -129,7 +130,6 @@ class TestAircraftCruise(unittest.TestCase):
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
 
-        p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(initial_bounds=(0, 0),
                                duration_bounds=(3600, 3600),
