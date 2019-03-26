@@ -2,10 +2,9 @@ from __future__ import division, print_function, absolute_import
 
 import numpy as np
 from openmdao.api import ExplicitComponent
-from six import string_types, iteritems
+from six import iteritems
 
-from dymos.phases.grid_data import GridData
-from dymos.utils.misc import get_rate_units
+from ...grid_data import GridData
 
 
 class ControlEndpointDefectComp(ExplicitComponent):

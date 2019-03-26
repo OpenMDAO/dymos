@@ -11,9 +11,9 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
     p.driver = pyOptSparseDriver()
     p.driver.options['dynamic_simul_derivs'] = True
 
-    if transcription == 'gauss-lobatto': 
+    if transcription == 'gauss-lobatto':
         transcription = GaussLobatto(num_segments=30, order=3, compressed=compressed)
-    elif transcription == "radau-ps": 
+    elif transcription == "radau-ps":
         transcription = Radau(num_segments=30, order=3, compressed=compressed)
 
     phase = Phase(ode_class=DoubleIntegratorODE, transcription=transcription)

@@ -8,7 +8,7 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.components.boundary_constraint_comp import BoundaryConstraintComp
+from dymos.transcriptions.common.boundary_constraint_comp import BoundaryConstraintComp
 
 
 class TestInitialScalarBoundaryValue(unittest.TestCase):

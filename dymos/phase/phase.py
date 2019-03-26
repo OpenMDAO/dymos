@@ -81,7 +81,7 @@ class Phase(Group):
             self.user_input_parameter_options = from_phase.input_parameter_options.copy()
             # Don't copy over the trajectory parameters.  The owning trajectory object will
             # handle that.
-            self.user_traj_parameter_options = {} # from_phase.traj_parameter_options.copy()
+            self.user_traj_parameter_options = {}
             self._timeseries_outputs = from_phase._timeseries_outputs.copy()
 
             self._initial_boundary_constraints = from_phase._initial_boundary_constraints.copy()
@@ -678,46 +678,6 @@ class Phase(Group):
                     'parallel_deriv_color': parallel_deriv_color,
                     'vectorize_derivs': vectorize_derivs}
         self._objectives[name] = obj_dict
-
-    # def _setup_objective(self):
-    #     """
-    #     Find the path of the objective(s) and add the objective using the standard OpenMDAO method.
-    #     """
-    #     for name, options in iteritems(self._objectives):
-    #         index = options['index']
-    #         loc = options['loc']
-    #
-    #         obj_path, shape, units, _ = self._get_boundary_constraint_src(name, loc)
-    #
-    #         shape = options['shape'] if shape is None else shape
-    #
-    #         size = int(np.prod(shape))
-    #
-    #         if size > 1 and index is None:
-    #             raise ValueError('Objective variable is non-scaler {0} but no index specified '
-    #                              'for objective'.format(shape))
-    #
-    #         idx = 0 if index is None else index
-    #         if idx < 0:
-    #             idx = size + idx
-    #
-    #         if idx >= size or idx < -size:
-    #             raise ValueError('Objective index={0}, but the shape of the objective '
-    #                              'variable is {1}'.format(index, shape))
-    #
-    #         if loc == 'final':
-    #             obj_index = -size + idx
-    #         elif loc == 'initial':
-    #             obj_index = idx
-    #         else:
-    #             raise ValueError('Invalid value for objective loc: {0}. Must be '
-    #                              'one of \'initial\' or \'final\'.'.format(loc))
-    #
-    #         super(PhaseBase, self).add_objective(obj_path, ref=options['ref'], ref0=options['ref0'],
-    #                                              index=obj_index, adder=options['adder'],
-    #                                              scaler=options['scaler'],
-    #                                              parallel_deriv_color=options['parallel_deriv_color'],
-    #                                              vectorize_derivs=options['vectorize_derivs'])
 
     def set_time_options(self, **kwargs):
         """

@@ -49,25 +49,15 @@ class TestAircraftODEGroup(unittest.TestCase):
 
         cls.p.model.linear_solver = DirectSolver()
 
-        cls.p.setup(check=True)
+        cls.p.setup(check=True, force_alloc_complex=True)
 
         cls.p.run_model()
 
     def test_results(self):
-        print('dXdt:mass_fuel', self.p['ode.propulsion.dXdt:mass_fuel'])
-        print('D', self.p['ode.aero.D'])
-        print('thrust', self.p['ode.propulsion.thrust'])
-        print('range rate', self.p['ode.range_rate_comp.dXdt:range'])
-
         assert_rel_error(self,
                          self.p['ode.range_rate_comp.dXdt:range'],
                          self.p['ode.tas_comp.TAS'] * np.cos(self.p['ode.gam_comp.gam']))
 
-    # def test_partials(self):
-    #     np.set_printoptions(linewidth=1024)
-    #     cpd = self.p.check_partials(suppress_output=False)
-    #     assert_check_partials(cpd, atol=1.0E-6, rtol=1.0)
 
-
-if __name__ == "__main__": 
+if __name__ == "__main__":
     unittest.main()

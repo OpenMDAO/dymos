@@ -9,7 +9,7 @@ from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos.phase import Phase
 from dymos.transcriptions import RungeKutta
-from dymos.phases.runge_kutta.test.rk_test_ode import TestODE, _test_ode_solution
+from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE, _test_ode_solution
 
 
 class TestRK4SimpleIntegration(unittest.TestCase):

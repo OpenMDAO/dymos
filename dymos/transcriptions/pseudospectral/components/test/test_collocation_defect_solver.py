@@ -6,11 +6,10 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 from openmdao.api import Problem, Group, IndepVarComp
-from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.grid_data import GridData
-from dymos.phases.optimizer_based.components.collocation_comp import CollocationComp
-from dymos.phases.optimizer_based.components.state_independents import StateIndependentsComp
+from dymos.transcriptions.grid_data import GridData
+from dymos.transcriptions.pseudospectral.components.collocation_comp import CollocationComp
+from dymos.transcriptions.pseudospectral.components.state_independents import StateIndependentsComp
 
 
 class TestCollocationBalanceIndex(unittest.TestCase):

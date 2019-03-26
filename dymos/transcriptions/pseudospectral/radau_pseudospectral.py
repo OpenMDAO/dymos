@@ -89,17 +89,17 @@ class Radau(PseudospectralBase):
                 targets = phase.polynomial_control_options[name]['targets']
 
                 phase.connect('polynomial_control_values:{0}'.format(name),
-                             ['rhs_all.{0}'.format(t) for t in targets])
+                              ['rhs_all.{0}'.format(t) for t in targets])
 
             if phase.polynomial_control_options[name]['rate_targets']:
                 targets = phase.polynomial_control_options[name]['rate_targets']
                 phase.connect('polynomial_control_rates:{0}_rate'.format(name),
-                             ['rhs_all.{0}'.format(t) for t in targets])
+                              ['rhs_all.{0}'.format(t) for t in targets])
 
             if phase.polynomial_control_options[name]['rate2_targets']:
                 targets = phase.polynomial_control_options[name]['rate2_targets']
                 phase.connect('polynomial_control_rates:{0}_rate2'.format(name),
-                             ['rhs_all.{0}'.format(t) for t in targets])
+                              ['rhs_all.{0}'.format(t) for t in targets])
 
     def setup_ode(self, phase):
         super(Radau, self).setup_ode(phase)
@@ -128,10 +128,9 @@ class Radau(PseudospectralBase):
                 src_idxs = src_idxs.ravel()
 
             if options['targets']:
-                phase.connect(
-                     'states:{0}'.format(name),
-                     ['rhs_all.{0}'.format(tgt) for tgt in options['targets']],
-                     src_indices=src_idxs, flat_src_indices=True)
+                phase.connect('states:{0}'.format(name),
+                              ['rhs_all.{0}'.format(tgt) for tgt in options['targets']],
+                              src_indices=src_idxs, flat_src_indices=True)
 
     def setup_defects(self, phase):
         super(Radau, self).setup_defects(phase)
@@ -467,10 +466,11 @@ class Radau(PseudospectralBase):
 
     def get_rate_source_path(self, state_name, nodes, phase):
         gd = self.grid_data
-        try: 
+        try:
             var = phase.state_options[state_name]['rate_source']
-        except RuntimeError: 
-            raise ValueError('state "%s" in phase "%s" was not given a rate_source'%(state_name, phase.name))        
+        except RuntimeError:
+            raise ValueError('state \'{0}\' in phase \'{1}\' was not given a '
+                             'rate_source'.format(state_name, phase.name))
 
         # Note the rate source must be shape-compatible with the state
         shape = phase.state_options[state_name]['shape']

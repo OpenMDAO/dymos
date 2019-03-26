@@ -87,6 +87,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         p.run_driver()
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
 
     unittest.main()

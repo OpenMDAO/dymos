@@ -10,9 +10,9 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.components import TimeComp
-from dymos.phases.components.control_group import ControlInterpComp
-from dymos.phases.grid_data import GridData
+from dymos.transcriptions.common import TimeComp
+from dymos.transcriptions.common.control_group import ControlInterpComp
+from dymos.transcriptions.grid_data import GridData
 
 
 # Test 1:  Let x = t**2, f = 2*t

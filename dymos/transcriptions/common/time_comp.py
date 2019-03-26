@@ -4,8 +4,6 @@ import numpy as np
 from openmdao.api import ExplicitComponent
 from six import string_types
 
-from dymos.phases.grid_data import GridData
-
 
 class TimeComp(ExplicitComponent):
 

@@ -8,9 +8,9 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp, DirectSolver
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.options import TimeOptionsDictionary, StateOptionsDictionary, \
+from dymos.phase.options import TimeOptionsDictionary, StateOptionsDictionary, \
     ControlOptionsDictionary
-from dymos.phases.components import EndpointConditionsComp
+from dymos.transcriptions.common import EndpointConditionsComp
 
 
 class TestEndpointConditionComp(unittest.TestCase):

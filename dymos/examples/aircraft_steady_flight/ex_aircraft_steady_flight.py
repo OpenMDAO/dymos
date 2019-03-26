@@ -36,12 +36,12 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
     num_seg = 15
     seg_ends, _ = lgl(num_seg + 1)
 
-    if transcription == 'gauss-lobatto': 
+    if transcription == 'gauss-lobatto':
         transcription = GaussLobatto(num_segments=num_seg,
                                      segment_ends=seg_ends,
                                      order=3,
                                      compressed=compressed)
-    elif transcription == 'radau-ps': 
+    elif transcription == 'radau-ps':
         transcription = Radau(num_segments=num_seg,
                               segment_ends=seg_ends,
                               order=3,

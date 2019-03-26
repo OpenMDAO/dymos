@@ -35,15 +35,12 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
 
-        
-
         # Pass design parameters in externally from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
         assumptions.add_output('mach', val=0.8, units=None)
         assumptions.add_output('S', val=427.8, units='m**2')
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
-
 
         transcription = GaussLobatto(num_segments=num_seg,
                                      segment_ends=seg_ends,

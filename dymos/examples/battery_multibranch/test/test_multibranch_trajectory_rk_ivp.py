@@ -8,10 +8,9 @@ import unittest
 
 from openmdao.api import Problem, Group
 
-from dymos import  Trajectory, Phase, GaussLobatto, Radau, RungeKutta
+from dymos import Trajectory, Phase, Radau, RungeKutta
 
-from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE, \
-    BatteryODEStaticGearboxMotorPower
+from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
 
 
 class TestBatteryRKIVP(unittest.TestCase):
@@ -19,15 +18,12 @@ class TestBatteryRKIVP(unittest.TestCase):
     def test_dynamic_input_params(self):
         prob = Problem(model=Group())
 
-        num_seg = 5
-
         traj = prob.model.add_subsystem('traj', Trajectory())
 
         # First phase: normal operation.
         # NOTE: using RK4 integration here
 
         P_DEMAND = 2.0
-
 
         phase0 = Phase(ode_class=BatteryODE, transcription=RungeKutta(num_segments=200))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
@@ -41,7 +37,7 @@ class TestBatteryRKIVP(unittest.TestCase):
         # Second phase: normal operation.
 
         transcription = Radau(num_segments=5, order=5, compressed=True)
-        phase1 =  Phase(ode_class=BatteryODE, transcription=transcription)
+        phase1 = Phase(ode_class=BatteryODE, transcription=transcription)
         phase1.set_time_options(fix_initial=False, fix_duration=True)
         phase1.set_state_options('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True)
         phase1.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
@@ -52,7 +48,7 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2}, 
+        phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
                              transcription=transcription)
         phase1_bfail.set_time_options(fix_initial=False, fix_duration=True)
         phase1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True)
@@ -64,7 +60,7 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2}, 
+        phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
                              transcription=transcription)
         phase1_mfail.set_time_options(fix_initial=False, fix_duration=True)
         phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True)
@@ -187,7 +183,7 @@ class TestBatteryRKIVP(unittest.TestCase):
         # Second phase: normal operation.
 
         transcription = Radau(num_segments=5, order=5, compressed=True)
-        phase1 =  Phase(ode_class=BatteryODE, transcription=transcription)
+        phase1 = Phase(ode_class=BatteryODE, transcription=transcription)
         phase1.set_time_options(fix_initial=False, fix_duration=True)
         phase1.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
                                  solve_segments=True)
@@ -199,8 +195,8 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2}, 
-                         transcription=transcription)
+        phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
+                             transcription=transcription)
         phase1_bfail.set_time_options(fix_initial=False, fix_duration=True)
         phase1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
                                        solve_segments=True)
@@ -212,8 +208,8 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2}, 
-                         transcription=transcription)
+        phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
+                             transcription=transcription)
         phase1_mfail.set_time_options(fix_initial=False, fix_duration=True)
         phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
                                        solve_segments=True)

@@ -4,15 +4,11 @@ in a simple electrical system.
 """
 from __future__ import division, print_function, absolute_import
 
-import numpy as np
+from openmdao.api import Problem, Group, pyOptSparseDriver
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, IndepVarComp, DirectSolver
-
-from dymos import Phase, Trajectory, GaussLobatto, Radau, RungeKutta
+from dymos import Phase, Trajectory, GaussLobatto
 
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
-
-
 
 
 def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
@@ -36,7 +32,7 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     # First phase: normal operation.
     transcription = GaussLobatto(num_segments=5, order=5, compressed=False)
-    phase0 =  Phase(ode_class=BatteryODE, transcription=transcription)
+    phase0 = Phase(ode_class=BatteryODE, transcription=transcription)
     phase0.set_time_options(fix_initial=True, fix_duration=True)
     phase0.set_state_options('state_of_charge', fix_initial=True, fix_final=False)
     phase0.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
@@ -46,7 +42,7 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     # Second phase: normal operation.
 
-    phase1 =  Phase(ode_class=BatteryODE, transcription=transcription)
+    phase1 = Phase(ode_class=BatteryODE, transcription=transcription)
     phase1.set_time_options(fix_initial=False, fix_duration=True)
     phase1.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
     phase1.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
@@ -57,7 +53,7 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
     phase1.add_objective('time', loc='final')
     # Second phase, but with battery failure.
 
-    phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2}, 
+    phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
                          transcription=transcription)
     phase1_bfail.set_time_options(fix_initial=False, fix_duration=True)
     phase1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
@@ -68,7 +64,7 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
 
     # Second phase, but with motor failure.
 
-    phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2}, 
+    phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
                          transcription=transcription)
     phase1_mfail.set_time_options(fix_initial=False, fix_duration=True)
     phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)

@@ -3,7 +3,6 @@ from __future__ import division, print_function, absolute_import
 import warnings
 
 import numpy as np
-from dymos.phases.components import EndpointConditionsComp
 
 from openmdao.api import IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
     NewtonSolver, BoundsEnforceLS
@@ -12,7 +11,7 @@ from six import iteritems
 from ..transcription_base import TranscriptionBase
 from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
     RungeKuttaTimeseriesOutputComp, RungeKuttaPathConstraintComp, RungeKuttaControlContinuityComp
-from ..common import TimeComp
+from ..common import TimeComp, EndpointConditionsComp
 from ...utils.rk_methods import rk_methods
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.constants import INF_BOUND
@@ -148,10 +147,11 @@ class RungeKutta(TranscriptionBase):
                                                        **phase.options['ode_init_kwargs']))
 
     def _get_rate_source_path(self, state_name, phase, nodes=None, **kwargs):
-        try: 
+        try:
             var = phase.state_options[state_name]['rate_source']
-        except RuntimeError: 
-            raise ValueError('state "%s" in phase "%s" was not given a rate_source'%(state_name, phase.name))
+        except RuntimeError:
+            raise ValueError('state \'{0}\' in phase \'{1}\' was not given a '
+                             'rate_source'.format(state_name, phase.name))
         shape = phase.state_options[state_name]['shape']
         var_type = phase.classify_var(var)
         num_segments = self.options['num_segments']
@@ -628,7 +628,7 @@ class RungeKutta(TranscriptionBase):
                 tgt = 'path_constraints.all_values:{0}'.format(con_name)
 
                 phase.connect(src_name=src, tgt_name=tgt,
-                             src_indices=src_idxs, flat_src_indices=True)
+                              src_indices=src_idxs, flat_src_indices=True)
 
             else:
                 # Failed to find variable, assume it is in the ODE
@@ -646,7 +646,7 @@ class RungeKutta(TranscriptionBase):
                 tgt = 'path_constraints.all_values:{0}'.format(con_name)
 
                 phase.connect(src_name=src, tgt_name=tgt,
-                             src_indices=src_idxs, flat_src_indices=True)
+                              src_indices=src_idxs, flat_src_indices=True)
 
             kwargs = options.copy()
             kwargs.pop('constraint_name', None)
@@ -793,8 +793,8 @@ class RungeKutta(TranscriptionBase):
             src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             phase.connect(src_name='traj_parameters:{0}_out'.format(name),
-                         tgt_name='timeseries.segend_values:traj_parameters:{0}'.format(name),
-                         src_indices=src_idxs, flat_src_indices=True)
+                          tgt_name='timeseries.segend_values:traj_parameters:{0}'.format(name),
+                          src_indices=src_idxs, flat_src_indices=True)
 
         for var, options in iteritems(phase._timeseries_outputs):
             output_name = options['output_name']

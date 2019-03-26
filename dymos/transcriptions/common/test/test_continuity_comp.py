@@ -10,10 +10,9 @@ import numpy as np
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
 
-from dymos.phases.grid_data import GridData
-from dymos.phases.components.continuity_comp import GaussLobattoContinuityComp, \
-    RadauPSContinuityComp
-from dymos.phases.options import StateOptionsDictionary, ControlOptionsDictionary
+from dymos.transcriptions.grid_data import GridData
+from dymos.transcriptions.common import GaussLobattoContinuityComp, RadauPSContinuityComp
+from dymos.phase.options import StateOptionsDictionary, ControlOptionsDictionary
 
 
 class TestContinuityComp(unittest.TestCase):

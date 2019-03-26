@@ -7,9 +7,9 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.components import TimeComp, PolynomialControlGroup
-from dymos.phases.grid_data import GridData
-from dymos.phases.options import PolynomialControlOptionsDictionary
+from dymos.transcriptions.common import TimeComp, PolynomialControlGroup
+from dymos.transcriptions.grid_data import GridData
+from dymos.phase.options import PolynomialControlOptionsDictionary
 from dymos.utils.lgl import lgl
 
 

@@ -2,8 +2,7 @@ from __future__ import print_function, division, absolute_import
 
 from collections import Sequence, OrderedDict
 import itertools
-from six import iteritems, string_types
-import warnings
+from six import iteritems
 
 try:
     from itertools import izip
@@ -16,10 +15,9 @@ from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Probl
 from openmdao.api import SqliteRecorder
 
 from ..utils.constants import INF_BOUND
-from ..phases.components.phase_linkage_comp import PhaseLinkageComp
-from ..phases.phase_base import PhaseBase
-from ..phases.components.input_parameter_comp import InputParameterComp
-from ..phases.options import DesignParameterOptionsDictionary, InputParameterOptionsDictionary
+
+from ..transcriptions.common import InputParameterComp, PhaseLinkageComp
+from ..phase.options import DesignParameterOptionsDictionary, InputParameterOptionsDictionary
 
 
 class Trajectory(Group):

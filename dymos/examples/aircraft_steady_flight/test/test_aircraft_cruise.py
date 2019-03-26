@@ -49,7 +49,6 @@ class TestAircraftCruise(unittest.TestCase):
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
 
-
         phase.set_time_options(initial_bounds=(0, 0),
                                duration_bounds=(3600, 3600),
                                duration_ref=3600)
@@ -129,7 +128,6 @@ class TestAircraftCruise(unittest.TestCase):
         assumptions.add_output('S', val=427.8, units='m**2')
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
-
 
         phase.set_time_options(initial_bounds=(0, 0),
                                duration_bounds=(3600, 3600),

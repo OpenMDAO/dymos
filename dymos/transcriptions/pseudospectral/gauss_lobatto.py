@@ -203,13 +203,11 @@ class GaussLobatto(PseudospectralBase):
                 src_idxs = src_idxs.ravel()
 
             if options['targets']:
-                phase.connect(
-                     'states:{0}'.format(name),
-                     ['rhs_disc.{0}'.format(tgt) for tgt in options['targets']],
-                     src_indices=src_idxs, flat_src_indices=True)
-                phase.connect(
-                     'state_interp.state_col:{0}'.format(name),
-                     ['rhs_col.{0}'.format(tgt) for tgt in options['targets']])
+                phase.connect('states:{0}'.format(name),
+                              ['rhs_disc.{0}'.format(tgt) for tgt in options['targets']],
+                              src_indices=src_idxs, flat_src_indices=True)
+                phase.connect('state_interp.state_col:{0}'.format(name),
+                              ['rhs_col.{0}'.format(tgt) for tgt in options['targets']])
 
             rate_path, src_idxs = self.get_rate_source_path(name, nodes='state_disc', phase=phase)
 
@@ -356,9 +354,10 @@ class GaussLobatto(PseudospectralBase):
                 # Failed to find variable, assume it is in the ODE
                 options['linear'] = False
                 if options['shape'] is None:
-                    warnings.warn('Unable to infer shape of path constraint "%s" in phase "%s". Assuming scalar.\n'
-                                  'In Dymos 1.0 the shape of ODE outputs must be explictly provided'
-                                  ' via the add_path_constraint method.'%(var, phase.name), DeprecationWarning)
+                    warnings.warn('Unable to infer shape of path constraint \'{0}\' in '
+                                  'phase \'{0}\'. Assuming scalar.\n In Dymos 1.0 the shape '
+                                  'of ODE outputs must be explictly provided via the add_path_constraint '
+                                  'method.'.format(var, phase.name), DeprecationWarning)
                     options['shape'] = (1,)
                 phase.connect(src_name='rhs_disc.{0}'.format(var),
                               tgt_name='path_constraints.disc_values:{0}'.format(con_name))
@@ -527,10 +526,11 @@ class GaussLobatto(PseudospectralBase):
 
     def get_rate_source_path(self, state_name, nodes, phase):
         gd = self.grid_data
-        try: 
+        try:
             var = phase.state_options[state_name]['rate_source']
-        except RuntimeError: 
-            raise ValueError('state "%s" in phase "%s" was not given a rate_source'%(state_name, phase.name))
+        except RuntimeError:
+            raise ValueError('state \'{0}\' in phase \'{1}\' was not given a '
+                             'rate_source'.format(state_name, phase.name))
         var_type = phase.classify_var(var)
 
         # Determine the path to the variable

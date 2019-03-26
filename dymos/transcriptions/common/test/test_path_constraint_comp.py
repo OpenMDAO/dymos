@@ -7,9 +7,9 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.components import GaussLobattoPathConstraintComp, RadauPathConstraintComp
-from dymos.phases.grid_data import GridData
-from dymos.phases.options import ControlOptionsDictionary
+from dymos.transcriptions.common import GaussLobattoPathConstraintComp, RadauPathConstraintComp
+from dymos.transcriptions.grid_data import GridData
+from dymos.phase.options import ControlOptionsDictionary
 
 
 class TestPathConstraintCompGL(unittest.TestCase):

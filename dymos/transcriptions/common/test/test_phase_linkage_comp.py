@@ -8,8 +8,7 @@ from numpy.testing import assert_almost_equal
 from openmdao.api import Problem, Group, IndepVarComp
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.phases.grid_data import GridData
-from dymos.phases.components import PhaseLinkageComp
+from dymos.transcriptions.common import PhaseLinkageComp
 
 
 class TestPhaseLinkageComp(unittest.TestCase):

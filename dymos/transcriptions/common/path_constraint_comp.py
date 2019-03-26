@@ -102,10 +102,10 @@ class GaussLobattoPathConstraintComp(PathConstraintCompBase):
             input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             shape = kwargs['shape']
 
-            if isinstance(shape, list): 
+            if isinstance(shape, list):
                 shape = tuple(shape)
 
-            if not isinstance(shape, tuple): 
+            if not isinstance(shape, tuple):
                 shape = (shape,)
 
             if kwargs['src_all']:

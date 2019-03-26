@@ -4,10 +4,11 @@ import unittest
 
 from openmdao.api import Problem, Group
 from openmdao.utils.assert_utils import assert_rel_error
-from dymos.phases.solve_ivp.components.segment_simulation_comp import SegmentSimulationComp
-from dymos.phases.runge_kutta.test.rk_test_ode import TestODE
-from dymos.phases.options import TimeOptionsDictionary, StateOptionsDictionary
-from dymos.phases.grid_data import GridData
+
+from dymos.transcriptions.solve_ivp.components.segment_simulation_comp import SegmentSimulationComp
+from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
+from dymos.phase.options import TimeOptionsDictionary, StateOptionsDictionary
+from dymos.transcriptions.grid_data import GridData
 
 
 class TestSegmentSimulationComp(unittest.TestCase):
