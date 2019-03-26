@@ -3,19 +3,14 @@ from __future__ import division, print_function, absolute_import
 import warnings
 
 import numpy as np
-from dymos.transcriptions.common import EndpointConditionsComp
 
-from openmdao.api import IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
-    NewtonSolver, BoundsEnforceLS
 from six import iteritems
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPathConstraintComp, RadauPSContinuityComp, RadauTimeseriesOutputComp
-from ..common import TimeComp
-from ...utils.misc import CoerceDesvar, get_rate_units
-from ...utils.constants import INF_BOUND
+from ...utils.misc import get_rate_units
 from ...utils.indexing import get_src_indices_by_row
-from ..grid_data import GridData, make_subset_map
+from ..grid_data import GridData
 
 
 class Radau(PseudospectralBase):
@@ -27,7 +22,6 @@ class Radau(PseudospectralBase):
     ﻿Garg, Divya et al. "Direct Trajectory Optimization and Costate Estimation of General Optimal
     Control Problems Using a Radau Pseudospectral Method." American Institute of Aeronautics
     and Astronautics, 2009.
-
     """
     def setup_grid(self, phase):
         self.grid_data = GridData(num_segments=self.options['num_segments'],
