@@ -8,8 +8,7 @@ from ...grid_data import GridData
 
 
 class ControlEndpointDefectComp(ExplicitComponent):
-    """ Compute and enforce the control endpoint defect constraint when using the Radau Pseudospectral
-    method.
+    r""" Compute/enforce the control endpoint defect when using the Radau Pseudospectral method.
 
     For each dynamic control, take the control values at all nodes.  Use a Radau interpolation
     matrix to compute the terminal value of the control, and compute the difference between this
@@ -19,7 +18,6 @@ class ControlEndpointDefectComp(ExplicitComponent):
     .. math:: {u}_{f} = \left[ L_{LGR} \right] vec{u}_{col}
 
     """
-
     def initialize(self):
 
         self.options.declare(

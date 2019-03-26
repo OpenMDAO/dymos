@@ -9,20 +9,18 @@ from ....utils.misc import get_rate_units
 
 
 class StateInterpComp(ExplicitComponent):
-    """
-    StateInterpComp is designed to operate in either *gauss-lobatto* transcription or in *radau-ps*
-    transcription.
+    r""" Provide interpolated state values and/or rates for pseudospectral transcriptions.
 
     When the transcription is *gauss-lobatto* it accepts the state values and derivatives
     at discretization nodes and computes the interpolated state values and derivatives
-    at the collocation nodes, using a Hermite interpolation scheme:
+    at the collocation nodes, using a Hermite interpolation scheme.
 
     .. math:: x_c = \left[ A_i \right] x_d + \frac{dt}{d\tau} \left[ B_i \right] f_d
     .. math:: \dot{x}_c = \frac{d\tau}{dt} \left[ A_d \right] x_d + \left[ B_d \right] f_d
 
     When the transcription is *radau-ps* it accepts the state values at the discretization nodes
     and computes the interpolated state derivatives at the collocation nodes, using a Lagrange
-    interpolation scheme:
+    interpolation scheme.
 
     .. math:: \dot{x}_c = \frac{d\tau}{dt} \left[ A_d \right] x_d
 

@@ -12,11 +12,11 @@ from openmdao.core.implicitcomponent import ImplicitComponent
 class RungeKuttaStateContinuityComp(ImplicitComponent):
     """
     A simple equation balance for solving implicit equations.
+
     Attributes
     ----------
-    _state_vars : dict
-        Cache the data provided during `add_balance`
-        so everything can be saved until setup is called.
+    _var_names : dict
+        Cache the data provided during `add_balance` so everything can be saved until setup is called.
     """
 
     def initialize(self):
@@ -107,6 +107,7 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
     def apply_nonlinear(self, inputs, outputs, residuals):
         """
         Calculate the residual for each state value.
+
         Parameters
         ----------
         inputs : Vector
