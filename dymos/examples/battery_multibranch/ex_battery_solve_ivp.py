@@ -21,7 +21,7 @@ class TestBatteryRKIVP(unittest.TestCase):
         prob = Problem(model=Group())
 
         num_seg = 5
-        seg_ends, _ = lgl(num_seg + 1)
+
 
         traj = prob.model.add_subsystem('traj', Trajectory())
 
@@ -46,7 +46,6 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1 = DeprecatedPhaseFactory(transcription='radau-ps',
                                         ode_class=BatteryODE,
                                         num_segments=num_seg,
-                                        segment_ends=seg_ends,
                                         transcription_order=5,
                                         compressed=True)
         phase1.set_time_options(fix_initial=False, fix_duration=True)
@@ -62,7 +61,6 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1_bfail = DeprecatedPhaseFactory(transcription='radau-ps',
                                               ode_class=BatteryODE,
                                               num_segments=num_seg,
-                                              segment_ends=seg_ends,
                                               transcription_order=5,
                                               ode_init_kwargs={'num_battery': 2},
                                               compressed=True)
@@ -79,7 +77,6 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1_mfail = DeprecatedPhaseFactory(transcription='radau-ps',
                                               ode_class=BatteryODE,
                                               num_segments=num_seg,
-                                              segment_ends=seg_ends,
                                               transcription_order=5,
                                               ode_init_kwargs={'num_motor': 2},
                                               compressed=True)
@@ -184,7 +181,6 @@ class TestBatteryRKIVP(unittest.TestCase):
         prob = Problem(model=Group())
 
         num_seg = 5
-        seg_ends, _ = lgl(num_seg + 1)
 
         traj = prob.model.add_subsystem('traj', Trajectory())
 
@@ -209,7 +205,6 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1 = DeprecatedPhaseFactory(transcription='radau-ps',
                                         ode_class=BatteryODE,
                                         num_segments=num_seg,
-                                        segment_ends=seg_ends,
                                         transcription_order=5,
                                         compressed=True)
         phase1.set_time_options(fix_initial=False, fix_duration=True)
@@ -226,7 +221,6 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1_bfail = DeprecatedPhaseFactory(transcription='radau-ps',
                                               ode_class=BatteryODE,
                                               num_segments=num_seg,
-                                              segment_ends=seg_ends,
                                               transcription_order=5,
                                               ode_init_kwargs={'num_battery': 2},
                                               compressed=True)
@@ -244,7 +238,6 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1_mfail = DeprecatedPhaseFactory(transcription='radau-ps',
                                               ode_class=BatteryODE,
                                               num_segments=num_seg,
-                                              segment_ends=seg_ends,
                                               transcription_order=5,
                                               ode_init_kwargs={'num_motor': 2},
                                               compressed=True)

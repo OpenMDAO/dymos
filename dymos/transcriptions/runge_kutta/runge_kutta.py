@@ -770,7 +770,7 @@ class RungeKutta(TranscriptionBase):
         for name, options in iteritems(phase.input_parameter_options):
             units = options['units']
             timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
-                                                   var_class=self._classify_var(name),
+                                                   var_class=phase.classify_var(name),
                                                    units=units)
 
             src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
