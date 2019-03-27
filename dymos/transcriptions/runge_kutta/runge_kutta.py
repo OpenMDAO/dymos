@@ -634,11 +634,9 @@ class RungeKutta(TranscriptionBase):
                 # Failed to find variable, assume it is in the ODE
                 options['linear'] = False
                 if options['shape'] is None:
-                    warnings.warn('\nUnable to infer shape of path constraint \'{0}\' in '
-                                  'phase \'{1}\'. Assuming scalar. \nIf variable is not scalar, '
-                                  'provide shape in add_boundary_constraint. \nIn future versions an '
-                                  'error will be raised if a constrained ODE output shape is not specified in '
-                                  'add_path_constraint.'.format(var, phase.name), DeprecationWarning)
+                    raise ValueError('Unable to infer shape of boundary constraint \'{0}\' in '
+                                     'phase \'{1}\'. Constrained ODE output shape must be specified '
+                                     'in add_path_constraint.'.format(var, phase.name))
 
                 src_rows = np.arange(num_seg * 2, dtype=int)
                 src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])

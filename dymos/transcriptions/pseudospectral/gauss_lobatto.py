@@ -341,11 +341,9 @@ class GaussLobatto(PseudospectralBase):
                 # Failed to find variable, assume it is in the ODE
                 options['linear'] = False
                 if options['shape'] is None:
-                    warnings.warn('\nUnable to infer shape of path constraint \'{0}\' in '
-                                  'phase \'{1}\'. Assuming scalar. \nIf variable is not scalar, '
-                                  'provide shape in add_boundary_constraint. \nIn future versions an '
-                                  'error will be raised if a constrained ODE output shape is not specified in '
-                                  'add_path_constraint.'.format(var, phase.name), DeprecationWarning)
+                    raise ValueError('Unable to infer shape of boundary constraint \'{0}\' in '
+                                     'phase \'{1}\'. Constrained ODE output shape must be specified '
+                                     'in add_path_constraint.'.format(var, phase.name))
                 phase.connect(src_name='rhs_disc.{0}'.format(var),
                               tgt_name='path_constraints.disc_values:{0}'.format(con_name))
                 phase.connect(src_name='rhs_col.{0}'.format(var),
