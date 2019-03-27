@@ -292,10 +292,11 @@ class Radau(PseudospectralBase):
                 constraint_kwargs['linear'] = False
                 constraint_kwargs['shape'] = options.get('shape', None)
                 if constraint_kwargs['shape'] is None:
-                    raise ValueError('Unable to infer shape of path constraint \'{0}\' in '
-                                     'phase \'{1}\'. The shape of ODE outputs must be explictly '
-                                     'provided via the add_path_constraint '
-                                     'method.'.format(var, phase.name))
+                    warnings.warn('\nUnable to infer shape of path constraint \'{0}\' in '
+                                  'phase \'{1}\'. Assuming scalar. \nIf variable is not scalar, '
+                                  'provide shape in add_boundary_constraint. \nIn future versions an '
+                                  'error will be raised if a constrained ODE output shape is not specified in '
+                                  'add_path_constraint.'.format(var, phase.name), DeprecationWarning)
                 phase.connect(src_name='rhs_all.{0}'.format(var),
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
 

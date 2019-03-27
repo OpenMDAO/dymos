@@ -278,10 +278,12 @@ class TranscriptionBase(object):
 
             shape = options['shape'] if shape is None else shape
             if shape is None:
-                raise ValueError('Unable to infer shape of boundary constraint \'{0}\' in '
-                                 'phase \'{1}\'. The shape of ODE outputs must be explictly '
-                                 'provided via the add_boundary_constraint '
-                                 'method.'.format(var, phase.name))
+                warnings.warn('\nUnable to infer shape of boundary constraint \'{0}\' in '
+                              'phase \'{1}\'. Assuming scalar. \nIf variable is not scalar, '
+                              'provide shape in add_boundary_constraint. \nIn future versions an '
+                              'error will be raised if a constrained ODE output shape is not specified in '
+                              'add_boundary_constraint.'.format(var, phase.name), DeprecationWarning)
+                shape = (1,)
 
             if options['indices'] is not None:
                 # Indices are provided, make sure lower/upper/equals are compatible.
