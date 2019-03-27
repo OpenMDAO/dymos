@@ -137,9 +137,9 @@ class Phase(Group):
             The zero-reference value of the state at the nodes of the phase.
         ref : float or ndarray or None (None)
             The unit-reference value of the state at the nodes of the phase
-        defect_scaler : float or ndarray (1.0)
+        defect_scaler : float or ndarray
             The scaler of the state defect at the collocation nodes of the phase.
-        defect_ref : float or ndarray (1.0)
+        defect_ref : float or ndarray
             The unit-reference value of the state defect at the collocation nodes of the phase. If
             provided, this value overrides defect_scaler.
         solve_segments : bool(False)

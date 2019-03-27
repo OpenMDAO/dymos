@@ -31,11 +31,11 @@ def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
 
     phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 500))
 
-    phase.set_state_options('x', fix_initial=True, scaler=1.0E-5)
-    phase.set_state_options('y', fix_initial=True, scaler=1.0E-5)
-    phase.set_state_options('vx', fix_initial=True, scaler=1.0E-3)
-    phase.set_state_options('vy', fix_initial=True, scaler=1.0E-3)
-    phase.set_state_options('m', fix_initial=True, scaler=1.0E-3)
+    phase.set_state_options('x', fix_initial=True, ref=1.0E5, defect_ref=1.0)
+    phase.set_state_options('y', fix_initial=True, ref=1.0E5, defect_ref=1.0)
+    phase.set_state_options('vx', fix_initial=True, ref=1.0E3, defect_ref=1.0)
+    phase.set_state_options('vy', fix_initial=True, ref=1.0E3, defect_ref=1.0)
+    phase.set_state_options('m', fix_initial=True, ref=1.0E3, defect_ref=1.0)
 
     phase.add_boundary_constraint('y', loc='final', equals=1.85E5, linear=True)
     phase.add_boundary_constraint('vx', loc='final', equals=7796.6961)

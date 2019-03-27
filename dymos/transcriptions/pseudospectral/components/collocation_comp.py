@@ -75,16 +75,21 @@ class CollocationComp(ExplicitComponent):
                 units=units)
 
             if 'defect_ref' in options and options['defect_ref'] is not None:
-                def_scl = 1.0 / options['defect_ref']
-            elif 'defect_scaler' in options:
-                def_scl = options['defect_scaler']
+                defect_ref = options['defect_ref']
+            elif 'defect_scaler' in options and options['defect_scaler'] is not None:
+                defect_ref = 1.0 / options['defect_scaler']
             else:
-                def_scl = 1.0
+                if 'ref' in options and options['ref'] is not None:
+                    defect_ref = options['ref']
+                elif 'scaler' in options and options['scaler'] is not None:
+                    defect_ref = 1.0 / options['scaler']
+                else:
+                    defect_ref = 1.0
 
             if not options['solve_segments']:
                 self.add_constraint(name=var_names['defect'],
                                     equals=0.0,
-                                    scaler=def_scl)
+                                    ref=defect_ref)
 
         # Setup partials
         num_col_nodes = self.options['grid_data'].subset_num_nodes['col']

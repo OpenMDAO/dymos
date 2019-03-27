@@ -17,7 +17,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
     def test_results_gl_compressed(self):
         p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10, transcription_order=5,
-                                   compressed=True)
+                                   compressed=True, optimizer='SLSQP')
 
         p.setup(check=True)
 
@@ -57,7 +57,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 500.0
+        p['phase0.t_duration'] = 300.0
 
         phase = p.model.phase0
         p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_input')
@@ -87,12 +87,12 @@ class TestExampleSSTOMoon(unittest.TestCase):
 
     def test_results_gl_uncompressed(self):
         p = ex_ssto_moon.ssto_moon('gauss-lobatto', num_seg=10, transcription_order=5,
-                                   compressed=False)
+                                   optimizer='SLSQP', compressed=False)
 
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 500.0
+        p['phase0.t_duration'] = 300.0
 
         phase = p.model.phase0
         p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_input')
@@ -110,7 +110,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
                                 0.0, decimal=5)
 
         # Ensure time found is the known solution
-        assert_almost_equal(p['phase0.t_duration'], 481.8, decimal=1)
+        assert_rel_error(self, p['phase0.t_duration'], 481.8, tolerance=0.01)
 
         # Ensure the tangent of theta is (approximately) linear
         time = p.get_val('phase0.timeseries.time').flatten()
@@ -127,7 +127,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 500.0
+        p['phase0.t_duration'] = 300.0
 
         phase = p.model.phase0
         p['phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_input')
@@ -165,7 +165,7 @@ class TestExampleSSTOMoon(unittest.TestCase):
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 500.0
+        p['phase0.t_duration'] = 300.0
 
         phase = p.model.phase0
 
