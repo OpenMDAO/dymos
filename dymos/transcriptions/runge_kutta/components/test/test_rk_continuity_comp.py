@@ -17,7 +17,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_scalar_no_iteration_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'],
-                               'defect_scaler': 1.0, 'defect_ref': None,
+                               'defect_scaler': None, 'defect_ref': None,
                                'lower': None, 'upper': None, 'connected_initial': False}}
 
         p = Problem(model=Group())
@@ -82,7 +82,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_connected_scalar_no_iteration_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'],
-                               'defect_scaler': 1.0, 'defect_ref': None,
+                               'defect_scaler': None, 'defect_ref': None,
                                'lower': None, 'upper': None, 'connected_initial': True}}
 
         p = Problem(model=Group())
@@ -152,7 +152,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_scalar_nonlinearblockgs_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'defect_scaler': 1.0, 'defect_ref': None,
+                               'fix_final': False, 'defect_scaler': None, 'defect_ref': None,
                                'lower': None, 'upper': None, 'connected_initial': False}}
 
         p = Problem(model=Group())
@@ -217,7 +217,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_connected_scalar_nonlinearblockgs_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'defect_scaler': 1.0, 'defect_ref': None,
+                               'fix_final': False, 'defect_scaler': None, 'defect_ref': None,
                                'lower': None, 'upper': None, 'connected_initial': True}}
 
         p = Problem(model=Group())
@@ -287,7 +287,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_scalar_newton_fwd(self):
         num_seg = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'defect_scaler': 1.0, 'defect_ref': None,
+                               'fix_final': False, 'defect_scaler': None, 'defect_ref': None,
                                'lower': None, 'upper': None, 'connected_initial': False}}
 
         p = Problem(model=Group())
@@ -407,7 +407,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_vector_nonlinearblockgs_fwd(self):
         num_seg = 2
         state_options = {'y': {'shape': (2,), 'units': 'm', 'targets': ['y'], 'fix_initial': True,
-                               'fix_final': False, 'defect_ref': 1, 'lower': None, 'upper': None,
+                               'fix_final': False, 'defect_ref': None, 'lower': None, 'upper': None,
                                'connected_initial': False}}
 
         p = Problem(model=Group())
@@ -461,7 +461,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
     def test_continuity_comp_connected_vector_nonlinearblockgs_fwd(self):
         num_seg = 2
         state_options = {'y': {'shape': (2,), 'units': 'm', 'targets': ['y'], 'fix_initial': False,
-                               'fix_final': False, 'defect_ref': 1, 'lower': None, 'upper': None,
+                               'fix_final': False, 'defect_ref': None, 'lower': None, 'upper': None,
                                'connected_initial': True}}
 
         p = Problem(model=Group())

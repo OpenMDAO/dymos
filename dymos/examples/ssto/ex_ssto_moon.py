@@ -33,11 +33,11 @@ def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP', tran
 
     phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 1000))
 
-    phase.set_state_options('x', fix_initial=True, scaler=1.0E-5, lower=0)
-    phase.set_state_options('y', fix_initial=True, scaler=1.0E-5, lower=0)
-    phase.set_state_options('vx', fix_initial=True, scaler=1.0E-3, lower=0)
-    phase.set_state_options('vy', fix_initial=True, scaler=1.0E-3)
-    phase.set_state_options('m', fix_initial=True, scaler=1.0E-3)
+    phase.set_state_options('x', fix_initial=True, ref=1.0E5, defect_ref=1.0, lower=0)
+    phase.set_state_options('y', fix_initial=True, ref=1.0E5, defect_ref=1.0, lower=0)
+    phase.set_state_options('vx', fix_initial=True, ref=1.0E3, defect_ref=1.0, lower=0)
+    phase.set_state_options('vy', fix_initial=True, ref=1.0E3, defect_ref=1.0)
+    phase.set_state_options('m', fix_initial=True, ref=1.0E3, defect_ref=1.0)
 
     phase.add_boundary_constraint('y', loc='final', equals=1.85E5, linear=True)
     phase.add_boundary_constraint('vx', loc='final', equals=1627.0)
@@ -52,7 +52,7 @@ def ssto_moon(transcription='gauss-lobatto', num_seg=10, optimizer='SLSQP', tran
     phase.add_design_parameter('thrust', units='N', opt=False, val=3.0 * 50000.0 * 1.61544)
     phase.add_design_parameter('Isp', units='s', opt=False, val=1.0E6)
 
-    phase.add_objective('time', index=-1, scaler=0.01)
+    phase.add_objective('time', index=-1, ref=100)
 
     p.model.linear_solver = DirectSolver()
 

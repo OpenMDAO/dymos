@@ -48,12 +48,6 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
             units = options['units']
             var_names = self._var_names[state_name]
 
-            res_ref = 1.0
-            if options['defect_ref']:
-                res_ref = options['defect_ref']
-            elif options['defect_scaler']:
-                res_ref = 1.0 / options['defect_scaler']
-
             # The implicit variable is the state values at all segment endpoints.
             self.add_output(name=var_names['states'],
                             shape=(num_seg + 1,) + shape,

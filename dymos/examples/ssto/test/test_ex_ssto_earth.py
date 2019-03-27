@@ -5,14 +5,14 @@ import os
 import itertools
 import unittest
 
-import matplotlib
-matplotlib.use('Agg')
-
 from numpy.testing import assert_almost_equal
 
 from parameterized import parameterized
 
 import dymos.examples.ssto.ex_ssto_earth as ex_ssto_earth
+
+import matplotlib
+matplotlib.use('Agg')
 
 
 class TestExampleSSTOEarth(unittest.TestCase):
