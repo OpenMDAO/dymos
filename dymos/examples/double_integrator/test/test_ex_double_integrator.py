@@ -19,12 +19,10 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['dense', 'csc'],  # jacobian
                           ['compressed', 'uncompressed'],  # compressed transcription
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
                                                                           p.args[0],
-                                                                          p.args[1],
-                                                                          p.args[2]])
+                                                                          p.args[1]])
     )
     def test_ex_double_integrator(self, transcription='radau-ps', compressed='compressed'):
         ex_double_integrator.SHOW_PLOTS = False

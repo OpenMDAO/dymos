@@ -29,8 +29,7 @@ class TestExampleSSTOEarth(unittest.TestCase):
     )
     def test_results(self, transcription='gauss-lobatto', compressed=True):
 
-        p = ex_ssto_earth.ssto_earth(transcription, num_seg=10, transcription_order=5,
-                                     compressed=compressed)
+        p = ex_ssto_earth.ssto_earth(transcription, num_seg=10, transcription_order=5)
 
         p.setup(check=True)
 
