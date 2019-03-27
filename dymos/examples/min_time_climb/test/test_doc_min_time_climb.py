@@ -83,7 +83,10 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.t_duration'), 321.0, tolerance=2)
+        assert_rel_error(self, p.get_val('phase0.t_duration'), 321.0, tolerance=1.0E-1)
+
+        # Verify that ODE output mach is added to the timeseries
+        assert_rel_error(self, p.get_val('phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
         exp_out = phase.simulate()
 
