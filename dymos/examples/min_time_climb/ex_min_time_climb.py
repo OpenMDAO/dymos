@@ -4,7 +4,7 @@ import numpy as np
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
 
-from dymos import Phase
+from dymos import Phase, GaussLobatto, Radau, RungeKutta
 
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
@@ -33,11 +33,11 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Major step limit'] = 0.5
         # p.driver.opt_settings['Verify level'] = 3
 
-    phase = Phase(transcription,
-                  ode_class=MinTimeClimbODE,
-                  num_segments=num_seg,
-                  compressed=True,
-                  transcription_order=transcription_order)
+    t = {'gauss-lobatto': GaussLobatto(num_segments=num_seg, order=transcription_order),
+         'radau-ps': Radau(num_segments=num_seg, order=transcription_order),
+         'runge-kutta': RungeKutta(num_segments=num_seg)}
+
+    phase = Phase(ode_class=MinTimeClimbODE, transcription=t[transcription])
 
     p.model.add_subsystem('phase0', phase)
 
@@ -135,4 +135,4 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 if __name__ == '__main__':
     SHOW_PLOTS = True
     p = min_time_climb(
-        optimizer='SLSQP', num_seg=12, transcription='radau-ps', transcription_order=3)
+        optimizer='SLSQP', num_seg=12, transcription='gauss-lobatto', transcription_order=3)

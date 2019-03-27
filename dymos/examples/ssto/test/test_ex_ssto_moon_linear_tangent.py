@@ -19,12 +19,10 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['fwd'],  # derivative_mode
                           ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
-                                                                          p.args[0],
-                                                                          p.args[1]])
+                                                                          p.args[0]])
     )
-    def test_results(self, transcription='gauss-lobatto', derivative_mode='rev', compressed=True):
+    def test_results(self, transcription='gauss-lobatto', compressed=True):
         p = ex_ssto_moon_lintan.ssto_moon_linear_tangent(transcription, num_seg=10,
                                                          transcription_order=5,
                                                          compressed=compressed)
@@ -89,6 +87,7 @@ class TestExampleSSTOMoonLinearTangent(unittest.TestCase):
         axarr.set_ylabel('velocity, m/s')
         axarr.legend(loc='best')
         plt.show()
+
 
 if __name__ == "__main__":
     unittest.main()

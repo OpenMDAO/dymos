@@ -8,22 +8,17 @@ class TestBrachistochroneSimulDerivsRunExample(unittest.TestCase):
     def test_brachistochrone_for_docs_gauss_lobatto_simul_derivs(self):
         from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase
+        from dymos import Phase, GaussLobatto
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
 
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-
-        # Compute sparsity/coloring when run_driver is called
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneODE,
-                      num_segments=100,
-                      transcription_order=3,
-                      compressed=True)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=GaussLobatto(num_segments=100))
 
         p.model.add_subsystem('phase0', phase)
 

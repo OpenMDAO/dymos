@@ -9,7 +9,7 @@ import unittest
 from openmdao.api import Problem, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, Trajectory, RungeKuttaPhase
+from dymos import Trajectory, Phase, Radau, RungeKutta
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
 from dymos.utils.lgl import lgl
 
@@ -19,7 +19,7 @@ optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
 class TestBatteryBranchingPhases(unittest.TestCase):
 
     def test_optimizer_defects(self):
-        transcription = 'radau-ps'
+
         prob = Problem()
 
         if optimizer == 'SNOPT':
@@ -44,13 +44,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # First phase: normal operation.
 
-        phase0 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=False)
-
+        transcription = Radau(num_segments=5, order=5, segment_ends=seg_ends, compressed=False)
+        phase0 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p0 = traj.add_phase('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
@@ -58,13 +53,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase: normal operation.
 
-        phase1 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=False)
-
+        phase1 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p1 = traj.add_phase('phase1', phase1)
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
@@ -73,14 +62,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = Phase(transcription,
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_battery': 2},
-                             compressed=False)
-
+        phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
+                             transcription=transcription)
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
@@ -88,14 +71,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = Phase(transcription,
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_motor': 2},
-                             compressed=False)
-
+        phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
+                             transcription=transcription)
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
 
         traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
@@ -137,7 +114,6 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         assert_rel_error(self, soc1m[-1], 0.18625395, 1e-6)
 
     def test_solver_defects(self):
-        transcription = 'radau-ps'
         prob = Problem()
 
         num_seg = 5
@@ -147,13 +123,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # First phase: normal operation.
 
-        phase0 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
-
+        transcription = Radau(num_segments=5, order=5, segment_ends=seg_ends, compressed=True)
+        phase0 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p0 = traj.add_phase('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
@@ -161,14 +132,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
                                   solve_segments=True)
 
         # Second phase: normal operation.
-
-        phase1 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
-
+        phase1 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p1 = traj.add_phase('phase1', phase1)
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
@@ -177,15 +141,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         traj_p1.add_objective('time', loc='final')
 
         # Second phase, but with battery failure.
-
-        phase1_bfail = Phase(transcription,
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_battery': 2},
-                             compressed=True)
-
+        phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
+                             transcription=transcription)
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
@@ -193,15 +150,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
                                         solve_segments=True)
 
         # Second phase, but with motor failure.
-
-        phase1_mfail = Phase(transcription,
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_motor': 2},
-                             compressed=True)
-
+        phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
+                             transcription=transcription)
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
 
         traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
@@ -246,7 +196,6 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         assert_rel_error(self, soc1m[-1], 0.18625395, 1e-6)
 
     def test_solver_defects_single_phase_reverse_propagation(self):
-        transcription = 'radau-ps'
         prob = Problem()
 
         num_seg = 5
@@ -254,13 +203,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         # First phase: normal operation.
 
-        phase0 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
-
+        transcription = Radau(num_segments=5, order=5, segment_ends=seg_ends, compressed=True)
+        phase0 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p0 = prob.model.add_subsystem('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
@@ -280,7 +224,6 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         assert_rel_error(self, soc0[-1], 1.0, 1e-6)
 
     def test_solver_defects_reverse_propagation(self):
-        transcription = 'radau-ps'
         prob = Problem()
 
         num_seg = 5
@@ -289,14 +232,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         traj = prob.model.add_subsystem('traj', Trajectory())
 
         # First phase: normal operation.
-
-        phase0 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
-
+        transcription = Radau(num_segments=5, order=5, segment_ends=seg_ends, compressed=True)
+        phase0 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p0 = traj.add_phase('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
@@ -304,14 +241,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
                                   solve_segments=True)
 
         # Second phase: normal operation.
-
-        phase1 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
-
+        phase1 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p1 = traj.add_phase('phase1', phase1)
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
@@ -338,7 +268,6 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         assert_rel_error(self, soc1[-1], 1.0, 1e-6)
 
     def test_optimizer_segments_direct_connections(self):
-        transcription = 'radau-ps'
         prob = Problem()
 
         if optimizer == 'SNOPT':
@@ -362,61 +291,32 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         traj = prob.model.add_subsystem('traj', Trajectory())
 
         # First phase: normal operation.
-
-        phase0 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
-
+        transcription = Radau(num_segments=5, order=5, segment_ends=seg_ends, compressed=True)
+        phase0 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p0 = traj.add_phase('phase0', phase0)
-
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
         traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False)
 
         # Second phase: normal operation.
 
-        phase1 = Phase(transcription,
-                       ode_class=BatteryODE,
-                       num_segments=num_seg,
-                       segment_ends=seg_ends,
-                       transcription_order=5,
-                       compressed=True)
-
+        phase1 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p1 = traj.add_phase('phase1', phase1)
-
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
         traj_p1.add_objective('time', loc='final')
 
         # Second phase, but with battery failure.
-
-        phase1_bfail = Phase(transcription,
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_battery': 2},
-                             compressed=True)
-
+        phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
+                             transcription=transcription)
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
-
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = Phase(transcription,
-                             ode_class=BatteryODE,
-                             num_segments=num_seg,
-                             segment_ends=seg_ends,
-                             transcription_order=5,
-                             ode_init_kwargs={'num_motor': 2},
-                             compressed=True)
-
+        phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
+                             transcription=transcription)
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
-
         traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
 
@@ -485,12 +385,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         traj = prob.model.add_subsystem('traj', Trajectory())
 
         # First phase: normal operation.
-
-        phase0 = RungeKuttaPhase(ode_class=BatteryODE,
-                                 num_segments=num_seg,
-                                 method='rk4',
-                                 compressed=False)
-
+        transcription = RungeKutta(num_segments=num_seg)
+        phase0 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p0 = traj.add_phase('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
@@ -498,12 +394,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         # Second phase: normal operation.
 
-        phase1 = RungeKuttaPhase(ode_class=BatteryODE,
-                                 num_segments=num_seg,
-                                 segment_ends=seg_ends,
-                                 method='rk4',
-                                 compressed=False)
-
+        phase1 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p1 = traj.add_phase('phase1', phase1)
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
@@ -512,12 +403,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = RungeKuttaPhase(ode_class=BatteryODE,
-                                       num_segments=num_seg,
-                                       segment_ends=seg_ends,
-                                       ode_init_kwargs={'num_battery': 2},
-                                       compressed=False)
-
+        phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
+                             transcription=transcription)
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
@@ -525,12 +412,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = RungeKuttaPhase(ode_class=BatteryODE,
-                                       num_segments=num_seg,
-                                       segment_ends=seg_ends,
-                                       ode_init_kwargs={'num_motor': 2},
-                                       compressed=False)
-
+        phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
+                             transcription=transcription)
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
 
         traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
@@ -578,12 +461,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         seg_ends, _ = lgl(num_seg + 1)
 
         # First phase: normal operation.
-
-        phase0 = RungeKuttaPhase(ode_class=BatteryODE,
-                                 num_segments=num_seg,
-                                 method='rk4',
-                                 compressed=False)
-
+        transcription = RungeKutta(num_segments=num_seg)
+        phase0 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p0 = prob.model.add_subsystem('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
@@ -626,11 +505,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         # First phase: normal operation.
 
-        phase0 = RungeKuttaPhase(ode_class=BatteryODE,
-                                 num_segments=num_seg,
-                                 method='rk4',
-                                 compressed=False)
-
+        transcription = RungeKutta(num_segments=num_seg)
+        phase0 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p0 = traj.add_phase('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
@@ -638,11 +514,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         # Second phase: normal operation.
 
-        phase1 = RungeKuttaPhase(ode_class=BatteryODE,
-                                 num_segments=num_seg,
-                                 method='rk4',
-                                 compressed=True)
-
+        phase1 = Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p1 = traj.add_phase('phase1', phase1)
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
@@ -651,25 +523,16 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = RungeKuttaPhase(ode_class=BatteryODE,
-                                       num_segments=num_seg,
-                                       method='rk4',
-                                       ode_init_kwargs={'num_battery': 2},
-                                       compressed=False)
-
+        phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
+                             transcription=transcription)
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
 
         # Second phase, but with motor failure.
-
-        phase1_mfail = RungeKuttaPhase(ode_class=BatteryODE,
-                                       num_segments=num_seg,
-                                       method='rk4',
-                                       ode_init_kwargs={'num_motor': 2},
-                                       compressed=False)
-
+        phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
+                             transcription=transcription)
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
 
         traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)

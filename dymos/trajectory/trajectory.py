@@ -2,8 +2,7 @@ from __future__ import print_function, division, absolute_import
 
 from collections import Sequence, OrderedDict
 import itertools
-from six import iteritems, string_types
-import warnings
+from six import iteritems
 
 try:
     from itertools import izip
@@ -16,10 +15,9 @@ from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Probl
 from openmdao.api import SqliteRecorder
 
 from ..utils.constants import INF_BOUND
-from ..phases.components.phase_linkage_comp import PhaseLinkageComp
-from ..phases.phase_base import PhaseBase
-from ..phases.components.input_parameter_comp import InputParameterComp
-from ..phases.options import DesignParameterOptionsDictionary, InputParameterOptionsDictionary
+
+from ..transcriptions.common import InputParameterComp, PhaseLinkageComp
+from ..phase.options import DesignParameterOptionsDictionary, InputParameterOptionsDictionary
 
 
 class Trajectory(Group):
@@ -152,20 +150,20 @@ class Trajectory(Group):
             self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
                                promotes_outputs=['*'])
 
-        for name, options in iteritems(self.input_parameter_options):
+            for name, options in iteritems(self.input_parameter_options):
 
-            # Connect the input parameter to its target in each phase
-            src_name = 'input_parameters:{0}_out'.format(name)
+                # Connect the input parameter to its target in each phase
+                src_name = 'input_parameters:{0}_out'.format(name)
 
-            target_params = options['target_params']
-            for phase_name, phs in iteritems(self._phases):
-                tgt_param_name = target_params.get(phase_name, None) \
-                    if isinstance(target_params, dict) else name
-                if tgt_param_name:
-                    # if tgt_param_name not in phs.traj_parameter_options:
-                    phs.add_traj_parameter(tgt_param_name, val=options['val'], units=options['units'])
-                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
-                    self.connect(src_name=src_name, tgt_name=tgt)
+                target_params = options['target_params']
+                for phase_name, phs in iteritems(self._phases):
+                    tgt_param_name = target_params.get(phase_name, None) \
+                        if isinstance(target_params, dict) else name
+                    if tgt_param_name:
+                        # if tgt_param_name not in phs.traj_parameter_options:
+                        phs.add_traj_parameter(tgt_param_name, val=options['val'], units=options['units'])
+                        tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
+                        self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_design_parameters(self):
         """
@@ -176,36 +174,35 @@ class Trajectory(Group):
             indep = self.add_subsystem('design_params', subsys=IndepVarComp(),
                                        promotes_outputs=['*'])
 
-        for name, options in iteritems(self.design_parameter_options):
-            if options['opt']:
-                lb = -INF_BOUND if options['lower'] is None else options['lower']
-                ub = INF_BOUND if options['upper'] is None else options['upper']
+            for name, options in iteritems(self.design_parameter_options):
+                if options['opt']:
+                    lb = -INF_BOUND if options['lower'] is None else options['lower']
+                    ub = INF_BOUND if options['upper'] is None else options['upper']
 
-                self.add_design_var(name='design_parameters:{0}'.format(name),
-                                    lower=lb,
-                                    upper=ub,
-                                    scaler=options['scaler'],
-                                    adder=options['adder'],
-                                    ref0=options['ref0'],
-                                    ref=options['ref'])
+                    self.add_design_var(name='design_parameters:{0}'.format(name),
+                                        lower=lb,
+                                        upper=ub,
+                                        scaler=options['scaler'],
+                                        adder=options['adder'],
+                                        ref0=options['ref0'],
+                                        ref=options['ref'])
 
-            indep.add_output(name='design_parameters:{0}'.format(name),
-                             val=options['val'],
-                             shape=(1, np.prod(options['shape'])),
-                             units=options['units'])
+                indep.add_output(name='design_parameters:{0}'.format(name),
+                                 val=options['val'],
+                                 shape=(1, np.prod(options['shape'])),
+                                 units=options['units'])
 
-            # Connect the design parameter to its target in each phase
-            src_name = 'design_parameters:{0}'.format(name)
+                # Connect the design parameter to its target in each phase
+                src_name = 'design_parameters:{0}'.format(name)
 
-            targets = options['targets']
-            for phase_name, phs in iteritems(self._phases):
-                tgt_param_name = targets.get(phase_name, None) if isinstance(targets, dict) else name
+                targets = options['targets']
+                for phase_name, phs in iteritems(self._phases):
+                    tgt_param_name = targets.get(phase_name, None) if isinstance(targets, dict) else name
 
-                if tgt_param_name:
-                    # if tgt_param_name not in phs.user_traj_parameter_options:
-                    phs.add_traj_parameter(tgt_param_name, val=options['val'], units=options['units'])
-                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
-                    self.connect(src_name=src_name, tgt_name=tgt)
+                    if tgt_param_name:
+                        phs.add_traj_parameter(tgt_param_name, val=options['val'], units=options['units'])
+                        tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
+                        self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_linkages(self):
         link_comp = None
@@ -542,7 +539,7 @@ class Trajectory(Group):
                 sim_prob[var_name] = op['value'][0, ...]
 
         for phase_name, phs in iteritems(sim_traj._phases):
-            phs.initialize_values_from_phase(sim_prob)
+            phs.initialize_values_from_phase(sim_prob, self._phases[phase_name])
 
         print('\nSimulating trajectory {0}'.format(self.pathname))
         sim_prob.run_model()

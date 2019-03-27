@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
 
-from dymos import Phase
+from dymos import Phase, GaussLobatto, Radau, RungeKutta
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
@@ -14,8 +14,7 @@ SHOW_PLOTS = False
 
 
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-                             top_level_jacobian='csc', compressed=True,
-                             sim_record='brach_min_time_sim.db', optimizer='SLSQP',
+                             compressed=True, sim_record='brach_min_time_sim.db', optimizer='SLSQP',
                              dynamic_simul_derivs=True, force_alloc_complex=False,
                              solve_segments=False, run_driver=True):
     p = Problem(model=Group())
@@ -33,13 +32,18 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p.driver.options['dynamic_simul_derivs'] = dynamic_simul_derivs
 
     if transcription == 'runge-kutta':
-        transcription_order = 'rk4'
+        transcription = RungeKutta(num_segments=num_segments, compressed=compressed)
+    elif transcription == 'gauss-lobatto':
+        transcription = GaussLobatto(num_segments=num_segments,
+                                     order=transcription_order,
+                                     compressed=compressed)
+    elif transcription == 'radau-ps':
+        transcription = Radau(num_segments=num_segments,
+                              order=transcription_order,
+                              compressed=compressed)
 
-    phase = Phase(transcription,
-                  ode_class=BrachistochroneVectorStatesODE,
-                  num_segments=num_segments,
-                  transcription_order=transcription_order,
-                  compressed=compressed)
+    phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                  transcription=transcription)
 
     p.model.add_subsystem('phase0', phase)
 

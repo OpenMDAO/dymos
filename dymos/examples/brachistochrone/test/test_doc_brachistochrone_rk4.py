@@ -11,16 +11,14 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = Phase('runge-kutta',
-                      ode_class=BrachistochroneODE,
-                      num_segments=20,
-                      method='rk4')
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -89,16 +87,14 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = Phase('runge-kutta',
-                      ode_class=BrachistochroneODE,
-                      num_segments=20,
-                      method='rk4')
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -168,16 +164,14 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = Phase('runge-kutta',
-                      ode_class=BrachistochroneODE,
-                      num_segments=20,
-                      method='rk4')
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -246,17 +240,14 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = Phase('runge-kutta',
-                      ode_class=BrachistochroneODE,
-                      num_segments=20,
-                      method='rk4',
-                      compressed=True)
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -326,16 +317,14 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = Phase('runge-kutta',
-                      ode_class=BrachistochroneODE,
-                      num_segments=20,
-                      method='rk4')
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -405,16 +394,14 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase
+        from dymos import Phase, RungeKutta
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = Phase('runge-kutta',
-                      ode_class=BrachistochroneODE,
-                      num_segments=20,
-                      method='rk4')
+        phase = Phase(ode_class=BrachistochroneODE,
+                      transcription=RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 

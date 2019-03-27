@@ -18,15 +18,13 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, \
             SqliteRecorder, CaseReader
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase
+        from dymos import Phase, GaussLobatto
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneODE,
-                      num_segments=10)
+        phase = Phase(ode_class=BrachistochroneODE, transcription=GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -84,3 +82,7 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
 
         assert_rel_error(self, p['phase0.controls:theta'],
                          outputs['phase0.control_group.indep_controls.controls:theta']['value'])
+
+
+if __name__ == '__main__':
+    unittest.main()

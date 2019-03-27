@@ -9,7 +9,7 @@ import errno
 from openmdao.utils.assert_utils import assert_rel_error
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 
-from dymos.examples.finite_burn_orbit_raise.ex_two_burn_orbit_raise import \
+from dymos.examples.finite_burn_orbit_raise.ex_finite_burn_orbit_raise import \
     two_burn_orbit_raise_problem
 
 

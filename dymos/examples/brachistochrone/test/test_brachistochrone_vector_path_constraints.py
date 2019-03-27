@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, RungeKuttaPhase
+from dymos import Phase, GaussLobatto, Radau, RungeKutta
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
@@ -27,10 +27,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('radau-ps',
-                      ode_class=BrachistochroneVectorStatesODE,
-                      num_segments=20,
-                      transcription_order=3)
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=Radau(num_segments=20, order=3))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -141,10 +139,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('radau-ps',
-                      ode_class=BrachistochroneVectorStatesODE,
-                      num_segments=20,
-                      transcription_order=3)
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=Radau(num_segments=20, order=3))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -259,10 +255,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('radau-ps',
-                      ode_class=BrachistochroneVectorStatesODE,
-                      num_segments=20,
-                      transcription_order=3)
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=Radau(num_segments=20, order=3))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -377,10 +371,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneVectorStatesODE,
-                      num_segments=20,
-                      transcription_order=3)
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=GaussLobatto(num_segments=20, order=3))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -491,10 +483,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneVectorStatesODE,
-                      num_segments=20,
-                      transcription_order=3)
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=GaussLobatto(num_segments=20, order=3))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -609,10 +599,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase('gauss-lobatto',
-                      ode_class=BrachistochroneVectorStatesODE,
-                      num_segments=20,
-                      transcription_order=3)
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=GaussLobatto(num_segments=20, order=3))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -726,9 +714,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = RungeKuttaPhase(ode_class=BrachistochroneVectorStatesODE,
-                                num_segments=50,
-                                method='rk4')
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=RungeKutta(num_segments=50))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -841,9 +828,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = RungeKuttaPhase(ode_class=BrachistochroneVectorStatesODE,
-                                num_segments=20,
-                                method='rk4')
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -960,9 +946,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = RungeKuttaPhase(ode_class=BrachistochroneVectorStatesODE,
-                                num_segments=20,
-                                method='rk4')
+        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
+                      transcription=RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 

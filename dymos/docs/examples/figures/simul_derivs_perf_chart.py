@@ -7,7 +7,6 @@ def simul_derivs_perf_chart():  # pragma: no cover
     import matplotlib.pyplot as plt
 
     labels = ('Dense', 'Simul-Derivs', 'Fortran (OTIS4)')
-    y_pos = np.arange(len(labels))
     total_time = np.array([38.6422, 2.3723, 1.95])
     deriv_time = np.array([32.898, 1.0266, 0.85])
 
@@ -26,15 +25,15 @@ def simul_derivs_perf_chart():  # pragma: no cover
     bar_width = 0.35
     opacity = 0.8
 
-    rects1 = plt.bar(index, total_time, bar_width,
-                     alpha=opacity,
-                     color='b',
-                     label='Total Time')
+    plt.bar(index, total_time, bar_width,
+            alpha=opacity,
+            color='b',
+            label='Total Time')
 
-    rects2 = plt.bar(index + bar_width, deriv_time, bar_width,
-                     alpha=opacity,
-                     color='r',
-                     label='Sens Time')
+    plt.bar(index + bar_width, deriv_time, bar_width,
+            alpha=opacity,
+            color='r',
+            label='Sens Time')
 
     plt.ylabel('Log(Time) (normalized)')
     plt.title('Dymos Performance with and without Sparsity\nCompared to Legacy Optimal Control '

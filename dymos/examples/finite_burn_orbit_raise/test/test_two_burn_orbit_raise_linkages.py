@@ -20,7 +20,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         from openmdao.utils.assert_utils import assert_rel_error
         from openmdao.utils.general_utils import set_pyoptsparse_opt
 
-        from dymos import GaussLobattoPhase, RungeKuttaPhase, Trajectory
+        from dymos import Phase, GaussLobatto, RungeKutta, Trajectory
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
         traj = Trajectory()
@@ -37,8 +37,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # First Phase (burn)
 
-        burn1 = GaussLobattoPhase(ode_class=FiniteBurnODE, num_segments=10,
-                                  transcription_order=3, compressed=True)
+        burn1 = Phase(ode_class=FiniteBurnODE,
+                      transcription=GaussLobatto(num_segments=10, order=3, compressed=True))
 
         burn1 = traj.add_phase('burn1', burn1)
 
@@ -53,8 +53,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                           scaler=0.01, lower=-30, upper=30)
 
         # Second Phase (Coast)
-
-        coast = RungeKuttaPhase(ode_class=FiniteBurnODE, num_segments=20, compressed=True)
+        coast = Phase(ode_class=FiniteBurnODE,
+                      transcription=RungeKutta(num_segments=20, compressed=True))
 
         traj.add_phase('coast', coast)
 
@@ -69,8 +69,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Third Phase (burn)
 
-        burn2 = GaussLobattoPhase(ode_class=FiniteBurnODE, num_segments=10, transcription_order=3,
-                                  compressed=True)
+        burn2 = Phase(ode_class=FiniteBurnODE,
+                      transcription=GaussLobatto(num_segments=10, order=3, compressed=True))
 
         traj.add_phase('burn2', burn2)
 

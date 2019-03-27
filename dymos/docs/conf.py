@@ -57,6 +57,7 @@ packages = [
     'examples',
     'examples.aircraft_steady_flight',
     'examples.brachistochrone',
+    'examples.cannonball',
     'examples.double_integrator',
     'examples.finite_burn_orbit_raise',
     'examples.min_time_climb',
@@ -64,9 +65,15 @@ packages = [
     'models',
     'models.atmosphere',
     'models.eom',
-    'phases',
-    'phases.components',
-    'phases.optimizer_based',
+    'phase',
+    'transcriptions',
+    'transcriptions.common',
+    'transcriptions.pseudospectral',
+    'transcriptions.pseudospectral.components',
+    'transcriptions.runge_kutta',
+    'transcriptions.runge_kutta.components',
+    'transcriptions.solve_ivp',
+    'transcriptions.solve_ivp.components',
     'trajectory',
     'utils',
 ]
@@ -95,7 +102,7 @@ author = u'Rob Falck and John Hwang'
 # built documents.
 #
 # The short X.Y version.
-version = u'0.12.0'
+version = u'1.0.0'
 # The full version, including alpha/beta/rc tags.
 release = version
 

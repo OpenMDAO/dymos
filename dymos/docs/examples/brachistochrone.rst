@@ -80,5 +80,5 @@ In the following code we follow the following process to solve the problem:
 * Simulate the control time history using scipy.ode.  This serves as a check that our optimization resulted in a valid solution.
 
 .. embed-code::
-    dymos.examples.brachistochrone.test.test_doc_brachistochrone.TestBrachistochroneExample.test_brachistochrone_for_docs_gauss_lobatto
+    dymos.examples.brachistochrone.test.test_doc_brachistochrone.TestBrachistochroneForDocs.test_brachistochrone_for_docs_gauss_lobatto
     :layout: code, output, plot

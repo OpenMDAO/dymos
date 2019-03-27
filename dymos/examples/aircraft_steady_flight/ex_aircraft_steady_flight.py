@@ -5,18 +5,16 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
-import numpy as np
-
 from openmdao.api import Problem, Group, pyOptSparseDriver, IndepVarComp
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 
-from dymos import Phase
+from dymos import Phase, Radau
 
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 from dymos.utils.lgl import lgl
 
 
-def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
+def ex_aircraft_steady_flight(optimizer='SLSQP',
                               solve_segments=False, show_plots=True,
                               use_boundary_constraints=False, compressed=False):
     p = Problem(model=Group())
@@ -36,12 +34,9 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
     num_seg = 15
     seg_ends, _ = lgl(num_seg + 1)
 
-    phase = Phase(transcription,
-                  ode_class=AircraftODE,
-                  num_segments=num_seg,
-                  segment_ends=seg_ends,
-                  transcription_order=3,
-                  compressed=compressed)
+    phase = Phase(ode_class=AircraftODE,
+                  transcription=Radau(num_segments=num_seg, segment_ends=seg_ends,
+                                      order=3, compressed=compressed))
 
     # Pass Reference Area from an external source
     assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
@@ -80,7 +75,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
     phase.add_input_parameter('mass_empty', units='kg')
     phase.add_input_parameter('mass_payload', units='kg')
 
-    phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0)
+    phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0, shape=(1,))
 
     p.model.connect('assumptions.S', 'phase0.input_parameters:S')
     p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
@@ -141,5 +136,4 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', transcription='gauss-lobatto',
 
 if __name__ == '__main__':
 
-    ex_aircraft_steady_flight(optimizer='SNOPT', transcription='radau-ps',
-                              compressed=True, show_plots=False)
+    ex_aircraft_steady_flight(optimizer='SLSQP', compressed=True, show_plots=False)

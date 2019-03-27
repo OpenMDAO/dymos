@@ -2,15 +2,17 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from openmdao.api import Problem, Group
-from dymos import Phase
+from dymos import Phase, Radau
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 p = Problem(model=Group())
-phase = Phase('radau-ps', ode_class=BrachistochroneODE, num_segments=4,
-              transcription_order=[3, 5, 3, 5])
+phase = Phase(ode_class=BrachistochroneODE,
+              transcription=Radau(num_segments=4, order=[3, 5, 3, 5]))
 p.model.add_subsystem('phase0', phase)
 
 p.setup()
@@ -18,9 +20,11 @@ p['phase0.t_initial'] = 1.0
 p['phase0.t_duration'] = 9.0
 p.run_model()
 
+grid_data = phase.options['transcription'].grid_data
+
 t_all = p.get_val('phase0.timeseries.time')
-t_disc = t_all[phase.grid_data.subset_segment_indices['state_disc']]
-t_col = t_all[phase.grid_data.subset_segment_indices['col']]
+t_disc = t_all[grid_data.subset_node_indices['state_disc'], 0]
+t_col = t_all[grid_data.subset_node_indices['col'], 0]
 
 
 def f(x):  # pragma: no cover
@@ -37,15 +41,8 @@ def plot_01():  # pragma: no cover
 
     ax = axes
 
-    x = np.linspace(1, 10, 100)
-    y = f(x)
-
-    # Plot the state time history
-    # ax.plot(x, y, 'b-')
-
     # Plot the segment boundaries
     segends = np.linspace(1, 10, 5)
-    y_segends = f(segends)
     for i in range(len(segends)):
         ax.plot((segends[i], segends[i]), (0, 1), linestyle='--', color='gray')
         if i > 0:
@@ -66,12 +63,12 @@ def plot_01():  # pragma: no cover
     ax.tick_params(
         axis='both',  # changes apply to the x-axis
         which='both',  # both major and minor ticks are affected
-        bottom='off',  # ticks along the bottom edge are off
-        top='off',  # ticks along the top edge are off
-        left='off',
-        right='off',
-        labelbottom='off',
-        labelleft='off')  # labels along the bottom edge are off
+        bottom=False,  # ticks along the bottom edge are off
+        top=False,  # ticks along the top edge are off
+        left=False,
+        right=False,
+        labelbottom=False,
+        labelleft=False)  # labels along the bottom edge are off
 
     plt.savefig('01_segments.png')
 
@@ -112,12 +109,12 @@ def plot_02():  # pragma: no cover
     ax.tick_params(
         axis='both',  # changes apply to the x-axis
         which='both',  # both major and minor ticks are affected
-        bottom='off',  # ticks along the bottom edge are off
-        top='off',  # ticks along the top edge are off
-        left='off',
-        right='off',
-        labelbottom='off',
-        labelleft='off')  # labels along the bottom edge are off
+        bottom=False,  # ticks along the bottom edge are off
+        top=False,  # ticks along the top edge are off
+        left=False,
+        right=False,
+        labelbottom=False,
+        labelleft=False)  # labels along the bottom edge are off
 
     plt.savefig('02_nodes.png')
 
@@ -170,12 +167,12 @@ def plot_03():  # pragma: no cover
         ax.tick_params(
             axis='both',  # changes apply to the x-axis
             which='both',  # both major and minor ticks are affected
-            bottom='off',  # ticks along the bottom edge are off
-            top='off',  # ticks along the top edge are off
-            left='off',
-            right='off',
-            labelbottom='off',
-            labelleft='off')  # labels along the bottom edge are off
+            bottom=False,  # ticks along the bottom edge are off
+            top=False,  # ticks along the top edge are off
+            left=False,
+            right=False,
+            labelbottom=False,
+            labelleft=False)  # labels along the bottom edge are off
 
     plt.savefig('03_inputs.png')
 
@@ -241,12 +238,12 @@ def plot_04():  # pragma: no cover
         ax.tick_params(
             axis='both',  # changes apply to the x-axis
             which='both',  # both major and minor ticks are affected
-            bottom='off',  # ticks along the bottom edge are off
-            top='off',  # ticks along the top edge are off
-            left='off',
-            right='off',
-            labelbottom='off',
-            labelleft='off')  # labels along the bottom edge are off
+            bottom=False,  # ticks along the bottom edge are off
+            top=False,  # ticks along the top edge are off
+            left=False,
+            right=False,
+            labelbottom=False,
+            labelleft=False)  # labels along the bottom edge are off
 
     plt.savefig('04_control_rate_interpolation.png')
 
@@ -312,12 +309,12 @@ def plot_05():  # pragma: no cover
         ax.tick_params(
             axis='both',  # changes apply to the x-axis
             which='both',  # both major and minor ticks are affected
-            bottom='off',  # ticks along the bottom edge are off
-            top='off',  # ticks along the top edge are off
-            left='off',
-            right='off',
-            labelbottom='off',
-            labelleft='off')  # labels along the bottom edge are off
+            bottom=False,  # ticks along the bottom edge are off
+            top=False,  # ticks along the top edge are off
+            left=False,
+            right=False,
+            labelbottom=False,
+            labelleft=False)  # labels along the bottom edge are off
 
     plt.savefig('05_state_rate_interpolation.png')
 
@@ -387,12 +384,12 @@ def plot_06():  # pragma: no cover
         ax.tick_params(
             axis='both',  # changes apply to the x-axis
             which='both',  # both major and minor ticks are affected
-            bottom='off',  # ticks along the bottom edge are off
-            top='off',  # ticks along the top edge are off
-            left='off',
-            right='off',
-            labelbottom='off',
-            labelleft='off')  # labels along the bottom edge are off
+            bottom=False,  # ticks along the bottom edge are off
+            top=False,  # ticks along the top edge are off
+            left=False,
+            right=False,
+            labelbottom=False,
+            labelleft=False)  # labels along the bottom edge are off
 
     plt.savefig('06_ode_eval_all.png')
 

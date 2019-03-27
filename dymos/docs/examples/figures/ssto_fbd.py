@@ -24,12 +24,9 @@ def get_angle_plot(line1, line2, radius=1, color=None, origin=(0, 0),
     theta1 = min(angle1, angle2)
     theta2 = max(angle1, angle2)
 
-    angle = theta2 - theta1
-
     if color is None:
         color = line1.get_color()  # Uses the color of line 1 if color parameter is not passed.
     return Arc(origin, len_x_axis * radius, len_y_axis * radius, 0, theta1, theta2, color=color)
-    # , label =str(angle) + u"\u00b0")
 
 
 def ssto_fbd(include_drag=True):
@@ -71,7 +68,7 @@ def ssto_fbd(include_drag=True):
     # Draw and label the gravity vector
     L = 0.2
     gvec = FancyArrowPatch((x, y), (x, y-L), arrowstyle='->', mutation_scale=10)
-    lv_line = plt.Line2D((x, x), (y, y-L), visible=False)  # Local vertical
+    plt.Line2D((x, x), (y, y-L), visible=False)  # Local vertical
     ax.add_patch(gvec)
     plt.text(x-0.05, y-L, 'g')
 
@@ -88,7 +85,7 @@ def ssto_fbd(include_drag=True):
         dx = -0.2
         dy = dy_dx * dx
         dvec = FancyArrowPatch((x, y), (x+dx, y+dy), arrowstyle='->', mutation_scale=10)
-        dvec_line = plt.Line2D((x, x+dx), (y, y+dy), visible=False)
+        plt.Line2D((x, x+dx), (y, y+dy), visible=False)
         ax.add_patch(dvec)
         plt.text(x+dx, y+dy+0.05, 'D')
 

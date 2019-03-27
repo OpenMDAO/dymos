@@ -36,7 +36,6 @@ class Motors(ExplicitComponent):
         self.declare_partials(of='power_in_motor', wrt=['*'], rows=row_col, cols=row_col)
 
     def compute(self, inputs, outputs):
-        opt = self.options
         current = inputs['current_in_motor']
         power_out = inputs['power_out_gearbox']
         n_parallel = self.options['n_parallel']
@@ -47,7 +46,6 @@ class Motors(ExplicitComponent):
         outputs['power_in_motor'] = power_out / eff
 
     def compute_partials(self, inputs, partials):
-        opt = self.options
         current = inputs['current_in_motor']
         power_out = inputs['power_out_gearbox']
         n_parallel = self.options['n_parallel']
@@ -87,7 +85,6 @@ class MotorsStaticGearboxPower(ExplicitComponent):
         self.declare_partials(of='power_in_motor', wrt='power_out_gearbox', rows=row_col, cols=np.zeros(num_nodes))
 
     def compute(self, inputs, outputs):
-        opt = self.options
         current = inputs['current_in_motor']
         power_out = inputs['power_out_gearbox']
         n_parallel = self.options['n_parallel']
@@ -98,7 +95,6 @@ class MotorsStaticGearboxPower(ExplicitComponent):
         outputs['power_in_motor'] = power_out / eff
 
     def compute_partials(self, inputs, partials):
-        opt = self.options
         current = inputs['current_in_motor']
         power_out = inputs['power_out_gearbox']
         n_parallel = self.options['n_parallel']

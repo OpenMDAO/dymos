@@ -22,7 +22,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
             pyOptSparseDriver
         from openmdao.utils.assert_utils import assert_rel_error
 
-        from dymos import Phase, Trajectory
+        from dymos import Phase, Trajectory, Radau, GaussLobatto
         from dymos.examples.cannonball.cannonball_ode import CannonballODE
 
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
@@ -44,18 +44,15 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', Trajectory())
 
-        # First Phase (ascent)
-        ascent = Phase('radau-ps',
-                       ode_class=CannonballODE,
-                       num_segments=5,
-                       transcription_order=3,
-                       compressed=True)
+        transcription = Radau(num_segments=5, order=3, compressed=True)
+        ascent = Phase(ode_class=CannonballODE, transcription=transcription)
 
         ascent = traj.add_phase('ascent', ascent)
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
-        ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100), duration_ref=100)
+        ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100),
+                                duration_ref=100, units='s')
         ascent.set_state_options('r', fix_initial=True, fix_final=False)
         ascent.set_state_options('h', fix_initial=True, fix_final=False)
         ascent.set_state_options('gam', fix_initial=False, fix_final=True)
@@ -66,11 +63,8 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                                        upper=400000, lower=0, ref=100000, shape=(1,))
 
         # Second Phase (descent)
-        descent = Phase('gauss-lobatto',
-                        ode_class=CannonballODE,
-                        num_segments=5,
-                        transcription_order=3,
-                        compressed=True)
+        transcription = GaussLobatto(num_segments=5, order=3, compressed=True)
+        descent = Phase(ode_class=CannonballODE, transcription=transcription)
 
         traj.add_phase('descent', descent)
 
@@ -94,10 +88,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         # Add externally-provided design parameters to the trajectory.
         traj.add_input_parameter('mass',
                                  target_params={'ascent': 'm', 'descent': 'm'},
-                                 val=1.0,
-                                 units='kg')
+                                 val=1.0)
 
-        traj.add_input_parameter('S', val=0.005, units='m**2')
+        traj.add_input_parameter('S', val=0.005)
 
         # Link Phases (link time and all state variables)
         traj.link_phases(phases=['ascent', 'descent'], vars=['*'])

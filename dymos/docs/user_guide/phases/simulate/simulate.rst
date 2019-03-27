@@ -42,7 +42,7 @@ or simply fail to match at certain points, it's an indication that grid refineme
 --------------------------
 `simulate` call signature
 --------------------------
-.. automethod:: dymos.phases.optimizer_based.optimizer_based_phase_base.OptimizerBasedPhaseBase.simulate
+.. automethod:: dymos.phase.Phase.simulate
     :noindex:
 
 
@@ -72,6 +72,6 @@ PhaseSimulationResults with the filename as its only argument.
 .. code-block:: python
 
     exp_out = load_simulation_results('my_simulation.db')
-    print(exp_out.get_values('x'))
+    print(exp_out.get_val('phase0.timeseries.states:x'))
 
 

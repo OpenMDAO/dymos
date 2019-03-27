@@ -25,7 +25,7 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
         from openmdao.utils.assert_utils import assert_rel_error
         from openmdao.utils.general_utils import set_pyoptsparse_opt
 
-        from dymos import Phase, Trajectory
+        from dymos import Phase, GaussLobatto, Trajectory
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
         traj = Trajectory()
@@ -41,11 +41,8 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         # First Phase (burn)
 
-        burn1 = Phase('gauss-lobatto',
-                      ode_class=FiniteBurnODE,
-                      num_segments=10,
-                      transcription_order=3,
-                      compressed=True)
+        burn1 = Phase(ode_class=FiniteBurnODE,
+                      transcription=GaussLobatto(num_segments=10, order=3, compressed=True))
 
         burn1 = traj.add_phase('burn1', burn1)
 
@@ -61,11 +58,8 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         # Second Phase (Coast)
 
-        coast = Phase('gauss-lobatto',
-                      ode_class=FiniteBurnODE,
-                      num_segments=10,
-                      transcription_order=3,
-                      compressed=True)
+        coast = Phase(ode_class=FiniteBurnODE,
+                      transcription=GaussLobatto(num_segments=10, order=3, compressed=True))
 
         traj.add_phase('coast', coast)
 
@@ -80,11 +74,8 @@ class TestTwoBurnOrbitRaiseForDocs(unittest.TestCase):
 
         # Third Phase (burn)
 
-        burn2 = Phase('gauss-lobatto',
-                      ode_class=FiniteBurnODE,
-                      num_segments=10,
-                      transcription_order=3,
-                      compressed=True)
+        burn2 = Phase(ode_class=FiniteBurnODE,
+                      transcription=GaussLobatto(num_segments=10, order=3, compressed=True))
 
         traj.add_phase('burn2', burn2)
 
