@@ -167,7 +167,6 @@ class USatm1976Comp(ExplicitComponent):
         outputs['sos'] = np.sqrt(self._K*outputs['temp'])
 
     def compute_partials(self, inputs, partials):
-        nn = self.options['num_nodes']
         H = inputs['h']
         partials['temp', 'h'] = T_interp_deriv(H, extrapolate=True)
         partials['pres', 'h'] = P_interp_deriv(H, extrapolate=True)

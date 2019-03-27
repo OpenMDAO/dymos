@@ -29,7 +29,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
                                'connected_initial': False, 'connected_final': False}}
 
         subsys = StateIndependentsComp(grid_data=gd, state_options=state_options)
-        defect_comp = p.model.add_subsystem('defect_comp', subsys=subsys)
+        p.model.add_subsystem('defect_comp', subsys=subsys)
 
         p.setup()
         p.final_setup()
@@ -114,7 +114,7 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
 
         gd = GridData(
             num_segments=n_segs, segment_ends=np.arange(n_segs+1),
-            transcription=transcription, transcription_order=order)
+            transcription=transcription, transcription_order=order, compressed=compressed)
 
         state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
                                'fix_final': False, 'solve_segments': True,
@@ -175,8 +175,6 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
 
         p.run_model()
         p.model.run_apply_nonlinear()  # need to make sure residuals are computed
-
-        dt_dstau = p['dt_dstau']
 
         expected = np.array([0., -1., 0., -2., 0., -3.])
 

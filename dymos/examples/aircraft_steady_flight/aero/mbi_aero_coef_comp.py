@@ -89,7 +89,6 @@ class MBIAeroCoeffComp(ExplicitComponent):
         mbi_CL = self.options['mbi_CL']
         mbi_CD = self.options['mbi_CD']
         mbi_CM = self.options['mbi_CM']
-        mbi_num = self.options['mbi_num']
 
         self.mbi_tup = ((0, 'CL', mbi_CL), (1, 'CD', mbi_CD), (2, 'CM', mbi_CM))
 

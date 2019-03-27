@@ -42,14 +42,9 @@ def plot_01():  # pragma: no cover
     ax = axes
 
     x = np.linspace(1, 10, 100)
-    y = f(x)
-
-    # Plot the state time history
-    # ax.plot(x, y, 'b-')
 
     # Plot the segment boundaries
     segends = np.linspace(1, 10, 5)
-    y_segends = f(segends)
     for i in range(len(segends)):
         ax.plot((segends[i], segends[i]), (0, 1), linestyle='--', color='gray')
         if i > 0:
@@ -64,7 +59,6 @@ def plot_01():  # pragma: no cover
 
     # Set the labels
     ax.set_xlabel('time')
-    # ax.set_ylabel('state value')
 
     # Remove the axes ticks
     ax.tick_params(
@@ -87,7 +81,6 @@ def plot_02():  # pragma: no cover
     ax = axes
 
     x = np.linspace(1, 10, 100)
-    y = f(x)
 
     # Plot the state time history
     # ax.plot(x, y, 'b-')
@@ -95,7 +88,6 @@ def plot_02():  # pragma: no cover
 
     # Plot the segment boundaries
     segends = np.linspace(1, 10, 5)
-    y_segends = f(segends)
     for i in range(len(segends)):
         ax.plot((segends[i], segends[i]), (0, 1), linestyle='--', color='gray')
         if i > 0:
@@ -197,16 +189,8 @@ def plot_04():  # pragma: no cover
             y = f(x)
             # ax.plot(x, y, 'b-')
 
-            f_disc = f(t_disc)
             f_all = f(t_all)
-            df_dx_disc = fu(t_disc)
-            # ax.plot(x, y, 'b-')
             ax.plot(t_all, f_all, 'bo')
-
-            # for j in range(len(t_disc)):
-            #     dx = 0.3
-            #     ax.plot((t_disc[j]-dx, t_disc[j]+dx),
-            #             (f_disc[j]-dx*df_dx_disc[j], f_disc[j]+dx*df_dx_disc[j]), 'r--')
 
         elif i == 1:
             y = fu(x)
@@ -221,18 +205,10 @@ def plot_04():  # pragma: no cover
         for j in range(len(segends)):
             ax.plot((segends[j], segends[j]), (y_min, y_max), linestyle='--', color='gray',
                     zorder=-100)
-            # if i > 0:
-            #     # ax.annotate('', xy=(segends[i], 0.05), xytext=(segends[i-1], 0.05),
-            #     #             arrowprops=dict(arrowstyle='<->'))
-            #     # ax.text((segends[i]+segends[i-1])/2, 0.15, 'Segment {0}'.format(i-1),
-            #     #         ha='center', va='center')
 
         # Set the bounding box properties
         ax.spines['right'].set_color('none')
         ax.spines['top'].set_color('none')
-        # print(i)
-        # if i==0:
-        #     ax.spines['bottom'].set_color('none')
 
         # Set the labels
         ax.set_xlabel('time')

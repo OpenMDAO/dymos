@@ -13,7 +13,7 @@ from dymos.utils.lagrange import lagrange_matrices
 from dymos.utils.rk_methods import rk_methods
 
 
-def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False, *args, **kwargs):
+def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
     """
     Returns the subset dictionary corresponding to the Gauss-Lobatto transcription.
 
@@ -72,7 +72,7 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False, *args, **kwarg
     return subsets, lgl(n)[0]
 
 
-def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False, *args, **kwargs):
+def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
     """
     Returns the subset dictionary corresponding to the Radau Pseudospectral
     transcription.

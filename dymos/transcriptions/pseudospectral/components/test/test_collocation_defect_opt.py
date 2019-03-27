@@ -6,6 +6,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 from openmdao.api import Problem, Group, IndepVarComp
+from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.transcriptions.pseudospectral.components import CollocationComp
 from dymos.transcriptions.grid_data import GridData
@@ -85,10 +86,8 @@ class TestCollocationComp(unittest.TestCase):
 
     def test_partials(self):
         np.set_printoptions(linewidth=1024)
-        cpd = self.p.check_partials(compact_print=False, method='fd')
-        # assert_check_partials(cpd)
-
-        print((self.p['f_approx:v']-self.p['f_computed:v']).ravel())
+        cpd = self.p.check_partials(compact_print=False, method='fd', out_stream=None)
+        assert_check_partials(cpd)
 
 
 if __name__ == '__main__':

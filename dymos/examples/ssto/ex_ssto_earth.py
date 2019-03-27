@@ -7,7 +7,7 @@ from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
 
 def ssto_earth(transcription='gauss-lobatto', num_seg=10, transcription_order=5,
-               optimizer='SLSQP', compressed=False):
+               optimizer='SLSQP'):
     p = Problem(model=Group())
     if optimizer == 'SNOPT':
         p.driver = pyOptSparseDriver()

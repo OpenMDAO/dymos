@@ -26,8 +26,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
                                                                           p.args[1],
                                                                           p.args[2]])
     )
-    def test_ex_double_integrator(self, transcription='radau-ps', jacobian='csc',
-                                  compressed='compressed'):
+    def test_ex_double_integrator(self, transcription='radau-ps', compressed='compressed'):
         ex_double_integrator.SHOW_PLOTS = False
         p = ex_double_integrator.double_integrator_direct_collocation(
             transcription, compressed=compressed == 'compressed')
@@ -41,8 +40,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         assert_rel_error(self, v[0], 0.0, tolerance=1.0E-4)
         assert_rel_error(self, v[-1], 0.0, tolerance=1.0E-4)
 
-    def test_ex_double_integrator_input_times(self, transcription='radau-ps',
-                                              compressed=True):
+    def test_ex_double_integrator_input_times(self, compressed=True):
         """
         Tests that externally connected t_initial and t_duration function as expected.
         """

@@ -41,15 +41,8 @@ def plot_01():  # pragma: no cover
 
     ax = axes
 
-    x = np.linspace(1, 10, 100)
-    y = f(x)
-
-    # Plot the state time history
-    # ax.plot(x, y, 'b-')
-
     # Plot the segment boundaries
     segends = np.linspace(1, 10, 5)
-    y_segends = f(segends)
     for i in range(len(segends)):
         ax.plot((segends[i], segends[i]), (0, 1), linestyle='--', color='gray')
         if i > 0:

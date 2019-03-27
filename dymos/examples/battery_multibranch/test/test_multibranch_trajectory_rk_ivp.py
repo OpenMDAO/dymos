@@ -99,7 +99,6 @@ class TestBatteryRKIVP(unittest.TestCase):
             import matplotlib
             matplotlib.use('Agg')
             import matplotlib.pyplot as plt
-            traj = prob.model.traj
 
             t0 = prob['traj.phase0.timeseries.time']
             t1 = prob['traj.phase1.timeseries.time']
@@ -161,8 +160,6 @@ class TestBatteryRKIVP(unittest.TestCase):
 
     def test_static_input_params(self):
         prob = Problem(model=Group())
-
-        num_seg = 5
 
         traj = prob.model.add_subsystem('traj', Trajectory())
 
@@ -251,7 +248,6 @@ class TestBatteryRKIVP(unittest.TestCase):
             import matplotlib
             matplotlib.use('Agg')
             import matplotlib.pyplot as plt
-            traj = prob.model.traj
 
             t0 = prob['traj.phase0.timeseries.time']
             t1 = prob['traj.phase1.timeseries.time']

@@ -11,7 +11,7 @@ from dymos import Phase, Trajectory, GaussLobatto
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
 
 
-def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
+def run_example(optimizer='SLSQP'):
 
     prob = Problem(model=Group())
 
@@ -25,8 +25,6 @@ def run_example(optimizer='SLSQP', transcription='gauss-lobatto'):
         opt.opt_settings['Major optimality tolerance'] = 1.0E-6
         opt.opt_settings["Linesearch tolerance"] = 0.10
         opt.opt_settings['iSumm'] = 6
-
-    num_seg = 5
 
     traj = prob.model.add_subsystem('traj', Trajectory())
 

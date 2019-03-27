@@ -24,12 +24,9 @@ def get_angle_plot(line1, line2, radius=1, color=None, origin=(0, 0),
     theta1 = min(angle1, angle2)
     theta2 = max(angle1, angle2)
 
-    angle = theta2 - theta1
-
     if color is None:
         color = line1.get_color()  # Uses the color of line 1 if color parameter is not passed.
     return Arc(origin, len_x_axis * radius, len_y_axis * radius, 0, theta1, theta2, color=color)
-    # label =str(angle) + u"\u00b0")
 
 
 def brachistochrone_fbd():  # pragma: no cover

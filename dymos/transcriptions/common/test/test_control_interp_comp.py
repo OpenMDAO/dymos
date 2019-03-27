@@ -224,10 +224,7 @@ class TestControlRateComp(unittest.TestCase):
         b_value_expected = f_b(t)
 
         a_rate_expected = f1_a(t)
-        b_rate_expected = f1_b(t)
-
         a_rate2_expected = f2_a(t)
-        b_rate2_expected = f2_b(t)
 
         assert_almost_equal(p['control_interp_comp.control_values:a'],
                             np.atleast_2d(a_value_expected).T)
@@ -238,16 +235,8 @@ class TestControlRateComp(unittest.TestCase):
         assert_almost_equal(p['control_interp_comp.control_rates:a_rate'],
                             np.atleast_2d(a_rate_expected).T)
 
-        # RK4 Segments have quadratic control polynomials and can't match b in rate
-        # assert_almost_equal(p['control_interp_comp.control_rates:b_rate'],
-        #                     np.atleast_2d(b_rate_expected).T)
-
         assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'],
                             np.atleast_2d(a_rate2_expected).T)
-
-        # RK4 Segments have quadratic control polynomials and can't match b in rate
-        # assert_almost_equal(p['control_interp_comp.control_rates:b_rate2'],
-        #                     np.atleast_2d(b_rate2_expected).T)
 
         np.set_printoptions(linewidth=1024)
         cpd = p.check_partials(compact_print=False, out_stream=None, method='cs')

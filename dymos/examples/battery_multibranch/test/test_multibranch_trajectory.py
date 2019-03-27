@@ -114,7 +114,6 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         assert_rel_error(self, soc1m[-1], 0.18625395, 1e-6)
 
     def test_solver_defects(self):
-        transcription = 'radau-ps'
         prob = Problem()
 
         num_seg = 5
@@ -197,7 +196,6 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         assert_rel_error(self, soc1m[-1], 0.18625395, 1e-6)
 
     def test_solver_defects_single_phase_reverse_propagation(self):
-        transcription = 'radau-ps'
         prob = Problem()
 
         num_seg = 5
@@ -226,7 +224,6 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         assert_rel_error(self, soc0[-1], 1.0, 1e-6)
 
     def test_solver_defects_reverse_propagation(self):
-        transcription = 'radau-ps'
         prob = Problem()
 
         num_seg = 5
@@ -271,7 +268,6 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         assert_rel_error(self, soc1[-1], 1.0, 1e-6)
 
     def test_optimizer_segments_direct_connections(self):
-        transcription = 'radau-ps'
         prob = Problem()
 
         if optimizer == 'SNOPT':

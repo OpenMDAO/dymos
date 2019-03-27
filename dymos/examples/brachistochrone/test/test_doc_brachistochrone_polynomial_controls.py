@@ -56,8 +56,6 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
@@ -143,8 +141,6 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
@@ -233,8 +229,6 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
@@ -326,8 +320,6 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
@@ -416,8 +408,6 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
@@ -509,8 +499,6 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
@@ -601,8 +589,6 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
@@ -690,8 +676,6 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
@@ -782,8 +766,6 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
@@ -874,8 +856,6 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
@@ -963,8 +943,6 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
@@ -1055,8 +1033,6 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        t0 = p['phase0.t_initial']
-        tf = t0 + p['phase0.t_duration']
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()

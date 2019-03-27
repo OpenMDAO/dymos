@@ -394,7 +394,6 @@ class SolveIVP(TranscriptionBase):
                                                    shape=options['shape'],
                                                    units=control_units)
             src_rows = gd.subset_node_indices['segment_ends']
-            src_idxs = get_src_indices_by_row(src_rows, options['shape'])
             phase.connect(src_name='polynomial_control_values:{0}'.format(name),
                           tgt_name='timeseries.all_values:polynomial_controls:{0}'.format(name))
 

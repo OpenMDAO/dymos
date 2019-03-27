@@ -180,8 +180,6 @@ class StateInterpComp(ExplicitComponent):
 
         dt_dstau = np.atleast_1d(inputs['dt_dstau'])
 
-        num_col_nodes = self.num_col_nodes
-
         for name in state_options:
             xdotc_str = self.xdotc_str[name]
             xd_str = self.xd_str[name]

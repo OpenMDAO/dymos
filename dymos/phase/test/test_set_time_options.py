@@ -103,7 +103,7 @@ class TestPhaseTimeOptions(unittest.TestCase):
         assert_rel_error(self, p['phase0.t_initial'], 0.01)
         assert_rel_error(self, p['phase0.t_duration'], 1.9)
 
-    def test_ex_double_integrator_input_and_fixed_times_warns(self, transcription='radau-ps'):
+    def test_ex_double_integrator_input_and_fixed_times_warns(self):
         """
         Tests that time optimization options cause a ValueError to be raised when t_initial and
         t_duration are connected to external sources.

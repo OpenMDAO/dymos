@@ -81,8 +81,6 @@ class TestEndpointConditionComp(unittest.TestCase):
         p.model.connect('phase:time', 'initial_conditions.initial_value:time')
         p.model.connect('phase:time', 'final_conditions.final_value:time')
 
-        size = np.prod(state_options['x']['shape'])
-
         p.model.connect('phase:x', 'initial_conditions.initial_value:x')
         p.model.connect('phase:x', 'final_conditions.final_value:x')
 
