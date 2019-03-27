@@ -55,11 +55,11 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         phase.add_design_parameter('throttle', val=1.0, opt=False)
 
         phase.add_boundary_constraint('h', loc='final', equals=20000, scaler=1.0E-3, units='m')
-        phase.add_boundary_constraint('aero.mach', loc='final', equals=1.0, units=None)
+        phase.add_boundary_constraint('aero.mach', loc='final', equals=1.0, shape=(1,))
         phase.add_boundary_constraint('gam', loc='final', equals=0.0, units='rad')
 
         phase.add_path_constraint(name='h', lower=100.0, upper=20000, ref=20000)
-        phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.8)
+        phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.8, shape=(1,))
         phase.add_path_constraint(name='alpha', lower=-8, upper=8)
 
         # Minimize time at the end of the phase

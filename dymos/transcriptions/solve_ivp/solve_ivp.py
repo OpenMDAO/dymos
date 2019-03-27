@@ -480,6 +480,10 @@ class SolveIVP(TranscriptionBase):
             # the path component.
             var_type = phase.classify_var(var)
 
+            # Ignore any variables that we've already added (states, times, controls, etc)
+            if var_type != 'ode':
+                continue
+
             # Failed to find variable, assume it is in the RHS
             phase.connect(src_name='ode.{0}'.format(var),
                           tgt_name='timeseries.all_values:{0}'.format(output_name))

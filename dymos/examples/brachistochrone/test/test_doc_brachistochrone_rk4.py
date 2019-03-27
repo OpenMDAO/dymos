@@ -420,7 +420,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         # so use nonlinear boundary constraints instead.
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
-        phase.add_path_constraint('check', lower=-500, upper=500)
+        phase.add_path_constraint('check', lower=-500, upper=500, shape=(1,), units='m/s')
 
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)

@@ -534,6 +534,8 @@ class Phase(Group):
         bc_dict[name]['linear'] = linear
         bc_dict[name]['units'] = units
 
+        self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
+
     def add_path_constraint(self, name, constraint_name=None, units=None, shape=None, indices=None,
                             lower=None, upper=None, equals=None, scaler=None, adder=None, ref=None,
                             ref0=None, linear=False):
@@ -597,7 +599,9 @@ class Phase(Group):
         self._path_constraints[name]['indices'] = indices
         self._path_constraints[name]['shape'] = shape
         self._path_constraints[name]['linear'] = linear
-        self._path_constraints[name]['units'] = units
+        self._path_constraints[name]['units'] = units\
+
+        self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=None, shape=(1,)):
         r"""
