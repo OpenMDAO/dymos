@@ -453,6 +453,10 @@ class Radau(PseudospectralBase):
             if var_type != 'ode':
                 continue
 
+            # Assume scalar shape here if None, but check config will warn that it's inferred.
+            if options['shape'] is None:
+                options['shape'] = (1,)
+
             # Failed to find variable, assume it is in the ODE
             phase.connect(src_name='rhs_all.{0}'.format(var),
                           tgt_name='timeseries.all_values:{0}'.format(output_name))

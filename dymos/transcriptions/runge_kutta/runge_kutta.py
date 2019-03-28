@@ -633,6 +633,7 @@ class RungeKutta(TranscriptionBase):
             else:
                 # Failed to find variable, assume it is in the ODE
                 options['linear'] = False
+
                 if options['shape'] is None:
                     options['shape'] = (1,)
 
@@ -805,6 +806,10 @@ class RungeKutta(TranscriptionBase):
             # Ignore any variables that we've already added (states, times, controls, etc)
             if var_type != 'ode':
                 continue
+
+            # Assume scalar shape if None, but check config will warn that it's inferred.
+            if options['shape'] is None:
+                options['shape'] = (1,)
 
             # Failed to find variable, assume it is in the RHS
             phase.connect(src_name='ode.{0}'.format(var),
