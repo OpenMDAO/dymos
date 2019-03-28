@@ -341,10 +341,6 @@ class GaussLobatto(PseudospectralBase):
                 # Failed to find variable, assume it is in the ODE
                 options['linear'] = False
                 if options['shape'] is None:
-                    warnings.warn('Unable to infer shape of path constraint \'{0}\' in '
-                                  'phase \'{0}\'. Assuming scalar.\n In Dymos 1.0 the shape '
-                                  'of ODE outputs must be explictly provided via the add_path_constraint '
-                                  'method.'.format(var, phase.name), DeprecationWarning)
                     options['shape'] = (1,)
                 phase.connect(src_name='rhs_disc.{0}'.format(var),
                               tgt_name='path_constraints.disc_values:{0}'.format(con_name))
@@ -500,6 +496,14 @@ class GaussLobatto(PseudospectralBase):
             # a single state variable has two sources which must be connected to
             # the path component.
             var_type = phase.classify_var(var)
+
+            # Ignore any variables that we've already added (states, times, controls, etc)
+            if var_type != 'ode':
+                continue
+
+            # Assume scalar shape here, but check config will warn that it's inferred.
+            if options['shape'] is None:
+                options['shape'] = (1,)
 
             # Failed to find variable, assume it is in the ODE
             phase.connect(src_name='rhs_disc.{0}'.format(var),

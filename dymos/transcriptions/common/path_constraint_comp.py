@@ -223,7 +223,6 @@ class RadauPathConstraintComp(PathConstraintCompBase):
         num_nodes = grid_data.num_nodes
 
         for (name, kwargs) in self._path_constraints:
-
             input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             input_name = 'all_values:{0}'.format(name)
             self.add_input(input_name,

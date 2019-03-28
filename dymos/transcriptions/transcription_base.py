@@ -278,11 +278,6 @@ class TranscriptionBase(object):
 
             shape = options['shape'] if shape is None else shape
             if shape is None:
-                warnings.warn('\nUnable to infer shape of boundary constraint {0}. Assuming scalar. '
-                              '\nIf variable is not scalar, provide shape in '
-                              'add_boundary_constraint. \nIn Dymos 1.0 an error will be raised if '
-                              'a constrained ODE output shape is not specified in '
-                              'add_boundary_constraint.'.format(var), DeprecationWarning)
                 shape = (1,)
 
             if options['indices'] is not None:
@@ -415,3 +410,69 @@ class TranscriptionBase(object):
         """
         raise NotImplementedError('Transcription {0} does not implement method '
                                   'get_parameter_connections.'.format(self.__class__.__name__))
+
+    def check_config(self, phase, logger):
+
+        for var, options in iteritems(phase._path_constraints):
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = phase.classify_var(var)
+
+            if var_type == 'ode':
+                # Failed to find variable, assume it is in the ODE
+                if options['shape'] is None:
+                    logger.warning('Unable to infer shape of path constraint \'{0}\' in '
+                                   'phase \'{1}\'. Scalar assumed.  If this ODE output is '
+                                   'is not scalar, connection errors will '
+                                   'result.'.format(var, phase.name))
+
+        for var, options in iteritems(phase._initial_boundary_constraints):
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = phase.classify_var(var)
+
+            if var_type == 'ode':
+                # Failed to find variable, assume it is in the ODE
+                if options['shape'] is None:
+                    logger.warning('Unable to infer shape of boundary constraint \'{0}\' in '
+                                   'phase \'{1}\'. Scalar assumed.  If this ODE output is '
+                                   'is not scalar, connection errors will '
+                                   'result.'.format(var, phase.name))
+
+        for var, options in iteritems(phase._final_boundary_constraints):
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = phase.classify_var(var)
+
+            if var_type == 'ode':
+                # Failed to find variable, assume it is in the ODE
+                if options['shape'] is None:
+                    logger.warning('Unable to infer shape of boundary constraint \'{0}\' in '
+                                   'phase \'{1}\'. Scalar assumed.  If this ODE output is '
+                                   'is not scalar, connection errors will '
+                                   'result.'.format(var, phase.name))
+
+        for var, options in iteritems(phase._timeseries_outputs):
+
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = phase.classify_var(var)
+
+            # Ignore any variables that we've already added (states, times, controls, etc)
+            if var_type != 'ode':
+                continue
+
+            # Assume scalar shape here, but check config will warn that it's inferred.
+            if options['shape'] is None:
+                logger.warning('Unable to infer shape of timeseries output \'{0}\' in '
+                               'phase \'{1}\'. Scalar assumed.  If this ODE output is '
+                               'is not scalar, connection errors will '
+                               'result.'.format(var, phase.name))
