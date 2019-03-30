@@ -5,7 +5,7 @@ Optimal Control
 Optimal control implies the optimization of a dynamical system.  Typically this takes the form
 of a trajectory in which the *states* of the system evolve with time.  The evolution of the states
 :math:`\left(\bar{x}\right)` are typically governed by an ordinary differential equation (ODE) or
-a differential algebraic equation (DAE).  In |project| we characterize all dynamics as an (ODE),
+a differential algebraic equation (DAE).  In Dymos we characterize all dynamics as an (ODE),
 although solving systems of DAEs is also possible.
 
 .. math::
@@ -22,7 +22,7 @@ with time, such as the wingspan of an aircraft.  We refer to these
 as *design parameters* :math:`\left(\bar{d}\right)`, although in the literature they may also be
 referred to as static controls.  The endpoints in time, state values, control values, and
 design parameter values define the independent variables for our optimization problem.
-In |project|, we discretize these variables in time to convert a continuous-time optimal control
+In Dymos, we discretize these variables in time to convert a continuous-time optimal control
 problem into a nonlinear programming (NLP) problem.
 
 Constraints
@@ -63,7 +63,7 @@ solving the optization problem.
 The Objective
 -------------
 
-|project| man be used to both simulate and optimize dynamical systems. The phase construct is
+Dymos man be used to both simulate and optimize dynamical systems. The phase construct is
 generally used in optimization contexts.  Within each phase, the user can set the objective:
 
 .. math::
@@ -78,7 +78,7 @@ phase.  In this case, the standard OpenMDAO method `add_objective` can be used.
 The Overall Optimization Problem
 --------------------------------
 
-The optimization problem as defined by |project| can Thus be stated as:
+The optimization problem as defined by Dymos can Thus be stated as:
 
 .. math::
 

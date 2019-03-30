@@ -1,7 +1,7 @@
 Objective
 ---------
 
-Optimal control problems in |project| are posed within the context of *phases*.
+Optimal control problems in Dymos are posed within the context of *phases*.
 
 When using an optimizer-based phase, like *Gauss-Lobatto* or *Radau-Pseudospectral*,
 the user is **required** to provide an objective, even for a simple initial value problem.
@@ -20,7 +20,7 @@ First, since the path to a variable within the phase might depend on the transcr
 - the name of a control rate or rate2 (second derivative)
 - the path of an output in the ODE relative to the top level of the ODE
 
-|project| will find the full path of the given variable and add it to the problem as an objective.
+Dymos will find the full path of the given variable and add it to the problem as an objective.
 
 .. note::
 

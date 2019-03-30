@@ -1,10 +1,10 @@
 ======================
-|project| User's Guide
+Dymos User's Guide
 ======================
 
-|project| exists to solve optimal control methods in a context of multidisciplinary
+Dymos exists to solve optimal control methods in a context of multidisciplinary
 systems.  In this User's Guide we lay out some of the top-level theory and
-the constructs underlying |project|'s implementation for solving optimal control
+the constructs underlying Dymos's implementation for solving optimal control
 problems.
 
 .. toctree::
@@ -16,3 +16,4 @@ problems.
     defining_odes
     phases/phases
     trajectories
+    timeseries

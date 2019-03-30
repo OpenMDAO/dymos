@@ -1,18 +1,18 @@
 Variables
 ---------
 
-An Optimal Control problem in |project| consists of the following variable types.
+An Optimal Control problem in Dymos consists of the following variable types.
 
 Time
 ~~~~
 
-Optimal control problems in |project| assume a system that is evolving in time.  State variables
+Optimal control problems in Dymos assume a system that is evolving in time.  State variables
 typically obey some ordinary differential equation that provides the derivative of the states
 w.r.t. time.
 
 Users can specify various options relating to time with the `set_time_options` method of Phase.
 
-In |project|, time is characterized by two variables:
+In Dymos, time is characterized by two variables:
 
 * `t_initial` - The initial time of the phase
 * `t_duration` - The duration of the phase
@@ -41,7 +41,7 @@ in an `ODE` object.
 At the phase level, we assume that states evolve continuously such that they can be modeled as a
 series of one or more polynomials.  The phase duration is broken into one or more *segments* on
 which each state (and each dynamic control) is modeled as a polynomial.  The order of the
-polynomial is specified using the *transcription_order* method.  In |project|, the minimum state
+polynomial is specified using the *transcription_order* method.  In Dymos, the minimum state
 transcription order is 3.
 
 Users can specify bounds, scaling, and units of the state variables with the
@@ -52,7 +52,7 @@ phase method `set_state_options`.  The following options are valid:
     _ForDocs
     state_options
 
-The Radau Pseudospectral and Gauss Lobatto phases types in |project| use differential defects to
+The Radau Pseudospectral and Gauss Lobatto phases types in Dymos use differential defects to
 approximate the evolution of the state variables with respect to time.  In addition to scaling
 the state values, scaling the defect constraints correctly is important to good performance of
 the collocation algorithms.  This is accomplished with the `defect_scaler` or `defect_ref` options.

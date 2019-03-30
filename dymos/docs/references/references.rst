@@ -2,7 +2,7 @@
 References
 ==========
 
-The following works involve the use of |project| or its predecessors.
+The following works involve the use of Dymos or its predecessors.
 
 Falck, R.D., J.S. Gray, and B. Naylor. “Parallel Aircraft Trajectory Optimization with Analytic Derivatives.” 17th AIAA/ISSMO Multidisciplinary Analysis and Optimization Conference. American Institute of Aeronautics and Astronautics, 2016. AIAA AVIATION Forum.
 

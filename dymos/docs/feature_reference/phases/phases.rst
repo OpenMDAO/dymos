@@ -2,7 +2,7 @@
 Phases of a Trajectory
 ======================
 
-|project| uses the concept of *phases* to support intermediate boundary constraints and path constraints on variables in the system.
+Dymos uses the concept of *phases* to support intermediate boundary constraints and path constraints on variables in the system.
 Each phase represents the trajectory of a dynamical system, and may be subject to different equations of motion, force models, and constraints.
 Multiple phases may be assembled to form one or more trajectories by enforcing compatibility constraints between them.
 
@@ -20,10 +20,10 @@ where
 and
 :math:`\textbf f` is the *ODE function*.
 
-|project| can treat the parameters :math:`\textbf u` as either **design parameters** or dynamic **controls**.
-In addition, |project| automatically calculates the first and second time-derivatives of the controls.
+Dymos can treat the parameters :math:`\textbf u` as either **design parameters** or dynamic **controls**.
+In addition, Dymos automatically calculates the first and second time-derivatives of the controls.
 These derivatives can then be utilized as via constraints or as additional parameters to the ODE.
-Subsequently, the optimal control problem as solved by |project| can be expressed as:
+Subsequently, the optimal control problem as solved by Dymos can be expressed as:
 
 .. math::
 
@@ -40,18 +40,18 @@ Subsequently, the optimal control problem as solved by |project| can be expresse
 The ability to utilize control derivatives in the equations of motion provides some unique capabilities, namely the ability to
 easily solve problems using *differential inclusion*, which will be demonstrated in the examples.
 
-The solution techniques used by the Phase classes in |project| generally fall into two categories:
+The solution techniques used by the Phase classes in Dymos generally fall into two categories:
 implicit and explicit phases.  They differ in underlying details but both allow for the same
 general form of the optimal control problem.
 
 Implicit Phases
 ---------------
-Implicit phases in |project| use collocation techniques to find a state-time history that satisfies
+Implicit phases in Dymos use collocation techniques to find a state-time history that satisfies
 the ordinary differential equation for each state.  If the given problem is an initial value or
 well-posed boundary value problem, then there is a single unique solution.
 
 Implicit phases are so-called because the state-time history of the trajectory is provided a priori
-at each iteration by the optimizer.  In |project|, implicit phases are subdivided into a series
+at each iteration by the optimizer.  In Dymos, implicit phases are subdivided into a series
 of one or more *segments*.  On each segment, the time-history of each state variable is represented
 as a polynomial.  The number of segments and the order of the state polynomial on each segment
 define a series of *nodes* in dimensionless time at which the state and control values are
