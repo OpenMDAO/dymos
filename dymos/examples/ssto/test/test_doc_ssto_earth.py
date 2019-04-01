@@ -23,14 +23,14 @@ class TestDocSSTOEarth(unittest.TestCase):
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()
         p.driver.options['dynamic_simul_derivs'] = True
-        
+
         from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
-        
+
         traj = dm.Trajectory()
 
         phase = dm.Phase(ode_class=LaunchVehicleODE,
-                      ode_init_kwargs={'central_body': 'earth'},
-                      transcription=dm.GaussLobatto(num_segments=12, order=3, compressed=False))
+                         ode_init_kwargs={'central_body': 'earth'},
+                         transcription=dm.GaussLobatto(num_segments=12, order=3, compressed=False))
 
         traj.add_phase('phase0', phase)
         p.model.add_subsystem('traj', traj)
@@ -53,12 +53,12 @@ class TestDocSSTOEarth(unittest.TestCase):
         phase.add_objective('time', loc='final', scaler=0.01)
 
         p.model.linear_solver = DirectSolver()
-        
+
         #
         # Setup and set initial values
         #
         p.setup(check=True)
-        
+
         p['traj.phase0.t_initial'] = 0.0
         p['traj.phase0.t_duration'] = 150.0
         p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 1.15E5], nodes='state_input')
@@ -93,7 +93,6 @@ class TestDocSSTOEarth(unittest.TestCase):
                      ms=4,
                      linestyle='None',
                      label='solution')
-
 
         axes[0].plot(exp_out.get_val('traj.phase0.timeseries.states:x'),
                      exp_out.get_val('traj.phase0.timeseries.states:y'),

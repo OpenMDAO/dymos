@@ -300,7 +300,6 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
                      linestyle='None',
                      label='solution')
 
-
         axes[0].plot(exp_out.get_val('traj.phase0.timeseries.states:x'),
                      exp_out.get_val('traj.phase0.timeseries.states:y'),
                      marker=None,
