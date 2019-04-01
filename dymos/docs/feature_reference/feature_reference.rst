@@ -18,3 +18,4 @@ problems.
     phases/phases
     trajectories
     timeseries
+    simultaneous_derivs

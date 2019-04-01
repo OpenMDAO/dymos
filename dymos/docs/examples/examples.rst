@@ -12,12 +12,13 @@ Optimization without Controls: The Maximum Range Cannonball Problem
 
 
 
-Optimization with Dynamic Controls: The Single Stage to Orbit Problem
+Optimization with Dynamic Controls
 
 .. toctree::
   :maxdepth: 1
   :titlesonly:
 
+  brachistochrone
   ssto_moon
 
 Alternative Control Parameterizations: Implementing Guidance
