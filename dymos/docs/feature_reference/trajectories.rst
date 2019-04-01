@@ -91,13 +91,3 @@ Explicit Simulation of Trajectories
 
 The `simulate` method on Trajectory is similar to that of the `simulate` method of Phases.  When
 invoked, it will perform a simulation of each Phase in the trajectory in parallel.
-
-Loading Simulation Results from a File
---------------------------------------
-
-The Dymos function `load_simulation_results`, when provided a file name, will determine whether
-the filename contains a phase simulation or a trajectory simulation, and load it appropriately.
-
-.. toctree::
-    :maxdepth: 2
-    :titlesonly:

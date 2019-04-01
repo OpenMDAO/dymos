@@ -13,22 +13,27 @@ For the pseudospectral transcriptions, timeseries outputs are provided at all no
 For the RungeKutta transcription, timeseries outputs are provided at the segment endpoints.
 By default, the timeseries output will include the following variables for every problem.
 
-============================================================ ====================================================
-Path                                                         Description
------------------------------------------------------------- ----------------------------------------------------
-`<phase path>.timeseries.time'                               Current time value
-`<phase path>.timeseries.time_phase'                         Current phase elapsed time
-`<phase path>.timeseries.states:<x>'                         Value of state variable named x
-`<phase path>.timeseries.controls:<u>'                       Value of control variable named u
-`<phase path>.timeseries.control_rates:<u>_rate'             Time derivative of control named u
-`<phase path>.timeseries.control_rates:<u>_rate2'            Second time derivative of control named u
-`<phase path>.timeseries.polynomial_controls:<p>'            Value of polynomial control variable named u
-`<phase path>.timeseries.polynomial_control_rates:<p>_rate'  Time derivative of polynomial control named u
-`<phase path>.timeseries.polynomial_control_rates:<p>_rate2' Second time derivative of polynomial control named u
-`<phase path>.timeseries.design_parameters:<d>'              Value of design parameter named d
-`<phase path>.timeseries.input_parameters:<s>'               Value of input parameter named s
-`<phase path>.timeseries.traj_parameters:<s>'                Value of the trajectory parameter named s
-============================================================ ====================================================
+============================================================== ====================================================
+Path                                                           Description
+-------------------------------------------------------------- ----------------------------------------------------
+``<phase path>.timeseries.time``                               Current time value
+``<phase path>.timeseries.time_phase``                         Current phase elapsed time
+``<phase path>.timeseries.states:<x>``                         Value of state variable named x
+``<phase path>.timeseries.controls:<u>``                       Value of control variable named u
+``<phase path>.timeseries.control_rates:<u>_rate``             Time derivative of control named u
+``<phase path>.timeseries.control_rates:<u>_rate2``            Second time derivative of control named u
+``<phase path>.timeseries.polynomial_controls:<p>``            Value of polynomial control variable named u
+``<phase path>.timeseries.polynomial_control_rates:<p>_rate``  Time derivative of polynomial control named u
+``<phase path>.timeseries.polynomial_control_rates:<p>_rate2`` Second time derivative of polynomial control named u
+``<phase path>.timeseries.design_parameters:<d>``              Value of design parameter named d
+``<phase path>.timeseries.input_parameters:<s>``               Value of input parameter named s
+``<phase path>.timeseries.traj_parameters:<s>``                Value of the trajectory parameter named s
+============================================================== ====================================================
 
 In addition to these default values, any output of the ODE can be added to the timeseries output
-as well.
+using the ``add_timeseries_output`` method on Phase.  These outputs are available as
+``<phase path>.timeseries.<output name>``.
+
+.. automethod:: dymos.Phase.add_timeseries_output
+    :noindex:
+

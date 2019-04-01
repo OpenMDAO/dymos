@@ -20,7 +20,7 @@ where
 and
 :math:`\textbf f` is the *ODE function*.
 
-Dymos can treat the parameters :math:`\textbf u` as either **design parameters** or dynamic **controls**.
+Dymos can treat the parameters :math:`\textbf u` as either static **parameters** or dynamic **controls**.
 In addition, Dymos automatically calculates the first and second time-derivatives of the controls.
 These derivatives can then be utilized as via constraints or as additional parameters to the ODE.
 Subsequently, the optimal control problem as solved by Dymos can be expressed as:
@@ -44,30 +44,6 @@ The solution techniques used by the Phase classes in Dymos generally fall into t
 implicit and explicit phases.  They differ in underlying details but both allow for the same
 general form of the optimal control problem.
 
-Implicit Phases
----------------
-Implicit phases in Dymos use collocation techniques to find a state-time history that satisfies
-the ordinary differential equation for each state.  If the given problem is an initial value or
-well-posed boundary value problem, then there is a single unique solution.
-
-Implicit phases are so-called because the state-time history of the trajectory is provided a priori
-at each iteration by the optimizer.  In Dymos, implicit phases are subdivided into a series
-of one or more *segments*.  On each segment, the time-history of each state variable is represented
-as a polynomial.  The number of segments and the order of the state polynomial on each segment
-define a series of *nodes* in dimensionless time at which the state and control values are
-specified.  This distribution of segments/nodes is often referred to as the *Grid* (or in other
-places the *mesh*) of the phase.
-
-Since the state-time histories are assumed to be continuous the slopes of those polynomials
-in time are compared with the outputs of the *ODE* at a subset of the nodes called the
-collocation nodes. We call the difference between these two quantities the differential *defects*,
-or more commonly just *defects* (:math:`\Delta`).
-
-.. math::
-
-  \Delta = \frac{dx}{dt} - \textbf f_{ode}(t, \textbf x, \textbf u, \dot{\textbf u}, \ddot{\textbf u}) \\
-
-
 .. toctree::
     :maxdepth: 2
     :titlesonly:
@@ -76,5 +52,4 @@ or more commonly just *defects* (:math:`\Delta`).
     variables
     constraints
     objective
-    transcriptions/transcriptions
     simulate/simulate

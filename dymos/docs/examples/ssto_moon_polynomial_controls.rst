@@ -27,21 +27,13 @@ controls.
 
     \theta = \arctan{p}
 
-------------------
-Problem Definition
-------------------
+----
+Code
+----
 
 .. embed-code::
-    dymos.examples.ssto.ex_ssto_linear_tangent_polynomial_control
-    :layout: code
-
--------------------
-Run Script
--------------------
-
-.. embed-code::
-    dymos.examples.ssto.test.test_ex_ssto_moon_linear_tangent.TestExampleSSTOMoonLinearTangent.test_plot
-    :layout: code, output, plot
+    dymos.examples.ssto.test.test_doc_ssto_polynomial_control.TestDocSSTOPolynomialControl.test_doc_ssto_polynomial_control
+    :layout: code, plot
 
 References
 ----------

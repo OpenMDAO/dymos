@@ -3,46 +3,42 @@ Dymos by Example
 ================
 
 Time Integration: The Initial Value Problem
--------------------------------------------
+
 
 simple cannonball
 
 
 Optimization without Controls: The Maximum Range Cannonball Problem
---------------------------------------------------------------------
-.. toctree::
-  :maxdepth: 1
-  :titlesonly:
 
-  cannonball_max_range
+
 
 Optimization with Dynamic Controls: The Single Stage to Orbit Problem
----------------------------------------------------------------------
+
 .. toctree::
   :maxdepth: 1
   :titlesonly:
 
   ssto_moon
 
-Reduced-Order Control Parameterization with Polynomial Controls
----------------------------------------------------------------
-.. toctree::
-  :maxdepth: 1
-  :titlesonly:
-
-  ssto_moon_polynomial_controls
-
 Alternative Control Parameterizations: Implementing Guidance
-------------------------------------------------------------
+
 .. toctree::
   :maxdepth: 1
   :titlesonly:
 
   ssto_moon_linear_tangent
 
+Reduced-Order Control Parameterization with Polynomial Controls
+
+.. toctree::
+  :maxdepth: 1
+  :titlesonly:
+
+  ssto_moon_polynomial_controls
+
 
 Prescribing State-Time Histories as Controls - Differential Inclusion
----------------------------------------------------------------------
+
 .. toctree::
   :maxdepth: 1
   :titlesonly:
@@ -51,7 +47,7 @@ Prescribing State-Time Histories as Controls - Differential Inclusion
 
 
 Multiple Phase Trajectories: Branching Integration
---------------------------------------------------
+
 
 .. toctree::
   :maxdepth: 1
@@ -60,7 +56,7 @@ Multiple Phase Trajectories: Branching Integration
   multibranch_trajectory
 
 Multiple Phase Trajectories: The Two-Burn Orbit Raise
------------------------------------------------------
+
 
 .. toctree::
   :maxdepth: 1
@@ -69,7 +65,7 @@ Multiple Phase Trajectories: The Two-Burn Orbit Raise
   two_burn_orbit_raise
 
 Using Controls as State Rates: The Double Integrator Problem
-------------------------------------------------------------
+
 .. toctree::
   :maxdepth: 1
   :titlesonly:
@@ -77,7 +73,7 @@ Using Controls as State Rates: The Double Integrator Problem
   double_integrator
 
 Simultaneous System/Trajectory Design: Designing a Cannonball for Maximum Range
--------------------------------------------------------------------------------
+
 .. toctree::
   :maxdepth: 1
   :titlesonly:

@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 
-class TestDocSSTOPolynomialControl(unittest.TestCase):
+class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
 
-    def test_doc_ssto_polynomial_control(self):
+    def test_doc_ssto_linear_tangent_guidance(self):
         import numpy as np
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ExplicitComponent, DirectSolver, \
@@ -143,27 +143,86 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
                 jacobian['mdot', 'thrust'] = -1.0 / (g * Isp)
                 jacobian['mdot', 'Isp'] = F_T / (g * Isp ** 2)
 
+        class LinearTangentGuidanceComp(ExplicitComponent):
+            """ Compute pitch angle from static controls governing linear expression for
+                pitch angle tangent as function of time.
+            """
+
+            def initialize(self):
+                self.options.declare('num_nodes', types=int)
+
+            def setup(self):
+                nn = self.options['num_nodes']
+
+                self.add_input('a_ctrl',
+                               val=np.zeros(nn),
+                               desc='linear tangent slope',
+                               units='1/s')
+
+                self.add_input('b_ctrl',
+                               val=np.zeros(nn),
+                               desc='tangent of theta at t=0',
+                               units=None)
+
+                self.add_input('time_phase',
+                               val=np.zeros(nn),
+                               desc='time',
+                               units='s')
+
+                self.add_output('theta',
+                                val=np.zeros(nn),
+                                desc='pitch angle',
+                                units='rad')
+
+                # Setup partials
+                arange = np.arange(self.options['num_nodes'])
+
+                self.declare_partials(of='theta', wrt='a_ctrl', rows=arange, cols=arange, val=1.0)
+                self.declare_partials(of='theta', wrt='b_ctrl', rows=arange, cols=arange, val=1.0)
+                self.declare_partials(of='theta', wrt='time_phase', rows=arange, cols=arange, val=1.0)
+
+            def compute(self, inputs, outputs):
+                a = inputs['a_ctrl']
+                b = inputs['b_ctrl']
+                t = inputs['time_phase']
+                outputs['theta'] = np.arctan(a * t + b)
+
+            def compute_partials(self, inputs, jacobian):
+                a = inputs['a_ctrl']
+                b = inputs['b_ctrl']
+                t = inputs['time_phase']
+
+                x = a * t + b
+                denom = x ** 2 + 1.0
+
+                jacobian['theta', 'a_ctrl'] = t / denom
+                jacobian['theta', 'b_ctrl'] = 1.0 / denom
+                jacobian['theta', 'time_phase'] = a / denom
+
+        @dm.declare_time(units='s', targets=['guidance.time_phase'])
+        @dm.declare_state('x', rate_source='eom.xdot', units='m')
+        @dm.declare_state('y', rate_source='eom.ydot', units='m')
+        @dm.declare_state('vx', rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
+        @dm.declare_state('vy', rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
+        @dm.declare_state('m', rate_source='eom.mdot', targets=['eom.m'], units='kg')
+        @dm.declare_parameter('thrust', targets=['eom.thrust'], units='N')
+        @dm.declare_parameter('a_ctrl', targets=['guidance.a_ctrl'], units='1/s')
+        @dm.declare_parameter('b_ctrl', targets=['guidance.b_ctrl'], units=None)
+        @dm.declare_parameter('Isp', targets=['eom.Isp'], units='s')
         class LaunchVehicleLinearTangentODE(Group):
             """
             The LaunchVehicleLinearTangentODE for this case consists of a guidance component and
             the EOM.  Guidance is simply an OpenMDAO ExecComp which computes the arctangent of the
             tan_theta variable.
             """
-
             def initialize(self):
                 self.options.declare('num_nodes', types=int,
                                      desc='Number of nodes to be evaluated in the RHS')
 
             def setup(self):
                 nn = self.options['num_nodes']
-
-                self.add_subsystem('guidance', ExecComp('theta=arctan(tan_theta)',
-                                                        theta={'value': np.ones(nn),
-                                                               'units': 'rad'},
-                                                        tan_theta={'value': np.ones(nn)}))
-
+                self.add_subsystem('guidance', LinearTangentGuidanceComp(num_nodes=nn))
                 self.add_subsystem('eom', LaunchVehicle2DEOM(num_nodes=nn))
-
                 self.connect('guidance.theta', 'eom.theta')
 
         #
@@ -171,77 +230,42 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         #
         p = Problem(model=Group())
 
-        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        p.driver = pyOptSparseDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
+
+        traj = dm.Trajectory()
+        p.model.add_subsystem('traj', traj)
 
         phase = dm.Phase(ode_class=LaunchVehicleLinearTangentODE,
-                         transcription=dm.Radau(num_segments=20, order=3, compressed=False))
+                         transcription=dm.GaussLobatto(num_segments=10, order=5, compressed=True))
+
         traj.add_phase('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 1000), units='s')
+        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 1000))
 
-        #
-        # Set the state options.  We include rate_source, units, and targets here since the ODE
-        # is not decorated with their default values.
-        #
-        phase.set_state_options('x', fix_initial=True, lower=0, rate_source='eom.xdot', units='m')
-        phase.set_state_options('y', fix_initial=True, lower=0, rate_source='eom.ydot', units='m')
-        phase.set_state_options('vx', fix_initial=True, lower=0, rate_source='eom.vxdot',
-                                units='m/s', targets=['eom.vx'])
-        phase.set_state_options('vy', fix_initial=True, rate_source='eom.vydot',
-                                units='m/s', targets=['eom.vy'])
-        phase.set_state_options('m', fix_initial=True, rate_source='eom.mdot',
-                                units='kg', targets=['eom.m'])
+        phase.set_state_options('x', fix_initial=True, lower=0)
+        phase.set_state_options('y', fix_initial=True, lower=0)
+        phase.set_state_options('vx', fix_initial=True, lower=0)
+        phase.set_state_options('vy', fix_initial=True)
+        phase.set_state_options('m', fix_initial=True)
 
-        #
-        # The tangent of theta is modeled as a linear polynomial over the duration of the phase.
-        #
-        phase.add_polynomial_control('tan_theta', order=1, units=None, opt=True,
-                                     targets=['guidance.tan_theta'])
-
-        #
-        # Parameters values for thrust and specific impulse are design parameters. They are
-        # provided by an IndepVarComp in the phase, but with opt=False their values are not
-        # design variables in the optimization problem.
-        #
-        phase.add_design_parameter('thrust', units='N', opt=False, val=3.0 * 50000.0 * 1.61544,
-                                   targets=['eom.thrust'])
-        phase.add_design_parameter('Isp', units='s', opt=False, val=1.0E6, targets=['eom.Isp'])
-
-        #
-        # Set the boundary constraints.  These are all states which could also be handled
-        # by setting fix_final=True and including the correct final value in the initial guess.
-        #
         phase.add_boundary_constraint('y', loc='final', equals=1.85E5, linear=True)
         phase.add_boundary_constraint('vx', loc='final', equals=1627.0)
         phase.add_boundary_constraint('vy', loc='final', equals=0)
 
+        phase.add_design_parameter('a_ctrl', units='1/s', opt=True)
+        phase.add_design_parameter('b_ctrl', units=None, opt=True)
+        phase.add_design_parameter('thrust', units='N', opt=False, val=3.0 * 50000.0 * 1.61544)
+        phase.add_design_parameter('Isp', units='s', opt=False, val=1.0E6)
+
         phase.add_objective('time', index=-1, scaler=0.01)
 
-        #
-        # Add theta as a timeseries output since it's not included by default.
-        #
-        phase.add_timeseries_output('guidance.theta', units='deg')
-
-        #
-        # Set the optimizer
-        #
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
-
-        #
-        # We don't strictly need to define a linear solver here since our problem is entirely
-        # feed-forward with no iterative loops.  It's good practice to add one, however, since
-        # failing to do so can cause incorrect derivatives if iterative processes are ever
-        # introduced to the system.
-        #
         p.model.linear_solver = DirectSolver()
+
+        phase.add_timeseries_output('guidance.theta', units='deg')
 
         p.setup(check=True)
 
-        #
-        # Assign initial guesses for the independent variables in the problem.
-        #
         p['traj.phase0.t_initial'] = 0.0
         p['traj.phase0.t_duration'] = 500.0
         p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_input')
@@ -249,11 +273,9 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         p['traj.phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_input')
         p['traj.phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_input')
         p['traj.phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_input')
-        p['traj.phase0.polynomial_controls:tan_theta'] = [[0.5 * np.pi], [0.0]]
+        p['traj.phase0.design_parameters:a_ctrl'] = -0.01
+        p['traj.phase0.design_parameters:b_ctrl'] = 3.0
 
-        #
-        # Solve the problem.
-        #
         p.run_driver()
 
         #
@@ -303,7 +325,7 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         axes[1].set_xlabel('time (s)')
         axes[1].set_ylabel('theta (deg)')
 
-        plt.suptitle('Single Stage to Orbit Solution Using Polynomial Controls')
+        plt.suptitle('Single Stage to Orbit Solution Using Linear Tangent Guidance')
         fig.legend(loc='lower center', ncol=2)
 
         plt.show()

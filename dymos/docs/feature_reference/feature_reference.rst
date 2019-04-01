@@ -1,6 +1,6 @@
-======================
-Dymos User's Guide
-======================
+=======================
+Dymos Feature Reference
+=======================
 
 Dymos exists to solve optimal control methods in a context of multidisciplinary
 systems.  In this User's Guide we lay out some of the top-level theory and
@@ -14,6 +14,7 @@ problems.
     installation
     optimal_control
     defining_odes
+    transcriptions/transcriptions
     phases/phases
     trajectories
     timeseries

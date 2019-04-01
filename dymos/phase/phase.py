@@ -611,8 +611,8 @@ class Phase(Group):
         ----------
         name : string
             The name of the variable to be used as a timeseries output.  Must be one of
-            'time', 'time_phase', 't_initial', 't_duration', or one of the states, controls,
-            control rates, or parameters in the phase.
+            'time', 'time_phase', one of the states, controls, control rates, or parameters,
+            in the phase, or the path to an output variable in the ODE.
         output_name : string or None
             The name of the variable as listed in the phase timeseries outputs.  By
             default this is the last element in `name` when split by dots.  The user may
