@@ -82,7 +82,9 @@ instead relying on the derivative at the at the previous solution.  In the conte
 even explicit components constitute subsystems. This can lead to poorly converged solutions.
 
 Setting the `solve_subystems` option to True will force subsystems to be updated, making sure that
-all derivative information is up-to-date.  The
+all derivative information is up-to-date.
+
+.. code-block:: python
 
         self.nonlinear_solver.options['solve_subsystems'] = True
         self.nonlinear_solver.options['max_sub_solves'] = 10

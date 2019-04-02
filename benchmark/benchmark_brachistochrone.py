@@ -1,11 +1,69 @@
 
 import unittest
 
-from openmdao.api import Problem, Group
+from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
+import dymos as dm
+from dymos.examples.brachistochrone import BrachistochroneODE
 
 
-import dymos.examples.brachistochrone.ex_brachistochrone as ex_brachistochrone
+def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
+                             compressed=True, optimizer='SLSQP', simul_derivs=True):
+    p = Problem(model=Group())
+
+    # if optimizer == 'SNOPT':
+    p.driver = pyOptSparseDriver()
+    p.driver.options['optimizer'] = optimizer
+    p.driver.options['dynamic_simul_derivs'] = simul_derivs
+
+    if transcription == 'gauss-lobatto':
+        t = dm.GaussLobatto(num_segments=num_segments,
+                            order=transcription_order,
+                            compressed=compressed)
+    elif transcription == 'radau-ps':
+        t = dm.Radau(num_segments=num_segments,
+                     order=transcription_order,
+                     compressed=compressed)
+    elif transcription == 'runge-kutta':
+        t = dm.RungeKutta(num_segments=num_segments,
+                          order=transcription_order,
+                          compressed=compressed)
+
+    phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
+
+    p.model.add_subsystem('phase0', phase)
+
+    phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+    phase.set_state_options('x', fix_initial=True, fix_final=False, solve_segments=False)
+    phase.set_state_options('y', fix_initial=True, fix_final=False, solve_segments=False)
+    phase.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=False)
+
+    phase.add_control('theta', continuity=True, rate_continuity=True,
+                      units='deg', lower=0.01, upper=179.9)
+
+    phase.add_input_parameter('g', units='m/s**2', val=9.80665)
+
+    phase.add_boundary_constraint('x', loc='final', equals=10)
+    phase.add_boundary_constraint('y', loc='final', equals=5)
+    # Minimize time at the end of the phase
+    phase.add_objective('time_phase', loc='final', scaler=10)
+
+    p.model.linear_solver = DirectSolver()
+    p.setup(check=True)
+
+    p['phase0.t_initial'] = 0.0
+    p['phase0.t_duration'] = 2.0
+
+    p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+    p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+    p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+    p['phase0.input_parameters:g'] = 9.80665
+
+    p.run_driver()
+
+    return p
 
 
 class BenchmarkBrachistochrone(unittest.TestCase):
@@ -43,37 +101,41 @@ class BenchmarkBrachistochrone(unittest.TestCase):
         assert_rel_error(self, thetaf, 100.12, tolerance=1)
 
     def benchmark_radau_30_3_color_simul_compressed_snopt(self):
-        ex_brachistochrone.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        optimizer='SNOPT',
-                                                        num_segments=30,
-                                                        transcription_order=3,
-                                                        compressed=True)
+        p = brachistochrone_min_time(transcription='radau-ps',
+                                     optimizer='SNOPT',
+                                     num_segments=30,
+                                     transcription_order=3,
+                                     compressed=True)
         self.run_asserts(p)
 
     def benchmark_radau_30_3_color_simul_uncompressed_snopt(self):
-        ex_brachistochrone.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        optimizer='SNOPT',
-                                                        num_segments=30,
-                                                        transcription_order=3,
-                                                        compressed=False)
+        p = brachistochrone_min_time(transcription='radau-ps',
+                                     optimizer='SNOPT',
+                                     num_segments=30,
+                                     transcription_order=3,
+                                     compressed=False)
         self.run_asserts(p)
 
     def benchmark_gl_30_3_color_simul_compressed_snopt(self):
-        ex_brachistochrone.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        optimizer='SNOPT',
-                                                        num_segments=30,
-                                                        transcription_order=3,
-                                                        compressed=True)
+        p = brachistochrone_min_time(transcription='gauss-lobatto',
+                                     optimizer='SNOPT',
+                                     num_segments=30,
+                                     transcription_order=3,
+                                     compressed=True)
         self.run_asserts(p)
 
     def benchmark_gl_30_3_color_simul_uncompressed_snopt(self):
-        ex_brachistochrone.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        optimizer='SNOPT',
-                                                        num_segments=30,
-                                                        transcription_order=3,
-                                                        compressed=False)
+        p = brachistochrone_min_time(transcription='gauss-lobatto',
+                                     optimizer='SNOPT',
+                                     num_segments=30,
+                                     transcription_order=3,
+                                     compressed=False)
+        self.run_asserts(p)
+
+    def benchmark_gl_30_3_color_simul_compressed_rk4(self):
+        p = brachistochrone_min_time(transcription='runge-kutta',
+                                     optimizer='SNOPT',
+                                     num_segments=30,
+                                     transcription_order=3,
+                                     compressed=True)
         self.run_asserts(p)

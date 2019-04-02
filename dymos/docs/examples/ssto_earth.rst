@@ -39,14 +39,6 @@ and the final conditions are
     v_{yf} &= 0 \\
     m_f &= \mathrm{free}
 
--------------------
-Run Script
--------------------
-
-.. embed-code::
-    dymos.examples.ssto.test.test_ex_ssto_earth.TestExampleSSTOEarth.test_simulate_plot
-    :layout: code, output, plot
-
 --------------------------------
 Component and Group Definitions
 --------------------------------
@@ -61,12 +53,6 @@ The eom component computes the state rates.
     The outputs, including the state rates, are shown on the right side of the diagram.  The Dymos
     phases use state rate values to ensure that the integration technique satisfies the dynamics
     of the system.
-
-ex_ssto_earth.py
-----------------------
-.. embed-code::
-    dymos.examples.ssto.ex_ssto_earth
-    :layout: code
 
 launch_vehicle_2d_eom_comp.py
 ------------------------------
@@ -83,7 +69,14 @@ log_atmosphere_comp.py
 launch_vehicle_ode.py
 ----------------------
 .. embed-code::
-    dymos.examples.ssto.test.test_doc_ssto_earth.TestDocSSTOEarth.test_doc_ssto_earth
+    dymos.examples.ssto.launch_vehicle_ode
+    :layout: code
+
+-------------------
+Solving the problem
+-------------------
+.. embed-code::
+    dymos.examples.ssto.doc.test_doc_ssto_earth.TestDocSSTOEarth.test_doc_ssto_earth
     :layout: code, plot
 
 References

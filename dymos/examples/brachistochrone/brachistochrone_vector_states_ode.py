@@ -2,14 +2,14 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 from openmdao.api import ExplicitComponent
-from dymos import declare_time, declare_state, declare_parameter
+import dymos as dm
 
 
-@declare_time(units='s')
-@declare_state('pos', rate_source='pos_dot', units='m', shape=(2,))
-@declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
-@declare_parameter('theta', targets=['theta'], units='rad')
-@declare_parameter('g', units='m/s**2', targets=['g'])
+@dm.declare_time(units='s')
+@dm.declare_state('pos', rate_source='pos_dot', units='m', shape=(2,))
+@dm.declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
+@dm.declare_parameter('theta', targets=['theta'], units='rad')
+@dm.declare_parameter('g', units='m/s**2', targets=['g'])
 class BrachistochroneVectorStatesODE(ExplicitComponent):
 
     def initialize(self):
@@ -40,8 +40,8 @@ class BrachistochroneVectorStatesODE(ExplicitComponent):
 
         rs = np.arange(2*nn, dtype=int)
         cs = np.repeat(np.arange(nn, dtype=int), 2)
-        self.declare_partials(of='pos_dot', wrt='v', rows=rs, cols=cs, val=5)
-        self.declare_partials(of='pos_dot', wrt='theta', rows=rs, cols=cs, val=7)
+        self.declare_partials(of='pos_dot', wrt='v', rows=rs, cols=cs)
+        self.declare_partials(of='pos_dot', wrt='theta', rows=rs, cols=cs)
 
         self.declare_partials(of='check', wrt='v', rows=arange, cols=arange)
         self.declare_partials(of='check', wrt='theta', rows=arange, cols=arange)

@@ -4,8 +4,6 @@ use with scipy.solve_ivp to verify the accuracy of the implicit solutions of Dym
 """
 from __future__ import print_function, division, absolute_import
 
-from collections import Sequence
-
 import numpy as np
 
 from six import iteritems
@@ -83,6 +81,8 @@ class SegmentSimulationComp(ExplicitComponent):
                              desc='If None, results are provided at the all nodes within each'
                                   'segment.  If an int (n) then results are provided at n '
                                   'equally distributed points in time within each segment.')
+
+        self.recording_options['options_excludes'] = ['ode_integration_interface']
 
     def setup(self):
         idx = self.options['index']

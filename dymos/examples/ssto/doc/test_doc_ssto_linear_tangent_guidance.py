@@ -14,9 +14,10 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
         import numpy as np
         import matplotlib.pyplot as plt
         from openmdao.api import Problem, Group, ExplicitComponent, DirectSolver, \
-            pyOptSparseDriver, ExecComp
+            pyOptSparseDriver
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
+        from dymos.examples.plotting import plot_results
 
         g = 1.61544  # lunar gravity, m/s**2
 
@@ -291,41 +292,12 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
         #
         # Plot the results
         #
-        fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 8))
-
-        axes[0].plot(p.get_val('traj.phase0.timeseries.states:x'),
-                     p.get_val('traj.phase0.timeseries.states:y'),
-                     marker='o',
-                     ms=4,
-                     linestyle='None',
-                     label='solution')
-
-        axes[0].plot(exp_out.get_val('traj.phase0.timeseries.states:x'),
-                     exp_out.get_val('traj.phase0.timeseries.states:y'),
-                     marker=None,
-                     linestyle='-',
-                     label='simulation')
-
-        axes[0].set_xlabel('range (m)')
-        axes[0].set_ylabel('altitude (m)')
-        axes[0].set_aspect('equal')
-
-        axes[1].plot(p.get_val('traj.phase0.timeseries.time'),
-                     p.get_val('traj.phase0.timeseries.theta'),
-                     marker='o',
-                     ms=4,
-                     linestyle='None')
-
-        axes[1].plot(exp_out.get_val('traj.phase0.timeseries.time'),
-                     exp_out.get_val('traj.phase0.timeseries.theta'),
-                     linestyle='-',
-                     marker=None)
-
-        axes[1].set_xlabel('time (s)')
-        axes[1].set_ylabel('theta (deg)')
-
-        plt.suptitle('Single Stage to Orbit Solution Using Linear Tangent Guidance')
-        fig.legend(loc='lower center', ncol=2)
+        plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
+                       'range (m)', 'altitude (m)'),
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.theta',
+                       'range (m)', 'altitude (m)')],
+                     title='Single Stage to Orbit Solution Using Linear Tangent Guidance',
+                     p_sol=p, p_sim=exp_out)
 
         plt.show()
 
