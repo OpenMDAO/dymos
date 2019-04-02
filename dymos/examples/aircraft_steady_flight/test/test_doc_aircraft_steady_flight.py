@@ -5,6 +5,8 @@ import unittest
 
 import matplotlib
 matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+plt.style.use('ggplot')
 
 
 class TestSteadyAircraftFlightForDocs(unittest.TestCase):

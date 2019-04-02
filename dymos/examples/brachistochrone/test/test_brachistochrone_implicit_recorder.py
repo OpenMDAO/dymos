@@ -1,24 +1,30 @@
 from __future__ import print_function, absolute_import, division
 
+import os
 import unittest
 
 
-class TestBrachistochroneSimulDerivsRunExample(unittest.TestCase):
+class TestBrachistochroneRecordingExample(unittest.TestCase):
 
-    def test_brachistochrone_for_docs_gauss_lobatto_simul_derivs(self):
-        from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
+    @classmethod
+    def tearDownClass(cls):
+        for filename in ['brachistochrone_solution.db']:
+            if os.path.exists(filename):
+                os.remove(filename)
+
+    def test_brachistochrone_recording(self):
+        import matplotlib
+        matplotlib.use('Agg')
+        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, \
+            SqliteRecorder, CaseReader
         from openmdao.utils.assert_utils import assert_rel_error
         from dymos import Phase, GaussLobatto
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         p = Problem(model=Group())
+        p.driver = ScipyOptimizeDriver()
 
-        p.driver = pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
-
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=100))
+        phase = Phase(ode_class=BrachistochroneODE, transcription=GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -37,6 +43,20 @@ class TestBrachistochroneSimulDerivsRunExample(unittest.TestCase):
 
         p.model.linear_solver = DirectSolver()
 
+        # Recording
+        rec = SqliteRecorder('brachistochrone_solution.db')
+
+        p.driver.recording_options['record_desvars'] = True
+        p.driver.recording_options['record_responses'] = True
+        p.driver.recording_options['record_objectives'] = True
+        p.driver.recording_options['record_constraints'] = True
+
+        p.model.recording_options['record_metadata'] = True
+
+        p.driver.add_recorder(rec)
+        p.model.add_recorder(rec)
+        phase.add_recorder(rec)
+
         p.setup()
 
         p['phase0.t_initial'] = 0.0
@@ -52,6 +72,16 @@ class TestBrachistochroneSimulDerivsRunExample(unittest.TestCase):
 
         # Test the results
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+
+        cr = CaseReader('brachistochrone_solution.db')
+        system_cases = cr.list_cases('root')
+        case = cr.get_case(system_cases[-1])
+
+        outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
+                                                                out_stream=None)])
+
+        assert_rel_error(self, p['phase0.controls:theta'],
+                         outputs['phase0.control_group.indep_controls.controls:theta']['value'])
 
 
 if __name__ == '__main__':

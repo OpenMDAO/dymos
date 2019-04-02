@@ -26,6 +26,9 @@ class TestDocSSTOEarth(unittest.TestCase):
 
         from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
+        #
+        # Initialize our Trajectory and Phase
+        #
         traj = dm.Trajectory()
 
         phase = dm.Phase(ode_class=LaunchVehicleODE,
@@ -35,6 +38,9 @@ class TestDocSSTOEarth(unittest.TestCase):
         traj.add_phase('phase0', phase)
         p.model.add_subsystem('traj', traj)
 
+        #
+        # Set the options for the variables
+        #
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 500))
 
         phase.set_state_options('x', fix_initial=True, ref=1.0E5, defect_ref=1.0)
@@ -43,12 +49,15 @@ class TestDocSSTOEarth(unittest.TestCase):
         phase.set_state_options('vy', fix_initial=True, ref=1.0E3, defect_ref=1.0)
         phase.set_state_options('m', fix_initial=True, ref=1.0E3, defect_ref=1.0)
 
+        phase.add_control('theta', units='rad', lower=-1.57, upper=1.57)
+        phase.add_design_parameter('thrust', units='N', opt=False, val=2100000.0)
+
+        #
+        # Set the options for our constraints and objective
+        #
         phase.add_boundary_constraint('y', loc='final', equals=1.85E5, linear=True)
         phase.add_boundary_constraint('vx', loc='final', equals=7796.6961)
         phase.add_boundary_constraint('vy', loc='final', equals=0)
-
-        phase.add_control('theta', units='rad', lower=-1.57, upper=1.57)
-        phase.add_design_parameter('thrust', units='N', opt=False, val=2100000.0)
 
         phase.add_objective('time', loc='final', scaler=0.01)
 
@@ -68,6 +77,9 @@ class TestDocSSTOEarth(unittest.TestCase):
         p['traj.phase0.states:m'] = phase.interpolate(ys=[117000, 1163], nodes='state_input')
         p['traj.phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='control_input')
 
+        #
+        # Solve the Problem
+        #
         p.run_driver()
 
         #
