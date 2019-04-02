@@ -1,14 +1,14 @@
 Segments
 --------
 
-All phases in |project| are decomposed into one or more *segments* in time.  These segments
+All phases in Dymos are decomposed into one or more *segments* in time.  These segments
 serve the following purposes:
 
 - Gauss-Lobatto collocation and the Radau Pseudospectral method model each state variable as a polynomial segment in nondimensional time within each segment.
 - Each controls are modeled as a polynomial in nondimensional time within each segment.
 
 The order of the *state* polynomial segment is given by the phase argument `transcription_order`.
-In |project| the minimum supported transcription order is 3.
+In Dymos the minimum supported transcription order is 3.
 
 State-time histories within a segment are modelled as a Lagrange polynomial.  Continuity in state
 value may be enforced via linear constraints at the segment boundaries (the default behavior) or

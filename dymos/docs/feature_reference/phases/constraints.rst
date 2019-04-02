@@ -9,7 +9,7 @@ Boundary Constraints
 ~~~~~~~~~~~~~~~~~~~~
 
 Boundary constraints are constraints on a variable value at the start or end of a phase.  There
-are a few different ways to impose these in |project|, each with slightly different behavior.
+are a few different ways to impose these in Dymos, each with slightly different behavior.
 
 Lets consider that we want to solve for the elevation angle that results in the maximum possible
 range flown by a cannonball.  In this situation we have some set of initial conditions that are
@@ -82,7 +82,7 @@ As such simple bounds on final state values are not possible in those situations
 Path Constraints
 ~~~~~~~~~~~~~~~~
 
-The second class of constraints supported by |project| are *path* constraints, so called because
+The second class of constraints supported by Dymos are *path* constraints, so called because
 they are imposed throughout the entire phase.  Like bound constraints, path constraints can be
 imposed on design variables using simple bounds.  This is accomplished using the `lower` and `upper`
 arguments to `set_state_options`, `add_control`, and `add_design_parameter`.

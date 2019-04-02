@@ -553,6 +553,20 @@ class GaussLobatto(PseudospectralBase):
             control_name = var[:-6]
             rate_path = 'control_rates:{0}_rate2'.format(control_name)
             src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'indep_polynomial_control':
+            rate_path = 'polynomial_control_values:{0}'.format(var)
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'input_polynomial_control':
+            rate_path = 'polynomial_control_values:{0}'.format(var)
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'polynomial_control_rate':
+            control_name = var[:-5]
+            rate_path = 'polynomial_control_rates:{0}_rate'.format(control_name)
+            src_idxs = gd.subset_node_indices[nodes]
+        elif var_type == 'polynomial_control_rate2':
+            control_name = var[:-6]
+            rate_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
+            src_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'design_parameter':
             rate_path = 'design_parameters:{0}'.format(var)
             src_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)

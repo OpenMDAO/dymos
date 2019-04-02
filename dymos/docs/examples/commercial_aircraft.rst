@@ -28,7 +28,7 @@ flight path angle and true airspeed, we use a nonlinear solver to determine
 the alpha and thrust time-history which is needed to make the given
 altitude and airspeed time-history possible.  This technique is known
 as differential inclusion.  It was demonstrated by Seywald [Seywald1994]_.  Since
-the collocation techniques in |project| are based on polynomial approximations,
+the collocation techniques in Dymos are based on polynomial approximations,
 rates of the control variables can be easily calculated, which can then be used
 to the reordered dynamics equations to solve for angle of attack and thrust.
 

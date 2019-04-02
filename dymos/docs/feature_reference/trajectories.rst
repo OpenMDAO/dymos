@@ -7,7 +7,7 @@ modeled with a single phase.  For instance, different phases of a trajectory may
 equations of motion, different control parameterizations, or different path constraints.  Phases
 are also necessary if the user wishes to impose intermediate constraints upon some variable, by
 imposing them as boundary constraints at a phase junction.
-The *Trajectory* class in |project| is intended to simplify the development of multi-phase problems.
+The *Trajectory* class in Dymos is intended to simplify the development of multi-phase problems.
 It serves as a Group which contains the various phases belonging to the trajectory, and it provides
 linkage constraints that dictate how phases are linked together. This enables trajectories that
 are not only a sequence of phases in time, but may include branching behavior, allowing us to do
@@ -33,7 +33,7 @@ Adding Phases
 Phases are added to a Trajectory using the `add_phase` method.  This does two things.  It stores
 a reference to the phase in the Trajectory `_phases` dictionary member, which maps phase names to
 the Phases themselves.  Secondly, it adds the Phase subsystem to the `phases` ParallelGroup.  At
-this time, |project| does not support promotion of variable names from Phases to the Trajectory.
+this time, Dymos does not support promotion of variable names from Phases to the Trajectory.
 
 Defining Phase Linkages
 -----------------------
@@ -52,7 +52,7 @@ Trajectory Design Parameters and Input Parameters
 Often times, there are parameters which apply to the entirety of a trajectory that potentially
 need to be optimized.  If we implemented these as design parameters within each phase individually,
 we would need some constraints to ensure that they held the same value within each phase.  To avoid
-this complexity, |project| Trajectory objects support their own Design Parameters and Input Parameters.
+this complexity, Dymos Trajectory objects support their own Design Parameters and Input Parameters.
 
 Like their Phase-based counterparts, Trajectory design parameters produce an output which can be used
 as a design variable to provide an optimal solution.  Similarly, input parameters provide an input
@@ -91,13 +91,3 @@ Explicit Simulation of Trajectories
 
 The `simulate` method on Trajectory is similar to that of the `simulate` method of Phases.  When
 invoked, it will perform a simulation of each Phase in the trajectory in parallel.
-
-Loading Simulation Results from a File
---------------------------------------
-
-The |project| function `load_simulation_results`, when provided a file name, will determine whether
-the filename contains a phase simulation or a trajectory simulation, and load it appropriately.
-
-.. toctree::
-    :maxdepth: 2
-    :titlesonly:

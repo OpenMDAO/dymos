@@ -523,3 +523,4 @@ class _ForDocs(object):  # pragma: no cover
         self.state_options = StateOptionsDictionary()
         self.control_options = ControlOptionsDictionary()
         self.design_parameter_options = DesignParameterOptionsDictionary()
+        self.input_parameter_options = InputParameterOptionsDictionary()

@@ -44,12 +44,6 @@ add the following lines to the driver.
 
     driver.options['dynamic_simul_derivs'] = True
 
-To demonstrate this capability we'll instantiate the brachistochrone problem with 200 3rd-order Gauss-Lobatto segments.
-
-.. embed-code::
-    dymos.examples.brachistochrone.test.test_doc_brach_run_simul_derivs.TestBrachistochroneSimulDerivsRunExample.test_brachistochrone_for_docs_gauss_lobatto_simul_derivs
-    :layout: code
-
 The simul_coloring script outputs the following information about our problem:
 
 .. code-block:: none
@@ -92,7 +86,6 @@ in the same segment), OTIS computes that there are 7794 nonzero elements in the 
 non-conservative sparsity pattern calculated by OpenMDAO gives 4393 nonzero elements.
 
 .. image:: figures/simul_derivs_perf_chart.png
-   :scale: 100 %
    :alt: Performance of Dymos vs. OTIS in solving the brachistochrone problem.
    :align: center
 

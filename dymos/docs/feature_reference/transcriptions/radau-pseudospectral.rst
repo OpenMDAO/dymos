@@ -1,8 +1,16 @@
-High-Order Gauss-Lobatto Collocation
-------------------------------------
+Radau Pseudospectral Method
+---------------------------
 
-High-order Gauss-Lobatto is a generalization of the Hermite-Simpson optimization scheme developed
-by Herman and Conway [HermanConway1996]_.
+The Radau-Pseudospectral method performs collocation of an optimal control problem by collocating
+the dynamics at the Legendre Gauss Radau nodes [Garg2010]_.  The general procedure
+for this method is as follows:
+
+#. The phase is divided into polynomial segments on which the dynamics are assumed to be continuous.
+#. The states and controls are provided by the optimizer at the LGR nodes *plus the endpoint* of each segment.
+#. Given the state values, form a Lagrange polynomial on each segment and take its derivative to compute the approximate state rates at the collocation nodes.
+#. The dynamics are evaluated at the collocation nodes (the LGR nodes not including the endpoint), giving the computed state rates.
+#. The difference between the approximated state rates and computed state rates are given to the optimizer as constraints.
+#. The optimizer iterates on the state and control values until the optimality conditions are satisfied.
 
 **Step 1:  Phase Segmentation**
 
@@ -10,7 +18,7 @@ Each phase is divided into polynomial segments.  The span and polynomial order o
 define the "grid" within each segment.  The grid can be specified by the user or set by an
 automatic grid refinement algorithm, depending on the accuracy required.
 
-.. image:: figures/gauss-lobatto/01_segments.png
+.. image:: figures/radau-pseudospectral/01_segments.png
    :scale: 100 %
    :alt: A phase divided into four equal segments
    :align: center
@@ -18,10 +26,10 @@ automatic grid refinement algorithm, depending on the accuracy required.
 
 **Step 2:  Discretization**
 
-Each segment is discretized by applying the Legendre-Gauss-Lobatto (LGL) nodes to normalized
+Each segment is discretized by applying the Legendre-Gauss-Radau (LGR) nodes to normalized
 segment space (:math:`\tau_{s}`)
 
-.. image:: figures/gauss-lobatto/02_nodes.png
+.. image:: figures/radau-pseudospectral/02_nodes.png
    :scale: 100 %
    :alt: The Legendre Gauss Lobatto nodes in each segment.
    :align: center
@@ -39,7 +47,7 @@ The value of each dynamic control is given at every node in the segment.
 The user typically provides an initial guess for these values.  During optimization these
 are design variables.
 
-.. image:: figures/gauss-lobatto/03_inputs.png
+.. image:: figures/radau-pseudospectral/03_inputs.png
    :scale: 100 %
    :alt: The discretized state and control values
    :align: center
@@ -57,7 +65,7 @@ are design variables.
 
 With the control values known at all nodes in the grid, we can form a Lagrange interpolation
 polynomial to compute the derivatives of the control at all nodes.  This allows us to use
-control rates as inputs to the ODE.  In |project| the first and second derivatives of the
+control rates as inputs to the ODE.  In Dymos the first and second derivatives of the
 controls are automatically computed.
 
 .. note::
@@ -68,42 +76,30 @@ controls are automatically computed.
    second derivative of a control at segment bounds is not advisable when using High Order
    Gauss Lobatto with low-order segments.
 
-.. image:: figures/gauss-lobatto/04_control_rate_interpolation.png
+.. image:: figures/radau-pseudospectral/04_control_rate_interpolation.png
    :scale: 100 %
    :alt: Control rates are interpolated.
    :align: center
 
+**Step 5:  State Rate Interpolation**
 
-**Step 5:  Evaluation of the ODE at the State Discretization Nodes**
+Using the state and state rates at the discretization nodes, form a Langrange interpolating
+polynomial, giving the approximate state rates at the collocation nodes.
 
-On each segment, the state and control time histories are assumed to be polynomials.  For a
-segment with three nodes, the two endpoints are the state discretization nodes.  The given ODE
-is evaluated here (remember, thus far we know the values of the states at the discretization
-nodes and the values of time and the controls at all nodes).
-
-.. image:: figures/gauss-lobatto/05_ode_eval_disc.png
+.. image:: figures/radau-pseudospectral/05_state_rate_interpolation.png
    :scale: 100 %
-   :alt: The slope of the state-time history at the discretization nodes has been evaluated.
+   :alt: The state rate time histories are interpolated.
    :align: center
 
-**Step 6:  State Interpolation**
+**Step 6:  Evaluation of the ODE at All Nodes**
 
-Using the state and state rates at the discretization nodes, form a Hermite interpolating
-polynomial, giving the approximate state values and rates ath the collocation nodes.
+The given ODE is evaluated at all nodes.  Evaluation at the collocation nodes (which don't include
+the endpoint) provide collocation defects.  Evaluation at the endpoint provides values that are
+potentially needed as boundary constraints or objectives.
 
-.. image:: figures/gauss-lobatto/06_interpolation.png
+.. image:: figures/radau-pseudospectral/06_ode_eval_all.png
    :scale: 100 %
-   :alt: The state time histories are interpolated.
-   :align: center
-
-**Step 7:  Evaluation of the ODE at the Collocation Nodes**
-
-The given ODE is evaluated a second time, this time at the collocation nodes
-(the odd-index LGL nodes), giving the computed state rates.
-
-.. image:: figures/gauss-lobatto/07_ode_eval_col.png
-   :scale: 100 %
-   :alt: The time-derivative of the states is evaluated at the collocation nodes.
+   :alt: The slope of the state-time history at all nodes has been evaluated.
    :align: center
 
 **Step 7:  Evaluation of the Collocation Defects**
@@ -127,16 +123,6 @@ posed in Step 7 are satisfied.  At this point the time-history of the state vari
 we may have an infinite number of feasible trajectories.  In that case the optimizer will work to
 find the time history that minimizes our objective function.
 
-Advantages of High-Order Gauss-Lobatto Collocation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Provides collocated dyanamics at the endpoints of the segment.
-  No node has an "undefined" control value as is the case in the Radau Pseudospectral Method.
-
-
-Disdvantages of High-Order Gauss-Lobatto Collocation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 - Requires an interpolation step that can sometimes make it less amenable to poor initial guesses.
 - Requires two steps to evaluate the dynamics at all nodes in the phase (first the discretization
   nodes, then the collocation nodes).  This poses a performance bottleneck when using
@@ -145,6 +131,20 @@ Disdvantages of High-Order Gauss-Lobatto Collocation
   step may interpolate a state value beyond the limits imposed on the design values provided at
   the state discretization nodes.
 
+
+Advantages of the Radau Pseudospectral Method
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- No interpolation of states or controls is necessary, since the collocation nodes are a subset of the state discretization nodes.
+- This method can evaluate the dynamics at all nodes in a phase in a single pass, while the Gauss-Lobatto method requires two passes (evaluate, interpolate, evaluate).  This removes a bottleneck when using parallelization to evaluate the dynamics.
+
+Disdvantages of the Radau Pseudospectral Method
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- One point in a phase is not subject to collocation (either the initial point or the end point).  As a result,
+  the control values at that node have less (or zero) impact on the collation defect constraints and are meaningless.  Various methods
+  exist for working around this deficiency, such as constraining the control value or derivatives at the endpoint, or by running the
+  optimization with both in LGR and reversed LGR (rLGR) modes and then taking the valid control from each.
+
+
 References
 ^^^^^^^^^^
-.. [HermanConway1996] Herman, Albert L, and Bruce A Conway. “Direct Optimization Using Collocation Based on High-Order Gauss-Lobatto Quadrature Rules.” Journal of Guidance, Control, and Dynamics 19.3 (1996): 592–599.
+.. [Garg2010] Garg, Divya et al. “A Unified Framework for the Numerical Solution of Optimal Control Problems Using Pseudospectral Methods.” Automatica 46.11 (2010): 1843–1851.

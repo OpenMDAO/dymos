@@ -83,8 +83,8 @@ log_atmosphere_comp.py
 launch_vehicle_ode.py
 ----------------------
 .. embed-code::
-    dymos.examples.ssto.launch_vehicle_ode
-    :layout: code
+    dymos.examples.ssto.test.test_doc_ssto_earth.TestDocSSTOEarth.test_doc_ssto_earth
+    :layout: code, plot
 
 References
 ----------
