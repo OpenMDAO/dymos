@@ -27,12 +27,12 @@ controls.
 
     \theta = \arctan{p}
 
-----
-Code
-----
+-------------------
+Solving the problem
+-------------------
 
 .. embed-code::
-    dymos.examples.ssto.test.test_doc_ssto_polynomial_control.TestDocSSTOPolynomialControl.test_doc_ssto_polynomial_control
+    dymos.examples.ssto.doc.test_doc_ssto_polynomial_control.TestDocSSTOPolynomialControl.test_doc_ssto_polynomial_control
     :layout: code, plot
 
 References

@@ -3,20 +3,16 @@ from __future__ import print_function, absolute_import, division
 import os
 import unittest
 
-from dymos.utils.testing_utils import use_tempdirs
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 
-@use_tempdirs
 class TestBrachistochroneForDocs(unittest.TestCase):
 
     def tearDown(self):
-        for filename in ['coloring.json', 'SLSQP.out', 'SNOPT_print.out', 'SNOPT_summary.out',
-                         'brachistochrone_solution.sql', 'brachistochrone_simulation.sql']:
+        for filename in ['coloring.json', 'SLSQP.out', 'SNOPT_print.out', 'SNOPT_summary.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 
@@ -62,18 +58,6 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         p.model.linear_solver = DirectSolver()
 
         #
-        # Add a recorder so that results are saved to a file
-        #
-        rec = SqliteRecorder('brachistochrone_solution.sql')
-
-        p.driver.recording_options['record_desvars'] = True
-        p.driver.recording_options['record_responses'] = True
-        p.driver.recording_options['record_objectives'] = True
-        p.driver.recording_options['record_constraints'] = True
-        p.model.recording_options['record_metadata'] = True
-        p.driver.add_recorder(rec)
-
-        #
         # Setup the Problem
         #
         p.setup()
@@ -98,7 +82,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        exp_out = traj.simulate(times_per_seg=10, record_file='brachistochrone_simulation.sql')
+        exp_out = traj.simulate()
 
         plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
                        'x (m)', 'y (m)'),
@@ -150,18 +134,6 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         p.model.linear_solver = DirectSolver()
 
         #
-        # Add a recorder so that results are saved to a file
-        #
-        rec = SqliteRecorder('brachistochrone_solution.sql')
-
-        p.driver.recording_options['record_desvars'] = True
-        p.driver.recording_options['record_responses'] = True
-        p.driver.recording_options['record_objectives'] = True
-        p.driver.recording_options['record_constraints'] = True
-        p.model.recording_options['record_metadata'] = True
-        p.driver.add_recorder(rec)
-
-        #
         # Setup the Problem
         #
         p.setup()
@@ -187,7 +159,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
                          tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        exp_out = traj.simulate(times_per_seg=10, record_file='brachistochrone_simulation.sql')
+        exp_out = traj.simulate()
 
         plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
                        'x (m)', 'y (m)'),
@@ -246,18 +218,6 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         p.model.linear_solver = DirectSolver()
 
         #
-        # Add a recorder so that results are saved to a file
-        #
-        rec = SqliteRecorder('brachistochrone_solution.sql')
-
-        p.driver.recording_options['record_desvars'] = True
-        p.driver.recording_options['record_responses'] = True
-        p.driver.recording_options['record_objectives'] = True
-        p.driver.recording_options['record_constraints'] = True
-        p.model.recording_options['record_metadata'] = True
-        p.driver.add_recorder(rec)
-
-        #
         # Setup the Problem
         #
         p.setup()
@@ -283,7 +243,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
                          tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        exp_out = traj.simulate(times_per_seg=10, record_file='brachistochrone_simulation.sql')
+        exp_out = traj.simulate()
 
         plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
                        'x (m)', 'y (m)'),
@@ -342,18 +302,6 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         p.model.linear_solver = DirectSolver()
 
         #
-        # Add a recorder so that results are saved to a file
-        #
-        rec = SqliteRecorder('brachistochrone_solution.sql')
-
-        p.driver.recording_options['record_desvars'] = True
-        p.driver.recording_options['record_responses'] = True
-        p.driver.recording_options['record_objectives'] = True
-        p.driver.recording_options['record_constraints'] = True
-        p.model.recording_options['record_metadata'] = True
-        p.driver.add_recorder(rec)
-
-        #
         # Setup the Problem
         #
         p.setup()
@@ -379,7 +327,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
                          tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        exp_out = traj.simulate(times_per_seg=10, record_file='brachistochrone_simulation.sql')
+        exp_out = traj.simulate()
 
         plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
                        'x (m)', 'y (m)'),

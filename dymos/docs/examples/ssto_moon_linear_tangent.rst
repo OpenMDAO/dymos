@@ -3,7 +3,7 @@ SSTO Lunar Ascent with Linear Tangent Guidance
 ==============================================
 
 The following example implements a minimum time, single-stage to orbit ascent problem for
-launching from the lunar surface.  Unlike the SSTO Lunar Ascent example, here we use knowledge of
+launching from the lunar surface.  Unlike the SSTO Earth Ascent example, here we use knowledge of
 the solution to simplify the optimization.
 
 Instead of optimizing the thrust angle at any point in time as a dynamic control, we use our
@@ -20,9 +20,9 @@ Implementing this modified constrol scheme requires only a few changes.  Rather 
 LinearTangentGuidanceComp that accepts :math:`a` and :math:`b` as design parameters to be optimized.  It
 calculates :math:`theta`, which is then connected to the equations of motion component.
 
--------------------------------
-Component and Group Definitions
--------------------------------
+--------------------------------
+Extended Design Structure Matrix
+--------------------------------
 
 .. figure:: figures/ssto_linear_tangent_xdsm.png
 
@@ -30,39 +30,12 @@ Component and Group Definitions
     is that we have a new component, `guidance`, which accepts :math:`a`, :math:`b`,
     and :math:`time`, and computes :math:`\theta`.
 
-
-linear_tangent_guidance_comp.py
--------------------------------
-.. embed-code::
-    dymos.examples.ssto.linear_tangent_guidance_comp
-    :layout: code
-
-launch_vehicle_2d_eom_comp.py
------------------------------
-.. embed-code::
-    dymos.examples.ssto.launch_vehicle_2d_eom_comp
-    :layout: code
-
-launch_vehicle_ode.py
----------------------
-.. embed-code::
-    dymos.examples.ssto.launch_vehicle_ode
-    :layout: code
-
-------------------
-Problem Definition
-------------------
-
-.. embed-code::
-    dymos.examples.ssto.ex_ssto_moon_linear_tangent
-    :layout: code
-
 -------------------
-Run Script
+Solving the problem
 -------------------
 
 .. embed-code::
-    dymos.examples.ssto.test.test_ex_ssto_moon_linear_tangent.TestExampleSSTOMoonLinearTangent.test_plot
+    dymos.examples.ssto.doc.test_doc_ssto_linear_tangent_guidance.TestDocSSTOLinearTangentGuidance.test_doc_ssto_linear_tangent_guidance
     :layout: code, output, plot
 
 References

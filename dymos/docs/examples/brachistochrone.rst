@@ -103,7 +103,7 @@ simplified if we have it find the best initial and final value of :math:`\theta`
 interpolate between those two values.  We can achieve this by adding a :math:`\theta` as a
 *polynomial control*.
 
-.. automethod:: dymos.phase.Phase.simulate
+.. automethod:: dymos.phase.Phase.add_polynomial_control
     :noindex:
 
 .. embed-code::

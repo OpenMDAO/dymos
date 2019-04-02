@@ -13,7 +13,6 @@ Dymos by Example
   multi_phase_cannonball
   multibranch_trajectory
   ssto_earth
-  ssto_moon
   ssto_moon_linear_tangent
   ssto_moon_polynomial_controls
   two_burn_orbit_raise
