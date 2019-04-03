@@ -207,8 +207,6 @@ class TranscriptionBase(object):
             src_name = 'input_parameters:{0}_out'.format(name)
 
             for tgts, src_idxs in self.get_parameter_connections(name, phase):
-                if isinstance(tgts, str):
-                    targets = [tgts]
                 phase.connect(src_name, [t for t in tgts],
                               src_indices=src_idxs, flat_src_indices=True)
 

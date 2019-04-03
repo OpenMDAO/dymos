@@ -1,7 +1,9 @@
 from __future__ import division, print_function, absolute_import
 
+import warnings
+
 import numpy as np
-from six import iteritems, string_types
+from six import iteritems
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import GaussLobattoPathConstraintComp, GaussLobattoTimeseriesOutputComp, \
@@ -128,9 +130,6 @@ class GaussLobatto(PseudospectralBase):
 
             if phase.polynomial_control_options[name]['targets']:
                 targets = phase.polynomial_control_options[name]['targets']
-                print(targets)
-                if isinstance(targets, string_types):
-                    targets = [targets]
 
                 phase.connect('polynomial_control_values:{0}'.format(name),
                               ['rhs_disc.{0}'.format(t) for t in targets],
@@ -142,8 +141,6 @@ class GaussLobatto(PseudospectralBase):
 
             if phase.polynomial_control_options[name]['rate_targets']:
                 targets = phase.polynomial_control_options[name]['rate_targets']
-                if isinstance(targets, string_types):
-                    targets = [targets]
 
                 phase.connect('polynomial_control_rates:{0}_rate'.format(name),
                               ['rhs_disc.{0}'.format(t) for t in targets],
@@ -155,8 +152,6 @@ class GaussLobatto(PseudospectralBase):
 
             if phase.polynomial_control_options[name]['rate2_targets']:
                 targets = phase.polynomial_control_options[name]['rate2_targets']
-                if isinstance(targets, string_types):
-                    targets = [targets]
 
                 phase.connect('polynomial_control_rates:{0}_rate2'.format(name),
                               ['rhs_disc.{0}'.format(t) for t in targets],
