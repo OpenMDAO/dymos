@@ -32,7 +32,7 @@ in the control.
 
 This problem is unique in that we don't actually have to calculate anything in the ODE.  For the
 sake of Dymos, we create an ExplicitComponent and provide it with the `num_nodes` option, but
-it has no inputs and no outputs.  The rates for the states are entirely provided by the states
+it has no inputs and no outputs.  The rates for the states are entirely provided by the other states
 and controls.
 
 .. embed-code::
@@ -42,26 +42,9 @@ and controls.
 2. Building and running the problem
 -----------------------------------
 
-In the following code we follow the following process to solve the problem:
-
-* Instantiate a problem and set up the driver.
-
-* Create a Phase, give it our ODE system class, and add it to the problem.
-
-* Set the time options (bounds on initial time and duration, scaling, etc).
-
-* Set the state options (bounds, scaling, etc).  In this case we use :code:`fix_initial` and :code:`fix_final` to specify whether the initial/final values are included as design variables.
-
-* Add controls to the problem.  We can add design parameters or dynamic controls and tie them (or their derivatives) to the parameters in the ODE system.
-
-* Set the objective.  Here we seek to maximize the final value of :math:`x`.
-
-* Call setup and then set the initial values of our variables.  We use interpolation routines to allow us to specify values of the states at the state discretization nodes and controls at all nodes.
-
-* Run the driver.
-
-* Simulate the control time history using scipy.ode.  This serves as a check that our optimization resulted in a valid solution.
+In order to facilitate the bang-bang behavior in the control we disable continuity and rate continuity
+in the control value.
 
 .. embed-code::
-    dymos.examples.double_integrator.test.test_doc_double_integrator.TestDoubleIntegratorForDocs.test_double_integrator_for_docs
+    dymos.examples.double_integrator.doc.test_doc_double_integrator.TestDoubleIntegratorForDocs.test_double_integrator_for_docs
     :layout: code, output, plot

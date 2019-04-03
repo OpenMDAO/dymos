@@ -178,7 +178,8 @@ class ODEIntegrationInterface(object):
                                   ['ode.{0}'.format(tgt) for tgt in options['targets']])
 
         # The ODE System
-        model.add_subsystem('ode', subsys=ode_class(num_nodes=1, **ode_init_kwargs))
+        if ode_class is not None:
+            model.add_subsystem('ode', subsys=ode_class(num_nodes=1, **ode_init_kwargs))
 
         # The state rate collector comp
         self.prob.model.add_subsystem('state_rate_collector',

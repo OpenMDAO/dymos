@@ -870,7 +870,7 @@ class Phase(Group):
         ode_class = self.options['ode_class']
         if not inspect.isclass(ode_class):
             raise ValueError('ode_class must be a class, not an instance.')
-        if not issubclass(ode_class, System):
+        elif not issubclass(ode_class, System):
             raise ValueError('ode_class must be derived from openmdao.core.System.')
 
     def setup(self):
