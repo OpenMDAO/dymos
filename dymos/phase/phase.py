@@ -151,7 +151,7 @@ class Phase(Group):
             source.
         rate_source : str
             The path to the ODE output which provides the rate of this state variable.
-        targets : Sequence of str
+        targets : str or Sequence of str
             The path to the targets of the state variable in the ODE system.
         """
         if name not in self.user_state_options:
@@ -163,6 +163,9 @@ class Phase(Group):
             if kw not in StateOptionsDictionary():
                 raise KeyError('Invalid argument to set_state_options: {0}'.format(kw))
 
+        if 'targets' in kwargs and isinstance(kwargs['targets'], string_types):
+            kwargs['targets'] = (kwargs['targets'],)
+            
         self.user_state_options[name].update(kwargs)
 
     def check_parameter(self, name):
