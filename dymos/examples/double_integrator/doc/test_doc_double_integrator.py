@@ -34,7 +34,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
         transcription = dm.Radau(num_segments=30, order=3, compressed=False)
-        
+
         phase = traj.add_phase('phase0',
                                dm.Phase(ode_class=DoubleIntegratorODE, transcription=transcription))
 

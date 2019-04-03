@@ -20,15 +20,15 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
     p.driver.options['dynamic_simul_derivs'] = True
 
     if transcription == 'gauss-lobatto':
-        transcription = dm.GaussLobatto(num_segments=30, order=3, compressed=compressed)
+        t = dm.GaussLobatto(num_segments=30, order=3, compressed=compressed)
     elif transcription == "radau-ps":
-        transcription = dm.Radau(num_segments=30, order=3, compressed=compressed)
+        t = dm.Radau(num_segments=30, order=3, compressed=compressed)
+    else:
+        raise ValueError('invalid transcription')
 
     traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-    transcription = dm.Radau(num_segments=20, order=3, compressed=False)
-    phase = traj.add_phase('phase0',
-                           dm.Phase(ode_class=DoubleIntegratorODE, transcription=transcription))
+    phase = traj.add_phase('phase0', dm.Phase(ode_class=DoubleIntegratorODE, transcription=t))
 
     phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
 

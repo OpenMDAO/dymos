@@ -8,9 +8,9 @@ import dymos as dm
 @dm.declare_time(units='s')
 @dm.declare_state('x', rate_source='xdot', units='m')
 @dm.declare_state('y', rate_source='ydot', units='m')
-@dm.declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
-@dm.declare_parameter('theta', targets=['theta'], units='rad')
-@dm.declare_parameter('g', units='m/s**2', targets=['g'])
+@dm.declare_state('v', rate_source='vdot', targets='v', units='m/s')
+@dm.declare_parameter('theta', targets='theta', units='rad')
+@dm.declare_parameter('g', units='m/s**2', targets='g')
 class BrachistochroneODE(ExplicitComponent):
 
     def initialize(self):

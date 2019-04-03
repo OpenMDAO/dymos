@@ -1,10 +1,8 @@
 from __future__ import division, print_function, absolute_import
 
-import warnings
-
 import numpy as np
 
-from six import iteritems
+from six import iteritems, string_types
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPathConstraintComp, RadauPSContinuityComp, RadauTimeseriesOutputComp
@@ -81,17 +79,23 @@ class Radau(PseudospectralBase):
 
             if phase.polynomial_control_options[name]['targets']:
                 targets = phase.polynomial_control_options[name]['targets']
+                if isinstance(targets, string_types):
+                    targets = [targets]
 
                 phase.connect('polynomial_control_values:{0}'.format(name),
                               ['rhs_all.{0}'.format(t) for t in targets])
 
             if phase.polynomial_control_options[name]['rate_targets']:
                 targets = phase.polynomial_control_options[name]['rate_targets']
+                if isinstance(targets, string_types):
+                    targets = [targets]
                 phase.connect('polynomial_control_rates:{0}_rate'.format(name),
                               ['rhs_all.{0}'.format(t) for t in targets])
 
             if phase.polynomial_control_options[name]['rate2_targets']:
                 targets = phase.polynomial_control_options[name]['rate2_targets']
+                if isinstance(targets, string_types):
+                    targets = [targets]
                 phase.connect('polynomial_control_rates:{0}_rate2'.format(name),
                               ['rhs_all.{0}'.format(t) for t in targets])
 

@@ -1,12 +1,10 @@
 from __future__ import division, print_function, absolute_import
 
-import warnings
-
 import numpy as np
 
 from openmdao.api import IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
     NewtonSolver, BoundsEnforceLS
-from six import iteritems
+from six import iteritems, string_types
 
 from ..transcription_base import TranscriptionBase
 from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
@@ -337,6 +335,8 @@ class RungeKutta(TranscriptionBase):
             if phase.polynomial_control_options[name]['targets']:
                 src_name = 'polynomial_control_values:{0}'.format(name)
                 targets = phase.polynomial_control_options[name]['targets']
+                if isinstance(targets, string_types):
+                    targets = [targets]
                 phase.connect(src_name,
                               ['ode.{0}'.format(t) for t in targets],
                               src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
@@ -348,6 +348,8 @@ class RungeKutta(TranscriptionBase):
             if phase.polynomial_control_options[name]['rate_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate'.format(name)
                 targets = phase.polynomial_control_options[name]['rate_targets']
+                if isinstance(targets, string_types):
+                    targets = [targets]
 
                 phase.connect(src_name,
                               ['ode.{0}'.format(t) for t in targets],
@@ -360,6 +362,8 @@ class RungeKutta(TranscriptionBase):
             if phase.polynomial_control_options[name]['rate2_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate2'.format(name)
                 targets = phase.polynomial_control_options[name]['rate2_targets']
+                if isinstance(targets, string_types):
+                    targets = [targets]
 
                 phase.connect(src_name,
                               ['ode.{0}'.format(t) for t in targets],
