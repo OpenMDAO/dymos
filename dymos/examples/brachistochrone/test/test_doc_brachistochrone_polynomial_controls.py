@@ -30,9 +30,10 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         phase.set_state_options('v', fix_initial=True)
 
         # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets='theta')
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665, targets='g')
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)

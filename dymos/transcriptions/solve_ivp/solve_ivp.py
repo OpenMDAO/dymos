@@ -3,7 +3,7 @@ from __future__ import division, print_function, absolute_import
 import numpy as np
 
 from openmdao.api import Group, IndepVarComp
-from six import iteritems
+from six import iteritems, string_types
 
 from ..transcription_base import TranscriptionBase
 from ..grid_data import GridData
@@ -272,16 +272,22 @@ class SolveIVP(TranscriptionBase):
             if phase.polynomial_control_options[name]['targets']:
                 src_name = 'polynomial_control_values:{0}'.format(name)
                 targets = phase.polynomial_control_options[name]['targets']
+                if isinstance(targets, string_types):
+                    targets = [targets]
                 phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
 
             if phase.polynomial_control_options[name]['rate_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate'.format(name)
                 targets = phase.polynomial_control_options[name]['rate_targets']
+                if isinstance(targets, string_types):
+                    targets = [targets]
                 phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
 
             if phase.polynomial_control_options[name]['rate2_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate2'.format(name)
                 targets = phase.polynomial_control_options[name]['rate2_targets']
+                if isinstance(targets, string_types):
+                    targets = [targets]
                 phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
 
     def setup_design_parameters(self, phase):
@@ -523,6 +529,8 @@ class SolveIVP(TranscriptionBase):
 
         if name in parameter_options:
             ode_tgts = parameter_options[name]['targets']
+            if isinstance(ode_tgts, str):
+                ode_tgts = [ode_tgts]
             dynamic = parameter_options[name]['dynamic']
             shape = parameter_options[name]['shape']
 

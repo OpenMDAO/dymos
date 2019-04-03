@@ -4,7 +4,7 @@ from collections import Iterable
 import inspect
 import warnings
 
-from six import iteritems
+from six import iteritems, string_types
 
 import numpy as np
 
@@ -288,6 +288,10 @@ class Phase(Group):
             if kw not in ControlOptionsDictionary():
                 raise KeyError('Invalid argument to add_control: {0}'.format(kw))
 
+        for key in ('targets', 'rate_targets', 'rate2_targets'):
+            if key in kwargs and isinstance(kwargs[key], string_types):
+                kwargs[key] = (kwargs[key],)
+
         self.user_control_options[name].update(kwargs)
 
     def add_polynomial_control(self, name, **kwargs):
@@ -353,6 +357,10 @@ class Phase(Group):
             if kw not in PolynomialControlOptionsDictionary():
                 raise KeyError('Invalid argument to add_polynomial_control: {0}'.format(kw))
 
+        for key in ('targets', 'rate_targets', 'rate2_targets'):
+            if key in kwargs and isinstance(kwargs[key], string_types):
+                kwargs[key] = (kwargs[key],)
+
         self.user_polynomial_control_options[name].update(kwargs)
 
     def add_design_parameter(self, name, **kwargs):
@@ -400,6 +408,9 @@ class Phase(Group):
             if kw not in DesignParameterOptionsDictionary():
                 raise KeyError('Invalid argument to add_design_parameter: {0}'.format(kw))
 
+        if 'targets' in kwargs and isinstance(kwargs['targets'], string_types):
+            kwargs['targets'] = (kwargs['targets'],)
+
         self.user_design_parameter_options[name].update(kwargs)
 
     def add_input_parameter(self, name, **kwargs):
@@ -428,6 +439,9 @@ class Phase(Group):
         for kw in kwargs:
             if kw not in InputParameterOptionsDictionary():
                 raise KeyError('Invalid argument to add_input_parameter: {0}'.format(kw))
+
+        if 'targets' in kwargs and isinstance(kwargs['targets'], string_types):
+            kwargs['targets'] = (kwargs['targets'],)
 
         self.user_input_parameter_options[name].update(kwargs)
 
@@ -458,6 +472,9 @@ class Phase(Group):
         for kw in kwargs:
             if kw not in InputParameterOptionsDictionary():
                 raise KeyError('Invalid argument to add_traj_parameter: {0}'.format(kw))
+
+        if 'targets' in kwargs and isinstance(kwargs['targets'], string_types):
+            kwargs['targets'] = (kwargs['targets'],)
 
         self.user_traj_parameter_options[name].update(kwargs)
 
@@ -870,7 +887,7 @@ class Phase(Group):
         ode_class = self.options['ode_class']
         if not inspect.isclass(ode_class):
             raise ValueError('ode_class must be a class, not an instance.')
-        if not issubclass(ode_class, System):
+        elif not issubclass(ode_class, System):
             raise ValueError('ode_class must be derived from openmdao.core.System.')
 
     def setup(self):

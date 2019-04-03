@@ -2,13 +2,14 @@ from __future__ import print_function, division, absolute_import
 
 from collections import OrderedDict
 
+from six import iteritems, string_types
+
 import numpy as np
 from .odeint_control_interpolation_comp import ODEIntControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from openmdao.core.group import Group
 from openmdao.core.indepvarcomp import IndepVarComp
 from openmdao.core.problem import Problem
-from six import iteritems
 
 
 class ODEIntegrationInterface(object):
@@ -140,15 +141,24 @@ class ODEIntegrationInterface(object):
 
         if self.polynomial_control_options:
             for name, options in iteritems(self.polynomial_control_options):
+                tgts = options['targets']
+                rate_tgts = options['rate_targets']
+                rate2_tgts = options['rate2_targets']
                 if options['targets']:
+                    if isinstance(tgts, string_types):
+                        tgts = [tgts]
                     model.connect('polynomial_controls:{0}'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in options['targets']])
+                                  ['ode.{0}'.format(tgt) for tgt in tgts])
                 if options['rate_targets']:
+                    if isinstance(rate_tgts, string_types):
+                        rate_tgts = [rate_tgts]
                     model.connect('polynomial_control_rates:{0}_rate'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in options['rate_targets']])
+                                  ['ode.{0}'.format(tgt) for tgt in rate_tgts])
                 if options['rate2_targets']:
+                    if isinstance(rate2_tgts, string_types):
+                        rate2_tgts = [rate2_tgts]
                     model.connect('polynomial_control_rates:{0}_rate2'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in options['rate2_targets']])
+                                  ['ode.{0}'.format(tgt) for tgt in rate2_tgts])
 
         if self.design_parameter_options:
             for name, options in iteritems(self.design_parameter_options):
@@ -156,8 +166,11 @@ class ODEIntegrationInterface(object):
                                shape=options['shape'],
                                units=options['units'])
                 if options['targets'] is not None:
+                    tgts = options['targets']
+                    if isinstance(tgts, string_types):
+                        tgts = [tgts]
                     model.connect('design_parameters:{0}'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in options['targets']])
+                                  ['ode.{0}'.format(tgt) for tgt in tgts])
 
         if self.input_parameter_options:
             for name, options in iteritems(self.input_parameter_options):
@@ -165,8 +178,11 @@ class ODEIntegrationInterface(object):
                                shape=options['shape'],
                                units=options['units'])
                 if options['targets'] is not None:
+                    tgts = options['targets']
+                    if isinstance(tgts, string_types):
+                        tgts = [tgts]
                     model.connect('input_parameters:{0}'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in options['targets']])
+                                  ['ode.{0}'.format(tgt) for tgt in tgts])
 
         if self.traj_parameter_options:
             for name, options in iteritems(self.traj_parameter_options):
@@ -174,11 +190,15 @@ class ODEIntegrationInterface(object):
                                shape=options['shape'],
                                units=options['units'])
                 if options['targets'] is not None:
+                    tgts = options['targets']
+                    if isinstance(tgts, string_types):
+                        tgts = [tgts]
                     model.connect('traj_parameters:{0}'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in options['targets']])
+                                  ['ode.{0}'.format(tgt) for tgt in tgts])
 
         # The ODE System
-        model.add_subsystem('ode', subsys=ode_class(num_nodes=1, **ode_init_kwargs))
+        if ode_class is not None:
+            model.add_subsystem('ode', subsys=ode_class(num_nodes=1, **ode_init_kwargs))
 
         # The state rate collector comp
         self.prob.model.add_subsystem('state_rate_collector',

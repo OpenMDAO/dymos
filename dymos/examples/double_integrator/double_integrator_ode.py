@@ -1,13 +1,8 @@
 from __future__ import print_function, division, absolute_import
 
 from openmdao.api import ExplicitComponent
-from dymos import declare_time, declare_state, declare_parameter
 
 
-@declare_time(units='s')
-@declare_state('x', rate_source='v', units='m')
-@declare_state('v', rate_source='u', units='m/s')
-@declare_parameter('u', units='m/s**2')
 class DoubleIntegratorODE(ExplicitComponent):
     """
     The double integrator is a special case where the state rates are all set to other states
