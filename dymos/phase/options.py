@@ -421,9 +421,10 @@ class StateOptionsDictionary(OptionsDictionary):
                      desc='Enforce continuity of state values at segment boundaries. This '
                           'option is invalid if opt=False.')
 
-        self.declare(name='solve_segments', default=False, types=bool,
-                     desc='setting to control if segment collocation defects are '
-                          'solved with a newton solver')
+        self.declare(name='solve_segments', default=None, types=bool, allow_none=True,
+                     desc='If true, collocation defects within each segment are '
+                          'solved with a newton solver.  If None, use the value of solve_segments '
+                          'in the transcription.')
 
         self.declare(name='connected_initial', default=False, types=bool,
                      desc='Whether an input is created to pass in the initial state. This may be '

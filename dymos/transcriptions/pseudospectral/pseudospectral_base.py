@@ -22,6 +22,10 @@ class PseudospectralBase(TranscriptionBase):
     """
     Base class for the pseudospectral transcriptions.
     """
+    def initialize(self):
+        self.options.declare(name='solve_segments', default=False, types=bool,
+                             desc='default value for solve_segments for all states in the phase')
+
     def setup_time(self, phase):
         time_units = phase.time_options['units']
         grid_data = self.grid_data
@@ -43,6 +47,9 @@ class PseudospectralBase(TranscriptionBase):
         self.any_solved_segs = False
         self.any_connected_opt_segs = False
         for name, options in iteritems(phase.state_options):
+            if options['solve_segments'] is None:
+                options['solve_segments'] = self.options['solve_segments']
+
             if options['solve_segments']:
                 self.any_solved_segs = True
             elif options['connected_initial']:

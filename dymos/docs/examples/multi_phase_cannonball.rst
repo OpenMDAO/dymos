@@ -2,8 +2,20 @@
 Multi-Phase Cannonball
 ======================
 
-This example demonstrates the use of a Trajectory to encapsulate phases for a simple max-range
-cannonball case.
+Maximizing the range of a cannonball in a vacuum is a typical introductory problem for optimal
+control.  In this example we're going to demonstrate a more multidisciplinary take on the problem.
+We will assume a density of the metal from which the cannonball is constructed, and a cannon that can
+fire any diameter cannonball but is limited to a maximum muzzle energy.  If we make the cannonball
+large it will be heavy and the cannon will not be capable of propelling it very far.  If we make
+the cannonball too small, it will have a low ballistic coefficient and not be able to sustain its
+momentum in the presence of atmospheric drag.  Somewhere between these two extremes is the cannonball
+radius which allows for maximum range flight.
+
+The presense of atmospheric drag also means that we typically want to launch the cannonball with more
+horizontal velocity, and thus use a launch angle less than 45 degrees.
+
+In this problem we will find the optimal design for the cannonball (its radius) and the optimal
+flight profile (its launch angle) simultaneously.
 
 Using two phases to capture an intermediate boundary constraint
 ---------------------------------------------------------------
@@ -66,5 +78,5 @@ accordingly.  The initial flight path angle is free, since 45 degrees is not nec
 once air resistance is taken into account.
 
 .. embed-code::
-    dymos.examples.cannonball.test.test_two_phase_cannonball_for_docs.TestTwoPhaseCannonballForDocs.test_two_phase_cannonball_for_docs
+    dymos.examples.cannonball.doc.test_doc_two_phase_cannonball.TestTwoPhaseCannonballForDocs.test_two_phase_cannonball_for_docs
     :layout: code, output, plot

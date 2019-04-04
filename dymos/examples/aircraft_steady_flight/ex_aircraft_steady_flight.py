@@ -36,7 +36,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP',
 
     phase = Phase(ode_class=AircraftODE,
                   transcription=Radau(num_segments=num_seg, segment_ends=seg_ends,
-                                      order=3, compressed=compressed))
+                                      order=3, compressed=compressed, solve_segments=solve_segments))
 
     # Pass Reference Area from an external source
     assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
@@ -58,13 +58,11 @@ def ex_aircraft_steady_flight(optimizer='SLSQP',
         phase.add_boundary_constraint('alt', loc='final', units='kft', equals=10.0, linear=False)
 
     phase.set_state_options('range', units='NM', fix_initial=True, fix_final=False, ref=1e-3,
-                            defect_ref=1e-3, lower=0, upper=2000, solve_segments=solve_segments)
+                            defect_ref=1e-3, lower=0, upper=2000)
     phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=fix_final,
-                            upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2,
-                            solve_segments=solve_segments)
+                            upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2)
     phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=fix_final, lower=0.0,
-                            upper=60, ref=1e-3, defect_ref=1e-3,
-                            solve_segments=solve_segments)
+                            upper=60, ref=1e-3, defect_ref=1e-3)
 
     phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
                       rate_continuity=True, rate2_continuity=False)
