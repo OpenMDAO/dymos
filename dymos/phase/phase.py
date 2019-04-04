@@ -165,7 +165,7 @@ class Phase(Group):
 
         if 'targets' in kwargs and isinstance(kwargs['targets'], string_types):
             kwargs['targets'] = (kwargs['targets'],)
-            
+
         self.user_state_options[name].update(kwargs)
 
     def check_parameter(self, name):
