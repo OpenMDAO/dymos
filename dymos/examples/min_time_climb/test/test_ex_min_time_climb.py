@@ -10,27 +10,100 @@ import errno
 
 from parameterized import parameterized
 
+from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
-import dymos.examples.min_time_climb.ex_min_time_climb as ex_min_time_climb
+import dymos as dm
+from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
+from dymos.utils.testing_utils import use_tempdirs
 
-SHOW_PLOTS = False
+
+def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
+                   transcription_order=3, force_alloc_complex=False):
+
+    p = Problem(model=Group())
+
+    p.driver = pyOptSparseDriver()
+    p.driver.options['optimizer'] = optimizer
+    p.driver.options['dynamic_simul_derivs'] = True
+
+    if optimizer == 'SNOPT':
+        p.driver.opt_settings['Major iterations limit'] = 1000
+        p.driver.opt_settings['iSumm'] = 6
+        p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
+        p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
+        p.driver.opt_settings['Function precision'] = 1.0E-12
+        p.driver.opt_settings['Linesearch tolerance'] = 0.1
+        p.driver.opt_settings['Major step limit'] = 0.5
+        # p.driver.opt_settings['Verify level'] = 3
+
+    t = {'gauss-lobatto': dm.GaussLobatto(num_segments=num_seg, order=transcription_order),
+         'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order),
+         'runge-kutta': dm.RungeKutta(num_segments=num_seg)}
+
+    traj = dm.Trajectory()
+
+    phase = dm.Phase(ode_class=MinTimeClimbODE, transcription=t[transcription])
+    traj.add_phase('phase0', phase)
+
+    p.model.add_subsystem('traj', traj)
+
+    phase.set_time_options(fix_initial=True, duration_bounds=(50, 400),
+                           duration_ref=100.0)
+
+    phase.set_state_options('r', fix_initial=True, lower=0, upper=1.0E6,
+                            ref=1.0E3, defect_ref=1.0E3, units='m')
+
+    phase.set_state_options('h', fix_initial=True, lower=0, upper=20000.0,
+                            ref=1.0E2, defect_ref=1.0E2, units='m')
+
+    phase.set_state_options('v', fix_initial=True, lower=10.0,
+                            ref=1.0E2, defect_ref=1.0E2, units='m/s')
+
+    phase.set_state_options('gam', fix_initial=True, lower=-1.5, upper=1.5,
+                            ref=1.0, defect_ref=1.0, units='rad')
+
+    phase.set_state_options('m', fix_initial=True, lower=10.0, upper=1.0E5,
+                            ref=1.0E3, defect_ref=1.0E3)
+
+    phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
+                      rate_continuity=True, rate_continuity_scaler=100.0,
+                      rate2_continuity=False)
+
+    phase.add_design_parameter('S', val=49.2386, units='m**2', opt=False)
+    phase.add_design_parameter('Isp', val=1600.0, units='s', opt=False)
+    phase.add_design_parameter('throttle', val=1.0, opt=False)
+
+    phase.add_boundary_constraint('h', loc='final', equals=20000, scaler=1.0E-3, units='m')
+    phase.add_boundary_constraint('aero.mach', loc='final', equals=1.0)
+    phase.add_boundary_constraint('gam', loc='final', equals=0.0, units='rad')
+
+    phase.add_path_constraint(name='h', lower=100.0, upper=20000, ref=20000)
+    phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.8)
+
+    # Minimize time at the end of the phase
+    phase.add_objective('time', loc='final', ref=1.0)
+
+    p.model.linear_solver = DirectSolver()
+
+    p.setup(check=True, force_alloc_complex=force_alloc_complex)
+
+    p['traj.phase0.t_initial'] = 0.0
+    p['traj.phase0.t_duration'] = 300.0
+
+    p['traj.phase0.states:r'] = phase.interpolate(ys=[0.0, 111319.54], nodes='state_input')
+    p['traj.phase0.states:h'] = phase.interpolate(ys=[100.0, 20000.0], nodes='state_input')
+    p['traj.phase0.states:v'] = phase.interpolate(ys=[135.964, 283.159], nodes='state_input')
+    p['traj.phase0.states:gam'] = phase.interpolate(ys=[0.0, 0.0], nodes='state_input')
+    p['traj.phase0.states:m'] = phase.interpolate(ys=[19030.468, 16841.431], nodes='state_input')
+    p['traj.phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_input')
+
+    p.run_driver()
+
+    return p
 
 
-class TestExampleMinTimeClimb(unittest.TestCase):
-
-    def setUp(self):
-        self.orig_dir = os.getcwd()
-        self.temp_dir = mkdtemp()
-        os.chdir(self.temp_dir)
-
-    def tearDown(self):
-        os.chdir(self.orig_dir)
-        try:
-            rmtree(self.temp_dir)
-        except OSError as e:
-            # If directory already deleted, keep going
-            if e.errno not in (errno.ENOENT, errno.EACCES, errno.EPERM):
-                raise e
+@use_tempdirs
+class TestMinTimeClimb(unittest.TestCase):
 
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
@@ -38,13 +111,14 @@ class TestExampleMinTimeClimb(unittest.TestCase):
                                                                           p.args[0]])
     )
     def test_results(self, transcription='gauss-lobatto'):
-        p = ex_min_time_climb.min_time_climb(optimizer='SLSQP',
-                                             num_seg=12,
-                                             transcription_order=3,
-                                             transcription=transcription)
+        p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
+                           transcription=transcription)
 
         # Check that time matches to within 1% of an externally verified solution.
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
+        assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
+
+        # Verify that ODE output mach is added to the timeseries
+        assert_rel_error(self, p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
 
 if __name__ == '__main__':
