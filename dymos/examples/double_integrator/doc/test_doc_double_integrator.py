@@ -28,6 +28,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         # Initialize the problem and assign the driver
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()
+        p.driver.options['optimizer'] = 'SLSQP'
         p.driver.options['dynamic_simul_derivs'] = True
 
         # Setup the trajectory and its phase
