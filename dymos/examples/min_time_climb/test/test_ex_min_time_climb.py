@@ -80,6 +80,11 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.add_path_constraint(name='h', lower=100.0, upper=20000, ref=20000)
     phase.add_path_constraint(name='aero.mach', lower=0.1, upper=1.8)
 
+    # Unnecessary but included to test capability
+    phase.add_path_constraint(name='alpha', units='deg', lower=-8, upper=8)
+    phase.add_path_constraint(name='time', lower=0, upper=400)
+    phase.add_path_constraint(name='time_phase', lower=0, upper=400)
+
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', ref=1.0)
 
@@ -105,14 +110,19 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 @use_tempdirs
 class TestMinTimeClimb(unittest.TestCase):
 
-    @parameterized.expand(
-        itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
-                                                                          p.args[0]])
-    )
-    def test_results(self, transcription='gauss-lobatto'):
+    def test_results_gauss_lobatto(self):
         p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
-                           transcription=transcription)
+                           transcription='gauss-lobatto')
+
+        # Check that time matches to within 1% of an externally verified solution.
+        assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
+
+        # Verify that ODE output mach is added to the timeseries
+        assert_rel_error(self, p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
+
+    def test_results_radau(self):
+        p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
+                           transcription='radau-ps')
 
         # Check that time matches to within 1% of an externally verified solution.
         assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 321.0, tolerance=0.02)

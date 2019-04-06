@@ -179,7 +179,7 @@ class Radau(PseudospectralBase):
                 phase.connect(src_name='time',
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
-            if var_type == 'time_phase':
+            elif var_type == 'time_phase':
                 constraint_kwargs['shape'] = (1,)
                 constraint_kwargs['units'] = time_units if con_units is None else con_units
                 constraint_kwargs['linear'] = True
