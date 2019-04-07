@@ -16,9 +16,9 @@ from dymos.utils.testing_utils import use_tempdirs
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
               connected=False):
 
-    t = {'gauss-lobatto': dm.GaussLobatto(num_segments=20, order=transcription_order, compressed=compressed),
+    t = {'gauss-lobatto': dm.GaussLobatto(num_segments=5, order=transcription_order, compressed=compressed),
          'radau': dm.Radau(num_segments=20, order=transcription_order, compressed=compressed),
-         'runge-kutta': dm.RungeKutta(num_segments=20, compressed=compressed)}
+         'runge-kutta': dm.RungeKutta(num_segments=5, compressed=compressed)}
 
     traj = dm.Trajectory()
 
@@ -244,7 +244,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
     def test_ex_two_burn_orbit_raise(self):
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
+        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=True, optimizer=optimizer,
@@ -260,7 +260,7 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
     def test_ex_two_burn_orbit_raise_connected(self):
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
+        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=True, optimizer=optimizer,
