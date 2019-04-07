@@ -244,10 +244,10 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
     def test_ex_two_burn_orbit_raise(self):
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
+        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=True, optimizer=optimizer,
+                                         compressed=False, optimizer=optimizer,
                                          show_output=False)
 
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
@@ -260,10 +260,9 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
     def test_ex_two_burn_orbit_raise_connected(self):
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=True, optimizer=optimizer,
+                                         compressed=False, optimizer='SLSQP',
                                          show_output=False, connected=True)
 
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
