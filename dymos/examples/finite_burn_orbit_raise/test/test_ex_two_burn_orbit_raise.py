@@ -260,6 +260,7 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
     def test_ex_two_burn_orbit_raise_connected(self):
+        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer='SLSQP',
