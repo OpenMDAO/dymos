@@ -9,10 +9,10 @@ any arbitrary order greater than 1 (linear).
 
 We've already demonstrated that the optimal single stage ascent in the absense of an atmosphere
 follows the linear tangent guidance law.  In this example, we'll change the control parameterization
-such that the :math:`\tan{\theta}}` is provided by a polynomial control of order 1.  The LGL nodes
+such that :math:`\tan \theta` is provided by a polynomial control of order 1.  The LGL nodes
 of a first order polynomial are the endpoints of the phase, thus the optimizer will be governing
-the value of :math:`\tan{\theta}}` at the initial and final times of the phase, and the Dymos will
-interpolate the values of :math:`\tan{\theta}}` to all other nodes in the Phase.
+the value of :math:`\tan \theta` at the initial and final times of the phase, and the Dymos will
+interpolate the values of :math:`\tan \theta` to all other nodes in the Phase.
 
 This example is equivalent to the previous linear tangent example in that we've reduced the problem
 from finding the appropriate control value at all nodes to that of finding the optimal value of just

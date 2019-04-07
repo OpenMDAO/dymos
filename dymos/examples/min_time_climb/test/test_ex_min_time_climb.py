@@ -1,14 +1,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
-import itertools
 import unittest
-from shutil import rmtree
-from tempfile import mkdtemp
-import errno
-
-from parameterized import parameterized
 
 from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
 from openmdao.utils.assert_utils import assert_rel_error
