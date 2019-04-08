@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-import dymos.examples.brachistochrone.ex_brachistochrone_vector_states as ex_brachistochrone_vs
+import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.assert_utils import assert_check_partials
@@ -66,8 +66,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         self.assert_results(p)
         self.assert_partials(p)
         self.tearDown()
-        if os.path.exists('ex_brach_radau_compressed.db'):
-            os.remove('ex_brach_radau_compressed.db')
+        if os.path.exists('ex_brachvs_radau_compressed.db'):
+            os.remove('ex_brachvs_radau_compressed.db')
 
     def test_ex_brachistochrone_vs_radau_uncompressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
@@ -80,8 +80,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         self.assert_results(p)
         self.assert_partials(p)
         self.tearDown()
-        if os.path.exists('ex_brach_radau_uncompressed.db'):
-            os.remove('ex_brach_radau_uncompressed.db')
+        if os.path.exists('ex_brachvs_radau_uncompressed.db'):
+            os.remove('ex_brachvs_radau_uncompressed.db')
 
     def test_ex_brachistochrone_vs_gl_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
@@ -94,8 +94,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         self.assert_results(p)
         self.assert_partials(p)
         self.tearDown()
-        if os.path.exists('ex_brach_gl_compressed.db'):
-            os.remove('ex_brach_gl_compressed.db')
+        if os.path.exists('ex_brachvs_gl_compressed.db'):
+            os.remove('ex_brachvs_gl_compressed.db')
 
     def test_ex_brachistochrone_vs_gl_uncompressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
@@ -108,8 +108,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         self.assert_results(p)
         self.assert_partials(p)
         self.tearDown()
-        if os.path.exists('ex_brach_gl_compressed.db'):
-            os.remove('ex_brach_gl_compressed.db')
+        if os.path.exists('ex_brachvs_gl_compressed.db'):
+            os.remove('ex_brachvs_gl_compressed.db')
 
     def test_ex_brachistochrone_vs_rungekutta_compressed(self):
         from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
@@ -235,8 +235,8 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         self.assert_results(p)
         # self.assert_partials(p)
         self.tearDown()
-        if os.path.exists('ex_brach_radau_compressed.db'):
-            os.remove('ex_brach_radau_compressed.db')
+        if os.path.exists('ex_brachvs_radau_compressed.db'):
+            os.remove('ex_brachvs_radau_compressed.db')
 
     def test_ex_brachistochrone_vs_gl_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
@@ -265,8 +265,8 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         self.assert_results(p)
 
         self.tearDown()
-        if os.path.exists('ex_brach_gl_compressed.db'):
-            os.remove('ex_brach_gl_compressed.db')
+        if os.path.exists('ex_brachvs_gl_compressed.db'):
+            os.remove('ex_brachvs_gl_compressed.db')
 
 
 if __name__ == "__main__":
