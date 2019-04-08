@@ -959,7 +959,7 @@ class RungeKutta(TranscriptionBase):
             linear = False
             constraint_path = 'input_parameters:{0}_out'.format(var)
         elif var_type in ('control_rate', 'control_rate2'):
-            control_var = var[:-5]
+            control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
             control_shape = phase.control_options[control_var]['shape']
             control_units = phase.control_options[control_var]['units']
             d = 1 if var_type == 'control_rate' else 2
@@ -969,7 +969,7 @@ class RungeKutta(TranscriptionBase):
             linear = False
             constraint_path = 'control_rates:{0}'.format(var)
         elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
-            control_var = var[:-5]
+            control_var = var[:-5] if var_type == 'polynomial_control_rate' else var[:-6]
             control_shape = phase.polynomial_control_options[control_var]['shape']
             control_units = phase.polynomial_control_options[control_var]['units']
             d = 1 if var_type == 'polynomial_control_rate' else 2

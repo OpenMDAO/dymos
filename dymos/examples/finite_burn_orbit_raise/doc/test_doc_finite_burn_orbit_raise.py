@@ -20,7 +20,6 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
         from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, SqliteRecorder
         from openmdao.utils.assert_utils import assert_rel_error
-        from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         import dymos as dm
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -36,8 +35,7 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         # Setup the optimization driver
         #
         p.driver = pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('SLSQP', fallback=True)
-        p.driver.options['optimizer'] = optimizer
+        p.driver.options['optimizer'] = 'SLSQP'
         p.driver.options['dynamic_simul_derivs'] = True
 
         #
@@ -96,8 +94,8 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         burn2.set_state_options('theta', fix_initial=False, fix_final=False)
         burn2.set_state_options('vr', fix_initial=False, fix_final=True)
         burn2.set_state_options('vt', fix_initial=False, fix_final=True)
-        burn2.set_state_options('accel', fix_initial=False, fix_final=False, defect_scaler=1.0)
-        burn2.set_state_options('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0)
+        burn2.set_state_options('accel', fix_initial=False, fix_final=False)
+        burn2.set_state_options('deltav', fix_initial=False, fix_final=False)
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
                           scaler=0.01, lower=-30, upper=30)
 

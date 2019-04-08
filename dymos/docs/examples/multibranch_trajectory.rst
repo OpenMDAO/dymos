@@ -50,7 +50,7 @@ Building and running the problem
 --------------------------------
 
 .. embed-code::
-    dymos.examples.battery_multibranch.test.test_multibranch_trajectory_for_docs.TestBatteryBranchingPhasesForDocs.test_basic
+    dymos.examples.battery_multibranch.doc.test_multibranch_trajectory_for_docs.TestBatteryBranchingPhasesForDocs.test_basic
     :layout: code, output, plot
 
 References
