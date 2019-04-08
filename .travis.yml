@@ -10,7 +10,7 @@ os:
 
 env:
   - PY=2.7
-  - PY=3.6 UPLOAD_DOCS=1
+  - PY=3.6 UPLOAD_DOCS=1 PETSc=3.9.1
 
 language: generic
 
@@ -108,6 +108,13 @@ install:
     cd MBI;
     python setup.py build install;
     cd ..;
+
+    if [ "$PETSc" ]; then
+      echo " >> Installing parallel processing dependencies";
+      pip install mpi4py;
+      pip install petsc4py==$PETSc;
+    fi
+
   fi
 
 # install OpenMDAO in developer mode so we have access to its sphinx extensions
