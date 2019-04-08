@@ -23,9 +23,10 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         from openmdao.api import Problem, Group, pyOptSparseDriver, IndepVarComp
         from openmdao.utils.assert_utils import assert_rel_error
 
-        from dymos import Phase, Radau
+        import dymos as dm
 
         from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
+        from dymos.examples.plotting import plot_results
         from dymos.utils.lgl import lgl
 
         p = Problem(model=Group())
@@ -36,17 +37,19 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
 
-        phase = Phase(ode_class=AircraftODE,
-                      transcription=Radau(num_segments=num_seg, segment_ends=seg_ends,
-                                          order=3, compressed=False))
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        phase = traj.add_phase('phase0',
+                               dm.Phase(ode_class=AircraftODE,
+                                        transcription=dm.Radau(num_segments=num_seg,
+                                                               segment_ends=seg_ends,
+                                                               order=3, compressed=False)))
 
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
         assumptions.add_output('S', val=427.8, units='m**2')
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
-
-        p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(initial_bounds=(0, 0),
                                duration_bounds=(300, 10000),
@@ -70,21 +73,21 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0, shape=(1,))
 
-        p.model.connect('assumptions.S', 'phase0.input_parameters:S')
-        p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
-        p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
+        p.model.connect('assumptions.S', 'traj.phase0.input_parameters:S')
+        p.model.connect('assumptions.mass_empty', 'traj.phase0.input_parameters:mass_empty')
+        p.model.connect('assumptions.mass_payload', 'traj.phase0.input_parameters:mass_payload')
 
         phase.add_objective('range', loc='final', ref=-1.0e-4)
 
         p.setup()
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 3600.0
-        p['phase0.states:range'][:] = phase.interpolate(ys=(0, 724.0), nodes='state_input')
-        p['phase0.states:mass_fuel'][:] = phase.interpolate(ys=(30000, 1e-3), nodes='state_input')
-        p['phase0.states:alt'][:] = 10.0
+        p['traj.phase0.t_initial'] = 0.0
+        p['traj.phase0.t_duration'] = 3600.0
+        p['traj.phase0.states:range'][:] = phase.interpolate(ys=(0, 724.0), nodes='state_input')
+        p['traj.phase0.states:mass_fuel'][:] = phase.interpolate(ys=(30000, 1e-3), nodes='state_input')
+        p['traj.phase0.states:alt'][:] = 10.0
 
-        p['phase0.controls:mach'][:] = 0.8
+        p['traj.phase0.controls:mach'][:] = 0.8
 
         p['assumptions.S'] = 427.8
         p['assumptions.mass_empty'] = 0.15E6
@@ -92,38 +95,17 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p.get_val('phase0.timeseries.states:range', units='NM')[-1],
+        assert_rel_error(self, p.get_val('traj.phase0.timeseries.states:range', units='NM')[-1],
                          726.85, tolerance=1.0E-2)
 
-        exp_out = phase.simulate()
+        exp_out = traj.simulate()
 
-        t_imp = p.get_val('phase0.timeseries.time')
-        t_exp = exp_out.get_val('phase0.timeseries.time')
-
-        alt_imp = p.get_val('phase0.timeseries.states:alt')
-        alt_exp = exp_out.get_val('phase0.timeseries.states:alt')
-
-        climb_rate_imp = p.get_val('phase0.timeseries.controls:climb_rate', units='ft/min')
-        climb_rate_exp = exp_out.get_val('phase0.timeseries.controls:climb_rate',
-                                         units='ft/min')
-
-        mass_fuel_imp = p.get_val('phase0.timeseries.states:mass_fuel', units='kg')
-        mass_fuel_exp = exp_out.get_val('phase0.timeseries.states:mass_fuel', units='kg')
-
-        plt.show()
-        plt.plot(t_imp, alt_imp, 'b-')
-        plt.plot(t_exp, alt_exp, 'b-')
-        plt.suptitle('altitude vs time')
-
-        plt.figure()
-        plt.plot(t_imp, climb_rate_imp, 'ro')
-        plt.plot(t_exp, climb_rate_exp, 'b-')
-        plt.suptitle('climb rate vs time')
-
-        plt.figure()
-        plt.plot(t_imp, mass_fuel_imp, 'ro')
-        plt.plot(t_exp, mass_fuel_exp, 'b-')
-        plt.suptitle('fuel mass vs time')
+        plot_results([('traj.phase0.timeseries.states:range', 'traj.phase0.timeseries.states:alt',
+                       'range (NM)', 'altitude (kft)'),
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.states:mass_fuel',
+                       'time (s)', 'fuel mass (lbm)')],
+                     title='Commercial Aircraft Optimization',
+                     p_sol=p, p_sim=exp_out)
 
         plt.show()
 

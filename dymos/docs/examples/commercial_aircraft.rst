@@ -394,7 +394,7 @@ the use of externally-connected design parameters in this case.  The four design
 `input_value = True`, and are connected to a source provided by the `assumptions` IndepVarComp.
 
 .. embed-code::
-    dymos.examples.aircraft_steady_flight.test.test_doc_aircraft_steady_flight.TestSteadyAircraftFlightForDocs.test_steady_aircraft_for_docs
+    dymos.examples.aircraft_steady_flight.doc.test_doc_aircraft_steady_flight.TestSteadyAircraftFlightForDocs.test_steady_aircraft_for_docs
     :layout: code, output, plot
 
 References
