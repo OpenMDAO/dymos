@@ -422,7 +422,8 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         # Test the results
         assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
-        assert_rel_error(self, p.get_val('phase0.timeseries.control_rates:theta_rate2')[-1, 0], 0)
+        assert_rel_error(self, p.get_val('phase0.timeseries.control_rates:theta_rate2')[-1, 0], 0,
+                         tolerance=1.0E-6)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
