@@ -21,14 +21,14 @@ In this case we also use the steady flight assumption to allow the problem
 to be parameterized with a different control set.  Rather than providing
 throttle/thrust and angle of attack as control variables, we use a *differential
 inclusion* approach.  Whereas altitude and velocity are often treated as
-state variables to be integrated, here we specify them as controls.
+state variables to be integrated, here we take a slightly different approach.
 
 Rather than using the differential equations to compute rates for the
 flight path angle and true airspeed, we use a nonlinear solver to determine
 the alpha and thrust time-history which is needed to make the given
 altitude and airspeed time-history possible.  This technique is known
 as differential inclusion.  It was demonstrated by Seywald [Seywald1994]_.  Since
-the collocation techniques in |project| are based on polynomial approximations,
+the collocation techniques in Dymos are based on polynomial approximations,
 rates of the control variables can be easily calculated, which can then be used
 to the reordered dynamics equations to solve for angle of attack and thrust.
 
@@ -41,6 +41,7 @@ presence of nonlinear solvers can lead to inaccurate derivatives based on the pr
 of the solver.  With OpenMDAO's unified derivatives framework, the sensitivy to
 solver tolerances is greatly reduced.
 
+
 Pitfalls of Differential Inclusion
 ==================================
 
@@ -50,6 +51,17 @@ optimizer to suggest a flight profile that requires thrust well beyond the capab
 of the vehicle.  In our case, the throttle parameter :math:`$\tau$` is path constrained
 within the optimizer, so that the optimizer can make the solution physically attainable
 by our model.
+
+We have two options for how to tackle this problem.  We could specify altitude as a control
+variable, and use it's approximate derivative (`alt_rate`) to provide the altitude rate for
+the flight equilibrium conditions.  In practice, however, this noisy derivative of altitude
+can cause numerical difficulties.  Other times, the optimizer will shape the control to satisfy
+our equilibrium conditions at the collocation nodes but be wildly wrong in between these nodes.
+One simple way to get around this is to still integrate altitude, but to provide `climb_rate`
+as the control variable.  This makes it easy to constraint `climb_rate` with bounds constraints,
+and the time-history of altitude will be smoother since it is the time integral of the rate of
+climb.
+
 
 Solver Options
 ##############
@@ -70,7 +82,9 @@ instead relying on the derivative at the at the previous solution.  In the conte
 even explicit components constitute subsystems. This can lead to poorly converged solutions.
 
 Setting the `solve_subystems` option to True will force subsystems to be updated, making sure that
-all derivative information is up-to-date.  The
+all derivative information is up-to-date.
+
+.. code-block:: python
 
         self.nonlinear_solver.options['solve_subsystems'] = True
         self.nonlinear_solver.options['max_sub_solves'] = 10
@@ -105,16 +119,17 @@ Name       Description                     Fixed Initial Value Fixed Final Value
 =========  ==============================  =================== ===================
 range      distance flown along ground     True (0 NM)         False
 mass_fuel  mass of fuel aboard aircraft    True (30000 lbm)    True (0 lbm)
+alt        aircraft altitude               True (10000 ft)     True (10000 ft)
 =========  ==============================  =================== ===================
 
 Dynamic Controls
 ================
 
-=====  ==============================  =========  =================== ===================
-Name   Description                     Optimized  Fixed Initial Value Fixed Final Value
-=====  ==============================  =========  =================== ===================
-alt    aircraft altitude               True       True (10000 ft)     True (10000 ft)
-=====  ==============================  =========  =================== ===================
+==========       ==============================  =========  =================== ===================
+Name             Description                     Optimized  Fixed Initial Value Fixed Final Value
+==========       ==============================  =========  =================== ===================
+climb_rate       aircraft rate of climb          True       False               False
+==========       ==============================  =========  =================== ===================
 
 Design Parameters
 =================
@@ -144,7 +159,6 @@ Nonlinear Path Constraints
 Name          Location (initial or final)     Lower         Upper
 ============  ==============================  ============  ==============
 tau           engine throttle parameter       0.01          1.0
-alt_rate      climb rate                      -3000 ft/min  3000 ft/min
 ============  ==============================  ============  ==============
 
 Nonlinear Boundary Constraints
@@ -380,7 +394,7 @@ the use of externally-connected design parameters in this case.  The four design
 `input_value = True`, and are connected to a source provided by the `assumptions` IndepVarComp.
 
 .. embed-code::
-    dymos.examples.aircraft_steady_flight.test.test_doc_aircraft_steady_flight.TestSteadyAircraftFlightForDocs.test_steady_aircraft_for_docs
+    dymos.examples.aircraft_steady_flight.doc.test_doc_aircraft_steady_flight.TestSteadyAircraftFlightForDocs.test_steady_aircraft_for_docs
     :layout: code, output, plot
 
 References

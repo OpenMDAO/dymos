@@ -4,13 +4,10 @@ import os
 import unittest
 from numpy.testing import assert_almost_equal
 
-from parameterized import parameterized
-from itertools import product
-
-import dymos.examples.brachistochrone.ex_brachistochrone as ex_brachistochrone
+import dymos.examples.brachistochrone.test.ex_brachistochrone as ex_brachistochrone
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
-OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
+OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 
 
 class TestBrachistochroneExample(unittest.TestCase):
@@ -22,21 +19,22 @@ class TestBrachistochroneExample(unittest.TestCase):
                 os.remove(filename)
 
     def run_asserts(self, p):
-        t_initial = p.model.phase0.get_values('time')[0]
-        tf = p.model.phase0.get_values('time')[-1]
 
-        x0 = p.model.phase0.get_values('x')[0]
-        xf = p.model.phase0.get_values('x')[-1]
+        t_initial = p.get_val('phase0.timeseries.time')[0]
+        tf = p.get_val('phase0.timeseries.time')[-1]
 
-        y0 = p.model.phase0.get_values('y')[0]
-        yf = p.model.phase0.get_values('y')[-1]
+        x0 = p.get_val('phase0.timeseries.states:x')[0]
+        xf = p.get_val('phase0.timeseries.states:x')[-1]
 
-        v0 = p.model.phase0.get_values('v')[0]
-        vf = p.model.phase0.get_values('v')[-1]
+        y0 = p.get_val('phase0.timeseries.states:y')[0]
+        yf = p.get_val('phase0.timeseries.states:y')[-1]
 
-        g = p.model.phase0.get_values('g')
+        v0 = p.get_val('phase0.timeseries.states:v')[0]
+        vf = p.get_val('phase0.timeseries.states:v')[-1]
 
-        thetaf = p.model.phase0.get_values('theta')[-1]
+        g = p.get_val('phase0.timeseries.input_parameters:g')[0]
+
+        thetaf = p.get_val('phase0.timeseries.controls:theta')[-1]
 
         assert_almost_equal(t_initial, 0.0)
         assert_almost_equal(x0, 0.0)
@@ -54,8 +52,7 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_ex_brachistochrone_radau_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        compressed=True,
-                                                        sim_record='ex_brach_radau_compressed.db')
+                                                        compressed=True)
         self.run_asserts(p)
         self.tearDown()
         if os.path.exists('ex_brach_radau_compressed.db'):
@@ -64,8 +61,7 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_ex_brachistochrone_radau_uncompressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        compressed=False,
-                                                        sim_record='ex_brach_radau_uncompressed.db')
+                                                        compressed=False)
         self.run_asserts(p)
         self.tearDown()
         if os.path.exists('ex_brach_radau_uncompressed.db'):
@@ -74,8 +70,7 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_ex_brachistochrone_gl_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        compressed=True,
-                                                        sim_record='ex_brach_gl_compressed.db')
+                                                        compressed=True)
         self.run_asserts(p)
         self.tearDown()
         if os.path.exists('ex_brach_gl_compressed.db'):
@@ -84,9 +79,8 @@ class TestBrachistochroneExample(unittest.TestCase):
     def test_ex_brachistochrone_gl_uncompressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        compressed=False,
-                                                        sim_record='ex_brach_gl_compressed.db')
+                                                        compressed=False)
         self.run_asserts(p)
         self.tearDown()
-        if os.path.exists('ex_brach_gl_compressed.db'):
-            os.remove('ex_brach_gl_compressed.db')
+        if os.path.exists('ex_brach_gl_uncompressed.db'):
+            os.remove('ex_brach_gl_uncompressed.db')

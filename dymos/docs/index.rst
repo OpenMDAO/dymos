@@ -4,19 +4,19 @@
    contain the root `toctree` directive.
 
 
-|project|: Open-source Optimal Control for Multidisciplinary Systems
+Dymos: Open-source Optimal Control for Multidisciplinary Systems
 ====================================================================
 
-|project| is an open-source tool for solving optimal control problems involving multidisplinary systems.
+Dymos is an open-source tool for solving optimal control problems involving multidisplinary systems.
 It is built on top of the `OpenMDAO framework <https://github.com/openmdao/blue>`_.
-The goal of |project| is to allow users to solve optimal control problems using a variety of methods.
-Presently, |project| supports optimal control via the following techniques:
+The goal of Dymos is to allow users to solve optimal control problems using a variety of methods.
+Presently, Dymos supports optimal control via the following techniques:
 
 * Gauss-Lobatto collocation method [ConwayHerman1996]_
 * Radau-pseudospectral method [Garg2009]_
+* Simple ODE integration and shooting via Runge-Kutta
 
-More direct optimal control transcriptions may be added to |project| in the future.
-
+Dymos was designed with generality and extensibility to other optimal control transcriptions in mind.
 
 Table of Contents
 =================
@@ -25,11 +25,10 @@ Table of Contents
     :maxdepth: 3
     :titlesonly:
 
-    user_guide/user_guide
+    quick_start/quick_start
+    feature_reference/feature_reference
     examples/examples
     references/references.rst
-
-
 
 Source Docs
 ===========

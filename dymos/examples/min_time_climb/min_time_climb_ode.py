@@ -4,7 +4,7 @@ from openmdao.api import Group
 
 from dymos import declare_time, declare_state, declare_parameter
 
-from ...models.atmosphere import StandardAtmosphereGroup
+from ...models.atmosphere import USatm1976Comp
 from .aero import AeroGroup
 from .prop import PropGroup
 from ...models.eom import FlightPathEOM2D
@@ -29,7 +29,7 @@ class MinTimeClimbODE(Group):
         nn = self.options['num_nodes']
 
         self.add_subsystem(name='atmos',
-                           subsys=StandardAtmosphereGroup(num_nodes=nn),
+                           subsys=USatm1976Comp(num_nodes=nn),
                            promotes_inputs=['h'])
 
         self.add_subsystem(name='aero',

@@ -1,0 +1,123 @@
+from __future__ import print_function, division, absolute_import
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
+
+from dymos import Phase, GaussLobatto, Radau, RungeKutta
+from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+
+SHOW_PLOTS = True
+
+
+def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
+                             run_driver=True, compressed=True, optimizer='SLSQP'):
+    p = Problem(model=Group())
+
+    # if optimizer == 'SNOPT':
+    p.driver = pyOptSparseDriver()
+    p.driver.options['optimizer'] = optimizer
+    p.driver.options['dynamic_simul_derivs'] = True
+
+    if transcription == 'gauss-lobatto':
+        t = GaussLobatto(num_segments=num_segments,
+                         order=transcription_order,
+                         compressed=compressed)
+    elif transcription == 'radau-ps':
+        t = Radau(num_segments=num_segments,
+                  order=transcription_order,
+                  compressed=compressed)
+    elif transcription == 'runge-kutta':
+        t = RungeKutta(num_segments=num_segments,
+                       order=transcription_order,
+                       compressed=compressed)
+
+    phase = Phase(ode_class=BrachistochroneODE, transcription=t)
+
+    p.model.add_subsystem('phase0', phase)
+
+    phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+    phase.set_state_options('x', fix_initial=True, fix_final=False, solve_segments=False)
+    phase.set_state_options('y', fix_initial=True, fix_final=False, solve_segments=False)
+    phase.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=False)
+
+    phase.add_control('theta', continuity=True, rate_continuity=True,
+                      units='deg', lower=0.01, upper=179.9)
+
+    phase.add_input_parameter('g', units='m/s**2', val=9.80665)
+
+    phase.add_boundary_constraint('x', loc='final', equals=10)
+    phase.add_boundary_constraint('y', loc='final', equals=5)
+    # Minimize time at the end of the phase
+    phase.add_objective('time_phase', loc='final', scaler=10)
+
+    p.model.linear_solver = DirectSolver()
+    p.setup(check=True)
+
+    p['phase0.t_initial'] = 0.0
+    p['phase0.t_duration'] = 2.0
+
+    p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+    p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+    p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+    p['phase0.input_parameters:g'] = 9.80665
+
+    p.run_model()
+
+    if run_driver:
+        p.run_driver()
+
+    # Plot results
+    if SHOW_PLOTS:
+        exp_out = phase.simulate()
+
+        fig, ax = plt.subplots()
+        fig.suptitle('Brachistochrone Solution')
+
+        x_imp = p.get_val('phase0.timeseries.states:x')
+        y_imp = p.get_val('phase0.timeseries.states:y')
+
+        x_exp = exp_out.get_val('phase0.timeseries.states:x')
+        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+
+        ax.plot(x_imp, y_imp, 'ro', label='implicit')
+        ax.plot(x_exp, y_exp, 'b-', label='explicit')
+
+        ax.set_xlabel('x (m)')
+        ax.set_ylabel('y (m)')
+        ax.grid(True)
+        ax.legend(loc='upper right')
+
+        fig, ax = plt.subplots()
+        fig.suptitle('Brachistochrone Solution')
+
+        x_imp = p.get_val('phase0.timeseries.time_phase')
+        y_imp = p.get_val('phase0.timeseries.controls:theta')
+
+        x_exp = exp_out.get_val('phase0.timeseries.time_phase')
+        y_exp = exp_out.get_val('phase0.timeseries.controls:theta')
+
+        ax.plot(x_imp, y_imp, 'ro', label='implicit')
+        ax.plot(x_exp, y_exp, 'b-', label='explicit')
+
+        ax.set_xlabel('time (s)')
+        ax.set_ylabel('theta (rad)')
+        ax.grid(True)
+        ax.legend(loc='lower right')
+
+        plt.show()
+
+    return p
+
+
+if __name__ == '__main__':
+    brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10, run_driver=True,
+                             transcription_order=3, compressed=True,
+                             optimizer='SNOPT')
+    # brachistochrone_min_time(transcription='radau-ps', num_segments=10, run_driver=True,
+    #                          top_level_jacobian='csc', transcription_order=3, compressed=True,
+    #                          optimizer='SNOPT')

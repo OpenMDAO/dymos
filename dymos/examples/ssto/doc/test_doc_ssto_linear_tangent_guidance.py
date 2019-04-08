@@ -1,0 +1,306 @@
+from __future__ import print_function, absolute_import, division
+
+import unittest
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+
+
+class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
+
+    def test_doc_ssto_linear_tangent_guidance(self):
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from openmdao.api import Problem, Group, ExplicitComponent, DirectSolver, \
+            pyOptSparseDriver
+        from openmdao.utils.assert_utils import assert_rel_error
+        import dymos as dm
+        from dymos.examples.plotting import plot_results
+
+        g = 1.61544  # lunar gravity, m/s**2
+
+        class LaunchVehicle2DEOM(ExplicitComponent):
+            """
+            Simple 2D Cartesian Equations of Motion for a launch vehicle subject to thrust and drag.
+            """
+            def initialize(self):
+                self.options.declare('num_nodes', types=int)
+
+            def setup(self):
+                nn = self.options['num_nodes']
+
+                # Inputs
+                self.add_input('vx',
+                               val=np.zeros(nn),
+                               desc='x velocity',
+                               units='m/s')
+
+                self.add_input('vy',
+                               val=np.zeros(nn),
+                               desc='y velocity',
+                               units='m/s')
+
+                self.add_input('m',
+                               val=np.zeros(nn),
+                               desc='mass',
+                               units='kg')
+
+                self.add_input('theta',
+                               val=np.zeros(nn),
+                               desc='pitch angle',
+                               units='rad')
+
+                self.add_input('thrust',
+                               val=2100000 * np.ones(nn),
+                               desc='thrust',
+                               units='N')
+
+                self.add_input('Isp',
+                               val=265.2 * np.ones(nn),
+                               desc='specific impulse',
+                               units='s')
+
+                # Outputs
+                self.add_output('xdot',
+                                val=np.zeros(nn),
+                                desc='velocity component in x',
+                                units='m/s')
+
+                self.add_output('ydot',
+                                val=np.zeros(nn),
+                                desc='velocity component in y',
+                                units='m/s')
+
+                self.add_output('vxdot',
+                                val=np.zeros(nn),
+                                desc='x acceleration magnitude',
+                                units='m/s**2')
+
+                self.add_output('vydot',
+                                val=np.zeros(nn),
+                                desc='y acceleration magnitude',
+                                units='m/s**2')
+
+                self.add_output('mdot',
+                                val=np.zeros(nn),
+                                desc='mass rate of change',
+                                units='kg/s')
+
+                # Setup partials
+                ar = np.arange(self.options['num_nodes'])
+
+                self.declare_partials(of='xdot', wrt='vx', rows=ar, cols=ar, val=1.0)
+                self.declare_partials(of='ydot', wrt='vy', rows=ar, cols=ar, val=1.0)
+
+                self.declare_partials(of='vxdot', wrt='vx', rows=ar, cols=ar)
+                self.declare_partials(of='vxdot', wrt='m', rows=ar, cols=ar)
+                self.declare_partials(of='vxdot', wrt='theta', rows=ar, cols=ar)
+                self.declare_partials(of='vxdot', wrt='thrust', rows=ar, cols=ar)
+
+                self.declare_partials(of='vydot', wrt='m', rows=ar, cols=ar)
+                self.declare_partials(of='vydot', wrt='theta', rows=ar, cols=ar)
+                self.declare_partials(of='vydot', wrt='vy', rows=ar, cols=ar)
+                self.declare_partials(of='vydot', wrt='thrust', rows=ar, cols=ar)
+
+                self.declare_partials(of='mdot', wrt='thrust', rows=ar, cols=ar)
+                self.declare_partials(of='mdot', wrt='Isp', rows=ar, cols=ar)
+
+            def compute(self, inputs, outputs):
+                theta = inputs['theta']
+                cos_theta = np.cos(theta)
+                sin_theta = np.sin(theta)
+                vx = inputs['vx']
+                vy = inputs['vy']
+                m = inputs['m']
+                F_T = inputs['thrust']
+                Isp = inputs['Isp']
+
+                outputs['xdot'] = vx
+                outputs['ydot'] = vy
+                outputs['vxdot'] = F_T * cos_theta / m
+                outputs['vydot'] = F_T * sin_theta / m - g
+                outputs['mdot'] = -F_T / (g * Isp)
+
+            def compute_partials(self, inputs, jacobian):
+                theta = inputs['theta']
+                cos_theta = np.cos(theta)
+                sin_theta = np.sin(theta)
+                m = inputs['m']
+                F_T = inputs['thrust']
+                Isp = inputs['Isp']
+
+                # jacobian['vxdot', 'vx'] = -CDA * rho * vx / m
+                jacobian['vxdot', 'm'] = -(F_T * cos_theta) / m ** 2
+                jacobian['vxdot', 'theta'] = -(F_T / m) * sin_theta
+                jacobian['vxdot', 'thrust'] = cos_theta / m
+
+                # jacobian['vydot', 'vy'] = -CDA * rho * vy / m
+                jacobian['vydot', 'm'] = -(F_T * sin_theta) / m ** 2
+                jacobian['vydot', 'theta'] = (F_T / m) * cos_theta
+                jacobian['vydot', 'thrust'] = sin_theta / m
+
+                jacobian['mdot', 'thrust'] = -1.0 / (g * Isp)
+                jacobian['mdot', 'Isp'] = F_T / (g * Isp ** 2)
+
+        class LinearTangentGuidanceComp(ExplicitComponent):
+            """ Compute pitch angle from static controls governing linear expression for
+                pitch angle tangent as function of time.
+            """
+
+            def initialize(self):
+                self.options.declare('num_nodes', types=int)
+
+            def setup(self):
+                nn = self.options['num_nodes']
+
+                self.add_input('a_ctrl',
+                               val=np.zeros(nn),
+                               desc='linear tangent slope',
+                               units='1/s')
+
+                self.add_input('b_ctrl',
+                               val=np.zeros(nn),
+                               desc='tangent of theta at t=0',
+                               units=None)
+
+                self.add_input('time_phase',
+                               val=np.zeros(nn),
+                               desc='time',
+                               units='s')
+
+                self.add_output('theta',
+                                val=np.zeros(nn),
+                                desc='pitch angle',
+                                units='rad')
+
+                # Setup partials
+                arange = np.arange(self.options['num_nodes'])
+
+                self.declare_partials(of='theta', wrt='a_ctrl', rows=arange, cols=arange, val=1.0)
+                self.declare_partials(of='theta', wrt='b_ctrl', rows=arange, cols=arange, val=1.0)
+                self.declare_partials(of='theta', wrt='time_phase', rows=arange, cols=arange, val=1.0)
+
+            def compute(self, inputs, outputs):
+                a = inputs['a_ctrl']
+                b = inputs['b_ctrl']
+                t = inputs['time_phase']
+                outputs['theta'] = np.arctan(a * t + b)
+
+            def compute_partials(self, inputs, jacobian):
+                a = inputs['a_ctrl']
+                b = inputs['b_ctrl']
+                t = inputs['time_phase']
+
+                x = a * t + b
+                denom = x ** 2 + 1.0
+
+                jacobian['theta', 'a_ctrl'] = t / denom
+                jacobian['theta', 'b_ctrl'] = 1.0 / denom
+                jacobian['theta', 'time_phase'] = a / denom
+
+        @dm.declare_time(units='s', targets=['guidance.time_phase'])
+        @dm.declare_state('x', rate_source='eom.xdot', units='m')
+        @dm.declare_state('y', rate_source='eom.ydot', units='m')
+        @dm.declare_state('vx', rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
+        @dm.declare_state('vy', rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
+        @dm.declare_state('m', rate_source='eom.mdot', targets=['eom.m'], units='kg')
+        @dm.declare_parameter('thrust', targets=['eom.thrust'], units='N')
+        @dm.declare_parameter('a_ctrl', targets=['guidance.a_ctrl'], units='1/s')
+        @dm.declare_parameter('b_ctrl', targets=['guidance.b_ctrl'], units=None)
+        @dm.declare_parameter('Isp', targets=['eom.Isp'], units='s')
+        class LaunchVehicleLinearTangentODE(Group):
+            """
+            The LaunchVehicleLinearTangentODE for this case consists of a guidance component and
+            the EOM.  Guidance is simply an OpenMDAO ExecComp which computes the arctangent of the
+            tan_theta variable.
+            """
+            def initialize(self):
+                self.options.declare('num_nodes', types=int,
+                                     desc='Number of nodes to be evaluated in the RHS')
+
+            def setup(self):
+                nn = self.options['num_nodes']
+                self.add_subsystem('guidance', LinearTangentGuidanceComp(num_nodes=nn))
+                self.add_subsystem('eom', LaunchVehicle2DEOM(num_nodes=nn))
+                self.connect('guidance.theta', 'eom.theta')
+
+        #
+        # Setup and solve the optimal control problem
+        #
+        p = Problem(model=Group())
+
+        p.driver = pyOptSparseDriver()
+        p.driver.options['dynamic_simul_derivs'] = True
+
+        traj = dm.Trajectory()
+        p.model.add_subsystem('traj', traj)
+
+        phase = dm.Phase(ode_class=LaunchVehicleLinearTangentODE,
+                         transcription=dm.GaussLobatto(num_segments=10, order=5, compressed=True))
+
+        traj.add_phase('phase0', phase)
+
+        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 1000))
+
+        phase.set_state_options('x', fix_initial=True, lower=0)
+        phase.set_state_options('y', fix_initial=True, lower=0)
+        phase.set_state_options('vx', fix_initial=True, lower=0)
+        phase.set_state_options('vy', fix_initial=True)
+        phase.set_state_options('m', fix_initial=True)
+
+        phase.add_boundary_constraint('y', loc='final', equals=1.85E5, linear=True)
+        phase.add_boundary_constraint('vx', loc='final', equals=1627.0)
+        phase.add_boundary_constraint('vy', loc='final', equals=0)
+
+        phase.add_design_parameter('a_ctrl', units='1/s', opt=True)
+        phase.add_design_parameter('b_ctrl', units=None, opt=True)
+        phase.add_design_parameter('thrust', units='N', opt=False, val=3.0 * 50000.0 * 1.61544)
+        phase.add_design_parameter('Isp', units='s', opt=False, val=1.0E6)
+
+        phase.add_objective('time', index=-1, scaler=0.01)
+
+        p.model.linear_solver = DirectSolver()
+
+        phase.add_timeseries_output('guidance.theta', units='deg')
+
+        p.setup(check=True)
+
+        p['traj.phase0.t_initial'] = 0.0
+        p['traj.phase0.t_duration'] = 500.0
+        p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 350000.0], nodes='state_input')
+        p['traj.phase0.states:y'] = phase.interpolate(ys=[0, 185000.0], nodes='state_input')
+        p['traj.phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_input')
+        p['traj.phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_input')
+        p['traj.phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_input')
+        p['traj.phase0.design_parameters:a_ctrl'] = -0.01
+        p['traj.phase0.design_parameters:b_ctrl'] = 3.0
+
+        p.run_driver()
+
+        #
+        # Check the results.
+        #
+        assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 481, tolerance=0.01)
+
+        #
+        # Get the explitly simulated results
+        #
+        exp_out = traj.simulate()
+
+        #
+        # Plot the results
+        #
+        plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
+                       'range (m)', 'altitude (m)'),
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.theta',
+                       'range (m)', 'altitude (m)')],
+                     title='Single Stage to Orbit Solution Using Linear Tangent Guidance',
+                     p_sol=p, p_sim=exp_out)
+
+        plt.show()
+
+
+if __name__ == "__main__":
+    unittest.main()

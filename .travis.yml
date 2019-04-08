@@ -9,8 +9,8 @@ os:
   - linux
 
 env:
-  - PY=2.7
-  - PY=3.6 UPLOAD_DOCS=1
+  - PY=2.7 PETSc=3.8.1
+  - PY=3.6 UPLOAD_DOCS=1 PETSc=3.9.1
 
 language: generic
 
@@ -81,8 +81,8 @@ install:
     sudo apt-get install gfortran;
 
     pip install --upgrade pip;
-    pip install numpy==1.14.1;
-    pip install scipy==1.0.0;
+    pip install numpy==1.16.0;
+    pip install scipy==1.2.0;
     pip install mpi4py;
     pip install matplotlib;
     pip install nose;
@@ -108,12 +108,19 @@ install:
     cd MBI;
     python setup.py build install;
     cd ..;
+
+    if [ "$PETSc" ]; then
+      echo " >> Installing parallel processing dependencies";
+      pip install mpi4py;
+      pip install petsc4py==$PETSc;
+    fi
+
   fi
 
 # install OpenMDAO in developer mode so we have access to its sphinx extensions
 - git clone https://github.com/OpenMDAO/OpenMDAO.git;
 - cd OpenMDAO;
-- pip install -e .;
+- pip install -e .[all];
 - cd ..;
 
 # install dymos itself in developer mode.

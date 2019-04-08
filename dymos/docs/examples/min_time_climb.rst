@@ -52,7 +52,7 @@ and the final conditions are
 In the following code we follow the following process to solve the problem:
 
 .. embed-code::
-    dymos.examples.min_time_climb.test.test_doc_min_time_climb.TestMinTimeClimbForDocs.test_min_time_climb_for_docs_gauss_lobatto
+    dymos.examples.min_time_climb.doc.test_doc_min_time_climb.TestMinTimeClimbForDocs.test_min_time_climb_for_docs_gauss_lobatto
     :layout: code, output, plot
 
 
