@@ -429,12 +429,8 @@ class Radau(PseudospectralBase):
                                                    var_class=phase.classify_var(name),
                                                    units=units)
 
-            if options['dynamic']:
-                src_idxs_raw = np.zeros(gd.subset_num_nodes['all'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-            else:
-                src_idxs_raw = np.zeros(1, dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            src_idxs_raw = np.zeros(gd.subset_num_nodes['all'], dtype=int)
+            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
             phase.connect(src_name='traj_parameters:{0}_out'.format(name),
                           tgt_name='timeseries.all_values:traj_parameters:{0}'.format(name),
