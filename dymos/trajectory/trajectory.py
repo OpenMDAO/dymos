@@ -167,6 +167,8 @@ class Trajectory(Group):
                         if isinstance(target_params, dict) else name
                     tgt_names = targets.get(phase_name, None) \
                         if isinstance(targets, dict) else None
+                    if tgt_param_name is None and tgt_names is not None:
+                        tgt_param_name = name
                     if tgt_param_name:
                         kwargs = {'dynamic': options['dynamic'],
                                   'units': options['units'],
@@ -207,18 +209,28 @@ class Trajectory(Group):
                 # Connect the design parameter to its target in each phase
                 src_name = 'design_parameters:{0}'.format(name)
 
+                # Use target-params to rename the parameter in each phase, if desired.
+                target_params = options['target_params']
+
+                # If the phases have no corresponding parameter (are undecorated),
+                # specify their targets within the ODE here.
                 targets = options['targets']
+
                 for phase_name, phs in iteritems(self._phases):
+                    tgt_param_name = target_params.get(phase_name, None) \
+                        if isinstance(target_params, dict) else name
                     tgt_names = targets.get(phase_name, None) \
                         if isinstance(targets, dict) else None
-                    if tgt_names:
+                    if tgt_param_name is None and tgt_names is not None:
+                        tgt_param_name = name
+                    if tgt_param_name:
                         kwargs = {'dynamic': options['dynamic'],
                                   'units': options['units'],
                                   'val': options['val']}
                         if tgt_names is not None:
                             kwargs['targets'] = tgt_names
-                        phs.add_traj_parameter(name, **kwargs)
-                        tgt = '{0}.traj_parameters:{1}'.format(phase_name, name)
+                        phs.add_traj_parameter(tgt_param_name, **kwargs)
+                        tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
                         self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_linkages(self):
