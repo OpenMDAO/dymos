@@ -542,7 +542,10 @@ class Trajectory(Group):
 
         sim_prob = Problem(model=Group())
 
-        sim_prob.model.add_subsystem(self.name, sim_traj)
+        if self.name:
+            sim_prob.model.add_subsystem(self.name, sim_traj)
+        else:
+            sim_prob.model.add_subsystem('sim_traj', sim_traj)
 
         if record_file is not None:
             rec = SqliteRecorder(record_file)
