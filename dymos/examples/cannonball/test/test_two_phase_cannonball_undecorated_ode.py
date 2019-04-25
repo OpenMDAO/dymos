@@ -7,7 +7,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+from dymos.utils.testing_utils import use_tempdirs
 
+
+@use_tempdirs
 class TestTwoPhaseCannonball(unittest.TestCase):
 
     @classmethod
