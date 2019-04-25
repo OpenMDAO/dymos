@@ -236,6 +236,9 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
         self.declare(name='dynamic', types=bool, default=True,
                      desc='True if this parameter can be used as a dynamic control, else False')
 
+        self.declare(name='target_params', types=dict, default=None, allow_none=True,
+                     desc='Used to store target information on a per-phase basis for trajectories.')
+
         self.declare(name='targets', types=Iterable, default=[],
                      desc='Used to store target information for the design parameter.')
 

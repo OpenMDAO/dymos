@@ -152,16 +152,28 @@ class Trajectory(Group):
 
             for name, options in iteritems(self.input_parameter_options):
 
-                # Connect the input parameter to its target in each phase
+                # Connect the input parameter to its target(s) in each phase
                 src_name = 'input_parameters:{0}_out'.format(name)
 
+                # Use target-params to rename the parameter in each phase, if desired.
                 target_params = options['target_params']
+
+                # If the phases have no corresponding parameter (are undecorated),
+                # specify their targets within the ODE here.
+                targets = options['targets']
+
                 for phase_name, phs in iteritems(self._phases):
                     tgt_param_name = target_params.get(phase_name, None) \
                         if isinstance(target_params, dict) else name
+                    tgt_names = targets.get(phase_name, None) \
+                        if isinstance(targets, dict) else None
                     if tgt_param_name:
-                        # if tgt_param_name not in phs.traj_parameter_options:
-                        phs.add_traj_parameter(tgt_param_name, val=options['val'], units=options['units'])
+                        kwargs = {'dynamic': options['dynamic'],
+                                  'units': options['units'],
+                                  'val': options['val']}
+                        if tgt_names is not None:
+                            kwargs['targets'] = tgt_names
+                        phs.add_traj_parameter(tgt_param_name, **kwargs)
                         tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
                         self.connect(src_name=src_name, tgt_name=tgt)
 
@@ -197,11 +209,16 @@ class Trajectory(Group):
 
                 targets = options['targets']
                 for phase_name, phs in iteritems(self._phases):
-                    tgt_param_name = targets.get(phase_name, None) if isinstance(targets, dict) else name
-
-                    if tgt_param_name:
-                        phs.add_traj_parameter(tgt_param_name, val=options['val'], units=options['units'])
-                        tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
+                    tgt_names = targets.get(phase_name, None) \
+                        if isinstance(targets, dict) else None
+                    if tgt_names:
+                        kwargs = {'dynamic': options['dynamic'],
+                                  'units': options['units'],
+                                  'val': options['val']}
+                        if tgt_names is not None:
+                            kwargs['targets'] = tgt_names
+                        phs.add_traj_parameter(name, **kwargs)
+                        tgt = '{0}.traj_parameters:{1}'.format(phase_name, name)
                         self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_linkages(self):

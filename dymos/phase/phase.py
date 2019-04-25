@@ -96,7 +96,7 @@ class Phase(Group):
         super(Phase, self).__init__(**_kwargs)
 
     def initialize(self):
-        self.options.declare('ode_class',
+        self.options.declare('ode_class', default=None,
                              desc='System defining the ODE')
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
