@@ -164,12 +164,13 @@ class Trajectory(Group):
 
                     if 'custom_targets' in options and options['custom_targets'] is not None:
                         # Dont add the traj parameter to the phase if it is explicitly excluded.
-                        if options['custom_targets'][phase_name] is None:
-                            continue
-                        if isinstance(options['custom_targets'][phase_name], string_types):
-                            param_name = options['custom_targets'][phase_name]
-                        elif isinstance(options['custom_targets'][phase_name], Iterable):
-                            kwargs['targets'] = options['custom_targets'][phase_name]
+                        if phase_name in options['custom_targets']:
+                            if options['custom_targets'][phase_name] is None:
+                                continue
+                            if isinstance(options['custom_targets'][phase_name], string_types):
+                                param_name = options['custom_targets'][phase_name]
+                            elif isinstance(options['custom_targets'][phase_name], Iterable):
+                                kwargs['targets'] = options['custom_targets'][phase_name]
 
                     phs.add_traj_parameter(param_name, **kwargs)
                     tgt = '{0}.traj_parameters:{1}'.format(phase_name, param_name)
@@ -215,12 +216,13 @@ class Trajectory(Group):
 
                     if 'custom_targets' in options and options['custom_targets'] is not None:
                         # Dont add the traj parameter to the phase if it is explicitly excluded.
-                        if options['custom_targets'][phase_name] is None:
-                            continue
-                        if isinstance(options['custom_targets'][phase_name], string_types):
-                            param_name = options['custom_targets'][phase_name]
-                        elif isinstance(options['custom_targets'][phase_name], Iterable):
-                            kwargs['targets'] = options['custom_targets'][phase_name]
+                        if phase_name in options['custom_targets']:
+                            if options['custom_targets'][phase_name] is None:
+                                continue
+                            if isinstance(options['custom_targets'][phase_name], string_types):
+                                param_name = options['custom_targets'][phase_name]
+                            elif isinstance(options['custom_targets'][phase_name], Iterable):
+                                kwargs['targets'] = options['custom_targets'][phase_name]
 
                     phs.add_traj_parameter(param_name, **kwargs)
                     tgt = '{0}.traj_parameters:{1}'.format(phase_name, param_name)

@@ -288,6 +288,8 @@ class TrajDesignParameterOptionsDictionary(DesignParameterOptionsDictionary):
                      desc='Used to override the default targets of the trajectory input parameter'
                           ' in each phase.  By default its target will be the same as its name')
 
+        self._dict.pop('targets')
+
 
 class InputParameterOptionsDictionary(OptionsDictionary):
     """
@@ -332,6 +334,8 @@ class TrajInputParameterOptionsDictionary(InputParameterOptionsDictionary):
         self.declare(name='custom_targets', types=dict, default=None, allow_none=True,
                      desc='Used to override the default targets of the trajectory input parameter'
                           ' in each phase.  By default its target will be the same as its name')
+
+        self._dict.pop('targets')
 
 
 class StateOptionsDictionary(OptionsDictionary):

@@ -1,6 +1,5 @@
 from __future__ import print_function, division, absolute_import
 
-import os
 import unittest
 
 import matplotlib
@@ -87,33 +86,29 @@ class TestTwoPhaseCannonball(unittest.TestCase):
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_design_parameter('CD',
-                                  targets={'ascent': ['aero.CD'],
-                                           'descent': ['aero.CD']},
+                                  custom_targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
                                   val=0.5, units=None, opt=False)
         traj.add_design_parameter('CL',
-                                  targets={'ascent': ['aero.CL'],
-                                           'descent': ['aero.CL']},
+                                  custom_targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
                                   val=0.0, units=None, opt=False)
         traj.add_design_parameter('T',
-                                  targets={'ascent': ['eom.T'],
-                                           'descent': ['eom.T']},
+                                  custom_targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
                                   val=0.0, units='N', opt=False)
         traj.add_design_parameter('alpha',
-                                  targets={'ascent': ['eom.alpha'],
-                                           'descent': ['eom.alpha']},
+                                  custom_targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
                                   val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         traj.add_input_parameter('mass',
                                  units='kg',
-                                 targets={'ascent': ['eom.m', 'kinetic_energy.m'],
-                                          'descent': ['eom.m', 'kinetic_energy.m']},
+                                 custom_targets={'ascent': ['eom.m', 'kinetic_energy.m'],
+                                                 'descent': ['eom.m', 'kinetic_energy.m']},
                                  val=1.0)
 
         traj.add_input_parameter('S',
                                  units='m**2',
-                                 targets={'ascent': ['aero.S'],
-                                          'descent': ['aero.S']},
+                                 custom_targets={'ascent': ['aero.S'],
+                                                 'descent': ['aero.S']},
                                  val=0.005)
 
         # Link Phases (link time and all state variables)
@@ -313,26 +308,28 @@ class TestTwoPhaseCannonball(unittest.TestCase):
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_design_parameter('CD',
-                                  targets={'ascent': ['aero.CD']},
+                                  custom_targets={'ascent': ['aero.CD']},
                                   val=0.5, units=None, opt=False)
-        traj.add_design_parameter('CL', targets={'ascent': ['aero.CL']},
+        traj.add_design_parameter('CL',
+                                  custom_targets={'ascent': ['aero.CL']},
                                   val=0.0, units=None, opt=False)
         traj.add_design_parameter('T',
-                                  targets={'ascent': ['eom.T']},
+                                  custom_targets={'ascent': ['eom.T']},
                                   val=0.0, units='N', opt=False)
         traj.add_design_parameter('alpha',
-                                  targets={'ascent': ['eom.alpha'], 'descent': 'alpha'},
+                                  custom_targets={'ascent': ['eom.alpha'], 'descent': 'alpha'},
                                   val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         traj.add_input_parameter('mass',
                                  units='kg',
-                                 targets={'ascent': ['eom.m', 'kinetic_energy.m'], 'descent': 'm'},
+                                 custom_targets={'ascent': ['eom.m', 'kinetic_energy.m'],
+                                                 'descent': 'm'},
                                  val=1.0)
 
         traj.add_input_parameter('S',
                                  units='m**2',
-                                 targets={'ascent': ['aero.S']},
+                                 custom_targets={'ascent': ['aero.S']},
                                  val=0.005)
 
         # Link Phases (link time and all state variables)
@@ -441,7 +438,7 @@ class TestTwoPhaseCannonball(unittest.TestCase):
             axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
             axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
 
-        params = ['CL', 'CD', 'T', 'alpha', 'm', 'S']
+        params = ['CL', 'CD', 'T', 'alpha', 'S']
         fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
         for i, param in enumerate(params):
             p_imp = {
