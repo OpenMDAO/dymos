@@ -525,18 +525,16 @@ class RungeKutta(TranscriptionBase):
                 options['shape'] = (1,)
                 options['units'] = time_units if con_units is None else con_units
                 options['linear'] = True
-                for iseg in range(gd.num_segments):
-                    phase.connect(src_name='time',
-                                  tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                                  src_indices=self.grid_data.subset_node_indices['segment_ends'])
+                phase.connect(src_name='time',
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                              src_indices=self.grid_data.subset_node_indices['segment_ends'])
             elif var_type == 'time_phase':
                 options['shape'] = (1,)
                 options['units'] = time_units if con_units is None else con_units
                 options['linear'] = True
-                for iseg in range(gd.num_segments):
-                    phase.connect(src_name='time_phase',
-                                  tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                                  src_indices=self.grid_data.subset_node_indices['segment_ends'])
+                phase.connect(src_name='time_phase',
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                              src_indices=self.grid_data.subset_node_indices['segment_ends'])
             elif var_type == 'state':
                 state_shape = phase.state_options[var]['shape']
                 state_units = phase.state_options[var]['units']
