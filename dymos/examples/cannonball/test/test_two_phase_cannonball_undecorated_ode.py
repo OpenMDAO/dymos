@@ -13,13 +13,6 @@ from dymos.utils.testing_utils import use_tempdirs
 @use_tempdirs
 class TestTwoPhaseCannonball(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
-        for filename in ['ex_two_phase_cannonball.db', 'ex_two_phase_cannonball_sim.db',
-                         'coloring.json']:
-            if os.path.exists(filename):
-                os.remove(filename)
-
     def test_two_phase_cannonball_undecorated_ode(self):
         from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, SqliteRecorder, \
             pyOptSparseDriver
@@ -321,31 +314,25 @@ class TestTwoPhaseCannonball(unittest.TestCase):
         # Add internally-managed design parameters to the trajectory.
         traj.add_design_parameter('CD',
                                   targets={'ascent': ['aero.CD']},
-                                  target_params={'descent': 'CD'},
                                   val=0.5, units=None, opt=False)
         traj.add_design_parameter('CL', targets={'ascent': ['aero.CL']},
-                                  target_params={'descent': 'CL'},
                                   val=0.0, units=None, opt=False)
         traj.add_design_parameter('T',
                                   targets={'ascent': ['eom.T']},
-                                  target_params={'descent': 'T'},
                                   val=0.0, units='N', opt=False)
         traj.add_design_parameter('alpha',
-                                  targets={'ascent': ['eom.alpha']},
-                                  target_params={'descent': 'alpha'},
+                                  targets={'ascent': ['eom.alpha'], 'descent': 'alpha'},
                                   val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         traj.add_input_parameter('mass',
                                  units='kg',
-                                 targets={'ascent': ['eom.m', 'kinetic_energy.m']},
-                                 target_params={'ascent': 'm', 'descent': 'm'},
+                                 targets={'ascent': ['eom.m', 'kinetic_energy.m'], 'descent': 'm'},
                                  val=1.0)
 
         traj.add_input_parameter('S',
                                  units='m**2',
                                  targets={'ascent': ['aero.S']},
-                                 target_params={'descent': 'S'},
                                  val=0.005)
 
         # Link Phases (link time and all state variables)

@@ -236,9 +236,6 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
         self.declare(name='dynamic', types=bool, default=True,
                      desc='True if this parameter can be used as a dynamic control, else False')
 
-        self.declare(name='target_params', types=dict, default=None, allow_none=True,
-                     desc='Used to store target information on a per-phase basis for trajectories.')
-
         self.declare(name='targets', types=Iterable, default=[],
                      desc='Used to store target information for the design parameter.')
 
@@ -279,6 +276,19 @@ class DesignParameterOptionsDictionary(OptionsDictionary):
                           'option is invalid if opt=False.')
 
 
+class TrajDesignParameterOptionsDictionary(DesignParameterOptionsDictionary):
+    """
+    An OptionsDictionary specific to trajectory design parameters.
+    """
+
+    def __init__(self, read_only=False):
+        super(TrajDesignParameterOptionsDictionary, self).__init__(read_only)
+
+        self.declare(name='custom_targets', types=dict, default=None, allow_none=True,
+                     desc='Used to override the default targets of the trajectory input parameter'
+                          ' in each phase.  By default its target will be the same as its name')
+
+
 class InputParameterOptionsDictionary(OptionsDictionary):
     """
     An OptionsDictionary specific to input parameters.
@@ -301,9 +311,6 @@ class InputParameterOptionsDictionary(OptionsDictionary):
         self.declare(name='dynamic', types=bool, default=True,
                      desc='True if this parameter can be used as a dynamic control, else False')
 
-        self.declare(name='target_params', types=dict, default=None, allow_none=True,
-                     desc='Used to store target information on a per-phase basis for trajectories.')
-
         self.declare(name='targets', types=Iterable, default=[],
                      desc='Used to store target information for the input parameter.')
 
@@ -312,6 +319,19 @@ class InputParameterOptionsDictionary(OptionsDictionary):
 
         self.declare(name='shape', types=Iterable, default=(1,),
                      desc='The shape of the design parameter.')
+
+
+class TrajInputParameterOptionsDictionary(InputParameterOptionsDictionary):
+    """
+    An OptionsDictionary specific to trajectory input parameters.
+    """
+
+    def __init__(self, read_only=False):
+        super(TrajInputParameterOptionsDictionary, self).__init__(read_only)
+
+        self.declare(name='custom_targets', types=dict, default=None, allow_none=True,
+                     desc='Used to override the default targets of the trajectory input parameter'
+                          ' in each phase.  By default its target will be the same as its name')
 
 
 class StateOptionsDictionary(OptionsDictionary):
