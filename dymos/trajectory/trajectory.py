@@ -1,8 +1,8 @@
 from __future__ import print_function, division, absolute_import
 
-from collections import Sequence, OrderedDict
+from collections import Sequence, OrderedDict, Iterable
 import itertools
-from six import iteritems
+from six import iteritems, string_types
 
 try:
     from itertools import izip
@@ -17,7 +17,8 @@ from openmdao.api import SqliteRecorder
 from ..utils.constants import INF_BOUND
 
 from ..transcriptions.common import InputParameterComp, PhaseLinkageComp
-from ..phase.options import DesignParameterOptionsDictionary, InputParameterOptionsDictionary
+from ..phase.options import TrajDesignParameterOptionsDictionary, \
+    TrajInputParameterOptionsDictionary
 
 
 class Trajectory(Group):
@@ -72,18 +73,16 @@ class Trajectory(Group):
             Name of the design parameter.
         val : float or ndarray
             Default value of the design parameter at all nodes.
-        targets : dict or None
-            If None, then the design parameter will be connected to the controllable parameter
-            in the ODE of each phase.  For each phase where no such controllable parameter exists,
-            a warning will be issued.  If targets is given as a dict, the dict should provide
-            the relevant phase names as keys, each associated with the respective controllable
-            parameteter as a value.
+        custom_targets : dict or None
+            By default, the input parameter will be connect to the parameter/targets of the given
+            name in each phase.  This argument can be used to override that behavior on a phase
+            by phase basis.
         units : str or None or 0
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         """
         if name not in self.input_parameter_options:
-            self.input_parameter_options[name] = InputParameterOptionsDictionary()
+            self.input_parameter_options[name] = TrajInputParameterOptionsDictionary()
 
         for kw in kwargs:
             if kw not in self.input_parameter_options[name]:
@@ -131,7 +130,7 @@ class Trajectory(Group):
 
         """
         if name not in self.design_parameter_options:
-            self.design_parameter_options[name] = DesignParameterOptionsDictionary()
+            self.design_parameter_options[name] = TrajDesignParameterOptionsDictionary()
 
         for kw in kwargs:
             if kw not in self.design_parameter_options[name]:
@@ -155,29 +154,27 @@ class Trajectory(Group):
                 # Connect the input parameter to its target(s) in each phase
                 src_name = 'input_parameters:{0}_out'.format(name)
 
-                # Use target-params to rename the parameter in each phase, if desired.
-                target_params = options['target_params']
-
-                # If the phases have no corresponding parameter (are undecorated),
-                # specify their targets within the ODE here.
-                targets = options['targets']
-
                 for phase_name, phs in iteritems(self._phases):
-                    tgt_param_name = target_params.get(phase_name, None) \
-                        if isinstance(target_params, dict) else name
-                    tgt_names = targets.get(phase_name, None) \
-                        if isinstance(targets, dict) else None
-                    if tgt_param_name is None and tgt_names is not None:
-                        tgt_param_name = name
-                    if tgt_param_name:
-                        kwargs = {'dynamic': options['dynamic'],
-                                  'units': options['units'],
-                                  'val': options['val']}
-                        if tgt_names is not None:
-                            kwargs['targets'] = tgt_names
-                        phs.add_traj_parameter(tgt_param_name, **kwargs)
-                        tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
-                        self.connect(src_name=src_name, tgt_name=tgt)
+                    # The default target in the phase is name unless otherwise specified.
+                    kwargs = {'dynamic': options['dynamic'],
+                              'units': options['units'],
+                              'val': options['val']}
+
+                    param_name = name
+
+                    if 'custom_targets' in options and options['custom_targets'] is not None:
+                        # Dont add the traj parameter to the phase if it is explicitly excluded.
+                        if phase_name in options['custom_targets']:
+                            if options['custom_targets'][phase_name] is None:
+                                continue
+                            if isinstance(options['custom_targets'][phase_name], string_types):
+                                param_name = options['custom_targets'][phase_name]
+                            elif isinstance(options['custom_targets'][phase_name], Iterable):
+                                kwargs['targets'] = options['custom_targets'][phase_name]
+
+                    phs.add_traj_parameter(param_name, **kwargs)
+                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, param_name)
+                    self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_design_parameters(self):
         """
@@ -209,29 +206,27 @@ class Trajectory(Group):
                 # Connect the design parameter to its target in each phase
                 src_name = 'design_parameters:{0}'.format(name)
 
-                # Use target-params to rename the parameter in each phase, if desired.
-                target_params = options['target_params']
-
-                # If the phases have no corresponding parameter (are undecorated),
-                # specify their targets within the ODE here.
-                targets = options['targets']
-
                 for phase_name, phs in iteritems(self._phases):
-                    tgt_param_name = target_params.get(phase_name, None) \
-                        if isinstance(target_params, dict) else name
-                    tgt_names = targets.get(phase_name, None) \
-                        if isinstance(targets, dict) else None
-                    if tgt_param_name is None and tgt_names is not None:
-                        tgt_param_name = name
-                    if tgt_param_name:
-                        kwargs = {'dynamic': options['dynamic'],
-                                  'units': options['units'],
-                                  'val': options['val']}
-                        if tgt_names is not None:
-                            kwargs['targets'] = tgt_names
-                        phs.add_traj_parameter(tgt_param_name, **kwargs)
-                        tgt = '{0}.traj_parameters:{1}'.format(phase_name, tgt_param_name)
-                        self.connect(src_name=src_name, tgt_name=tgt)
+                    # The default target in the phase is name unless otherwise specified.
+                    kwargs = {'dynamic': options['dynamic'],
+                              'units': options['units'],
+                              'val': options['val']}
+
+                    param_name = name
+
+                    if 'custom_targets' in options and options['custom_targets'] is not None:
+                        # Dont add the traj parameter to the phase if it is explicitly excluded.
+                        if phase_name in options['custom_targets']:
+                            if options['custom_targets'][phase_name] is None:
+                                continue
+                            if isinstance(options['custom_targets'][phase_name], string_types):
+                                param_name = options['custom_targets'][phase_name]
+                            elif isinstance(options['custom_targets'][phase_name], Iterable):
+                                kwargs['targets'] = options['custom_targets'][phase_name]
+
+                    phs.add_traj_parameter(param_name, **kwargs)
+                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, param_name)
+                    self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_linkages(self):
         link_comp = None

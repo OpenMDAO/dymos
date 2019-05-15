@@ -11,7 +11,8 @@ from openmdao.core.implicitcomponent import ImplicitComponent
 
 class RungeKuttaStateContinuityComp(ImplicitComponent):
     """
-    A simple equation balance for solving implicit equations.
+    Implicitly solve the RungeKutta state continuity by forcing final state values to
+    equal initial state values plus the state integral over each segment.
 
     Attributes
     ----------

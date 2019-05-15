@@ -14,7 +14,6 @@ def _new_setup(self):
 def _new_teardown(self):
     if hasattr(self, 'original_tearDown'):
         self.original_tearDown()
-    self.tempdir = os.getcwd()
     os.chdir(self.startdir)
     try:
         shutil.rmtree(self.tempdir)

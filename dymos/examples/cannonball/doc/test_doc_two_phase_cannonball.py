@@ -7,15 +7,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+from dymos.utils.testing_utils import use_tempdirs
+
 
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
-
-    @classmethod
-    def tearDownClass(cls):
-        for filename in ['ex_two_phase_cannonball.db', 'ex_two_phase_cannonball_sim.db',
-                         'coloring.json']:
-            if os.path.exists(filename):
-                os.remove(filename)
 
     def test_two_phase_cannonball_for_docs(self):
         from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, SqliteRecorder, \
@@ -87,10 +82,11 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         # Add externally-provided design parameters to the trajectory.
         traj.add_input_parameter('mass',
-                                 target_params={'ascent': 'm', 'descent': 'm'},
+                                 custom_targets={'ascent': 'm', 'descent': 'm'},
+                                 units='kg',
                                  val=1.0)
 
-        traj.add_input_parameter('S', val=0.005)
+        traj.add_input_parameter('S', val=0.005, units='m**2')
 
         # Link Phases (link time and all state variables)
         traj.link_phases(phases=['ascent', 'descent'], vars=['*'])
