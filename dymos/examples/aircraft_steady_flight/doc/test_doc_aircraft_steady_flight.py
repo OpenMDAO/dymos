@@ -13,7 +13,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['coloring.json', 'test_doc_aircraft_steady_flight_rec.db', 'SLSQP.out']:
+        for filename in ['total_coloring.pkl', 'test_doc_aircraft_steady_flight_rec.db', 'SLSQP.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 
@@ -32,7 +32,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)

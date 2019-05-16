@@ -6,6 +6,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
+from dymos.utils.testing_utils import use_tempdirs
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.assert_utils import assert_check_partials
@@ -121,7 +122,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
         p.driver = ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = Phase(ode_class=BrachistochroneVectorStatesODE,
                       transcription=RungeKutta(num_segments=20, compressed=True))
@@ -164,13 +165,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         self.tearDown()
 
 
+@use_tempdirs
 class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
-
-    @classmethod
-    def tearDownClass(cls):
-        for filename in ['phase0_sim.db', 'brachistochrone_sim.db']:
-            if os.path.exists(filename):
-                os.remove(filename)
 
     def assert_results(self, p):
         t_initial = p.get_val('phase0.time')[0]
@@ -235,8 +231,6 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         self.assert_results(p)
         # self.assert_partials(p)
         self.tearDown()
-        if os.path.exists('ex_brachvs_radau_compressed.db'):
-            os.remove('ex_brachvs_radau_compressed.db')
 
     def test_ex_brachistochrone_vs_gl_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
@@ -265,8 +259,6 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         self.assert_results(p)
 
         self.tearDown()
-        if os.path.exists('ex_brachvs_gl_compressed.db'):
-            os.remove('ex_brachvs_gl_compressed.db')
 
 
 if __name__ == "__main__":

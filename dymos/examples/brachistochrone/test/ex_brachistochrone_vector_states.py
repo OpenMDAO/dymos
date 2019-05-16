@@ -29,7 +29,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     else:
         p.driver = ScipyOptimizeDriver()
 
-    p.driver.options['dynamic_simul_derivs'] = dynamic_simul_derivs
+    if dynamic_simul_derivs:
+        p.driver.declare_coloring()
 
     if transcription == 'runge-kutta':
         transcription = RungeKutta(num_segments=num_segments, compressed=compressed)

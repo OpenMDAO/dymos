@@ -227,7 +227,7 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         #
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # We don't strictly need to define a linear solver here since our problem is entirely

@@ -13,7 +13,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         for filename in ['ex_two_phase_cannonball.db', 'ex_two_phase_cannonball_sim.db',
-                         'coloring.json']:
+                         'total_coloring.pkl']:
             if os.path.exists(filename):
                 os.remove(filename)
 
@@ -31,7 +31,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         external_params = p.model.add_subsystem('external_params', IndepVarComp())
 

@@ -12,7 +12,7 @@ plt.style.use('ggplot')
 class TestBrachistochroneForDocs(unittest.TestCase):
 
     def tearDown(self):
-        for filename in ['coloring.json', 'SLSQP.out', 'SNOPT_print.out', 'SNOPT_summary.out']:
+        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out', 'SNOPT_summary.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 
@@ -29,7 +29,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # Create a trajectory and add a phase to it
@@ -105,7 +105,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # Create a trajectory and add a phase to it
@@ -182,7 +182,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # Create a trajectory and add a phase to it
@@ -266,7 +266,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # Create a trajectory and add a phase to it

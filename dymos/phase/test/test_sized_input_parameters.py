@@ -43,7 +43,7 @@ class TestInputParameterConnections(unittest.TestCase):
 
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = optimizer
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         seg_ends, _ = lgl(num_segments + 1)
 
@@ -105,7 +105,7 @@ class TestInputParameterConnections(unittest.TestCase):
 
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = optimizer
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         seg_ends, _ = lgl(num_segments + 1)
 
@@ -166,7 +166,7 @@ class TestInputParameterConnections(unittest.TestCase):
 
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = optimizer
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         seg_ends, _ = lgl(num_segments + 1)
 
@@ -234,7 +234,7 @@ class TestInputParameterConnections(unittest.TestCase):
 
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = optimizer
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         seg_ends, _ = lgl(num_segments + 1)
 

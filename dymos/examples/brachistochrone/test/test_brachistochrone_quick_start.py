@@ -122,7 +122,7 @@ class TestBrachistochroneQuickStart(unittest.TestCase):
 
         # Allow OpenMDAO to automatically determine our sparsity pattern.
         # Doing so can significant speed up the execution of Dymos.
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         # Setup the problem
         p.setup(check=True)

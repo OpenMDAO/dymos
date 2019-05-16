@@ -13,7 +13,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = Phase(ode_class=BrachistochroneODE,
                       transcription=RungeKutta(num_segments=20))
@@ -73,7 +73,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = Phase(ode_class=BrachistochroneODE,
                       transcription=RungeKutta(num_segments=20))
@@ -134,7 +134,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = Phase(ode_class=BrachistochroneODE,
                       transcription=RungeKutta(num_segments=20))
@@ -195,7 +195,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = Phase(ode_class=BrachistochroneODE,
                       transcription=RungeKutta(num_segments=20))
@@ -256,7 +256,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = Phase(ode_class=BrachistochroneODE,
                       transcription=RungeKutta(num_segments=20))
@@ -317,7 +317,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = Phase(ode_class=BrachistochroneODE,
                       transcription=RungeKutta(num_segments=20))
@@ -378,7 +378,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = Phase(ode_class=BrachistochroneODE,
                       transcription=RungeKutta(num_segments=20))
@@ -441,7 +441,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = Phase(ode_class=BrachistochroneODE,
                       transcription=RungeKutta(num_segments=20))
@@ -505,7 +505,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = Phase(ode_class=BrachistochroneODE,
                       transcription=RungeKutta(num_segments=20))

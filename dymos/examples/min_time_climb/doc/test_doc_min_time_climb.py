@@ -27,7 +27,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
 
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring(tol=1e-10, orders=None)
 
         #
         # Instantiate the trajectory and phase

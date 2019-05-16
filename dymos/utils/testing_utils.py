@@ -2,11 +2,20 @@ import os
 import shutil
 import tempfile
 
+from openmdao.utils.mpi import MPI
+
 
 def _new_setup(self):
-    self.startdir = os.getcwd()
-    self.tempdir = tempfile.mkdtemp(prefix='testdir-')
-    os.chdir(self.tempdir)
+    self._startdir_ = os.getcwd()
+    if MPI is None:
+        self._tempdir_ = tempfile.mkdtemp(prefix='testdir-')
+    elif MPI.COMM_WORLD.rank == 0:
+        self._tempdir_ = tempfile.mkdtemp(prefix='testdir-')
+        MPI.COMM_WORLD.bcast(self._tempdir_, root=0)
+    else:
+        self._tempdir_ = MPI.COMM_WORLD.bcast(None, root=0)
+
+    os.chdir(self._tempdir_)
     if hasattr(self, 'original_setUp'):
         self.original_setUp()
 
@@ -14,12 +23,17 @@ def _new_setup(self):
 def _new_teardown(self):
     if hasattr(self, 'original_tearDown'):
         self.original_tearDown()
-    self.tempdir = os.getcwd()
-    os.chdir(self.startdir)
-    try:
-        shutil.rmtree(self.tempdir)
-    except OSError:
-        pass
+
+    os.chdir(self._startdir_)
+
+    if MPI is not None:
+        # make sure everyone's out of that directory before rank 0 deletes it
+        MPI.COMM_WORLD.barrier()
+        if MPI.COMM_WORLD.rank == 0:
+            try:
+                shutil.rmtree(self._tempdir_)
+            except OSError:
+                pass
 
 
 def use_tempdirs(cls):

@@ -25,7 +25,7 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
         prob = Problem()
 
         opt = prob.driver = ScipyOptimizeDriver()
-        opt.options['dynamic_simul_derivs'] = True
+        opt.declare_coloring()
         opt.options['optimizer'] = 'SLSQP'
 
         num_seg = 5

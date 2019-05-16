@@ -36,7 +36,7 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         #
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # The trajectory controls the design parameter governing exhaust velocity

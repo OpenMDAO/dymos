@@ -17,7 +17,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
 
     p = Problem(model=Group())
     p.driver = pyOptSparseDriver()
-    p.driver.options['dynamic_simul_derivs'] = True
+    p.driver.declare_coloring()
 
     if transcription == 'gauss-lobatto':
         t = dm.GaussLobatto(num_segments=30, order=3, compressed=compressed)
@@ -61,7 +61,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['coloring.json', 'SLSQP.out', 'SNOPT_print.out']:
+        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 
@@ -92,7 +92,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         times_ivc = p.model.add_subsystem('times_ivc', IndepVarComp(),
                                           promotes_outputs=['t0', 'tp'])

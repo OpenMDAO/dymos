@@ -38,11 +38,11 @@ Step 1: Using OpenMDAO's Simul-Coloring Capability
 
 OpenMDAO supports dynamic simul-coloring, meaning it can automatically run the Jacobian coloring
 algorithm before handing the problem to the optimizer.  To enable this capability, simply
-add the following lines to the driver.
+add the following line to the driver.
 
 .. code-block:: python
 
-    driver.options['dynamic_simul_derivs'] = True
+    driver.declare_coloring()
 
 The simul_coloring script outputs the following information about our problem:
 

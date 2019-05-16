@@ -57,7 +57,7 @@ Finally, note that we are specifying rows and columns when declaring the partial
 Since our inputs and outputs are scalars *at each point in time*, and the value at an input at
 one time only directly impacts the values of an output at the same point in time, the partial
 derivative jacobian will be diagonal.  Specifying the partial derivatives as being sparse
-greatly improves the performance of Dymos when the driver option ``dynamic_simul_derivs`` is used.
+greatly improves the performance of Dymos when the driver function ``declare_coloring`` is used.
 Using a sparse optimizer like SNOPT or IPOPT can provide significant addition improvements in
 performance.
 

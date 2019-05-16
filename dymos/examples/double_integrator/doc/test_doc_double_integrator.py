@@ -13,7 +13,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['coloring.json', 'SLSQP.out', 'SNOPT_print.out']:
+        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 
@@ -29,7 +29,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         # Setup the trajectory and its phase
         traj = p.model.add_subsystem('traj', dm.Trajectory())

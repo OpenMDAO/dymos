@@ -19,7 +19,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # if optimizer == 'SNOPT':
     p.driver = pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    p.driver.options['dynamic_simul_derivs'] = True
+    p.driver.declare_coloring()
 
     if transcription == 'gauss-lobatto':
         t = GaussLobatto(num_segments=num_segments,
@@ -115,7 +115,9 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 
 if __name__ == '__main__':
-    brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10, run_driver=True,
+    import os
+    nsegs = int(os.environ.get("NUM_SEGMENTS", 10))
+    brachistochrone_min_time(transcription='gauss-lobatto', num_segments=nsegs, run_driver=True,
                              transcription_order=3, compressed=True,
                              optimizer='SNOPT')
     # brachistochrone_min_time(transcription='radau-ps', num_segments=10, run_driver=True,
