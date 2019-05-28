@@ -206,11 +206,15 @@ class RungeKutta(TranscriptionBase):
         elif var_type == 'design_parameter':
             rate_path = 'design_parameters:{0}'.format(var)
             size = np.prod(phase.design_parameter_options[var]['shape'])
-            src_idxs = np.zeros(num_segments * num_stages * size, dtype=int)
+            src_idxs = np.zeros(num_segments * num_stages * size, dtype=int).reshape((num_segments,
+                                                                                      num_stages,
+                                                                                      state_size))
         elif var_type == 'input_parameter':
             rate_path = 'input_parameters:{0}_out'.format(var)
             size = np.prod(phase.input_parameter_options[var]['shape'])
-            src_idxs = np.zeros(num_segments * num_stages * size, dtype=int)
+            src_idxs = np.zeros(num_segments * num_stages * size, dtype=int).reshape((num_segments,
+                                                                                      num_stages,
+                                                                                      state_size))
         else:
             # Failed to find variable, assume it is in the ODE
             rate_path = 'rk_solve_group.ode.{0}'.format(var)
