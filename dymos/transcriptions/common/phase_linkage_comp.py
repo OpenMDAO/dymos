@@ -64,9 +64,10 @@ class PhaseLinkageComp(ExplicitComponent):
             The name of one or more linkage constraints to be added.
         vars : str or iterable
             The name of one or more linked variables to be added.
-        shape : tuple
+        shape : tuple or dict
             The shape of the constraint being formed.  Must be compliant with the shape
-            of the variable.
+            of the variable.  If given as a dict, it should be keyed
+            with variables in var, and the associated value being the corresponding units.
         units : str, dict, or None
             The units of the linkage constraint.  If given as a string, the units will
             apply to each variable in vars.  If given as a dict, it should be keyed
@@ -92,8 +93,9 @@ class PhaseLinkageComp(ExplicitComponent):
             That is, the affected variables in each phase are design
             variables or linear functions of design variables.  Default is False.
         """
+        print('adding linkage ', name, vars, shape)
         if equals is None and lower is None and upper is None:
-            equals = np.zeros(shape)
+            equals = 0.0
 
         if isinstance(vars, string_types):
             _vars = (vars,)
@@ -106,6 +108,13 @@ class PhaseLinkageComp(ExplicitComponent):
                 _units[var] = units
         else:
             _units = units
+
+        if isinstance(shape, tuple):
+            _shapes = {}
+            for var in _vars:
+                _shapes[var] = shape
+        else:
+            _shapes = shape
 
         for var in _vars:
 
@@ -133,7 +142,7 @@ class PhaseLinkageComp(ExplicitComponent):
             lnk['adder'] = adder
             lnk['ref0'] = ref0
             lnk['ref'] = ref
-            lnk['shape'] = shape
+            lnk['shape'] = _shapes.get(var, (1,))
             lnk['linear'] = linear
             lnk['units'] = _units.get(var, None)
             lnk['cond0_name'] = '{0}:lhs'.format(lnk['name'])
