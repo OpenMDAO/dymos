@@ -271,6 +271,7 @@ class Trajectory(Group):
             max_varname_length = max(len(name) for name in _vars.keys())
 
             units_map = {}
+            shape_map = {}
             vars_to_constrain = []
 
             for var, options in iteritems(_vars):
@@ -285,12 +286,16 @@ class Trajectory(Group):
                     vars_to_constrain.append(var)
                     if var in p1_states:
                         units_map[var] = p1.state_options[var]['units']
+                        shape_map[var] = p1.state_options[var]['shape']
                     elif var in p1_controls:
                         units_map[var] = p1.control_options[var]['units']
+                        shape_map[var] = p1.control_options[var]['shape']
                     elif var == 'time':
                         units_map[var] = p1.time_options['units']
+                        shape_map[var] = (1,)
                     else:
                         units_map[var] = None
+                        shape_map[var] = (1,)
 
             if vars_to_constrain:
                 if not link_comp:
@@ -299,6 +304,7 @@ class Trajectory(Group):
                 linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
                 link_comp.add_linkage(name=linkage_name,
                                       vars=vars_to_constrain,
+                                      shape=shape_map,
                                       units=units_map)
 
             for var, options in iteritems(_vars):
