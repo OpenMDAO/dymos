@@ -6,16 +6,16 @@ from openmdao.utils.mpi import MPI
 
 
 def _new_setup(self):
-    self._startdir_ = os.getcwd()
+    self.startdir = os.getcwd()
     if MPI is None:
-        self._tempdir_ = tempfile.mkdtemp(prefix='testdir-')
+        self.tempdir = tempfile.mkdtemp(prefix='testdir-')
     elif MPI.COMM_WORLD.rank == 0:
-        self._tempdir_ = tempfile.mkdtemp(prefix='testdir-')
-        MPI.COMM_WORLD.bcast(self._tempdir_, root=0)
+        self.tempdir = tempfile.mkdtemp(prefix='testdir-')
+        MPI.COMM_WORLD.bcast(self.tempdir, root=0)
     else:
-        self._tempdir_ = MPI.COMM_WORLD.bcast(None, root=0)
+        self.tempdir = MPI.COMM_WORLD.bcast(None, root=0)
 
-    os.chdir(self._tempdir_)
+    os.chdir(self.tempdir)
     if hasattr(self, 'original_setUp'):
         self.original_setUp()
 
@@ -24,14 +24,14 @@ def _new_teardown(self):
     if hasattr(self, 'original_tearDown'):
         self.original_tearDown()
 
-    os.chdir(self._startdir_)
+    os.chdir(self.startdir)
 
     if MPI is not None:
         # make sure everyone's out of that directory before rank 0 deletes it
         MPI.COMM_WORLD.barrier()
         if MPI.COMM_WORLD.rank == 0:
             try:
-                shutil.rmtree(self._tempdir_)
+                shutil.rmtree(self.tempdir)
             except OSError:
                 pass
 
