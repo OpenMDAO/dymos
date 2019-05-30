@@ -30,8 +30,6 @@ of moderate size run orders of magnitude faster, and can make intractably large 
     nonlinear programming problems, coloring can still benefit drivers which do not account for
     sparsity (such as SLSQP) since it significantly reduces the cost of computing the Jacobian.
 
-.. note::
-    Currently OpenMDAO's coloring algorithm requires that problems be setup using "forward" mode.
 
 Step 1: Using OpenMDAO's Simul-Coloring Capability
 ==================================================
