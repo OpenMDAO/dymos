@@ -14,13 +14,8 @@ from openmdao.utils.assert_utils import assert_check_partials
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 
+@use_tempdirs
 class TestBrachistochroneVectorStatesExample(unittest.TestCase):
-
-    @classmethod
-    def tearDownClass(cls):
-        for filename in ['phase0_sim.db', 'brachistochrone_sim.db']:
-            if os.path.exists(filename):
-                os.remove(filename)
 
     def assert_results(self, p):
         t_initial = p.get_val('phase0.time')[0]

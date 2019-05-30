@@ -136,7 +136,7 @@ class RungeKutta(TranscriptionBase):
                                 k_solver_class=self.options['k_solver_class'],
                                 k_solver_options=self.options['k_solver_options']),
                             promotes_inputs=promoted_inputs,
-                            promotes_outputs=['states:*'])
+                            promotes_outputs=['states:*', 'state_predict_comp.predicted_states:*'])
 
         # Since the RK Solve group evaluates the ODE at *predicted* state values, we need
         # to instantiate a second ODE group that will call the ODE at the actual integrated
@@ -153,6 +153,7 @@ class RungeKutta(TranscriptionBase):
             raise ValueError('state \'{0}\' in phase \'{1}\' was not given a '
                              'rate_source'.format(state_name, phase.name))
         shape = phase.state_options[state_name]['shape']
+        state_size = np.prod(shape)
         var_type = phase.classify_var(var)
         num_segments = self.options['num_segments']
         num_stages = rk_methods[self.options['method']]['num_stages']
@@ -165,37 +166,55 @@ class RungeKutta(TranscriptionBase):
             rate_path = 'time_phase'
             src_idxs = None
         elif var_type == 'state':
-            rate_path = 'predicted_states:{0}'.format(var)
+            rate_path = 'state_predict_comp.predicted_states:{0}'.format(var)
+            size = num_segments * num_stages * state_size
+            src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
         elif var_type == 'indep_control':
             rate_path = 'control_values:{0}'.format(var)
-            src_idxs = None
+            size = num_segments * num_stages * state_size
+            src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
         elif var_type == 'input_control':
             rate_path = 'control_values:{0}'.format(var)
-            src_idxs = None
+            size = num_segments * num_stages * state_size
+            src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
         elif var_type == 'control_rate':
             rate_path = 'control_rates:{0}'.format(var)
-            src_idxs = None
+            size = num_segments * num_stages * state_size
+            src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
         elif var_type == 'control_rate2':
             rate_path = 'control_rates:{0}'.format(var)
-            src_idxs = None
+            size = num_segments * num_stages * state_size
+            src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
         elif var_type == 'indep_polynomial_control':
             rate_path = 'polynomial_control_values:{0}'.format(var)
+            size = num_segments * num_stages * state_size
+            src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
         elif var_type == 'input_polynomial_control':
             rate_path = 'polynomial_control_values:{0}'.format(var)
+            size = num_segments * num_stages * state_size
+            src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
         elif var_type == 'polynomial_control_rate':
             control_name = var[:-5]
             rate_path = 'polynomial_control_rates:{0}_rate'.format(control_name)
+            size = num_segments * num_stages * state_size
+            src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
         elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
             rate_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
+            size = num_segments * num_stages * state_size
+            src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
         elif var_type == 'design_parameter':
             rate_path = 'design_parameters:{0}'.format(var)
             size = np.prod(phase.design_parameter_options[var]['shape'])
-            src_idxs = np.zeros(num_segments * num_stages * size, dtype=int)
+            src_idxs = np.zeros(num_segments * num_stages * size, dtype=int).reshape((num_segments,
+                                                                                      num_stages,
+                                                                                      state_size))
         elif var_type == 'input_parameter':
             rate_path = 'input_parameters:{0}_out'.format(var)
             size = np.prod(phase.input_parameter_options[var]['shape'])
-            src_idxs = np.zeros(num_segments * num_stages * size, dtype=int)
+            src_idxs = np.zeros(num_segments * num_stages * size, dtype=int).reshape((num_segments,
+                                                                                      num_stages,
+                                                                                      state_size))
         else:
             # Failed to find variable, assume it is in the ODE
             rate_path = 'rk_solve_group.ode.{0}'.format(var)
@@ -525,18 +544,16 @@ class RungeKutta(TranscriptionBase):
                 options['shape'] = (1,)
                 options['units'] = time_units if con_units is None else con_units
                 options['linear'] = True
-                for iseg in range(gd.num_segments):
-                    phase.connect(src_name='time',
-                                  tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                                  src_indices=self.grid_data.subset_node_indices['segment_ends'])
+                phase.connect(src_name='time',
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                              src_indices=self.grid_data.subset_node_indices['segment_ends'])
             elif var_type == 'time_phase':
                 options['shape'] = (1,)
                 options['units'] = time_units if con_units is None else con_units
                 options['linear'] = True
-                for iseg in range(gd.num_segments):
-                    phase.connect(src_name='time_phase',
-                                  tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                                  src_indices=self.grid_data.subset_node_indices['segment_ends'])
+                phase.connect(src_name='time_phase',
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                              src_indices=self.grid_data.subset_node_indices['segment_ends'])
             elif var_type == 'state':
                 state_shape = phase.state_options[var]['shape']
                 state_units = phase.state_options[var]['units']

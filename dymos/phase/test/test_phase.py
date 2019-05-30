@@ -395,23 +395,6 @@ class TestPhaseBase(unittest.TestCase):
 
         p.run_driver()
 
-        import matplotlib.pyplot as plt
-
-        plt.plot(p.get_val('phase0.timeseries.states:x'),
-                 p.get_val('phase0.timeseries.states:y'), 'ko')
-
-        plt.figure()
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.controls:theta'), 'ro')
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.control_rates:theta_rate'), 'bo')
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.control_rates:theta_rate2'), 'go')
-        plt.show()
-
         assert_rel_error(self, p.get_val('phase0.timeseries.controls:theta', units='deg')[-1], 90.0)
 
     def test_control_rate_boundary_constraint_gl(self):
