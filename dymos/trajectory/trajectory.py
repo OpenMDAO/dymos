@@ -351,7 +351,7 @@ class Trajectory(Group):
                         path = 'initial_states:{0}'.format(var)
 
                         self.connect('{0}.{1}'.format(phase_name1, source1),
-                                     '{0}.{1}'.format(phase_name2, path))
+                                     'phases.{0}.{1}'.format(phase_name2, path))
 
                     print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
                                                                   max_varname_length + 9))
@@ -381,14 +381,28 @@ class Trajectory(Group):
         if self.input_parameter_options:
             self._setup_input_parameters()
 
-        phases_group = self.add_subsystem('phases', subsys=ParallelGroup(), promotes_inputs=['*'],
-                                          promotes_outputs=['*'])
+        phases_group = ParallelGroup()
+
+        promoted_inputs = []
 
         for name, phs in iteritems(self._phases):
             g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
+            phs.finalize_variables()
+            promoted_inputs.append('{0}.t_initial'.format(name))
+            promoted_inputs.append('{0}.t_duration'.format(name))
+            if phs.input_parameter_options:
+                promoted_inputs.append('{0}.input_parameters:*'.format(name))
+            if phs.traj_parameter_options:
+                promoted_inputs.append('{0}.traj_parameters:*'.format(name))
+            input_controls = [name for name, opts in iteritems(phs.control_options) if not opts['opt']]
+            if input_controls:
+                promoted_inputs.append('{0}.controls:*'.format(name))
             # DirectSolvers were moved down into the phases for use with MPI
             g.linear_solver = DirectSolver()
-            phs.finalize_variables()
+
+        self.add_subsystem('phases', phases_group,
+                           promotes_inputs=promoted_inputs,
+                           promotes_outputs=['*'])
 
         if self._linkages:
             self._setup_linkages()

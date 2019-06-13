@@ -61,8 +61,7 @@ class RungeKuttaStateContinuityIterGroup(Group):
                                                 ode_init_kwargs=self.options['ode_init_kwargs'],
                                                 solver_class=self.options['k_solver_class'],
                                                 solver_options=self.options['k_solver_options']),
-                           promotes_inputs=['*'],
-                           promotes_outputs=['*'])
+                           promotes_inputs=['initial_states_per_seg:*'])
 
         self.add_subsystem('state_advance_comp',
                            RungeKuttaStateAdvanceComp(num_segments=self.options['num_segments'],
@@ -86,7 +85,7 @@ class RungeKuttaStateContinuityIterGroup(Group):
                            promotes_outputs=['states:*'])
 
         for state_name, options in iteritems(self.options['state_options']):
-            self.connect('k_comp.k:{0}'.format(state_name),
+            self.connect('k_iter_group.k_comp.k:{0}'.format(state_name),
                          'state_advance_comp.k:{0}'.format(state_name))
             row_idxs = np.arange(self.options['num_segments'], dtype=int)
             src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
