@@ -394,7 +394,7 @@ class Trajectory(Group):
                 promoted_inputs.append('{0}.input_parameters:*'.format(name))
             if phs.traj_parameter_options:
                 promoted_inputs.append('{0}.traj_parameters:*'.format(name))
-            input_controls = [name for name, opts in iteritems(phs.control_options) if not opts['opt']]
+            input_controls = [cname for cname, opts in iteritems(phs.control_options) if not opts['opt']]
             if input_controls:
                 promoted_inputs.append('{0}.controls:*'.format(name))
             # DirectSolvers were moved down into the phases for use with MPI
