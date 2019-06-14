@@ -65,8 +65,7 @@ class RungeKuttaKIterGroup(Group):
                            subsys=RungeKuttaKComp(method=self.options['method'],
                                                   num_segments=num_seg,
                                                   state_options=state_options,
-                                                  time_units=self.options['time_units']),
-                           promotes_inputs=['h'])
+                                                  time_units=self.options['time_units']))
 
         for state_name, options in iteritems(self.options['state_options']):
             # Connect the state predicted (assumed) value to its targets in the ode

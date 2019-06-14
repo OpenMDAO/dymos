@@ -38,7 +38,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
                                                    solver_class=NonlinearRunOnce))
 
         p.model.connect('t', 'k_iter_group.ode.t')
-        p.model.connect('h', 'k_iter_group.h')
+        p.model.connect('h', 'k_iter_group.k_comp.h')
         p.model.connect('initial_states_per_seg:y', 'k_iter_group.initial_states_per_seg:y')
 
         src_idxs = np.arange(16, dtype=int).reshape((num_seg, num_stages, 1))
@@ -114,7 +114,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
                                                    solver_options={'iprint': 2}))
 
         p.model.connect('t', 'k_iter_group.ode.t')
-        p.model.connect('h', 'k_iter_group.h')
+        p.model.connect('h', 'k_iter_group.k_comp.h')
         p.model.connect('initial_states_per_seg:y', 'k_iter_group.initial_states_per_seg:y')
 
         src_idxs = np.arange(16, dtype=int).reshape((num_seg, num_stages, 1))
@@ -173,7 +173,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
                                                    solver_options={'iprint': 2}))
 
         p.model.connect('t', 'k_iter_group.ode.t')
-        p.model.connect('h', 'k_iter_group.h')
+        p.model.connect('h', 'k_iter_group.k_comp.h')
         p.model.connect('initial_states_per_seg:y', 'k_iter_group.initial_states_per_seg:y')
 
         src_idxs = np.arange(16, dtype=int).reshape((num_seg, num_stages, 1))
