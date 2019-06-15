@@ -263,20 +263,16 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         # Test the iteration ODE
 
-        assert_rel_error(self, p['phase0.rk_solve_group.k_iter_group.ode.time_phase'][-1], 1.8016,
+        assert_rel_error(self, p['phase0.rk_solve_group.ode.time_phase'][-1], 1.8016,
                          tolerance=1.0E-3)
 
-        assert_rel_error(self, p['phase0.rk_solve_group.k_iter_group.ode.t_initial'],
-                         p['phase0.t_initial'])
+        assert_rel_error(self, p['phase0.rk_solve_group.ode.t_initial'], p['phase0.t_initial'])
 
-        assert_rel_error(self, p['phase0.rk_solve_group.k_iter_group.ode.t_duration'],
-                         p['phase0.t_duration'])
+        assert_rel_error(self, p['phase0.rk_solve_group.ode.t_duration'], p['phase0.t_duration'])
 
-        assert_rel_error(self, p['phase0.rk_solve_group.k_iter_group.ode.time_phase'],
-                         time_phase_all)
+        assert_rel_error(self, p['phase0.rk_solve_group.ode.time_phase'], time_phase_all)
 
-        assert_rel_error(self, p['phase0.rk_solve_group.k_iter_group.ode.time'],
-                         time_all)
+        assert_rel_error(self, p['phase0.rk_solve_group.ode.time'], time_all)
 
         # Now test the final ODE
 
