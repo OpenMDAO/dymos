@@ -13,14 +13,13 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
     def test_doc_ssto_polynomial_control(self):
         import numpy as np
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ExplicitComponent, DirectSolver, \
-            pyOptSparseDriver, ExecComp
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
 
         g = 1.61544  # lunar gravity, m/s**2
 
-        class LaunchVehicle2DEOM(ExplicitComponent):
+        class LaunchVehicle2DEOM(om.ExplicitComponent):
             """
             Simple 2D Cartesian Equations of Motion for a launch vehicle subject to thrust and drag.
             """
@@ -143,7 +142,7 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
                 jacobian['mdot', 'thrust'] = -1.0 / (g * Isp)
                 jacobian['mdot', 'Isp'] = F_T / (g * Isp ** 2)
 
-        class LaunchVehicleLinearTangentODE(Group):
+        class LaunchVehicleLinearTangentODE(om.Group):
             """
             The LaunchVehicleLinearTangentODE for this case consists of a guidance component and
             the EOM.  Guidance is simply an OpenMDAO ExecComp which computes the arctangent of the
@@ -157,10 +156,10 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
             def setup(self):
                 nn = self.options['num_nodes']
 
-                self.add_subsystem('guidance', ExecComp('theta=arctan(tan_theta)',
-                                                        theta={'value': np.ones(nn),
-                                                               'units': 'rad'},
-                                                        tan_theta={'value': np.ones(nn)}))
+                self.add_subsystem('guidance', om.ExecComp('theta=arctan(tan_theta)',
+                                                           theta={'value': np.ones(nn),
+                                                                  'units': 'rad'},
+                                                           tan_theta={'value': np.ones(nn)}))
 
                 self.add_subsystem('eom', LaunchVehicle2DEOM(num_nodes=nn))
 
@@ -169,7 +168,7 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         #
         # Setup and solve the optimal control problem
         #
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
@@ -225,7 +224,7 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         #
         # Set the optimizer
         #
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.options['dynamic_simul_derivs'] = True
 
@@ -235,7 +234,7 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         # failing to do so can cause incorrect derivatives if iterative processes are ever
         # introduced to the system.
         #
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 

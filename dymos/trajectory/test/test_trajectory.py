@@ -5,10 +5,10 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, DirectSolver, SqliteRecorder, Group
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, Trajectory, GaussLobatto
+import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
 
@@ -23,15 +23,15 @@ class TestTrajectory(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
 
-        cls.traj = Trajectory()
-        p = cls.p = Problem(model=cls.traj)
+        cls.traj = dm.Trajectory()
+        p = cls.p = om.Problem(model=cls.traj)
 
         # Since we're only testing features like get_values that don't rely on a converged
         # solution, no driver is attached.  We'll just invoke run_model.
 
         # First Phase (burn)
 
-        burn1 = Phase(ode_class=FiniteBurnODE, transcription=GaussLobatto(num_segments=4, order=3))
+        burn1 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=4, order=3))
 
         cls.traj.add_phase('burn1', burn1)
 
@@ -47,7 +47,7 @@ class TestTrajectory(unittest.TestCase):
 
         # Second Phase (Coast)
 
-        coast = Phase(ode_class=FiniteBurnODE, transcription=GaussLobatto(num_segments=10, order=3))
+        coast = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=10, order=3))
 
         cls.traj.add_phase('coast', coast)
 
@@ -63,7 +63,7 @@ class TestTrajectory(unittest.TestCase):
 
         # Third Phase (burn)
 
-        burn2 = Phase(ode_class=FiniteBurnODE, transcription=GaussLobatto(num_segments=3, order=3))
+        burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=3, order=3))
 
         cls.traj.add_phase('burn2', burn2)
 
@@ -86,9 +86,9 @@ class TestTrajectory(unittest.TestCase):
         cls.traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
         # Finish Problem Setup
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
-        p.model.add_recorder(SqliteRecorder('test_trajectory_rec.db'))
+        p.model.add_recorder(om.SqliteRecorder('test_trajectory_rec.db'))
 
         p.setup(check=True)
 
@@ -145,15 +145,15 @@ class TestTrajectory(unittest.TestCase):
 class TestInvalidLinkages(unittest.TestCase):
 
     def test_invalid_linkage_variable(self):
-        traj = Trajectory()
-        p = Problem(model=traj)
+        traj = dm.Trajectory()
+        p = om.Problem(model=traj)
 
         # Since we're only testing features like get_values that don't rely on a converged
         # solution, no driver is attached.  We'll just invoke run_model.
 
         # First Phase (burn)
 
-        burn1 = Phase(ode_class=FiniteBurnODE, transcription=GaussLobatto(num_segments=4, order=3))
+        burn1 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=4, order=3))
 
         traj.add_phase('burn1', burn1)
 
@@ -169,7 +169,7 @@ class TestInvalidLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
 
-        coast = Phase(ode_class=FiniteBurnODE, transcription=GaussLobatto(num_segments=10, order=3))
+        coast = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=10, order=3))
 
         traj.add_phase('coast', coast)
 
@@ -185,7 +185,7 @@ class TestInvalidLinkages(unittest.TestCase):
 
         # Third Phase (burn)
 
-        burn2 = Phase(ode_class=FiniteBurnODE, transcription=GaussLobatto(num_segments=3, order=3))
+        burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=3, order=3))
 
         traj.add_phase('burn2', burn2)
 
@@ -209,9 +209,9 @@ class TestInvalidLinkages(unittest.TestCase):
         traj.link_phases(phases=['burn1', 'burn2'], vars=['u1', 'bar'])
 
         # Finish Problem Setup
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
-        p.model.add_recorder(SqliteRecorder('test_trajectory_rec.db'))
+        p.model.add_recorder(om.SqliteRecorder('test_trajectory_rec.db'))
 
         with self.assertRaises(ValueError) as e:
             p.setup(check=True)
@@ -221,16 +221,16 @@ class TestInvalidLinkages(unittest.TestCase):
                                            'or parameters may be linked via link_phases.')
 
     def test_invalid_linkage_phase(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        traj = Trajectory()
+        traj = dm.Trajectory()
         p.model.add_subsystem('traj', subsys=traj)
 
         # Since we're only testing features like get_values that don't rely on a converged
         # solution, no driver is attached.  We'll just invoke run_model.
 
         # First Phase (burn)
-        burn1 = Phase(ode_class=FiniteBurnODE, transcription=GaussLobatto(num_segments=4, order=3))
+        burn1 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=4, order=3))
 
         traj.add_phase('burn1', burn1)
 
@@ -246,7 +246,7 @@ class TestInvalidLinkages(unittest.TestCase):
 
         # Second Phase (Coast)
 
-        coast = Phase(ode_class=FiniteBurnODE, transcription=GaussLobatto(num_segments=10, order=3))
+        coast = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=10, order=3))
 
         traj.add_phase('coast', coast)
 
@@ -262,7 +262,7 @@ class TestInvalidLinkages(unittest.TestCase):
 
         # Third Phase (burn)
 
-        burn2 = Phase(ode_class=FiniteBurnODE, transcription=GaussLobatto(num_segments=3, order=3))
+        burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=3, order=3))
 
         traj.add_phase('burn2', burn2)
 
@@ -286,9 +286,9 @@ class TestInvalidLinkages(unittest.TestCase):
         traj.link_phases(phases=['burn1', 'foo'], vars=['u1', 'u1'])
 
         # Finish Problem Setup
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
-        p.model.add_recorder(SqliteRecorder('test_trajectory_rec.db'))
+        p.model.add_recorder(om.SqliteRecorder('test_trajectory_rec.db'))
 
         with self.assertRaises(ValueError) as e:
             p.setup(check=True)

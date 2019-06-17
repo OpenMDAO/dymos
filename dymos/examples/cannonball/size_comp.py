@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class CannonballSizeComp(ExplicitComponent):
+class CannonballSizeComp(om.ExplicitComponent):
     """
     Compute the reference area and mass of a cannonball with a given radius and density.
 

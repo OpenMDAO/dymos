@@ -2,10 +2,10 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class MaxThrustComp(ExplicitComponent):
+class MaxThrustComp(om.ExplicitComponent):
     """ Compute the maximum thrust given the current aircraft state and its
         maximum sea-level thrust with a simple pressure correction.
     """

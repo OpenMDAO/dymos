@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.transcriptions.common import PhaseLinkageComp
@@ -15,9 +15,9 @@ class TestPhaseLinkageComp(unittest.TestCase):
 
     def setUp(self):
 
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
-        ivp = self.p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivp = self.p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         ndn = 20
         nn = 30

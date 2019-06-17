@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_state_advance_comp import \
@@ -16,9 +16,9 @@ class TestRKStateAdvanceComp(unittest.TestCase):
     def test_rk_state_advance_comp_rk4_scalar(self):
         state_options = {'y': {'shape': (1,), 'units': 'm'}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('k:y', shape=(4, 4, 1), units='m')
         ivc.add_output('y0', shape=(4, 1), units='m')
@@ -70,9 +70,9 @@ class TestRKStateAdvanceComp(unittest.TestCase):
     def test_rk_state_advance_comp_rk4_vector(self):
         state_options = {'y': {'shape': (2,), 'units': 'm'}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('k:y', shape=(2, 4, 2), units='m')
         ivc.add_output('y0', shape=(2, 2), units='m')
@@ -107,9 +107,9 @@ class TestRKStateAdvanceComp(unittest.TestCase):
     def test_rk_state_advance_comp_rk4_matrix(self):
         state_options = {'y': {'shape': (2, 2), 'units': 'm'}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('k:y', shape=(4, 2, 2), units='m')
         ivc.add_output('y0', shape=(2, 2), units='m')

@@ -1,16 +1,16 @@
 from __future__ import print_function, division, absolute_import
 
-from six import string_types, iteritems
+from six import iteritems
 
 import numpy as np
 from scipy.linalg import block_diag
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 from dymos.utils.rk_methods import rk_methods
 
 
-class RungeKuttaStateAdvanceComp(ExplicitComponent):
+class RungeKuttaStateAdvanceComp(om.ExplicitComponent):
     """
     Given the initial value of each state at the start of each segment and the weight factors k
     for each state in each segment, compute the final value of each state at the end of each

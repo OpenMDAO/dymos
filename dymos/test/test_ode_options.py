@@ -1,14 +1,12 @@
 from __future__ import print_function, division, absolute_import
 
-import numpy as np
 import unittest
 
-from dymos import declare_time, declare_state, declare_parameter
+import openmdao.api as om
+import dymos as dm
 
-from openmdao.api import ExplicitComponent
 
-
-class _BrachistochroneODE(ExplicitComponent):
+class _BrachistochroneODE(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -18,7 +16,7 @@ class TestODEOptions(unittest.TestCase):
 
     def test_declare_time(self):
 
-        @declare_time(units='s', targets=['foo', 'bar'])
+        @dm.declare_time(units='s', targets=['foo', 'bar'])
         class B(_BrachistochroneODE):
             pass
 
@@ -28,9 +26,9 @@ class TestODEOptions(unittest.TestCase):
 
     def test_declare_state(self):
 
-        @declare_state('x', rate_source='xdot', units='m')
-        @declare_state('y', rate_source='ydot', units='m')
-        @declare_state('v', rate_source='vdot', targets='v', units='m/s')
+        @dm.declare_state('x', rate_source='xdot', units='m')
+        @dm.declare_state('y', rate_source='ydot', units='m')
+        @dm.declare_state('v', rate_source='vdot', targets='v', units='m/s')
         class B(_BrachistochroneODE):
             pass
 
@@ -45,17 +43,17 @@ class TestODEOptions(unittest.TestCase):
 
     def test_invalid_state_name(self):
         with self.assertRaises(NameError) as e:
-            @declare_state('x', rate_source='xdot', units='m')
-            @declare_state('foo.x', rate_source='foox_dot', units='m')
-            @declare_state('v', rate_source='vdot', targets='v', units='m/s')
+            @dm.declare_state('x', rate_source='xdot', units='m')
+            @dm.declare_state('foo.x', rate_source='foox_dot', units='m')
+            @dm.declare_state('v', rate_source='vdot', targets='v', units='m/s')
             class B(_BrachistochroneODE):
                 pass
         self.assertEqual(str(e.exception), "'foo.x' is not a valid OpenMDAO variable name.")
 
     def test_declare_parameters(self):
 
-        @declare_parameter('theta', targets='theta', units='rad')
-        @declare_parameter('g', units='m/s**2', targets=['g'], dynamic=False)
+        @dm.declare_parameter('theta', targets='theta', units='rad')
+        @dm.declare_parameter('g', units='m/s**2', targets=['g'], dynamic=False)
         class B(_BrachistochroneODE):
             pass
 
@@ -65,20 +63,20 @@ class TestODEOptions(unittest.TestCase):
 
     def test_invalid_parameter_name(self):
         with self.assertRaises(NameError) as e:
-            @declare_parameter('theta', targets='theta', units='rad')
-            @declare_parameter('g?', units='m/s**2', targets=['g'], dynamic=False)
+            @dm.declare_parameter('theta', targets='theta', units='rad')
+            @dm.declare_parameter('g?', units='m/s**2', targets=['g'], dynamic=False)
             class B(_BrachistochroneODE):
                 pass
         self.assertEqual(str(e.exception), "'g?' is not a valid OpenMDAO variable name.")
 
     def test_all(self):
 
-        @declare_time(units='s', targets=['foo', 'bar'])
-        @declare_state('x', rate_source='xdot', units='m')
-        @declare_state('y', rate_source='ydot', units='m')
-        @declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
-        @declare_parameter('theta', targets=['theta'], units='rad')
-        @declare_parameter('g', units='m/s**2', targets=['g'], dynamic=False)
+        @dm.declare_time(units='s', targets=['foo', 'bar'])
+        @dm.declare_state('x', rate_source='xdot', units='m')
+        @dm.declare_state('y', rate_source='ydot', units='m')
+        @dm.declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
+        @dm.declare_parameter('theta', targets=['theta'], units='rad')
+        @dm.declare_parameter('g', units='m/s**2', targets=['g'], dynamic=False)
         class B(_BrachistochroneODE):
             pass
 
@@ -97,12 +95,12 @@ class TestODEOptions(unittest.TestCase):
 
     def test_str(self):
 
-        @declare_time(units='s', targets=['foo', 'bar'])
-        @declare_state('x', rate_source='xdot', units='m')
-        @declare_state('y', rate_source='ydot', units='m')
-        @declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
-        @declare_parameter('theta', targets=['theta'], units='rad')
-        @declare_parameter('g', units='m/s**2', targets=['g'], dynamic=False)
+        @dm.declare_time(units='s', targets=['foo', 'bar'])
+        @dm.declare_state('x', rate_source='xdot', units='m')
+        @dm.declare_state('y', rate_source='ydot', units='m')
+        @dm.declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
+        @dm.declare_parameter('theta', targets=['theta'], units='rad')
+        @dm.declare_parameter('g', units='m/s**2', targets=['g'], dynamic=False)
         class B(_BrachistochroneODE):
             pass
 

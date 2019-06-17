@@ -5,10 +5,10 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class Motors(ExplicitComponent):
+class Motors(om.ExplicitComponent):
     """
     Model for motors in parallel.
     """
@@ -56,7 +56,7 @@ class Motors(ExplicitComponent):
         partials['power_in_motor', 'current_in_motor'] = 0.3 * power_out / (n_parallel * eff**2)
 
 
-class MotorsStaticGearboxPower(ExplicitComponent):
+class MotorsStaticGearboxPower(om.ExplicitComponent):
     """
     Model for motors in parallel.
     """
@@ -107,10 +107,10 @@ class MotorsStaticGearboxPower(ExplicitComponent):
 
 if __name__ == '__main__':
 
-    from openmdao.api import Problem, IndepVarComp
+    import openmdao.api as om
     num_nodes = 1
 
-    prob = Problem(model=Motors(num_nodes=num_nodes))
+    prob = om.Problem(model=Motors(num_nodes=num_nodes))
     model = prob.model
 
     prob.setup()

@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class CLComp(ExplicitComponent):
+class CLComp(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)

@@ -3,10 +3,10 @@ from __future__ import print_function, division, absolute_import
 from six import iteritems
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class SegmentStateMuxComp(ExplicitComponent):
+class SegmentStateMuxComp(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('grid_data', desc='the grid data of the corresponding phase.')

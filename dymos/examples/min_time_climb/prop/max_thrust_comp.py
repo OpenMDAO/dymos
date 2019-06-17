@@ -1,6 +1,6 @@
 from __future__ import print_function, division, absolute_import
 import numpy as np
-from openmdao.api import MetaModelStructuredComp
+import openmdao.api as om
 
 _FT2M = 0.3048
 
@@ -62,7 +62,7 @@ THR_DATA = {'mach': np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
                                 ]).reshape((10, 10))}
 
 
-class MaxThrustComp(MetaModelStructuredComp):
+class MaxThrustComp(om.MetaModelStructuredComp):
     """ Interpolates max thrust for 2 J79 jet engines. """
 
     def setup(self):

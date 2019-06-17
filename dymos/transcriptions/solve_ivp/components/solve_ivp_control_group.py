@@ -5,14 +5,14 @@ from six import string_types, iteritems
 import numpy as np
 from scipy.linalg import block_diag
 
-from openmdao.api import ExplicitComponent, Group, IndepVarComp
+import openmdao.api as om
 
 from ...grid_data import GridData
 from dymos.utils.misc import get_rate_units
 from ....utils.lagrange import lagrange_matrices
 
 
-class SolveIVPControlInterpComp(ExplicitComponent):
+class SolveIVPControlInterpComp(om.ExplicitComponent):
     """
     Compute the approximated control values and rates given the values of a control at output nodes
     and the approximated values at output nodes, given values at the control input nodes.
@@ -187,7 +187,7 @@ class SolveIVPControlInterpComp(ExplicitComponent):
             outputs[self._output_rate2_names[name]] = (b / inputs['dt_dstau'] ** 2).T
 
 
-class SolveIVPControlGroup(Group):
+class SolveIVPControlGroup(om.Group):
 
     def initialize(self):
         self.options.declare('control_options', types=dict,
@@ -202,9 +202,6 @@ class SolveIVPControlGroup(Group):
 
     def setup(self):
 
-        ivc = IndepVarComp()
-
-        # opts = self.options
         gd = self.options['grid_data']
         control_options = self.options['control_options']
         time_units = self.options['time_units']
@@ -215,7 +212,7 @@ class SolveIVPControlGroup(Group):
         opt_controls = [name for (name, opts) in iteritems(control_options) if opts['opt']]
 
         if len(opt_controls) > 0:
-            ivc = self.add_subsystem('indep_controls', subsys=IndepVarComp(),
+            ivc = self.add_subsystem('indep_controls', subsys=om.IndepVarComp(),
                                      promotes_outputs=['*'])
 
         self.add_subsystem(

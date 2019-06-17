@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 
 from dymos.transcriptions.grid_data import GridData
 from dymos.transcriptions.common import TimeComp
@@ -30,9 +30,9 @@ class TestTimeComp(unittest.TestCase):
                       segment_ends=_segends,
                       transcription='gauss-lobatto')
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem(name='ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem(name='ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=100.0, units='s')
@@ -85,9 +85,9 @@ class TestTimeComp(unittest.TestCase):
                       segment_ends=_segends,
                       transcription='radau-ps')
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem(name='ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem(name='ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('t_initial', val=0.0, units='s')
         ivc.add_output('t_duration', val=100.0, units='s')

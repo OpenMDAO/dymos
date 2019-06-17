@@ -1,11 +1,11 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 from six import string_types
 
 
-class TimeComp(ExplicitComponent):
+class TimeComp(om.ExplicitComponent):
 
     def initialize(self):
         # Required

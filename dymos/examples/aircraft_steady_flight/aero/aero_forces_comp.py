@@ -2,10 +2,10 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class AeroForcesComp(ExplicitComponent):
+class AeroForcesComp(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)

@@ -7,7 +7,7 @@ from parameterized import parameterized
 
 import numpy as np
 from numpy.testing import assert_almost_equal
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.transcriptions.common import TimeComp
@@ -83,12 +83,12 @@ class TestControlRateComp(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': {'units': 'm', 'shape': (1,), 'dynamic': True},
                     'b': {'units': 'm', 'shape': (1,), 'dynamic': True}}
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('controls:a',
@@ -174,12 +174,12 @@ class TestControlRateComp(unittest.TestCase):
                       transcription_order='RK4',
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': {'units': 'm', 'shape': (1,), 'dynamic': True},
                     'b': {'units': 'm', 'shape': (1,), 'dynamic': True}}
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('controls:a',
@@ -258,11 +258,11 @@ class TestControlRateComp(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': {'units': 'm', 'shape': (3,), 'dynamic': True}}
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['control_input'], 3)),
@@ -360,11 +360,11 @@ class TestControlRateComp(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': {'units': 'm', 'shape': (3, 1), 'dynamic': True}}
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['control_input'], 3, 1)),
@@ -461,11 +461,11 @@ class TestControlRateComp(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': {'units': 'm', 'shape': (2, 2), 'dynamic': True}}
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('controls:a', val=np.zeros((gd.subset_num_nodes['control_input'], 2, 2)),

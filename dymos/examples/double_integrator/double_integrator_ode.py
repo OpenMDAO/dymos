@@ -1,9 +1,9 @@
 from __future__ import print_function, division, absolute_import
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class DoubleIntegratorODE(ExplicitComponent):
+class DoubleIntegratorODE(om.ExplicitComponent):
     """
     The double integrator is a special case where the state rates are all set to other states
     or parameters.  Since we aren't computing any other outputs, the ODE doesn't actually

@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class ThrustComp(ExplicitComponent):
+class ThrustComp(om.ExplicitComponent):
     """ Computes mass flow rate for the F4's 2 J79 engines at full throttle. """
 
     def initialize(self):

@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 
 from dymos.examples.min_time_climb.prop.max_thrust_comp import MaxThrustComp, THR_DATA, _LBF2N
 
@@ -15,9 +15,9 @@ class TestBrysonThrustComp(unittest.TestCase):
     def test_grid_values(self):
         n = 10
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         ivc.add_output(name='h', val=np.zeros(n), units='ft')
         ivc.add_output(name='mach', val=np.zeros(n), units=None)
 

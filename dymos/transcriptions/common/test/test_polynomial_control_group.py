@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 from numpy.testing import assert_almost_equal
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.transcriptions.common import TimeComp, PolynomialControlGroup
@@ -77,7 +77,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': PolynomialControlOptionsDictionary(),
                     'b': PolynomialControlOptionsDictionary()}
@@ -90,7 +90,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         controls['b']['order'] = 3
         controls['b']['opt'] = True
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('t_initial', val=0.0, units='s')
@@ -171,7 +171,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': PolynomialControlOptionsDictionary(),
                     'b': PolynomialControlOptionsDictionary()}
@@ -184,7 +184,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         controls['b']['order'] = 3
         controls['b']['opt'] = True
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('t_initial', val=0.0, units='s')
@@ -267,7 +267,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': PolynomialControlOptionsDictionary(),
                     'b': PolynomialControlOptionsDictionary()}
@@ -280,7 +280,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         controls['b']['order'] = 3
         controls['b']['opt'] = True
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('t_initial', val=0.0, units='s')
@@ -361,7 +361,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': PolynomialControlOptionsDictionary()}
 
@@ -370,7 +370,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         controls['a']['opt'] = True
         controls['a']['shape'] = (3,)
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('t_initial', val=0.0, units='s')
@@ -467,7 +467,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': PolynomialControlOptionsDictionary()}
 
@@ -476,7 +476,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         controls['a']['opt'] = True
         controls['a']['shape'] = (3,)
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('t_initial', val=0.0, units='s')
@@ -573,7 +573,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': PolynomialControlOptionsDictionary()}
 
@@ -582,7 +582,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         controls['a']['opt'] = True
         controls['a']['shape'] = (3,)
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('t_initial', val=0.0, units='s')
@@ -679,7 +679,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': PolynomialControlOptionsDictionary()}
 
@@ -688,7 +688,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         controls['a']['opt'] = True
         controls['a']['shape'] = (3, 1)
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('t_initial', val=0.0, units='s')
@@ -785,7 +785,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': PolynomialControlOptionsDictionary()}
 
@@ -794,7 +794,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         controls['a']['opt'] = True
         controls['a']['shape'] = (3, 1)
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('t_initial', val=0.0, units='s')
@@ -891,7 +891,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed)
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         controls = {'a': PolynomialControlOptionsDictionary()}
 
@@ -900,7 +900,7 @@ class TestInterpolatedControLGroup(unittest.TestCase):
         controls['a']['opt'] = True
         controls['a']['shape'] = (3, 1)
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('t_initial', val=0.0, units='s')

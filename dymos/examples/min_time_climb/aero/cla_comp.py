@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class CLaComp(ExplicitComponent):
+class CLaComp(om.ExplicitComponent):
     """ Computes the alpha lift coefficient for induced drag
 
     """

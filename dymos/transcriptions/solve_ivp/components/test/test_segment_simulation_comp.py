@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division
 
 import unittest
 
-from openmdao.api import Problem, Group
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos.transcriptions.solve_ivp.components.segment_simulation_comp import SegmentSimulationComp
@@ -15,8 +15,7 @@ class TestSegmentSimulationComp(unittest.TestCase):
 
     def test_simple_integration(self):
 
-        p = Problem(model=Group())
-        p.model = Group()
+        p = om.Problem(model=om.Group())
 
         time_options = TimeOptionsDictionary()
         time_options['units'] = 's'

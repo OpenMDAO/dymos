@@ -1,9 +1,9 @@
 from dymos.utils.misc import get_rate_units
-from openmdao.core.explicitcomponent import ExplicitComponent
+import openmdao.api as om
 from six import string_types, iteritems
 
 
-class ODEIntControlInterpolationComp(ExplicitComponent):
+class ODEIntControlInterpolationComp(om.ExplicitComponent):
     """
     Provides the interpolated value and rate of a control variable during explicit integration.
 

@@ -1,10 +1,10 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class KappaComp(ExplicitComponent):
-    """ Computes the term kappa in the drag equation:
+class KappaComp(om.ExplicitComponent):
+    r""" Computes the term kappa in the drag equation:
 
     .. math::
 

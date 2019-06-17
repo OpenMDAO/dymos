@@ -1,7 +1,7 @@
 
 import unittest
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 import dymos as dm
 from dymos.examples.brachistochrone import BrachistochroneODE
@@ -9,10 +9,10 @@ from dymos.examples.brachistochrone import BrachistochroneODE
 
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                              compressed=True, optimizer='SLSQP', simul_derivs=True):
-    p = Problem(model=Group())
+    p = om.Problem(model=om.Group())
 
     # if optimizer == 'SNOPT':
-    p.driver = pyOptSparseDriver()
+    p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
     p.driver.options['dynamic_simul_derivs'] = simul_derivs
 
@@ -49,7 +49,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
 
-    p.model.linear_solver = DirectSolver()
+    p.model.linear_solver = om.DirectSolver()
     p.setup(check=True)
 
     p['phase0.t_initial'] = 0.0

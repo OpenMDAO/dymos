@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.transcriptions.common.boundary_constraint_comp import BoundaryConstraintComp
@@ -15,9 +15,9 @@ class TestInitialScalarBoundaryValue(unittest.TestCase):
 
     def setUp(self):
 
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
-        ivp = self.p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivp = self.p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         ivp.add_output('x', val=np.arange(100))
         self.p.model.add_design_var('x', lower=0, upper=100)
@@ -44,9 +44,9 @@ class TestFinalScalarBoundaryValue(unittest.TestCase):
 
     def setUp(self):
 
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
-        ivp = self.p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivp = self.p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         ivp.add_output('x', val=np.arange(100))
         self.p.model.add_design_var('x', lower=0, upper=100)
@@ -73,9 +73,9 @@ class TestVectorInitialBoundaryValue(unittest.TestCase):
 
     def setUp(self):
 
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
-        ivp = self.p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivp = self.p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         ivp.add_output('pos', val=np.zeros((100, 3)))
         self.p.model.add_design_var('pos', lower=0, upper=100)
@@ -109,9 +109,9 @@ class TestVectorFinalBoundaryValue(unittest.TestCase):
 
     def setUp(self):
 
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
-        ivp = self.p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivp = self.p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         ivp.add_output('pos', val=np.zeros((100, 3)))
         self.p.model.add_design_var('pos', lower=0, upper=100)
@@ -146,9 +146,9 @@ class TestMatrixInitialBoundaryValue(unittest.TestCase):
 
     def setUp(self):
 
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
-        ivp = self.p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivp = self.p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         ivp.add_output('M', val=np.zeros((100, 3, 3)))
         self.p.model.add_design_var('M', lower=0, upper=100)
@@ -191,9 +191,9 @@ class TestMatrixFinalBoundaryValue(unittest.TestCase):
 
     def setUp(self):
 
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
-        ivp = self.p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivp = self.p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         ivp.add_output('M', val=np.zeros((100, 3, 3)))
         self.p.model.add_design_var('M', lower=0, upper=100)
@@ -236,9 +236,9 @@ class TestMultipleConstraints(unittest.TestCase):
 
     def setUp(self):
 
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
-        ivp = self.p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivp = self.p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         ivp.add_output('M', val=np.zeros((100, 3, 3)))
         ivp.add_output('pos', val=np.zeros((100, 3)))

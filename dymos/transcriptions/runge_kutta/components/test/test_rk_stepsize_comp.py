@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_stepsize_comp import RungeKuttaStepsizeComp
@@ -13,9 +13,9 @@ from dymos.transcriptions.runge_kutta.components.runge_kutta_stepsize_comp impor
 class TestRKStepsizeComp(unittest.TestCase):
 
     def test_rk_stepsize_comp(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('t_duration', shape=(1,), units='s')
 
@@ -41,9 +41,9 @@ class TestRKStepsizeComp(unittest.TestCase):
         assert_check_partials(cpd)
 
     def test_rk_stepsize_comp_nonuniform(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('t_duration', shape=(1,), units='s')
 

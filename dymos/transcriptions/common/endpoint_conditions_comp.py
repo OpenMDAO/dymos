@@ -2,10 +2,10 @@ from __future__ import print_function, division, absolute_import
 
 from six import iteritems
 import numpy as np
-from openmdao.api import ExplicitComponent, OptionsDictionary
+import openmdao.api as om
 
 
-class EndpointConditionsComp(ExplicitComponent):
+class EndpointConditionsComp(om.ExplicitComponent):
     """
     Provides values of time, states, and controls at the start/end of each
     phase to make it simpler to link phases together.
@@ -14,7 +14,7 @@ class EndpointConditionsComp(ExplicitComponent):
         self.options.declare('loc', values=('initial', 'final'),
                              desc='Whether the instance of the component provides conditions at '
                                   'the start (initial) or end (final) of the phase')
-        self.options.declare('time_options', types=OptionsDictionary)
+        self.options.declare('time_options', types=om.OptionsDictionary)
         self.options.declare('state_options', types=dict)
         self.options.declare('control_options', types=dict)
 

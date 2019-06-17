@@ -1,7 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 import dymos as dm
 
 
@@ -11,7 +11,7 @@ import dymos as dm
 @dm.declare_state('v', rate_source='vdot', targets='v', units='m/s')
 @dm.declare_parameter('theta', targets='theta', units='rad')
 @dm.declare_parameter('g', units='m/s**2', targets='g')
-class BrachistochroneODE(ExplicitComponent):
+class BrachistochroneODE(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)

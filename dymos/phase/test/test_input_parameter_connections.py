@@ -1,14 +1,14 @@
 import numpy as np
 
 import unittest
-from openmdao.api import ExplicitComponent, Group, Problem
-from dymos import ODEOptions, Phase, Radau, GaussLobatto
+import openmdao.api as om
+import dymos as dm
 
 
 n_traj = 4
 
 
-class MyComp(ExplicitComponent):
+class MyComp(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('n_traj', types=int)
@@ -28,8 +28,8 @@ class MyComp(ExplicitComponent):
         pass
 
 
-class MyODE(Group):
-    ode_options = ODEOptions()
+class MyODE(om.Group):
+    ode_options = dm.ODEOptions()
     ode_options.declare_time(units='s', targets=['comp.time'])
     ode_options.declare_state(name='F', rate_source='comp.y')
     ode_options.declare_parameter(name='alpha', shape=(n_traj, 2), targets='comp.alpha',
@@ -52,13 +52,13 @@ class TestStaticInputParameters(unittest.TestCase):
 
     def test_radau(self):
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        phase = Phase(ode_class=MyODE,
-                      ode_init_kwargs={'n_traj': n_traj},
-                      transcription=Radau(num_segments=25,
-                                          order=3,
-                                          compressed=True))
+        phase = dm.Phase(ode_class=MyODE,
+                         ode_init_kwargs={'n_traj': n_traj},
+                         transcription=dm.Radau(num_segments=25,
+                                                order=3,
+                                                compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -71,13 +71,13 @@ class TestStaticInputParameters(unittest.TestCase):
 
     def test_gauss_lobatto(self):
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        phase = Phase(ode_class=MyODE,
-                      ode_init_kwargs={'n_traj': n_traj},
-                      transcription=GaussLobatto(num_segments=25,
-                                                 order=3,
-                                                 compressed=True))
+        phase = dm.Phase(ode_class=MyODE,
+                         ode_init_kwargs={'n_traj': n_traj},
+                         transcription=dm.GaussLobatto(num_segments=25,
+                                                       order=3,
+                                                       compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 

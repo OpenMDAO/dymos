@@ -6,18 +6,18 @@ import unittest
 import numpy as np
 from scipy.interpolate import interp1d
 
-from openmdao.api import ExplicitComponent
-from dymos import declare_time, declare_state, declare_parameter
+import openmdao.api as om
+import dymos as dm
 
 
-@declare_time(units='s')
-@declare_state('x', rate_source='xdot', units='m')
-@declare_state('y', rate_source='ydot', units='m')
-@declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
-@declare_state('theta', targets=['theta'], rate_source='theta_dot', units='rad')
-@declare_parameter('theta_dot', targets=[], units='rad/s')
-@declare_parameter('g', units='m/s**2', targets=['g'])
-class BrachistochroneODE(ExplicitComponent):
+@dm.declare_time(units='s')
+@dm.declare_state('x', rate_source='xdot', units='m')
+@dm.declare_state('y', rate_source='ydot', units='m')
+@dm.declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
+@dm.declare_state('theta', targets=['theta'], rate_source='theta_dot', units='rad')
+@dm.declare_parameter('theta_dot', targets=[], units='rad/s')
+@dm.declare_parameter('g', units='m/s**2', targets=['g'])
+class BrachistochroneODE(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -98,14 +98,14 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
     def test_brachistochrone_integrated_control_gauss_lobatto(self):
         import numpy as np
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, GaussLobatto
+        import dymos as dm
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
 
-        phase = Phase(ode_class=BrachistochroneODE, transcription=GaussLobatto(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=dm.GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -123,7 +123,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -173,14 +173,14 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
     def test_brachistochrone_integrated_control_radau_ps(self):
         import numpy as np
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, Radau
+        import dymos as dm
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
 
-        phase = Phase(ode_class=BrachistochroneODE, transcription=Radau(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=dm.Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -198,7 +198,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup()

@@ -1,13 +1,12 @@
 from __future__ import absolute_import
 
-from openmdao.api import Group
-
+import openmdao.api as om
 from .mdot_comp import MassFlowRateComp
 from .max_thrust_comp import MaxThrustComp
 from .thrust_comp import ThrustComp
 
 
-class PropGroup(Group):
+class PropGroup(om.Group):
     """
     The purpose of the PropGroup is to compute the propulsive forces on the
     aircraft in the body frame.

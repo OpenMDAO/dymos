@@ -1,7 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
-from openmdao.api import Group
-
+import openmdao.api as om
 from .aero_coef_comp import AeroCoefComp
 from .aero_forces_comp import AeroForcesComp
 from .mbi_aero_coef_comp import MBIAeroCoeffComp, setup_surrogates_all
@@ -12,7 +11,7 @@ except ImportError:
     MBI = None
 
 
-class AerodynamicsGroup(Group):
+class AerodynamicsGroup(om.Group):
     """
     The purpose of the Aerodynamics is to compute the lift and
     drag forces on the aircraft.

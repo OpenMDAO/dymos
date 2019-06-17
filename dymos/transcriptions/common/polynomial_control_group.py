@@ -3,7 +3,7 @@ from __future__ import division, print_function, absolute_import
 import numpy as np
 from six import iteritems, string_types
 
-from openmdao.api import Group, ExplicitComponent, IndepVarComp
+import openmdao.api as om
 
 from ..grid_data import GridData
 from ...utils.lgl import lgl
@@ -12,7 +12,7 @@ from ...utils.misc import get_rate_units
 from ...utils.constants import INF_BOUND
 
 
-class LGLPolynomialControlComp(ExplicitComponent):
+class LGLPolynomialControlComp(om.ExplicitComponent):
     """
     Component which interpolates controls as a single polynomial across the entire phase.
     """
@@ -180,7 +180,7 @@ class LGLPolynomialControlComp(ExplicitComponent):
                 (self.rate2_jacs[name] / (0.5 * t_duration_x_size) ** 2)[r_nz, c_nz]
 
 
-class PolynomialControlGroup(Group):
+class PolynomialControlGroup(om.Group):
 
     def initialize(self):
         self.options.declare('polynomial_control_options', types=dict,
@@ -191,7 +191,7 @@ class PolynomialControlGroup(Group):
 
     def setup(self):
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
 
         opts = self.options
 

@@ -2,7 +2,7 @@ from __future__ import print_function, division, absolute_import
 
 from six import string_types, iteritems
 
-from openmdao.api import Group, DirectSolver, NonlinearBlockGS, NewtonSolver, NonlinearRunOnce
+import openmdao.api as om
 
 from ....utils.rk_methods import rk_methods
 
@@ -10,7 +10,7 @@ from .runge_kutta_state_predict_comp import RungeKuttaStatePredictComp
 from .runge_kutta_k_comp import RungeKuttaKComp
 
 
-class RungeKuttaKIterGroup(Group):
+class RungeKuttaKIterGroup(om.Group):
     """
     This Group contains the state prediction component, the ODE, and the k-calculation component.
     Given the initial values of the states, the times at the ODE evaluations, and the stepsize
@@ -36,8 +36,8 @@ class RungeKuttaKIterGroup(Group):
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
 
-        self.options.declare('solver_class', default=NonlinearBlockGS,
-                             values=(NonlinearBlockGS, NewtonSolver, NonlinearRunOnce),
+        self.options.declare('solver_class', default=om.NonlinearBlockGS,
+                             values=(om.NonlinearBlockGS, om.NewtonSolver, om.NonlinearRunOnce),
                              allow_none=True,
                              desc='The nonlinear solver class used to converge the numerical '
                                   'integration of the segment.')
@@ -78,6 +78,6 @@ class RungeKuttaKIterGroup(Group):
             self.connect('k_comp.k:{0}'.format(state_name),
                          'state_predict_comp.k:{0}'.format(state_name))
 
-        self.linear_solver = DirectSolver()
+        self.linear_solver = om.DirectSolver()
         if self.options['solver_class']:
             self.nonlinear_solver = self.options['solver_class'](**self.options['solver_options'])

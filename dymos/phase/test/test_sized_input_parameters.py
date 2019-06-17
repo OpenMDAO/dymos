@@ -1,11 +1,9 @@
 import unittest
 
-from openmdao.api import Group, ExecComp, Problem
-from openmdao.api import DirectSolver, pyOptSparseDriver
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import declare_time, declare_state, declare_parameter
-from dymos import Phase, GaussLobatto, Radau, RungeKutta
+import dymos as dm
 from dymos.utils.lgl import lgl
 from dymos.models.eom import FlightPathEOM2D
 
@@ -16,20 +14,20 @@ class TestInputParameterConnections(unittest.TestCase):
 
     def test_dynamic_input_parameter_connections_radau(self):
 
-        @declare_time(units='s')
-        @declare_state('v', rate_source='eom.v_dot', units='m/s')
-        @declare_state('h', rate_source='eom.h_dot', units='m')
-        @declare_parameter('m', targets='sum.m', units='kg', shape=(2, 2))
-        class TrajectoryODE(Group):
+        @dm.declare_time(units='s')
+        @dm.declare_state('v', rate_source='eom.v_dot', units='m/s')
+        @dm.declare_state('h', rate_source='eom.h_dot', units='m')
+        @dm.declare_parameter('m', targets='sum.m', units='kg', shape=(2, 2))
+        class TrajectoryODE(om.Group):
             def initialize(self):
                 self.options.declare('num_nodes', types=int)
 
             def setup(self):
                 nn = self.options['num_nodes']
 
-                self.add_subsystem('sum', ExecComp('m_tot = sum(m)',
-                                                   m={'value': np.zeros((nn, 2, 2))},
-                                                   m_tot={'value': np.zeros(nn)}))
+                self.add_subsystem('sum', om.ExecComp('m_tot = sum(m)',
+                                                      m={'value': np.zeros((nn, 2, 2))},
+                                                      m_tot={'value': np.zeros(nn)}))
 
                 self.add_subsystem('eom', FlightPathEOM2D(num_nodes=nn))
 
@@ -39,17 +37,17 @@ class TestInputParameterConnections(unittest.TestCase):
         num_segments = 1
         transcription_order = 5
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = optimizer
         p.driver.options['dynamic_simul_derivs'] = True
 
         seg_ends, _ = lgl(num_segments + 1)
 
-        phase = Phase(ode_class=TrajectoryODE,
-                      transcription=Radau(num_segments=num_segments, order=transcription_order,
-                                          segment_ends=seg_ends))
+        phase = dm.Phase(ode_class=TrajectoryODE,
+                         transcription=dm.Radau(num_segments=num_segments, order=transcription_order,
+                                                segment_ends=seg_ends))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -60,7 +58,7 @@ class TestInputParameterConnections(unittest.TestCase):
 
         phase.add_input_parameter('m', val=[[1, 2], [3, 4]], units='kg')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -78,20 +76,20 @@ class TestInputParameterConnections(unittest.TestCase):
 
     def test_static_input_parameter_connections_radau(self):
 
-        @declare_time(units='s')
-        @declare_state('v', rate_source='eom.v_dot', units='m/s')
-        @declare_state('h', rate_source='eom.h_dot', units='m')
-        @declare_parameter('m', targets='sum.m', units='kg', shape=(2, 2), dynamic=False)
-        class TrajectoryODE(Group):
+        @dm.declare_time(units='s')
+        @dm.declare_state('v', rate_source='eom.v_dot', units='m/s')
+        @dm.declare_state('h', rate_source='eom.h_dot', units='m')
+        @dm.declare_parameter('m', targets='sum.m', units='kg', shape=(2, 2), dynamic=False)
+        class TrajectoryODE(om.Group):
             def initialize(self):
                 self.options.declare('num_nodes', types=int)
 
             def setup(self):
                 nn = self.options['num_nodes']
 
-                self.add_subsystem('sum', ExecComp('m_tot = sum(m)',
-                                                   m={'value': np.zeros((2, 2))},
-                                                   m_tot={'value': np.zeros(nn)}))
+                self.add_subsystem('sum', om.ExecComp('m_tot = sum(m)',
+                                                      m={'value': np.zeros((2, 2))},
+                                                      m_tot={'value': np.zeros(nn)}))
 
                 self.add_subsystem('eom', FlightPathEOM2D(num_nodes=nn))
 
@@ -101,17 +99,18 @@ class TestInputParameterConnections(unittest.TestCase):
         num_segments = 1
         transcription_order = 5
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = optimizer
         p.driver.options['dynamic_simul_derivs'] = True
 
         seg_ends, _ = lgl(num_segments + 1)
 
-        phase = Phase(ode_class=TrajectoryODE,
-                      transcription=Radau(num_segments=num_segments, order=transcription_order,
-                                          segment_ends=seg_ends))
+        phase = dm.Phase(ode_class=TrajectoryODE,
+                         transcription=dm.Radau(num_segments=num_segments,
+                                                order=transcription_order,
+                                                segment_ends=seg_ends))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -122,7 +121,7 @@ class TestInputParameterConnections(unittest.TestCase):
 
         phase.add_input_parameter('m', val=[[1, 2], [3, 4]], units='kg')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -139,20 +138,20 @@ class TestInputParameterConnections(unittest.TestCase):
 
     def test_dynamic_input_parameter_connections_gl(self):
 
-        @declare_time(units='s')
-        @declare_state('v', rate_source='eom.v_dot', units='m/s')
-        @declare_state('h', rate_source='eom.h_dot', units='m')
-        @declare_parameter('m', targets='sum.m', units='kg', shape=(2, 2))
-        class TrajectoryODE(Group):
+        @dm.declare_time(units='s')
+        @dm.declare_state('v', rate_source='eom.v_dot', units='m/s')
+        @dm.declare_state('h', rate_source='eom.h_dot', units='m')
+        @dm.declare_parameter('m', targets='sum.m', units='kg', shape=(2, 2))
+        class TrajectoryODE(om.Group):
             def initialize(self):
                 self.options.declare('num_nodes', types=int)
 
             def setup(self):
                 nn = self.options['num_nodes']
 
-                self.add_subsystem('sum', ExecComp('m_tot = sum(m)',
-                                                   m={'value': np.zeros((nn, 2, 2))},
-                                                   m_tot={'value': np.zeros(nn)}))
+                self.add_subsystem('sum', om.ExecComp('m_tot = sum(m)',
+                                                      m={'value': np.zeros((nn, 2, 2))},
+                                                      m_tot={'value': np.zeros(nn)}))
 
                 self.add_subsystem('eom', FlightPathEOM2D(num_nodes=nn))
 
@@ -162,17 +161,18 @@ class TestInputParameterConnections(unittest.TestCase):
         num_segments = 1
         transcription_order = 5
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = optimizer
         p.driver.options['dynamic_simul_derivs'] = True
 
         seg_ends, _ = lgl(num_segments + 1)
 
-        phase = Phase(ode_class=TrajectoryODE,
-                      transcription=GaussLobatto(num_segments=num_segments, order=transcription_order,
-                                                 segment_ends=seg_ends))
+        phase = dm.Phase(ode_class=TrajectoryODE,
+                         transcription=dm.GaussLobatto(num_segments=num_segments,
+                                                       order=transcription_order,
+                                                       segment_ends=seg_ends))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -183,7 +183,7 @@ class TestInputParameterConnections(unittest.TestCase):
 
         phase.add_input_parameter('m', val=[[1, 2], [3, 4]], units='kg')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -207,20 +207,20 @@ class TestInputParameterConnections(unittest.TestCase):
 
     def test_static_input_parameter_connections_gl(self):
 
-        @declare_time(units='s')
-        @declare_state('v', rate_source='eom.v_dot', units='m/s')
-        @declare_state('h', rate_source='eom.h_dot', units='m')
-        @declare_parameter('m', targets='sum.m', units='kg', shape=(2, 2), dynamic=False)
-        class TrajectoryODE(Group):
+        @dm.declare_time(units='s')
+        @dm.declare_state('v', rate_source='eom.v_dot', units='m/s')
+        @dm.declare_state('h', rate_source='eom.h_dot', units='m')
+        @dm.declare_parameter('m', targets='sum.m', units='kg', shape=(2, 2), dynamic=False)
+        class TrajectoryODE(om.Group):
             def initialize(self):
                 self.options.declare('num_nodes', types=int)
 
             def setup(self):
                 nn = self.options['num_nodes']
 
-                self.add_subsystem('sum', ExecComp('m_tot = sum(m)',
-                                                   m={'value': np.zeros((2, 2))},
-                                                   m_tot={'value': np.zeros(nn)}))
+                self.add_subsystem('sum', om.ExecComp('m_tot = sum(m)',
+                                                      m={'value': np.zeros((2, 2))},
+                                                      m_tot={'value': np.zeros(nn)}))
 
                 self.add_subsystem('eom', FlightPathEOM2D(num_nodes=nn))
 
@@ -230,17 +230,18 @@ class TestInputParameterConnections(unittest.TestCase):
         num_segments = 1
         transcription_order = 5
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = optimizer
         p.driver.options['dynamic_simul_derivs'] = True
 
         seg_ends, _ = lgl(num_segments + 1)
 
-        phase = Phase(ode_class=TrajectoryODE,
-                      transcription=GaussLobatto(num_segments=num_segments, order=transcription_order,
-                                                 segment_ends=seg_ends))
+        phase = dm.Phase(ode_class=TrajectoryODE,
+                         transcription=dm.GaussLobatto(num_segments=num_segments,
+                                                       order=transcription_order,
+                                                       segment_ends=seg_ends))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -251,7 +252,7 @@ class TestInputParameterConnections(unittest.TestCase):
 
         phase.add_input_parameter('m', val=[[1, 2], [3, 4]], units='kg')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 

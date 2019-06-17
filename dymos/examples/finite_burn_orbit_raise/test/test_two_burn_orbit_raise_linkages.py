@@ -16,18 +16,18 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         import matplotlib.pyplot as plt
 
-        from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         from openmdao.utils.general_utils import set_pyoptsparse_opt
 
-        from dymos import Phase, GaussLobatto, RungeKutta, Trajectory
+        import dymos as dm
         from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
-        traj = Trajectory()
-        p = Problem(model=Group())
+        traj = dm.Trajectory()
+        p = om.Problem(model=om.Group())
         p.model.add_subsystem('traj', traj)
 
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
         p.driver.options['optimizer'] = optimizer
 
@@ -37,8 +37,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # First Phase (burn)
 
-        burn1 = Phase(ode_class=FiniteBurnODE,
-                      transcription=GaussLobatto(num_segments=10, order=3, compressed=True))
+        burn1 = dm.Phase(ode_class=FiniteBurnODE,
+                         transcription=dm.GaussLobatto(num_segments=10, order=3, compressed=True))
 
         burn1 = traj.add_phase('burn1', burn1)
 
@@ -53,8 +53,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                           scaler=0.01, lower=-30, upper=30)
 
         # Second Phase (Coast)
-        coast = Phase(ode_class=FiniteBurnODE,
-                      transcription=RungeKutta(num_segments=20, compressed=True))
+        coast = dm.Phase(ode_class=FiniteBurnODE,
+                         transcription=dm.RungeKutta(num_segments=20, compressed=True))
 
         traj.add_phase('coast', coast)
 
@@ -69,8 +69,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Third Phase (burn)
 
-        burn2 = Phase(ode_class=FiniteBurnODE,
-                      transcription=GaussLobatto(num_segments=10, order=3, compressed=True))
+        burn2 = dm.Phase(ode_class=FiniteBurnODE,
+                         transcription=dm.GaussLobatto(num_segments=10, order=3, compressed=True))
 
         traj.add_phase('burn2', burn2)
 
@@ -100,7 +100,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
         # Finish Problem Setup
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 

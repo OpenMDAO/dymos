@@ -7,10 +7,10 @@ matplotlib.use('Agg')
 
 import numpy as np
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, GaussLobatto, Radau, RungeKutta
+import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 SHOW_PLOTS = True
@@ -19,13 +19,13 @@ SHOW_PLOTS = True
 class TestTimeseriesOutput(unittest.TestCase):
 
     def test_timeseries_gl(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=8, order=3, compressed=True))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -43,7 +43,7 @@ class TestTimeseriesOutput(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
@@ -94,13 +94,13 @@ class TestTimeseriesOutput(unittest.TestCase):
                                  p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))[i])
 
     def test_timeseries_radau(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=Radau(num_segments=8, order=3, compressed=True))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.Radau(num_segments=8, order=3, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -119,7 +119,7 @@ class TestTimeseriesOutput(unittest.TestCase):
         phase.add_objective('time_phase', loc='final', scaler=10)
 
         p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0

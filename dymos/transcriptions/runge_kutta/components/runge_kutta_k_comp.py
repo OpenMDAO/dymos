@@ -4,13 +4,12 @@ from six import string_types, iteritems
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
-
+import openmdao.api as om
 from dymos.utils.rk_methods import rk_methods
 from dymos.utils.misc import get_rate_units
 
 
-class RungeKuttaKComp(ExplicitComponent):
+class RungeKuttaKComp(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_segments', types=int,

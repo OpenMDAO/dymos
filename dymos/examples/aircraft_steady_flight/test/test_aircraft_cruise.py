@@ -3,11 +3,10 @@ from __future__ import print_function, division, absolute_import
 import os
 import unittest
 
-from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, \
-    pyOptSparseDriver, ScipyOptimizeDriver
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, GaussLobatto
+import dymos as dm
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
@@ -21,9 +20,9 @@ except:
 class TestAircraftCruise(unittest.TestCase):
 
     def test_cruise_results_gl(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
         if optimizer == 'SNOPT':
-            p.driver = pyOptSparseDriver()
+            p.driver = om.pyOptSparseDriver()
             p.driver.options['optimizer'] = optimizer
             p.driver.options['dynamic_simul_derivs'] = True
             p.driver.opt_settings['Major iterations limit'] = 100
@@ -34,17 +33,17 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver.opt_settings['iSumm'] = 6
             p.driver.opt_settings['Verify level'] = 3
         else:
-            p.driver = ScipyOptimizeDriver()
+            p.driver = om.ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
 
-        transcription = GaussLobatto(num_segments=1,
-                                     order=13,
-                                     compressed=False)
-        phase = Phase(ode_class=AircraftODE, transcription=transcription)
+        transcription = dm.GaussLobatto(num_segments=1,
+                                        order=13,
+                                        compressed=False)
+        phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
         p.model.add_subsystem('phase0', phase)
 
         # Pass Reference Area from an external source
-        assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
+        assumptions = p.model.add_subsystem('assumptions', om.IndepVarComp())
         assumptions.add_output('S', val=427.8, units='m**2')
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
@@ -76,7 +75,7 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase.add_objective('time', loc='final', ref=3600)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -101,9 +100,9 @@ class TestAircraftCruise(unittest.TestCase):
         assert_rel_error(self, range, tas*time, tolerance=1.0E-4)
 
     def test_cruise_results_radau(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
         if optimizer == 'SNOPT':
-            p.driver = pyOptSparseDriver()
+            p.driver = om.pyOptSparseDriver()
             p.driver.options['optimizer'] = optimizer
             p.driver.options['dynamic_simul_derivs'] = True
             p.driver.opt_settings['Major iterations limit'] = 100
@@ -114,17 +113,17 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver.opt_settings['iSumm'] = 6
             p.driver.opt_settings['Verify level'] = 3
         else:
-            p.driver = ScipyOptimizeDriver()
+            p.driver = om.ScipyOptimizeDriver()
             p.driver.options['dynamic_simul_derivs'] = True
 
-        transcription = GaussLobatto(num_segments=1,
-                                     order=13,
-                                     compressed=False)
-        phase = Phase(ode_class=AircraftODE, transcription=transcription)
+        transcription = dm.GaussLobatto(num_segments=1,
+                                        order=13,
+                                        compressed=False)
+        phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
         p.model.add_subsystem('phase0', phase)
 
         # Pass Reference Area from an external source
-        assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
+        assumptions = p.model.add_subsystem('assumptions', om.IndepVarComp())
         assumptions.add_output('S', val=427.8, units='m**2')
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
@@ -156,7 +155,7 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase.add_objective('time', loc='final', ref=3600)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 

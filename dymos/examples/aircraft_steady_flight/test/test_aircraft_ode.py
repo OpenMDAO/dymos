@@ -3,8 +3,8 @@ from __future__ import print_function, division, absolute_import
 import unittest
 
 import numpy as np
-from openmdao.api import Problem, Group, IndepVarComp, DirectSolver
-from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+import openmdao.api as om
+from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
@@ -22,9 +22,9 @@ class TestAircraftODEGroup(unittest.TestCase):
     def setUpClass(cls):
         cls.n = 10
 
-        cls.p = Problem(model=Group())
+        cls.p = om.Problem(model=om.Group())
 
-        ivc = cls.p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = cls.p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('mass_fuel', val=20000 * np.ones(cls.n), units='kg',
                        desc='aircraft fuel mass')
@@ -47,7 +47,7 @@ class TestAircraftODEGroup(unittest.TestCase):
         cls.p.model.connect('climb_rate', ['ode.gam_comp.climb_rate'])
         cls.p.model.connect('S', ('ode.aero.S', 'ode.flight_equilibrium.S', 'ode.propulsion.S'))
 
-        cls.p.model.linear_solver = DirectSolver()
+        cls.p.model.linear_solver = om.DirectSolver()
 
         cls.p.setup(check=True, force_alloc_complex=True)
 

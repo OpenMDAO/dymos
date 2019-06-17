@@ -9,17 +9,17 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, GaussLobatto
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -38,7 +38,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -95,17 +95,17 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, Radau
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=Radau(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -123,7 +123,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -180,17 +180,17 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -211,7 +211,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -267,21 +267,20 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, GaussLobatto
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -302,7 +301,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -355,21 +354,20 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         plt.show()
 
     def test_brachistochrone_polynomial_control_radau(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, Radau
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=Radau(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -390,7 +388,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -447,17 +445,17 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -481,7 +479,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -537,21 +535,20 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
-        import numpy as np
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, GaussLobatto
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -571,7 +568,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -628,17 +625,17 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, Radau
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=Radau(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -658,7 +655,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -715,17 +712,17 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -748,7 +745,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -808,17 +805,17 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, GaussLobatto
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -838,7 +835,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -895,17 +892,17 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, Radau
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=Radau(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -925,7 +922,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -982,17 +979,17 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1015,7 +1012,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -1075,17 +1072,17 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, GaussLobatto
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1105,7 +1102,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -1162,17 +1159,17 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, Radau
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=Radau(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1192,7 +1189,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -1249,17 +1246,17 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1282,7 +1279,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -1338,17 +1335,17 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, GaussLobatto
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1365,7 +1362,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -1393,17 +1390,17 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         assert_rel_error(self, theta_exp[-1], theta_imp[-1])
 
     def test_brachistochrone_polynomial_control_radau(self):
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, Radau
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=Radau(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.Radau(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1421,7 +1418,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 
@@ -1449,17 +1446,17 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         assert_rel_error(self, theta_exp[-1], theta_imp[-1])
 
     def test_brachistochrone_polynomial_control_rungekutta(self):
-        from openmdao.api import Problem, Group, DirectSolver, ScipyOptimizeDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['dynamic_simul_derivs'] = True
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -1480,7 +1477,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 

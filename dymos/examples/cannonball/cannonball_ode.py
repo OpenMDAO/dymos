@@ -1,8 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
-from openmdao.api import Group
-
-from dymos import declare_time, declare_state, declare_parameter
+import openmdao.api as om
+import dymos as dm
 from dymos.examples.min_time_climb.aero.dynamic_pressure_comp import DynamicPressureComp
 from dymos.examples.min_time_climb.aero.lift_drag_force_comp import LiftDragForceComp
 from dymos.models.atmosphere import USatm1976Comp
@@ -10,19 +9,19 @@ from dymos.models.eom import FlightPathEOM2D
 from .kinetic_energy_comp import KineticEnergyComp
 
 
-@declare_time(units='s')
-@declare_state(name='r', rate_source='eom.r_dot', units='m')
-@declare_state(name='h', rate_source='eom.h_dot', targets=['atmos.h'], units='m')
-@declare_state(name='gam', rate_source='eom.gam_dot', targets=['eom.gam'], units='rad')
-@declare_state(name='v', rate_source='eom.v_dot',
-               targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'], units='m/s')
-@declare_parameter(name='CD', targets=['aero.CD'], units=None)
-@declare_parameter(name='CL', targets=['aero.CL'], units=None)
-@declare_parameter(name='T', targets=['eom.T'], units='N')
-@declare_parameter(name='alpha', targets=['eom.alpha'], units='deg')
-@declare_parameter(name='m', targets=['eom.m', 'kinetic_energy.m'], units='kg')
-@declare_parameter(name='S', targets=['aero.S'], units='m**2')
-class CannonballODE(Group):
+@dm.declare_time(units='s')
+@dm.declare_state(name='r', rate_source='eom.r_dot', units='m')
+@dm.declare_state(name='h', rate_source='eom.h_dot', targets=['atmos.h'], units='m')
+@dm.declare_state(name='gam', rate_source='eom.gam_dot', targets=['eom.gam'], units='rad')
+@dm.declare_state(name='v', rate_source='eom.v_dot',
+                  targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'], units='m/s')
+@dm.declare_parameter(name='CD', targets=['aero.CD'], units=None)
+@dm.declare_parameter(name='CL', targets=['aero.CL'], units=None)
+@dm.declare_parameter(name='T', targets=['eom.T'], units='N')
+@dm.declare_parameter(name='alpha', targets=['eom.alpha'], units='deg')
+@dm.declare_parameter(name='m', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+@dm.declare_parameter(name='S', targets=['aero.S'], units='m**2')
+class CannonballODE(om.Group):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
