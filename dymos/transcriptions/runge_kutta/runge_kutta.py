@@ -87,14 +87,13 @@ class RungeKutta(TranscriptionBase):
 
         phase.add_subsystem('stepsize_comp',
                             subsys=h_comp,
-                            promotes_inputs=['t_duration'])
-
-        phase.connect('stepsize_comp.h', 'rk_solve_group.k_iter_group.k_comp.h')
+                            promotes_inputs=['t_duration'],
+                            promotes_outputs=['h'])
 
         if phase.time_options['targets']:
             time_tgts = phase.time_options['targets']
 
-            phase.connect('time', ['rk_solve_group.k_iter_group.ode.{0}'.format(t) for t in time_tgts],
+            phase.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts],
                           src_indices=grid_data.subset_node_indices['all'])
 
             phase.connect('time', ['ode.{0}'.format(t) for t in time_tgts],
@@ -103,20 +102,20 @@ class RungeKutta(TranscriptionBase):
         if phase.time_options['time_phase_targets']:
             time_phase_tgts = phase.time_options['time_phase_targets']
             phase.connect('time_phase',
-                          ['rk_solve_group.k_iter_group.ode.{0}'.format(t) for t in time_phase_tgts])
+                          ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
             phase.connect('time_phase',
                           ['ode.{0}'.format(t) for t in time_phase_tgts],
                           src_indices=grid_data.subset_node_indices['segment_ends'])
 
         if phase.time_options['t_initial_targets']:
             time_phase_tgts = phase.time_options['t_initial_targets']
-            phase.connect('t_initial', ['rk_solve_group.k_iter_group.ode.{0}'.format(t) for t in time_phase_tgts])
+            phase.connect('t_initial', ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
             phase.connect('t_initial', ['ode.{0}'.format(t) for t in time_phase_tgts])
 
         if phase.time_options['t_duration_targets']:
             time_phase_tgts = phase.time_options['t_duration_targets']
             phase.connect('t_duration',
-                          ['rk_solve_group.k_iter_group.ode.{0}'.format(t) for t in time_phase_tgts])
+                          ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
             phase.connect('t_duration',
                           ['ode.{0}'.format(t) for t in time_phase_tgts])
 
@@ -124,7 +123,7 @@ class RungeKutta(TranscriptionBase):
 
         num_connected = len([s for s in phase.state_options
                              if phase.state_options[s]['connected_initial']])
-        promoted_inputs = [] if num_connected == 0 else ['initial_states:*']
+        promoted_inputs = ['h'] if num_connected == 0 else ['h', 'initial_states:*']
 
         phase.add_subsystem('rk_solve_group',
                             RungeKuttaStateContinuityIterGroup(
@@ -137,7 +136,7 @@ class RungeKutta(TranscriptionBase):
                                 k_solver_class=self.options['k_solver_class'],
                                 k_solver_options=self.options['k_solver_options']),
                             promotes_inputs=promoted_inputs,
-                            promotes_outputs=['states:*'])
+                            promotes_outputs=['states:*', 'state_predict_comp.predicted_states:*'])
 
         # Since the RK Solve group evaluates the ODE at *predicted* state values, we need
         # to instantiate a second ODE group that will call the ODE at the actual integrated
@@ -167,7 +166,7 @@ class RungeKutta(TranscriptionBase):
             rate_path = 'time_phase'
             src_idxs = None
         elif var_type == 'state':
-            rate_path = 'rk_solve_group.k_iter_group.state_predict_comp.predicted_states:{0}'.format(var)
+            rate_path = 'state_predict_comp.predicted_states:{0}'.format(var)
             size = num_segments * num_stages * state_size
             src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
         elif var_type == 'indep_control':
@@ -218,7 +217,7 @@ class RungeKutta(TranscriptionBase):
                                                                                       state_size))
         else:
             # Failed to find variable, assume it is in the ODE
-            rate_path = 'rk_solve_group.k_iter_group.ode.{0}'.format(var)
+            rate_path = 'rk_solve_group.ode.{0}'.format(var)
             state_size = np.prod(shape)
             size = num_segments * num_stages * state_size
             src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
@@ -248,7 +247,7 @@ class RungeKutta(TranscriptionBase):
             rate_path, src_idxs = self._get_rate_source_path(state_name, phase)
 
             phase.connect(rate_path,
-                          'rk_solve_group.k_iter_group.k_comp.f:{0}'.format(state_name),
+                          'rk_solve_group.k_comp.f:{0}'.format(state_name),
                           src_indices=src_idxs,
                           flat_src_indices=True)
 
@@ -317,7 +316,7 @@ class RungeKutta(TranscriptionBase):
                               src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
 
                 phase.connect(src_name,
-                              ['rk_solve_group.k_iter_group.ode.{0}'.format(t) for t in targets],
+                              ['rk_solve_group.ode.{0}'.format(t) for t in targets],
                               src_indices=all_src_idxs.ravel(), flat_src_indices=True)
 
             if phase.control_options[name]['rate_targets']:
@@ -329,7 +328,7 @@ class RungeKutta(TranscriptionBase):
                               src_indices=segend_src_idxs, flat_src_indices=True)
 
                 phase.connect(src_name,
-                              ['rk_solve_group.k_iter_group.ode.{0}'.format(t) for t in targets],
+                              ['rk_solve_group.{0}'.format(t) for t in targets],
                               src_indices=all_src_idxs, flat_src_indices=True)
 
             if phase.control_options[name]['rate2_targets']:
@@ -341,7 +340,7 @@ class RungeKutta(TranscriptionBase):
                               src_indices=segend_src_idxs, flat_src_indices=True)
 
                 phase.connect(src_name,
-                              ['rk_solve_group.k_iter_group.ode.{0}'.format(t) for t in targets],
+                              ['rk_solve_group.{0}'.format(t) for t in targets],
                               src_indices=all_src_idxs, flat_src_indices=True)
 
     def setup_polynomial_controls(self, phase):
@@ -362,7 +361,7 @@ class RungeKutta(TranscriptionBase):
                               src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
 
                 phase.connect(src_name,
-                              ['rk_solve_group.k_iter_group.ode.{0}'.format(t) for t in targets],
+                              ['rk_solve_group.ode.{0}'.format(t) for t in targets],
                               src_indices=all_src_idxs.ravel(), flat_src_indices=True)
 
             if phase.polynomial_control_options[name]['rate_targets']:
@@ -903,7 +902,7 @@ class RungeKutta(TranscriptionBase):
                 src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
                 src_idxs = np.squeeze(src_idxs, axis=0)
 
-            connection_info.append((['rk_solve_group.k_iter_group.ode.{0}'.format(tgt) for tgt in ode_tgts],
+            connection_info.append((['rk_solve_group.ode.{0}'.format(tgt) for tgt in ode_tgts],
                                     src_idxs))
 
         return connection_info
