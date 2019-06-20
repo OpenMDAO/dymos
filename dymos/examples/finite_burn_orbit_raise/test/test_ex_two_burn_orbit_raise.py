@@ -132,14 +132,14 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
     if optimizer == 'SNOPT':
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
         p.driver.opt_settings['Major iterations limit'] = 100
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         if show_output:
             p.driver.opt_settings['iSumm'] = 6
     else:
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
                      compressed=compressed, connected=connected)

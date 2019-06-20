@@ -18,7 +18,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
     p.driver = om.pyOptSparseDriver()
     _, optimizer = set_pyoptsparse_opt(optimizer, fallback=False)
     p.driver.options['optimizer'] = optimizer
-    p.driver.options['dynamic_simul_derivs'] = True
+    p.driver.declare_coloring()
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 20
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6

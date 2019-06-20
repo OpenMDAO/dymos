@@ -29,7 +29,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         # Setup the trajectory and its phase
         traj = p.model.add_subsystem('traj', dm.Trajectory())

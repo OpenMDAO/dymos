@@ -25,7 +25,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         external_params = p.model.add_subsystem('external_params', om.IndepVarComp())
 

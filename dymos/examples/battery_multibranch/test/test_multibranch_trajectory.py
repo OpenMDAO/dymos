@@ -25,7 +25,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         if optimizer == 'SNOPT':
             opt = prob.driver = om.pyOptSparseDriver()
             opt.options['optimizer'] = optimizer
-            opt.options['dynamic_simul_derivs'] = True
+            opt.declare_coloring()
 
             opt.opt_settings['Major iterations limit'] = 1000
             opt.opt_settings['Major feasibility tolerance'] = 1.0E-6
@@ -35,7 +35,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         else:
             opt = prob.driver = om.ScipyOptimizeDriver()
-            opt.options['dynamic_simul_derivs'] = True
+            opt.declare_coloring()
 
         num_seg = 5
         seg_ends, _ = lgl(num_seg + 1)
@@ -272,7 +272,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         if optimizer == 'SNOPT':
             opt = prob.driver = om.pyOptSparseDriver()
             opt.options['optimizer'] = optimizer
-            opt.options['dynamic_simul_derivs'] = True
+            opt.declare_coloring()
 
             opt.opt_settings['Major iterations limit'] = 1000
             opt.opt_settings['Major feasibility tolerance'] = 1.0E-6
@@ -282,7 +282,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         else:
             opt = prob.driver = om.ScipyOptimizeDriver()
-            opt.options['dynamic_simul_derivs'] = True
+            opt.declare_coloring()
 
         num_seg = 5
         seg_ends, _ = lgl(num_seg + 1)
@@ -366,7 +366,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         if optimizer == 'SNOPT':
             opt = prob.driver = om.pyOptSparseDriver()
             opt.options['optimizer'] = optimizer
-            opt.options['dynamic_simul_derivs'] = True
+            opt.declare_coloring()
 
             opt.opt_settings['Major iterations limit'] = 1000
             opt.opt_settings['Major feasibility tolerance'] = 1.0E-6
@@ -376,7 +376,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         else:
             opt = prob.driver = om.ScipyOptimizeDriver()
-            opt.options['dynamic_simul_derivs'] = True
+            opt.declare_coloring()
 
         num_seg = 20
         seg_ends, _ = lgl(num_seg + 1)
@@ -485,7 +485,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         if optimizer == 'SNOPT':
             opt = prob.driver = om.pyOptSparseDriver()
             opt.options['optimizer'] = optimizer
-            opt.options['dynamic_simul_derivs'] = True
+            opt.declare_coloring()
 
             opt.opt_settings['Major iterations limit'] = 1000
             opt.opt_settings['Major feasibility tolerance'] = 1.0E-6
@@ -495,7 +495,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         else:
             opt = prob.driver = om.ScipyOptimizeDriver()
-            opt.options['dynamic_simul_derivs'] = True
+            opt.declare_coloring()
 
         num_seg = 20
         seg_ends, _ = lgl(num_seg + 1)

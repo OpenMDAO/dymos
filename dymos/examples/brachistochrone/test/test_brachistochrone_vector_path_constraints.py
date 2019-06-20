@@ -25,7 +25,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.Radau(num_segments=20, order=3))
@@ -137,7 +137,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.Radau(num_segments=20, order=3))
@@ -253,7 +253,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.Radau(num_segments=20, order=3))
@@ -369,7 +369,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.GaussLobatto(num_segments=20, order=3))
@@ -481,7 +481,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.GaussLobatto(num_segments=20, order=3))
@@ -597,7 +597,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.GaussLobatto(num_segments=20, order=3))
@@ -712,7 +712,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.RungeKutta(num_segments=50))
@@ -826,7 +826,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.RungeKutta(num_segments=20))
@@ -944,7 +944,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.RungeKutta(num_segments=20))

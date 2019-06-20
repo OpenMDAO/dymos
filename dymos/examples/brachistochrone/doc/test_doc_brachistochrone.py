@@ -28,7 +28,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         p = om.Problem(model=om.Group())
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # Create a trajectory and add a phase to it
@@ -104,7 +104,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         p = om.Problem(model=om.Group())
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # Create a trajectory and add a phase to it
@@ -181,7 +181,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         p = om.Problem(model=om.Group())
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # Create a trajectory and add a phase to it
@@ -265,7 +265,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         p = om.Problem(model=om.Group())
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # Create a trajectory and add a phase to it

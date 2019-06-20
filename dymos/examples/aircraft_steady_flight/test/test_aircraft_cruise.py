@@ -24,7 +24,7 @@ class TestAircraftCruise(unittest.TestCase):
         if optimizer == 'SNOPT':
             p.driver = om.pyOptSparseDriver()
             p.driver.options['optimizer'] = optimizer
-            p.driver.options['dynamic_simul_derivs'] = True
+            p.driver.declare_coloring()
             p.driver.opt_settings['Major iterations limit'] = 100
             p.driver.opt_settings['Major step limit'] = 0.05
             p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
@@ -34,7 +34,7 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver.opt_settings['Verify level'] = 3
         else:
             p.driver = om.ScipyOptimizeDriver()
-            p.driver.options['dynamic_simul_derivs'] = True
+            p.driver.declare_coloring()
 
         transcription = dm.GaussLobatto(num_segments=1,
                                         order=13,
@@ -104,7 +104,7 @@ class TestAircraftCruise(unittest.TestCase):
         if optimizer == 'SNOPT':
             p.driver = om.pyOptSparseDriver()
             p.driver.options['optimizer'] = optimizer
-            p.driver.options['dynamic_simul_derivs'] = True
+            p.driver.declare_coloring()
             p.driver.opt_settings['Major iterations limit'] = 100
             p.driver.opt_settings['Major step limit'] = 0.05
             p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
@@ -114,7 +114,7 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver.opt_settings['Verify level'] = 3
         else:
             p.driver = om.ScipyOptimizeDriver()
-            p.driver.options['dynamic_simul_derivs'] = True
+            p.driver.declare_coloring()
 
         transcription = dm.GaussLobatto(num_segments=1,
                                         order=13,

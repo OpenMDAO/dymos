@@ -231,7 +231,7 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.pyOptSparseDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         traj = dm.Trajectory()
         p.model.add_subsystem('traj', traj)

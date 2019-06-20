@@ -17,7 +17,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    p.driver.options['dynamic_simul_derivs'] = True
+    p.driver.declare_coloring()
 
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 1000

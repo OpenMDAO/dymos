@@ -925,7 +925,6 @@ class Phase(om.Group):
         transcription.setup_ode(self)
         transcription.setup_defects(self)
 
-        # self._setup_endpoint_conditions()
         transcription.setup_boundary_constraints('initial', self)
         transcription.setup_boundary_constraints('final', self)
         transcription.setup_path_constraints(self)
@@ -1082,8 +1081,6 @@ class Phase(om.Group):
 
         gd = self.options['transcription'].grid_data
         node_locations = gd.node_ptau[gd.subset_node_indices[nodes]]
-        # if self.options['compressed']:
-        #     node_locations = np.array(sorted(list(set(node_locations))))
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()
         m = 2.0 / (_xs[-1] - _xs[0])

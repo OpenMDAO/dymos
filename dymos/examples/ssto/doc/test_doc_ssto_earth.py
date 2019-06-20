@@ -21,7 +21,7 @@ class TestDocSSTOEarth(unittest.TestCase):
         #
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 

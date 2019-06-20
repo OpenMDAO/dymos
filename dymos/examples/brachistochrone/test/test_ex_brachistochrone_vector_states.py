@@ -117,7 +117,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
         p.driver = om.ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.RungeKutta(num_segments=20, compressed=True))

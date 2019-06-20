@@ -22,7 +22,7 @@ class TestTimeseriesOutput(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneODE,
                          transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
@@ -97,7 +97,7 @@ class TestTimeseriesOutput(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         phase = dm.Phase(ode_class=BrachistochroneODE,
                          transcription=dm.Radau(num_segments=8, order=3, compressed=True))

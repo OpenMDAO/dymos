@@ -17,7 +17,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
 
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()
-    p.driver.options['dynamic_simul_derivs'] = True
+    p.driver.declare_coloring()
 
     if transcription == 'gauss-lobatto':
         t = dm.GaussLobatto(num_segments=30, order=3, compressed=compressed)
@@ -92,7 +92,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         times_ivc = p.model.add_subsystem('times_ivc', om.IndepVarComp(),
                                           promotes_outputs=['t0', 'tp'])
@@ -134,7 +134,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         t = dm.RungeKutta(num_segments=30, order=3, compressed=compressed)
 

@@ -106,7 +106,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
         p.driver = om.ScipyOptimizeDriver()
 
         # Compute sparsity/coloring when run_driver is called
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         t = {'gauss-lobatto': dm.GaussLobatto(num_segments=num_seg, order=transcription_order),
              'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order),

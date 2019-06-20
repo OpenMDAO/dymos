@@ -32,7 +32,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
