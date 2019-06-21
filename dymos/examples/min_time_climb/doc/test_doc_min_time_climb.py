@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division
 import unittest
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
@@ -26,8 +26,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
-        p.driver.opt_settings['iSumm'] = 6
+        p.driver.options['optimizer'] = 'SLSQP'
 
         # Note this problem can be problematic for the coloring algorithm since the DirectSolver
         # introduces a some noise when solving.  Here we just specify the acceptable tolerance
