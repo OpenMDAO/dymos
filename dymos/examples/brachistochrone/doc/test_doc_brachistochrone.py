@@ -12,7 +12,7 @@ plt.style.use('ggplot')
 class TestBrachistochroneForDocs(unittest.TestCase):
 
     def tearDown(self):
-        for filename in ['coloring.json', 'SLSQP.out', 'SNOPT_print.out', 'SNOPT_summary.out']:
+        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out', 'SNOPT_summary.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 

@@ -13,7 +13,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['coloring.json', 'SLSQP.out', 'SNOPT_print.out']:
+        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 

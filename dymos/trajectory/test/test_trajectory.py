@@ -16,7 +16,7 @@ class TestTrajectory(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['test_trajectory_rec.db', 'coloring.json']:
+        for filename in ['test_trajectory_rec.db', 'total_coloring.pkl']:
             if os.path.exists(filename):
                 os.remove(filename)
 

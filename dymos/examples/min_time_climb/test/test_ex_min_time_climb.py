@@ -17,7 +17,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    p.driver.declare_coloring()
+    p.driver.declare_coloring(tol=1.0E-9, orders=None)
 
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 1000
@@ -27,7 +27,6 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Function precision'] = 1.0E-12
         p.driver.opt_settings['Linesearch tolerance'] = 0.1
         p.driver.opt_settings['Major step limit'] = 0.5
-        # p.driver.opt_settings['Verify level'] = 3
 
     t = {'gauss-lobatto': dm.GaussLobatto(num_segments=num_seg, order=transcription_order),
          'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order),

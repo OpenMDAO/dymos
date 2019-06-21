@@ -102,7 +102,7 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['coloring.json', 'test_ex_aircraft_steady_flight_rec.db', 'SLSQP.out']:
+        for filename in ['total_coloring.pkl', 'test_ex_aircraft_steady_flight_rec.db', 'SLSQP.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 

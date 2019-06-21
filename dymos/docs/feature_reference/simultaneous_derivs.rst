@@ -38,11 +38,30 @@ Step 1: Using OpenMDAO's Simul-Coloring Capability
 
 OpenMDAO supports dynamic simul-coloring, meaning it can automatically run the Jacobian coloring
 algorithm before handing the problem to the optimizer.  To enable this capability, simply
-add the following lines to the driver.
+add the following line to the driver.
 
 .. code-block:: python
 
-    driver.options['dynamic_simul_derivs'] = True
+    driver.declare_coloring()
+
+By default the coloring algorithm will attempt to determine the sparsity pattern of the total jacobian
+by filling the partial jacobian matrices with random noise and searching for nonzeros in the resulting
+total jacobian.  At times this might report that it failed to converge on a number of nonzero entries.
+This is due to the introduction of noise during the matrix inversion by the system's linear solver.
+This can be remedied by using a different linear solver, such as PETScKrylov, or by telling the
+coloring algorithm to accept a given tolerance on the nonzero elements rather than trying to determine
+it automatically.  This can be accomplished with the following options to declare coloring:
+
+.. code-block:: python
+
+    driver.declare_coloring(tol=1.0E-12, orders=None)
+
+Setting `orders` to None prevents the automatic tolerance detection.  The value of `tol` is up to
+the user.  If it is too large, then some nonzero values will erroneously be determined to be zeros
+and the total derivative will be incorrect.  If `tol` is too small then the sparsity pattern may be
+overly conservative and degrade performance somewhat.  We recommend letting the coloring algorithm
+detect the sparsity automatically and only resorting to a fixed tolerance if necessary.
+
 
 The simul_coloring script outputs the following information about our problem:
 
