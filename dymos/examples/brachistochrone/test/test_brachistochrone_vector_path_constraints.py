@@ -15,7 +15,7 @@ import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 
 class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
@@ -42,6 +42,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
+        phase.add_boundary_constraint('theta_rate', loc='final', equals=0.0)
+        phase.add_boundary_constraint('theta_rate2', loc='final', equals=0.0)
         phase.add_path_constraint('pos', indices=[1], lower=5)
 
         phase.add_timeseries_output('pos_dot', shape=(2,), units='m/s')
@@ -65,7 +67,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_rel_error(self, np.min(p.get_val('phase0.timeseries.states:pos')[:, 1]), 5.0,
+                         tolerance=1.0E-3)
 
         # Plot results
         if SHOW_PLOTS:
@@ -409,7 +412,10 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_rel_error(self,
+                         np.min(p.get_val('phase0.timeseries.states:pos')[:, 1]),
+                         5,
+                         tolerance=1.0E-2)
 
         # Plot results
         if SHOW_PLOTS:
@@ -498,6 +504,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
+        phase.add_boundary_constraint('theta_rate', loc='final', equals=0.0)
+        phase.add_boundary_constraint('theta_rate2', loc='final', equals=0.0)
         phase.add_path_constraint('pos_dot', shape=(2,), units='m/s', indices=[1],
                                   lower=-4, upper=4)
 
@@ -522,10 +530,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self,
-                         np.min(p.get_val('phase0.timeseries.pos_dot')[:, -1]),
-                         -4,
-                         tolerance=1.0E-2)
+        assert_rel_error(self, np.min(p.get_val('phase0.timeseries.pos_dot')[:, 1]), -4.0,
+                         tolerance=1.0E-3)
 
         # Plot results
         if SHOW_PLOTS:

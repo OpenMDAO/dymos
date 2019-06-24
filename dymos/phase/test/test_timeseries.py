@@ -13,7 +13,7 @@ from openmdao.utils.assert_utils import assert_rel_error
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 
 class TestTimeseriesOutput(unittest.TestCase):

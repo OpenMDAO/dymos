@@ -10,7 +10,7 @@ from dymos.models.atmosphere.atmos_1976 import USatm1976Comp
 
 assert_almost_equal = np.testing.assert_almost_equal
 
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 if SHOW_PLOTS:
     import matplotlib

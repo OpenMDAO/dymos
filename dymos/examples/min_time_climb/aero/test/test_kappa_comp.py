@@ -14,7 +14,7 @@ assert_almost_equal = np.testing.assert_almost_equal
 import matplotlib
 matplotlib.use('Agg')
 
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 
 class TestCLaComp(unittest.TestCase):

@@ -13,7 +13,7 @@ import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 
 class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
