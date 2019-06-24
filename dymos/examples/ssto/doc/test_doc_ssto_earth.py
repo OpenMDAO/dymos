@@ -12,17 +12,16 @@ class TestDocSSTOEarth(unittest.TestCase):
 
     def test_doc_ssto_earth(self):
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, DirectSolver, \
-            pyOptSparseDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
 
         #
         # Setup and solve the optimal control problem
         #
-        p = Problem(model=Group())
-        p.driver = pyOptSparseDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
 
         from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
@@ -61,7 +60,7 @@ class TestDocSSTOEarth(unittest.TestCase):
 
         phase.add_objective('time', loc='final', scaler=0.01)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         #
         # Setup and set initial values

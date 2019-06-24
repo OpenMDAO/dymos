@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy import array
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos.examples.aircraft_steady_flight.aero.aero_coef_comp import AeroCoefComp
@@ -17,11 +17,11 @@ class TestAeroCoefComp(unittest.TestCase):
 
         nn = 100
 
-        prob = Problem(model=Group())
+        prob = om.Problem(model=om.Group())
 
         prob.model.add_subsystem(name='aero', subsys=AeroCoefComp(vec_size=nn, method='quintic'))
 
-        ivc = prob.model.add_subsystem(name='ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivc = prob.model.add_subsystem(name='ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('mach', val=np.zeros(nn), units=None)
         ivc.add_output('alpha', val=np.zeros(nn), units='rad')

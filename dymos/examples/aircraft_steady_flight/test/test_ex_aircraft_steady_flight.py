@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division
 import os
 import unittest
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.assert_utils import assert_rel_error
 
@@ -14,11 +14,11 @@ from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
                               use_boundary_constraints=False, compressed=False):
-    p = Problem(model=Group())
-    p.driver = pyOptSparseDriver()
+    p = om.Problem(model=om.Group())
+    p.driver = om.pyOptSparseDriver()
     _, optimizer = set_pyoptsparse_opt(optimizer, fallback=False)
     p.driver.options['optimizer'] = optimizer
-    p.driver.options['dynamic_simul_derivs'] = True
+    p.driver.declare_coloring()
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 20
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
@@ -37,7 +37,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
                                             solve_segments=solve_segments))
 
     # Pass Reference Area from an external source
-    assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
+    assumptions = p.model.add_subsystem('assumptions', om.IndepVarComp())
     assumptions.add_output('S', val=427.8, units='m**2')
     assumptions.add_output('mass_empty', val=1.0, units='kg')
     assumptions.add_output('mass_payload', val=1.0, units='kg')
@@ -102,7 +102,7 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['coloring.json', 'test_ex_aircraft_steady_flight_rec.db', 'SLSQP.out']:
+        for filename in ['total_coloring.pkl', 'test_ex_aircraft_steady_flight_rec.db', 'SLSQP.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 

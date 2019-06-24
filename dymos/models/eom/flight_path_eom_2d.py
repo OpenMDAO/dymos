@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class FlightPathEOM2D(ExplicitComponent):
+class FlightPathEOM2D(om.ExplicitComponent):
     """
     Computes the position and velocity equations of motion using a 2D flight path
     parameterization of states per equations 4.42 - 4.46 of _[1].
@@ -159,8 +159,8 @@ class FlightPathEOM2D(ExplicitComponent):
 
 if __name__ == "__main__":
 
-    from openmdao.api import Problem
-    p = Problem()
+    import openmdao.api as om
+    p = om.Problem()
     p.model = FlightPathEOM2D(num_nodes=2)
 
     p.setup(force_alloc_complex=True)

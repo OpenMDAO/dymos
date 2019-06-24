@@ -4,9 +4,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
-
-from dymos import Phase, GaussLobatto, Radau, RungeKutta
+import openmdao.api as om
+import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
@@ -17,33 +16,34 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                              compressed=True, sim_record='brach_min_time_sim.db', optimizer='SLSQP',
                              dynamic_simul_derivs=True, force_alloc_complex=False,
                              solve_segments=False, run_driver=True):
-    p = Problem(model=Group())
+    p = om.Problem(model=om.Group())
 
     if optimizer == 'SNOPT':
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = optimizer
         p.driver.opt_settings['Major iterations limit'] = 100
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         p.driver.opt_settings['iSumm'] = 6
     else:
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
-    p.driver.options['dynamic_simul_derivs'] = dynamic_simul_derivs
+    if dynamic_simul_derivs:
+        p.driver.declare_coloring()
 
     if transcription == 'runge-kutta':
-        transcription = RungeKutta(num_segments=num_segments, compressed=compressed)
+        transcription = dm.RungeKutta(num_segments=num_segments, compressed=compressed)
     elif transcription == 'gauss-lobatto':
-        transcription = GaussLobatto(num_segments=num_segments,
-                                     order=transcription_order,
-                                     compressed=compressed)
+        transcription = dm.GaussLobatto(num_segments=num_segments,
+                                        order=transcription_order,
+                                        compressed=compressed)
     elif transcription == 'radau-ps':
-        transcription = Radau(num_segments=num_segments,
-                              order=transcription_order,
-                              compressed=compressed)
+        transcription = dm.Radau(num_segments=num_segments,
+                                 order=transcription_order,
+                                 compressed=compressed)
 
-    phase = Phase(ode_class=BrachistochroneVectorStatesODE,
-                  transcription=transcription)
+    phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
+                     transcription=transcription)
 
     p.model.add_subsystem('phase0', phase)
 
@@ -62,7 +62,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', scaler=10)
 
-    p.model.linear_solver = DirectSolver()
+    p.model.linear_solver = om.DirectSolver()
     p.setup(check=True, force_alloc_complex=force_alloc_complex)
 
     p['phase0.t_initial'] = 0.0

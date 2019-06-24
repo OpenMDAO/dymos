@@ -1,13 +1,13 @@
 from __future__ import division, print_function
 
 import numpy as np
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 from dymos.transcriptions.grid_data import GridData
 from dymos.utils.constants import INF_BOUND
 
 
-class PathConstraintCompBase(ExplicitComponent):
+class PathConstraintCompBase(om.ExplicitComponent):
 
     def initialize(self):
         self._path_constraints = []

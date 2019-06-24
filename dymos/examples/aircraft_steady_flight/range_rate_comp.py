@@ -1,10 +1,10 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class RangeRateComp(ExplicitComponent):
+class RangeRateComp(om.ExplicitComponent):
     """
     Calculates range rate based on true airspeed and flight path angle.
     """

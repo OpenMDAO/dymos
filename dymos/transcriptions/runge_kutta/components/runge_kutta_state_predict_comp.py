@@ -5,12 +5,12 @@ from six import iteritems
 import numpy as np
 from scipy.linalg import block_diag
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 from dymos.utils.rk_methods import rk_methods
 
 
-class RungeKuttaStatePredictComp(ExplicitComponent):
+class RungeKuttaStatePredictComp(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_segments', types=int,

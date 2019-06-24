@@ -5,21 +5,21 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, pyOptSparseDriver
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, GaussLobatto, declare_time, declare_state
+import dymos as dm
 from dymos.models.eom import FlightPathEOM2D
 
 OPTIMIZER = 'SLSQP'
 SHOW_PLOTS = False
 
 
-@declare_time(units='s')
-@declare_state(name='r', rate_source='r_dot', units='m')
-@declare_state(name='h', rate_source='h_dot', units='m')
-@declare_state(name='gam', rate_source='gam_dot', targets='gam', units='rad')
-@declare_state(name='v', rate_source='v_dot', targets='v', units='m/s')
+@dm.declare_time(units='s')
+@dm.declare_state(name='r', rate_source='r_dot', units='m')
+@dm.declare_state(name='h', rate_source='h_dot', units='m')
+@dm.declare_state(name='gam', rate_source='gam_dot', targets='gam', units='rad')
+@dm.declare_state(name='v', rate_source='v_dot', targets='v', units='m/s')
 class _CannonballODE(FlightPathEOM2D):
     pass
 
@@ -27,17 +27,17 @@ class _CannonballODE(FlightPathEOM2D):
 class TestFlightPathEOM2D(unittest.TestCase):
 
     def setUp(self):
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
-        self.p.driver = pyOptSparseDriver()
+        self.p.driver = om.pyOptSparseDriver()
         self.p.driver.options['optimizer'] = OPTIMIZER
         if OPTIMIZER == 'SNOPT':
             self.p.driver.opt_settings['Major iterations limit'] = 50
             self.p.driver.opt_settings['iSumm'] = 6
             self.p.driver.opt_settings['Verify level'] = 3
 
-        phase = Phase(ode_class=_CannonballODE,
-                      transcription=GaussLobatto(num_segments=15, order=3, compressed=False))
+        phase = dm.Phase(ode_class=_CannonballODE,
+                         transcription=dm.GaussLobatto(num_segments=15, order=3, compressed=False))
 
         self.p.model.add_subsystem('phase0', phase)
 

@@ -1,14 +1,14 @@
 from __future__ import division, print_function, absolute_import
 
 import numpy as np
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 from six import string_types, iteritems
 
 from ...grid_data import GridData
 from ....utils.misc import get_rate_units
 
 
-class StateInterpComp(ExplicitComponent):
+class StateInterpComp(om.ExplicitComponent):
     r""" Provide interpolated state values and/or rates for pseudospectral transcriptions.
 
     When the transcription is *gauss-lobatto* it accepts the state values and derivatives

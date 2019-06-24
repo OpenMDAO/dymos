@@ -5,8 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
-    NewtonSolver
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_k_iter_group import RungeKuttaKIterGroup
@@ -20,9 +19,9 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
         num_stages = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y']}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('initial_states_per_seg:y', shape=(num_seg, 1), units='m')
         ivc.add_output('h', shape=(num_seg, 1), units='s')
@@ -35,7 +34,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
                                                    time_units='s',
                                                    ode_class=TestODE,
                                                    ode_init_kwargs={},
-                                                   solver_class=NonlinearRunOnce))
+                                                   solver_class=om.NonlinearRunOnce))
 
         p.model.connect('t', 'k_iter_group.ode.t')
         p.model.connect('h', 'k_iter_group.h')
@@ -95,9 +94,9 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
         num_stages = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y']}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('initial_states_per_seg:y', shape=(num_seg, 1), units='m')
         ivc.add_output('h', shape=(num_seg, 1), units='s')
@@ -110,7 +109,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
                                                    time_units='s',
                                                    ode_class=TestODE,
                                                    ode_init_kwargs={},
-                                                   solver_class=NonlinearBlockGS,
+                                                   solver_class=om.NonlinearBlockGS,
                                                    solver_options={'iprint': 2}))
 
         p.model.connect('t', 'k_iter_group.ode.t')
@@ -154,9 +153,9 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
         num_stages = 4
         state_options = {'y': {'shape': (1,), 'units': 'm', 'targets': ['y']}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('initial_states_per_seg:y', shape=(num_seg, 1), units='m')
         ivc.add_output('h', shape=(num_seg, 1), units='s')
@@ -169,7 +168,7 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
                                                    time_units='s',
                                                    ode_class=TestODE,
                                                    ode_init_kwargs={},
-                                                   solver_class=NewtonSolver,
+                                                   solver_class=om.NewtonSolver,
                                                    solver_options={'iprint': 2}))
 
         p.model.connect('t', 'k_iter_group.ode.t')

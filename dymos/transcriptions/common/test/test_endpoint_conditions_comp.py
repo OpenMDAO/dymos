@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp, DirectSolver
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.phase.options import TimeOptionsDictionary, StateOptionsDictionary, \
@@ -18,7 +18,7 @@ class TestEndpointConditionComp(unittest.TestCase):
     def test_scalar_state_and_control(self):
         n = 101
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         time_options = TimeOptionsDictionary()
         time_options['units'] = 's'
@@ -33,7 +33,7 @@ class TestEndpointConditionComp(unittest.TestCase):
         control_options['theta']['units'] = 'rad'
         control_options['theta']['shape'] = (1,)
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         ivc.add_output(name='phase:time', val=np.zeros(n), units='s')
         ivc.add_output(name='phase:initial_jump:time', val=100.0 * np.ones(1), units='s')
         ivc.add_output(name='phase:final_jump:time', val=1.0 * np.ones(1), units='s')
@@ -96,7 +96,7 @@ class TestEndpointConditionComp(unittest.TestCase):
         p.model.connect('phase:initial_jump:theta', 'initial_conditions.initial_jump:theta')
         p.model.connect('phase:final_jump:theta', 'final_conditions.final_jump:theta')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(force_alloc_complex=True)
 
@@ -147,7 +147,7 @@ class TestEndpointConditionComp(unittest.TestCase):
     def test_vector_state_and_control(self):
         n = 101
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         time_options = TimeOptionsDictionary()
         time_options['units'] = 's'
@@ -162,7 +162,7 @@ class TestEndpointConditionComp(unittest.TestCase):
         control_options['cmd']['units'] = 'rad'
         control_options['cmd']['shape'] = (3,)
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         ivc.add_output(name='phase:time', val=np.zeros(n), units='s')
         ivc.add_output(name='phase:initial_jump:time', val=100.0 * np.ones(1), units='s')
 
@@ -221,7 +221,7 @@ class TestEndpointConditionComp(unittest.TestCase):
         p.model.connect('phase:initial_jump:cmd', 'initial_conditions.initial_jump:cmd')
         p.model.connect('phase:final_jump:cmd', 'final_conditions.final_jump:cmd')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.model.options['assembled_jac_type'] = 'csc'
 
         p.setup(force_alloc_complex=True)

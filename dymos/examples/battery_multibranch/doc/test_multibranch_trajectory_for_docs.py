@@ -15,27 +15,27 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
     def test_basic(self):
         import matplotlib.pyplot as plt
 
-        from openmdao.api import Problem, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
 
-        from dymos import Trajectory, Phase, Radau
+        import dymos as dm
         from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
         from dymos.utils.lgl import lgl
 
-        prob = Problem()
+        prob = om.Problem()
 
-        opt = prob.driver = ScipyOptimizeDriver()
-        opt.options['dynamic_simul_derivs'] = True
+        opt = prob.driver = om.ScipyOptimizeDriver()
+        opt.declare_coloring()
         opt.options['optimizer'] = 'SLSQP'
 
         num_seg = 5
         seg_ends, _ = lgl(num_seg + 1)
 
-        traj = prob.model.add_subsystem('traj', Trajectory())
+        traj = prob.model.add_subsystem('traj', dm.Trajectory())
 
         # First phase: normal operation.
-        transcription = Radau(num_segments=num_seg, order=5, segment_ends=seg_ends, compressed=False)
-        phase0 = Phase(ode_class=BatteryODE, transcription=transcription)
+        transcription = dm.Radau(num_segments=num_seg, order=5, segment_ends=seg_ends, compressed=False)
+        phase0 = dm.Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p0 = traj.add_phase('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
@@ -43,7 +43,7 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
 
         # Second phase: normal operation.
 
-        phase1 = Phase(ode_class=BatteryODE, transcription=transcription)
+        phase1 = dm.Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p1 = traj.add_phase('phase1', phase1)
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
@@ -52,8 +52,8 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
 
         # Second phase, but with battery failure.
 
-        phase1_bfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
-                             transcription=transcription)
+        phase1_bfail = dm.Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
+                                transcription=transcription)
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
@@ -61,8 +61,8 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
 
         # Second phase, but with motor failure.
 
-        phase1_mfail = Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
-                             transcription=transcription)
+        phase1_mfail = dm.Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
+                                transcription=transcription)
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
 
         traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
@@ -73,7 +73,7 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
         traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'])
 
         prob.model.options['assembled_jac_type'] = 'csc'
-        prob.model.linear_solver = DirectSolver(assemble_jac=True)
+        prob.model.linear_solver = om.DirectSolver(assemble_jac=True)
 
         prob.setup()
 

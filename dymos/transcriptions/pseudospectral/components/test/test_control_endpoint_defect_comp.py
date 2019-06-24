@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
 
 from dymos.transcriptions.pseudospectral.components import ControlEndpointDefectComp
@@ -19,12 +19,12 @@ class TestControlEndpointDefectComp(unittest.TestCase):
 
         self.gd = gd
 
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
         control_opts = {'u': {'units': 'm', 'shape': (1,), 'dynamic': True, 'opt': True},
                         'v': {'units': 'm', 'shape': (3, 2), 'dynamic': True, 'opt': True}}
 
-        indep_comp = IndepVarComp()
+        indep_comp = om.IndepVarComp()
         self.p.model.add_subsystem('indep', indep_comp, promotes=['*'])
 
         indep_comp.add_output('controls:u',

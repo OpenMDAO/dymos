@@ -4,14 +4,14 @@ from six import string_types, iteritems
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent, Group, IndepVarComp
+import openmdao.api as om
 
 from ..grid_data import GridData
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.constants import INF_BOUND
 
 
-class ControlInterpComp(ExplicitComponent):
+class ControlInterpComp(om.ExplicitComponent):
     """
     Compute the approximated control values and rates given the values of a control at all nodes,
     given values at the control discretization nodes.
@@ -231,7 +231,7 @@ class ControlInterpComp(ExplicitComponent):
                 (self.rate2_jacs[name] / dt_dstau_x_size ** 2)[r_nz, c_nz]
 
 
-class ControlGroup(Group):
+class ControlGroup(om.Group):
 
     def initialize(self):
         self.options.declare('control_options', types=dict,
@@ -242,7 +242,7 @@ class ControlGroup(Group):
 
     def setup(self):
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
 
         # opts = self.options
         gd = self.options['grid_data']
@@ -255,7 +255,7 @@ class ControlGroup(Group):
         opt_controls = [name for (name, opts) in iteritems(control_options) if opts['opt']]
 
         if len(opt_controls) > 0:
-            ivc = self.add_subsystem('indep_controls', subsys=IndepVarComp(),
+            ivc = self.add_subsystem('indep_controls', subsys=om.IndepVarComp(),
                                      promotes_outputs=['*'])
 
         self.add_subsystem(

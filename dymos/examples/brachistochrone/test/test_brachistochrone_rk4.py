@@ -6,17 +6,17 @@ import unittest
 class TestBrachistochroneRK4Example(unittest.TestCase):
 
     def test_brachistochrone_forward_shooting(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=20))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -39,7 +39,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 
@@ -66,17 +66,17 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                          tolerance=1.0E-3)
 
     def test_brachistochrone_backward_shooting(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=20))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -100,7 +100,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=-1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 
@@ -127,17 +127,17 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_path_constrained_state(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=20))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -161,7 +161,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 
@@ -188,17 +188,17 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_path_constrained_control(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=20))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -222,7 +222,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 
@@ -249,17 +249,17 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_path_constrained_control_rate(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=20))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -283,7 +283,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 
@@ -310,17 +310,17 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_path_constrained_ode_output(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=20))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -344,7 +344,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 
@@ -371,17 +371,17 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_boundary_constrained_control_rate(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=20))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -405,7 +405,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 
@@ -434,17 +434,17 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_boundary_constrained_design_parameter(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=20))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -466,7 +466,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 
@@ -498,17 +498,17 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_boundary_constrained_ode_output(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=20))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -531,7 +531,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 
@@ -558,16 +558,16 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_path_constrained_time(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, RungeKutta
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=RungeKutta(num_segments=20))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.RungeKutta(num_segments=20))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -593,7 +593,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 

@@ -4,8 +4,7 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
-    NewtonSolver, DirectSolver
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_state_continuity_comp import \
@@ -20,7 +19,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                                'defect_scaler': None, 'defect_ref': None,
                                'lower': None, 'upper': None, 'connected_initial': False}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         p.model.add_subsystem('continuity_comp',
                               RungeKuttaStateContinuityComp(num_segments=num_seg,
@@ -28,8 +27,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.model.nonlinear_solver = NonlinearRunOnce()
-        p.model.linear_solver = DirectSolver()
+        p.model.nonlinear_solver = om.NonlinearRunOnce()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -85,9 +84,9 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                                'defect_scaler': None, 'defect_ref': None,
                                'lower': None, 'upper': None, 'connected_initial': True}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
         ivc.add_output('initial_states:y', units='m', shape=(1, 1))
 
         p.model.add_subsystem('continuity_comp',
@@ -96,8 +95,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.model.nonlinear_solver = NonlinearRunOnce()
-        p.model.linear_solver = DirectSolver()
+        p.model.nonlinear_solver = om.NonlinearRunOnce()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -155,7 +154,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                                'fix_final': False, 'defect_scaler': None, 'defect_ref': None,
                                'lower': None, 'upper': None, 'connected_initial': False}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         p.model.add_subsystem('continuity_comp',
                               RungeKuttaStateContinuityComp(num_segments=num_seg,
@@ -163,8 +162,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.model.nonlinear_solver = NonlinearBlockGS(iprint=2)
-        p.model.linear_solver = DirectSolver()
+        p.model.nonlinear_solver = om.NonlinearBlockGS(iprint=2)
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -220,9 +219,9 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                                'fix_final': False, 'defect_scaler': None, 'defect_ref': None,
                                'lower': None, 'upper': None, 'connected_initial': True}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
         ivc.add_output('initial_states:y', units='m', shape=(1, 1))
 
         p.model.add_subsystem('continuity_comp',
@@ -231,8 +230,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.model.nonlinear_solver = NonlinearBlockGS(iprint=2)
-        p.model.linear_solver = DirectSolver()
+        p.model.nonlinear_solver = om.NonlinearBlockGS(iprint=2)
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -290,7 +289,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                                'fix_final': False, 'defect_scaler': None, 'defect_ref': None,
                                'lower': None, 'upper': None, 'connected_initial': False}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         p.model.add_subsystem('continuity_comp',
                               RungeKuttaStateContinuityComp(num_segments=num_seg,
@@ -298,8 +297,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.model.nonlinear_solver = NewtonSolver(iprint=2)
-        p.model.linear_solver = DirectSolver()
+        p.model.nonlinear_solver = om.NewtonSolver(iprint=2)
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -348,7 +347,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                                'lower': None, 'upper': None, 'lower': None, 'upper': None,
                                'connected_initial': False}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         p.model.add_subsystem('continuity_comp',
                               RungeKuttaStateContinuityComp(num_segments=num_seg,
@@ -356,8 +355,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.model.nonlinear_solver = NonlinearRunOnce()
-        p.model.linear_solver = DirectSolver()
+        p.model.nonlinear_solver = om.NonlinearRunOnce()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -410,7 +409,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                                'fix_final': False, 'defect_ref': None, 'lower': None, 'upper': None,
                                'connected_initial': False}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         p.model.add_subsystem('continuity_comp',
                               RungeKuttaStateContinuityComp(num_segments=num_seg,
@@ -418,8 +417,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.model.nonlinear_solver = NonlinearBlockGS(iprint=2)
-        p.model.linear_solver = DirectSolver()
+        p.model.nonlinear_solver = om.NonlinearBlockGS(iprint=2)
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -464,9 +463,9 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                                'fix_final': False, 'defect_ref': None, 'lower': None, 'upper': None,
                                'connected_initial': True}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
         ivc.add_output('initial_states:y', units='m', shape=(1, 2))
 
         p.model.add_subsystem('continuity_comp',
@@ -475,8 +474,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.model.nonlinear_solver = NonlinearBlockGS(iprint=2)
-        p.model.linear_solver = DirectSolver()
+        p.model.nonlinear_solver = om.NonlinearBlockGS(iprint=2)
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -523,7 +522,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                                'fix_final': False, 'defect_ref': 1, 'lower': None, 'upper': None,
                                'connected_initial': False}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         p.model.add_subsystem('continuity_comp',
                               RungeKuttaStateContinuityComp(num_segments=num_seg,
@@ -531,8 +530,8 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.model.nonlinear_solver = NewtonSolver(iprint=2)
-        p.model.linear_solver = DirectSolver()
+        p.model.nonlinear_solver = om.NewtonSolver(iprint=2)
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 

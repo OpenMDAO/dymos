@@ -12,13 +12,12 @@ plt.style.use('ggplot')
 class TestBrachistochroneForDocs(unittest.TestCase):
 
     def tearDown(self):
-        for filename in ['coloring.json', 'SLSQP.out', 'SNOPT_print.out', 'SNOPT_summary.out']:
+        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out', 'SNOPT_summary.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 
     def test_brachistochrone_for_docs_gauss_lobatto(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, \
-            SqliteRecorder, CaseReader
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
         from dymos.examples.plotting import plot_results
@@ -27,9 +26,9 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Initialize the Problem and the optimization driver
         #
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
         #
         # Create a trajectory and add a phase to it
@@ -55,7 +54,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         #
         # Setup the Problem
@@ -94,7 +93,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         plt.show()
 
     def test_brachistochrone_for_docs_radau(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, SqliteRecorder
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
         from dymos.examples.plotting import plot_results
@@ -103,9 +102,9 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Initialize the Problem and the optimization driver
         #
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
         #
         # Create a trajectory and add a phase to it
@@ -131,7 +130,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         #
         # Setup the Problem
@@ -171,7 +170,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         plt.show()
 
     def test_brachistochrone_for_docs_runge_kutta(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, SqliteRecorder
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
         from dymos.examples.plotting import plot_results
@@ -180,9 +179,9 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Initialize the Problem and the optimization driver
         #
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
         #
         # Create a trajectory and add a phase to it
@@ -215,7 +214,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         #
         # Setup the Problem
@@ -255,7 +254,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         plt.show()
 
     def test_brachistochrone_for_docs_runge_kutta_polynomial_controls(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, SqliteRecorder
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
         from dymos.examples.plotting import plot_results
@@ -264,9 +263,9 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Initialize the Problem and the optimization driver
         #
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
         #
         # Create a trajectory and add a phase to it
@@ -299,7 +298,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         #
         # Setup the Problem

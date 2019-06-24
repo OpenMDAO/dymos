@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
@@ -17,9 +17,9 @@ class TestFiniteBurnEOM(unittest.TestCase):
     def setUpClass(cls):
         nn = 2
 
-        p = cls.p = Problem(model=Group())
+        p = cls.p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         p.model.add_subsystem('ode', subsys=FiniteBurnODE(num_nodes=nn), promotes_inputs=['*'],
                               promotes_outputs=['*'])

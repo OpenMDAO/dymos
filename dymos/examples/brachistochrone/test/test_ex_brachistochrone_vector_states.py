@@ -108,19 +108,19 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
             os.remove('ex_brachvs_gl_compressed.db')
 
     def test_ex_brachistochrone_vs_rungekutta_compressed(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
-        from dymos import Phase, RungeKutta
+        import openmdao.api as om
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import \
             BrachistochroneVectorStatesODE
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
-                      transcription=RungeKutta(num_segments=20, compressed=True))
+        phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
+                         transcription=dm.RungeKutta(num_segments=20, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -139,7 +139,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.setup(check=True, force_alloc_complex=True)
 
         p['phase0.t_initial'] = 0.0

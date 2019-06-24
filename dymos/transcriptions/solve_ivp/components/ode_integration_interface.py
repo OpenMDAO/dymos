@@ -7,9 +7,7 @@ from six import iteritems, string_types
 import numpy as np
 from .odeint_control_interpolation_comp import ODEIntControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
-from openmdao.core.group import Group
-from openmdao.core.indepvarcomp import IndepVarComp
-from openmdao.core.problem import Problem
+import openmdao.api as om
 
 
 class ODEIntegrationInterface(object):
@@ -74,11 +72,11 @@ class ODEIntegrationInterface(object):
         #
         # Build odeint problem interface
         #
-        self.prob = Problem(model=Group())
+        self.prob = om.Problem(model=om.Group())
         model = self.prob.model
 
         # The time IVC
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         time_units = self.time_options['units']
         ivc.add_output('time', val=0.0, units=time_units)
         ivc.add_output('time_phase', val=-88.0, units=time_units)

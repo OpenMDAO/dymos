@@ -4,7 +4,7 @@ from collections import namedtuple
 import numpy as np
 from scipy.interpolate import Akima1DInterpolator as Akima
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 """United States standard atmosphere 1976 tables, data
 obtained from http://www.digitaldutch.com/atmoscalc/index.htm"""
@@ -133,7 +133,7 @@ visc_interp_deriv = visc_interp.derivative(1)
 drho_dh_interp_deriv = rho_interp_deriv.derivative(1)
 
 
-class USatm1976Comp(ExplicitComponent):
+class USatm1976Comp(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int,

@@ -3,8 +3,7 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 from six import string_types, iteritems
 
-from openmdao.api import Group, IndepVarComp, DirectSolver, NonlinearBlockGS, NewtonSolver, \
-    NonlinearRunOnce
+import openmdao.api as om
 
 from .runge_kutta_k_iter_group import RungeKuttaKIterGroup
 from .runge_kutta_state_advance_comp import RungeKuttaStateAdvanceComp
@@ -12,7 +11,7 @@ from .runge_kutta_state_continuity_comp import RungeKuttaStateContinuityComp
 from ....utils.indexing import get_src_indices_by_row
 
 
-class RungeKuttaStateContinuityIterGroup(Group):
+class RungeKuttaStateContinuityIterGroup(om.Group):
     """
     This Group contains the k-iteration subgroup, the state advance component, continuity defect
     component.  Given the initial value of each state at the beginning of the first segment,
@@ -41,8 +40,8 @@ class RungeKuttaStateContinuityIterGroup(Group):
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
 
-        self.options.declare('k_solver_class', default=NonlinearBlockGS,
-                             values=(NonlinearBlockGS, NewtonSolver, NonlinearRunOnce),
+        self.options.declare('k_solver_class', default=om.NonlinearBlockGS,
+                             values=(om.NonlinearBlockGS, om.NewtonSolver, om.NonlinearRunOnce),
                              allow_none=True,
                              desc='The nonlinear solver class used to converge the numerical '
                                   'integration across each segment.')
@@ -94,4 +93,4 @@ class RungeKuttaStateContinuityIterGroup(Group):
                          'initial_states_per_seg:{0}'.format(state_name),
                          src_indices=src_idxs, flat_src_indices=True)
 
-        self.linear_solver = DirectSolver()
+        self.linear_solver = om.DirectSolver()

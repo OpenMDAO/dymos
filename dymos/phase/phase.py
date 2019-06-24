@@ -1,6 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
-from collections import Iterable
+from collections import Iterable, Sequence
 import inspect
 import warnings
 
@@ -10,8 +10,9 @@ import numpy as np
 
 from scipy import interpolate
 
-from openmdao.api import Problem, Group, SqliteRecorder
+import openmdao.api as om
 from openmdao.core.system import System
+import dymos as dm
 
 from .options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
     InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary, \
@@ -23,7 +24,7 @@ from ..transcriptions.transcription_base import TranscriptionBase
 _unspecified = object()
 
 
-class Phase(Group):
+class Phase(om.Group):
     """
     The Phase object in Dymos.
 
@@ -115,7 +116,7 @@ class Phase(Group):
             Units in which the state variable is defined.  Internally components may use different
             units for the state variable, but the IndepVarComp which provides its value will provide
             it in these units, and collocation defects will use these units.  If units is not
-            specified here then the value as defined in the ODEOptions (@declare_state) will be
+            specified here then the value as defined in the ODEOptions (@dm.declare_state) will be
             used.
         val :  ndarray
             The default value of the state at the state discretization nodes of the phase.
@@ -619,8 +620,7 @@ class Phase(Group):
         self._path_constraints[name]['indices'] = indices
         self._path_constraints[name]['shape'] = shape
         self._path_constraints[name]['linear'] = linear
-        self._path_constraints[name]['units'] = units\
-
+        self._path_constraints[name]['units'] = units
         self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
     def add_timeseries_output(self, name, output_name=None, units=None, shape=(1,)):
@@ -800,13 +800,13 @@ class Phase(Group):
         elif var in self.traj_parameter_options:
             return 'traj_parameter'
         elif var.endswith('_rate') and var[:-5] in self.control_options:
-                return 'control_rate'
+            return 'control_rate'
         elif var.endswith('_rate2') and var[:-6] in self.control_options:
-                return 'control_rate2'
+            return 'control_rate2'
         elif var.endswith('_rate') and var[:-5] in self.polynomial_control_options:
-                return 'polynomial_control_rate'
+            return 'polynomial_control_rate'
         elif var.endswith('_rate2') and var[:-6] in self.polynomial_control_options:
-                return 'polynomial_control_rate2'
+            return 'polynomial_control_rate2'
         else:
             return 'ode'
 
@@ -925,7 +925,6 @@ class Phase(Group):
         transcription.setup_ode(self)
         transcription.setup_defects(self)
 
-        # self._setup_endpoint_conditions()
         transcription.setup_boundary_constraints('initial', self)
         transcription.setup_boundary_constraints('final', self)
         transcription.setup_path_constraints(self)
@@ -1043,9 +1042,9 @@ class Phase(Group):
 
         Parameters
         ----------
-        xs :  ndarray
+        xs :  ndarray or Sequence or None
             Array of integration variable values.
-        ys :  ndarray
+        ys :  ndarray or Sequence or None
             Array of control/state/parameter values.
         nodes : str or None
             The name of the node subset or None (default).
@@ -1082,8 +1081,6 @@ class Phase(Group):
 
         gd = self.options['transcription'].grid_data
         node_locations = gd.node_ptau[gd.subset_node_indices[nodes]]
-        # if self.options['compressed']:
-        #     node_locations = np.array(sorted(list(set(node_locations))))
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()
         m = 2.0 / (_xs[-1] - _xs[0])
@@ -1123,12 +1120,12 @@ class Phase(Group):
 
         t = self.options['transcription']
 
-        sim_phase = Phase(from_phase=self,
-                          transcription=SolveIVP(grid_data=t.grid_data,
-                                                 method=method,
-                                                 atol=atol,
-                                                 rtol=rtol,
-                                                 output_nodes_per_seg=times_per_seg))
+        sim_phase = dm.Phase(from_phase=self,
+                             transcription=SolveIVP(grid_data=t.grid_data,
+                                                    method=method,
+                                                    atol=atol,
+                                                    rtol=rtol,
+                                                    output_nodes_per_seg=times_per_seg))
 
         return sim_phase
 
@@ -1231,14 +1228,14 @@ class Phase(Group):
 
         """
 
-        sim_prob = Problem(model=Group())
+        sim_prob = om.Problem(model=om.Group())
 
         sim_phase = self.get_simulation_phase(times_per_seg, method=method, atol=atol, rtol=rtol)
 
         sim_prob.model.add_subsystem(self.name, sim_phase)
 
         if record_file is not None:
-            rec = SqliteRecorder(record_file)
+            rec = om.SqliteRecorder(record_file)
             sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
 
             sim_prob.model.add_recorder(rec)

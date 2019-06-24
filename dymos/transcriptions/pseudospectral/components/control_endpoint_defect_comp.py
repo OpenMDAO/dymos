@@ -1,13 +1,13 @@
 from __future__ import division, print_function, absolute_import
 
 import numpy as np
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 from six import iteritems
 
 from ...grid_data import GridData
 
 
-class ControlEndpointDefectComp(ExplicitComponent):
+class ControlEndpointDefectComp(om.ExplicitComponent):
     r""" Compute/enforce the control endpoint defect when using the Radau Pseudospectral method.
 
     For each dynamic control, take the control values at all nodes.  Use a Radau interpolation

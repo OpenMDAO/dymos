@@ -1,13 +1,11 @@
 from __future__ import division, print_function, absolute_import
 
 from collections import Iterable
-import warnings
 
 import numpy as np
 from dymos.transcriptions.common import EndpointConditionsComp
 
-from openmdao.api import IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
-    NewtonSolver, BoundsEnforceLS, DirectSolver
+import openmdao.api as om
 from six import iteritems
 
 from ..transcription_base import TranscriptionBase
@@ -65,7 +63,7 @@ class PseudospectralBase(TranscriptionBase):
                                   'indep_states.defects:{0}'.format(name))
 
         else:
-            indep = IndepVarComp()
+            indep = om.IndepVarComp()
 
             for name, options in iteritems(phase.state_options):
                 if not options['solve_segments'] and not options['connected_initial']:
@@ -223,7 +221,7 @@ class PseudospectralBase(TranscriptionBase):
                               src_indices=src_idxs, flat_src_indices=True)
 
     def setup_endpoint_conditions(self, phase):
-        jump_comp = phase.add_subsystem('indep_jumps', subsys=IndepVarComp(),
+        jump_comp = phase.add_subsystem('indep_jumps', subsys=om.IndepVarComp(),
                                         promotes_outputs=['*'])
 
         jump_comp.add_output('initial_jump:time', val=0.0, units=phase.time_options['units'],
@@ -316,11 +314,11 @@ class PseudospectralBase(TranscriptionBase):
 
     def setup_solvers(self, phase):
         if self.any_solved_segs:
-            newton = phase.nonlinear_solver = NewtonSolver()
+            newton = phase.nonlinear_solver = om.NewtonSolver()
             newton.options['solve_subsystems'] = True
             newton.options['iprint'] = -1
-            newton.linesearch = BoundsEnforceLS()
-            phase.linear_solver = DirectSolver()
+            newton.linesearch = om.BoundsEnforceLS()
+            phase.linear_solver = om.DirectSolver()
 
     def _get_boundary_constraint_src(self, var, loc, phase):
         # Determine the path to the variable which we will be constraining

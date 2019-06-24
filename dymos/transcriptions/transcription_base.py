@@ -7,7 +7,7 @@ from six import iteritems
 
 import numpy as np
 
-from openmdao.api import IndepVarComp, OptionsDictionary
+import openmdao.api as om
 
 from .common import BoundaryConstraintComp, InputParameterComp, ControlGroup, \
     PolynomialControlGroup
@@ -22,7 +22,7 @@ class TranscriptionBase(object):
 
         self.grid_data = None
 
-        self.options = OptionsDictionary()
+        self.options = om.OptionsDictionary()
 
         self.options.declare('num_segments', types=int, desc='Number of segments')
         self.options.declare('segment_ends', default=None, types=(Sequence, np.ndarray),
@@ -92,7 +92,7 @@ class TranscriptionBase(object):
             # phase.connect('t_duration', 'time.t_duration')
 
         if indeps:
-            indep = IndepVarComp()
+            indep = om.IndepVarComp()
 
             for var in indeps:
                 indep.add_output(var, val=default_vals[var], units=time_units)
@@ -163,7 +163,8 @@ class TranscriptionBase(object):
         phase._check_design_parameter_options()
 
         if phase.design_parameter_options:
-            indep = phase.add_subsystem('design_params', subsys=IndepVarComp(),
+            indep = phase.add_subsystem('design_params',
+                                        subsys=om.IndepVarComp(),
                                         promotes_outputs=['*'])
 
             for name, options in iteritems(phase.design_parameter_options):

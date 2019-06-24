@@ -10,15 +10,14 @@ from six import iteritems
 
 from scipy.integrate import solve_ivp
 
-from openmdao.api import ExplicitComponent
-
+import openmdao.api as om
 from ....utils.interpolate import LagrangeBarycentricInterpolant
 from ....utils.lgl import lgl
 from .ode_integration_interface import ODEIntegrationInterface
 from ....phase.options import TimeOptionsDictionary
 
 
-class SegmentSimulationComp(ExplicitComponent):
+class SegmentSimulationComp(om.ExplicitComponent):
     """
     SegmentSimulationComp is a component which, given values for time, states, and controls
     within a given segment, explicitly simulates the segment using scipy.integrate.solve_ivp.

@@ -1,14 +1,14 @@
 from __future__ import print_function, division
 
 import numpy as np
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 from six import iteritems, string_types
 
 from ..grid_data import GridData
 from ...utils.misc import get_rate_units
 
 
-class ContinuityCompBase(ExplicitComponent):
+class ContinuityCompBase(om.ExplicitComponent):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
     """

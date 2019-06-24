@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, SqliteRecorder
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 
@@ -127,19 +127,19 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
                                  transcription_order=3, compressed=False,
                                  show_output=True, connected=False):
 
-    p = Problem(model=Group())
+    p = om.Problem(model=om.Group())
 
-    p.driver = pyOptSparseDriver()
+    p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
     if optimizer == 'SNOPT':
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
         p.driver.opt_settings['Major iterations limit'] = 100
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         if show_output:
             p.driver.opt_settings['iSumm'] = 6
     else:
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
                      compressed=compressed, connected=connected)
@@ -150,7 +150,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     # Needed to move the direct solver down into the phases for use with MPI.
     #  - After moving down, used fewer iterations (about 30 less)
 
-    p.driver.add_recorder(SqliteRecorder('two_burn_orbit_raise_example.db'))
+    p.driver.add_recorder(om.SqliteRecorder('two_burn_orbit_raise_example.db'))
 
     p.setup(check=True)
 

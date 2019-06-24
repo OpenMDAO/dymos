@@ -2,10 +2,10 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class LogAtmosphereComp(ExplicitComponent):
+class LogAtmosphereComp(om.ExplicitComponent):
     def initialize(self):
         self.options.declare('num_nodes', types=int)
         self.options.declare('rho_ref', types=float, default=1.225,

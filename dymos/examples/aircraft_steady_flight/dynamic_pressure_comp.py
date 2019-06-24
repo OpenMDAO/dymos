@@ -1,10 +1,10 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class DynamicPressureComp(ExplicitComponent):
+class DynamicPressureComp(om.ExplicitComponent):
     """ Compute the dynamic pressure based on the velocity and the atmospheric density. """
     def initialize(self):
         self.options.declare('num_nodes', types=int)

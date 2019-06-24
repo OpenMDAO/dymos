@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class TrueAirspeedComp(ExplicitComponent):
+class TrueAirspeedComp(om.ExplicitComponent):
     """ Compute Mach number based on true airspeed and the local speed of sound. """
 
     def initialize(self):

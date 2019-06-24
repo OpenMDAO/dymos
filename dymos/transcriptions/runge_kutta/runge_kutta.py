@@ -1,11 +1,8 @@
 from __future__ import division, print_function, absolute_import
 
-import warnings
-
 import numpy as np
 
-from openmdao.api import IndepVarComp, NonlinearRunOnce, NonlinearBlockGS, \
-    NewtonSolver, BoundsEnforceLS
+import openmdao.api as om
 from six import iteritems
 
 from ..transcription_base import TranscriptionBase
@@ -31,8 +28,8 @@ class RungeKutta(TranscriptionBase):
         self.options.declare('method', default='RK4', values=('RK4',),
                              desc='The integrator used within the explicit phase.')
 
-        self.options.declare('k_solver_class', default=NonlinearBlockGS,
-                             values=(NonlinearBlockGS, NewtonSolver, NonlinearRunOnce),
+        self.options.declare('k_solver_class', default=om.NonlinearBlockGS,
+                             values=(om.NonlinearBlockGS, om.NewtonSolver, om.NonlinearRunOnce),
                              allow_none=True,
                              desc='The nonlinear solver class used to converge the numerical '
                                   'integration across each segment.')
@@ -61,11 +58,11 @@ class RungeKutta(TranscriptionBase):
         -------
 
         """
-        phase.nonlinear_solver = NewtonSolver()
+        phase.nonlinear_solver = om.NewtonSolver()
         phase.nonlinear_solver.options['iprint'] = -1
         phase.nonlinear_solver.options['solve_subsystems'] = True
         phase.nonlinear_solver.options['err_on_maxiter'] = True
-        phase.nonlinear_solver.linesearch = BoundsEnforceLS()
+        phase.nonlinear_solver.linesearch = om.BoundsEnforceLS()
 
     def setup_time(self, phase):
         time_units = phase.time_options['units']
@@ -428,7 +425,7 @@ class RungeKutta(TranscriptionBase):
 
     def setup_endpoint_conditions(self, phase):
 
-        jump_comp = phase.add_subsystem('indep_jumps', subsys=IndepVarComp(),
+        jump_comp = phase.add_subsystem('indep_jumps', subsys=om.IndepVarComp(),
                                         promotes_outputs=['*'])
 
         jump_comp.add_output('initial_jump:time', val=0.0, units=phase.time_options['units'],

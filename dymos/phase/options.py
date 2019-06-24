@@ -4,10 +4,10 @@ from six import string_types
 
 import numpy as np
 
-from openmdao.api import OptionsDictionary
+import openmdao.api as om
 
 
-class ControlOptionsDictionary(OptionsDictionary):
+class ControlOptionsDictionary(om.OptionsDictionary):
     """
     An OptionsDictionary specific to controls.
     """
@@ -118,7 +118,7 @@ class ControlOptionsDictionary(OptionsDictionary):
                           'to the default value of True.')
 
 
-class PolynomialControlOptionsDictionary(OptionsDictionary):
+class PolynomialControlOptionsDictionary(om.OptionsDictionary):
     """
     An OptionsDictionary specific to controls.
     """
@@ -211,7 +211,7 @@ class PolynomialControlOptionsDictionary(OptionsDictionary):
                           'to the default value of True.')
 
 
-class DesignParameterOptionsDictionary(OptionsDictionary):
+class DesignParameterOptionsDictionary(om.OptionsDictionary):
     """
     An OptionsDictionary specific to design parameters.
     """
@@ -291,7 +291,7 @@ class TrajDesignParameterOptionsDictionary(DesignParameterOptionsDictionary):
         self._dict.pop('targets')
 
 
-class InputParameterOptionsDictionary(OptionsDictionary):
+class InputParameterOptionsDictionary(om.OptionsDictionary):
     """
     An OptionsDictionary specific to input parameters.
     """
@@ -338,7 +338,7 @@ class TrajInputParameterOptionsDictionary(InputParameterOptionsDictionary):
         self._dict.pop('targets')
 
 
-class StateOptionsDictionary(OptionsDictionary):
+class StateOptionsDictionary(om.OptionsDictionary):
     """
     An OptionsDictionary specific to controls.
     """
@@ -458,7 +458,7 @@ class StateOptionsDictionary(OptionsDictionary):
                           'set by a trajectory that links phases.')
 
 
-class TimeOptionsDictionary(OptionsDictionary):
+class TimeOptionsDictionary(om.OptionsDictionary):
     """
     An OptionsDictionary for time options
     """

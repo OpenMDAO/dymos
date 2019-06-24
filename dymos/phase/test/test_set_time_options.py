@@ -4,12 +4,11 @@ import os
 import unittest
 import warnings
 
-from openmdao.api import Problem, Group, IndepVarComp, ScipyOptimizeDriver, DirectSolver
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos import Phase, GaussLobatto
+import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 
 
 class TestPhaseTimeOptions(unittest.TestCase):
@@ -21,13 +20,13 @@ class TestPhaseTimeOptions(unittest.TestCase):
                 os.remove(filename)
 
     def test_fixed_time_invalid_options(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=8, order=3))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=8, order=3))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -52,7 +51,7 @@ class TestPhaseTimeOptions(unittest.TestCase):
 
         phase.add_boundary_constraint('time', loc='initial', equals=0)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         expected_msg0 = 'Phase time options have no effect because fix_initial=True for ' \
                         'phase \'phase0\': initial_bounds, initial_scaler, initial_adder, ' \
@@ -70,13 +69,13 @@ class TestPhaseTimeOptions(unittest.TestCase):
         self.assertIn(expected_msg1, [str(w.message) for w in ctx])
 
     def test_initial_val_and_final_val_stick(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=8, order=3))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=8, order=3))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -97,7 +96,7 @@ class TestPhaseTimeOptions(unittest.TestCase):
 
         phase.add_boundary_constraint('time', loc='initial', equals=0)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
         assert_rel_error(self, p['phase0.t_initial'], 0.01)
@@ -108,13 +107,13 @@ class TestPhaseTimeOptions(unittest.TestCase):
         Tests that time optimization options cause a ValueError to be raised when t_initial and
         t_duration are connected to external sources.
         """
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=8, order=3))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=8, order=3))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -135,7 +134,7 @@ class TestPhaseTimeOptions(unittest.TestCase):
 
         phase.add_boundary_constraint('time', loc='initial', equals=0)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         with warnings.catch_warnings(record=True) as ctx:
             warnings.simplefilter('always')
@@ -151,13 +150,13 @@ class TestPhaseTimeOptions(unittest.TestCase):
         self.assertIn(expected_msg1, [str(w.message) for w in ctx])
 
     def test_input_time_invalid_options(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=8, order=3))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=8, order=3))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -182,7 +181,7 @@ class TestPhaseTimeOptions(unittest.TestCase):
 
         phase.add_boundary_constraint('time', loc='initial', equals=0)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         expected_msg0 = 'Phase time options have no effect because fix_initial=True for ' \
                         'phase \'phase0\': initial_bounds, initial_scaler, initial_adder, ' \
@@ -200,13 +199,13 @@ class TestPhaseTimeOptions(unittest.TestCase):
         self.assertIn(expected_msg1, [str(w.message) for w in ctx])
 
     def test_unbounded_time(self):
-            p = Problem(model=Group())
+            p = om.Problem(model=om.Group())
 
-            p.driver = ScipyOptimizeDriver()
-            p.driver.options['dynamic_simul_derivs'] = True
+            p.driver = om.ScipyOptimizeDriver()
+            p.driver.declare_coloring()
 
-            phase = Phase(ode_class=BrachistochroneODE,
-                          transcription=GaussLobatto(num_segments=8, order=3))
+            phase = dm.Phase(ode_class=BrachistochroneODE,
+                             transcription=dm.GaussLobatto(num_segments=8, order=3))
 
             p.model.add_subsystem('phase0', phase)
 
@@ -226,7 +225,7 @@ class TestPhaseTimeOptions(unittest.TestCase):
 
             phase.add_boundary_constraint('time', loc='initial', equals=0)
 
-            p.model.linear_solver = DirectSolver()
+            p.model.linear_solver = om.DirectSolver()
             p.setup(check=True)
 
             p['phase0.t_initial'] = 0.0

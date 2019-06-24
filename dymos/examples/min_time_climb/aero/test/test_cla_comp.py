@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.examples.min_time_climb.aero.cla_comp import CLaComp
@@ -23,9 +23,9 @@ class TestCLaComp(unittest.TestCase):
     def test_visual_inspection(self):
         n = 500
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
 
         ivc.add_output(name='mach', units=None, val=np.zeros(n))
 
@@ -49,9 +49,9 @@ class TestCLaComp(unittest.TestCase):
 
         n = 10
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
 
         ivc.add_output(name='mach', units=None, val=np.zeros(n))
 

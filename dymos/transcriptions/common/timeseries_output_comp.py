@@ -3,12 +3,12 @@ from __future__ import division, print_function
 from six import iteritems
 
 import numpy as np
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 from dymos.transcriptions.grid_data import GridData
 
 
-class TimeseriesOutputCompBase(ExplicitComponent):
+class TimeseriesOutputCompBase(om.ExplicitComponent):
     """
     TimeseriesOutputComp collects variable values from the phase and provides them in chronological
     order as outputs.  Some phase types don't internally have access to a contiguous array of all

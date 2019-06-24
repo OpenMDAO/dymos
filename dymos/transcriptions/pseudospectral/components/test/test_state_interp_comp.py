@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 from numpy.testing import assert_almost_equal
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.transcriptions.pseudospectral.components import StateInterpComp
@@ -46,12 +46,12 @@ class TestStateInterpComp(unittest.TestCase):
                       segment_ends=segends,
                       transcription='gauss-lobatto')
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         states = {'x': {'units': 'm', 'shape': (1,)},
                   'v': {'units': 'm/s', 'shape': (1,)}}
 
-        X_ivc = IndepVarComp()
+        X_ivc = om.IndepVarComp()
         p.model.add_subsystem('X_ivc', X_ivc, promotes=['state_disc:x', 'state_disc:v'])
 
         X_ivc.add_output('state_disc:x', val=np.zeros(gd.subset_num_nodes['state_disc']),
@@ -60,7 +60,7 @@ class TestStateInterpComp(unittest.TestCase):
         X_ivc.add_output('state_disc:v', val=np.zeros(gd.subset_num_nodes['state_disc']),
                          units='m/s')
 
-        F_ivc = IndepVarComp()
+        F_ivc = om.IndepVarComp()
         p.model.add_subsystem('F_ivc', F_ivc, promotes=['staterate_disc:x', 'staterate_disc:v'])
 
         F_ivc.add_output('staterate_disc:x',
@@ -71,7 +71,7 @@ class TestStateInterpComp(unittest.TestCase):
                          val=np.zeros(gd.subset_num_nodes['state_disc']),
                          units='m/s**2')
 
-        dt_dtau_ivc = IndepVarComp()
+        dt_dtau_ivc = om.IndepVarComp()
         p.model.add_subsystem('dt_dstau_ivc', dt_dtau_ivc, promotes=['dt_dstau'])
 
         dt_dtau_ivc.add_output('dt_dstau', val=0.0*np.zeros(gd.subset_num_nodes['col']), units='s')
@@ -158,24 +158,24 @@ class TestStateInterpComp(unittest.TestCase):
                       segment_ends=segends,
                       transcription='gauss-lobatto')
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         states = {'pos': {'units': 'm', 'shape': (2,)}}
 
-        X_ivc = IndepVarComp()
+        X_ivc = om.IndepVarComp()
         p.model.add_subsystem('X_ivc', X_ivc, promotes=['state_disc:pos'])
 
         X_ivc.add_output('state_disc:pos',
                          val=np.zeros((gd.subset_num_nodes['state_disc'], 2)), units='m')
 
-        F_ivc = IndepVarComp()
+        F_ivc = om.IndepVarComp()
         p.model.add_subsystem('F_ivc', F_ivc, promotes=['staterate_disc:pos'])
 
         F_ivc.add_output('staterate_disc:pos',
                          val=np.zeros((gd.subset_num_nodes['state_disc'], 2)),
                          units='m/s')
 
-        dt_dtau_ivc = IndepVarComp()
+        dt_dtau_ivc = om.IndepVarComp()
         p.model.add_subsystem('dt_dstau_ivc', dt_dtau_ivc, promotes=['dt_dstau'])
 
         dt_dtau_ivc.add_output('dt_dstau', val=0.0*np.zeros(gd.subset_num_nodes['col']), units='s')
@@ -268,24 +268,24 @@ class TestStateInterpComp(unittest.TestCase):
                       segment_ends=segends,
                       transcription='gauss-lobatto')
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         states = {'pos': {'units': 'm', 'shape': (2,)}}
 
-        X_ivc = IndepVarComp()
+        X_ivc = om.IndepVarComp()
         p.model.add_subsystem('X_ivc', X_ivc, promotes=['state_disc:pos'])
 
         X_ivc.add_output('state_disc:pos',
                          val=np.zeros((gd.subset_num_nodes['state_disc'], 2)), units='m')
 
-        F_ivc = IndepVarComp()
+        F_ivc = om.IndepVarComp()
         p.model.add_subsystem('F_ivc', F_ivc, promotes=['staterate_disc:pos'])
 
         F_ivc.add_output('staterate_disc:pos',
                          val=np.zeros((gd.subset_num_nodes['state_disc'], 2)),
                          units='m/s')
 
-        dt_dtau_ivc = IndepVarComp()
+        dt_dtau_ivc = om.IndepVarComp()
         p.model.add_subsystem('dt_dstau_ivc', dt_dtau_ivc, promotes=['dt_dstau'])
 
         dt_dtau_ivc.add_output('dt_dstau', val=0.0*np.zeros(gd.subset_num_nodes['col']), units='s')
@@ -324,12 +324,12 @@ class TestStateInterpComp(unittest.TestCase):
                       segment_ends=np.array([0, 10]),
                       transcription='radau-ps')
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         states = {'x': {'units': 'm', 'shape': (1,)},
                   'v': {'units': 'm/s', 'shape': (1,)}}
 
-        X_ivc = IndepVarComp()
+        X_ivc = om.IndepVarComp()
         p.model.add_subsystem('X_ivc', X_ivc, promotes=['state_disc:x', 'state_disc:v'])
 
         X_ivc.add_output('state_disc:x', val=np.zeros(gd.subset_num_nodes['state_disc']),
@@ -338,7 +338,7 @@ class TestStateInterpComp(unittest.TestCase):
         X_ivc.add_output('state_disc:v', val=np.zeros(gd.subset_num_nodes['state_disc']),
                          units='m/s')
 
-        dt_dtau_ivc = IndepVarComp()
+        dt_dtau_ivc = om.IndepVarComp()
         dt_dtau_ivc.add_output('dt_dstau', val=0.0*np.zeros(gd.subset_num_nodes['col']), units='s')
 
         p.model.add_subsystem('dt_dstau_ivc', dt_dtau_ivc, promotes=['dt_dstau'])

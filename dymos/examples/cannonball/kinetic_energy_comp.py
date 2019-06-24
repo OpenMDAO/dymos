@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class KineticEnergyComp(ExplicitComponent):
+class KineticEnergyComp(om.ExplicitComponent):
     """
     Computes the kinetic energy of a particle based on its speed and mass
 

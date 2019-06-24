@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class MachComp(ExplicitComponent):
+class MachComp(om.ExplicitComponent):
     """ Compute the Mach number based on vehicle airspeed and local speed
     of sound.
     """

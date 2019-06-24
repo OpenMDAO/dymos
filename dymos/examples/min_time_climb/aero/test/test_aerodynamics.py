@@ -6,7 +6,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 
 from dymos.examples.min_time_climb.aero import AeroGroup
 
@@ -14,10 +14,10 @@ from dymos.examples.min_time_climb.aero import AeroGroup
 class TestAeroGroup(unittest.TestCase):
 
     def setUp(self):
-        self.prob = Problem(model=Group())
+        self.prob = om.Problem(model=om.Group())
         nn = 5
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
 
         ivc.add_output('rho', val=0.0001 * np.ones(nn), units='kg/m**3')
         ivc.add_output('v', val=0.0001 * np.ones(nn), units='m/s')
