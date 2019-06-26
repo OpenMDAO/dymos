@@ -13,22 +13,21 @@ from dymos.utils.testing_utils import use_tempdirs
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
     def test_two_phase_cannonball_for_docs(self):
-        from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, SqliteRecorder, \
-            pyOptSparseDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
 
-        from dymos import Phase, Trajectory, Radau, GaussLobatto
+        import dymos as dm
         from dymos.examples.cannonball.cannonball_ode import CannonballODE
 
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        external_params = p.model.add_subsystem('external_params', IndepVarComp())
+        external_params = p.model.add_subsystem('external_params', om.IndepVarComp())
 
         external_params.add_output('radius', val=0.10, units='m')
         external_params.add_output('dens', val=7.87, units='g/cm**3')
@@ -37,10 +36,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         p.model.add_subsystem('size_comp', CannonballSizeComp())
 
-        traj = p.model.add_subsystem('traj', Trajectory())
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-        transcription = Radau(num_segments=5, order=3, compressed=True)
-        ascent = Phase(ode_class=CannonballODE, transcription=transcription)
+        transcription = dm.Radau(num_segments=5, order=3, compressed=True)
+        ascent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         ascent = traj.add_phase('ascent', ascent)
 
@@ -58,8 +57,8 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                                        upper=400000, lower=0, ref=100000, shape=(1,))
 
         # Second Phase (descent)
-        transcription = GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent = Phase(ode_class=CannonballODE, transcription=transcription)
+        transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
+        descent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         traj.add_phase('descent', descent)
 
@@ -99,9 +98,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.model.connect('size_comp.S', 'traj.input_parameters:S')
 
         # Finish Problem Setup
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
-        p.driver.add_recorder(SqliteRecorder('ex_two_phase_cannonball.db'))
+        p.driver.add_recorder(om.SqliteRecorder('ex_two_phase_cannonball.db'))
 
         p.setup(check=True)
 

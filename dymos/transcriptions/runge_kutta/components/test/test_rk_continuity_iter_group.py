@@ -4,8 +4,7 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp, NonlinearRunOnce, \
-    NewtonSolver, DirectSolver
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos.transcriptions.runge_kutta.components import RungeKuttaStateContinuityIterGroup
@@ -21,9 +20,9 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
                                'defect_ref': None, 'lower': None, 'upper': None,
                                'connected_initial': False}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('time', val=np.array([0.00, 0.25, 0.25, 0.50,
                                              0.50, 0.75, 0.75, 1.00,
@@ -40,7 +39,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
                                   time_units='s',
                                   ode_class=TestODE,
                                   ode_init_kwargs={},
-                                  k_solver_class=NonlinearRunOnce),
+                                  k_solver_class=om.NonlinearRunOnce),
                               promotes_outputs=['states:*'])
 
         p.model.connect('h', 'cnty_iter_group.h')
@@ -50,8 +49,8 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         p.model.connect('cnty_iter_group.ode.ydot', 'cnty_iter_group.k_comp.f:y',
                         src_indices=src_idxs, flat_src_indices=True)
 
-        p.model.nonlinear_solver = NonlinearRunOnce()
-        p.model.linear_solver = DirectSolver()
+        p.model.nonlinear_solver = om.NonlinearRunOnce()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -118,9 +117,9 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
                                'defect_ref': 1.0, 'lower': None, 'upper': None,
                                'connected_initial': False}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('time', val=np.array([0.00, 0.25, 0.25, 0.50,
                                              0.50, 0.75, 0.75, 1.00,
@@ -147,8 +146,8 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         p.model.connect('cnty_iter_group.ode.ydot', 'cnty_iter_group.k_comp.f:y',
                         src_indices=src_idxs, flat_src_indices=True)
 
-        p.model.nonlinear_solver = NewtonSolver()
-        p.model.linear_solver = DirectSolver()
+        p.model.nonlinear_solver = om.NewtonSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
 

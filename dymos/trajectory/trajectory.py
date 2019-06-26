@@ -11,8 +11,7 @@ except ImportError:
 
 import numpy as np
 
-from openmdao.api import Group, ParallelGroup, IndepVarComp, DirectSolver, Problem
-from openmdao.api import SqliteRecorder
+import openmdao.api as om
 
 from ..utils.constants import INF_BOUND
 
@@ -21,7 +20,7 @@ from ..phase.options import TrajDesignParameterOptionsDictionary, \
     TrajInputParameterOptionsDictionary
 
 
-class Trajectory(Group):
+class Trajectory(om.Group):
     """
     A Trajectory object serves as a container for one or more Phases, as well as the linkage
     conditions between phases.
@@ -182,7 +181,7 @@ class Trajectory(Group):
         on transcription.
         """
         if self.design_parameter_options:
-            indep = self.add_subsystem('design_params', subsys=IndepVarComp(),
+            indep = self.add_subsystem('design_params', subsys=om.IndepVarComp(),
                                        promotes_outputs=['*'])
 
             for name, options in iteritems(self.design_parameter_options):
@@ -381,13 +380,13 @@ class Trajectory(Group):
         if self.input_parameter_options:
             self._setup_input_parameters()
 
-        phases_group = self.add_subsystem('phases', subsys=ParallelGroup(), promotes_inputs=['*'],
+        phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup(), promotes_inputs=['*'],
                                           promotes_outputs=['*'])
 
         for name, phs in iteritems(self._phases):
             g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
             # DirectSolvers were moved down into the phases for use with MPI
-            g.linear_solver = DirectSolver()
+            g.linear_solver = om.DirectSolver()
             phs.finalize_variables()
 
         if self._linkages:
@@ -541,7 +540,7 @@ class Trajectory(Group):
         sim_traj.design_parameter_options.update(self.design_parameter_options)
         sim_traj.input_parameter_options.update(self.input_parameter_options)
 
-        sim_prob = Problem(model=Group())
+        sim_prob = om.Problem(model=om.Group())
 
         if self.name:
             sim_prob.model.add_subsystem(self.name, sim_traj)
@@ -549,7 +548,7 @@ class Trajectory(Group):
             sim_prob.model.add_subsystem('sim_traj', sim_traj)
 
         if record_file is not None:
-            rec = SqliteRecorder(record_file)
+            rec = om.SqliteRecorder(record_file)
             sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
             sim_prob.model.add_recorder(rec)
 

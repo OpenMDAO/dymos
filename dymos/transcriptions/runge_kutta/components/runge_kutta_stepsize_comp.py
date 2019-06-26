@@ -5,10 +5,10 @@ from six import string_types
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class RungeKuttaStepsizeComp(ExplicitComponent):
+class RungeKuttaStepsizeComp(om.ExplicitComponent):
     """
     Given the duration of the phase and the segment relative lengths, compute the duration of
     each segment (the step size) for each segment (step).

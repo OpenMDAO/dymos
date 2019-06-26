@@ -18,14 +18,13 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
         """
         import numpy as np
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ExplicitComponent, DirectSolver, \
-            pyOptSparseDriver, ExecComp
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
 
         g = 1.61544  # lunar gravity, m/s**2
 
-        class LaunchVehicle2DEOM(ExplicitComponent):
+        class LaunchVehicle2DEOM(om.ExplicitComponent):
             """
             Simple 2D Cartesian Equations of Motion for a launch vehicle subject to thrust and drag.
             """
@@ -148,7 +147,7 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
                 jacobian['mdot', 'thrust'] = -1.0 / (g * Isp)
                 jacobian['mdot', 'Isp'] = F_T / (g * Isp ** 2)
 
-        class LaunchVehicleLinearTangentODE(Group):
+        class LaunchVehicleLinearTangentODE(om.Group):
             """
             The LaunchVehicleLinearTangentODE for this case consists of a guidance component and
             the EOM.  Guidance is simply an OpenMDAO ExecComp which computes the arctangent of the
@@ -162,10 +161,10 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
             def setup(self):
                 nn = self.options['num_nodes']
 
-                self.add_subsystem('guidance', ExecComp('theta=arctan(tan_theta)',
-                                                        theta={'value': np.ones(nn),
-                                                               'units': 'rad'},
-                                                        tan_theta={'value': np.ones(nn)}))
+                self.add_subsystem('guidance', om.ExecComp('theta=arctan(tan_theta)',
+                                                           theta={'value': np.ones(nn),
+                                                                  'units': 'rad'},
+                                                           tan_theta={'value': np.ones(nn)}))
 
                 self.add_subsystem('eom', LaunchVehicle2DEOM(num_nodes=nn))
 
@@ -176,7 +175,7 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
         #
         traj = dm.Trajectory()
 
-        p = Problem(model=traj)
+        p = om.Problem(model=traj)
 
         phase = dm.Phase(ode_class=LaunchVehicleLinearTangentODE,
                          transcription=dm.Radau(num_segments=20, order=3, compressed=False))
@@ -230,9 +229,9 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
         #
         # Set the optimizer
         #
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # We don't strictly need to define a linear solver here since our problem is entirely
@@ -240,7 +239,7 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
         # failing to do so can cause incorrect derivatives if iterative processes are ever
         # introduced to the system.
         #
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 

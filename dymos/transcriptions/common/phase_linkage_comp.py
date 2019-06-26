@@ -2,10 +2,10 @@ from __future__ import print_function, division, absolute_import
 
 from six import string_types
 import numpy as np
-from openmdao.api import ExplicitComponent, OptionsDictionary
+import openmdao.api as om
 
 
-class PhaseLinkageComp(ExplicitComponent):
+class PhaseLinkageComp(om.ExplicitComponent):
     """
     Provides a 'linkage' capability between two phases to provide
     continuity in states, time, and other variables between two
@@ -118,7 +118,7 @@ class PhaseLinkageComp(ExplicitComponent):
 
         for var in _vars:
 
-            lnk = OptionsDictionary()
+            lnk = om.OptionsDictionary()
 
             lnk.declare('name', types=(string_types,))
             lnk.declare('equals', types=(float, np.ndarray), allow_none=True)

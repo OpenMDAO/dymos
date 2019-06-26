@@ -2,12 +2,12 @@ from __future__ import print_function, division, absolute_import
 
 from pyxdsm.XDSM import XDSM
 
-from openmdao.api import Problem
+import openmdao.api as om
 from dymos.examples.ssto.launch_vehicle_ode import LaunchVehicleODE
 
 
 def main():  # pragma: no cover
-    p = Problem()
+    p = om.Problem()
     p.model = LaunchVehicleODE(num_nodes=1)
     p.setup()
 

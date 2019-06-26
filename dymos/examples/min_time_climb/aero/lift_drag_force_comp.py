@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class LiftDragForceComp(ExplicitComponent):
+class LiftDragForceComp(om.ExplicitComponent):
     """
     Compute the aerodynamic forces on the vehicle in the wind axis frame
     (lift, drag, cross) force.

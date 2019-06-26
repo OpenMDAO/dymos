@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 from numpy.testing import assert_almost_equal
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.transcriptions.runge_kutta.components import RungeKuttaPathConstraintComp
@@ -25,7 +25,7 @@ class TestPathConstraintCompExplicit(unittest.TestCase):
 
         nn = 4
 
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
         controls = {'a': ControlOptionsDictionary(),
                     'b': ControlOptionsDictionary(),
@@ -36,7 +36,7 @@ class TestPathConstraintCompExplicit(unittest.TestCase):
         controls['b'].update({'units': 's', 'shape': (3,), 'opt': False})
         controls['c'].update({'units': 'kg', 'shape': (3, 3), 'opt': False})
 
-        ivc = IndepVarComp()
+        ivc = om.IndepVarComp()
         self.p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
         ivc.add_output('a_disc', val=np.zeros((nn, 1)), units='m')

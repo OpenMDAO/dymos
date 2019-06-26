@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import unittest
 
 import numpy as np
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
 from dymos.examples.aircraft_steady_flight.flight_equlibrium.steady_flight_equilibrium_group \
@@ -23,9 +23,9 @@ class TestFlightEquilibriumGroup(unittest.TestCase):
     def setUpClass(cls):
         cls.n = 10
 
-        cls.p = Problem(model=Group())
+        cls.p = om.Problem(model=om.Group())
 
-        ivc = cls.p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = cls.p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('alt', val=3000 * np.ones(cls.n), units='m', desc='altitude above MSL')
         ivc.add_output('TAS', val=250.0 * np.ones(cls.n), units='m/s', desc='true airspeed')

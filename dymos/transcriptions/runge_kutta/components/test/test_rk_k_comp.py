@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_k_comp import RungeKuttaKComp
@@ -15,9 +15,9 @@ class TestRKKComp(unittest.TestCase):
     def test_rk_k_comp_rk4_scalar(self):
         state_options = {'y': {'shape': (1,), 'units': 'm'}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('h', shape=(4,), units='s')
         ivc.add_output('f:y', shape=(4, 4, 1), units='m/s')
@@ -86,9 +86,9 @@ class TestRKKComp(unittest.TestCase):
         num_seg = 2
         state_options = {'y': {'shape': (num_seg,), 'units': 'm'}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('h', shape=(num_seg,), units='s')
         ivc.add_output('f:y', shape=(num_seg, 4, 2), units='m/s')
@@ -134,9 +134,9 @@ class TestRKKComp(unittest.TestCase):
         num_stages = 4
         state_options = {'y': {'shape': (2, 2), 'units': 'm'}}
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
         ivc.add_output('h', shape=(num_seg,), units='s')
         ivc.add_output('f:y', shape=(num_seg, num_stages, 2, 2), units='m/s')

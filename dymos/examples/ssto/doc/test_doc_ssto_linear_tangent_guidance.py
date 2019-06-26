@@ -13,15 +13,14 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
     def test_doc_ssto_linear_tangent_guidance(self):
         import numpy as np
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, ExplicitComponent, DirectSolver, \
-            pyOptSparseDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
         from dymos.examples.plotting import plot_results
 
         g = 1.61544  # lunar gravity, m/s**2
 
-        class LaunchVehicle2DEOM(ExplicitComponent):
+        class LaunchVehicle2DEOM(om.ExplicitComponent):
             """
             Simple 2D Cartesian Equations of Motion for a launch vehicle subject to thrust and drag.
             """
@@ -144,7 +143,7 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
                 jacobian['mdot', 'thrust'] = -1.0 / (g * Isp)
                 jacobian['mdot', 'Isp'] = F_T / (g * Isp ** 2)
 
-        class LinearTangentGuidanceComp(ExplicitComponent):
+        class LinearTangentGuidanceComp(om.ExplicitComponent):
             """ Compute pitch angle from static controls governing linear expression for
                 pitch angle tangent as function of time.
             """
@@ -210,7 +209,7 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
         @dm.declare_parameter('a_ctrl', targets=['guidance.a_ctrl'], units='1/s')
         @dm.declare_parameter('b_ctrl', targets=['guidance.b_ctrl'], units=None)
         @dm.declare_parameter('Isp', targets=['eom.Isp'], units='s')
-        class LaunchVehicleLinearTangentODE(Group):
+        class LaunchVehicleLinearTangentODE(om.Group):
             """
             The LaunchVehicleLinearTangentODE for this case consists of a guidance component and
             the EOM.  Guidance is simply an OpenMDAO ExecComp which computes the arctangent of the
@@ -229,10 +228,10 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
         #
         # Setup and solve the optimal control problem
         #
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = pyOptSparseDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
 
         traj = dm.Trajectory()
         p.model.add_subsystem('traj', traj)
@@ -261,7 +260,7 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
 
         phase.add_objective('time', index=-1, scaler=0.01)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         phase.add_timeseries_output('guidance.theta', units='deg')
 

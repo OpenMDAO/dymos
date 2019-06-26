@@ -6,14 +6,13 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 from scipy.interpolate import Akima1DInterpolator
 
-from openmdao.api import ExplicitComponent
-
+import openmdao.api as om
 # Data for open circuit voltage model.
 train_SOC = np.array([0., 0.1, 0.25, 0.5, 0.75, 0.9, 1.0])
 train_V_oc = np.array([3.5, 3.55, 3.65, 3.75, 3.9, 4.1, 4.2])
 
 
-class Battery(ExplicitComponent):
+class Battery(om.ExplicitComponent):
     """
     Model of a Lithium Ion battery.
     """
@@ -113,10 +112,10 @@ class Battery(ExplicitComponent):
 
 if __name__ == '__main__':
 
-    from openmdao.api import Problem, IndepVarComp
+    import openmdao.api as om
     num_nodes = 1
 
-    prob = Problem(model=Battery(num_nodes=num_nodes))
+    prob = om.Problem(model=Battery(num_nodes=num_nodes))
     model = prob.model
 
     prob.setup()

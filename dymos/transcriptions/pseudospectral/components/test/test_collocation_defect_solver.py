@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 
 from dymos.transcriptions.grid_data import GridData
 from dymos.transcriptions.pseudospectral.components.collocation_comp import CollocationComp
@@ -16,7 +16,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
 
     def make_prob(self, transcription, n_segs, order, compressed):
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         gd = GridData(num_segments=n_segs, segment_ends=np.arange(n_segs+1),
                       transcription=transcription, transcription_order=order, compressed=compressed)
@@ -126,9 +126,9 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
         num_col_nodes = gd.subset_num_nodes['col']
         num_col_nodes_per_seg = gd.subset_num_nodes_per_segment['col']
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        indep_comp = IndepVarComp()
+        indep_comp = om.IndepVarComp()
         p.model.add_subsystem('indep', indep_comp, promotes_outputs=['*'])
 
         indep_comp.add_output(

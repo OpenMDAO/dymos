@@ -2,8 +2,7 @@ from __future__ import absolute_import
 
 import numpy as np
 
-from openmdao.api import Group
-
+import openmdao.api as om
 from .dynamic_pressure_comp import DynamicPressureComp
 from .lift_drag_force_comp import LiftDragForceComp
 from .cd0_comp import CD0Comp
@@ -14,7 +13,7 @@ from .cd_comp import CDComp
 from .mach_comp import MachComp
 
 
-class AeroGroup(Group):
+class AeroGroup(om.Group):
     """
     The purpose of the AeroGroup is to compute the aerodynamic forces on the
     aircraft in the body frame.

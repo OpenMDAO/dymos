@@ -13,14 +13,14 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['coloring.json', 'test_doc_aircraft_steady_flight_rec.db', 'SLSQP.out']:
+        for filename in ['total_coloring.pkl', 'test_doc_aircraft_steady_flight_rec.db', 'SLSQP.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 
     def test_steady_aircraft_for_docs(self):
         import matplotlib.pyplot as plt
 
-        from openmdao.api import Problem, Group, pyOptSparseDriver, IndepVarComp
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
 
         import dymos as dm
@@ -29,10 +29,10 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         from dymos.examples.plotting import plot_results
         from dymos.utils.lgl import lgl
 
-        p = Problem(model=Group())
-        p.driver = pyOptSparseDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
@@ -46,7 +46,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
                                                                order=3, compressed=False)))
 
         # Pass Reference Area from an external source
-        assumptions = p.model.add_subsystem('assumptions', IndepVarComp())
+        assumptions = p.model.add_subsystem('assumptions', om.IndepVarComp())
         assumptions.add_output('S', val=427.8, units='m**2')
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')

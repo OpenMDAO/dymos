@@ -3,10 +3,10 @@ from __future__ import division, print_function
 import numpy as np
 from six import iteritems
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class InputParameterComp(ExplicitComponent):
+class InputParameterComp(om.ExplicitComponent):
     """
     The InputParameterComp handles input parameters for phases and trajectories.
 

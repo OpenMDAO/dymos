@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class MassComp(ExplicitComponent):
+class MassComp(om.ExplicitComponent):
     """ Compute the total mass of the aircraft """
 
     def initialize(self):

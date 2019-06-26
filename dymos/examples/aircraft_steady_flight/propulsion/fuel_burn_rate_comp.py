@@ -2,10 +2,10 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class FuelBurnRateComp(ExplicitComponent):
+class FuelBurnRateComp(om.ExplicitComponent):
     """ Computes the fuel burn rate (rate of change of fuel weight) based on SFC and thrust. """
     def initialize(self):
         self.options.declare('num_nodes', types=int)

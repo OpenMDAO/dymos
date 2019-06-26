@@ -4,13 +4,13 @@ from six import string_types, iteritems
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 from ...grid_data import GridData
 from ....utils.misc import get_rate_units
 
 
-class CollocationComp(ExplicitComponent):
+class CollocationComp(om.ExplicitComponent):
     """
     CollocationComp computes the generalized defect of a segment for implicit collocation.
     The defect is the interpolated state derivative at the collocation nodes minus

@@ -5,19 +5,17 @@ in a simple electrical system.
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-
-from openmdao.api import Group, BalanceComp, NewtonSolver, DirectSolver
-
-from dymos import declare_time, declare_state, declare_parameter
+import openmdao.api as om
+import dymos as dm
 
 from dymos.examples.battery_multibranch.batteries import Battery
 from dymos.examples.battery_multibranch.motors import Motors, MotorsStaticGearboxPower
 
 
-@declare_time(units='s')
-@declare_state('state_of_charge', targets=['SOC'], rate_source='dXdt:SOC')
-@declare_parameter('P_demand', targets=['motors.power_out_gearbox'], dynamic=True)
-class BatteryODE(Group):
+@dm.declare_time(units='s')
+@dm.declare_state('state_of_charge', targets=['SOC'], rate_source='dXdt:SOC')
+@dm.declare_parameter('P_demand', targets=['motors.power_out_gearbox'], dynamic=True)
+class BatteryODE(om.Group):
 
     def initialize(self):
         self.options.declare('num_nodes', default=1)
@@ -30,10 +28,10 @@ class BatteryODE(Group):
         num_motor = self.options['num_motor']
 
         self.add_subsystem(name='pwr_balance',
-                           subsys=BalanceComp(name='I_Li', val=1.0*np.ones(num_nodes),
-                                              rhs_name='pwr_out_batt',
-                                              lhs_name='P_pack',
-                                              units='A', eq_units='W', lower=0.0, upper=50.))
+                           subsys=om.BalanceComp(name='I_Li', val=1.0*np.ones(num_nodes),
+                                                 rhs_name='pwr_out_batt',
+                                                 lhs_name='P_pack',
+                                                 units='A', eq_units='W', lower=0.0, upper=50.))
 
         self.add_subsystem('battery', Battery(num_nodes=num_nodes, n_parallel=num_battery),
                            promotes_inputs=['SOC'],
@@ -46,15 +44,15 @@ class BatteryODE(Group):
         self.connect('pwr_balance.I_Li', 'battery.I_Li')
         self.connect('battery.I_pack', 'motors.current_in_motor')
 
-        self.nonlinear_solver = NewtonSolver()
+        self.nonlinear_solver = om.NewtonSolver()
         self.nonlinear_solver.options['maxiter'] = 20
-        self.linear_solver = DirectSolver()
+        self.linear_solver = om.DirectSolver()
 
 
-@declare_time(units='s')
-@declare_state('state_of_charge', targets=['SOC'], rate_source='dXdt:SOC')
-@declare_parameter('P_demand', targets=['motors.power_out_gearbox'], dynamic=False)
-class BatteryODEStaticGearboxMotorPower(Group):
+@dm.declare_time(units='s')
+@dm.declare_state('state_of_charge', targets=['SOC'], rate_source='dXdt:SOC')
+@dm.declare_parameter('P_demand', targets=['motors.power_out_gearbox'], dynamic=False)
+class BatteryODEStaticGearboxMotorPower(om.Group):
 
     def initialize(self):
         self.options.declare('num_nodes', default=1)
@@ -67,10 +65,10 @@ class BatteryODEStaticGearboxMotorPower(Group):
         num_motor = self.options['num_motor']
 
         self.add_subsystem(name='pwr_balance',
-                           subsys=BalanceComp(name='I_Li', val=1.0*np.ones(num_nodes),
-                                              rhs_name='pwr_out_batt',
-                                              lhs_name='P_pack',
-                                              units='A', eq_units='W', lower=0.0, upper=50.))
+                           subsys=om.BalanceComp(name='I_Li', val=1.0*np.ones(num_nodes),
+                                                 rhs_name='pwr_out_batt',
+                                                 lhs_name='P_pack',
+                                                 units='A', eq_units='W', lower=0.0, upper=50.))
 
         self.add_subsystem('battery', Battery(num_nodes=num_nodes, n_parallel=num_battery),
                            promotes_inputs=['SOC'],
@@ -83,6 +81,6 @@ class BatteryODEStaticGearboxMotorPower(Group):
         self.connect('pwr_balance.I_Li', 'battery.I_Li')
         self.connect('battery.I_pack', 'motors.current_in_motor')
 
-        self.nonlinear_solver = NewtonSolver()
+        self.nonlinear_solver = om.NewtonSolver()
         self.nonlinear_solver.options['maxiter'] = 20
-        self.linear_solver = DirectSolver()
+        self.linear_solver = om.DirectSolver()

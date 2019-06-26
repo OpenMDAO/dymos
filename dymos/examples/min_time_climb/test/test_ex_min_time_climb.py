@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 
 import unittest
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 import dymos as dm
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
@@ -13,11 +13,11 @@ from dymos.utils.testing_utils import use_tempdirs
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                    transcription_order=3, force_alloc_complex=False):
 
-    p = Problem(model=Group())
+    p = om.Problem(model=om.Group())
 
-    p.driver = pyOptSparseDriver()
+    p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    p.driver.options['dynamic_simul_derivs'] = True
+    p.driver.declare_coloring(tol=1.0E-9, orders=None)
 
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 1000
@@ -27,7 +27,6 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
         p.driver.opt_settings['Function precision'] = 1.0E-12
         p.driver.opt_settings['Linesearch tolerance'] = 0.1
         p.driver.opt_settings['Major step limit'] = 0.5
-        # p.driver.opt_settings['Verify level'] = 3
 
     t = {'gauss-lobatto': dm.GaussLobatto(num_segments=num_seg, order=transcription_order),
          'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order),
@@ -81,7 +80,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', ref=1.0)
 
-    p.model.linear_solver = DirectSolver()
+    p.model.linear_solver = om.DirectSolver()
 
     p.setup(check=True, force_alloc_complex=force_alloc_complex)
 

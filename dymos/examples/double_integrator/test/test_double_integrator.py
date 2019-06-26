@@ -6,7 +6,7 @@ import unittest
 
 from parameterized import parameterized
 
-from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
 import dymos as dm
@@ -15,9 +15,9 @@ from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegra
 
 def double_integrator_direct_collocation(transcription='gauss-lobatto', compressed=True):
 
-    p = Problem(model=Group())
-    p.driver = pyOptSparseDriver()
-    p.driver.options['dynamic_simul_derivs'] = True
+    p = om.Problem(model=om.Group())
+    p.driver = om.pyOptSparseDriver()
+    p.driver.declare_coloring()
 
     if transcription == 'gauss-lobatto':
         t = dm.GaussLobatto(num_segments=30, order=3, compressed=compressed)
@@ -41,7 +41,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
     # Maximize distance travelled in one second.
     phase.add_objective('x', loc='final', scaler=-1)
 
-    p.model.linear_solver = DirectSolver()
+    p.model.linear_solver = om.DirectSolver()
 
     p.setup(check=True)
 
@@ -61,7 +61,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['coloring.json', 'SLSQP.out', 'SNOPT_print.out']:
+        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 
@@ -90,11 +90,11 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         Tests that externally connected t_initial and t_duration function as expected.
         """
 
-        p = Problem(model=Group())
-        p.driver = pyOptSparseDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
 
-        times_ivc = p.model.add_subsystem('times_ivc', IndepVarComp(),
+        times_ivc = p.model.add_subsystem('times_ivc', om.IndepVarComp(),
                                           promotes_outputs=['t0', 'tp'])
         times_ivc.add_output(name='t0', val=0.0, units='s')
         times_ivc.add_output(name='tp', val=1.0, units='s')
@@ -117,7 +117,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         # Maximize distance travelled in one second.
         phase.add_objective('x', loc='final', scaler=-1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 
@@ -132,9 +132,9 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
     def test_double_integrator_rk4(self, compressed=True):
 
-        p = Problem(model=Group())
-        p.driver = pyOptSparseDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
 
         t = dm.RungeKutta(num_segments=30, order=3, compressed=compressed)
 
@@ -155,7 +155,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         # Maximize distance travelled in one second.
         phase.add_objective('x', loc='final', scaler=-1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True)
 

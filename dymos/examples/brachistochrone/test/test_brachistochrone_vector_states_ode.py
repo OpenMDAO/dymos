@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import \
@@ -17,9 +17,9 @@ class TestBrachistochroneVectorStatesODE(unittest.TestCase):
     def setUpClass(cls):
         nn = 5
 
-        p = cls.p = Problem(model=Group())
+        p = cls.p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
         ivc.add_output('v', val=np.ones((nn,)), units='m/s')
         ivc.add_output('g', val=np.zeros((nn,)), units='m/s**2')
         ivc.add_output('theta', val=np.zeros((nn)), units='rad')

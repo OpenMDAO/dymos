@@ -1,8 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
-from openmdao.api import Group
-
-from dymos import declare_time, declare_state, declare_parameter
+import openmdao.api as om
 from dymos.examples.min_time_climb.aero.dynamic_pressure_comp import DynamicPressureComp
 from dymos.examples.min_time_climb.aero.lift_drag_force_comp import LiftDragForceComp
 from dymos.models.atmosphere import USatm1976Comp
@@ -10,7 +8,7 @@ from dymos.models.eom import FlightPathEOM2D
 from .kinetic_energy_comp import KineticEnergyComp
 
 
-class CannonballUndecoratedODE(Group):
+class CannonballUndecoratedODE(om.Group):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
