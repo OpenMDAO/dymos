@@ -20,6 +20,9 @@ from ..phase.options import TrajDesignParameterOptionsDictionary, \
     TrajInputParameterOptionsDictionary
 
 
+_unspecified = object()
+
+
 class Trajectory(om.Group):
     """
     A Trajectory object serves as a container for one or more Phases, as well as the linkage
@@ -62,34 +65,68 @@ class Trajectory(om.Group):
         self._phase_add_kwargs[name] = kwargs
         return phase
 
-    def add_input_parameter(self, name, **kwargs):
+    def add_input_parameter(self, name, units, val=_unspecified, desc=_unspecified,
+                            targets=_unspecified, custom_targets=_unspecified,
+                            shape=_unspecified, dynamic=_unspecified):
         """
-        Add a design parameter (static control) to the trajectory.
+        Add na input parameter to the trajectory.
 
         Parameters
         ----------
         name : str
-            Name of the design parameter.
+            Name of the input parameter.
         val : float or ndarray
-            Default value of the design parameter at all nodes.
+            Default value of the input parameter at all nodes.
+        desc : str
+            A description of the input parameter.
         custom_targets : dict or None
             By default, the input parameter will be connect to the parameter/targets of the given
             name in each phase.  This argument can be used to override that behavior on a phase
             by phase basis.
         units : str or None or 0
-            Units in which the design parameter is defined.  If 0, use the units declared
+            Units in which the input parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
+        shape : Sequence of int
+            The shape of the input parameter.
+        dynamic : bool
+            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
+            of nodes) else False.
         """
         if name not in self.input_parameter_options:
             self.input_parameter_options[name] = TrajInputParameterOptionsDictionary()
 
-        for kw in kwargs:
-            if kw not in self.input_parameter_options[name]:
-                raise KeyError('Invalid argument to add_input_parameter: {0}'.format(kw))
+        if units is not _unspecified:
+            self.input_parameter_options[name]['units'] = units
 
-        self.input_parameter_options[name].update(kwargs)
+        if val is not _unspecified:
+            self.input_parameter_options[name]['val'] = val
 
-    def add_design_parameter(self, name, **kwargs):
+        if desc is not _unspecified:
+            self.input_parameter_options[name]['desc'] = desc
+
+        if targets is not _unspecified:
+            if isinstance(targets, string_types):
+                self.input_parameter_options[name]['targets'] = (targets,)
+            else:
+                self.input_parameter_options[name]['targets'] = targets
+
+        if custom_targets is not _unspecified:
+            if isinstance(targets, string_types):
+                self.input_parameter_options[name]['custom_targets'] = (custom_targets,)
+            else:
+                self.input_parameter_options[name]['custom_targets'] = custom_targets
+
+        if shape is not _unspecified:
+            self.input_parameter_options[name]['shape'] = shape
+
+        if dynamic is not _unspecified:
+            self.input_parameter_options[name]['dynamic'] = dynamic
+
+    def add_design_parameter(self, name, units, val=_unspecified, desc=_unspecified, opt=_unspecified,
+                             targets=_unspecified, custom_targets=_unspecified,
+                             lower=_unspecified, upper=_unspecified, scaler=_unspecified,
+                             adder=_unspecified, ref0=_unspecified, ref=_unspecified,
+                             shape=_unspecified, dynamic=_unspecified):
         """
         Add a design parameter (static control) to the trajectory.
 
@@ -99,12 +136,18 @@ class Trajectory(om.Group):
             Name of the design parameter.
         val : float or ndarray
             Default value of the design parameter at all nodes.
+        desc : str
+            A description of the design parameter.
         targets : dict or None
             If None, then the design parameter will be connected to the controllable parameter
             in the ODE of each phase.  For each phase where no such controllable parameter exists,
             a warning will be issued.  If targets is given as a dict, the dict should provide
             the relevant phase names as keys, each associated with the respective controllable
-            parameteter as a value.
+            parameter as a value.
+        custom_targets : dict or None
+            By default, the input parameter will be connect to the parameter/targets of the given
+            name in each phase.  This argument can be used to override that behavior on a phase
+            by phase basis.
         units : str or None or 0
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
@@ -126,16 +169,62 @@ class Trajectory(om.Group):
             The zero-reference value of the design parameter for the optimizer.
         ref : float or ndarray
             The unit-reference value of the design parameter for the optimizer.
-
+        shape : Sequence of int
+            The shape of the design parameter.
+        dynamic : bool
+            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
+            of nodes) else False.
         """
         if name not in self.design_parameter_options:
             self.design_parameter_options[name] = TrajDesignParameterOptionsDictionary()
 
-        for kw in kwargs:
-            if kw not in self.design_parameter_options[name]:
-                raise KeyError('Invalid argument to add_design_parameter: {0}'.format(kw))
+        if units is not _unspecified:
+            self.design_parameter_options[name]['units'] = units
 
-        self.design_parameter_options[name].update(kwargs)
+        if opt is not _unspecified:
+            self.design_parameter_options[name]['opt'] = opt
+
+        if val is not _unspecified:
+            self.design_parameter_options[name]['val'] = val
+
+        if desc is not _unspecified:
+            self.design_parameter_options[name]['desc'] = desc
+
+        if lower is not _unspecified:
+            self.design_parameter_options[name]['lower'] = lower
+
+        if upper is not _unspecified:
+            self.design_parameter_options[name]['upper'] = upper
+
+        if scaler is not _unspecified:
+            self.design_parameter_options[name]['scaler'] = scaler
+
+        if adder is not _unspecified:
+            self.design_parameter_options[name]['adder'] = adder
+
+        if ref0 is not _unspecified:
+            self.design_parameter_options[name]['ref0'] = ref0
+
+        if ref is not _unspecified:
+            self.design_parameter_options[name]['ref'] = ref
+
+        if targets is not _unspecified:
+            if isinstance(targets, string_types):
+                self.design_parameter_options[name]['targets'] = (targets,)
+            else:
+                self.design_parameter_options[name]['targets'] = targets
+
+        if custom_targets is not _unspecified:
+            if isinstance(targets, string_types):
+                self.design_parameter_options[name]['custom_targets'] = (custom_targets,)
+            else:
+                self.design_parameter_options[name]['custom_targets'] = custom_targets
+
+        if shape is not _unspecified:
+            self.design_parameter_options[name]['shape'] = shape
+
+        if dynamic is not _unspecified:
+            self.design_parameter_options[name]['dynamic'] = dynamic
 
     def _setup_input_parameters(self):
         """
