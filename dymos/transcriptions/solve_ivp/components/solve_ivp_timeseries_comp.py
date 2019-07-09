@@ -17,7 +17,7 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         """
         Define the independent variables as output variables.
         """
-        grid_data = self.options['grid_data']
+        grid_data = self.options['input_grid_data']
         if self.options['output_nodes_per_seg'] is None:
             num_nodes = grid_data.num_nodes
         else:
