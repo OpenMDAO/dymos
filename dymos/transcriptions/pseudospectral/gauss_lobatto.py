@@ -7,7 +7,7 @@ from six import iteritems
 
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
-from ..common import GaussLobattoPathConstraintComp, GaussLobattoTimeseriesOutputComp, \
+from ..common import PseudospectralPathConstraintComp, GaussLobattoTimeseriesOutputComp, \
     GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
 from ...utils.indexing import get_src_indices_by_row
@@ -255,6 +255,9 @@ class GaussLobatto(PseudospectralBase):
             units = options['units']
             con_name = options['constraint_name']
 
+            if con_name in interleave_comp.vars:
+                continue
+
             interleave_comp.add_var(con_name, shape, units)
 
             phase.connect(src_name='rhs_disc.{0}'.format(var),
@@ -279,6 +282,10 @@ class GaussLobatto(PseudospectralBase):
                 output_name = options['output_name']
                 shape = (1,) if options['shape'] is None else options['shape']
                 units = options['units']
+
+                if output_name in interleave_comp.vars:
+                    continue
+
                 interleave_comp.add_var(output_name, shape, units)
 
                 phase.connect(src_name='rhs_disc.{0}'.format(var),
@@ -315,7 +322,7 @@ class GaussLobatto(PseudospectralBase):
         time_units = phase.time_options['units']
 
         if phase._path_constraints:
-            path_comp = GaussLobattoPathConstraintComp(grid_data=gd)
+            path_comp = PseudospectralPathConstraintComp(grid_data=gd)
             phase.add_subsystem('path_constraints', subsys=path_comp)
 
         for var, options in iteritems(phase._path_constraints):
@@ -348,12 +355,8 @@ class GaussLobatto(PseudospectralBase):
                 options['shape'] = state_shape
                 options['units'] = state_units if con_units is None else con_units
                 options['linear'] = False
-                src_idxs = get_src_indices_by_row(gd.input_maps['state_input_to_disc'], state_shape)
-                phase.connect(src_name='states:{0}'.format(var),
-                              tgt_name='path_constraints.disc_values:{0}'.format(con_name),
-                              src_indices=src_idxs, flat_src_indices=True)
-                phase.connect(src_name='state_interp.state_col:{0}'.format(var),
-                              tgt_name='path_constraints.col_values:{0}'.format(con_name))
+                phase.connect(src_name='interleave_comp.all_values:{0}'.format(var),
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type in ('indep_control', 'input_control'):
                 control_shape = phase.control_options[var]['shape']
@@ -428,10 +431,8 @@ class GaussLobatto(PseudospectralBase):
                 options['linear'] = False
                 if options['shape'] is None:
                     options['shape'] = (1,)
-                phase.connect(src_name='rhs_disc.{0}'.format(var),
-                              tgt_name='path_constraints.disc_values:{0}'.format(con_name))
-                phase.connect(src_name='rhs_col.{0}'.format(var),
-                              tgt_name='path_constraints.col_values:{0}'.format(con_name))
+                phase.connect(src_name='interleave_comp.all_values:{0}'.format(con_name),
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             kwargs = options.copy()
             kwargs.pop('constraint_name', None)

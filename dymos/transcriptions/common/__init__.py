@@ -7,7 +7,7 @@ from .control_group import ControlGroup
 from .polynomial_control_group import PolynomialControlGroup
 from .input_parameter_comp import InputParameterComp
 from .endpoint_conditions_comp import EndpointConditionsComp
-from .path_constraint_comp import GaussLobattoPathConstraintComp, RadauPathConstraintComp
+from .path_constraint_comp import PseudospectralPathConstraintComp
 from .timeseries_output_comp import GaussLobattoTimeseriesOutputComp, RadauTimeseriesOutputComp, \
     ExplicitTimeseriesOutputComp
 from .phase_linkage_comp import PhaseLinkageComp

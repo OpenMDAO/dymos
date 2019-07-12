@@ -6,6 +6,7 @@ from numpy.testing import assert_almost_equal
 
 import dymos.examples.brachistochrone.test.ex_brachistochrone as ex_brachistochrone
 
+import openmdao.api as om
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 
@@ -71,6 +72,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
                                                         compressed=True)
+        om.view_model(p.model)
         self.run_asserts(p)
         self.tearDown()
         if os.path.exists('ex_brach_gl_compressed.db'):

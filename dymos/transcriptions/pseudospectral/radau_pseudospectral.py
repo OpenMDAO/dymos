@@ -7,7 +7,7 @@ import numpy as np
 from six import iteritems
 
 from .pseudospectral_base import PseudospectralBase
-from ..common import RadauPathConstraintComp, RadauPSContinuityComp, RadauTimeseriesOutputComp
+from ..common import PseudospectralPathConstraintComp, RadauPSContinuityComp, RadauTimeseriesOutputComp
 from ...utils.misc import get_rate_units
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
@@ -158,7 +158,7 @@ class Radau(PseudospectralBase):
         time_units = phase.time_options['units']
 
         if phase._path_constraints:
-            path_comp = RadauPathConstraintComp(grid_data=gd)
+            path_comp = PseudospectralPathConstraintComp(grid_data=gd)
             phase.add_subsystem('path_constraints', subsys=path_comp)
 
         for var, options in iteritems(phase._path_constraints):
