@@ -176,8 +176,8 @@ class GaussLobattoTimeseriesOutputComp(TimeseriesOutputCompBase):
                     val=1.0)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
-        disc_indices = self.options['grid_data'].subset_node_indices['state_disc']
-        col_indices = self.options['grid_data'].subset_node_indices['col']
+        disc_indices = self.options['input_grid_data'].subset_node_indices['state_disc']
+        col_indices = self.options['input_grid_data'].subset_node_indices['col']
         for (disc_input_name, col_input_name, all_inp_name, src_all, output_name, _) in self._vars:
             if src_all:
                 outputs[output_name] = inputs[all_inp_name]

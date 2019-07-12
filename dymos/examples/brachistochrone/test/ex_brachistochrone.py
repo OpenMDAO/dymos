@@ -73,13 +73,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.run_driver()
 
-    p.model.list_outputs(print_arrays=True)
-
-    print(len(p['phase0.timeseries.time']))
-    print(len(p['phase0.timeseries2.time']))
-
-    exit(0)
-
     # Plot results
     if SHOW_PLOTS:
         exp_out = phase.simulate()

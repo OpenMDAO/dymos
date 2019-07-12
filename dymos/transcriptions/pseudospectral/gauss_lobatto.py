@@ -6,6 +6,7 @@ import numpy as np
 from six import iteritems
 
 from .pseudospectral_base import PseudospectralBase
+from .components import GaussLobattoInterleaveComp
 from ..common import GaussLobattoPathConstraintComp, GaussLobattoTimeseriesOutputComp, \
     GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
@@ -202,6 +203,91 @@ class GaussLobatto(PseudospectralBase):
                           'state_interp.staterate_disc:{0}'.format(name),
                           src_indices=src_idxs)
 
+        #
+        # Setup the interleave comp to interleave all states, any path constraints from the ODE,
+        # and any timeseries outputs from the ODE.
+        #
+        self.setup_interleave_comp(phase)
+
+    def setup_interleave_comp(self, phase):
+        num_input_nodes = self.grid_data.subset_num_nodes['state_input']
+
+        map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
+
+        interleave_comp = GaussLobattoInterleaveComp(grid_data=self.grid_data)
+
+        #
+        # First do the states
+        #
+        for state_name, options in iteritems(phase.state_options):
+            shape = options['shape']
+            units = options['units']
+            interleave_comp.add_var(state_name, shape, units)
+
+            size = np.prod(options['shape'])
+            src_idxs_mat = np.reshape(np.arange(size * num_input_nodes, dtype=int),
+                                      (num_input_nodes, size), order='C')
+            src_idxs = src_idxs_mat[map_input_indices_to_disc, :]
+
+            if size == 1:
+                """ Flat state variable is passed as 1D data."""
+                src_idxs = src_idxs.ravel()
+
+            phase.connect('states:{0}'.format(state_name),
+                          'interleave_comp.disc_values:{0}'.format(state_name),
+                          src_indices=src_idxs, flat_src_indices=True)
+
+            phase.connect('state_interp.state_col:{0}'.format(state_name),
+                          'interleave_comp.col_values:{0}'.format(state_name))
+
+        #
+        # Do the path constraints
+        #
+        for var, options in iteritems(phase._path_constraints):
+
+            var_type = phase.classify_var(var)
+
+            # We only need to interleave state variables (covered above) and ODE outputs
+            if var_type != 'ode':
+                continue
+
+            shape = (1,) if options['shape'] is None else options['shape']
+            units = options['units']
+            con_name = options['constraint_name']
+
+            interleave_comp.add_var(con_name, shape, units)
+
+            phase.connect(src_name='rhs_disc.{0}'.format(var),
+                          tgt_name='interleave_comp.disc_values:{0}'.format(con_name))
+            phase.connect(src_name='rhs_col.{0}'.format(var),
+                          tgt_name='interleave_comp.col_values:{0}'.format(con_name))
+
+        #
+        # Do the timeseries outputs
+        #
+        for timeseries_name, timeseries_options in iteritems(phase._timeseries):
+
+            for var, options in iteritems(timeseries_options['outputs']):
+
+                var_type = phase.classify_var(var)
+
+                # We only need to interleave state variables (covered above) and ODE outputs
+                if var_type != 'ode':
+                    continue
+
+                # Assume scalar shape here, but check config will warn that it's inferred.
+                output_name = options['output_name']
+                shape = (1,) if options['shape'] is None else options['shape']
+                units = options['units']
+                interleave_comp.add_var(output_name, shape, units)
+
+                phase.connect(src_name='rhs_disc.{0}'.format(var),
+                              tgt_name='interleave_comp.disc_values:{0}'.format(output_name))
+                phase.connect(src_name='rhs_col.{0}'.format(var),
+                              tgt_name='interleave_comp.col_values:{0}'.format(output_name))
+
+        phase.add_subsystem('interleave_comp', interleave_comp)
+
     def setup_defects(self, phase):
         super(GaussLobatto, self).setup_defects(phase)
         grid_data = self.grid_data
@@ -354,166 +440,177 @@ class GaussLobatto(PseudospectralBase):
     def setup_timeseries_outputs(self, phase):
         gd = self.grid_data
         time_units = phase.time_options['units']
-        timeseries_comp = GaussLobattoTimeseriesOutputComp(grid_data=gd)
-        phase.add_subsystem('timeseries', subsys=timeseries_comp)
 
-        timeseries_comp._add_timeseries_output('time',
-                                               var_class=phase.classify_var('time'),
-                                               units=time_units)
-        phase.connect(src_name='time', tgt_name='timeseries.all_values:time')
+        for name, options in iteritems(phase._timeseries):
 
-        timeseries_comp._add_timeseries_output('time_phase',
-                                               var_class=phase.classify_var('time_phase'),
-                                               units=time_units)
-        phase.connect(src_name='time_phase', tgt_name='timeseries.all_values:time_phase')
+            if options['transcription'] is None:
+                ogd = None
+            else:
+                options['transcription'].setup_grid(phase)
+                ogd = options['transcription'].grid_data
 
-        for name, options in iteritems(phase.state_options):
-            timeseries_comp._add_timeseries_output('states:{0}'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=options['units'])
-            src_rows = gd.input_maps['state_input_to_disc']
-            src_idxs = get_src_indices_by_row(src_rows, options['shape'])
-            phase.connect(src_name='states:{0}'.format(name),
-                          tgt_name='timeseries.disc_values:states:{0}'.format(name),
-                          src_indices=src_idxs, flat_src_indices=True)
-            phase.connect(src_name='state_interp.state_col:{0}'.format(name),
-                          tgt_name='timeseries.col_values:states:{0}'.format(name))
+            timeseries_comp = GaussLobattoTimeseriesOutputComp(input_grid_data=gd,
+                                                               output_grid_data=ogd,
+                                                               output_subset=options['subset'])
+            phase.add_subsystem(name, subsys=timeseries_comp)
 
-        for name, options in iteritems(phase.control_options):
-            control_units = options['units']
+            timeseries_comp._add_timeseries_output('time',
+                                                   var_class=phase.classify_var('time'),
+                                                   units=time_units)
+            phase.connect(src_name='time', tgt_name='{0}.all_values:time'.format(name))
 
-            # Control values
-            timeseries_comp._add_timeseries_output('controls:{0}'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=control_units)
-            phase.connect(src_name='control_values:{0}'.format(name),
-                          tgt_name='timeseries.all_values:controls:{0}'.format(name))
+            timeseries_comp._add_timeseries_output('time_phase',
+                                                   var_class=phase.classify_var('time_phase'),
+                                                   units=time_units)
+            phase.connect(src_name='time_phase', tgt_name='{0}.all_values:time_phase'.format(name))
 
-            # # Control rates
-            timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=get_rate_units(control_units,
-                                                                        time_units,
-                                                                        deriv=1))
-            phase.connect(src_name='control_rates:{0}_rate'.format(name),
-                          tgt_name='timeseries.all_values:control_rates:{0}_rate'.format(name))
+            for state_name, options in iteritems(phase.state_options):
+                timeseries_comp._add_timeseries_output('states:{0}'.format(state_name),
+                                                       var_class=phase.classify_var(state_name),
+                                                       shape=options['shape'],
+                                                       units=options['units'])
+                src_rows = gd.input_maps['state_input_to_disc']
+                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
+                phase.connect(src_name='states:{0}'.format(state_name),
+                              tgt_name='{0}.disc_values:states:{1}'.format(name, state_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+                phase.connect(src_name='state_interp.state_col:{0}'.format(state_name),
+                              tgt_name='{0}.col_values:states:{1}'.format(name, state_name))
 
-            # Control second derivatives
-            timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=get_rate_units(control_units,
-                                                                        time_units,
-                                                                        deriv=2))
-            phase.connect(src_name='control_rates:{0}_rate2'.format(name),
-                          tgt_name='timeseries.all_values:control_rates:{0}_rate2'.format(name))
+            for control_name, options in iteritems(phase.control_options):
+                control_units = options['units']
 
-        for name, options in iteritems(phase.polynomial_control_options):
-            control_units = options['units']
+                # Control values
+                timeseries_comp._add_timeseries_output('controls:{0}'.format(control_name),
+                                                       var_class=phase.classify_var(control_name),
+                                                       shape=options['shape'],
+                                                       units=control_units)
+                phase.connect(src_name='control_values:{0}'.format(control_name),
+                              tgt_name='{0}.all_values:controls:{1}'.format(name, control_name))
 
-            # Control values
-            timeseries_comp._add_timeseries_output('polynomial_controls:{0}'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=control_units)
-            phase.connect(src_name='polynomial_control_values:{0}'.format(name),
-                          tgt_name='timeseries.all_values:'
-                                   'polynomial_controls:{0}'.format(name))
+                # # Control rates
+                timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(control_name),
+                                                       var_class=phase.classify_var(control_name),
+                                                       shape=options['shape'],
+                                                       units=get_rate_units(control_units,
+                                                                            time_units,
+                                                                            deriv=1))
+                phase.connect(src_name='control_rates:{0}_rate'.format(control_name),
+                              tgt_name='{0}.all_values:control_rates:{1}_rate'.format(name, control_name))
 
-            # # Control rates
-            timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=get_rate_units(control_units,
-                                                                        time_units,
-                                                                        deriv=1))
-            phase.connect(src_name='polynomial_control_rates:{0}_rate'.format(name),
-                          tgt_name='timeseries.all_values:'
-                                   'polynomial_control_rates:{0}_rate'.format(name))
+                # Control second derivatives
+                timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(control_name),
+                                                       var_class=phase.classify_var(control_name),
+                                                       shape=options['shape'],
+                                                       units=get_rate_units(control_units,
+                                                                            time_units,
+                                                                            deriv=2))
+                phase.connect(src_name='control_rates:{0}_rate2'.format(control_name),
+                              tgt_name='{0}.all_values:control_rates:{1}_rate2'.format(name, control_name))
 
-            # Control second derivatives
-            timeseries_comp._add_timeseries_output('polynomial_control_rates:'
-                                                   '{0}_rate2'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=get_rate_units(control_units,
-                                                                        time_units,
-                                                                        deriv=2))
-            phase.connect(src_name='polynomial_control_rates:{0}_rate2'.format(name),
-                          tgt_name='timeseries.all_values:'
-                                   'polynomial_control_rates:{0}_rate2'.format(name))
+            for control_name, options in iteritems(phase.polynomial_control_options):
+                control_units = options['units']
+    
+                # Control values
+                timeseries_comp._add_timeseries_output('polynomial_controls:{0}'.format(control_name),
+                                                       var_class=phase.classify_var(control_name),
+                                                       shape=options['shape'],
+                                                       units=control_units)
+                phase.connect(src_name='polynomial_control_values:{0}'.format(control_name),
+                              tgt_name='{0}.all_values:'
+                                       'polynomial_controls:{1}'.format(name, control_name))
+    
+                # # Control rates
+                timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(control_name),
+                                                       var_class=phase.classify_var(control_name),
+                                                       shape=options['shape'],
+                                                       units=get_rate_units(control_units,
+                                                                            time_units,
+                                                                            deriv=1))
+                phase.connect(src_name='polynomial_control_rates:{0}_rate'.format(control_name),
+                              tgt_name='{0}.all_values:'
+                                       'polynomial_control_rates:{1}_rate'.format(name, control_name))
+    
+                # Control second derivatives
+                timeseries_comp._add_timeseries_output('polynomial_control_rates:'
+                                                       '{0}_rate2'.format(control_name),
+                                                       var_class=phase.classify_var(control_name),
+                                                       shape=options['shape'],
+                                                       units=get_rate_units(control_units,
+                                                                            time_units,
+                                                                            deriv=2))
+                phase.connect(src_name='polynomial_control_rates:{0}_rate2'.format(control_name),
+                              tgt_name='{0}.all_values:'
+                                       'polynomial_control_rates:{1}_rate2'.format(name, control_name))
 
-        for name, options in iteritems(phase.design_parameter_options):
-            units = options['units']
-            timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=units)
+            for param_name, options in iteritems(phase.design_parameter_options):
+                units = options['units']
+                timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(param_name),
+                                                       var_class=phase.classify_var(param_name),
+                                                       shape=options['shape'],
+                                                       units=units)
+    
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+    
+                phase.connect(src_name='design_parameters:{0}'.format(param_name),
+                              tgt_name='{0}.all_values:design_parameters:{1}'.format(name, param_name),
+                              src_indices=src_idxs, flat_src_indices=True)
 
-            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+            for param_name, options in iteritems(phase.input_parameter_options):
+                units = options['units']
+                timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
+                                                       var_class=phase.classify_var(param_name),
+                                                       shape=options['shape'],
+                                                       units=units)
+    
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+    
+                phase.connect(src_name='input_parameters:{0}_out'.format(param_name),
+                              tgt_name='{0}.all_values:input_parameters:{1}'.format(name, param_name),
+                              src_indices=src_idxs, flat_src_indices=True)
 
-            phase.connect(src_name='design_parameters:{0}'.format(name),
-                          tgt_name='timeseries.all_values:design_parameters:{0}'.format(name),
-                          src_indices=src_idxs, flat_src_indices=True)
+            for param_name, options in iteritems(phase.traj_parameter_options):
+                units = options['units']
+                timeseries_comp._add_timeseries_output('traj_parameters:{0}'.format(param_name),
+                                                       var_class=phase.classify_var(param_name),
+                                                       shape=options['shape'],
+                                                       units=units)
+    
+                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+    
+                phase.connect(src_name='traj_parameters:{0}_out'.format(param_name),
+                              tgt_name='{0}.all_values:traj_parameters:{1}'.format(name, param_name),
+                              src_indices=src_idxs, flat_src_indices=True)
 
-        for name, options in iteritems(phase.input_parameter_options):
-            units = options['units']
-            timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=units)
+            for var, options in iteritems(phase._timeseries[name]['outputs']):
+                output_name = options['output_name']
 
-            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                # Determine the path to the variable which we will be constraining
+                # This is more complicated for path constraints since, for instance,
+                # a single state variable has two sources which must be connected to
+                # the path component.
+                var_type = phase.classify_var(var)
 
-            phase.connect(src_name='input_parameters:{0}_out'.format(name),
-                          tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
-                          src_indices=src_idxs, flat_src_indices=True)
+                # Ignore any variables that we've already added (states, times, controls, etc)
+                if var_type != 'ode':
+                    continue
 
-        for name, options in iteritems(phase.traj_parameter_options):
-            units = options['units']
-            timeseries_comp._add_timeseries_output('traj_parameters:{0}'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=units)
+                # Assume scalar shape here, but check config will warn that it's inferred.
+                if options['shape'] is None:
+                    options['shape'] = (1,)
 
-            src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                # Failed to find variable, assume it is in the ODE
+                phase.connect(src_name='rhs_disc.{0}'.format(var),
+                              tgt_name='{0}.disc_values:{1}'.format(name, output_name))
+                phase.connect(src_name='rhs_col.{0}'.format(var),
+                              tgt_name='{0}.col_values:{1}'.format(name, output_name))
 
-            phase.connect(src_name='traj_parameters:{0}_out'.format(name),
-                          tgt_name='timeseries.all_values:traj_parameters:{0}'.format(name),
-                          src_indices=src_idxs, flat_src_indices=True)
-
-        for var, options in iteritems(phase._timeseries_outputs):
-            output_name = options['output_name']
-
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
-
-            # Ignore any variables that we've already added (states, times, controls, etc)
-            if var_type != 'ode':
-                continue
-
-            # Assume scalar shape here, but check config will warn that it's inferred.
-            if options['shape'] is None:
-                options['shape'] = (1,)
-
-            # Failed to find variable, assume it is in the ODE
-            phase.connect(src_name='rhs_disc.{0}'.format(var),
-                          tgt_name='timeseries.disc_values:{0}'.format(output_name))
-            phase.connect(src_name='rhs_col.{0}'.format(var),
-                          tgt_name='timeseries.col_values:{0}'.format(output_name))
-
-            kwargs = options.copy()
-            kwargs.pop('output_name', None)
-            timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
+                kwargs = options.copy()
+                kwargs.pop('output_name', None)
+                timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
 
     def get_rate_source_path(self, state_name, nodes, phase):
         gd = self.grid_data
