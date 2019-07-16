@@ -120,12 +120,13 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             L_blocks.append(L)
 
         self.interpolation_matrix = block_diag(*L_blocks)
-        r, c = np.nonzero(self.interpolation_matrix)
 
         for (name, kwargs) in self._timeseries_outputs:
             input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             input_name = 'input_values:{0}'.format(name)
             shape = kwargs['shape']
+
+            print(self.pathname, input_num_nodes, output_num_nodes, self.interpolation_matrix.shape)
 
             self.add_input(input_name,
                            shape=(input_num_nodes,) + shape,
