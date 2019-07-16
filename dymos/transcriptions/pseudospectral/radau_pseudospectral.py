@@ -7,7 +7,7 @@ import numpy as np
 from six import iteritems
 
 from .pseudospectral_base import PseudospectralBase
-from ..common import PseudospectralPathConstraintComp, RadauPSContinuityComp, RadauTimeseriesOutputComp
+from ..common import PseudospectralPathConstraintComp, RadauPSContinuityComp, PseudospectralTimeseriesOutputComp
 from ...utils.misc import get_rate_units
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
@@ -158,7 +158,7 @@ class Radau(PseudospectralBase):
         time_units = phase.time_options['units']
 
         if phase._path_constraints:
-            path_comp = PseudospectralPathConstraintComp(grid_data=gd)
+            path_comp = PseudospectralPathConstraintComp(num_nodes=gd.num_nodes)
             phase.add_subsystem('path_constraints', subsys=path_comp)
 
         for var, options in iteritems(phase._path_constraints):
@@ -312,20 +312,20 @@ class Radau(PseudospectralBase):
                 options['transcription'].setup_grid(phase)
                 ogd = options['transcription'].grid_data
 
-            timeseries_comp = RadauTimeseriesOutputComp(input_grid_data=gd,
-                                                        output_grid_data=ogd,
-                                                        output_subset=options['subset'])
+            timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=gd,
+                                                                 output_grid_data=ogd,
+                                                                 output_subset=options['subset'])
             phase.add_subsystem(name, subsys=timeseries_comp)
 
             timeseries_comp._add_timeseries_output('time',
                                                    var_class=phase.classify_var('time'),
                                                    units=time_units)
-            phase.connect(src_name='time', tgt_name='{0}.all_values:time'.format(name))
+            phase.connect(src_name='time', tgt_name='{0}.input_values:time'.format(name))
 
             timeseries_comp._add_timeseries_output('time_phase',
                                                    var_class=phase.classify_var('time_phase'),
                                                    units=time_units)
-            phase.connect(src_name='time_phase', tgt_name='{0}.all_values:time_phase'.format(name))
+            phase.connect(src_name='time_phase', tgt_name='{0}.input_values:time_phase'.format(name))
 
             for state_name, options in iteritems(phase.state_options):
                 timeseries_comp._add_timeseries_output('states:{0}'.format(state_name),
@@ -335,7 +335,7 @@ class Radau(PseudospectralBase):
                 src_rows = gd.input_maps['state_input_to_disc']
                 src_idxs = get_src_indices_by_row(src_rows, options['shape'])
                 phase.connect(src_name='states:{0}'.format(state_name),
-                              tgt_name='{0}.all_values:states:{1}'.format(name, state_name),
+                              tgt_name='{0}.input_values:states:{1}'.format(name, state_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
             for control_name, options in iteritems(phase.control_options):
@@ -347,7 +347,7 @@ class Radau(PseudospectralBase):
                 src_rows = gd.subset_node_indices['all']
                 src_idxs = get_src_indices_by_row(src_rows, options['shape'])
                 phase.connect(src_name='control_values:{0}'.format(control_name),
-                              tgt_name='{0}.all_values:controls:{1}'.format(name, control_name),
+                              tgt_name='{0}.input_values:controls:{1}'.format(name, control_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
                 # # Control rates
@@ -358,8 +358,8 @@ class Radau(PseudospectralBase):
                                                                             time_units,
                                                                             deriv=1))
                 phase.connect(src_name='control_rates:{0}_rate'.format(control_name),
-                              tgt_name='{0}.all_values:control_rates:{1}_rate'.format(name, control_name))
-    
+                              tgt_name='{0}.input_values:control_rates:{1}_rate'.format(name, control_name))
+
                 # Control second derivatives
                 timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(control_name),
                                                        var_class=phase.classify_var(control_name),
@@ -368,7 +368,7 @@ class Radau(PseudospectralBase):
                                                                             time_units,
                                                                             deriv=2))
                 phase.connect(src_name='control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='{0}.all_values:control_rates:{1}_rate2'.format(name, control_name))
+                              tgt_name='{0}.input_values:control_rates:{1}_rate2'.format(name, control_name))
 
             for control_name, options in iteritems(phase.polynomial_control_options):
                 control_units = options['units']
@@ -379,10 +379,10 @@ class Radau(PseudospectralBase):
                 src_rows = gd.subset_node_indices['all']
                 src_idxs = get_src_indices_by_row(src_rows, options['shape'])
                 phase.connect(src_name='polynomial_control_values:{0}'.format(control_name),
-                              tgt_name='{0}.all_values:'
+                              tgt_name='{0}.input_values:'
                                        'polynomial_controls:{1}'.format(name, control_name),
                               src_indices=src_idxs, flat_src_indices=True)
-    
+
                 # # Control rates
                 timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(control_name),
                                                        var_class=phase.classify_var(control_name),
@@ -391,9 +391,9 @@ class Radau(PseudospectralBase):
                                                                             time_units,
                                                                             deriv=1))
                 phase.connect(src_name='polynomial_control_rates:{0}_rate'.format(control_name),
-                              tgt_name='{0}.all_values:polynomial_control_rates:'
+                              tgt_name='{0}.input_values:polynomial_control_rates:'
                                        '{1}_rate'.format(name, control_name))
-    
+
                 # Control second derivatives
                 timeseries_comp._add_timeseries_output('polynomial_control_rates:'
                                                        '{0}_rate2'.format(control_name),
@@ -403,7 +403,7 @@ class Radau(PseudospectralBase):
                                                                             time_units,
                                                                             deriv=2))
                 phase.connect(src_name='polynomial_control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='{0}.all_values:polynomial_control_rates:'
+                              tgt_name='{0}.input_values:polynomial_control_rates:'
                                        '{1}_rate2'.format(name, control_name))
 
             for param_name, options in iteritems(phase.design_parameter_options):
@@ -412,12 +412,12 @@ class Radau(PseudospectralBase):
                                                        var_class=phase.classify_var(param_name),
                                                        shape=options['shape'],
                                                        units=units)
-    
+
                 src_idxs_raw = np.zeros(gd.subset_num_nodes['all'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-    
+
                 phase.connect(src_name='design_parameters:{0}'.format(param_name),
-                              tgt_name='{0}.all_values:design_parameters:{1}'.format(name, param_name),
+                              tgt_name='{0}.input_values:design_parameters:{1}'.format(name, param_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
             for param_name, options in iteritems(phase.input_parameter_options):
@@ -426,12 +426,12 @@ class Radau(PseudospectralBase):
                                                        var_class=phase.classify_var(param_name),
                                                        shape=options['shape'],
                                                        units=units)
-    
+
                 src_idxs_raw = np.zeros(gd.subset_num_nodes['all'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-    
+
                 phase.connect(src_name='input_parameters:{0}_out'.format(param_name),
-                              tgt_name='{0}.all_values:input_parameters:{1}'.format(name, param_name),
+                              tgt_name='{0}.input_values:input_parameters:{1}'.format(name, param_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
             for param_name, options in iteritems(phase.traj_parameter_options):
@@ -444,7 +444,7 @@ class Radau(PseudospectralBase):
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
                 phase.connect(src_name='traj_parameters:{0}_out'.format(param_name),
-                              tgt_name='{0}.all_values:traj_parameters:{1}'.format(name, param_name),
+                              tgt_name='{0}.input_values:traj_parameters:{1}'.format(name, param_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
             for var, options in iteritems(phase._timeseries[name]['outputs']):
@@ -466,7 +466,7 @@ class Radau(PseudospectralBase):
 
                 # Failed to find variable, assume it is in the ODE
                 phase.connect(src_name='rhs_all.{0}'.format(var),
-                              tgt_name='{0}.all_values:{1}'.format(name, output_name))
+                              tgt_name='{0}.input_values:{1}'.format(name, output_name))
 
                 kwargs = options.copy()
                 kwargs.pop('output_name', None)

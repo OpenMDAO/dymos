@@ -7,7 +7,7 @@ from six import iteritems
 
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
-from ..common import PseudospectralPathConstraintComp, GaussLobattoTimeseriesOutputComp, \
+from ..common import PseudospectralPathConstraintComp, PseudospectralTimeseriesOutputComp, \
     GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
 from ...utils.indexing import get_src_indices_by_row
@@ -222,7 +222,7 @@ class GaussLobatto(PseudospectralBase):
         for state_name, options in iteritems(phase.state_options):
             shape = options['shape']
             units = options['units']
-            interleave_comp.add_var(state_name, shape, units)
+            interleave_comp.add_var('states:{0}'.format(state_name), shape, units)
 
             size = np.prod(options['shape'])
             src_idxs_mat = np.reshape(np.arange(size * num_input_nodes, dtype=int),
@@ -234,11 +234,11 @@ class GaussLobatto(PseudospectralBase):
                 src_idxs = src_idxs.ravel()
 
             phase.connect('states:{0}'.format(state_name),
-                          'interleave_comp.disc_values:{0}'.format(state_name),
+                          'interleave_comp.disc_values:states:{0}'.format(state_name),
                           src_indices=src_idxs, flat_src_indices=True)
 
             phase.connect('state_interp.state_col:{0}'.format(state_name),
-                          'interleave_comp.col_values:{0}'.format(state_name))
+                          'interleave_comp.col_values:states:{0}'.format(state_name))
 
         #
         # Do the path constraints
@@ -322,7 +322,7 @@ class GaussLobatto(PseudospectralBase):
         time_units = phase.time_options['units']
 
         if phase._path_constraints:
-            path_comp = PseudospectralPathConstraintComp(grid_data=gd)
+            path_comp = PseudospectralPathConstraintComp(num_nodes=gd.num_nodes)
             phase.add_subsystem('path_constraints', subsys=path_comp)
 
         for var, options in iteritems(phase._path_constraints):
@@ -355,7 +355,7 @@ class GaussLobatto(PseudospectralBase):
                 options['shape'] = state_shape
                 options['units'] = state_units if con_units is None else con_units
                 options['linear'] = False
-                phase.connect(src_name='interleave_comp.all_values:{0}'.format(var),
+                phase.connect(src_name='interleave_comp.all_values:states:{0}'.format(var),
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type in ('indep_control', 'input_control'):
@@ -450,33 +450,28 @@ class GaussLobatto(PseudospectralBase):
                 options['transcription'].setup_grid(phase)
                 ogd = options['transcription'].grid_data
 
-            timeseries_comp = GaussLobattoTimeseriesOutputComp(input_grid_data=gd,
-                                                               output_grid_data=ogd,
-                                                               output_subset=options['subset'])
+            timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=gd,
+                                                                 output_grid_data=ogd,
+                                                                 output_subset=options['subset'])
             phase.add_subsystem(name, subsys=timeseries_comp)
 
             timeseries_comp._add_timeseries_output('time',
                                                    var_class=phase.classify_var('time'),
                                                    units=time_units)
-            phase.connect(src_name='time', tgt_name='{0}.all_values:time'.format(name))
+            phase.connect(src_name='time', tgt_name='{0}.input_values:time'.format(name))
 
             timeseries_comp._add_timeseries_output('time_phase',
                                                    var_class=phase.classify_var('time_phase'),
                                                    units=time_units)
-            phase.connect(src_name='time_phase', tgt_name='{0}.all_values:time_phase'.format(name))
+            phase.connect(src_name='time_phase', tgt_name='{0}.input_values:time_phase'.format(name))
 
             for state_name, options in iteritems(phase.state_options):
                 timeseries_comp._add_timeseries_output('states:{0}'.format(state_name),
                                                        var_class=phase.classify_var(state_name),
                                                        shape=options['shape'],
                                                        units=options['units'])
-                src_rows = gd.input_maps['state_input_to_disc']
-                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
-                phase.connect(src_name='states:{0}'.format(state_name),
-                              tgt_name='{0}.disc_values:states:{1}'.format(name, state_name),
-                              src_indices=src_idxs, flat_src_indices=True)
-                phase.connect(src_name='state_interp.state_col:{0}'.format(state_name),
-                              tgt_name='{0}.col_values:states:{1}'.format(name, state_name))
+                phase.connect(src_name='interleave_comp.all_values:states:{0}'.format(state_name),
+                              tgt_name='{0}.input_values:states:{1}'.format(name, state_name))
 
             for control_name, options in iteritems(phase.control_options):
                 control_units = options['units']
@@ -487,7 +482,7 @@ class GaussLobatto(PseudospectralBase):
                                                        shape=options['shape'],
                                                        units=control_units)
                 phase.connect(src_name='control_values:{0}'.format(control_name),
-                              tgt_name='{0}.all_values:controls:{1}'.format(name, control_name))
+                              tgt_name='{0}.input_values:controls:{1}'.format(name, control_name))
 
                 # # Control rates
                 timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(control_name),
@@ -497,7 +492,7 @@ class GaussLobatto(PseudospectralBase):
                                                                             time_units,
                                                                             deriv=1))
                 phase.connect(src_name='control_rates:{0}_rate'.format(control_name),
-                              tgt_name='{0}.all_values:control_rates:{1}_rate'.format(name, control_name))
+                              tgt_name='{0}.input_values:control_rates:{1}_rate'.format(name, control_name))
 
                 # Control second derivatives
                 timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(control_name),
@@ -507,20 +502,20 @@ class GaussLobatto(PseudospectralBase):
                                                                             time_units,
                                                                             deriv=2))
                 phase.connect(src_name='control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='{0}.all_values:control_rates:{1}_rate2'.format(name, control_name))
+                              tgt_name='{0}.input_values:control_rates:{1}_rate2'.format(name, control_name))
 
             for control_name, options in iteritems(phase.polynomial_control_options):
                 control_units = options['units']
-    
+
                 # Control values
                 timeseries_comp._add_timeseries_output('polynomial_controls:{0}'.format(control_name),
                                                        var_class=phase.classify_var(control_name),
                                                        shape=options['shape'],
                                                        units=control_units)
                 phase.connect(src_name='polynomial_control_values:{0}'.format(control_name),
-                              tgt_name='{0}.all_values:'
+                              tgt_name='{0}.input_values:'
                                        'polynomial_controls:{1}'.format(name, control_name))
-    
+
                 # # Control rates
                 timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(control_name),
                                                        var_class=phase.classify_var(control_name),
@@ -529,9 +524,9 @@ class GaussLobatto(PseudospectralBase):
                                                                             time_units,
                                                                             deriv=1))
                 phase.connect(src_name='polynomial_control_rates:{0}_rate'.format(control_name),
-                              tgt_name='{0}.all_values:'
+                              tgt_name='{0}.input_values:'
                                        'polynomial_control_rates:{1}_rate'.format(name, control_name))
-    
+
                 # Control second derivatives
                 timeseries_comp._add_timeseries_output('polynomial_control_rates:'
                                                        '{0}_rate2'.format(control_name),
@@ -541,7 +536,7 @@ class GaussLobatto(PseudospectralBase):
                                                                             time_units,
                                                                             deriv=2))
                 phase.connect(src_name='polynomial_control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='{0}.all_values:'
+                              tgt_name='{0}.input_values:'
                                        'polynomial_control_rates:{1}_rate2'.format(name, control_name))
 
             for param_name, options in iteritems(phase.design_parameter_options):
@@ -550,12 +545,12 @@ class GaussLobatto(PseudospectralBase):
                                                        var_class=phase.classify_var(param_name),
                                                        shape=options['shape'],
                                                        units=units)
-    
+
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-    
+
                 phase.connect(src_name='design_parameters:{0}'.format(param_name),
-                              tgt_name='{0}.all_values:design_parameters:{1}'.format(name, param_name),
+                              tgt_name='{0}.input_values:design_parameters:{1}'.format(name, param_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
             for param_name, options in iteritems(phase.input_parameter_options):
@@ -564,12 +559,12 @@ class GaussLobatto(PseudospectralBase):
                                                        var_class=phase.classify_var(param_name),
                                                        shape=options['shape'],
                                                        units=units)
-    
+
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-    
+
                 phase.connect(src_name='input_parameters:{0}_out'.format(param_name),
-                              tgt_name='{0}.all_values:input_parameters:{1}'.format(name, param_name),
+                              tgt_name='{0}.input_values:input_parameters:{1}'.format(name, param_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
             for param_name, options in iteritems(phase.traj_parameter_options):
@@ -578,12 +573,12 @@ class GaussLobatto(PseudospectralBase):
                                                        var_class=phase.classify_var(param_name),
                                                        shape=options['shape'],
                                                        units=units)
-    
+
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-    
+
                 phase.connect(src_name='traj_parameters:{0}_out'.format(param_name),
-                              tgt_name='{0}.all_values:traj_parameters:{1}'.format(name, param_name),
+                              tgt_name='{0}.input_values:traj_parameters:{1}'.format(name, param_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
             for var, options in iteritems(phase._timeseries[name]['outputs']):
@@ -604,10 +599,8 @@ class GaussLobatto(PseudospectralBase):
                     options['shape'] = (1,)
 
                 # Failed to find variable, assume it is in the ODE
-                phase.connect(src_name='rhs_disc.{0}'.format(var),
-                              tgt_name='{0}.disc_values:{1}'.format(name, output_name))
-                phase.connect(src_name='rhs_col.{0}'.format(var),
-                              tgt_name='{0}.col_values:{1}'.format(name, output_name))
+                phase.connect(src_name='interleave_comp.all_values:{0}'.format(output_name),
+                              tgt_name='{0}.input_values:{1}'.format(name, output_name))
 
                 kwargs = options.copy()
                 kwargs.pop('output_name', None)

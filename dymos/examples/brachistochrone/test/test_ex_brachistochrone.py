@@ -72,7 +72,6 @@ class TestBrachistochroneExample(unittest.TestCase):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
                                                         compressed=True)
-        om.view_model(p.model)
         self.run_asserts(p)
         self.tearDown()
         if os.path.exists('ex_brach_gl_compressed.db'):

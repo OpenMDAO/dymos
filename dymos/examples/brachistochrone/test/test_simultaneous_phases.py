@@ -97,7 +97,7 @@ class TestSimultaneousPhases(unittest.TestCase):
                                   order=transcription_order,
                                   compressed=compressed)
             tx1 = dm.GaussLobatto(num_segments=num_segments, order=transcription_order,
-                           compressed=compressed)
+                                  compressed=compressed)
 
         elif transcription == 'radau-ps':
             tx0 = dm.Radau(num_segments=num_segments,
@@ -112,7 +112,7 @@ class TestSimultaneousPhases(unittest.TestCase):
                                 order=transcription_order,
                                 compressed=compressed)
             tx1 = dm.RungeKutta(num_segments=num_segments, order=transcription_order,
-                           compressed=compressed)
+                                compressed=compressed)
 
         phase0 = dm.Phase(ode_class=BrachistochroneODE, transcription=tx0)
 
@@ -125,7 +125,7 @@ class TestSimultaneousPhases(unittest.TestCase):
         phase0.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=False)
 
         phase0.add_control('theta', continuity=True, rate_continuity=True,
-                          units='deg', lower=0.01, upper=179.9)
+                           units='deg', lower=0.01, upper=179.9)
 
         phase0.add_input_parameter('g', units='m/s**2', val=9.80665)
 

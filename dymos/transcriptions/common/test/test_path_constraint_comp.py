@@ -43,7 +43,7 @@ class TestPathConstraintComp(unittest.TestCase):
         ivc.add_output('b_disc', val=np.zeros((ndn, 3)), units='s')
         ivc.add_output('c_disc', val=np.zeros((ndn, 3, 3)), units='kg')
 
-        path_comp = PseudospectralPathConstraintComp(grid_data=gd)
+        path_comp = PseudospectralPathConstraintComp(num_nodes=gd.num_nodes)
 
         self.p.model.add_subsystem('path_constraints', subsys=path_comp)
 

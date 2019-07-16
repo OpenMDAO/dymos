@@ -12,7 +12,9 @@ class PathConstraintCompBase(om.ExplicitComponent):
     def initialize(self):
         self._path_constraints = []
         self._vars = []
-        self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
+        self.options.declare('num_nodes', types=(int,), desc='The number of nodes in the phase '
+                                                             'at which the path constraint is to '
+                                                             'be evaluated')
 
     def _add_path_constraint(self, name, var_class, shape=None, units=None, res_units=None, desc='',
                              indices=None, lower=None, upper=None, equals=None, scaler=None,
@@ -278,8 +280,7 @@ class PseudospectralPathConstraintComp(PathConstraintCompBase):
         """
         Define the independent variables as output variables.
         """
-        grid_data = self.options['grid_data']
-        num_nodes = grid_data.num_nodes
+        num_nodes = self.options['num_nodes']
 
         for (name, kwargs) in self._path_constraints:
             input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
@@ -312,7 +313,7 @@ class PseudospectralPathConstraintComp(PathConstraintCompBase):
             var_size = np.prod(kwargs['shape'])
             all_size = np.prod(all_shape)
 
-            all_row_starts = grid_data.subset_node_indices['all'] * var_size
+            all_row_starts = np.arange(num_nodes, dtype=int) * var_size
             all_rows = []
             for i in all_row_starts:
                 all_rows.extend(range(i, i + var_size))
