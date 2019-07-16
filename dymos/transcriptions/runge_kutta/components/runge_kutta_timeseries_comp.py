@@ -64,13 +64,23 @@ class RungeKuttaTimeseriesOutputComp(TimeseriesOutputCompBase):
 
             self._vars.append((input_name, output_name, kwargs['shape']))
 
-            self.declare_partials(
-                of=output_name,
-                wrt=input_name,
-                rows=r,
-                cols=c,
-                val=vals)
+            size = np.prod(kwargs['shape'])
+            val_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
+
+            for i in range(size):
+                val_jac[:, i, :, i] = self.interpolation_matrix
+
+            val_jac = val_jac.reshape((output_num_nodes * size, input_num_nodes * size),
+                                      order='C')
+
+            val_jac_rows, val_jac_cols = np.where(val_jac != 0)
+
+            rs, cs = val_jac_rows, val_jac_cols
+            self.declare_partials(of=output_name,
+                                  wrt=input_name,
+                                  rows=rs, cols=cs, val=val_jac[rs, cs])
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for (input_name, output_name, _) in self._vars:
-            outputs[output_name] = np.dot(self.interpolation_matrix, inputs[input_name])
+            outputs[output_name] = np.tensordot(self.interpolation_matrix, inputs[input_name],
+                                                axes=(1, 0))

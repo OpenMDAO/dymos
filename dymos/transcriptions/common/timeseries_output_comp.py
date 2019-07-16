@@ -85,10 +85,6 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         ogd = self.options['output_grid_data']
         output_subset = self.options['output_subset']
 
-        self.val_jacs = {}
-        self.val_jac_rows = {}
-        self.val_jac_cols = {}
-
         if ogd is None:
             ogd = igd
 
@@ -125,7 +121,6 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
 
         self.interpolation_matrix = block_diag(*L_blocks)
         r, c = np.nonzero(self.interpolation_matrix)
-        vals = self.interpolation_matrix[r, c].ravel()
 
         for (name, kwargs) in self._timeseries_outputs:
             input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
@@ -211,11 +206,6 @@ class ExplicitTimeseriesOutputComp(TimeseriesOutputCompBase):
                     val=1.0)
 
                 idx0 = idx1
-
-            # constraint_kwargs = {k: kwargs.get(k, None)
-            #                      for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
-            #                                'scaler', 'indices', 'linear')}
-            # self.add_constraint(output_name, **constraint_kwargs)
 
             self._vars[name]['output'] = output_name
 
