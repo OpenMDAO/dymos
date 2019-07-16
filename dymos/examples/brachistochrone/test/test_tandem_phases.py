@@ -97,22 +97,22 @@ class TestTandemPhases(unittest.TestCase):
             tx0 = dm.GaussLobatto(num_segments=num_segments,
                                   order=transcription_order,
                                   compressed=compressed)
-            tx1 = dm.GaussLobatto(num_segments=num_segments*5, order=transcription_order,
+            tx1 = dm.GaussLobatto(num_segments=num_segments*2, order=transcription_order*3,
                                   compressed=compressed)
 
         elif transcription == 'radau-ps':
             tx0 = dm.Radau(num_segments=num_segments,
                            order=transcription_order,
                            compressed=compressed)
-            tx1 = dm.Radau(num_segments=num_segments*5,
-                           order=transcription_order,
+            tx1 = dm.Radau(num_segments=num_segments*2,
+                           order=transcription_order*3,
                            compressed=compressed)
 
         elif transcription == 'runge-kutta':
             tx0 = dm.RungeKutta(num_segments=num_segments,
                                 order=transcription_order,
                                 compressed=compressed)
-            tx1 = dm.RungeKutta(num_segments=num_segments, order=transcription_order,
+            tx1 = dm.RungeKutta(num_segments=num_segments*4, order=transcription_order*2,
                                 compressed=compressed)
 
         phase0 = dm.Phase(ode_class=BrachistochroneODE, transcription=tx0)
@@ -184,11 +184,21 @@ class TestTandemPhases(unittest.TestCase):
         expected = np.sqrt((10-0)**2 + (10 - 5)**2)
         assert_rel_error(self, p['phase1.timeseries.states:S'][-1], expected, tolerance=1.0E-6)
 
+
+        import matplotlib.pyplot as plt
+        plt.plot(p['phase1.timeseries.time'], p['phase1.timeseries.states:S'], '+')
+        plt.figure()
+        plt.plot(p['phase0.timeseries.states:x'], p['phase0.timeseries.states:y'], 'o')
+        plt.show()
+
     def test_tandem_phases_radau(self):
         self._run_transcription('radau-ps')
 
     def test_tandem_phases_gl(self):
         self._run_transcription('gauss-lobatto')
+
+    def test_tandem_phases_rk(self):
+        self._run_transcription('runge-kutta')
 
 
 if __name__ == '__main__':

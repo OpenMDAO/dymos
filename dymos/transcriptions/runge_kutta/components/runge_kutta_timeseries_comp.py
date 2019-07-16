@@ -33,26 +33,18 @@ class RungeKuttaTimeseriesOutputComp(TimeseriesOutputCompBase):
             iptau_segi = np.take(igd.node_ptau, (i1, i2-1))
             istau_segi = np.take(igd.node_stau, (i1, i2-1))
 
+            # The indices of the output grid that fall within this segment of the input grid
             if ogd is igd:
-                o1, o2 = ogd.segment_indices[iseg]
-                optau_segi = output_nodes_ptau[o1:o2]
+                optau_segi = iptau_segi
             else:
-                # Get the indices of output_nodes_ptau that fall within iptau_segi
-                output_idxs = np.where(np.logical_and(output_nodes_ptau >= iptau_segi[0],
-                                                      output_nodes_ptau <= iptau_segi[-1]))[0]
-                print(iptau_segi)
-                print(output_nodes_ptau)
-                print(output_idxs)
-                exit(0)
-                # Get only the unique indices
-                # If the output grid has a segment boundary at the same place as the input grid, this
-                # prevents two points at the end of the segment from being included in the indices.
-                # output_idxs = \
-                # np.unique(np.asarray(output_nodes_ptau)[output_idxs], return_index=True)[1]
-                # optau_segi = np.asarray(output_nodes_ptau)[output_idxs]
-                # output_nodes_ptau = [node for idx, node in enumerate(output_nodes_ptau) if
-                #                      idx not in output_idxs]
-                # raise NotImplementedError('RK transcription does not interpolate to other grids')
+                ptau_hi = igd.segment_ends[iseg+1]
+                if iseg < igd.num_segments - 1:
+                    idxs_in_iseg = np.where(output_nodes_ptau <= ptau_hi)[0]
+                else:
+                    idxs_in_iseg = np.arange(len(output_nodes_ptau))
+                optau_segi = np.asarray(output_nodes_ptau)[idxs_in_iseg]
+                # Remove the captured nodes so we don't accidentally include them again
+                output_nodes_ptau = output_nodes_ptau[len(idxs_in_iseg):]
 
             # Now get the output nodes which fall in iseg in iseg's segment tau space.
             ostau_segi = 2.0 * (optau_segi - iptau_segi[0]) / (iptau_segi[-1] - iptau_segi[0]) - 1

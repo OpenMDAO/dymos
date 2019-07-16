@@ -691,7 +691,7 @@ class RungeKutta(TranscriptionBase):
             timeseries_comp = RungeKuttaTimeseriesOutputComp(input_grid_data=gd,
                                                              output_grid_data=ogd,
                                                              output_subset=options['subset'])
-            phase.add_subsystem('timeseries', subsys=timeseries_comp)
+            phase.add_subsystem(name, subsys=timeseries_comp)
             src_idxs = get_src_indices_by_row(gd.subset_node_indices['segment_ends'], (1,))
 
             timeseries_comp._add_timeseries_output('time',

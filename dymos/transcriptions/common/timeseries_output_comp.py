@@ -96,23 +96,27 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         # To do this, find the nodes in the output grid which fall in each segment of the input
         # grid.  Then build a Lagrange interpolating polynomial for that segment
         L_blocks = []
-        output_nodes_ptau = list(ogd.node_ptau[ogd.subset_node_indices[output_subset]])
+        output_nodes_ptau = ogd.node_ptau[ogd.subset_node_indices[output_subset]].tolist()
+        all_idxs = []
         for iseg in range(igd.num_segments):
             i1, i2 = igd.segment_indices[iseg]
             iptau_segi = igd.node_ptau[i1:i2]
             istau_segi = igd.node_stau[i1:i2]
 
             # The indices of the output grid that fall within this segment of the input grid
-            output_idxs = np.where(np.logical_and(output_nodes_ptau >= iptau_segi[0],
-                                                  output_nodes_ptau <= iptau_segi[-1]))[0]
-            # Get only the unique indices
-            # If the output grid has a segment boundary at the same place as the input grid, this
-            # prevents two points at the end of the segment from being included in the indices.
-            output_idxs = np.unique(np.asarray(output_nodes_ptau)[output_idxs], return_index=True)[1]
-            optau_segi = np.asarray(output_nodes_ptau)[output_idxs]
-            output_nodes_ptau = [node for idx, node in enumerate(output_nodes_ptau) if idx not in output_idxs]
+            if ogd is igd:
+                optau_segi = iptau_segi
+            else:
+                ptau_hi = igd.segment_ends[iseg+1]
+                if iseg < igd.num_segments - 1:
+                    idxs_in_iseg = np.where(output_nodes_ptau <= ptau_hi)[0]
+                else:
+                    idxs_in_iseg = np.arange(len(output_nodes_ptau))
+                optau_segi = np.asarray(output_nodes_ptau)[idxs_in_iseg]
+                # Remove the captured nodes so we don't accidentally include them again
+                output_nodes_ptau = output_nodes_ptau[len(idxs_in_iseg):]
 
-            # Now get the output nodes which fall in iseg in iseg's segment tau space.
+            # # Now get the output nodes which fall in iseg in iseg's segment tau space.
             ostau_segi = 2.0 * (optau_segi - iptau_segi[0]) / (iptau_segi[-1] - iptau_segi[0]) - 1
 
             # Create the interpolation matrix and add it to the blocks
@@ -125,8 +129,6 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
             input_name = 'input_values:{0}'.format(name)
             shape = kwargs['shape']
-
-            print(self.pathname, input_num_nodes, output_num_nodes, self.interpolation_matrix.shape)
 
             self.add_input(input_name,
                            shape=(input_num_nodes,) + shape,
