@@ -458,21 +458,22 @@ class TranscriptionBase(object):
                                    'is not scalar, connection errors will '
                                    'result.'.format(var, phase.name))
 
-        for var, options in iteritems(phase._timeseries_outputs):
+        for name, timeseries_options in iteritems(phase._timeseries):
+            for var, options in iteritems(phase._timeseries[name]['outputs']):
 
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
+                # Determine the path to the variable which we will be constraining
+                # This is more complicated for path constraints since, for instance,
+                # a single state variable has two sources which must be connected to
+                # the path component.
+                var_type = phase.classify_var(var)
 
-            # Ignore any variables that we've already added (states, times, controls, etc)
-            if var_type != 'ode':
-                continue
+                # Ignore any variables that we've already added (states, times, controls, etc)
+                if var_type != 'ode':
+                    continue
 
-            # Assume scalar shape here, but check config will warn that it's inferred.
-            if options['shape'] is None:
-                logger.warning('Unable to infer shape of timeseries output \'{0}\' in '
-                               'phase \'{1}\'. Scalar assumed.  If this ODE output is '
-                               'is not scalar, connection errors will '
-                               'result.'.format(var, phase.name))
+                # Assume scalar shape here, but check config will warn that it's inferred.
+                if options['shape'] is None:
+                    logger.warning('Unable to infer shape of timeseries output \'{0}\' in '
+                                   'phase \'{1}\'. Scalar assumed.  If this ODE output is '
+                                   'is not scalar, connection errors will '
+                                   'result.'.format(var, phase.name))

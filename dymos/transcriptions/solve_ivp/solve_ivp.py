@@ -338,7 +338,7 @@ class SolveIVP(TranscriptionBase):
         output_nodes_per_seg = self.options['output_nodes_per_seg']
 
         timeseries_comp = \
-            SolveIVPTimeseriesOutputComp(grid_data=gd,
+            SolveIVPTimeseriesOutputComp(input_grid_data=gd,
                                          output_nodes_per_seg=self.options['output_nodes_per_seg'])
 
         phase.add_subsystem('timeseries', subsys=timeseries_comp)
@@ -476,7 +476,7 @@ class SolveIVP(TranscriptionBase):
                           tgt_name='timeseries.all_values:traj_parameters:{0}'.format(name),
                           src_indices=src_idxs, flat_src_indices=True)
 
-        for var, options in iteritems(phase._timeseries_outputs):
+        for var, options in iteritems(phase._timeseries['timeseries']['outputs']):
             output_name = options['output_name']
 
             # Determine the path to the variable which we will be constraining
