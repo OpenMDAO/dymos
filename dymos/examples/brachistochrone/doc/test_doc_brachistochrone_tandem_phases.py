@@ -54,7 +54,7 @@ class BrachistochroneArclengthODE(om.ExplicitComponent):
 
         jacobian['Sdot', 'v'] = sin_theta * np.sqrt(1.0 + cot_theta**2)
         jacobian['Sdot', 'theta'] = v * (cos_theta * (cot_theta**2 + 1) - cot_theta * csc_theta) / \
-                                    (np.sqrt(1 + cot_theta**2))
+            (np.sqrt(1 + cot_theta**2))
 
 
 def make_brachistochrone_phase(transcription='gauss-lobatto', num_segments=8, transcription_order=3,

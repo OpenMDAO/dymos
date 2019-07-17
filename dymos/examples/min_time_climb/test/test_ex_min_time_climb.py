@@ -17,7 +17,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    p.driver.declare_coloring(tol=1.0E-9, orders=None)
+    p.driver.declare_coloring()
 
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = 1000
@@ -103,7 +103,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 class TestMinTimeClimb(unittest.TestCase):
 
     def test_results_gauss_lobatto(self):
-        p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
+        p = min_time_climb(optimizer='SNOPT', num_seg=12, transcription_order=3,
                            transcription='gauss-lobatto')
 
         # Check that time matches to within 1% of an externally verified solution.
@@ -113,7 +113,7 @@ class TestMinTimeClimb(unittest.TestCase):
         assert_rel_error(self, p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
     def test_results_radau(self):
-        p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
+        p = min_time_climb(optimizer='SNOPT', num_seg=12, transcription_order=3,
                            transcription='radau-ps')
 
         # Check that time matches to within 1% of an externally verified solution.

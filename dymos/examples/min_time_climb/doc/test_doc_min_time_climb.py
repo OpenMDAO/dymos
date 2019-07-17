@@ -27,12 +27,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
 
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-
-        # Note this problem can be problematic for the coloring algorithm since the DirectSolver
-        # introduces a some noise when solving.  Here we just specify the acceptable tolerance
-        # and set orders=None to prevent the coloring algorithm from trying to find the tolerance
-        # automatically.
-        p.driver.declare_coloring(tol=1.0E-9, orders=None)
+        p.driver.declare_coloring()
 
         #
         # Instantiate the trajectory and phase
