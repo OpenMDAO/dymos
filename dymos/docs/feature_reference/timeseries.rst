@@ -37,3 +37,14 @@ using the ``add_timeseries_output`` method on Phase.  These outputs are availabl
 .. automethod:: dymos.Phase.add_timeseries_output
     :noindex:
 
+Interpolated Timeseries Outputs
+===============================
+
+Sometimes a user may want to interpolate the results of a phase onto a different grid.  This is particularly
+useful in the context of tandem phases.  Additional timeseries may be added to a phase using the
+``add_timeseries`` method.  By default all timeseries will provide times, states, controls, and
+parameters on the specified output grid.  Adding other variables is accomplished using the
+``timeseries`` argument in the ``add_timeseries_output`` method.
+
+.. automethod:: dymos.Phase.add_timeseries
+    :noindex:

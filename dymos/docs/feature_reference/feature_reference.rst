@@ -18,4 +18,5 @@ problems.
     phases/phases
     trajectories
     timeseries
+    tandem_phases
     simultaneous_derivs
