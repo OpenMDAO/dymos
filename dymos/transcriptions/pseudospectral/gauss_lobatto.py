@@ -7,7 +7,7 @@ from six import iteritems
 
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
-from ..common import PseudospectralPathConstraintComp, PseudospectralTimeseriesOutputComp, \
+from ..common import PathConstraintComp, PseudospectralTimeseriesOutputComp, \
     GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
 from ...utils.indexing import get_src_indices_by_row
@@ -322,7 +322,7 @@ class GaussLobatto(PseudospectralBase):
         time_units = phase.time_options['units']
 
         if phase._path_constraints:
-            path_comp = PseudospectralPathConstraintComp(num_nodes=gd.num_nodes)
+            path_comp = PathConstraintComp(num_nodes=gd.num_nodes)
             phase.add_subsystem('path_constraints', subsys=path_comp)
 
         for var, options in iteritems(phase._path_constraints):

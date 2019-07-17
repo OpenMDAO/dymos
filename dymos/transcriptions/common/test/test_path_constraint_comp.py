@@ -7,7 +7,7 @@ from numpy.testing import assert_almost_equal
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials
 
-from dymos.transcriptions.common import PseudospectralPathConstraintComp
+from dymos.transcriptions.common import PathConstraintComp
 from dymos.transcriptions.grid_data import GridData
 from dymos.phase.options import ControlOptionsDictionary
 
@@ -43,7 +43,7 @@ class TestPathConstraintComp(unittest.TestCase):
         ivc.add_output('b_disc', val=np.zeros((ndn, 3)), units='s')
         ivc.add_output('c_disc', val=np.zeros((ndn, 3, 3)), units='kg')
 
-        path_comp = PseudospectralPathConstraintComp(num_nodes=gd.num_nodes)
+        path_comp = PathConstraintComp(num_nodes=gd.num_nodes)
 
         self.p.model.add_subsystem('path_constraints', subsys=path_comp)
 
