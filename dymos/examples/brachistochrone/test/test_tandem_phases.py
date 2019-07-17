@@ -10,7 +10,7 @@ import numpy as np
 import openmdao.api as om
 import dymos as dm
 
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
 
 
 @dm.declare_time(units='s')
@@ -51,7 +51,8 @@ class BrachistochroneArclengthODE(om.ExplicitComponent):
         csc_theta = 1.0 / sin_theta
 
         jacobian['Sdot', 'v'] = sin_theta * np.sqrt(1.0 + cot_theta**2)
-        jacobian['Sdot', 'theta'] = v * (cos_theta * (cot_theta**2 + 1) - cot_theta * csc_theta) / (np.sqrt(1 + cot_theta**2))
+        jacobian['Sdot', 'theta'] = v * (cos_theta * (cot_theta**2 + 1) - cot_theta * csc_theta) / \
+                                    (np.sqrt(1 + cot_theta**2))
 
 
 def make_brachistochrone_phase(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
@@ -81,9 +82,7 @@ class TestTandemPhases(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
-        # p.driver.options['debug_print'] = ['desvars']
-        p.driver.opt_settings['iSumm'] = 6
+        p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
         #
@@ -109,10 +108,9 @@ class TestTandemPhases(unittest.TestCase):
                            compressed=compressed)
 
         elif transcription == 'runge-kutta':
-            tx0 = dm.RungeKutta(num_segments=num_segments,
-                                order=transcription_order,
+            tx0 = dm.RungeKutta(num_segments=20,
                                 compressed=compressed)
-            tx1 = dm.RungeKutta(num_segments=num_segments*4, order=transcription_order*2,
+            tx1 = dm.RungeKutta(num_segments=20*4,
                                 compressed=compressed)
 
         phase0 = dm.Phase(ode_class=BrachistochroneODE, transcription=tx0)
@@ -182,14 +180,7 @@ class TestTandemPhases(unittest.TestCase):
         p.run_driver()
 
         expected = np.sqrt((10-0)**2 + (10 - 5)**2)
-        assert_rel_error(self, p['phase1.timeseries.states:S'][-1], expected, tolerance=1.0E-6)
-
-
-        import matplotlib.pyplot as plt
-        plt.plot(p['phase1.timeseries.time'], p['phase1.timeseries.states:S'], '+')
-        plt.figure()
-        plt.plot(p['phase0.timeseries.states:x'], p['phase0.timeseries.states:y'], 'o')
-        plt.show()
+        assert_rel_error(self, p['phase1.timeseries.states:S'][-1], expected, tolerance=1.0E-3)
 
     def test_tandem_phases_radau(self):
         self._run_transcription('radau-ps')

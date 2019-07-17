@@ -727,7 +727,7 @@ class RungeKutta(TranscriptionBase):
                 src_rows = gd.subset_node_indices['segment_ends']
                 src_idxs = get_src_indices_by_row(src_rows, options['shape'])
                 phase.connect(src_name='control_values:{0}'.format(control_name),
-                              tgt_name='timeseries.input_values:controls:{0}'.format(control_name),
+                              tgt_name='{0}.input_values:controls:{1}'.format(name, control_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
                 # # Control rates
@@ -738,7 +738,7 @@ class RungeKutta(TranscriptionBase):
                                                                             time_units,
                                                                             deriv=1))
                 phase.connect(src_name='control_rates:{0}_rate'.format(control_name),
-                              tgt_name='timeseries.input_values:control_rates:{0}_rate'.format(control_name),
+                              tgt_name='{0}.input_values:control_rates:{1}_rate'.format(name, control_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
                 # Control second derivatives
@@ -749,7 +749,7 @@ class RungeKutta(TranscriptionBase):
                                                                             time_units,
                                                                             deriv=2))
                 phase.connect(src_name='control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='timeseries.input_values:control_rates:{0}_rate2'.format(control_name),
+                              tgt_name='{0}.input_values:control_rates:{1}_rate2'.format(name, control_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
             for control_name, options in iteritems(phase.polynomial_control_options):
@@ -761,7 +761,7 @@ class RungeKutta(TranscriptionBase):
                 src_rows = gd.subset_node_indices['segment_ends']
                 src_idxs = get_src_indices_by_row(src_rows, options['shape'])
                 phase.connect(src_name='polynomial_control_values:{0}'.format(control_name),
-                              tgt_name='timeseries.input_values:polynomial_controls:{0}'.format(control_name),
+                              tgt_name='{0}.input_values:polynomial_controls:{1}'.format(name, control_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
                 # # Control rates
@@ -800,7 +800,7 @@ class RungeKutta(TranscriptionBase):
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
                 phase.connect(src_name='design_parameters:{0}'.format(param_name),
-                              tgt_name='timeseries.input_values:design_parameters:{0}'.format(param_name),
+                              tgt_name='{0}.input_values:design_parameters:{1}'.format(name, param_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
             for param_name, options in iteritems(phase.input_parameter_options):
@@ -813,7 +813,7 @@ class RungeKutta(TranscriptionBase):
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
                 phase.connect(src_name='input_parameters:{0}_out'.format(param_name),
-                              tgt_name='timeseries.input_values:input_parameters:{0}'.format(param_name),
+                              tgt_name='{0}.input_values:input_parameters:{1}'.format(name, param_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
             for param_name, options in iteritems(phase.traj_parameter_options):
@@ -826,7 +826,7 @@ class RungeKutta(TranscriptionBase):
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
                 phase.connect(src_name='traj_parameters:{0}_out'.format(param_name),
-                              tgt_name='timeseries.input_values:traj_parameters:{0}'.format(param_name),
+                              tgt_name='{0}.input_values:traj_parameters:{1}'.format(name, param_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
             for var, options in iteritems(phase._timeseries[name]['outputs']):
