@@ -96,6 +96,8 @@ class Phase(om.Group):
             _kwargs['ode_class'] = from_phase.options['ode_class']
             _kwargs['ode_init_kwargs'] = from_phase.options['ode_init_kwargs']
 
+        self._subgroups = set()
+
         super(Phase, self).__init__(**_kwargs)
 
     def initialize(self):

@@ -18,6 +18,7 @@ from ..utils.constants import INF_BOUND
 from ..transcriptions.common import InputParameterComp, PhaseLinkageComp
 from ..phase.options import TrajDesignParameterOptionsDictionary, \
     TrajInputParameterOptionsDictionary
+from openmdao.utils.general_utils import all_ancestors
 
 
 _unspecified = object()
@@ -243,6 +244,8 @@ class Trajectory(om.Group):
                 src_name = 'input_parameters:{0}_out'.format(name)
 
                 for phase_name, phs in iteritems(self._phases):
+                    short = phase_name.rsplit('.', 1)[-1]
+
                     # The default target in the phase is name unless otherwise specified.
                     kwargs = {'dynamic': options['dynamic'],
                               'units': options['units'],
@@ -252,16 +255,16 @@ class Trajectory(om.Group):
 
                     if 'custom_targets' in options and options['custom_targets'] is not None:
                         # Dont add the traj parameter to the phase if it is explicitly excluded.
-                        if phase_name in options['custom_targets']:
-                            if options['custom_targets'][phase_name] is None:
+                        if short in options['custom_targets']:
+                            if options['custom_targets'][short] is None:
                                 continue
-                            if isinstance(options['custom_targets'][phase_name], string_types):
-                                param_name = options['custom_targets'][phase_name]
-                            elif isinstance(options['custom_targets'][phase_name], Iterable):
-                                kwargs['targets'] = options['custom_targets'][phase_name]
+                            if isinstance(options['custom_targets'][short], string_types):
+                                param_name = options['custom_targets'][short]
+                            elif isinstance(options['custom_targets'][short], Iterable):
+                                kwargs['targets'] = options['custom_targets'][short]
 
                     phs.add_traj_parameter(param_name, **kwargs)
-                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, param_name)
+                    tgt = '{0}.traj_parameters:{1}'.format(short, param_name)
                     self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_design_parameters(self):
@@ -295,6 +298,8 @@ class Trajectory(om.Group):
                 src_name = 'design_parameters:{0}'.format(name)
 
                 for phase_name, phs in iteritems(self._phases):
+                    short = phase_name.rsplit('.', 1)[-1]
+
                     # The default target in the phase is name unless otherwise specified.
                     kwargs = {'dynamic': options['dynamic'],
                               'units': options['units'],
@@ -304,16 +309,16 @@ class Trajectory(om.Group):
 
                     if 'custom_targets' in options and options['custom_targets'] is not None:
                         # Dont add the traj parameter to the phase if it is explicitly excluded.
-                        if phase_name in options['custom_targets']:
-                            if options['custom_targets'][phase_name] is None:
+                        if short in options['custom_targets']:
+                            if options['custom_targets'][short] is None:
                                 continue
-                            if isinstance(options['custom_targets'][phase_name], string_types):
-                                param_name = options['custom_targets'][phase_name]
-                            elif isinstance(options['custom_targets'][phase_name], Iterable):
-                                kwargs['targets'] = options['custom_targets'][phase_name]
+                            if isinstance(options['custom_targets'][short], string_types):
+                                param_name = options['custom_targets'][short]
+                            elif isinstance(options['custom_targets'][short], Iterable):
+                                kwargs['targets'] = options['custom_targets'][short]
 
                     phs.add_traj_parameter(param_name, **kwargs)
-                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, param_name)
+                    tgt = '{0}.traj_parameters:{1}'.format(short, param_name)
                     self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_linkages(self):
@@ -328,6 +333,9 @@ class Trajectory(om.Group):
                 if name not in self._phases:
                     raise ValueError('Invalid linkage.  Phase \'{0}\' does not exist in '
                                      'trajectory \'{1}\'.'.format(name, self.pathname))
+
+            short1 = phase_name1.rsplit('.', 1)[-1]
+            short2 = phase_name2.rsplit('.', 1)[-1]
 
             p1 = self._phases[phase_name1]
             p2 = self._phases[phase_name2]
@@ -389,7 +397,7 @@ class Trajectory(om.Group):
                 if not link_comp:
                     link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
 
-                linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
+                linkage_name = '{0}|{1}'.format(short1, short2)
                 link_comp.add_linkage(name=linkage_name,
                                       vars=vars_to_constrain,
                                       shape=shape_map,
@@ -431,25 +439,25 @@ class Trajectory(om.Group):
                 if options['connected']:
 
                     if var == 'time':
-                        src = '{0}.{1}'.format(phase_name1, source1)
+                        src = '{0}.{1}'.format(short1, source1)
                         path = 't_initial'
-                        self.connect(src, '{0}.{1}'.format(phase_name2, path))
+                        self.connect(src, '{0}.{1}'.format(short2, path))
 
                     else:
                         path = 'initial_states:{0}'.format(var)
 
-                        self.connect('{0}.{1}'.format(phase_name1, source1),
-                                     '{0}.{1}'.format(phase_name2, path))
+                        self.connect('{0}.{1}'.format(short1, source1),
+                                     '{0}.{1}'.format(short2, path))
 
                     print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
                                                                   max_varname_length + 9))
 
                 else:
 
-                    self.connect('{0}.{1}'.format(phase_name1, source1),
+                    self.connect('{0}.{1}'.format(short1, source1),
                                  'linkages.{0}_{1}:lhs'.format(linkage_name, var))
 
-                    self.connect('{0}.{1}'.format(phase_name2, source2),
+                    self.connect('{0}.{1}'.format(short2, source2),
                                  'linkages.{0}_{1}:rhs'.format(linkage_name, var))
 
                     print('       {0:<{2}s} = {1:<{2}s}'.format(source1, source2,
@@ -472,11 +480,39 @@ class Trajectory(om.Group):
         phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup(), promotes_inputs=['*'],
                                           promotes_outputs=['*'])
 
+        groups = {}
         for name, phs in iteritems(self._phases):
-            g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
-            # DirectSolvers were moved down into the phases for use with MPI
-            g.linear_solver = om.DirectSolver()
+            g = phases_group
+            # if we have phase paths, create the necessary Groups
+            if '.' in name:
+                ancestors = list(all_ancestors(name))[:-1]
+                phname = name.rsplit('.', 1)[1]
+                for ancestor in ancestors:
+                    if ancestor in groups:
+                        g = groups[ancestor]
+                    else:
+                        groups[ancestor] = g = om.Group()
+                        if '.' not in ancestor:
+                            phases_group.add_subsystem(ancestor, g, promotes_inputs=['*'], promotes_outputs=['*'])
+                        else:
+                            par, child = ancestor.rsplit('.', 1)
+                            parent = groups[par]
+                            parent.add_subsystem(child, g, promotes_inputs=['*'], promotes_outputs=['*'])
+                g = g.add_subsystem(phname, phs, **self._phase_add_kwargs[name])
+            else:
+                g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
+
             phs.finalize_variables()
+
+        # put a DirectSolvers on each direct child of the phases ParallelGroup to allow use
+        # with MPI
+        if phases_group._static_mode:
+            subs = phases_group._static_subsystems_allprocs
+        else:
+            subs = phases_group._subsystems_allprocs
+        for s in subs:
+            print("ADDING DIRECTSOLVER TO", s.name)
+            s.linear_solver = om.DirectSolver()
 
         if self._linkages:
             self._setup_linkages()
