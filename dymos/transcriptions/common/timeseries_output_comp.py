@@ -4,8 +4,10 @@ from six import iteritems
 
 import numpy as np
 import openmdao.api as om
+from scipy.linalg import block_diag
 
 from dymos.transcriptions.grid_data import GridData
+from dymos.utils.lagrange import lagrange_matrices
 
 
 class TimeseriesOutputCompBase(om.ExplicitComponent):
@@ -19,9 +21,25 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
     """
 
     def initialize(self):
+
         self._timeseries_outputs = []
+
         self._vars = []
-        self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
+
+        self.options.declare('input_grid_data',
+                             types=GridData,
+                             desc='Container object for grid on which inputs are provided.')
+
+        self.options.declare('output_grid_data',
+                             types=GridData,
+                             allow_none=True,
+                             default=None,
+                             desc='Container object for grid on which outputs are interpolated.')
+
+        self.options.declare('output_subset',
+                             types=str,
+                             default='all',
+                             desc='Name of the node subset at which outputs are desired.')
 
     def _add_timeseries_output(self, name, var_class, shape=(1,), units=None, desc='',
                                distributed=False):
@@ -57,159 +75,92 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
         self._timeseries_outputs.append((name, kwargs))
 
 
-class GaussLobattoTimeseriesOutputComp(TimeseriesOutputCompBase):
+class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
 
     def setup(self):
         """
         Define the independent variables as output variables.
         """
-        grid_data = self.options['grid_data']
+        igd = self.options['input_grid_data']
+        ogd = self.options['output_grid_data']
+        output_subset = self.options['output_subset']
 
-        num_nodes = grid_data.num_nodes
-        num_state_disc_nodes = grid_data.subset_num_nodes['state_disc']
-        num_col_nodes = grid_data.subset_num_nodes['col']
+        if ogd is None:
+            ogd = igd
+
+        input_num_nodes = igd.num_nodes
+        output_num_nodes = ogd.subset_num_nodes[output_subset]
+
+        # Build the interpolation matrix which maps from the input grid to the output grid.
+        # Rather than a single phase-wide interpolating polynomial, map each segment.
+        # To do this, find the nodes in the output grid which fall in each segment of the input
+        # grid.  Then build a Lagrange interpolating polynomial for that segment
+        L_blocks = []
+        output_nodes_ptau = ogd.node_ptau[ogd.subset_node_indices[output_subset]].tolist()
+        all_idxs = []
+        for iseg in range(igd.num_segments):
+            i1, i2 = igd.segment_indices[iseg]
+            iptau_segi = igd.node_ptau[i1:i2]
+            istau_segi = igd.node_stau[i1:i2]
+
+            # The indices of the output grid that fall within this segment of the input grid
+            if ogd is igd:
+                optau_segi = iptau_segi
+            else:
+                ptau_hi = igd.segment_ends[iseg+1]
+                if iseg < igd.num_segments - 1:
+                    idxs_in_iseg = np.where(output_nodes_ptau <= ptau_hi)[0]
+                else:
+                    idxs_in_iseg = np.arange(len(output_nodes_ptau))
+                optau_segi = np.asarray(output_nodes_ptau)[idxs_in_iseg]
+                # Remove the captured nodes so we don't accidentally include them again
+                output_nodes_ptau = output_nodes_ptau[len(idxs_in_iseg):]
+
+            # # Now get the output nodes which fall in iseg in iseg's segment tau space.
+            ostau_segi = 2.0 * (optau_segi - iptau_segi[0]) / (iptau_segi[-1] - iptau_segi[0]) - 1
+
+            # Create the interpolation matrix and add it to the blocks
+            L, _ = lagrange_matrices(istau_segi, ostau_segi)
+            L_blocks.append(L)
+
+        self.interpolation_matrix = block_diag(*L_blocks)
+
         for (name, kwargs) in self._timeseries_outputs:
             input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
+            input_name = 'input_values:{0}'.format(name)
             shape = kwargs['shape']
-            if kwargs['src_all']:
-                all_input_name = 'all_values:{0}'.format(name)
-                disc_input_name = col_input_name = ''
-                self.add_input(all_input_name,
-                               shape=(num_nodes,) + shape,
-                               **input_kwargs)
-            else:
-                all_input_name = ''
-                disc_input_name = 'disc_values:{0}'.format(name)
-                col_input_name = 'col_values:{0}'.format(name)
 
-                self.add_input(disc_input_name,
-                               shape=(num_state_disc_nodes,) + shape,
-                               **input_kwargs)
-
-                self.add_input(col_input_name,
-                               shape=(num_col_nodes,) + shape,
-                               **input_kwargs)
-
-            output_name = name
-            output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-            output_kwargs['shape'] = (num_nodes,) + shape
-            self.add_output(output_name, **output_kwargs)
-
-            self._vars.append((disc_input_name, col_input_name, all_input_name,
-                               kwargs['src_all'], output_name, shape))
-
-            # Setup partials
-            if kwargs['src_all']:
-                all_shape = (num_nodes,) + shape
-                var_size = np.prod(shape)
-                all_size = np.prod(all_shape)
-
-                all_row_starts = grid_data.subset_node_indices['all'] * var_size
-                all_rows = []
-                for i in all_row_starts:
-                    all_rows.extend(range(i, i + var_size))
-                all_rows = np.asarray(all_rows, dtype=int)
-
-                self.declare_partials(
-                    of=output_name,
-                    wrt=all_input_name,
-                    dependent=True,
-                    rows=all_rows,
-                    cols=np.arange(all_size),
-                    val=1.0)
-            else:
-                disc_shape = (num_state_disc_nodes,) + shape
-                col_shape = (num_col_nodes,) + shape
-
-                var_size = np.prod(shape)
-                disc_size = np.prod(disc_shape)
-                col_size = np.prod(col_shape)
-
-                state_disc_row_starts = grid_data.subset_node_indices['state_disc'] * var_size
-                disc_rows = []
-                for i in state_disc_row_starts:
-                    disc_rows.extend(range(i, i + var_size))
-                disc_rows = np.asarray(disc_rows, dtype=int)
-
-                self.declare_partials(
-                    of=output_name,
-                    wrt=disc_input_name,
-                    dependent=True,
-                    rows=disc_rows,
-                    cols=np.arange(disc_size),
-                    val=1.0)
-
-                col_row_starts = grid_data.subset_node_indices['col'] * var_size
-                col_rows = []
-                for i in col_row_starts:
-                    col_rows.extend(range(i, i + var_size))
-                col_rows = np.asarray(col_rows, dtype=int)
-
-                self.declare_partials(
-                    of=output_name,
-                    wrt=col_input_name,
-                    dependent=True,
-                    rows=col_rows,
-                    cols=np.arange(col_size),
-                    val=1.0)
-
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
-        disc_indices = self.options['grid_data'].subset_node_indices['state_disc']
-        col_indices = self.options['grid_data'].subset_node_indices['col']
-        for (disc_input_name, col_input_name, all_inp_name, src_all, output_name, _) in self._vars:
-            if src_all:
-                outputs[output_name] = inputs[all_inp_name]
-            else:
-                outputs[output_name][disc_indices] = inputs[disc_input_name]
-                outputs[output_name][col_indices] = inputs[col_input_name]
-
-
-class RadauTimeseriesOutputComp(TimeseriesOutputCompBase):
-
-    def setup(self):
-        """
-        Define the independent variables as output variables.
-        """
-        grid_data = self.options['grid_data']
-        num_nodes = grid_data.num_nodes
-
-        for (name, kwargs) in self._timeseries_outputs:
-
-            input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-            input_name = 'all_values:{0}'.format(name)
             self.add_input(input_name,
-                           shape=(num_nodes,) + kwargs['shape'],
+                           shape=(input_num_nodes,) + shape,
                            **input_kwargs)
 
             output_name = name
             output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-            output_kwargs['shape'] = (num_nodes,) + kwargs['shape']
+            output_kwargs['shape'] = (output_num_nodes,) + kwargs['shape']
             self.add_output(output_name, **output_kwargs)
 
-            self._vars.append((input_name, output_name, kwargs['shape']))
+            self._vars.append((input_name, output_name, shape))
 
-            # Setup partials
-            all_shape = (num_nodes,) + kwargs['shape']
-            var_size = np.prod(kwargs['shape'])
-            all_size = np.prod(all_shape)
+            size = np.prod(shape)
+            val_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
 
-            all_row_starts = grid_data.subset_node_indices['all'] * var_size
-            all_rows = []
-            for i in all_row_starts:
-                all_rows.extend(range(i, i + var_size))
-            all_rows = np.asarray(all_rows, dtype=int)
+            for i in range(size):
+                val_jac[:, i, :, i] = self.interpolation_matrix
 
-            self.declare_partials(
-                of=output_name,
-                wrt=input_name,
-                dependent=True,
-                rows=all_rows,
-                cols=np.arange(all_size),
-                val=1.0)
+            val_jac = val_jac.reshape((output_num_nodes * size, input_num_nodes * size),
+                                      order='C')
+
+            val_jac_rows, val_jac_cols = np.where(val_jac != 0)
+
+            rs, cs = val_jac_rows, val_jac_cols
+            self.declare_partials(of=output_name,
+                                  wrt=input_name,
+                                  rows=rs, cols=cs, val=val_jac[rs, cs])
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for (input_name, output_name, _) in self._vars:
-            outputs[output_name] = inputs[input_name]
+            outputs[output_name] = np.tensordot(self.interpolation_matrix, inputs[input_name],
+                                                axes=(1, 0))
 
 
 class ExplicitTimeseriesOutputComp(TimeseriesOutputCompBase):
@@ -258,11 +209,6 @@ class ExplicitTimeseriesOutputComp(TimeseriesOutputCompBase):
                     val=1.0)
 
                 idx0 = idx1
-
-            # constraint_kwargs = {k: kwargs.get(k, None)
-            #                      for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
-            #                                'scaler', 'indices', 'linear')}
-            # self.add_constraint(output_name, **constraint_kwargs)
 
             self._vars[name]['output'] = output_name
 

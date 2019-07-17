@@ -70,7 +70,10 @@ class Phase(om.Group):
             self._initial_boundary_constraints = {}
             self._final_boundary_constraints = {}
             self._path_constraints = {}
-            self._timeseries_outputs = {}
+            self._timeseries = {}
+            self._timeseries['timeseries'] = {'transcription': None,
+                                              'subset': 'all',
+                                              'outputs': {}}
             self._objectives = {}
         else:
             self.user_time_options = TimeOptionsDictionary()
@@ -83,12 +86,11 @@ class Phase(om.Group):
             # Don't copy over the trajectory parameters.  The owning trajectory object will
             # handle that.
             self.user_traj_parameter_options = {}
-            self._timeseries_outputs = from_phase._timeseries_outputs.copy()
 
             self._initial_boundary_constraints = from_phase._initial_boundary_constraints.copy()
             self._final_boundary_constraints = from_phase._final_boundary_constraints.copy()
             self._path_constraints = from_phase._path_constraints.copy()
-            self._timeseries_outputs = from_phase._timeseries_outputs.copy()
+            self._timeseries = from_phase._timeseries.copy()
             self._objectives = from_phase._objectives.copy()
 
             _kwargs['ode_class'] = from_phase.options['ode_class']
@@ -103,6 +105,8 @@ class Phase(om.Group):
                              desc='Keyword arguments provided when initializing the ODE System')
         self.options.declare('transcription', types=TranscriptionBase,
                              desc='Transcription technique of the optimal control problem.')
+        self.options.declare('timeseries', types=(dict,),
+                             desc='Alternative timeseries.')
 
     def set_state_options(self, name, units=_unspecified, rate_source=_unspecified, targets=_unspecified,
                           val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
@@ -874,7 +878,7 @@ class Phase(om.Group):
         self._path_constraints[name]['units'] = units
         self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
-    def add_timeseries_output(self, name, output_name=None, units=None, shape=(1,)):
+    def add_timeseries_output(self, name, output_name=None, units=None, shape=(1,), timeseries='timeseries'):
         r"""
         Add a variable to the timeseries outputs of the phase.
 
@@ -895,16 +899,40 @@ class Phase(om.Group):
         shape : tuple
             The shape of the timeseries output variable.  This must be provided (if not scalar)
             since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
+        timeseries : str or None
+            The name of the timeseries to which the output is being added.
         """
         if output_name is None:
             output_name = name.split('.')[-1]
 
-        if name not in self._timeseries_outputs:
-            self._timeseries_outputs[name] = {}
-            self._timeseries_outputs[name]['output_name'] = output_name
+        if timeseries not in self._timeseries:
+            raise ValueError('Timeseries {0} does not exist in phase {1}'.format(timeseries, self.pathname))
 
-        self._timeseries_outputs[name]['units'] = units
-        self._timeseries_outputs[name]['shape'] = shape
+        if name not in self._timeseries[timeseries]['outputs']:
+            self._timeseries[timeseries]['outputs'][name] = {}
+            self._timeseries[timeseries]['outputs'][name]['output_name'] = output_name
+
+        self._timeseries[timeseries]['outputs'][name]['units'] = units
+        self._timeseries[timeseries]['outputs'][name]['shape'] = shape
+
+    def add_timeseries(self, name, transcription, subset='all'):
+        r"""
+        Adds a new timeseries output upon which outputs can be provided.
+
+        Parameters
+        ----------
+        name : str
+            A name for the timeseries output path.
+        transcription : str
+            A transcription object which provides a grid upon which the outputs of the timeseries
+            are provided.
+        subset : str
+            The name of the node subset in the given transcription at which outputs
+            are to be provided.
+        """
+        self._timeseries[name] = {'transcription': transcription,
+                                  'subset': subset,
+                                  'outputs': {}}
 
     def add_objective(self, name, loc='final', index=None, shape=(1,), ref=None, ref0=None,
                       adder=None, scaler=None, parallel_deriv_color=None,

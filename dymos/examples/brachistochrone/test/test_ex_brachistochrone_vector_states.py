@@ -48,7 +48,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
     def assert_partials(self, p):
-        cpd = p.check_partials(method='cs', out_stream=None)
+        with np.printoptions(linewidth=1024, edgeitems=100):
+            cpd = p.check_partials(method='cs')
         assert_check_partials(cpd)
 
     def test_ex_brachistochrone_vs_radau_compressed(self):

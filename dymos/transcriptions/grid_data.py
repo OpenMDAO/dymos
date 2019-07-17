@@ -173,8 +173,7 @@ def rk_subsets_and_nodes(method, seg_idx, compressed=False):
         'all': np.arange(n, dtype=int)
     }
     subsets['state_disc'] = subsets['segment_ends']
-    subsets['state_input'] = subsets['segment_ends'] if not compressed or seg_idx == 0 else \
-        subsets['segment_ends'][1:]
+    subsets['state_input'] = subsets['state_disc'] if seg_idx == 0 else subsets['state_disc'][-1:]
 
     return subsets, nodes
 
