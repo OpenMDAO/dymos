@@ -2,10 +2,10 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class SFCComp(ExplicitComponent):
+class SFCComp(om.ExplicitComponent):
     """ Compute the specific fuel consumption based on the altitude
     and the sea-level specific fuel consumption.
     """

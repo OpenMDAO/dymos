@@ -7,7 +7,7 @@ from six import iteritems
 
 import numpy as np
 
-from openmdao.api import IndepVarComp, OptionsDictionary
+import openmdao.api as om
 
 from .common import BoundaryConstraintComp, InputParameterComp, ControlGroup, \
     PolynomialControlGroup
@@ -22,7 +22,7 @@ class TranscriptionBase(object):
 
         self.grid_data = None
 
-        self.options = OptionsDictionary()
+        self.options = om.OptionsDictionary()
 
         self.options.declare('num_segments', types=int, desc='Number of segments')
         self.options.declare('segment_ends', default=None, types=(Sequence, np.ndarray),
@@ -92,7 +92,7 @@ class TranscriptionBase(object):
             # phase.connect('t_duration', 'time.t_duration')
 
         if indeps:
-            indep = IndepVarComp()
+            indep = om.IndepVarComp()
 
             for var in indeps:
                 indep.add_output(var, val=default_vals[var], units=time_units)
@@ -163,7 +163,8 @@ class TranscriptionBase(object):
         phase._check_design_parameter_options()
 
         if phase.design_parameter_options:
-            indep = phase.add_subsystem('design_params', subsys=IndepVarComp(),
+            indep = phase.add_subsystem('design_params',
+                                        subsys=om.IndepVarComp(),
                                         promotes_outputs=['*'])
 
             for name, options in iteritems(phase.design_parameter_options):
@@ -457,21 +458,22 @@ class TranscriptionBase(object):
                                    'is not scalar, connection errors will '
                                    'result.'.format(var, phase.name))
 
-        for var, options in iteritems(phase._timeseries_outputs):
+        for name, timeseries_options in iteritems(phase._timeseries):
+            for var, options in iteritems(phase._timeseries[name]['outputs']):
 
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
+                # Determine the path to the variable which we will be constraining
+                # This is more complicated for path constraints since, for instance,
+                # a single state variable has two sources which must be connected to
+                # the path component.
+                var_type = phase.classify_var(var)
 
-            # Ignore any variables that we've already added (states, times, controls, etc)
-            if var_type != 'ode':
-                continue
+                # Ignore any variables that we've already added (states, times, controls, etc)
+                if var_type != 'ode':
+                    continue
 
-            # Assume scalar shape here, but check config will warn that it's inferred.
-            if options['shape'] is None:
-                logger.warning('Unable to infer shape of timeseries output \'{0}\' in '
-                               'phase \'{1}\'. Scalar assumed.  If this ODE output is '
-                               'is not scalar, connection errors will '
-                               'result.'.format(var, phase.name))
+                # Assume scalar shape here, but check config will warn that it's inferred.
+                if options['shape'] is None:
+                    logger.warning('Unable to infer shape of timeseries output \'{0}\' in '
+                                   'phase \'{1}\'. Scalar assumed.  If this ODE output is '
+                                   'is not scalar, connection errors will '
+                                   'result.'.format(var, phase.name))

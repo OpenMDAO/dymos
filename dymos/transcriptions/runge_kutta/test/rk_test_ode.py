@@ -1,13 +1,13 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-from openmdao.api import ExplicitComponent
-from dymos import declare_time, declare_state
+import openmdao.api as om
+import dymos as dm
 
 
-@declare_time(targets=['t'], units='s')
-@declare_state('y', targets=['y'], rate_source='ydot', units='m')
-class TestODE(ExplicitComponent):
+@dm.declare_time(targets=['t'], units='s')
+@dm.declare_state('y', targets=['y'], rate_source='ydot', units='m')
+class TestODE(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)

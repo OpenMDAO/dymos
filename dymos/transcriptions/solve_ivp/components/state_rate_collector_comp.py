@@ -1,10 +1,10 @@
 import numpy as np
 from dymos.utils.misc import get_rate_units
-from openmdao.core.explicitcomponent import ExplicitComponent
+import openmdao.api as om
 from six import string_types, iteritems
 
 
-class StateRateCollectorComp(ExplicitComponent):
+class StateRateCollectorComp(om.ExplicitComponent):
     """
     Collects the state rates and outputs them in the units specified in the state options.
     For explicit integration this is necessary when the output providing the state rate has

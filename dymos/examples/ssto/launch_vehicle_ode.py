@@ -1,23 +1,22 @@
 from __future__ import print_function, division, absolute_import
 
-from openmdao.api import Group
+import openmdao.api as om
 
-from dymos import declare_time, declare_state, declare_parameter
-
+import dymos as dm
 from .log_atmosphere_comp import LogAtmosphereComp
 from .launch_vehicle_2d_eom_comp import LaunchVehicle2DEOM
 
 
-@declare_time(units='s')
-@declare_state('x', rate_source='eom.xdot', units='m')
-@declare_state('y', rate_source='eom.ydot', targets=['atmos.y'], units='m')
-@declare_state('vx', rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
-@declare_state('vy', rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
-@declare_state('m', rate_source='eom.mdot', targets=['eom.m'], units='kg')
-@declare_parameter('thrust', targets=['eom.thrust'], units='N')
-@declare_parameter('theta', targets=['eom.theta'], units='rad')
-@declare_parameter('Isp', targets=['eom.Isp'], units='s')
-class LaunchVehicleODE(Group):
+@dm.declare_time(units='s')
+@dm.declare_state('x', rate_source='eom.xdot', units='m')
+@dm.declare_state('y', rate_source='eom.ydot', targets=['atmos.y'], units='m')
+@dm.declare_state('vx', rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
+@dm.declare_state('vy', rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
+@dm.declare_state('m', rate_source='eom.mdot', targets=['eom.m'], units='kg')
+@dm.declare_parameter('thrust', targets=['eom.thrust'], units='N')
+@dm.declare_parameter('theta', targets=['eom.theta'], units='rad')
+@dm.declare_parameter('Isp', targets=['eom.Isp'], units='s')
+class LaunchVehicleODE(om.Group):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int,

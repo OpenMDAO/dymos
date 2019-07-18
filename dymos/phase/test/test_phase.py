@@ -3,9 +3,9 @@ from __future__ import print_function, division, absolute_import
 import unittest
 import warnings
 
-from openmdao.api import ExplicitComponent, Group, Problem, ScipyOptimizeDriver, DirectSolver
+import openmdao.api as om
 
-from dymos import Phase, GaussLobatto, Radau
+import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 from openmdao.utils.assert_utils import assert_rel_error
@@ -23,15 +23,15 @@ class _A(object):
     pass
 
 
-class _B(Group):
+class _B(om.Group):
     pass
 
 
-class _C(ExplicitComponent):
+class _C(om.ExplicitComponent):
     pass
 
 
-class _D(ExplicitComponent):
+class _D(om.ExplicitComponent):
     ode_options = None
 
 
@@ -39,14 +39,14 @@ class TestPhaseBase(unittest.TestCase):
 
     def test_invalid_ode_wrong_class(self):
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=_A,
-                      transcription=GaussLobatto(num_segments=20, order=3, compressed=True))
+        phase = dm.Phase(ode_class=_A,
+                         transcription=dm.GaussLobatto(num_segments=20, order=3, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -63,7 +63,7 @@ class TestPhaseBase(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('g')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         with self.assertRaises(ValueError) as e:
             p.setup(check=True)
@@ -72,14 +72,14 @@ class TestPhaseBase(unittest.TestCase):
 
     def test_invalid_ode_instance(self):
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=_A(),
-                      transcription=GaussLobatto(num_segments=20, order=3, compressed=True))
+        phase = dm.Phase(ode_class=_A(),
+                         transcription=dm.GaussLobatto(num_segments=20, order=3, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -96,7 +96,7 @@ class TestPhaseBase(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('g')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         with self.assertRaises(ValueError) as e:
             p.setup(check=True)
@@ -105,8 +105,8 @@ class TestPhaseBase(unittest.TestCase):
 
     def test_add_existing_design_parameter_as_design_parameter(self):
 
-        p = Phase(ode_class=_A,
-                  transcription=GaussLobatto(num_segments=8, order=3, compressed=True))
+        p = dm.Phase(ode_class=_A,
+                     transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
 
         p.add_design_parameter('theta')
 
@@ -118,8 +118,8 @@ class TestPhaseBase(unittest.TestCase):
 
     def test_add_existing_control_as_design_parameter(self):
 
-        p = Phase(ode_class=BrachistochroneODE,
-                  transcription=GaussLobatto(num_segments=8, order=3))
+        p = dm.Phase(ode_class=BrachistochroneODE,
+                     transcription=dm.GaussLobatto(num_segments=8, order=3))
 
         p.add_control('theta')
 
@@ -131,8 +131,8 @@ class TestPhaseBase(unittest.TestCase):
 
     def test_add_existing_input_parameter_as_design_parameter(self):
 
-        p = Phase(ode_class=_A,
-                  transcription=GaussLobatto(num_segments=8, order=3, compressed=True))
+        p = dm.Phase(ode_class=_A,
+                     transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
 
         p.add_input_parameter('theta')
 
@@ -143,13 +143,13 @@ class TestPhaseBase(unittest.TestCase):
         self.assertEqual(str(e.exception), expected)
 
     def test_invalid_options_nonoptimal_design_param(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=16, order=3, compressed=True))
+        p.driver.declare_coloring()
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=16, order=3, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -167,7 +167,7 @@ class TestPhaseBase(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('g')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
@@ -181,8 +181,8 @@ class TestPhaseBase(unittest.TestCase):
         self.assertIn(expected, [str(ww.message) for ww in w])
 
     def test_add_existing_design_parameter_as_input_parameter(self):
-        p = Phase(ode_class=_A,
-                  transcription=GaussLobatto(num_segments=14, order=3, compressed=True))
+        p = dm.Phase(ode_class=_A,
+                     transcription=dm.GaussLobatto(num_segments=14, order=3, compressed=True))
 
         p.add_design_parameter('theta')
 
@@ -194,8 +194,8 @@ class TestPhaseBase(unittest.TestCase):
 
     def test_add_existing_control_as_input_parameter(self):
 
-        p = Phase(ode_class=_A,
-                  transcription=GaussLobatto(num_segments=8, order=3, compressed=True))
+        p = dm.Phase(ode_class=_A,
+                     transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
 
         p.add_control('theta')
 
@@ -207,8 +207,8 @@ class TestPhaseBase(unittest.TestCase):
 
     def test_add_existing_input_parameter_as_input_parameter(self):
 
-        p = Phase(ode_class=_A,
-                  transcription=GaussLobatto(num_segments=8, order=3, compressed=True))
+        p = dm.Phase(ode_class=_A,
+                     transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
 
         p.add_input_parameter('theta')
 
@@ -219,14 +219,14 @@ class TestPhaseBase(unittest.TestCase):
         self.assertEqual(str(e.exception), expected)
 
     def test_invalid_options_nonoptimal_control(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=8, order=3, compressed=True))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -244,7 +244,7 @@ class TestPhaseBase(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('g')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
@@ -257,8 +257,8 @@ class TestPhaseBase(unittest.TestCase):
 
     def test_invalid_boundary_loc(self):
 
-        p = Phase(ode_class=BrachistochroneODE,
-                  transcription=GaussLobatto(num_segments=8, order=3, compressed=True))
+        p = dm.Phase(ode_class=BrachistochroneODE,
+                     transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
 
         with self.assertRaises(ValueError) as e:
             p.add_boundary_constraint('x', loc='foo')
@@ -267,14 +267,14 @@ class TestPhaseBase(unittest.TestCase):
         self.assertEqual(str(e.exception), expected)
 
     def test_objective_design_parameter_gl(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=8, order=3, compressed=True))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -292,7 +292,7 @@ class TestPhaseBase(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('g')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
@@ -309,14 +309,14 @@ class TestPhaseBase(unittest.TestCase):
         assert_rel_error(self, p['phase0.t_duration'], 10, tolerance=1.0E-3)
 
     def test_objective_design_parameter_radau(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=Radau(num_segments=20, order=3, compressed=True))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.Radau(num_segments=20, order=3, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -335,7 +335,7 @@ class TestPhaseBase(unittest.TestCase):
         phase.add_objective('g')
 
         p.model.options['assembled_jac_type'] = 'csc'
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
@@ -352,16 +352,16 @@ class TestPhaseBase(unittest.TestCase):
         assert_rel_error(self, p['phase0.t_duration'], 10, tolerance=1.0E-3)
 
     def test_control_boundary_constraint_gl(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=20,
-                                                 order=3,
-                                                 compressed=True))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=20,
+                                                       order=3,
+                                                       compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -381,7 +381,7 @@ class TestPhaseBase(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
@@ -395,36 +395,19 @@ class TestPhaseBase(unittest.TestCase):
 
         p.run_driver()
 
-        import matplotlib.pyplot as plt
-
-        plt.plot(p.get_val('phase0.timeseries.states:x'),
-                 p.get_val('phase0.timeseries.states:y'), 'ko')
-
-        plt.figure()
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.controls:theta'), 'ro')
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.control_rates:theta_rate'), 'bo')
-
-        plt.plot(p.get_val('phase0.timeseries.time'),
-                 p.get_val('phase0.timeseries.control_rates:theta_rate2'), 'go')
-        plt.show()
-
         assert_rel_error(self, p.get_val('phase0.timeseries.controls:theta', units='deg')[-1], 90.0)
 
     def test_control_rate_boundary_constraint_gl(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=20,
-                                                 order=3,
-                                                 compressed=True))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=20,
+                                                       order=3,
+                                                       compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -444,7 +427,7 @@ class TestPhaseBase(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
@@ -479,16 +462,16 @@ class TestPhaseBase(unittest.TestCase):
                          tolerance=1.0E-6)
 
     def test_control_rate2_boundary_constraint_gl(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=20,
-                                                 order=3,
-                                                 compressed=True))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=20,
+                                                       order=3,
+                                                       compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -508,7 +491,7 @@ class TestPhaseBase(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time')
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0
@@ -541,15 +524,15 @@ class TestPhaseBase(unittest.TestCase):
                          tolerance=1.0E-6)
 
     def test_design_parameter_boundary_constraint(self):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneODE,
-                      transcription=GaussLobatto(num_segments=20,
-                                                 order=3,
-                                                 compressed=True))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=20,
+                                                       order=3,
+                                                       compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -575,7 +558,7 @@ class TestPhaseBase(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
         p['phase0.t_initial'] = 0.0

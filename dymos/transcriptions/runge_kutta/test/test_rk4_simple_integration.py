@@ -4,11 +4,10 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
-from dymos.phase import Phase
-from dymos.transcriptions import RungeKutta
+import dymos as dm
 from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE, _test_ode_solution
 
 
@@ -16,8 +15,8 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
     def test_simple_integration_forward(self):
 
-        p = Problem(model=Group())
-        phase = Phase(ode_class=TestODE, transcription=RungeKutta(num_segments=200, method='RK4'))
+        p = om.Problem(model=om.Group())
+        phase = dm.Phase(ode_class=TestODE, transcription=dm.RungeKutta(num_segments=200, method='RK4'))
         p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
@@ -39,10 +38,11 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
     def test_simple_integration_forward_connected_initial(self):
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        phase = Phase(ode_class=TestODE, transcription=RungeKutta(num_segments=200, method='RK4'))
-        p.model.add_subsystem('phase0', subsys=phase)
+        traj = p.model.add_subsystem('traj', subsys=dm.Trajectory())
+        phase = dm.Phase(ode_class=TestODE, transcription=dm.RungeKutta(num_segments=200, method='RK4'))
+        traj.add_phase('phase0', phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
         phase.set_state_options('y', fix_initial=False, connected_initial=True)
@@ -51,25 +51,25 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
         p.setup(check=True, force_alloc_complex=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
+        p['traj.phase0.t_initial'] = 0.0
+        p['traj.phase0.t_duration'] = 2.0
 
         # The initial guess of states at the segment boundaries
-        p['phase0.states:y'] = 0.0
+        p['traj.phase0.states:y'] = 0.0
 
         # The initial value of the states from which the integration proceeds
-        p['phase0.initial_states:y'] = 0.5
+        p['traj.phase0.initial_states:y'] = 0.5
 
         p.run_model()
 
-        expected = _test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])
-        assert_rel_error(self, p['phase0.ode.y'], expected, tolerance=1.0E-3)
+        expected = _test_ode_solution(p['traj.phase0.ode.y'], p['traj.phase0.ode.t'])
+        assert_rel_error(self, p['traj.phase0.ode.y'], expected, tolerance=1.0E-3)
 
     def test_simple_integration_forward_connected_initial_fixed_initial(self):
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        phase = Phase(ode_class=TestODE, transcription=RungeKutta(num_segments=200, method='RK4'))
+        phase = dm.Phase(ode_class=TestODE, transcription=dm.RungeKutta(num_segments=200, method='RK4'))
         p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
@@ -85,9 +85,9 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
     def test_simple_integration_backward(self):
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        phase = Phase(ode_class=TestODE, transcription=RungeKutta(num_segments=4, method='RK4'))
+        phase = dm.Phase(ode_class=TestODE, transcription=dm.RungeKutta(num_segments=200, method='RK4'))
         p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
@@ -104,14 +104,16 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
         p.run_model()
 
-        expected = np.atleast_2d(_test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])).T
+        expected = np.atleast_2d(_test_ode_solution(p['phase0.ode.y'], p['phase0.timeseries.time']))
+        print(expected)
+        print(p['phase0.timeseries.states:y'])
         assert_rel_error(self, p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
 
     def test_simple_integration_backward_connected_initial(self):
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        phase = Phase(ode_class=TestODE, transcription=RungeKutta(num_segments=4, method='RK4'))
+        phase = dm.Phase(ode_class=TestODE, transcription=dm.RungeKutta(num_segments=200, method='RK4'))
         p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
@@ -132,7 +134,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
 
         p.run_model()
 
-        expected = np.atleast_2d(_test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])).T
+        expected = np.atleast_2d(_test_ode_solution(p['phase0.ode.y'], p['phase0.timeseries.time']))
         assert_rel_error(self, p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
 
 

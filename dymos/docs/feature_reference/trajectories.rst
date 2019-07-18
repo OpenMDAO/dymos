@@ -61,9 +61,20 @@ at the trajectory level which maybe be connected to some output external to the 
 When using Trajectory Design and Input parameters, their values are connected to each phase as an
 Input Parameter within the Phase.  Because ODEs in different phases may have different names
 for parameters (e.g. 'mass', 'm', 'm_total', etc) Dymos allows the user to specify the targeted
-ODE parameters on a phase-by-phase basis.
+ODE parameters on a phase-by-phase basis using the `custom_targets` option.  It can take on the
+following values.
 
-<EXAMPLE OF TARGETS>
+*  Left unspecified (`custom_targets = None`), a trajectory design or input parameter will be connected to a decorated ODE parameter of the same name in each phase.
+
+*  Otherwise, `custom_targets` is specified as a dictionary keyed by phase name.
+
+    * If the name of a phase is omitted from `custom_targets`, the trajectory design or input parameter will be connected to a decorated ODE parameter of the same name in that phase.
+
+    * If the phase is specified with a corresponding value of `None`, **the trajectory parameter will not be passed to the phase**.
+
+    * If the phase is specified and the corresponding value is a string, assume the given value is a decorated ODE parameter to which the trajectory parameter should be connected.
+
+    * If the phase is specified and the corresponding parameter value is a list, assume the list gives ODE-level targets to which the parameter should be connected in that phase.
 
 If a phase exists within the Trajectory that doesn't utilize the trajectory
 design/input parameters, it is simply ignored for the purposes of that phase.

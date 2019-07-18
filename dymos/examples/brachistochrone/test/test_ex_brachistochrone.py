@@ -6,6 +6,7 @@ from numpy.testing import assert_almost_equal
 
 import dymos.examples.brachistochrone.test.ex_brachistochrone as ex_brachistochrone
 
+import openmdao.api as om
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 

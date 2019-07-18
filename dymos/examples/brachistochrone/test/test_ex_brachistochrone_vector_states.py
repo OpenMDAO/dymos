@@ -6,6 +6,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
+from dymos.utils.testing_utils import use_tempdirs
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.assert_utils import assert_check_partials
@@ -13,13 +14,8 @@ from openmdao.utils.assert_utils import assert_check_partials
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 
+@use_tempdirs
 class TestBrachistochroneVectorStatesExample(unittest.TestCase):
-
-    @classmethod
-    def tearDownClass(cls):
-        for filename in ['phase0_sim.db', 'brachistochrone_sim.db']:
-            if os.path.exists(filename):
-                os.remove(filename)
 
     def assert_results(self, p):
         t_initial = p.get_val('phase0.time')[0]
@@ -52,7 +48,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
     def assert_partials(self, p):
-        cpd = p.check_partials(method='cs', out_stream=None)
+        with np.printoptions(linewidth=1024, edgeitems=100):
+            cpd = p.check_partials(method='cs')
         assert_check_partials(cpd)
 
     def test_ex_brachistochrone_vs_radau_compressed(self):
@@ -112,19 +109,19 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
             os.remove('ex_brachvs_gl_compressed.db')
 
     def test_ex_brachistochrone_vs_rungekutta_compressed(self):
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver
-        from dymos import Phase, RungeKutta
+        import openmdao.api as om
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import \
             BrachistochroneVectorStatesODE
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        phase = Phase(ode_class=BrachistochroneVectorStatesODE,
-                      transcription=RungeKutta(num_segments=20, compressed=True))
+        phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
+                         transcription=dm.RungeKutta(num_segments=20, compressed=True))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -143,7 +140,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
         p.setup(check=True, force_alloc_complex=True)
 
         p['phase0.t_initial'] = 0.0

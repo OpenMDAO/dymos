@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.transcriptions.pseudospectral.components import CollocationComp
@@ -21,7 +21,7 @@ class TestCollocationComp(unittest.TestCase):
             num_segments=4, segment_ends=np.array([0., 2., 4., 5., 12.]),
             transcription=transcription, transcription_order=3)
 
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
         state_options = {'x': {'units': 'm', 'shape': (1,), 'fix_initial': True,
                                'fix_final': False, 'solve_segments': False,
@@ -30,7 +30,7 @@ class TestCollocationComp(unittest.TestCase):
                                'fix_final': True, 'solve_segments': False,
                                'connected_initial': False, 'connected_final': False}}
 
-        indep_comp = IndepVarComp()
+        indep_comp = om.IndepVarComp()
         self.p.model.add_subsystem('indep', indep_comp, promotes_outputs=['*'])
 
         indep_comp.add_output(

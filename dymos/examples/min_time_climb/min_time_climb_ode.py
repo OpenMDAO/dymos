@@ -1,26 +1,24 @@
 from __future__ import print_function, division, absolute_import
 
-from openmdao.api import Group
-
-from dymos import declare_time, declare_state, declare_parameter
-
+import openmdao.api as om
+import dymos as dm
 from ...models.atmosphere import USatm1976Comp
 from .aero import AeroGroup
 from .prop import PropGroup
 from ...models.eom import FlightPathEOM2D
 
 
-@declare_time(units='s')
-@declare_state('r', units='m', rate_source='flight_dynamics.r_dot')
-@declare_state('h', units='m', rate_source='flight_dynamics.h_dot', targets=['h'])
-@declare_state('v', units='m/s', rate_source='flight_dynamics.v_dot', targets=['v'])
-@declare_state('gam', units='rad', rate_source='flight_dynamics.gam_dot', targets=['gam'])
-@declare_state('m', units='kg', rate_source='prop.m_dot', targets=['m'])
-@declare_parameter('alpha', targets=['alpha'], units='rad')
-@declare_parameter('Isp', targets=['Isp'], units='s')
-@declare_parameter('S', targets=['S'], units='m**2')
-@declare_parameter('throttle', targets=['throttle'], units=None)
-class MinTimeClimbODE(Group):
+@dm.declare_time(units='s')
+@dm.declare_state('r', units='m', rate_source='flight_dynamics.r_dot')
+@dm.declare_state('h', units='m', rate_source='flight_dynamics.h_dot', targets=['h'])
+@dm.declare_state('v', units='m/s', rate_source='flight_dynamics.v_dot', targets=['v'])
+@dm.declare_state('gam', units='rad', rate_source='flight_dynamics.gam_dot', targets=['gam'])
+@dm.declare_state('m', units='kg', rate_source='prop.m_dot', targets=['m'])
+@dm.declare_parameter('alpha', targets=['alpha'], units='rad')
+@dm.declare_parameter('Isp', targets=['Isp'], units='s')
+@dm.declare_parameter('S', targets=['S'], units='m**2')
+@dm.declare_parameter('throttle', targets=['throttle'], units=None)
+class MinTimeClimbODE(om.Group):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)

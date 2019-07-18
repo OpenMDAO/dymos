@@ -3,12 +3,12 @@ from __future__ import division, print_function
 import numpy as np
 from six import iteritems
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 from dymos.utils.constants import INF_BOUND
 
 
-class BoundaryConstraintComp(ExplicitComponent):
+class BoundaryConstraintComp(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('loc', values=('initial', 'final'),

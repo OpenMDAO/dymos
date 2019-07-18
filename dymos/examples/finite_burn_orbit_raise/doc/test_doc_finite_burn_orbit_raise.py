@@ -7,10 +7,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-from dymos.utils.testing_utils import use_tempdirs
 
-
-@use_tempdirs
 class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
     def test_finite_burn_orbit_raise(self):
@@ -18,7 +15,7 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
         import matplotlib.pyplot as plt
 
-        from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver, SqliteRecorder
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
 
         import dymos as dm
@@ -27,16 +24,16 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         #
         # Instantiate the problem and trajectory
         #
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
         traj = dm.Trajectory()
         p.model.add_subsystem('traj', traj)
 
         #
         # Setup the optimization driver
         #
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # The trajectory controls the design parameter governing exhaust velocity
@@ -119,9 +116,9 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         #
         # Finish Problem Setup
         #
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
-        p.driver.add_recorder(SqliteRecorder('two_burn_orbit_raise_example_for_docs.db'))
+        p.driver.add_recorder(om.SqliteRecorder('two_burn_orbit_raise_example_for_docs.db'))
 
         p.setup(check=True)
 

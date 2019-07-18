@@ -3,14 +3,14 @@ from __future__ import print_function, division, absolute_import
 import unittest
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos.models.atmosphere.atmos_1976 import USatm1976Comp
 
 assert_almost_equal = np.testing.assert_almost_equal
 
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 if SHOW_PLOTS:
     import matplotlib
@@ -46,9 +46,9 @@ class TestAtmosphere(unittest.TestCase):
     def test_temperature_comp(self):
         n = reference.shape[0]
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        ivc = p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivc = p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
         ivc.add_output(name='alt_m', val=reference[:, 0], units='m')
 
         p.model.add_subsystem('atmos', subsys=USatm1976Comp(num_nodes=n))

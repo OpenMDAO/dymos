@@ -7,7 +7,7 @@ from parameterized import parameterized
 
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
 
 from dymos.transcriptions.grid_data import GridData
@@ -34,9 +34,9 @@ class TestContinuityComp(unittest.TestCase):
                       transcription=transcription,
                       compressed=compressed == 'compressed')
 
-        self.p = Problem(model=Group())
+        self.p = om.Problem(model=om.Group())
 
-        ivp = self.p.model.add_subsystem('ivc', subsys=IndepVarComp(), promotes_outputs=['*'])
+        ivp = self.p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
         nn = gd.subset_num_nodes['all']
 

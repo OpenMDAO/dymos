@@ -6,12 +6,12 @@ from six import iteritems
 
 import numpy as np
 
-from openmdao.api import ImplicitComponent
+import openmdao.api as om
 
 from dymos.transcriptions.grid_data import GridData
 
 
-class StateIndependentsComp(ImplicitComponent):
+class StateIndependentsComp(om.ImplicitComponent):
     """
     A simple component that replaces the state indepvarcomps whenver the solver needs to solve for
     the state or whenever the initial state is connected to an external source.

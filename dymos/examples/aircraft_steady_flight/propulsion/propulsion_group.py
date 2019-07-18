@@ -1,8 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
-import numpy as np
-
-from openmdao.api import Group, IndepVarComp
+import openmdao.api as om
 
 from .thrust_comp import ThrustComp
 from .max_thrust_comp import MaxThrustComp
@@ -11,7 +9,7 @@ from .tsfc_comp import SFCComp
 from .fuel_burn_rate_comp import FuelBurnRateComp
 
 
-class PropulsionGroup(Group):
+class PropulsionGroup(om.Group):
     """
     The PropulsionGroup computes propulsive forces (thrust), the specific fuel consumption and
     fuel expenditure rate, and the aircraft throttle setting.
@@ -22,7 +20,7 @@ class PropulsionGroup(Group):
     def setup(self):
         n = self.options['num_nodes']
 
-        assumptions = self.add_subsystem('assumptions', subsys=IndepVarComp())
+        assumptions = self.add_subsystem('assumptions', subsys=om.IndepVarComp())
 
         assumptions.add_output('tsfc_sl', val=2 * 8.951e-6 * 9.80665, units='1/s',
                                desc='thrust specific fuel consumption at sea-level')

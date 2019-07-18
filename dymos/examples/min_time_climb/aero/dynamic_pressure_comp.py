@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class DynamicPressureComp(ExplicitComponent):
+class DynamicPressureComp(om.ExplicitComponent):
     def initialize(self):
         self.options.declare('num_nodes', types=int)
 

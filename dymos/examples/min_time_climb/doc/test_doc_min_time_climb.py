@@ -13,7 +13,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
     def test_min_time_climb_for_docs_gauss_lobatto(self):
         import matplotlib.pyplot as plt
 
-        from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
 
         import dymos as dm
@@ -23,11 +23,11 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         #
         # Instantiate the problem and configure the optimization driver
         #
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         #
         # Instantiate the trajectory and phase
@@ -35,7 +35,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         traj = dm.Trajectory()
 
         phase = dm.Phase(ode_class=MinTimeClimbODE,
-                         transcription=dm.GaussLobatto(num_segments=20, compressed=True))
+                         transcription=dm.GaussLobatto(num_segments=15, compressed=True))
 
         traj.add_phase('phase0', phase)
 
@@ -83,7 +83,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', ref=1.0)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         #
         # Setup the problem and set the initial guess

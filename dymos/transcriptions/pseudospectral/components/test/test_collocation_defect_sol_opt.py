@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 
 from dymos.transcriptions.grid_data import GridData
 from dymos.transcriptions.pseudospectral.components import CollocationComp
@@ -17,7 +17,7 @@ class TestCollocationCompSolOpt(unittest.TestCase):
     # def setUp(self):
     def make_prob(self, transcription, n_segs, order, compressed):
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         gd = GridData(num_segments=n_segs, segment_ends=np.arange(n_segs+1),
                       transcription=transcription, transcription_order=order, compressed=compressed)
@@ -29,7 +29,7 @@ class TestCollocationCompSolOpt(unittest.TestCase):
                                'fix_final': True, 'solve_segments': True,
                                'connected_initial': False}}
 
-        indep_comp = IndepVarComp()
+        indep_comp = om.IndepVarComp()
         p.model.add_subsystem('indep', indep_comp, promotes_outputs=['*'])
 
         indep_comp.add_output(

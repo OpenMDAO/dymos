@@ -2,10 +2,10 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class ThrustComp(ExplicitComponent):
+class ThrustComp(om.ExplicitComponent):
     """ Compute thrust from the thrust coefficient
     """
     def initialize(self):

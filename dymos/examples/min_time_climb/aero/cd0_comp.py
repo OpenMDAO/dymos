@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class CD0Comp(ExplicitComponent):
+class CD0Comp(om.ExplicitComponent):
     """ Computes the zero-lift drag coefficient
     """
     def initialize(self):

@@ -2,11 +2,10 @@ from __future__ import division, print_function, absolute_import
 
 import numpy as np
 
-from openmdao.api import Group, IndepVarComp
+import openmdao.api as om
 from six import iteritems, string_types
 
 from ..transcription_base import TranscriptionBase
-from ..grid_data import GridData
 from .components import SegmentSimulationComp, ODEIntegrationInterface, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
 from ..common import TimeComp
@@ -117,7 +116,7 @@ class SolveIVP(TranscriptionBase):
         """
         num_seg = self.grid_data.num_segments
 
-        indep_states_ivc = phase.add_subsystem('indep_states', IndepVarComp(),
+        indep_states_ivc = phase.add_subsystem('indep_states', om.IndepVarComp(),
                                                promotes_outputs=['*'])
 
         for state_name, options in iteritems(phase.state_options):
@@ -158,7 +157,7 @@ class SolveIVP(TranscriptionBase):
         gd = self.grid_data
         num_seg = gd.num_segments
 
-        segments_group = phase.add_subsystem(name='segments', subsys=Group(),
+        segments_group = phase.add_subsystem(name='segments', subsys=om.Group(),
                                              promotes_outputs=['*'], promotes_inputs=['*'])
 
         # All segments use a common ODEIntegrationInterface to save some memory.
@@ -339,7 +338,7 @@ class SolveIVP(TranscriptionBase):
         output_nodes_per_seg = self.options['output_nodes_per_seg']
 
         timeseries_comp = \
-            SolveIVPTimeseriesOutputComp(grid_data=gd,
+            SolveIVPTimeseriesOutputComp(input_grid_data=gd,
                                          output_nodes_per_seg=self.options['output_nodes_per_seg'])
 
         phase.add_subsystem('timeseries', subsys=timeseries_comp)
@@ -477,7 +476,7 @@ class SolveIVP(TranscriptionBase):
                           tgt_name='timeseries.all_values:traj_parameters:{0}'.format(name),
                           src_indices=src_idxs, flat_src_indices=True)
 
-        for var, options in iteritems(phase._timeseries_outputs):
+        for var, options in iteritems(phase._timeseries['timeseries']['outputs']):
             output_name = options['output_name']
 
             # Determine the path to the variable which we will be constraining

@@ -1,13 +1,12 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-
-from openmdao.api import MetaModelStructuredComp
+import openmdao.api as om
 
 from .crm_data import h_bp, alpha_bp, mach_bp, eta_bp, CL_data, CD_data, CM_data
 
 
-class AeroCoefComp(MetaModelStructuredComp):
+class AeroCoefComp(om.MetaModelStructuredComp):
     """ Interpolates aerodynamic coefficients for the NASA Common Research Model. """
 
     def setup(self):

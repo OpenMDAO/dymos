@@ -1,11 +1,10 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 import openmdao.utils.units as units
 
-from dymos import declare_time, declare_state, declare_parameter
-
+import dymos as dm
 # Add canonical units to OpenMDAO
 MU_earth = 3.986592936294783e14
 R_earth = 6378137.0
@@ -17,16 +16,16 @@ units.add_unit('TU', '{0}*s'.format(period))
 units.add_unit('DU', '{0}*m'.format(R_earth))
 
 
-@declare_time(units='TU')
-@declare_state('r', rate_source='r_dot', targets=['r'], units='DU')
-@declare_state('theta', rate_source='theta_dot', targets=['theta'], units='rad')
-@declare_state('vr', rate_source='vr_dot', targets=['vr'], units='DU/TU')
-@declare_state('vt', rate_source='vt_dot', targets=['vt'], units='DU/TU')
-@declare_state('accel', rate_source='at_dot', targets=['accel'], units='DU/TU**2')
-@declare_state('deltav', rate_source='deltav_dot', units='DU/TU')
-@declare_parameter('u1', targets=['u1'], units='rad')
-@declare_parameter('c', targets=['c'], units='DU/TU')
-class FiniteBurnODE(ExplicitComponent):
+@dm.declare_time(units='TU')
+@dm.declare_state('r', rate_source='r_dot', targets=['r'], units='DU')
+@dm.declare_state('theta', rate_source='theta_dot', targets=['theta'], units='rad')
+@dm.declare_state('vr', rate_source='vr_dot', targets=['vr'], units='DU/TU')
+@dm.declare_state('vt', rate_source='vt_dot', targets=['vt'], units='DU/TU')
+@dm.declare_state('accel', rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+@dm.declare_state('deltav', rate_source='deltav_dot', units='DU/TU')
+@dm.declare_parameter('u1', targets=['u1'], units='rad')
+@dm.declare_parameter('c', targets=['c'], units='DU/TU')
+class FiniteBurnODE(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)

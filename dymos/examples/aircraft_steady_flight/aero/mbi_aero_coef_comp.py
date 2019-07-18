@@ -5,8 +5,7 @@ __author__ = 'rfalck'
 import os.path
 
 import numpy as np
-from openmdao.api import ExplicitComponent
-
+import openmdao.api as om
 try:
     import MBI
 except ImportError:
@@ -60,7 +59,7 @@ def setup_surrogates_all(model_name='CRM'):
     return [CL_arr, CD_arr, CM_arr, nums]
 
 
-class MBIAeroCoeffComp(ExplicitComponent):
+class MBIAeroCoeffComp(om.ExplicitComponent):
     """ Compute the lift, drag, and moment coefficients of the aircraft """
     def initialize(self):
         self.options.declare('vec_size', types=int)

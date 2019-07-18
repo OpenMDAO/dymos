@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division
 
 import os
 import unittest
+from dymos.utils.testing_utils import use_tempdirs
 
 
 class TestBrachistochroneRecordingExample(unittest.TestCase):
@@ -12,19 +13,19 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @use_tempdirs
     def test_brachistochrone_recording(self):
         import matplotlib
         matplotlib.use('Agg')
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver, DirectSolver, \
-            SqliteRecorder, CaseReader
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
-        from dymos import Phase, GaussLobatto
+        import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-        p = Problem(model=Group())
-        p.driver = ScipyOptimizeDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
 
-        phase = Phase(ode_class=BrachistochroneODE, transcription=GaussLobatto(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=dm.GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
@@ -41,10 +42,10 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         # Recording
-        rec = SqliteRecorder('brachistochrone_solution.db')
+        rec = om.SqliteRecorder('brachistochrone_solution.db')
 
         p.driver.recording_options['record_desvars'] = True
         p.driver.recording_options['record_responses'] = True
@@ -73,7 +74,7 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
         # Test the results
         assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
-        cr = CaseReader('brachistochrone_solution.db')
+        cr = om.CaseReader('brachistochrone_solution.db')
         system_cases = cr.list_cases('root')
         case = cr.get_case(system_cases[-1])
 

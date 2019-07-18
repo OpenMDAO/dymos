@@ -6,13 +6,13 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from openmdao.api import Problem, Group
-from dymos import Phase, Radau
+import openmdao.api as om
+import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-p = Problem(model=Group())
-phase = Phase(ode_class=BrachistochroneODE,
-              transcription=Radau(num_segments=4, order=[3, 5, 3, 5]))
+p = om.Problem(model=om.Group())
+phase = dm.Phase(ode_class=BrachistochroneODE,
+                 transcription=dm.Radau(num_segments=4, order=[3, 5, 3, 5]))
 p.model.add_subsystem('phase0', phase)
 
 p.setup()

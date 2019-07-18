@@ -25,7 +25,7 @@ phases are connected to the output of a single phase.  This way you can simulate
 trajectory paths in the same model. For this example, we will start with a single phase ("phase0")
 that simulates the model for one hour. Three follow-on phases will be linked to the output of the
 first phase: "phase1" will run as normal, "phase1_bfail" will fail one of the battery cells, and
-"phase1_bfail" will fail a motor. All three of these phases start where "phase0" leaves off, so
+"phase1_mfail" will fail a motor. All three of these phases start where "phase0" leaves off, so
 they share the same initial time and state of charge.
 
 

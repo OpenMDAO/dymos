@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import Problem, Group, IndepVarComp
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
 from dymos.examples.aircraft_steady_flight.aero.mbi_aero_coef_comp import setup_surrogates_all, \
@@ -22,7 +22,7 @@ class TestAeroCoefComp(unittest.TestCase):
         NUM_NODES = 100
         MODEL = 'CRM'
 
-        prob = Problem(root=Group())
+        prob = om.Problem(model=om.Group())
 
         mbi_CL, mbi_CD, mbi_CM, mbi_num = setup_surrogates_all(MODEL)
 
@@ -32,16 +32,16 @@ class TestAeroCoefComp(unittest.TestCase):
                                                          mbi_num=mbi_num))
 
         prob.model.add_subsystem(name='M_ivc',
-                                 subsys=IndepVarComp('M', val=np.zeros(NUM_NODES), units=None),
+                                 subsys=om.IndepVarComp('M', val=np.zeros(NUM_NODES), units=None),
                                  promotes=['M'])
         prob.model.add_subsystem(name='alpha_ivc',
-                                 subsys=IndepVarComp('alpha', val=np.zeros(NUM_NODES), units='rad'),
+                                 subsys=om.IndepVarComp('alpha', val=np.zeros(NUM_NODES), units='rad'),
                                  promotes=['alpha'])
         prob.model.add_subsystem(name='eta_ivc',
-                                 subsys=IndepVarComp('eta', val=np.zeros(NUM_NODES), units='rad'),
+                                 subsys=om.IndepVarComp('eta', val=np.zeros(NUM_NODES), units='rad'),
                                  promotes=['eta'])
         prob.model.add_subsystem(name='h_ivc',
-                                 subsys=IndepVarComp('h', val=np.zeros(NUM_NODES), units='km'),
+                                 subsys=om.IndepVarComp('h', val=np.zeros(NUM_NODES), units='km'),
                                  promotes=['h'])
 
         prob.model.connect('M', 'aero.M')

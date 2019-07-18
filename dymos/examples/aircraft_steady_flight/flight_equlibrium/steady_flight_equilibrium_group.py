@@ -2,15 +2,14 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from openmdao.api import Group, BalanceComp, NewtonSolver, DirectSolver, ArmijoGoldsteinLS, \
-    BoundsEnforceLS
+import openmdao.api as om
 
 from ..aero.aerodynamics_group import AerodynamicsGroup
 from .lift_equilibrium_comp import LiftEquilibriumComp
 from .thrust_equilibrium_comp import ThrustEquilibriumComp
 
 
-class SteadyFlightEquilibriumGroup(Group):
+class SteadyFlightEquilibriumGroup(om.Group):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int,
@@ -33,7 +32,7 @@ class SteadyFlightEquilibriumGroup(Group):
                            promotes_outputs=['CL_eq'])
 
         bal = self.add_subsystem(name='alpha_eta_balance',
-                                 subsys=BalanceComp(),
+                                 subsys=om.BalanceComp(),
                                  promotes_outputs=['alpha', 'eta'])
 
         self.connect('alpha', ('aero.alpha'))
@@ -50,8 +49,8 @@ class SteadyFlightEquilibriumGroup(Group):
         self.connect('aero.CM', 'alpha_eta_balance.CM')
         self.connect('CL_eq', ('alpha_eta_balance.CL_eq'))
 
-        self.linear_solver = DirectSolver()
-        self.nonlinear_solver = NewtonSolver()
+        self.linear_solver = om.DirectSolver()
+        self.nonlinear_solver = om.NewtonSolver()
         self.nonlinear_solver.options['atol'] = 1e-14
         self.nonlinear_solver.options['rtol'] = 1e-14
         self.nonlinear_solver.options['solve_subsystems'] = True
@@ -59,6 +58,5 @@ class SteadyFlightEquilibriumGroup(Group):
         self.nonlinear_solver.options['max_sub_solves'] = 10
         self.nonlinear_solver.options['maxiter'] = 150
         self.nonlinear_solver.options['iprint'] = -1
-        # self.nonlinear_solver.linesearch = ArmijoGoldsteinLS()
-        self.nonlinear_solver.linesearch = BoundsEnforceLS()
+        self.nonlinear_solver.linesearch = om.BoundsEnforceLS()
         self.nonlinear_solver.linesearch.options['print_bound_enforce'] = True

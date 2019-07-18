@@ -1,39 +1,33 @@
 from __future__ import print_function, division, absolute_import
 
-import os
 import unittest
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+from dymos.utils.testing_utils import use_tempdirs
 
+
+@use_tempdirs
 class TestTwoPhaseCannonball(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
-        for filename in ['ex_two_phase_cannonball.db', 'ex_two_phase_cannonball_sim.db',
-                         'coloring.json']:
-            if os.path.exists(filename):
-                os.remove(filename)
-
     def test_two_phase_cannonball_undecorated_ode(self):
-        from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, SqliteRecorder, \
-            pyOptSparseDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
 
-        from dymos import Phase, Trajectory, Radau, GaussLobatto
+        import dymos as dm
         from dymos.examples.cannonball.cannonball_undecorated_ode import CannonballUndecoratedODE
 
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        external_params = p.model.add_subsystem('external_params', IndepVarComp())
+        external_params = p.model.add_subsystem('external_params', om.IndepVarComp())
 
         external_params.add_output('radius', val=0.10, units='m')
         external_params.add_output('dens', val=7.87, units='g/cm**3')
@@ -42,10 +36,10 @@ class TestTwoPhaseCannonball(unittest.TestCase):
 
         p.model.add_subsystem('size_comp', CannonballSizeComp())
 
-        traj = p.model.add_subsystem('traj', Trajectory())
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-        transcription = Radau(num_segments=5, order=3, compressed=True)
-        ascent = Phase(ode_class=CannonballUndecoratedODE, transcription=transcription)
+        transcription = dm.Radau(num_segments=5, order=3, compressed=True)
+        ascent = dm.Phase(ode_class=CannonballUndecoratedODE, transcription=transcription)
 
         ascent = traj.add_phase('ascent', ascent)
 
@@ -68,8 +62,8 @@ class TestTwoPhaseCannonball(unittest.TestCase):
                                        upper=400000, lower=0, ref=100000, shape=(1,))
 
         # Second Phase (descent)
-        transcription = GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent = Phase(ode_class=CannonballUndecoratedODE, transcription=transcription)
+        transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
+        descent = dm.Phase(ode_class=CannonballUndecoratedODE, transcription=transcription)
 
         traj.add_phase('descent', descent)
 
@@ -91,33 +85,29 @@ class TestTwoPhaseCannonball(unittest.TestCase):
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_design_parameter('CD',
-                                  targets={'ascent': ['aero.CD'],
-                                           'descent': ['aero.CD']},
+                                  custom_targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
                                   val=0.5, units=None, opt=False)
         traj.add_design_parameter('CL',
-                                  targets={'ascent': ['aero.CL'],
-                                           'descent': ['aero.CL']},
+                                  custom_targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
                                   val=0.0, units=None, opt=False)
         traj.add_design_parameter('T',
-                                  targets={'ascent': ['eom.T'],
-                                           'descent': ['eom.T']},
+                                  custom_targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
                                   val=0.0, units='N', opt=False)
         traj.add_design_parameter('alpha',
-                                  targets={'ascent': ['eom.alpha'],
-                                           'descent': ['eom.alpha']},
+                                  custom_targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
                                   val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         traj.add_input_parameter('mass',
                                  units='kg',
-                                 targets={'ascent': ['eom.m', 'kinetic_energy.m'],
-                                          'descent': ['eom.m', 'kinetic_energy.m']},
+                                 custom_targets={'ascent': ['eom.m', 'kinetic_energy.m'],
+                                                 'descent': ['eom.m', 'kinetic_energy.m']},
                                  val=1.0)
 
         traj.add_input_parameter('S',
                                  units='m**2',
-                                 targets={'ascent': ['aero.S'],
-                                          'descent': ['aero.S']},
+                                 custom_targets={'ascent': ['aero.S'],
+                                                 'descent': ['aero.S']},
                                  val=0.005)
 
         # Link Phases (link time and all state variables)
@@ -131,9 +121,9 @@ class TestTwoPhaseCannonball(unittest.TestCase):
         p.model.connect('size_comp.S', 'traj.input_parameters:S')
 
         # Finish Problem Setup
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
-        p.driver.add_recorder(SqliteRecorder('ex_two_phase_cannonball.db'))
+        p.driver.add_recorder(om.SqliteRecorder('ex_two_phase_cannonball.db'))
 
         p.setup(check=True)
 
@@ -248,8 +238,7 @@ class TestTwoPhaseCannonball(unittest.TestCase):
         plt.show()
 
     def test_two_phase_cannonball_mixed_odes(self):
-        from openmdao.api import Problem, Group, IndepVarComp, DirectSolver, SqliteRecorder, \
-            pyOptSparseDriver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
 
         import dymos as dm
@@ -258,13 +247,13 @@ class TestTwoPhaseCannonball(unittest.TestCase):
 
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
 
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        external_params = p.model.add_subsystem('external_params', IndepVarComp())
+        external_params = p.model.add_subsystem('external_params', om.IndepVarComp())
 
         external_params.add_output('radius', val=0.10, units='m')
         external_params.add_output('dens', val=7.87, units='g/cm**3')
@@ -317,32 +306,28 @@ class TestTwoPhaseCannonball(unittest.TestCase):
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_design_parameter('CD',
-                                  targets={'ascent': ['aero.CD']},
-                                  target_params={'descent': 'CD'},
+                                  custom_targets={'ascent': ['aero.CD']},
                                   val=0.5, units=None, opt=False)
-        traj.add_design_parameter('CL', targets={'ascent': ['aero.CL']},
-                                  target_params={'descent': 'CL'},
+        traj.add_design_parameter('CL',
+                                  custom_targets={'ascent': ['aero.CL']},
                                   val=0.0, units=None, opt=False)
         traj.add_design_parameter('T',
-                                  targets={'ascent': ['eom.T']},
-                                  target_params={'descent': 'T'},
+                                  custom_targets={'ascent': ['eom.T']},
                                   val=0.0, units='N', opt=False)
         traj.add_design_parameter('alpha',
-                                  targets={'ascent': ['eom.alpha']},
-                                  target_params={'descent': 'alpha'},
+                                  custom_targets={'ascent': ['eom.alpha'], 'descent': 'alpha'},
                                   val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         traj.add_input_parameter('mass',
                                  units='kg',
-                                 targets={'ascent': ['eom.m', 'kinetic_energy.m']},
-                                 target_params={'ascent': 'm', 'descent': 'm'},
+                                 custom_targets={'ascent': ['eom.m', 'kinetic_energy.m'],
+                                                 'descent': 'm'},
                                  val=1.0)
 
         traj.add_input_parameter('S',
                                  units='m**2',
-                                 targets={'ascent': ['aero.S']},
-                                 target_params={'descent': 'S'},
+                                 custom_targets={'ascent': ['aero.S']},
                                  val=0.005)
 
         # Link Phases (link time and all state variables)
@@ -356,9 +341,9 @@ class TestTwoPhaseCannonball(unittest.TestCase):
         p.model.connect('size_comp.S', 'traj.input_parameters:S')
 
         # Finish Problem Setup
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
-        p.driver.add_recorder(SqliteRecorder('ex_two_phase_cannonball.db'))
+        p.driver.add_recorder(om.SqliteRecorder('ex_two_phase_cannonball.db'))
 
         p.setup(check=True)
 
@@ -451,7 +436,7 @@ class TestTwoPhaseCannonball(unittest.TestCase):
             axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
             axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
 
-        params = ['CL', 'CD', 'T', 'alpha', 'm', 'S']
+        params = ['CL', 'CD', 'T', 'alpha', 'S']
         fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
         for i, param in enumerate(params):
             p_imp = {

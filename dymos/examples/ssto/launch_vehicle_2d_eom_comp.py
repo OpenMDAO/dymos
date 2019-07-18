@@ -2,13 +2,12 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
-
+import openmdao.api as om
 _g = {'earth': 9.80665,
       'moon': 1.61544}
 
 
-class LaunchVehicle2DEOM(ExplicitComponent):
+class LaunchVehicle2DEOM(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)

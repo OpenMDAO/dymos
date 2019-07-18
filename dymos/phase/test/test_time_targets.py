@@ -1,32 +1,25 @@
 from __future__ import print_function, absolute_import, division
 
-import itertools
 import unittest
-
-from numpy.testing import assert_almost_equal
 
 import matplotlib
 matplotlib.use('Agg')
 
-from parameterized import parameterized
-
-from openmdao.api import Problem, Group, pyOptSparseDriver, ScipyOptimizeDriver, DirectSolver
+import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
 import numpy as np
-from openmdao.api import ExplicitComponent
-from dymos import declare_time, declare_state, declare_parameter, Phase, \
-    GaussLobatto, Radau, RungeKutta
+import dymos as dm
 
 
-@declare_time(units='s', time_phase_targets=['time_phase'], t_duration_targets=['t_duration'],
-              t_initial_targets=['t_initial'], targets=['time'])
-@declare_state('x', rate_source='xdot', units='m')
-@declare_state('y', rate_source='ydot', units='m')
-@declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
-@declare_parameter('theta', targets=['theta'], units='rad')
-@declare_parameter('g', units='m/s**2', targets=['g'])
-class _BrachistochroneTestODE(ExplicitComponent):
+@dm.declare_time(units='s', time_phase_targets=['time_phase'], t_duration_targets=['t_duration'],
+                 t_initial_targets=['t_initial'], targets=['time'])
+@dm.declare_state('x', rate_source='xdot', units='m')
+@dm.declare_state('y', rate_source='ydot', units='m')
+@dm.declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
+@dm.declare_parameter('theta', targets=['theta'], units='rad')
+@dm.declare_parameter('g', units='m/s**2', targets=['g'])
+class _BrachistochroneTestODE(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -108,18 +101,18 @@ class _BrachistochroneTestODE(ExplicitComponent):
 class TestPhaseTimeTargets(unittest.TestCase):
 
     def _make_problem(self, transcription, num_seg, transcription_order=3):
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
         # Compute sparsity/coloring when run_driver is called
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
-        t = {'gauss-lobatto': GaussLobatto(num_segments=num_seg, order=transcription_order),
-             'radau-ps': Radau(num_segments=num_seg, order=transcription_order),
-             'runge-kutta': RungeKutta(num_segments=num_seg)}
+        t = {'gauss-lobatto': dm.GaussLobatto(num_segments=num_seg, order=transcription_order),
+             'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order),
+             'runge-kutta': dm.RungeKutta(num_segments=num_seg)}
 
-        phase = Phase(ode_class=_BrachistochroneTestODE, transcription=t[transcription])
+        phase = dm.Phase(ode_class=_BrachistochroneTestODE, transcription=t[transcription])
 
         p.model.add_subsystem('phase0', phase)
 
@@ -139,7 +132,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         p.setup()
 

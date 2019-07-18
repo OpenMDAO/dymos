@@ -13,23 +13,23 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for filename in ['coloring.json', 'SLSQP.out', 'SNOPT_print.out']:
+        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 
     def test_double_integrator_for_docs(self):
         import matplotlib.pyplot as plt
-        from openmdao.api import Problem, Group, pyOptSparseDriver, DirectSolver
+        import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 
         # Initialize the problem and assign the driver
-        p = Problem(model=Group())
-        p.driver = pyOptSparseDriver()
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         # Setup the trajectory and its phase
         traj = p.model.add_subsystem('traj', dm.Trajectory())
@@ -54,7 +54,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         #
         phase.add_objective('x', loc='final', scaler=-1)
 
-        p.model.linear_solver = DirectSolver()
+        p.model.linear_solver = om.DirectSolver()
 
         #
         # Setup the problem and set our initial values.

@@ -2,10 +2,10 @@ import unittest
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class BrachistochroneODE(ExplicitComponent):
+class BrachistochroneODE(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -65,7 +65,7 @@ class TestBrachistochroneQuickStart(unittest.TestCase):
 
     def test_brachistochrone_quick_start(self):
         import numpy as np
-        from openmdao.api import Problem, Group, ScipyOptimizeDriver
+        import openmdao.api as om
         import dymos as dm
         import matplotlib
         matplotlib.use('Agg')
@@ -74,7 +74,7 @@ class TestBrachistochroneQuickStart(unittest.TestCase):
         #
         # Define the OpenMDAO problem
         #
-        p = Problem(model=Group())
+        p = om.Problem(model=om.Group())
 
         #
         # Define a Trajectory object
@@ -118,11 +118,11 @@ class TestBrachistochroneQuickStart(unittest.TestCase):
         phase.add_objective('time', loc='final')
 
         # Set the driver.
-        p.driver = ScipyOptimizeDriver()
+        p.driver = om.ScipyOptimizeDriver()
 
         # Allow OpenMDAO to automatically determine our sparsity pattern.
         # Doing so can significant speed up the execution of Dymos.
-        p.driver.options['dynamic_simul_derivs'] = True
+        p.driver.declare_coloring()
 
         # Setup the problem
         p.setup(check=True)

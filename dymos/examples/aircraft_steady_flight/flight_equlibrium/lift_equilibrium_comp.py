@@ -1,9 +1,9 @@
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+import openmdao.api as om
 
 
-class LiftEquilibriumComp(ExplicitComponent):
+class LiftEquilibriumComp(om.ExplicitComponent):
     """
     Compute the rates of TAS and flight path angle required to match a given
     flight condition.
