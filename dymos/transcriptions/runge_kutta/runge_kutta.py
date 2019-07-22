@@ -7,8 +7,8 @@ from six import iteritems
 
 from ..transcription_base import TranscriptionBase
 from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
-    RungeKuttaTimeseriesOutputComp, RungeKuttaPathConstraintComp, RungeKuttaControlContinuityComp
-from ..common import TimeComp, EndpointConditionsComp, PseudospectralPathConstraintComp
+    RungeKuttaTimeseriesOutputComp, RungeKuttaControlContinuityComp
+from ..common import TimeComp, EndpointConditionsComp, PathConstraintComp
 from ...utils.rk_methods import rk_methods
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.constants import INF_BOUND
@@ -524,7 +524,7 @@ class RungeKutta(TranscriptionBase):
         num_seg = gd.num_segments
 
         if phase._path_constraints:
-            path_comp = PseudospectralPathConstraintComp(num_nodes=gd.subset_num_nodes['segment_ends'])
+            path_comp = PathConstraintComp(num_nodes=gd.subset_num_nodes['segment_ends'])
             phase.add_subsystem('path_constraints', subsys=path_comp)
 
         for var, options in iteritems(phase._path_constraints):

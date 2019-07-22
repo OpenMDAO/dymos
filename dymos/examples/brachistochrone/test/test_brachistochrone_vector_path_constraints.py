@@ -4,9 +4,8 @@ import unittest
 
 import numpy as np
 
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+plt.switch_backend('Agg')
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
@@ -15,7 +14,7 @@ import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
-SHOW_PLOTS = False
+SHOW_PLOTS = True
 
 
 class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
