@@ -4,11 +4,15 @@ import unittest
 
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-SHOW_PLOTS = True
-
 import numpy as np
+import matplotlib.pyplot as plt
 import openmdao.api as om
 import dymos as dm
+
+from openmdao.utils.assert_utils import assert_rel_error
+
+
+plt.switch_backend('Agg')
 
 
 @dm.declare_time(units='s')
@@ -37,7 +41,7 @@ class BrachistochroneArclengthODE(om.ExplicitComponent):
     def compute(self, inputs, outputs):
         theta = inputs['theta']
         v = inputs['v']
-        outputs['Sdot'] = np.sqrt(1.0 + 1.0/np.tan(theta)) * v * np.sin(theta)
+        outputs['Sdot'] = np.sqrt(1.0 + (1.0/np.tan(theta))**2) * v * np.sin(theta)
 
     def compute_partials(self, inputs, jacobian):
         theta = inputs['theta']
@@ -48,8 +52,9 @@ class BrachistochroneArclengthODE(om.ExplicitComponent):
         cot_theta = 1.0 / tan_theta
         csc_theta = 1.0 / sin_theta
 
-        jacobian['Sdot', 'v'] = sin_theta * np.sqrt(1.0 + 1.0/tan_theta)
-        jacobian['Sdot', 'theta'] = v * (2 * cos_theta * (cot_theta + 1) - csc_theta) / (2 * np.sqrt(cot_theta + 1))
+        jacobian['Sdot', 'v'] = sin_theta * np.sqrt(1.0 + cot_theta**2)
+        jacobian['Sdot', 'theta'] = v * (cos_theta * (cot_theta**2 + 1) - cot_theta * csc_theta) / \
+            (np.sqrt(1 + cot_theta**2))
 
 
 def make_brachistochrone_phase(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
@@ -73,10 +78,9 @@ def make_brachistochrone_phase(transcription='gauss-lobatto', num_segments=8, tr
     return phase
 
 
-class TestSimultaneousPhases(unittest.TestCase):
+class TestDocTandemPhases(unittest.TestCase):
 
-    def test_simultaneous_phases_radau(self):
-
+    def test_tandem_phases_for_docs(self):
         p = om.Problem(model=om.Group())
 
         p.driver = om.pyOptSparseDriver()
@@ -86,33 +90,17 @@ class TestSimultaneousPhases(unittest.TestCase):
         #
         # First Phase: Standard Brachistochrone
         #
-
-        transcription = 'radau-ps'
         num_segments = 10
         transcription_order = 3
         compressed = False
 
-        if transcription == 'gauss-lobatto':
-            tx0 = dm.GaussLobatto(num_segments=num_segments,
-                                  order=transcription_order,
-                                  compressed=compressed)
-            tx1 = dm.GaussLobatto(num_segments=num_segments, order=transcription_order,
-                                  compressed=compressed)
+        tx0 = dm.GaussLobatto(num_segments=num_segments,
+                              order=transcription_order,
+                              compressed=compressed)
 
-        elif transcription == 'radau-ps':
-            tx0 = dm.Radau(num_segments=num_segments,
-                           order=transcription_order,
-                           compressed=compressed)
-            tx1 = dm.Radau(num_segments=num_segments*2,
-                           order=transcription_order,
-                           compressed=compressed)
-
-        elif transcription == 'runge-kutta':
-            tx0 = dm.RungeKutta(num_segments=num_segments,
-                                order=transcription_order,
-                                compressed=compressed)
-            tx1 = dm.RungeKutta(num_segments=num_segments, order=transcription_order,
-                                compressed=compressed)
+        tx1 = dm.Radau(num_segments=num_segments*2,
+                       order=transcription_order*3,
+                       compressed=compressed)
 
         phase0 = dm.Phase(ode_class=BrachistochroneODE, transcription=tx0)
 
@@ -125,7 +113,7 @@ class TestSimultaneousPhases(unittest.TestCase):
         phase0.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=False)
 
         phase0.add_control('theta', continuity=True, rate_continuity=True,
-                           units='deg', lower=0.01, upper=179.9)
+                           units='deg', lower=0.1, upper=179.0)
 
         phase0.add_input_parameter('g', units='m/s**2', val=9.80665)
 
@@ -159,8 +147,10 @@ class TestSimultaneousPhases(unittest.TestCase):
         p.model.connect('phase0.timeseries2.states:v', 'phase1.controls:v')
 
         # Minimize time at the end of the phase
-        # phase1.add_objective('S', loc='final', scaler=10)
-        phase1.add_objective('time', loc='final', scaler=10)
+        # phase1.add_objective('time', loc='final', scaler=1)
+        # phase1.add_boundary_constraint('S', loc='final', upper=12)
+
+        phase1.add_objective('S', loc='final', ref=1)
 
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
@@ -178,11 +168,19 @@ class TestSimultaneousPhases(unittest.TestCase):
 
         p.run_driver()
 
-        # print(phase0.options['transcription'].grid_data.subset_node_indices['control_input'])
+        expected = np.sqrt((10-0)**2 + (10 - 5)**2)
+        assert_rel_error(self, p['phase1.timeseries.states:S'][-1], expected, tolerance=1.0E-3)
 
-        import matplotlib.pyplot as plt
-        plt.plot(p['phase1.timeseries.time'], p['phase1.timeseries.states:S'])
+        fig, (ax0, ax1) = plt.subplots(2, 1)
+        fig.tight_layout()
+        ax0.plot(p.get_val('phase0.timeseries.states:x'), p.get_val('phase0.timeseries.states:y'), '.')
+        ax0.set_xlabel('x (m)')
+        ax0.set_ylabel('y (m)')
+        ax1.plot(p.get_val('phase1.timeseries.time'), p.get_val('phase1.timeseries.states:S'), '+')
+        ax1.set_xlabel('t (s)')
+        ax1.set_ylabel('S (m)')
         plt.show()
+
 
 if __name__ == '__main__':
     unittest.main()

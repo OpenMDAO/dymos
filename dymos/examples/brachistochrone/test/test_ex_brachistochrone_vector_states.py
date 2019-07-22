@@ -8,7 +8,7 @@ from numpy.testing import assert_almost_equal
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
 from dymos.utils.testing_utils import use_tempdirs
 
-from openmdao.utils.general_utils import set_pyoptsparse_opt
+from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
 from openmdao.utils.assert_utils import assert_check_partials
 
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
@@ -48,7 +48,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
     def assert_partials(self, p):
-        cpd = p.check_partials(method='cs', out_stream=None)
+        with printoptions(linewidth=1024, edgeitems=100):
+            cpd = p.check_partials(method='cs')
         assert_check_partials(cpd)
 
     def test_ex_brachistochrone_vs_radau_compressed(self):
