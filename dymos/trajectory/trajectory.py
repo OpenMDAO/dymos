@@ -244,7 +244,8 @@ class Trajectory(om.Group):
                 src_name = 'input_parameters:{0}_out'.format(name)
 
                 for phase_name, phs in iteritems(self._phases):
-                    short = phase_name.rsplit('.', 1)[-1]
+                    if phase_name.split('.', 1)[0] not in self.phases._loc_subsys_map:
+                        continue  # phase is not local
 
                     # The default target in the phase is name unless otherwise specified.
                     kwargs = {'dynamic': options['dynamic'],
@@ -254,6 +255,8 @@ class Trajectory(om.Group):
                     param_name = name
 
                     if 'custom_targets' in options and options['custom_targets'] is not None:
+                        short = phase_name.rsplit('.', 1)[-1]
+
                         # Dont add the traj parameter to the phase if it is explicitly excluded.
                         if short in options['custom_targets']:
                             if options['custom_targets'][short] is None:
@@ -298,6 +301,9 @@ class Trajectory(om.Group):
                 src_name = 'design_parameters:{0}'.format(name)
 
                 for phase_name, phs in iteritems(self._phases):
+                    if phase_name.split('.', 1)[0] not in self.phases._loc_subsys_map:
+                        continue  # phase is not local
+
                     short = phase_name.rsplit('.', 1)[-1]
 
                     # The default target in the phase is name unless otherwise specified.
@@ -511,7 +517,6 @@ class Trajectory(om.Group):
         else:
             subs = phases_group._subsystems_allprocs
         for s in subs:
-            print("ADDING DIRECTSOLVER TO", s.name)
             s.linear_solver = om.DirectSolver()
 
         if self._linkages:
