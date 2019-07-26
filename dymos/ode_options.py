@@ -1,11 +1,14 @@
 from __future__ import print_function, division, absolute_import
 
 from collections import Iterable
+import warnings
 from six import string_types
 import numpy as np
 
 from openmdao.utils.options_dictionary import OptionsDictionary
 from openmdao.core.component import _valid_var_name
+
+warnings.simplefilter('default')
 
 
 class _ODETimeOptionsDictionary(OptionsDictionary):
@@ -90,6 +93,10 @@ class declare_time(object):
         self.units = units
 
     def __call__(self, system_class):
+        warnings.warn('Dymos ODE decorator declare_time for Dymos have been deprecated. '
+                      'Use the set_time_options method on phase to provide units, targets and '
+                      'other options for the time variable.', DeprecationWarning)
+
         if not hasattr(system_class, 'ode_options'):
             setattr(system_class, 'ode_options', ODEOptions())
 
@@ -115,6 +122,10 @@ class declare_state(object):
         self.units = units
 
     def __call__(self, system_class):
+        warnings.warn('Dymos ODE decorator declare_state for Dymos have been deprecated. '
+                      'Use the set_state_options method on phase to provide units, targets and '
+                      'other options for the state variable.', DeprecationWarning)
+
         if not hasattr(system_class, 'ode_options'):
             setattr(system_class, 'ode_options', ODEOptions())
 
@@ -139,6 +150,11 @@ class declare_parameter(object):
         self.dynamic = dynamic
 
     def __call__(self, system_class):
+        warnings.warn('Dymos ODE decorator declare_parameter for Dymos have been deprecated. '
+                      'Use the add_control, add_design_parameter, or add_input_parameter methods '
+                      'on phase to provide units, targets and other options for the '
+                      'parameter.', DeprecationWarning)
+
         if not hasattr(system_class, 'ode_options'):
             setattr(system_class, 'ode_options', ODEOptions())
 

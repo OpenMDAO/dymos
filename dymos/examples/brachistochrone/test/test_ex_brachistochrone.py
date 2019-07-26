@@ -85,3 +85,12 @@ class TestBrachistochroneExample(unittest.TestCase):
         self.tearDown()
         if os.path.exists('ex_brach_gl_uncompressed.db'):
             os.remove('ex_brach_gl_uncompressed.db')
+
+    def test_ex_brachistochrone_rk(self):
+        ex_brachistochrone.SHOW_PLOTS = True
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='runge-kutta')
+        self.run_asserts(p)
+        self.tearDown()
+        if os.path.exists('ex_brach_rk_uncompressed.db'):
+            os.remove('ex_brach_rk_uncompressed.db')
+

@@ -2,16 +2,32 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 import openmdao.api as om
-import dymos as dm
 
 
-@dm.declare_time(units='s')
-@dm.declare_state('x', rate_source='xdot', units='m')
-@dm.declare_state('y', rate_source='ydot', units='m')
-@dm.declare_state('v', rate_source='vdot', targets='v', units='m/s')
-@dm.declare_parameter('theta', targets='theta', units='rad')
-@dm.declare_parameter('g', units='m/s**2', targets='g')
 class BrachistochroneODE(om.ExplicitComponent):
+
+    #
+    # The following dictionaries provide a way of 'tagging' the Brachistochrone ODE with
+    # information about states and parameters that can be accessed from Phase.
+    #
+    # In this case these are class attributes, but the choice of whether or not to tie
+    # this information to the ODE itself (and how to do so) is entirely up to the user.
+    #
+    # In a dynamic ODE model these might be instance attributes whose values vary depending on
+    # the arguments to the instantiation.
+    #
+    states = {'x': {'rate_source': 'xdot',
+                    'units': 'm'},
+              'y': {'rate_source': 'ydot',
+                    'units': 'm'},
+              'v': {'rate_source': 'vdot',
+                    'targets': 'v',
+                    'units': 'm/s'}}
+
+    parameters = {'theta': {'targets': 'theta',
+                            'units': 'rad'},
+                  'g': {'targets': 'g',
+                        'units': 'm/s**2'}}
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)

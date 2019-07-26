@@ -2,18 +2,11 @@ from __future__ import print_function, division, absolute_import
 
 import unittest
 
-import matplotlib
-matplotlib.use('Agg')
-
-import numpy as np
-
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-
-SHOW_PLOTS = False
 
 
 class TestTimeseriesOutput(unittest.TestCase):

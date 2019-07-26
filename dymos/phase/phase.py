@@ -108,7 +108,8 @@ class Phase(om.Group):
         self.options.declare('timeseries', types=(dict,),
                              desc='Alternative timeseries.')
 
-    def set_state_options(self, name, units=_unspecified, rate_source=_unspecified, targets=_unspecified,
+    def set_state_options(self, name, units=_unspecified, shape=_unspecified,
+                          rate_source=_unspecified, targets=_unspecified,
                           val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
                           lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
                           ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
@@ -126,6 +127,9 @@ class Phase(om.Group):
             it in these units, and collocation defects will use these units.  If units is not
             specified here then the value as defined in the ODEOptions (@dm.declare_state) will be
             used.
+        shape : tuple of int
+            The shape of the state variable.  For instance, a 3D cartesian position vector would have
+            a shape of (3,).
         rate_source : str
             The path to the ODE output which provides the rate of this state variable.  If given
             this will override the value given by the @declare_state decorator on the ODE.
@@ -170,6 +174,9 @@ class Phase(om.Group):
 
         if units is not _unspecified:
             self.user_state_options[name]['units'] = units
+
+        if shape is not _unspecified:
+            self.user_state_options[name]['shape'] = shape
 
         if rate_source is not _unspecified:
             self.user_state_options[name]['rate_source'] = rate_source

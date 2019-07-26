@@ -10,13 +10,11 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 
 from openmdao.utils.assert_utils import assert_rel_error
 
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+plt.switch_backend('Agg')
 
 
 OPTIMIZER = 'SLSQP'
-SHOW_PLOTS = False
 
 
 class _A(object):
