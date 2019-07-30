@@ -130,7 +130,9 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             input_name = 'input_values:{0}'.format(name)
             shape = kwargs['shape']
 
-            self.add_input(input_name, shape=(input_num_nodes,) + shape,  **input_kwargs)
+            self.add_input(input_name,
+                           shape=(input_num_nodes,) + shape,
+                           **input_kwargs)
 
             output_name = name
             output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
