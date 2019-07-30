@@ -70,7 +70,7 @@ class Trajectory(om.Group):
                             targets=_unspecified, custom_targets=_unspecified,
                             shape=_unspecified, dynamic=_unspecified):
         """
-        Add na input parameter to the trajectory.
+        Add an input parameter to the trajectory.
 
         Parameters
         ----------
@@ -244,18 +244,15 @@ class Trajectory(om.Group):
                 src_name = 'input_parameters:{0}_out'.format(name)
 
                 for phase_name, phs in iteritems(self._phases):
-                    if phase_name.split('.', 1)[0] not in self.phases._loc_subsys_map:
-                        continue  # phase is not local
-
                     # The default target in the phase is name unless otherwise specified.
                     kwargs = {'dynamic': options['dynamic'],
                               'units': options['units'],
                               'val': options['val']}
 
                     param_name = name
+                    short = phase_name.rsplit('.', 1)[-1]
 
                     if 'custom_targets' in options and options['custom_targets'] is not None:
-                        short = phase_name.rsplit('.', 1)[-1]
 
                         # Dont add the traj parameter to the phase if it is explicitly excluded.
                         if short in options['custom_targets']:
@@ -301,9 +298,6 @@ class Trajectory(om.Group):
                 src_name = 'design_parameters:{0}'.format(name)
 
                 for phase_name, phs in iteritems(self._phases):
-                    if phase_name.split('.', 1)[0] not in self.phases._loc_subsys_map:
-                        continue  # phase is not local
-
                     short = phase_name.rsplit('.', 1)[-1]
 
                     # The default target in the phase is name unless otherwise specified.
