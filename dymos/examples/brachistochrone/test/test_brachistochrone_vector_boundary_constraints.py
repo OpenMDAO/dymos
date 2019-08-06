@@ -32,13 +32,24 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.set_state_options('pos', fix_initial=True, fix_final=False)
-        phase.set_state_options('v', fix_initial=True, fix_final=False)
+        phase.set_state_options('pos',
+                                shape=(2,),
+                                rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
+                                units=BrachistochroneVectorStatesODE.states['pos']['units'],
+                                fix_initial=True, fix_final=False)
+        phase.set_state_options('v',
+                                rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
+                                targets=BrachistochroneVectorStatesODE.states['v']['targets'],
+                                units=BrachistochroneVectorStatesODE.states['v']['units'],
+                                fix_initial=True, fix_final=False)
 
-        phase.add_control('theta', continuity=True, rate_continuity=True,
-                          units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg',
+                          targets=BrachistochroneVectorStatesODE.parameters['theta']['targets'],
+                          rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_design_parameter('g',
+                                   targets=BrachistochroneVectorStatesODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         phase.add_boundary_constraint('pos', loc='final', equals=[10, 5])
 

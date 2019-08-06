@@ -254,7 +254,7 @@ class Phase(om.Group):
         if name in self.user_input_parameter_options:
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
         if name in self.user_polynomial_control_options:
-            raise ValueError('{0} has already been added as an interpolated control.'.format(name))
+            raise ValueError('{0} has already been added as a polynomial control.'.format(name))
         if name in self.user_traj_parameter_options:
             raise ValueError('{0} has already been added as a trajectory-level '
                              'parameter.'.format(name))
