@@ -191,9 +191,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                           order=transcription_order,
                           compressed=compressed)
 
-    phase = dm.Phase(ode_class=ode, transcription=t, ode_init_kwargs=ode_kwargs)
+    traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-    p.model.add_subsystem('phase0', phase)
+    phase = traj.add_phase('phase0',
+                           phase=dm.Phase(ode_class=ode, transcription=t,
+                                          ode_init_kwargs=ode_kwargs))
 
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
@@ -220,14 +222,14 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p.model.linear_solver = om.DirectSolver()
     p.setup(check=True)
 
-    p['phase0.t_initial'] = 0.0
-    p['phase0.t_duration'] = 2.0
+    p['traj.phase0.t_initial'] = 0.0
+    p['traj.phase0.t_duration'] = 2.0
 
-    p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-    p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-    p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-    p['phase0.input_parameters:g'] = 9.80665
+    p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+    p['traj.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+    p['traj.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+    p['traj.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+    p['traj.phase0.input_parameters:g'] = 9.80665
 
     p.run_driver()
 
@@ -264,14 +266,14 @@ if __name__ == "__main__":
     # Plot results
     do_plots = int(os.environ.get('PLOT', 0))
     if do_plots:
-        phase = p.model.phase0
+        phase = p.model.traj.phases.phase0
         exp_out = phase.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('traj.phase0.timeseries.states:x')
+        y_imp = p.get_val('traj.phase0.timeseries.states:y')
 
         x_exp = exp_out.get_val('phase0.timeseries.states:x')
         y_exp = exp_out.get_val('phase0.timeseries.states:y')
@@ -287,8 +289,8 @@ if __name__ == "__main__":
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.time_phase')
-        y_imp = p.get_val('phase0.timeseries.controls:theta')
+        x_imp = p.get_val('traj.phase0.timeseries.time_phase')
+        y_imp = p.get_val('traj.phase0.timeseries.controls:theta')
 
         x_exp = exp_out.get_val('phase0.timeseries.time_phase')
         y_exp = exp_out.get_val('phase0.timeseries.controls:theta')
