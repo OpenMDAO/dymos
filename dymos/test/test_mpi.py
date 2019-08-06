@@ -6,33 +6,10 @@ import matplotlib.pyplot as plt
 import copy
 import time
 
+import numpy as np
+
 import openmdao.api as om
 import dymos as dm
-from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-
-
-class BrachistochroneODETestComp(BrachistochroneODE):
-
-    def __init__(self, setup_delay=0.0, compute_delay=0.0, comp_partials_delay=0.0, **kwargs):
-        super(BrachistochroneODETestComp, self).__init__(**kwargs)
-        self._setup_delay = setup_delay
-        self._compute_delay = compute_delay
-        self._comp_partials_delay = comp_partials_delay
-
-    def setup(self):
-        if self._setup_delay > 0.0:
-            time.sleep(self._setup_delay)
-        super(BrachistochroneODETestComp, self).setup()
-
-    def compute(self, inputs, outputs):
-        if self._compute_delay > 0.0:
-            time.sleep(self._compute_delay)
-        super(BrachistochroneODETestComp, self).compute(inputs, outputs)
-
-    def compute_partials(self, inputs, jacobian):
-        if self._comp_partials_delay > 0.0:
-            time.sleep(self._comp_partials_delay)
-        super(BrachistochroneODETestComp, self).compute_partials(inputs, jacobian)
 
 
 @dm.declare_time(units='s')
@@ -41,16 +18,110 @@ class BrachistochroneODETestComp(BrachistochroneODE):
 @dm.declare_state('v', rate_source='vdot', targets='v', units='m/s')
 @dm.declare_parameter('theta', targets='theta', units='rad')
 @dm.declare_parameter('g', units='m/s**2', targets='g')
-class BrachistochroneGroup(om.Group):
+class BrachComp(om.ExplicitComponent):
+
+    def __init__(self, setup_delay=0.0, compute_delay=0.0, comp_partials_delay=0.0, **kwargs):
+        super(BrachComp, self).__init__(**kwargs)
+        self._setup_delay = setup_delay
+        self._compute_delay = compute_delay
+        self._comp_partials_delay = comp_partials_delay
+        print("Delay for setup/compute/compute_partials =", setup_delay, compute_delay, comp_partials_delay)
+
+    def initialize(self):
+        self.options.declare('num_nodes', types=int)
+
+    def setup(self):
+        if self._setup_delay > 0.0:
+            time.sleep(self._setup_delay)
+
+        nn = self.options['num_nodes']
+
+        print(self.pathname, "num_nodes =", nn)
+
+        # Inputs
+        self.add_input('v', val=np.zeros(nn), desc='velocity', units='m/s')
+
+        self.add_input('g', val=9.80665 * np.ones(nn), desc='grav. acceleration', units='m/s/s')
+
+        self.add_input('theta', val=np.zeros(nn), desc='angle of wire', units='rad')
+
+        self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s')
+
+        self.add_output('ydot', val=np.zeros(nn), desc='velocity component in y', units='m/s')
+
+        self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2')
+
+        self.add_output('check', val=np.zeros(nn), desc='check solution: v/sin(theta) = constant',
+                        units='m/s')
+
+        # Setup partials
+        arange = np.arange(self.options['num_nodes'])
+
+        self.declare_partials(of='vdot', wrt='g', rows=arange, cols=arange)
+        self.declare_partials(of='vdot', wrt='theta', rows=arange, cols=arange)
+
+        self.declare_partials(of='xdot', wrt='v', rows=arange, cols=arange)
+        self.declare_partials(of='xdot', wrt='theta', rows=arange, cols=arange)
+
+        self.declare_partials(of='ydot', wrt='v', rows=arange, cols=arange)
+        self.declare_partials(of='ydot', wrt='theta', rows=arange, cols=arange)
+
+        self.declare_partials(of='check', wrt='v', rows=arange, cols=arange)
+        self.declare_partials(of='check', wrt='theta', rows=arange, cols=arange)
+
+    def compute(self, inputs, outputs):
+        if self._compute_delay > 0.0:
+            time.sleep(self._compute_delay)
+        theta = inputs['theta']
+        cos_theta = np.cos(theta)
+        sin_theta = np.sin(theta)
+        g = inputs['g']
+        v = inputs['v']
+
+        outputs['vdot'] = g * cos_theta
+        outputs['xdot'] = v * sin_theta
+        outputs['ydot'] = -v * cos_theta
+        outputs['check'] = v / sin_theta
+
+    def compute_partials(self, inputs, jacobian):
+        if self._comp_partials_delay > 0.0:
+            time.sleep(self._comp_partials_delay)
+        theta = inputs['theta']
+        cos_theta = np.cos(theta)
+        sin_theta = np.sin(theta)
+        g = inputs['g']
+        v = inputs['v']
+
+        jacobian['vdot', 'g'] = cos_theta
+        jacobian['vdot', 'theta'] = -g * sin_theta
+
+        jacobian['xdot', 'v'] = sin_theta
+        jacobian['xdot', 'theta'] = v * cos_theta
+
+        jacobian['ydot', 'v'] = -cos_theta
+        jacobian['ydot', 'theta'] = v * sin_theta
+
+        jacobian['check', 'v'] = 1 / sin_theta
+        jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
+
+
+@dm.declare_time(units='s')
+@dm.declare_state('x', rate_source='xdot', units='m')
+@dm.declare_state('y', rate_source='ydot', units='m')
+@dm.declare_state('v', rate_source='vdot', targets='v', units='m/s')
+@dm.declare_parameter('theta', targets='theta', units='rad')
+@dm.declare_parameter('g', units='m/s**2', targets='g')
+class BrachGroup(om.Group):
     """
     An ODE class used for testing of MPI issues in dymos.
     """
 
     def __init__(self, setup_delay=0.0, compute_delay=0.0, comp_partials_delay=0.0, **kwargs):
-        super(BrachistochroneGroup, self).__init__(**kwargs)
+        super(BrachGroup, self).__init__(**kwargs)
         self._setup_delay = setup_delay
         self._compute_delay = compute_delay
         self._comp_partials_delay = comp_partials_delay
+        print("Delay for setup/compute/compute_partials =", setup_delay, compute_delay, comp_partials_delay)
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -58,6 +129,7 @@ class BrachistochroneGroup(om.Group):
     def setup(self):
 
         nn = self.options['num_nodes']
+        print(self.pathname, "num_nodes =", nn)
 
         demux_comp = self.add_subsystem('demux', om.DemuxComp(vec_size=nn),
                                         promotes_inputs=['v','g','theta'])
@@ -72,10 +144,10 @@ class BrachistochroneGroup(om.Group):
             point_name = f'point_{i}'
 
             points.add_subsystem(point_name,
-                                 BrachistochroneODETestComp(setup_delay=self._setup_delay,
-                                                            compute_delay=self._compute_delay,
-                                                            comp_partials_delay=self._comp_partials_delay,
-                                                            num_nodes=1))
+                                 BrachComp(setup_delay=self._setup_delay,
+                                           compute_delay=self._compute_delay,
+                                           comp_partials_delay=self._comp_partials_delay,
+                                           num_nodes=1))
 
             self.connect(f'demux.v_{i}', f'{point_name}.v')
             self.connect(f'demux.g_{i}', f'{point_name}.g')
@@ -93,9 +165,13 @@ class BrachistochroneGroup(om.Group):
         mux_comp.add_var('vdot', shape=(1,), units='m/s/s')
         mux_comp.add_var('check', shape=(1,), units='m/s')
 
+        # points.linear_solver = om.LinearBlockJac()
+        # points.nonlinear_solver = om.NonlinearBlockJac()
+
 
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-                             compressed=False, optimizer='SLSQP', show_plots=False):
+                             compressed=False, optimizer='SLSQP', ode=BrachComp,
+                             ode_kwargs={}):
     p = om.Problem(model=om.Group())
 
     p.driver = om.pyOptSparseDriver()
@@ -115,12 +191,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                           order=transcription_order,
                           compressed=compressed)
 
-    kwargs = {
-        'setup_delay': 0.01,
-        'compute_delay': 0.01,
-        'comp_partials_delay': 0.01,
-    }
-    phase = dm.Phase(ode_class=BrachistochroneGroup, transcription=t, ode_init_kwargs=kwargs)
+    phase = dm.Phase(ode_class=ode, transcription=t, ode_init_kwargs=ode_kwargs)
 
     p.model.add_subsystem('phase0', phase)
 
@@ -174,15 +245,25 @@ if __name__ == "__main__":
     else:
         rank = 0
 
-    do_profile = int(os.environ.get('PROFILE', 0))
+    profile = os.environ.get('PROFILE', '')
 
-    with profiling('prof_%d.out' % rank) if do_profile else do_nothing_context():
-        p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8,
+    ode = os.environ.get('ODE', 'BrachComp')
+    kwargs = {
+        'setup_delay': 1e-3,
+        'compute_delay': 1e-3,
+        'comp_partials_delay': 1e-3,
+    }
+
+    # num_nodes
+    with profiling(profile + '_%d.out' % rank) if profile else do_nothing_context():
+        p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10,
                                      transcription_order=3,
-                                     compressed=False, optimizer='SNOPT', show_plots=True)
+                                     compressed=False, optimizer='SNOPT',
+                                     ode=globals()[ode], ode_kwargs=kwargs)
 
     # Plot results
-    if False:
+    do_plots = int(os.environ.get('PLOT', 0))
+    if do_plots:
         phase = p.model.phase0
         exp_out = phase.simulate()
 
