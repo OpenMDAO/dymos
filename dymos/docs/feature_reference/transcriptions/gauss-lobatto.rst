@@ -89,7 +89,7 @@ nodes and the values of time and the controls at all nodes).
 **Step 6:  State Interpolation**
 
 Using the state and state rates at the discretization nodes, form a Hermite interpolating
-polynomial, giving the approximate state values and rates ath the collocation nodes.
+polynomial, giving the approximate state values and rates at the collocation nodes.
 
 .. image:: figures/gauss-lobatto/06_interpolation.png
    :scale: 100 %

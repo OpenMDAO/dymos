@@ -20,7 +20,7 @@ be modified by setting the "n_parallel" option in their respective options dicti
 this model, we start with 3 cells and 3 motors. We will simulate failure of a cell or battery by
 setting "n_parallel" to 2.
 
-Branching phases are a set of linked phases in a trajectory where the inputs ends ofmultiple
+Branching phases are a set of linked phases in a trajectory where the input ends of multiple
 phases are connected to the output of a single phase.  This way you can simulate alternative
 trajectory paths in the same model. For this example, we will start with a single phase ("phase0")
 that simulates the model for one hour. Three follow-on phases will be linked to the output of the

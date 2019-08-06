@@ -64,7 +64,7 @@ constraint value to the optimizer.  Alternatively, the user can specify `defect_
 Controls and Design Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Typically, and ODE will have inputs that impact its values but, unlike states, don't define the
+Typically, an ODE will have inputs that impact its values but, unlike states, don't define the
 system itself.  Such inputs include things like throttle level, elevator deflection angle,
 or spring constants.
 
@@ -79,7 +79,7 @@ or the mass of a heatsink.  A design parameter can be declared using the phase m
 `add_design_parameter`.
 
 States are defined in the ODE.  Controls and design parameters, on the other hand, are optionally
-assigned to controllable parameters to the ODE.  Therefore, the method name to add a control to
+assigned to controllable parameters in the ODE.  Therefore, the method name to add a control to
 a phase is `add_control`. Valid options for controls and design parameters are as follows:
 
 .. embed-options::
