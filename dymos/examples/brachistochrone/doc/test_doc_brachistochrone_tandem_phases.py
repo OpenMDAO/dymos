@@ -15,10 +15,6 @@ from openmdao.utils.assert_utils import assert_rel_error
 plt.switch_backend('Agg')
 
 
-@dm.declare_time(units='s')
-@dm.declare_state('S', rate_source='Sdot', units='m')
-@dm.declare_parameter('v', targets='v', units='m/s')
-@dm.declare_parameter('theta', targets='theta', units='rad')
 class BrachistochroneArclengthODE(om.ExplicitComponent):
 
     def initialize(self):
@@ -108,14 +104,25 @@ class TestDocTandemPhases(unittest.TestCase):
 
         phase0.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase0.set_state_options('x', fix_initial=True, fix_final=False, solve_segments=False)
-        phase0.set_state_options('y', fix_initial=True, fix_final=False, solve_segments=False)
-        phase0.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.set_state_options('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                                 units=BrachistochroneODE.states['x']['units'],
+                                 fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase0.set_state_options('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                                 units=BrachistochroneODE.states['y']['units'],
+                                 fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase0.set_state_options('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                                 targets=BrachistochroneODE.states['v']['targets'],
+                                 units=BrachistochroneODE.states['v']['units'],
+                                 fix_initial=True, fix_final=False, solve_segments=False)
 
         phase0.add_control('theta', continuity=True, rate_continuity=True,
-                           units='deg', lower=0.1, upper=179.0)
+                           targets=BrachistochroneODE.parameters['theta']['targets'],
+                           units='deg', lower=0.01, upper=179.9)
 
-        phase0.add_input_parameter('g', units='m/s**2', val=9.80665)
+        phase0.add_input_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', val=9.80665)
 
         phase0.add_boundary_constraint('x', loc='final', equals=10)
         phase0.add_boundary_constraint('y', loc='final', equals=5)
@@ -133,10 +140,11 @@ class TestDocTandemPhases(unittest.TestCase):
 
         phase1.set_time_options(fix_initial=True, input_duration=True)
 
-        phase1.set_state_options('S', fix_initial=True, fix_final=False)
+        phase1.set_state_options('S', fix_initial=True, fix_final=False,
+                                 rate_source='Sdot', units='m')
 
-        phase1.add_control('theta', opt=False, units='deg')
-        phase1.add_control('v', opt=False, units='m/s')
+        phase1.add_control('theta', opt=False, units='deg', targets='theta')
+        phase1.add_control('v', opt=False, units='m/s', targets='v')
 
         #
         # Connect the two phases
