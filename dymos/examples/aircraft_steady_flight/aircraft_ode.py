@@ -1,7 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
 import openmdao.api as om
-import dymos as dm
 from dymos.models.atmosphere import USatm1976Comp
 
 from .steady_flight_path_angle_comp import SteadyFlightPathAngleComp
@@ -13,17 +12,6 @@ from .true_airspeed_comp import TrueAirspeedComp
 from .mass_comp import MassComp
 
 
-@dm.declare_time(units='s')
-@dm.declare_state('range', rate_source='range_rate_comp.dXdt:range', units='m')
-@dm.declare_state('mass_fuel', targets=['mass_comp.mass_fuel'],
-                  rate_source='propulsion.dXdt:mass_fuel', units='kg')
-@dm.declare_state('alt', targets=['atmos.h', 'aero.alt', 'propulsion.alt'],
-                  rate_source='climb_rate', units='m')
-@dm.declare_parameter('climb_rate', targets=['gam_comp.climb_rate'], units='m/s')
-@dm.declare_parameter('mach', targets=['tas_comp.mach', 'aero.mach'], units='m/s')
-@dm.declare_parameter('S', targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'], units='m**2')
-@dm.declare_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
-@dm.declare_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 class AircraftODE(om.Group):
 
     def initialize(self):
