@@ -48,7 +48,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         traj_p0 = traj.add_phase('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
-        traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False)
+        traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase: normal operation.
 
@@ -56,7 +57,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         traj_p1 = traj.add_phase('phase1', phase1)
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
-        traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+        traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
         traj_p1.add_objective('time', loc='final')
 
         # Second phase, but with battery failure.
@@ -66,7 +68,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
-        traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+        traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
+                                        targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase, but with motor failure.
 
@@ -75,7 +78,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
 
         traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
-        traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+        traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
+                                        targets=['SOC'], rate_source='dXdt:SOC')
 
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'])
         traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'])
@@ -128,7 +132,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
         traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False,
-                                  solve_segments=True)
+                                  solve_segments=True,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase: normal operation.
         phase1 = dm.Phase(ode_class=BatteryODE, transcription=transcription)
@@ -136,7 +141,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
-                                  solve_segments=True)
+                                  solve_segments=True,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
         traj_p1.add_objective('time', loc='final')
 
         # Second phase, but with battery failure.
@@ -146,7 +152,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
-                                        solve_segments=True)
+                                        solve_segments=True,
+                                        targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase, but with motor failure.
         phase1_mfail = dm.Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
@@ -155,7 +162,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
-                                        solve_segments=True)
+                                        solve_segments=True,
+                                        targets=['SOC'], rate_source='dXdt:SOC')
 
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'],
                          connected=True)
@@ -208,7 +216,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
         traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False,
-                                  solve_segments=True)
+                                  solve_segments=True,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
 
         prob.setup()
 
@@ -237,7 +246,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
         traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False,
-                                  solve_segments=True)
+                                  solve_segments=True,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase: normal operation.
         phase1 = dm.Phase(ode_class=BatteryODE, transcription=transcription)
@@ -245,7 +255,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
-                                  solve_segments=True)
+                                  solve_segments=True,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
         traj_p1.add_objective('time', loc='final')
 
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'],
@@ -294,14 +305,16 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         phase0 = dm.Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p0 = traj.add_phase('phase0', phase0)
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
-        traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False)
+        traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase: normal operation.
 
         phase1 = dm.Phase(ode_class=BatteryODE, transcription=transcription)
         traj_p1 = traj.add_phase('phase1', phase1)
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
-        traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+        traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
         traj_p1.add_objective('time', loc='final')
 
         # Second phase, but with battery failure.
@@ -309,7 +322,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
                                 transcription=transcription)
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
-        traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+        traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
+                                        targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase, but with motor failure.
 
@@ -317,7 +331,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
                                 transcription=transcription)
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
         traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
-        traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+        traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
+                                        targets=['SOC'], rate_source='dXdt:SOC')
 
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'],
                          connected=True)
@@ -389,7 +404,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         traj_p0 = traj.add_phase('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
-        traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False)
+        traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase: normal operation.
 
@@ -397,7 +413,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         traj_p1 = traj.add_phase('phase1', phase1)
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
-        traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+        traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
         traj_p1.add_objective('time', loc='final')
 
         # Second phase, but with battery failure.
@@ -407,7 +424,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
-        traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+        traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
+                                       targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase, but with motor failure.
 
@@ -416,7 +434,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
 
         traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
-        traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+        traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
+                                        targets=['SOC'], rate_source='dXdt:SOC')
 
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'])
         traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'])
@@ -465,7 +484,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         traj_p0 = prob.model.add_subsystem('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
-        traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False)
+        traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
 
         prob.setup()
 
@@ -509,7 +529,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         traj_p0 = traj.add_phase('phase0', phase0)
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
-        traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False)
+        traj_p0.set_state_options('state_of_charge', fix_initial=True, fix_final=False,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase: normal operation.
 
@@ -517,7 +538,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         traj_p1 = traj.add_phase('phase1', phase1)
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
-        traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+        traj_p1.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
+                                  targets=['SOC'], rate_source='dXdt:SOC')
         traj_p1.add_objective('time', loc='final')
 
         # Second phase, but with battery failure.
@@ -527,7 +549,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
 
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
-        traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+        traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
+                                        targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase, but with motor failure.
         phase1_mfail = dm.Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
@@ -535,7 +558,8 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
 
         traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
-        traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False)
+        traj_p1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
+                                        targets=['SOC'], rate_source='dXdt:SOC')
 
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'],
                          connected=True)

@@ -1,13 +1,9 @@
 from __future__ import print_function, division, absolute_import
 
-import os
 import unittest
 
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
-from dymos.utils.testing_utils import use_tempdirs
+plt.switch_backend('Agg')
 
 
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
@@ -47,10 +43,15 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
         ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100),
                                 duration_ref=100, units='s')
-        ascent.set_state_options('r', fix_initial=True, fix_final=False)
-        ascent.set_state_options('h', fix_initial=True, fix_final=False)
-        ascent.set_state_options('gam', fix_initial=False, fix_final=True)
-        ascent.set_state_options('v', fix_initial=False, fix_final=False)
+        ascent.set_state_options('r', units='m', rate_source='eom.r_dot',
+                                 fix_initial=True, fix_final=False)
+        ascent.set_state_options('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
+                                 fix_initial=True, fix_final=False)
+        ascent.set_state_options('gam', units='rad', rate_source='eom.gam_dot', targets=['eom.gam'],
+                                 fix_initial=False, fix_final=True)
+        ascent.set_state_options('v', units='m/s', rate_source='eom.v_dot',
+                                 targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'],
+                                 fix_initial=False, fix_final=False)
 
         # Limit the muzzle energy
         ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
@@ -65,27 +66,45 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         # All initial states and time are free (they will be linked to the final states of ascent.
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
-                                 duration_ref=100)
-        descent.set_state_options('r', fix_initial=False, fix_final=False)
-        descent.set_state_options('h', fix_initial=False, fix_final=True)
-        descent.set_state_options('gam', fix_initial=False, fix_final=False)
-        descent.set_state_options('v', fix_initial=False, fix_final=False)
+                                 duration_ref=100, units='s')
+        descent.set_state_options('r', units='m', rate_source='eom.r_dot',
+                                  fix_initial=False, fix_final=False)
+        descent.set_state_options('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
+                                  fix_initial=False, fix_final=True)
+        descent.set_state_options('gam', units='rad', rate_source='eom.gam_dot', targets=['eom.gam'],
+                                  fix_initial=False, fix_final=False)
+        descent.set_state_options('v', units='m/s', rate_source='eom.v_dot',
+                                  targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'],
+                                  fix_initial=False, fix_final=False)
 
         descent.add_objective('r', loc='final', scaler=-1.0)
 
         # Add internally-managed design parameters to the trajectory.
-        traj.add_design_parameter('CD', val=0.5, units=None, opt=False)
-        traj.add_design_parameter('CL', val=0.0, units=None, opt=False)
-        traj.add_design_parameter('T', val=0.0, units='N', opt=False)
-        traj.add_design_parameter('alpha', val=0.0, units='deg', opt=False)
+        traj.add_design_parameter('CD',
+                                  custom_targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
+                                  val=0.5, units=None, opt=False)
+        traj.add_design_parameter('CL',
+                                  custom_targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
+                                  val=0.0, units=None, opt=False)
+        traj.add_design_parameter('T',
+                                  custom_targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
+                                  val=0.0, units='N', opt=False)
+        traj.add_design_parameter('alpha',
+                                  custom_targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
+                                  val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         traj.add_input_parameter('mass',
-                                 custom_targets={'ascent': 'm', 'descent': 'm'},
                                  units='kg',
+                                 custom_targets={'ascent': ['eom.m', 'kinetic_energy.m'],
+                                                 'descent': ['eom.m', 'kinetic_energy.m']},
                                  val=1.0)
 
-        traj.add_input_parameter('S', val=0.005, units='m**2')
+        traj.add_input_parameter('S',
+                                 units='m**2',
+                                 custom_targets={'ascent': ['aero.S'],
+                                                 'descent': ['aero.S']},
+                                 val=0.005)
 
         # Link Phases (link time and all state variables)
         traj.link_phases(phases=['ascent', 'descent'], vars=['*'])
@@ -193,7 +212,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
             axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
             axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
 
-        params = ['CL', 'CD', 'T', 'alpha', 'm', 'S']
+        params = ['CL', 'CD', 'T', 'alpha', 'mass', 'S']
         fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
         for i, param in enumerate(params):
             p_imp = {

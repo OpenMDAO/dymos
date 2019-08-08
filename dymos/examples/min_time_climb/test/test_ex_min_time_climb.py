@@ -43,27 +43,32 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                            duration_ref=100.0)
 
     phase.set_state_options('r', fix_initial=True, lower=0, upper=1.0E6,
-                            ref=1.0E3, defect_ref=1.0E3, units='m')
+                            ref=1.0E3, defect_ref=1.0E3, units='m',
+                            rate_source='flight_dynamics.r_dot')
 
     phase.set_state_options('h', fix_initial=True, lower=0, upper=20000.0,
-                            ref=1.0E2, defect_ref=1.0E2, units='m')
+                            ref=1.0E2, defect_ref=1.0E2, units='m',
+                            rate_source='flight_dynamics.h_dot', targets=['h'])
 
     phase.set_state_options('v', fix_initial=True, lower=10.0,
-                            ref=1.0E2, defect_ref=1.0E2, units='m/s')
+                            ref=1.0E2, defect_ref=1.0E2, units='m/s',
+                            rate_source='flight_dynamics.v_dot', targets=['v'])
 
     phase.set_state_options('gam', fix_initial=True, lower=-1.5, upper=1.5,
-                            ref=1.0, defect_ref=1.0, units='rad')
+                            ref=1.0, defect_ref=1.0, units='rad',
+                            rate_source='flight_dynamics.gam_dot', targets=['gam'])
 
     phase.set_state_options('m', fix_initial=True, lower=10.0, upper=1.0E5,
-                            ref=1.0E3, defect_ref=1.0E3)
+                            ref=1.0E3, defect_ref=1.0E3, units='kg',
+                            rate_source='prop.m_dot', targets=['m'])
 
     phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
                       rate_continuity=True, rate_continuity_scaler=100.0,
-                      rate2_continuity=False)
+                      rate2_continuity=False, targets=['alpha'])
 
-    phase.add_design_parameter('S', val=49.2386, units='m**2', opt=False)
-    phase.add_design_parameter('Isp', val=1600.0, units='s', opt=False)
-    phase.add_design_parameter('throttle', val=1.0, opt=False)
+    phase.add_design_parameter('S', val=49.2386, units='m**2', opt=False, targets=['S'])
+    phase.add_design_parameter('Isp', val=1600.0, units='s', opt=False, targets=['Isp'])
+    phase.add_design_parameter('throttle', val=1.0, opt=False, targets=['throttle'])
 
     phase.add_boundary_constraint('h', loc='final', equals=20000, scaler=1.0E-3, units='m')
     phase.add_boundary_constraint('aero.mach', loc='final', equals=1.0)

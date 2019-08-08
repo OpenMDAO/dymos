@@ -12,9 +12,9 @@ from dymos.examples.battery_multibranch.batteries import Battery
 from dymos.examples.battery_multibranch.motors import Motors, MotorsStaticGearboxPower
 
 
-@dm.declare_time(units='s')
-@dm.declare_state('state_of_charge', targets=['SOC'], rate_source='dXdt:SOC')
-@dm.declare_parameter('P_demand', targets=['motors.power_out_gearbox'], dynamic=True)
+# @dm.declare_time(units='s')
+# @dm.declare_state('state_of_charge', targets=['SOC'], rate_source='dXdt:SOC')
+# @dm.declare_parameter('P_demand', targets=['motors.power_out_gearbox'], dynamic=True)
 class BatteryODE(om.Group):
 
     def initialize(self):
