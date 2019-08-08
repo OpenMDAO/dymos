@@ -12,6 +12,7 @@ except ImportError:
 import numpy as np
 
 import openmdao.api as om
+from openmdao.utils.mpi import MPI
 
 from ..utils.constants import INF_BOUND
 
@@ -510,8 +511,11 @@ class Trajectory(om.Group):
             subs = phases_group._static_subsystems_allprocs
         else:
             subs = phases_group._subsystems_allprocs
-        for s in subs:
-            s.linear_solver = om.DirectSolver()
+
+        # FIXME: the Directsolver gives us trouble when systems under phases run in parallel
+        if MPI is None or self.comm.size == 1:
+            for s in subs:
+                s.linear_solver = om.DirectSolver()
 
         if self._linkages:
             self._setup_linkages()

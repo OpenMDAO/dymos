@@ -25,7 +25,6 @@ class BrachComp(om.ExplicitComponent):
         self._setup_delay = setup_delay
         self._compute_delay = compute_delay
         self._comp_partials_delay = comp_partials_delay
-        print("Delay for setup/compute/compute_partials =", setup_delay, compute_delay, comp_partials_delay)
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -40,17 +39,11 @@ class BrachComp(om.ExplicitComponent):
 
         # Inputs
         self.add_input('v', val=np.zeros(nn), desc='velocity', units='m/s')
-
         self.add_input('g', val=9.80665 * np.ones(nn), desc='grav. acceleration', units='m/s/s')
-
         self.add_input('theta', val=np.zeros(nn), desc='angle of wire', units='rad')
-
         self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s')
-
         self.add_output('ydot', val=np.zeros(nn), desc='velocity component in y', units='m/s')
-
         self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2')
-
         self.add_output('check', val=np.zeros(nn), desc='check solution: v/sin(theta) = constant',
                         units='m/s')
 
@@ -208,18 +201,19 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.add_input_parameter('g', units='m/s**2', val=9.80665)
 
-    phase.add_timeseries('timeseries2',
-                         transcription=dm.Radau(num_segments=num_segments*5,
-                                                order=transcription_order,
-                                                compressed=compressed),
-                         subset='control_input')
+    # phase.add_timeseries('timeseries2',
+    #                      transcription=dm.Radau(num_segments=num_segments*5,
+    #                                             order=transcription_order,
+    #                                             compressed=compressed),
+    #                      subset='control_input')
 
     phase.add_boundary_constraint('x', loc='final', equals=10)
     phase.add_boundary_constraint('y', loc='final', equals=5)
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
 
-    p.model.linear_solver = om.DirectSolver()
+    # p.model.linear_solver = om.DirectSolver()
+
     p.setup(check=True)
 
     p['traj.phase0.t_initial'] = 0.0
@@ -256,9 +250,12 @@ if __name__ == "__main__":
         'comp_partials_delay': 1e-3,
     }
 
+    if int(os.environ.get('USE_WING', 0)):
+        import wingdbstub
+
     # num_nodes
     with profiling(profile + '_%d.out' % rank) if profile else do_nothing_context():
-        p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10,
+        p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=20,
                                      transcription_order=3,
                                      compressed=False, optimizer='SNOPT',
                                      ode=globals()[ode], ode_kwargs=kwargs)
