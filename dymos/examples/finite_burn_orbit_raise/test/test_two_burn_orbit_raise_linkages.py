@@ -72,8 +72,10 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10, units='TU')
 
-        # Moving set_state_options('theta'... after set_state_options('r',... causes the coloring to be invalid
-        coast.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0, units='rad', rate_source='theta_dot', targets=['theta'])
+        # TODO Moving set_state_options('theta'... after set_state_options('r',... causes the
+        # coloring to be invalid with scipy > 1.0.1
+        coast.set_state_options('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                                units='rad', rate_source='theta_dot', targets=['theta'])
         coast.set_state_options('r', fix_initial=False, fix_final=False, defect_scaler=100.0,
                                 rate_source='r_dot', targets=['r'], units='DU')
         coast.set_state_options('vr', fix_initial=False, fix_final=False, defect_scaler=100.0,
@@ -184,25 +186,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.set_val('traj.burn2.controls:u1',
                   value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
 
-        p.run_model()
-
-        print(p.get_val('traj.coast.rk_solve_group.ode.theta'))
-        print(p.get_val('traj.coast.rk_solve_group.ode.theta_dot'))
-        print(p.get_val('traj.coast.rk_solve_group.k_comp.f:theta'))
-        print(p.get_val('traj.coast.states:theta').T)
-        # exit(0)
-
-
         p.run_driver()
-
-        # p.run_model()
-
-
-        # theta = dict((phs, p.get_val('traj.{0}.timeseries.states:theta'.format(phs)))
-        #              for phs in ['burn1', 'coast', 'burn2'])
-        # for phs in ['burn1', 'coast', 'burn2']:
-        #     print(theta[phs].T)
-        # exit(0)
 
         assert_rel_error(self,
                          p.get_val('traj.burn2.timeseries.states:deltav')[-1],

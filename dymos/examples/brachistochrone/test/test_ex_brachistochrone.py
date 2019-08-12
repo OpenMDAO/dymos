@@ -93,4 +93,3 @@ class TestBrachistochroneExample(unittest.TestCase):
         self.tearDown()
         if os.path.exists('ex_brach_rk_uncompressed.db'):
             os.remove('ex_brach_rk_uncompressed.db')
-

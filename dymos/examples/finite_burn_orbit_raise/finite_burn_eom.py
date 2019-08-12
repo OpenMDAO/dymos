@@ -4,7 +4,6 @@ import numpy as np
 import openmdao.api as om
 import openmdao.utils.units as units
 
-import dymos as dm
 # Add canonical units to OpenMDAO
 MU_earth = 3.986592936294783e14
 R_earth = 6378137.0

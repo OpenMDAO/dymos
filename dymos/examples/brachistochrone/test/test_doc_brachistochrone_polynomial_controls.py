@@ -42,7 +42,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
                                      targets=BrachistochroneODE.parameters['theta']['targets'],)
 
         phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', opt=False, val=9.80665)
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)

@@ -40,7 +40,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', opt=False, val=9.80665)
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.
@@ -111,7 +111,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', opt=False, val=9.80665)
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.
@@ -183,7 +183,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', opt=False, val=9.80665)
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.
@@ -255,7 +255,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', opt=False, val=9.80665)
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.
@@ -327,7 +327,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', opt=False, val=9.80665)
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in RungeKuttaPhase,
         # so use nonlinear boundary constraints instead.
@@ -399,7 +399,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', opt=False, val=9.80665)
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.
@@ -471,7 +471,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', opt=False, val=9.80665)
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in RungeKuttaPhase,
         # so use nonlinear boundary constraints instead.
@@ -544,7 +544,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                                      units='deg', order=2, lower=0.01, upper=179.9)
         #
         phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', opt=False, val=9.80665)
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in RungeKuttaPhase,
         # so use nonlinear boundary constraints instead.
@@ -620,7 +620,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                                      units='deg', order=1, lower=0.01, upper=179.9)
         #
         phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', opt=False, val=9.80665)
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in RungeKuttaPhase,
         # so use nonlinear boundary constraints instead.
@@ -692,7 +692,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', opt=False, val=9.80665)
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.

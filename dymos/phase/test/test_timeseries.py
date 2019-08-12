@@ -24,14 +24,25 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True, fix_final=False)
+        phase.set_state_options('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                                units=BrachistochroneODE.states['x']['units'],
+                                fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_control('theta', continuity=True, rate_continuity=True,
-                          units='deg', lower=0.01, upper=179.9)
+        phase.set_state_options('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                                units=BrachistochroneODE.states['y']['units'],
+                                fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.set_state_options('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                                targets=BrachistochroneODE.states['v']['targets'],
+                                units=BrachistochroneODE.states['v']['units'],
+                                fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
+                          targets=BrachistochroneODE.parameters['theta']['targets'],
+                          units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   opt=True, units='m/s**2', val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)
@@ -99,14 +110,25 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True, fix_final=False)
+        phase.set_state_options('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                                units=BrachistochroneODE.states['x']['units'],
+                                fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_control('theta', continuity=True, rate_continuity=True,
-                          units='deg', lower=0.01, upper=179.9)
+        phase.set_state_options('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                                units=BrachistochroneODE.states['y']['units'],
+                                fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.set_state_options('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                                targets=BrachistochroneODE.states['v']['targets'],
+                                units=BrachistochroneODE.states['v']['units'],
+                                fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
+                          targets=BrachistochroneODE.parameters['theta']['targets'],
+                          units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   opt=True, units='m/s**2', val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)

@@ -131,8 +131,7 @@ class Phase(om.Group):
             The shape of the state variable.  For instance, a 3D cartesian position vector would have
             a shape of (3,).
         rate_source : str
-            The path to the ODE output which provides the rate of this state variable.  If given
-            this will override the value given by the @declare_state decorator on the ODE.
+            The path to the ODE output which provides the rate of this state variable.
         targets : str or Sequence of str
             The path to the targets of the state variable in the ODE system.  If given
             this will override the value given by the @declare_state decorator on the ODE.

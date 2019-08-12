@@ -425,7 +425,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
-                                       targets=['SOC'], rate_source='dXdt:SOC')
+                                        targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase, but with motor failure.
 

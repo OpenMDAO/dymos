@@ -2,20 +2,10 @@ from __future__ import print_function, division, absolute_import
 
 import openmdao.api as om
 
-import dymos as dm
 from .log_atmosphere_comp import LogAtmosphereComp
 from .launch_vehicle_2d_eom_comp import LaunchVehicle2DEOM
 
 
-@dm.declare_time(units='s')
-@dm.declare_state('x', rate_source='eom.xdot', units='m')
-@dm.declare_state('y', rate_source='eom.ydot', targets=['atmos.y'], units='m')
-@dm.declare_state('vx', rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
-@dm.declare_state('vy', rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
-@dm.declare_state('m', rate_source='eom.mdot', targets=['eom.m'], units='kg')
-@dm.declare_parameter('thrust', targets=['eom.thrust'], units='N')
-@dm.declare_parameter('theta', targets=['eom.theta'], units='rad')
-@dm.declare_parameter('Isp', targets=['eom.Isp'], units='s')
 class LaunchVehicleODE(om.Group):
 
     def initialize(self):

@@ -69,7 +69,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     if not fix_final:
         phase.add_boundary_constraint('pos', loc='final', units='m', shape=(2,), equals=[10, 5])
 
-
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', scaler=10)
 

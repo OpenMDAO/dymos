@@ -139,7 +139,6 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-
         phase.set_state_options('x', fix_initial=True, fix_final=True,
                                 rate_source=BrachistochroneODE.states['x']['rate_source'],
                                 units=BrachistochroneODE.states['x']['units'])
