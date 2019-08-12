@@ -344,7 +344,7 @@ class Trajectory(om.Group):
                     # If this is a state, and we are linking it, we need to do some checks.
                     if var in p2_states:
                         # Trajectory linkage modifies these options in connected states.
-                        p2.set_state_options(var, connected_initial=True)
+                        p2.add_state(var, connected_initial=True)
                     elif var == 'time':
                         p2.set_time_options(input_initial=True)
                 else:

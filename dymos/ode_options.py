@@ -123,7 +123,7 @@ class declare_state(object):
 
     def __call__(self, system_class):
         warnings.warn('Dymos ODE decorator declare_state for Dymos have been deprecated. '
-                      'Use the set_state_options method on phase to provide units, targets and '
+                      'Use the add_state method on phase to provide units, targets and '
                       'other options for the state variable.', DeprecationWarning)
 
         if not hasattr(system_class, 'ode_options'):

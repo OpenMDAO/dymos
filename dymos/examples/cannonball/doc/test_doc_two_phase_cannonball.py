@@ -43,15 +43,15 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
         ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100),
                                 duration_ref=100, units='s')
-        ascent.set_state_options('r', units='m', rate_source='eom.r_dot',
-                                 fix_initial=True, fix_final=False)
-        ascent.set_state_options('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
-                                 fix_initial=True, fix_final=False)
-        ascent.set_state_options('gam', units='rad', rate_source='eom.gam_dot', targets=['eom.gam'],
-                                 fix_initial=False, fix_final=True)
-        ascent.set_state_options('v', units='m/s', rate_source='eom.v_dot',
-                                 targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'],
-                                 fix_initial=False, fix_final=False)
+        ascent.add_state('r', units='m', rate_source='eom.r_dot',
+                         fix_initial=True, fix_final=False)
+        ascent.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
+                         fix_initial=True, fix_final=False)
+        ascent.add_state('gam', units='rad', rate_source='eom.gam_dot', targets=['eom.gam'],
+                         fix_initial=False, fix_final=True)
+        ascent.add_state('v', units='m/s', rate_source='eom.v_dot',
+                         targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'],
+                         fix_initial=False, fix_final=False)
 
         # Limit the muzzle energy
         ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
@@ -67,15 +67,15 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100, units='s')
-        descent.set_state_options('r', units='m', rate_source='eom.r_dot',
-                                  fix_initial=False, fix_final=False)
-        descent.set_state_options('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
-                                  fix_initial=False, fix_final=True)
-        descent.set_state_options('gam', units='rad', rate_source='eom.gam_dot', targets=['eom.gam'],
-                                  fix_initial=False, fix_final=False)
-        descent.set_state_options('v', units='m/s', rate_source='eom.v_dot',
-                                  targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'],
-                                  fix_initial=False, fix_final=False)
+        descent.add_state('r', units='m', rate_source='eom.r_dot',
+                          fix_initial=False, fix_final=False)
+        descent.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
+                          fix_initial=False, fix_final=True)
+        descent.add_state('gam', units='rad', rate_source='eom.gam_dot', targets=['eom.gam'],
+                          fix_initial=False, fix_final=False)
+        descent.add_state('v', units='m/s', rate_source='eom.v_dot',
+                          targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'],
+                          fix_initial=False, fix_final=False)
 
         descent.add_objective('r', loc='final', scaler=-1.0)
 

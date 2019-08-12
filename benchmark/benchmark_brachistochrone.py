@@ -37,9 +37,9 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-    phase.set_state_options('x', fix_initial=True, fix_final=False, solve_segments=False)
-    phase.set_state_options('y', fix_initial=True, fix_final=False, solve_segments=False)
-    phase.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=False)
+    phase.add_state('x', fix_initial=True, fix_final=False, solve_segments=False)
+    phase.add_state('y', fix_initial=True, fix_final=False, solve_segments=False)
+    phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=False)
 
     phase.add_control('theta', continuity=True, rate_continuity=True,
                       units='deg', lower=0.01, upper=179.9)

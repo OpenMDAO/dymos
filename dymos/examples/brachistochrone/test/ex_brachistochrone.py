@@ -39,16 +39,16 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-    phase.set_state_options('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                            units=BrachistochroneODE.states['x']['units'],
-                            fix_initial=True, fix_final=False, solve_segments=False)
-    phase.set_state_options('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                            units=BrachistochroneODE.states['y']['units'],
-                            fix_initial=True, fix_final=False, solve_segments=False)
-    phase.set_state_options('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                            targets=BrachistochroneODE.states['v']['targets'],
-                            units=BrachistochroneODE.states['v']['units'],
-                            fix_initial=True, fix_final=False, solve_segments=False)
+    phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                    units=BrachistochroneODE.states['x']['units'],
+                    fix_initial=True, fix_final=False, solve_segments=False)
+    phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                    units=BrachistochroneODE.states['y']['units'],
+                    fix_initial=True, fix_final=False, solve_segments=False)
+    phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                    targets=BrachistochroneODE.states['v']['targets'],
+                    units=BrachistochroneODE.states['v']['units'],
+                    fix_initial=True, fix_final=False, solve_segments=False)
 
     phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
                       continuity=True, rate_continuity=True,

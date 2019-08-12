@@ -43,17 +43,17 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 20))
 
-        phase.set_state_options('r', fix_initial=True, fix_final=False,
-                                scaler=0.001, defect_scaler=0.001)
+        phase.add_state('r', fix_initial=True, fix_final=False,
+                        scaler=0.001, defect_scaler=0.001)
 
-        phase.set_state_options('h', fix_initial=True, fix_final=True,  # Require final altitude
-                                scaler=0.001, defect_scaler=0.001)
+        phase.add_state('h', fix_initial=True, fix_final=True,  # Require final altitude
+                        scaler=0.001, defect_scaler=0.001)
 
-        phase.set_state_options('v', fix_initial=True, fix_final=False,
-                                scaler=0.01, defect_scaler=0.01)
+        phase.add_state('v', fix_initial=True, fix_final=False,
+                        scaler=0.01, defect_scaler=0.01)
 
-        phase.set_state_options('gam', fix_final=False,
-                                scaler=1.0, defect_scaler=1.0)
+        phase.add_state('gam', fix_final=False,
+                        scaler=1.0, defect_scaler=1.0)
 
         # Maximize final range by varying initial flight path angle
         phase.add_objective('r', loc='final', scaler=-0.01)

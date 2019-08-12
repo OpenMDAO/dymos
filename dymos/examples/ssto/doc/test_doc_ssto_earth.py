@@ -41,16 +41,16 @@ class TestDocSSTOEarth(unittest.TestCase):
         #
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 500))
 
-        phase.set_state_options('x', fix_initial=True, ref=1.0E5, defect_ref=1.0,
-                                rate_source='eom.xdot', units='m')
-        phase.set_state_options('y', fix_initial=True, ref=1.0E5, defect_ref=1.0,
-                                rate_source='eom.ydot', targets=['atmos.y'], units='m')
-        phase.set_state_options('vx', fix_initial=True, ref=1.0E3, defect_ref=1.0,
-                                rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
-        phase.set_state_options('vy', fix_initial=True, ref=1.0E3, defect_ref=1.0,
-                                rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
-        phase.set_state_options('m', fix_initial=True, ref=1.0E3, defect_ref=1.0,
-                                rate_source='eom.mdot', targets=['eom.m'], units='kg')
+        phase.add_state('x', fix_initial=True, ref=1.0E5, defect_ref=1.0,
+                        rate_source='eom.xdot', units='m')
+        phase.add_state('y', fix_initial=True, ref=1.0E5, defect_ref=1.0,
+                        rate_source='eom.ydot', targets=['atmos.y'], units='m')
+        phase.add_state('vx', fix_initial=True, ref=1.0E3, defect_ref=1.0,
+                        rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
+        phase.add_state('vy', fix_initial=True, ref=1.0E3, defect_ref=1.0,
+                        rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
+        phase.add_state('m', fix_initial=True, ref=1.0E3, defect_ref=1.0,
+                        rate_source='eom.mdot', targets=['eom.m'], units='kg')
 
         phase.add_control('theta', units='rad', lower=-1.57, upper=1.57, targets=['eom.theta'])
         phase.add_design_parameter('thrust', units='N', opt=False, val=2100000.0, targets=['eom.thrust'])

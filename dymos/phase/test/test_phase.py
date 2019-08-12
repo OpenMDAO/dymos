@@ -50,9 +50,9 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(4, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True, fix_final=False)
+        phase.add_state('x', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=False)
 
@@ -83,9 +83,9 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(4, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True, fix_final=False)
+        phase.add_state('x', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=False)
 
@@ -153,18 +153,18 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(4, 10))
 
-        phase.set_state_options('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                                units=BrachistochroneODE.states['x']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.set_state_options('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                                units=BrachistochroneODE.states['y']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.set_state_options('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                                targets=BrachistochroneODE.states['v']['targets'],
-                                units=BrachistochroneODE.states['v']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
                           continuity=True, rate_continuity=True, units='deg', lower=0.01, upper=179.9)
@@ -241,18 +241,18 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(4, 10))
 
-        phase.set_state_options('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                                units=BrachistochroneODE.states['x']['units'],
-                                fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.set_state_options('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                                units=BrachistochroneODE.states['y']['units'],
-                                fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.set_state_options('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                                targets=BrachistochroneODE.states['v']['targets'],
-                                units=BrachistochroneODE.states['v']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=False,
                           targets=BrachistochroneODE.parameters['theta']['targets'],
@@ -300,18 +300,18 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(4, 10))
 
-        phase.set_state_options('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                                units=BrachistochroneODE.states['x']['units'],
-                                fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.set_state_options('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                                units=BrachistochroneODE.states['y']['units'],
-                                fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.set_state_options('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                                targets=BrachistochroneODE.states['v']['targets'],
-                                units=BrachistochroneODE.states['v']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
                           targets=BrachistochroneODE.parameters['theta']['targets'],
@@ -353,18 +353,18 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(4, 10))
 
-        phase.set_state_options('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                                units=BrachistochroneODE.states['x']['units'],
-                                fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.set_state_options('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                                units=BrachistochroneODE.states['y']['units'],
-                                fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.set_state_options('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                                targets=BrachistochroneODE.states['v']['targets'],
-                                units=BrachistochroneODE.states['v']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
                           targets=BrachistochroneODE.parameters['theta']['targets'],
@@ -409,18 +409,18 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
 
-        phase.set_state_options('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                                units=BrachistochroneODE.states['x']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.set_state_options('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                                units=BrachistochroneODE.states['y']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.set_state_options('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                                targets=BrachistochroneODE.states['v']['targets'],
-                                units=BrachistochroneODE.states['v']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
                           units='deg', lower=0.01, upper=179.9)
@@ -467,18 +467,18 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                                units=BrachistochroneODE.states['x']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.set_state_options('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                                units=BrachistochroneODE.states['y']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.set_state_options('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                                targets=BrachistochroneODE.states['v']['targets'],
-                                units=BrachistochroneODE.states['v']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
                           continuity=True, rate_continuity=True, units='deg', lower=0.01, upper=179.9)
@@ -541,18 +541,18 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                                units=BrachistochroneODE.states['x']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.set_state_options('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                                units=BrachistochroneODE.states['y']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.set_state_options('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                                targets=BrachistochroneODE.states['v']['targets'],
-                                units=BrachistochroneODE.states['v']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
                           continuity=True, rate_continuity=True, rate2_continuity=True, units='deg',
@@ -613,18 +613,18 @@ class TestPhaseBase(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                                units=BrachistochroneODE.states['x']['units'],
-                                fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.set_state_options('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                                units=BrachistochroneODE.states['y']['units'],
-                                fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.set_state_options('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                                targets=BrachistochroneODE.states['v']['targets'],
-                                units=BrachistochroneODE.states['v']['units'],
-                                fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
                           continuity=True, rate_continuity=True, rate2_continuity=True, units='deg',

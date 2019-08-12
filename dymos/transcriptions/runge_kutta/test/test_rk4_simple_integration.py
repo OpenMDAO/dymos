@@ -20,7 +20,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
-        phase.set_state_options('y', fix_initial=True)
+        phase.add_state('y', fix_initial=True)
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
@@ -45,7 +45,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         traj.add_phase('phase0', phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
-        phase.set_state_options('y', fix_initial=False, connected_initial=True)
+        phase.add_state('y', fix_initial=False, connected_initial=True)
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
@@ -73,7 +73,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
-        phase.set_state_options('y', fix_initial=True, connected_initial=True)
+        phase.add_state('y', fix_initial=True, connected_initial=True)
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
@@ -91,7 +91,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
-        phase.set_state_options('y', fix_initial=True)
+        phase.add_state('y', fix_initial=True)
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
@@ -117,7 +117,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         p.model.add_subsystem('phase0', subsys=phase)
 
         phase.set_time_options(fix_initial=True, fix_duration=True)
-        phase.set_state_options('y', connected_initial=True)
+        phase.add_state('y', connected_initial=True)
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 

@@ -52,17 +52,17 @@ class TestAircraftCruise(unittest.TestCase):
                                duration_bounds=(3600, 3600),
                                duration_ref=3600)
 
-        phase.set_state_options('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
-                                rate_source='range_rate_comp.dXdt:range',
-                                defect_scaler=0.01)
-        phase.set_state_options('mass_fuel', units='kg', fix_final=True, upper=20000.0, lower=0.0,
-                                rate_source='propulsion.dXdt:mass_fuel',
-                                targets=['mass_comp.mass_fuel'],
-                                scaler=1.0E-4, defect_scaler=1.0E-2)
-        phase.set_state_options('alt',
-                                rate_source='climb_rate',
-                                targets=['atmos.h', 'aero.alt', 'propulsion.alt'],
-                                units='km', fix_initial=True)
+        phase.add_state('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
+                        rate_source='range_rate_comp.dXdt:range',
+                        defect_scaler=0.01)
+        phase.add_state('mass_fuel', units='kg', fix_final=True, upper=20000.0, lower=0.0,
+                        rate_source='propulsion.dXdt:mass_fuel',
+                        targets=['mass_comp.mass_fuel'],
+                        scaler=1.0E-4, defect_scaler=1.0E-2)
+        phase.add_state('alt',
+                        rate_source='climb_rate',
+                        targets=['atmos.h', 'aero.alt', 'propulsion.alt'],
+                        units='km', fix_initial=True)
 
         phase.add_control('mach',  targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
 
@@ -146,17 +146,17 @@ class TestAircraftCruise(unittest.TestCase):
                                duration_bounds=(3600, 3600),
                                duration_ref=3600)
 
-        phase.set_state_options('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
-                                rate_source='range_rate_comp.dXdt:range',
-                                defect_scaler=0.01)
-        phase.set_state_options('mass_fuel', units='kg', fix_final=True, upper=20000.0, lower=0.0,
-                                rate_source='propulsion.dXdt:mass_fuel',
-                                targets=['mass_comp.mass_fuel'],
-                                scaler=1.0E-4, defect_scaler=1.0E-2)
-        phase.set_state_options('alt',
-                                rate_source='climb_rate',
-                                targets=['atmos.h', 'aero.alt', 'propulsion.alt'],
-                                units='km', fix_initial=True)
+        phase.add_state('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
+                        rate_source='range_rate_comp.dXdt:range',
+                        defect_scaler=0.01)
+        phase.add_state('mass_fuel', units='kg', fix_final=True, upper=20000.0, lower=0.0,
+                        rate_source='propulsion.dXdt:mass_fuel',
+                        targets=['mass_comp.mass_fuel'],
+                        scaler=1.0E-4, defect_scaler=1.0E-2)
+        phase.add_state('alt',
+                        rate_source='climb_rate',
+                        targets=['atmos.h', 'aero.alt', 'propulsion.alt'],
+                        units='km', fix_initial=True)
 
         phase.add_control('mach',  targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
 

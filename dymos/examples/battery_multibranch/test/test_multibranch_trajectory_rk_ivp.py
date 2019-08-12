@@ -26,8 +26,8 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         phase0 = dm.Phase(ode_class=BatteryODE, transcription=dm.RungeKutta(num_segments=200))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
-        phase0.set_state_options('state_of_charge', fix_initial=True, fix_final=False,
-                                 targets=['SOC'], rate_source='dXdt:SOC')
+        phase0.add_state('state_of_charge', fix_initial=True, fix_final=False,
+                         targets=['SOC'], rate_source='dXdt:SOC')
         phase0.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
         phase0.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
         phase0.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
@@ -39,8 +39,8 @@ class TestBatteryRKIVP(unittest.TestCase):
         transcription = dm.Radau(num_segments=5, order=5, compressed=True)
         phase1 = dm.Phase(ode_class=BatteryODE, transcription=transcription)
         phase1.set_time_options(fix_initial=False, fix_duration=True)
-        phase1.set_state_options('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True,
-                                 targets=['SOC'], rate_source='dXdt:SOC')
+        phase1.add_state('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True,
+                         targets=['SOC'], rate_source='dXdt:SOC')
         phase1.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
         phase1.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
         phase1.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
@@ -52,8 +52,8 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1_bfail = dm.Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
                                 transcription=transcription)
         phase1_bfail.set_time_options(fix_initial=False, fix_duration=True)
-        phase1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True,
-                                       targets=['SOC'], rate_source='dXdt:SOC')
+        phase1_bfail.add_state('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True,
+                               targets=['SOC'], rate_source='dXdt:SOC')
         phase1_bfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
         phase1_bfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
         phase1_bfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
@@ -65,8 +65,8 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1_mfail = dm.Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
                                 transcription=transcription)
         phase1_mfail.set_time_options(fix_initial=False, fix_duration=True)
-        phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True,
-                                       targets=['SOC'], rate_source='dXdt:SOC')
+        phase1_mfail.add_state('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True,
+                               targets=['SOC'], rate_source='dXdt:SOC')
         phase1_mfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
         phase1_mfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
         phase1_mfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
@@ -173,8 +173,8 @@ class TestBatteryRKIVP(unittest.TestCase):
 
         phase0 = dm.Phase(ode_class=BatteryODE, transcription=dm.RungeKutta(num_segments=200))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
-        phase0.set_state_options('state_of_charge', fix_initial=True, fix_final=False,
-                                 targets=['SOC'], rate_source='dXdt:SOC')
+        phase0.add_state('state_of_charge', fix_initial=True, fix_final=False,
+                         targets=['SOC'], rate_source='dXdt:SOC')
         phase0.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
         phase0.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
         phase0.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
@@ -186,9 +186,9 @@ class TestBatteryRKIVP(unittest.TestCase):
         transcription = dm.Radau(num_segments=5, order=5, compressed=True)
         phase1 = dm.Phase(ode_class=BatteryODE, transcription=transcription)
         phase1.set_time_options(fix_initial=False, fix_duration=True)
-        phase1.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
-                                 solve_segments=True,
-                                 targets=['SOC'], rate_source='dXdt:SOC')
+        phase1.add_state('state_of_charge', fix_initial=False, fix_final=False,
+                         solve_segments=True,
+                         targets=['SOC'], rate_source='dXdt:SOC')
         phase1.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
         phase1.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
         phase1.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
@@ -200,9 +200,9 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1_bfail = dm.Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
                                 transcription=transcription)
         phase1_bfail.set_time_options(fix_initial=False, fix_duration=True)
-        phase1_bfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
-                                       solve_segments=True,
-                                       targets=['SOC'], rate_source='dXdt:SOC')
+        phase1_bfail.add_state('state_of_charge', fix_initial=False, fix_final=False,
+                               solve_segments=True,
+                               targets=['SOC'], rate_source='dXdt:SOC')
         phase1_bfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
         phase1_bfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
         phase1_bfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
@@ -214,9 +214,9 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1_mfail = dm.Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
                                 transcription=transcription)
         phase1_mfail.set_time_options(fix_initial=False, fix_duration=True)
-        phase1_mfail.set_state_options('state_of_charge', fix_initial=False, fix_final=False,
-                                       solve_segments=True,
-                                       targets=['SOC'], rate_source='dXdt:SOC')
+        phase1_mfail.add_state('state_of_charge', fix_initial=False, fix_final=False,
+                               solve_segments=True,
+                               targets=['SOC'], rate_source='dXdt:SOC')
         phase1_mfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
         phase1_mfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
         phase1_mfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
