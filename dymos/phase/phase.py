@@ -285,6 +285,10 @@ class Phase(om.Group):
             If True, then the initial value for this state comes from an externally connected
             source.
         """
+        warnings.warn('Phase method set_state_options for Dymos has been deprecated. '
+                      'Use the add_state method on phase to provide units, targets and '
+                      'other options for the state variable.', DeprecationWarning)
+
         self.add_state(name=name, units=units, shape=shape, rate_source=rate_source, targets=targets,
                        val=val, fix_initial=fix_initial, fix_final=fix_final, lower=lower,
                        upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
