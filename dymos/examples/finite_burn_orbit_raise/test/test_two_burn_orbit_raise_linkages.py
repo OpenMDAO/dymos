@@ -30,9 +30,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.driver = om.pyOptSparseDriver()
         _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
         p.driver.options['optimizer'] = optimizer
-        p.driver.opt_settings['iSumm'] = 6
-        p.driver.opt_settings['Major iterations limit'] = 500
-        p.driver.opt_settings['Verify level'] = 3
 
         p.driver.declare_coloring()
 
