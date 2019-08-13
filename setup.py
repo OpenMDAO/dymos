@@ -23,7 +23,7 @@ setup(name='dymos',
     license='Apache License',
     packages=find_packages(),
     install_requires=[
-        'openmdao>=2.3.0',
+        'openmdao>=2.8.0',
         'numpy>=1.14.1',
         'scipy>=1.0.0',
         'six',

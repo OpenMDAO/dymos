@@ -3,9 +3,8 @@ from __future__ import print_function, absolute_import, division
 import os
 import unittest
 
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+plt.switch_backend('Agg')
 plt.style.use('ggplot')
 
 
@@ -55,21 +54,35 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
                                duration_bounds=(300, 10000),
                                duration_ref=5600)
 
-        phase.set_state_options('range', units='NM', fix_initial=True, fix_final=False, ref=1e-3,
-                                defect_ref=1e-3, lower=0, upper=2000)
-        phase.set_state_options('mass_fuel', units='lbm', fix_initial=True, fix_final=True,
-                                upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2)
-        phase.set_state_options('alt', units='kft', fix_initial=True, fix_final=True,
-                                lower=0.0, upper=60, ref=1e-3, defect_ref=1e-3)
+        phase.add_state('range', units='NM',
+                        rate_source='range_rate_comp.dXdt:range',
+                        fix_initial=True, fix_final=False, ref=1e-3,
+                        defect_ref=1e-3, lower=0, upper=2000)
+
+        phase.add_state('mass_fuel', units='lbm',
+                        rate_source='propulsion.dXdt:mass_fuel',
+                        targets=['mass_comp.mass_fuel'],
+                        fix_initial=True, fix_final=True,
+                        upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2)
+
+        phase.add_state('alt', units='kft',
+                        rate_source='climb_rate',
+                        targets=['atmos.h', 'aero.alt', 'propulsion.alt'],
+                        fix_initial=True, fix_final=True,
+                        lower=0.0, upper=60, ref=1e-3, defect_ref=1e-3)
 
         phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
+                          targets=['gam_comp.climb_rate'],
                           rate_continuity=True, rate2_continuity=False)
 
-        phase.add_control('mach', units=None, opt=False)
+        phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
 
-        phase.add_input_parameter('S', units='m**2')
-        phase.add_input_parameter('mass_empty', units='kg')
-        phase.add_input_parameter('mass_payload', units='kg')
+        phase.add_input_parameter('S',
+                                  targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
+                                  units='m**2')
+
+        phase.add_input_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
+        phase.add_input_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0, shape=(1,))
 

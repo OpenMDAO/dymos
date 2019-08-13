@@ -22,14 +22,25 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', units='deg', lower=0.01, upper=179.9, ref0=0, ref=180.0,
-                          rate_continuity=True, rate2_continuity=True)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+                          continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.
@@ -37,7 +48,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         phase.add_boundary_constraint('y', loc='final', equals=5)
 
         # Minimize time at the end of the phase
-        phase.add_objective('time_phase', loc='final', scaler=1)
+        phase.add_objective('time_phase', loc='final', scaler=10)
 
         p.model.linear_solver = om.DirectSolver()
 
@@ -82,14 +93,25 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(-2.0, -0.5))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=False)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', units='deg', lower=0.01, upper=179.9, ref0=0, ref=180.0,
-                          rate_continuity=True, rate2_continuity=True)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=False, fix_final=False, solve_segments=False)
+
+        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+                          continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.
@@ -98,7 +120,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         phase.add_boundary_constraint('v', loc='final', equals=0)
 
         # Minimize time at the end of the phase
-        phase.add_objective('time', loc='final', scaler=-1)
+        phase.add_objective('time', loc='final', scaler=-10)
 
         p.model.linear_solver = om.DirectSolver()
 
@@ -110,7 +132,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p['phase0.states:x'] = 10
         p['phase0.states:y'] = 5
         p['phase0.states:v'] = 10
-        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[100.5, 5], nodes='control_input')
 
         # Solve for the optimal trajectory
         p.run_driver()
@@ -143,14 +165,25 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', units='deg', lower=0.01, upper=179.9, ref0=0, ref=180.0,
-                          rate_continuity=True, rate2_continuity=True)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+                          continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.
@@ -204,14 +237,25 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', units='deg', lower=0.01, upper=179.9, ref0=0, ref=180.0,
-                          rate_continuity=True, rate2_continuity=True)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+                          continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.
@@ -265,14 +309,25 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', units='deg', lower=0.01, upper=179.9, ref0=0, ref=180.0,
-                          rate_continuity=True, rate2_continuity=True)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+                          continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in RungeKuttaPhase,
         # so use nonlinear boundary constraints instead.
@@ -326,14 +381,25 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', units='deg', lower=0.01, upper=179.9, ref0=0, ref=180.0,
-                          rate_continuity=True, rate2_continuity=True)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+                          continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.
@@ -387,14 +453,25 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', units='deg', lower=0.01, upper=179.9, ref0=0, ref=180.0,
-                          rate_continuity=True, rate2_continuity=True)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+                          continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in RungeKuttaPhase,
         # so use nonlinear boundary constraints instead.
@@ -450,12 +527,24 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_polynomial_control('theta', order=2, units='deg', lower=0.01, upper=179.9)
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_polynomial_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+                                     units='deg', order=2, lower=0.01, upper=179.9)
+        #
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in RungeKuttaPhase,
         # so use nonlinear boundary constraints instead.
@@ -514,12 +603,24 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_polynomial_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+                                     units='deg', order=1, lower=0.01, upper=179.9)
+        #
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in RungeKuttaPhase,
         # so use nonlinear boundary constraints instead.
@@ -573,14 +674,25 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(0.5, 2.0))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', units='deg', lower=0.01, upper=179.9, ref0=0, ref=180.0,
-                          rate_continuity=True, rate2_continuity=True)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+                          continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Final state values can't be controlled with simple bounds in ExplicitPhase,
         # so use nonlinear boundary constraints instead.
@@ -591,7 +703,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         phase.add_path_constraint('time_phase', lower=0.0, upper=2.0)
 
         # Minimize time at the end of the phase
-        phase.add_objective('time_phase', loc='final', scaler=1)
+        phase.add_objective('time_phase', loc='final', scaler=10)
 
         p.model.linear_solver = om.DirectSolver()
 

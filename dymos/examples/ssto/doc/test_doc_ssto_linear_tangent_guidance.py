@@ -243,11 +243,11 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 1000))
 
-        phase.set_state_options('x', fix_initial=True, lower=0)
-        phase.set_state_options('y', fix_initial=True, lower=0)
-        phase.set_state_options('vx', fix_initial=True, lower=0)
-        phase.set_state_options('vy', fix_initial=True)
-        phase.set_state_options('m', fix_initial=True)
+        phase.add_state('x', fix_initial=True, lower=0)
+        phase.add_state('y', fix_initial=True, lower=0)
+        phase.add_state('vx', fix_initial=True, lower=0)
+        phase.add_state('vy', fix_initial=True)
+        phase.add_state('m', fix_initial=True)
 
         phase.add_boundary_constraint('y', loc='final', equals=1.85E5, linear=True)
         phase.add_boundary_constraint('vx', loc='final', equals=1627.0)

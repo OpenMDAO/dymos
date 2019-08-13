@@ -25,15 +25,24 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
+
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
         phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
-                                     targets='theta')
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665, targets='g')
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -111,14 +120,24 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -196,14 +215,24 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -286,17 +315,27 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=3, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_boundary_constraint('theta', loc='initial', units='deg', equals=1.0)
-        phase.add_boundary_constraint('theta', loc='final', units='deg', equals=100.)
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
+
+        phase.add_boundary_constraint('theta', loc='initial', units='deg', lower=0, upper=1.0)
+        phase.add_boundary_constraint('theta', loc='final', units='deg', lower=100, upper=105.)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -373,17 +412,27 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=2, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_boundary_constraint('theta', loc='initial', units='deg', equals=1.0)
-        phase.add_boundary_constraint('theta', loc='final', units='deg', equals=100.)
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
+
+        phase.add_boundary_constraint('theta', loc='initial', units='deg', lower=0, upper=1.0)
+        phase.add_boundary_constraint('theta', loc='final', units='deg', lower=100, upper=105.)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -441,10 +490,8 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         plt.show()
 
     def test_brachistochrone_polynomial_control_rungekutta(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
+        plt.switch_backend('Agg')
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
@@ -461,17 +508,27 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=2, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_boundary_constraint('theta', loc='initial', units='deg', equals=1.0)
-        phase.add_boundary_constraint('theta', loc='final', units='deg', equals=100.)
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
+
+        phase.add_boundary_constraint('theta', loc='initial', units='deg', lower=0, upper=1.0)
+        phase.add_boundary_constraint('theta', loc='final', units='deg', lower=50, upper=105.)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -535,9 +592,8 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
-        import matplotlib
-        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
+        plt.switch_backend('Agg')
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
@@ -554,16 +610,26 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=3, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_path_constraint('theta', units='deg', lower=5, upper=120)
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
+
+        phase.add_path_constraint('theta', units='deg', lower=0, upper=120)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -621,10 +687,8 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         plt.show()
 
     def test_brachistochrone_polynomial_control_radau(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
+        plt.switch_backend('Agg')
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
@@ -641,16 +705,26 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=2, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_path_constraint('theta', units='deg', lower=5, upper=120)
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
+
+        phase.add_path_constraint('theta', units='deg', lower=1, upper=120)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -708,10 +782,8 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         plt.show()
 
     def test_brachistochrone_polynomial_control_rungekutta(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
+        plt.switch_backend('Agg')
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
@@ -728,16 +800,26 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=2, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_path_constraint('theta', units='deg', lower=5, upper=120)
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
+
+        phase.add_path_constraint('theta', units='deg', lower=0, upper=120)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -821,14 +903,24 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=3, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         phase.add_path_constraint('theta_rate', units='deg/s', lower=0, upper=120)
 
@@ -908,14 +1000,24 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=2, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         phase.add_path_constraint('theta_rate', units='deg/s', lower=0, upper=120)
 
@@ -995,14 +1097,24 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=2, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         phase.add_path_constraint('theta_rate', units='deg/s', lower=0, upper=120)
 
@@ -1088,14 +1200,24 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=2, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         phase.add_path_constraint('theta_rate2', units='deg/s**2', lower=-0.01, upper=0.01)
 
@@ -1175,14 +1297,24 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=2, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         phase.add_path_constraint('theta_rate2', units='deg/s**2', lower=-0.01, upper=0.01)
 
@@ -1242,10 +1374,8 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         plt.show()
 
     def test_brachistochrone_polynomial_control_rungekutta(self):
-        import numpy as np
-        import matplotlib
-        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
+        plt.switch_backend('Agg')
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
@@ -1262,14 +1392,24 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=2, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         phase.add_path_constraint('theta_rate2', units='deg/s**2', lower=-0.01, upper=0.01)
 
@@ -1351,13 +1491,24 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -1406,14 +1557,24 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False, solve_segments=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -1462,14 +1623,24 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'],
+                        fix_initial=True, fix_final=False)
 
-        # phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
+        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'],
+                        fix_initial=True, fix_final=False)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'],
+                        fix_initial=True, fix_final=False)
+
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
+                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+
+        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)

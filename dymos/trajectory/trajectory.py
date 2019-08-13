@@ -239,9 +239,6 @@ class Trajectory(om.Group):
 
             for name, options in iteritems(self.input_parameter_options):
 
-                # Connect the input parameter to its target(s) in each phase
-                src_name = 'input_parameters:{0}_out'.format(name)
-
                 for phase_name, phs in iteritems(self._phases):
                     # The default target in the phase is name unless otherwise specified.
                     kwargs = {'dynamic': options['dynamic'],
@@ -261,8 +258,6 @@ class Trajectory(om.Group):
                                 kwargs['targets'] = options['custom_targets'][phase_name]
 
                     phs.add_traj_parameter(param_name, **kwargs)
-                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, param_name)
-                    self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_design_parameters(self):
         """
@@ -291,9 +286,6 @@ class Trajectory(om.Group):
                                  shape=(1, np.prod(options['shape'])),
                                  units=options['units'])
 
-                # Connect the design parameter to its target in each phase
-                src_name = 'design_parameters:{0}'.format(name)
-
                 for phase_name, phs in iteritems(self._phases):
                     # The default target in the phase is name unless otherwise specified.
                     kwargs = {'dynamic': options['dynamic'],
@@ -313,13 +305,9 @@ class Trajectory(om.Group):
                                 kwargs['targets'] = options['custom_targets'][phase_name]
 
                     phs.add_traj_parameter(param_name, **kwargs)
-                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, param_name)
-                    self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_linkages(self):
         link_comp = None
-
-        print('--- Linkage Report [{0}] ---'.format(self.pathname))
 
         for pair, vars in iteritems(self._linkages):
             phase_name1, phase_name2 = pair
@@ -332,7 +320,155 @@ class Trajectory(om.Group):
             p1 = self._phases[phase_name1]
             p2 = self._phases[phase_name2]
 
-            print('  ', phase_name1, '   ', phase_name2)
+            p1_states = set([key for key in p1.state_options])
+            p2_states = set([key for key in p2.state_options])
+
+            p1_controls = set([key for key in p1.control_options])
+
+            # Dict of vars that expands '*' to include time and states
+            _vars = {}
+            for var in sorted(vars.keys()):
+                if var == '*':
+                    _vars['time'] = vars[var].copy()
+                    for state in p2_states:
+                        _vars[state] = vars[var].copy()
+                else:
+                    _vars[var] = vars[var].copy()
+
+            units_map = {}
+            shape_map = {}
+            vars_to_constrain = []
+
+            for var, options in iteritems(_vars):
+                if options['connected']:
+                    # If this is a state, and we are linking it, we need to do some checks.
+                    if var in p2_states:
+                        # Trajectory linkage modifies these options in connected states.
+                        p2.add_state(var, connected_initial=True)
+                    elif var == 'time':
+                        p2.set_time_options(input_initial=True)
+                else:
+                    vars_to_constrain.append(var)
+                    if var in p1_states:
+                        units_map[var] = p1.state_options[var]['units']
+                        shape_map[var] = p1.state_options[var]['shape']
+                    elif var in p1_controls:
+                        units_map[var] = p1.control_options[var]['units']
+                        shape_map[var] = p1.control_options[var]['shape']
+                    elif var == 'time':
+                        units_map[var] = p1.time_options['units']
+                        shape_map[var] = (1,)
+                    else:
+                        units_map[var] = None
+                        shape_map[var] = (1,)
+
+            if vars_to_constrain:
+                if not link_comp:
+                    link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
+
+                linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
+                link_comp.add_linkage(name=linkage_name,
+                                      vars=vars_to_constrain,
+                                      shape=shape_map,
+                                      units=units_map)
+
+    def setup(self):
+        """
+        Setup the Trajectory Group.
+        """
+        super(Trajectory, self).setup()
+
+        if self.design_parameter_options:
+            self._setup_design_parameters()
+
+        if self.input_parameter_options:
+            self._setup_input_parameters()
+
+        phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup(), promotes_inputs=['*'],
+                                          promotes_outputs=['*'])
+
+        for name, phs in iteritems(self._phases):
+            g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
+            # DirectSolvers were moved down into the phases for use with MPI
+            g.linear_solver = om.DirectSolver()
+
+            phs.finalize_variables()
+
+        if self._linkages:
+            self._setup_linkages()
+
+    def _configure_design_parameters(self):
+        for name, options in iteritems(self.design_parameter_options):
+
+            # Connect the design parameter to its target in each phase
+            src_name = 'design_parameters:{0}'.format(name)
+
+            for phase_name, phs in iteritems(self._phases):
+                # The default target in the phase is name unless otherwise specified.
+                kwargs = {'dynamic': options['dynamic'],
+                          'units': options['units'],
+                          'val': options['val']}
+
+                param_name = name
+
+                if 'custom_targets' in options and options['custom_targets'] is not None:
+                    # Dont add the traj parameter to the phase if it is explicitly excluded.
+                    if phase_name in options['custom_targets']:
+                        if options['custom_targets'][phase_name] is None:
+                            continue
+                        if isinstance(options['custom_targets'][phase_name], string_types):
+                            param_name = options['custom_targets'][phase_name]
+                        elif isinstance(options['custom_targets'][phase_name], Iterable):
+                            kwargs['targets'] = options['custom_targets'][phase_name]
+
+                tgt = '{0}.traj_parameters:{1}'.format(phase_name, param_name)
+                self.connect(src_name=src_name, tgt_name=tgt)
+
+    def _configure_input_parameters(self):
+            for name, options in iteritems(self.input_parameter_options):
+
+                # Connect the input parameter to its target(s) in each phase
+                src_name = 'input_parameters:{0}_out'.format(name)
+
+                for phase_name, phs in iteritems(self._phases):
+                    # The default target in the phase is name unless otherwise specified.
+                    kwargs = {'dynamic': options['dynamic'],
+                              'units': options['units'],
+                              'val': options['val']}
+
+                    param_name = name
+
+                    if 'custom_targets' in options and options['custom_targets'] is not None:
+                        # Dont add the traj parameter to the phase if it is explicitly excluded.
+                        if phase_name in options['custom_targets']:
+                            if options['custom_targets'][phase_name] is None:
+                                continue
+                            if isinstance(options['custom_targets'][phase_name], string_types):
+                                param_name = options['custom_targets'][phase_name]
+                            elif isinstance(options['custom_targets'][phase_name], Iterable):
+                                kwargs['targets'] = options['custom_targets'][phase_name]
+
+                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, param_name)
+                    self.connect(src_name=src_name, tgt_name=tgt)
+
+    def _configure_linkages(self):
+
+        print('--- Linkage Report [{0}] ---'.format(self.pathname))
+
+        indent = '    '
+
+        for pair, vars in iteritems(self._linkages):
+            phase_name1, phase_name2 = pair
+
+            for name in pair:
+                if name not in self._phases:
+                    raise ValueError('Invalid linkage.  Phase \'{0}\' does not exist in '
+                                     'trajectory \'{1}\'.'.format(name, self.pathname))
+
+            p1 = self._phases[phase_name1]
+            p2 = self._phases[phase_name2]
+
+            print(indent * 1, phase_name1, '    ', phase_name2)
 
             p1_states = set([key for key in p1.state_options])
             p2_states = set([key for key in p2.state_options])
@@ -363,14 +499,7 @@ class Trajectory(om.Group):
             vars_to_constrain = []
 
             for var, options in iteritems(_vars):
-                if options['connected']:
-                    # If this is a state, and we are linking it, we need to do some checks.
-                    if var in p2_states:
-                        # Trajectory linkage modifies these options in connected states.
-                        p2.set_state_options(var, connected_initial=True)
-                    elif var == 'time':
-                        p2.set_time_options(input_initial=True)
-                else:
+                if not options['connected']:
                     vars_to_constrain.append(var)
                     if var in p1_states:
                         units_map[var] = p1.state_options[var]['units']
@@ -386,14 +515,8 @@ class Trajectory(om.Group):
                         shape_map[var] = (1,)
 
             if vars_to_constrain:
-                if not link_comp:
-                    link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
 
                 linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
-                link_comp.add_linkage(name=linkage_name,
-                                      vars=vars_to_constrain,
-                                      shape=shape_map,
-                                      units=units_map)
 
             for var, options in iteritems(_vars):
                 loc1, loc2 = options['locs']
@@ -429,21 +552,17 @@ class Trajectory(om.Group):
                                      'may be linked via link_phases.'.format(var, pair[1]))
 
                 if options['connected']:
-
                     if var == 'time':
                         src = '{0}.{1}'.format(phase_name1, source1)
                         path = 't_initial'
                         self.connect(src, '{0}.{1}'.format(phase_name2, path))
-
                     else:
                         path = 'initial_states:{0}'.format(var)
-
                         self.connect('{0}.{1}'.format(phase_name1, source1),
                                      '{0}.{1}'.format(phase_name2, path))
-
-                    print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
-                                                                  max_varname_length + 9))
-
+                    print('{3}{0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
+                                                              max_varname_length + 9,
+                                                              indent*2))
                 else:
 
                     self.connect('{0}.{1}'.format(phase_name1, source1),
@@ -452,35 +571,26 @@ class Trajectory(om.Group):
                     self.connect('{0}.{1}'.format(phase_name2, source2),
                                  'linkages.{0}_{1}:rhs'.format(linkage_name, var))
 
-                    print('       {0:<{2}s} = {1:<{2}s}'.format(source1, source2,
-                                                                max_varname_length + 9))
+                    print('{3}{0:<{2}s}  =  {1:<{2}s}'.format(source1, source2,
+                                                              max_varname_length + 9,
+                                                              indent*2))
 
         print('----------------------------')
 
-    def setup(self):
+    def configure(self):
         """
-        Setup the Trajectory Group.
-        """
-        super(Trajectory, self).setup()
+        Configure the Trajectory Group.
 
+        This method is used to handle connections to the phases in the Trajectory, since
+        setup has already been called on all children of the Trajectory, we can query them for
+        variables at this point.
+        """
         if self.design_parameter_options:
-            self._setup_design_parameters()
-
+            self._configure_design_parameters()
         if self.input_parameter_options:
-            self._setup_input_parameters()
-
-        phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup(), promotes_inputs=['*'],
-                                          promotes_outputs=['*'])
-
-        for name, phs in iteritems(self._phases):
-            g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
-            # DirectSolvers were moved down into the phases for use with MPI
-            g.linear_solver = om.DirectSolver()
-
-            phs.finalize_variables()
-
+            self._configure_input_parameters()
         if self._linkages:
-            self._setup_linkages()
+            self._configure_linkages()
 
     def link_phases(self, phases, vars=None, locs=('++', '--'), connected=False):
         """

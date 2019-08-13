@@ -182,14 +182,14 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         # Set the state options.  We include rate_source, units, and targets here since the ODE
         # is not decorated with their default values.
         #
-        phase.set_state_options('x', fix_initial=True, lower=0, rate_source='eom.xdot', units='m')
-        phase.set_state_options('y', fix_initial=True, lower=0, rate_source='eom.ydot', units='m')
-        phase.set_state_options('vx', fix_initial=True, lower=0, rate_source='eom.vxdot',
-                                units='m/s', targets=['eom.vx'])
-        phase.set_state_options('vy', fix_initial=True, rate_source='eom.vydot',
-                                units='m/s', targets=['eom.vy'])
-        phase.set_state_options('m', fix_initial=True, rate_source='eom.mdot',
-                                units='kg', targets=['eom.m'])
+        phase.add_state('x', fix_initial=True, lower=0, rate_source='eom.xdot', units='m')
+        phase.add_state('y', fix_initial=True, lower=0, rate_source='eom.ydot', units='m')
+        phase.add_state('vx', fix_initial=True, lower=0, rate_source='eom.vxdot',
+                        units='m/s', targets=['eom.vx'])
+        phase.add_state('vy', fix_initial=True, rate_source='eom.vydot',
+                        units='m/s', targets=['eom.vy'])
+        phase.add_state('m', fix_initial=True, rate_source='eom.mdot',
+                        units='kg', targets=['eom.m'])
 
         #
         # The tangent of theta is modeled as a linear polynomial over the duration of the phase.

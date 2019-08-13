@@ -31,13 +31,24 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', fix_initial=True, fix_final=True,
+                        rate_source=BrachistochroneODE.states['x']['rate_source'],
+                        units=BrachistochroneODE.states['x']['units'])
+        phase.add_state('y', fix_initial=True, fix_final=True,
+                        rate_source=BrachistochroneODE.states['y']['rate_source'],
+                        units=BrachistochroneODE.states['y']['units'])
+        phase.add_state('v', fix_initial=True,
+                        rate_source=BrachistochroneODE.states['v']['rate_source'],
+                        targets=BrachistochroneODE.states['v']['targets'],
+                        units=BrachistochroneODE.states['v']['units'])
 
-        phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg',
+                          targets=BrachistochroneODE.parameters['theta']['targets'],
+                          rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_design_parameter('g',
+                                   targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
