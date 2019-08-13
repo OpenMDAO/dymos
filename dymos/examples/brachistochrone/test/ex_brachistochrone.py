@@ -13,7 +13,7 @@ SHOW_PLOTS = True
 
 
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-                             run_driver=True, compressed=True, optimizer='SLSQP'):
+                             compressed=True, optimizer='SLSQP'):
     p = om.Problem(model=om.Group())
 
     p.driver = om.pyOptSparseDriver()
@@ -39,14 +39,23 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-    phase.set_state_options('x', fix_initial=True, fix_final=False, solve_segments=False)
-    phase.set_state_options('y', fix_initial=True, fix_final=False, solve_segments=False)
-    phase.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=False)
+    phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                    units=BrachistochroneODE.states['x']['units'],
+                    fix_initial=True, fix_final=False, solve_segments=False)
+    phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                    units=BrachistochroneODE.states['y']['units'],
+                    fix_initial=True, fix_final=False, solve_segments=False)
+    phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                    targets=BrachistochroneODE.states['v']['targets'],
+                    units=BrachistochroneODE.states['v']['units'],
+                    fix_initial=True, fix_final=False, solve_segments=False)
 
-    phase.add_control('theta', continuity=True, rate_continuity=True,
+    phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+                      continuity=True, rate_continuity=True,
                       units='deg', lower=0.01, upper=179.9)
 
-    phase.add_input_parameter('g', units='m/s**2', val=9.80665)
+    phase.add_input_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                              units='m/s**2', val=9.80665)
 
     phase.add_timeseries('timeseries2',
                          transcription=dm.Radau(num_segments=num_segments*5,
@@ -117,7 +126,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 
 if __name__ == '__main__':
-    brachistochrone_min_time(transcription='gauss-lobatto', num_segments=10, run_driver=True,
+    brachistochrone_min_time(transcription='runge-kutta', num_segments=50,
                              transcription_order=3, compressed=True,
                              optimizer='SNOPT')
     # brachistochrone_min_time(transcription='radau-ps', num_segments=10, run_driver=True,

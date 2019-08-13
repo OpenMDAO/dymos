@@ -72,7 +72,7 @@ The following time options can be set via the `set_time_options` method of Phase
 States
 ^^^^^^
 
-States have the following options set via the `set_state_options` method of Phase:
+States have the following options set via the `add_state` method of Phase:
 
 .. embed-options::
     dymos.phase.options
@@ -124,7 +124,7 @@ For example, bounds on times, states, and controls will be problem-dependent.
 Other options, such as the `rate_source` of state variables or the target of time, states, or controllable parameters are a function of the ODE itself.
 Therefore it can sometimes be convenient to associate those properties with the ODE class itself.
 To allow this, Dymos provides decorators for ODEs which assign *default* values of these properties at the ODE level.
-These values can be overridden using the `set_time_options`, `set_state_options`, `add_control`, `add_design_parameter` or `add_input_parameter` methods on Phase.
+These values can be overridden using the `set_time_options`, `add_state`, `add_control`, `add_design_parameter` or `add_input_parameter` methods on Phase.
 
 .. note::
 

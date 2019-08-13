@@ -119,14 +119,25 @@ class TestTandemPhases(unittest.TestCase):
 
         phase0.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase0.set_state_options('x', fix_initial=True, fix_final=False, solve_segments=False)
-        phase0.set_state_options('y', fix_initial=True, fix_final=False, solve_segments=False)
-        phase0.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_state('x', fix_initial=True, fix_final=False,
+                         rate_source=BrachistochroneODE.states['x']['rate_source'],
+                         units=BrachistochroneODE.states['x']['units'])
+        phase0.add_state('y', fix_initial=True, fix_final=False,
+                         rate_source=BrachistochroneODE.states['y']['rate_source'],
+                         units=BrachistochroneODE.states['y']['units'])
+        phase0.add_state('v', fix_initial=True,
+                         rate_source=BrachistochroneODE.states['v']['rate_source'],
+                         targets=BrachistochroneODE.states['v']['targets'],
+                         units=BrachistochroneODE.states['v']['units'])
 
-        phase0.add_control('theta', continuity=True, rate_continuity=True,
-                           units='deg', lower=0.1, upper=179.0)
+        phase0.add_input_parameter('g',
+                                   targets=BrachistochroneODE.parameters['g']['targets'],
+                                   units=BrachistochroneODE.parameters['g']['units'],
+                                   val=9.80665)
 
-        phase0.add_input_parameter('g', units='m/s**2', val=9.80665)
+        phase0.add_control('theta', units='deg',
+                           targets=BrachistochroneODE.parameters['theta']['targets'],
+                           rate_continuity=False, lower=0.01, upper=179.9)
 
         phase0.add_boundary_constraint('x', loc='final', equals=10)
         phase0.add_boundary_constraint('y', loc='final', equals=5)
@@ -144,7 +155,7 @@ class TestTandemPhases(unittest.TestCase):
 
         phase1.set_time_options(fix_initial=True, input_duration=True)
 
-        phase1.set_state_options('S', fix_initial=True, fix_final=False)
+        phase1.add_state('S', fix_initial=True, fix_final=False)
 
         phase1.add_control('theta', opt=False, units='deg')
         phase1.add_control('v', opt=False, units='m/s')

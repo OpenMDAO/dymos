@@ -93,7 +93,6 @@ class PhaseLinkageComp(om.ExplicitComponent):
             That is, the affected variables in each phase are design
             variables or linear functions of design variables.  Default is False.
         """
-        print('adding linkage ', name, vars, shape)
         if equals is None and lower is None and upper is None:
             equals = 0.0
 

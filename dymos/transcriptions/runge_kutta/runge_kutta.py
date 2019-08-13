@@ -61,7 +61,7 @@ class RungeKutta(TranscriptionBase):
         phase.nonlinear_solver = om.NewtonSolver()
         phase.nonlinear_solver.options['iprint'] = -1
         phase.nonlinear_solver.options['solve_subsystems'] = True
-        phase.nonlinear_solver.options['err_on_maxiter'] = True
+        phase.nonlinear_solver.options['err_on_non_converge'] = True
         phase.nonlinear_solver.linesearch = om.BoundsEnforceLS()
 
     def setup_time(self, phase):
