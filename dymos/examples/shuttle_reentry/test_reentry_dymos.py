@@ -13,6 +13,8 @@ class TestReentry(unittest.TestCase):
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()
         p.driver.declare_coloring()
+        p.driver.options["optimizer"] = 'SNOPT'
+        p.driver.opt_settings["iSumm"] = 6
 
         traj = p.model.add_subsystem("traj", Trajectory())
         phase0 = traj.add_phase("phase0", Phase(ode_class=ShuttleODE, transcription=Radau(num_segments=50, order=3)))
@@ -28,9 +30,6 @@ class TestReentry(unittest.TestCase):
         phase0.add_control("beta", units="rad", opt=True, lower=-89*np.pi/180, upper=1*np.pi/180, targets=["beta"])
         phase0.add_path_constraint("q", lower=0, upper=70, units="Btu/ft**2/s", ref=70)
         phase0.add_objective("theta", loc="final", ref=-0.01)
-
-        p.driver.options["optimizer"] = 'SNOPT'
-        p.driver.opt_settings["iSumm"] = 6
 
         p.setup(check=True)
 
