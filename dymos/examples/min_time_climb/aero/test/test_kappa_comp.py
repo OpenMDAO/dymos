@@ -5,21 +5,14 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials
+from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
 
 from dymos.examples.min_time_climb.aero.kappa_comp import KappaComp
 
-assert_almost_equal = np.testing.assert_almost_equal
 
-import matplotlib
-matplotlib.use('Agg')
+class TestKappaComp(unittest.TestCase):
 
-SHOW_PLOTS = False
-
-
-class TestCLaComp(unittest.TestCase):
-    @unittest.skipIf(not SHOW_PLOTS, 'this test is for visual confirmation, requires plotting')
-    def test_visual_inspection(self):
+    def test_value(self):
         n = 500
 
         p = om.Problem(model=om.Group())
@@ -40,9 +33,17 @@ class TestCLaComp(unittest.TestCase):
         p['mach'] = np.linspace(0, 1.8, n)
         p.run_model()
 
-        import matplotlib.pyplot as plt
-        plt.plot(p['mach'], p['kappa_comp.kappa'], 'ro', ms=2)
-        plt.show()
+        M = p.get_val('mach')
+        kappa = p.get_val('kappa_comp.kappa')
+
+        idxs_0 = np.where(M <= 1.15)[0]
+        idxs_1 = np.where(M > 1.15)[0]
+
+        kappa_analtic_0 = 0.54 + 0.15 * (1.0 + np.tanh((M[idxs_0] - 0.9)/0.06))
+        kappa_analtic_1 = 0.54 + 0.15 * (1.0 + np.tanh(0.25/0.06)) + 0.14 * (M[idxs_1] - 1.15)
+
+        assert_rel_error(self, kappa[idxs_0], kappa_analtic_0)
+        assert_rel_error(self, kappa[idxs_1], kappa_analtic_1)
 
     def test_partials(self):
 

@@ -108,13 +108,14 @@ class Phase(om.Group):
         self.options.declare('timeseries', types=(dict,),
                              desc='Alternative timeseries.')
 
-    def set_state_options(self, name, units=_unspecified, rate_source=_unspecified, targets=_unspecified,
-                          val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
-                          lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
-                          ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
-                          defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified):
+    def add_state(self, name, units=_unspecified, shape=_unspecified,
+                  rate_source=_unspecified, targets=_unspecified,
+                  val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
+                  lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
+                  ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
+                  defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified):
         """
-        Set options that apply the EOM state variable of the given name.
+        Add a state variable to be integrated by the phase.
 
         Parameters
         ----------
@@ -126,9 +127,11 @@ class Phase(om.Group):
             it in these units, and collocation defects will use these units.  If units is not
             specified here then the value as defined in the ODEOptions (@dm.declare_state) will be
             used.
+        shape : tuple of int
+            The shape of the state variable.  For instance, a 3D cartesian position vector would have
+            a shape of (3,).
         rate_source : str
-            The path to the ODE output which provides the rate of this state variable.  If given
-            this will override the value given by the @declare_state decorator on the ODE.
+            The path to the ODE output which provides the rate of this state variable.
         targets : str or Sequence of str
             The path to the targets of the state variable in the ODE system.  If given
             this will override the value given by the @declare_state decorator on the ODE.
@@ -170,6 +173,9 @@ class Phase(om.Group):
 
         if units is not _unspecified:
             self.user_state_options[name]['units'] = units
+
+        if shape is not _unspecified:
+            self.user_state_options[name]['shape'] = shape
 
         if rate_source is not _unspecified:
             self.user_state_options[name]['rate_source'] = rate_source
@@ -219,6 +225,76 @@ class Phase(om.Group):
         if connected_initial is not _unspecified:
             self.user_state_options[name]['connected_initial'] = connected_initial
 
+    def set_state_options(self, name, units=_unspecified, shape=_unspecified,
+                          rate_source=_unspecified, targets=_unspecified,
+                          val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
+                          lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
+                          ref0=_unspecified, ref=_unspecified, defect_scaler=_unspecified,
+                          defect_ref=_unspecified, solve_segments=_unspecified, connected_initial=_unspecified):
+        """
+        Set options that apply the EOM state variable of the given name.
+
+        Parameters
+        ----------
+        name : str
+            Name of the state variable in the RHS.
+        units : str or None
+            Units in which the state variable is defined.  Internally components may use different
+            units for the state variable, but the IndepVarComp which provides its value will provide
+            it in these units, and collocation defects will use these units.  If units is not
+            specified here then the value as defined in the ODEOptions (@dm.declare_state) will be
+            used.
+        shape : tuple of int
+            The shape of the state variable.  For instance, a 3D cartesian position vector would have
+            a shape of (3,).
+        rate_source : str
+            The path to the ODE output which provides the rate of this state variable.
+        targets : str or Sequence of str
+            The path to the targets of the state variable in the ODE system.  If given
+            this will override the value given by the @declare_state decorator on the ODE.
+        val :  ndarray
+            The default value of the state at the state discretization nodes of the phase.
+        fix_initial : bool(False)
+            If True, omit the first value of the state from the design variables (prevent the
+            optimizer from changing it).
+        fix_final : bool(False)
+            If True, omit the final value of the state from the design variables (prevent the
+            optimizer from changing it).
+        lower : float or ndarray or None (None)
+            The lower bound of the state at the nodes of the phase.
+        upper : float or ndarray or None (None)
+            The upper bound of the state at the nodes of the phase.
+        scaler : float or ndarray or None (None)
+            The scaler of the state value at the nodes of the phase.
+        adder : float or ndarray or None (None)
+            The adder of the state value at the nodes of the phase.
+        ref0 : float or ndarray or None (None)
+            The zero-reference value of the state at the nodes of the phase.
+        ref : float or ndarray or None (None)
+            The unit-reference value of the state at the nodes of the phase
+        defect_scaler : float or ndarray
+            The scaler of the state defect at the collocation nodes of the phase.
+        defect_ref : float or ndarray
+            The unit-reference value of the state defect at the collocation nodes of the phase. If
+            provided, this value overrides defect_scaler.
+        solve_segments : bool(False)
+            If True, a solver will be used to converge the collocation defects within a segment.
+            Note that the state continuity defects between segements will still be
+            handled by the optimizer.
+        connected_initial : bool
+            If True, then the initial value for this state comes from an externally connected
+            source.
+        """
+        warnings.warn('Phase method set_state_options for Dymos has been deprecated. '
+                      'Use the add_state method on phase to provide units, targets and '
+                      'other options for the state variable.', DeprecationWarning)
+
+        self.add_state(name=name, units=units, shape=shape, rate_source=rate_source, targets=targets,
+                       val=val, fix_initial=fix_initial, fix_final=fix_final, lower=lower,
+                       upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
+                       defect_scaler=defect_scaler, defect_ref=defect_ref,
+                       solve_segments=solve_segments, connected_initial=connected_initial)
+
     def check_parameter(self, name):
         """
         Checks that the parameter of the given name is valid.
@@ -247,7 +323,7 @@ class Phase(om.Group):
         if name in self.user_input_parameter_options:
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
         if name in self.user_polynomial_control_options:
-            raise ValueError('{0} has already been added as an interpolated control.'.format(name))
+            raise ValueError('{0} has already been added as a polynomial control.'.format(name))
         if name in self.user_traj_parameter_options:
             raise ValueError('{0} has already been added as a trajectory-level '
                              'parameter.'.format(name))

@@ -111,10 +111,10 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
-        phase.set_state_options('theta', targets='theta', fix_initial=False)
+        phase.add_state('x', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True)
+        phase.add_state('theta', targets='theta', fix_initial=False)
 
         phase.add_control('theta_dot', units='deg/s', rate_continuity=True, lower=0, upper=60)
 
@@ -186,10 +186,10 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True, fix_final=True)
-        phase.set_state_options('y', fix_initial=True, fix_final=True)
-        phase.set_state_options('v', fix_initial=True)
-        phase.set_state_options('theta', targets='theta', fix_initial=False)
+        phase.add_state('x', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True)
+        phase.add_state('theta', targets='theta', fix_initial=False)
 
         phase.add_control('theta_dot', units='deg/s', rate_continuity=True, lower=0, upper=60)
 
