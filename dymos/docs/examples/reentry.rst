@@ -6,7 +6,7 @@ The equations of motion for the reentry of the space shuttle into Earth's atmosp
 limited by the heating rate on the leading edges of the shuttle's wings. There are six 
 governing equations of motion:
 
-..math ::
+.. math ::
     \frac{dh}{dt} = v * \sin{\gamma}
     \frac{d{\phi}}{dt} = \frac{v}{r} * \cos{\gamma} * \frac{sin{\psi}}{cos{\theta}}
     \frac{d{\theta}}{dt} = \frac{v}{r} * \cos{\gamma} * \cos{\psi}
@@ -25,12 +25,12 @@ engines, so no mass is consumed during the model's timespan. The goal is to maxi
 crossrange (latitude) while constraining the heat at the leading edges, subject to the 
 heating constraint
 
-..math ::
+.. math ::
     q <= 70
 
 where q is the heating rate in Btu/ft/ft/s. The initial conditions are
 
-..math ::
+.. math ::
     h_0 = 260000
     v_0 = 25600
     {\phi}_0 = 0
@@ -40,7 +40,7 @@ where q is the heating rate in Btu/ft/ft/s. The initial conditions are
 
 and the final conditions are
 
-..math ::
+.. math ::
     h_0 = 80000
     v_0 = 2500
     {\gamma}_0 = -.08727
