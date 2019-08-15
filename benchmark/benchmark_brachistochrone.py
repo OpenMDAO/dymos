@@ -3,6 +3,7 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.general_utils import set_pyoptsparse_opt
 import dymos as dm
 from dymos.examples.brachistochrone import BrachistochroneODE
 
@@ -11,9 +12,9 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                              compressed=True, optimizer='SLSQP', simul_derivs=True):
     p = om.Problem(model=om.Group())
 
-    # if optimizer == 'SNOPT':
     p.driver = om.pyOptSparseDriver()
-    p.driver.options['optimizer'] = optimizer
+    OPT, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=True)
+    p.driver.options['optimizer'] = OPTIMIZER
 
     if simul_derivs:
         p.driver.declare_coloring()
