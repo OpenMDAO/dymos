@@ -19,12 +19,18 @@ class FlightDynamics(ExplicitComponent):
         self.add_input("lift", val=np.ones(nn), desc="lift on shuttle", units="lb")
         self.add_input("drag", val=np.ones(nn), desc="drag on shuttle", units="lb")
 
-        self.add_output("hdot", val=np.ones(nn), desc="rate of change of altitude", units="ft/s")
-        self.add_output("gammadot", val=np.ones(nn), desc="rate of change of flight path angle", units="rad/s")
-        self.add_output("phidot", val=np.ones(nn), desc="rate of change of longitude", units="rad/s")
-        self.add_output("psidot", val=np.ones(nn), desc="rate of change of azimuthal angle", units="rad/s")
-        self.add_output("thetadot", val=np.ones(nn), desc="rate of change of latitude", units="rad/s")
-        self.add_output("vdot", val=np.ones(nn), desc="rate of change of velocity", units="ft/s**2")
+        self.add_output("hdot", val=np.ones(nn), desc="rate of change of altitude", 
+                        units="ft/s")
+        self.add_output("gammadot", val=np.ones(nn), 
+                        desc="rate of change of flight path angle", units="rad/s")
+        self.add_output("phidot", val=np.ones(nn), desc="rate of change of longitude", 
+                        units="rad/s")
+        self.add_output("psidot", val=np.ones(nn), desc="rate of change of azimuthal angle", 
+                        units="rad/s")
+        self.add_output("thetadot", val=np.ones(nn), desc="rate of change of latitude", 
+                        units="rad/s")
+        self.add_output("vdot", val=np.ones(nn), desc="rate of change of velocity", 
+                        units="ft/s**2")
         
         partial_range = np.arange(nn, dtype=int)
 
@@ -163,4 +169,3 @@ if __name__ == "__main__":
 
     prob = test_reentry_ode()
     prob.check_partials(compact_print=True, method="cs")
-    print(prob["psidot"])

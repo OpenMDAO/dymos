@@ -13,10 +13,16 @@ class ShuttleODE(Group):
     def setup(self):
         nn = self.options["num_nodes"]
 
-        self.add_subsystem("atmosphere", subsys=Atmosphere(num_nodes=nn), promotes_inputs=["h"], promotes_outputs=["rho"])
-        self.add_subsystem("aerodynamics", subsys=Aerodynamics(num_nodes=nn), promotes_inputs=["alpha", "v", "rho"], promotes_outputs=["lift", "drag"])
-        self.add_subsystem("heating", subsys=AerodynamicHeating(num_nodes=nn), promotes_inputs=["rho", "v", "alpha"], promotes_outputs=["q"])
-        self.add_subsystem("eom", subsys=FlightDynamics(num_nodes=nn), promotes_inputs=["beta", "gamma", "h", "psi", "theta", "v", "lift", "drag"], promotes_outputs=["hdot", "gammadot", "phidot", "psidot", "thetadot", "vdot"])
+        self.add_subsystem("atmosphere", subsys=Atmosphere(num_nodes=nn), 
+                           promotes_inputs=["h"], promotes_outputs=["rho"])
+        self.add_subsystem("aerodynamics", subsys=Aerodynamics(num_nodes=nn), 
+                           promotes_inputs=["alpha", "v", "rho"], 
+                           promotes_outputs=["lift", "drag"])
+        self.add_subsystem("heating", subsys=AerodynamicHeating(num_nodes=nn), 
+                           promotes_inputs=["rho", "v", "alpha"], promotes_outputs=["q"])
+        self.add_subsystem("eom", subsys=FlightDynamics(num_nodes=nn), 
+                           promotes_inputs=["beta", "gamma", "h", "psi", "theta", "v", "lift", "drag"], 
+                           promotes_outputs=["hdot", "gammadot", "phidot", "psidot", "thetadot", "vdot"])
 
 def test_shuttle_ode():
     prob = Problem()
@@ -32,4 +38,3 @@ if __name__ == "__main__":
 
     prob = test_shuttle_ode()
     prob.check_partials(compact_print=True, method="cs")
-    print(prob["psidot"])
