@@ -13,9 +13,12 @@ class AerodynamicHeating(ExplicitComponent):
 
         self.add_input("rho", val=np.ones(nn), desc="local density", units="slug/ft**3")
         self.add_input("v", val=np.ones(nn), desc="velocity of shuttle", units="ft/s")
-        self.add_input("alpha", val=np.ones(nn), desc="angle of attack of shuttle", units="deg")
+        self.add_input("alpha", val=np.ones(nn), desc="angle of attack of shuttle", 
+                       units="deg")
 
-        self.add_output("q", val=np.ones(nn), desc="aerodynamic heating on leading edge of shuttle", units="Btu/ft**2/s")
+        self.add_output("q", val=np.ones(nn), 
+                        desc="aerodynamic heating on leading edge of shuttle", 
+                        units="Btu/ft**2/s")
 
         partial_range = np.arange(nn) 
 

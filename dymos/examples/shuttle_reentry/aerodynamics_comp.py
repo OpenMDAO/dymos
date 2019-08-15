@@ -13,7 +13,8 @@ class Aerodynamics(ExplicitComponent):
 
         self.add_input("alpha", val=np.ones(nn), desc="angle of attack", units="deg")
         self.add_input("v", val=np.ones(nn), desc="velocity of shuttle", units="ft/s")
-        self.add_input("rho", val=np.ones(nn), desc="local atmospheric density", units="slug/ft**3")
+        self.add_input("rho", val=np.ones(nn), desc="local atmospheric density", 
+                       units="slug/ft**3")
 
         self.add_output("drag", val=np.ones(nn), desc="drag on shuttle", units="lb")
         self.add_output("lift", val=np.ones(nn), desc="lift on shuttle", units="lb")
@@ -84,4 +85,4 @@ if __name__ == "__main__":
 
     prob = test_aerodynamics()
     prob.check_partials(compact_print=True, method="cs")
-    print(prob["lift"])
+    print("hello")

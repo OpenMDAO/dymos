@@ -13,6 +13,7 @@ Dymos by Example
   min_time_climb
   multi_phase_cannonball
   multibranch_trajectory
+  reentry
   ssto_earth
   ssto_moon_linear_tangent
   ssto_moon_polynomial_controls
