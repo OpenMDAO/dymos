@@ -3,6 +3,7 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.general_utils import set_pyoptsparse_opt
 import dymos as dm
 from dymos.examples.brachistochrone import BrachistochroneODE
 
@@ -11,9 +12,9 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                              compressed=True, optimizer='SLSQP', simul_derivs=True):
     p = om.Problem(model=om.Group())
 
-    # if optimizer == 'SNOPT':
     p.driver = om.pyOptSparseDriver()
-    p.driver.options['optimizer'] = optimizer
+    OPT, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=True)
+    p.driver.options['optimizer'] = OPTIMIZER
 
     if simul_derivs:
         p.driver.declare_coloring()
@@ -35,16 +36,19 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.model.add_subsystem('phase0', phase)
 
-    phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+    phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='s')
 
-    phase.add_state('x', fix_initial=True, fix_final=False, solve_segments=False)
-    phase.add_state('y', fix_initial=True, fix_final=False, solve_segments=False)
-    phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=False)
+    phase.add_state('x', fix_initial=True, fix_final=False, solve_segments=False,
+                    units='m', rate_source='xdot')
+    phase.add_state('y', fix_initial=True, fix_final=False, solve_segments=False,
+                    units='m', rate_source='ydot')
+    phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=False,
+                    units='m/s', rate_source='vdot', targets=['v'])
 
     phase.add_control('theta', continuity=True, rate_continuity=True,
-                      units='deg', lower=0.01, upper=179.9)
+                      units='deg', lower=0.01, upper=179.9, targets=['theta'])
 
-    phase.add_input_parameter('g', units='m/s**2', val=9.80665)
+    phase.add_input_parameter('g', units='m/s**2', val=9.80665, targets=['g'])
 
     phase.add_boundary_constraint('x', loc='final', equals=10)
     phase.add_boundary_constraint('y', loc='final', equals=5)
