@@ -18,7 +18,7 @@ class TestReentry(unittest.TestCase):
         p = Problem(model=Group())
         p.driver = pyOptSparseDriver()
         p.driver.declare_coloring()
-        OPT, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=True)
+        OPT, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=False)
         p.driver.options['optimizer'] = OPTIMIZER
 
         traj = p.model.add_subsystem('traj', Trajectory())
