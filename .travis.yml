@@ -9,7 +9,7 @@ os:
   - linux
 
 env:
-  - PY=2.7 PETSc=3.9.1
+  - PY=3.7 PETSc=3.9.1
   - PY=3.6 UPLOAD_DOCS=1 PETSc=3.9.1
 
 language: generic
