@@ -132,7 +132,9 @@ install:
 script:
 - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos;
 - testflo -b -n 1 --pre_announce
-- travis-sphinx build --source=dymos/docs;
+- if [ "$UPLOAD_DOCS" ]; then
+    travis-sphinx build --source=dymos/docs;
+  fi
 
 after_success:
 - if [ "$MASTER_BUILD" ] && [ "$UPLOAD_DOCS" ]; then
