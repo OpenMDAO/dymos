@@ -49,9 +49,8 @@ class TestHyperSensitive(unittest.TestCase):
 
         ui = c1 * (1 + sqrt_two) + c2 * (1 - sqrt_two)
         uf = c1 * (1 + sqrt_two) * np.exp(val) + c2 * (1 - sqrt_two) * np.exp(-val)
-        J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) * np.exp(-2 * val) - (
-                    1 + sqrt_two) * c1 ** 2 - \
-                   (1 - sqrt_two) * c2 ** 2)
+        J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) * np.exp(-2 * val) -
+                   (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
         return ui, uf, J
 
     def test_partials(self):
