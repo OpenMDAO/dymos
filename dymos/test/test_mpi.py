@@ -125,7 +125,7 @@ class BrachGroup(om.Group):
         print(self.pathname, "num_nodes =", nn)
 
         demux_comp = self.add_subsystem('demux', om.DemuxComp(vec_size=nn),
-                                        promotes_inputs=['v','g','theta'])
+                                        promotes_inputs=['v', 'g', 'theta'])
 
         demux_comp.add_var('v', val=0.0, shape=(nn,), units='m/s')
         demux_comp.add_var('g', val=9.80665, shape=(nn,), units='m/s/s')
@@ -194,7 +194,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     phase.set_state_options('x', fix_initial=True, fix_final=False, solve_segments=False, rate_source='xdot', units='m')
     phase.set_state_options('y', fix_initial=True, fix_final=False, solve_segments=False, rate_source='ydot', units='m')
-    phase.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=False, rate_source='vdot', units='m/s')
+    phase.set_state_options('v', fix_initial=True, fix_final=False, solve_segments=False,
+                            rate_source='vdot', units='m/s')
 
     phase.add_control('theta', continuity=True, rate_continuity=True,
                       units='deg', lower=0.01, upper=179.9)
@@ -212,7 +213,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
 
-    # p.model.linear_solver = om.DirectSolver()
+    p.model.linear_solver = om.DirectSolver()
 
     p.setup(check=True)
 
@@ -238,27 +239,46 @@ if __name__ == "__main__":
 
     if MPI:
         rank = MPI.COMM_WORLD.rank
+        nproc = MPI.COMM_WORLD.size
     else:
         rank = 0
 
-    profile = os.environ.get('PROFILE', '')
-
     ode = os.environ.get('ODE', 'BrachComp')
+    nseg = int(os.environ.get('NSEG', 20))
+    profile = int(os.environ.get('PROFILE', 0))
+
+    if profile:
+        suffix = '{}_nseg{}'.format(ode, nseg)
+        if MPI:
+            suffix = '{}_{}procs'.format(suffix, nproc)
+        else:
+            suffix = '{}_serial'.format(suffix)
+        profile = 'prof_{}'.format(suffix)
+
     kwargs = {
         'setup_delay': 1e-3,
         'compute_delay': 1e-3,
         'comp_partials_delay': 1e-3,
     }
 
+
     if int(os.environ.get('USE_WING', 0)):
         import wingdbstub
 
     # num_nodes
     with profiling(profile + '_%d.out' % rank) if profile else do_nothing_context():
-        p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=20,
+        p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=nseg,
                                      transcription_order=3,
                                      compressed=False, optimizer='SNOPT',
                                      ode=globals()[ode], ode_kwargs=kwargs)
+
+    if os.path.exists('SNOPT_print.out'):
+        os.system('mv SNOPT_print.out SNOPT_print_{}.out'.format(suffix))
+    if os.path.exists('SNOPT_summary.out'):
+        os.system('mv SNOPT_summary.out SNOPT_summary_{}.out'.format(suffix))
+
+    # check the answer
+    print(18.016043, list(p.driver.get_objective_values().values())[0])
 
     # Plot results
     do_plots = int(os.environ.get('PLOT', 0))

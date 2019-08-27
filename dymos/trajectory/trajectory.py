@@ -484,7 +484,9 @@ class Trajectory(om.Group):
         groups = {}
         for name, phs in iteritems(self._phases):
             g = phases_group
-            # if we have phase paths, create the necessary Groups
+            # if we have phase paths, create the necessary Groups.  Phases should be grouped
+            # such that any Phases with connections are in the same group.  This is only
+            # necessary when running under MPI.
             if '.' in name:
                 ancestors = list(all_ancestors(name))[:-1]
                 phname = name.rsplit('.', 1)[1]
@@ -512,7 +514,6 @@ class Trajectory(om.Group):
         else:
             subs = phases_group._subsystems_allprocs
 
-        # FIXME: the Directsolver gives us trouble when systems under phases run in parallel
         if MPI is None or self.comm.size == 1:
             for s in subs:
                 s.linear_solver = om.DirectSolver()
