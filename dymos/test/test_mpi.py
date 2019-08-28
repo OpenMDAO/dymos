@@ -245,13 +245,20 @@ if __name__ == "__main__":
     if MPI:
         rank = MPI.COMM_WORLD.rank
         nproc = MPI.COMM_WORLD.size
-        suffix = '{}_nseg{}_{}procs'.format(ode, nseg, nproc)
+        dname = '{}_nseg{}_{}procs'.format(ode, nseg, nproc)
     else:
         rank = 0
-        suffix = '{}_nseg{}_serial'.format(ode, nseg)
+        dname = '{}_nseg{}_serial'.format(ode, nseg)
 
-    if profile:
-        profile = 'prof_{}_{}.out'.format(suffix, rank)
+    startdir = os.getcwd()
+
+    if rank == 0:
+        if not os.path.exists(dname):
+            os.mkdir(dname)
+    if MPI:
+        MPI.COMM_WORLD.barrier()
+
+    os.chdir(dname)
 
     kwargs = {
         'setup_delay': float(os.environ.get('SETUP_DELAY', 0.0)),
@@ -265,19 +272,13 @@ if __name__ == "__main__":
     start_time = time.time()
 
     # num_nodes
-    with profiling(profile) if profile else do_nothing_context():
+    with profiling('prof.out') if profile else do_nothing_context():
         p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=nseg,
                                      transcription_order=3,
                                      compressed=False, optimizer='SNOPT',
                                      ode=globals()[ode], ode_kwargs=kwargs)
 
     print("Elapsed time:", time.time() - start_time)
-
-    if rank == 0:
-        if os.path.exists('SNOPT_print.out'):
-            os.system('mv SNOPT_print.out SNOPT_print_{}.out'.format(suffix))
-        if os.path.exists('SNOPT_summary.out'):
-            os.system('mv SNOPT_summary.out SNOPT_summary_{}.out'.format(suffix))
 
     # check the answer
     np.testing.assert_allclose(list(p.driver.get_objective_values().values())[0], 18.016043, 1e-5)
@@ -323,3 +324,5 @@ if __name__ == "__main__":
         ax.legend(loc='lower right')
 
         plt.show()
+
+os.chdir(startdir)
