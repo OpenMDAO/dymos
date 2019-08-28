@@ -288,6 +288,13 @@ if __name__ == "__main__":
                                      ode=globals()[ode], ode_kwargs=kwargs)
 
     print("Elapsed time:", time.time() - start_time)
+    try:
+        with open('/proc/loadavg') as f:
+            loadavg = f.read()
+    except:
+        pass
+    else:
+        print("Load avg:", loadavg)
 
     # check the answer
     np.testing.assert_allclose(list(p.driver.get_objective_values().values())[0], 18.016043, 1e-5)
