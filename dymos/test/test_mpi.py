@@ -242,13 +242,25 @@ if __name__ == "__main__":
     nseg = int(os.environ.get('NSEG', 20))
     profile = int(os.environ.get('PROFILE', 0))
 
+    kwargs = {
+        'setup_delay': float(os.environ.get('SETUP_DELAY', 0.0)),
+        'compute_delay': float(os.environ.get('COMPUTE_DELAY', 0.0)),
+        'comp_partials_delay': float(os.environ.get('COMP_PARTIALS_DELAY', 0.0)),
+    }
+
     if MPI:
         rank = MPI.COMM_WORLD.rank
         nproc = MPI.COMM_WORLD.size
-        dname = '{}_nseg{}_{}procs'.format(ode, nseg, nproc)
+        dname = '{}_nseg{}_{}procs_delay_{}_{}_{}'.format(ode, nseg, nproc,
+                                                          kwargs['setup_delay'],
+                                                          kwargs['compute_delay'],
+                                                          kwargs['comp_partials_delay'])
     else:
         rank = 0
-        dname = '{}_nseg{}_serial'.format(ode, nseg)
+        dname = '{}_nseg{}_serial_delay_{}_{}_{}'.format(ode, nseg,
+                                                          kwargs['setup_delay'],
+                                                          kwargs['compute_delay'],
+                                                          kwargs['comp_partials_delay'])
 
     startdir = os.getcwd()
 
@@ -262,12 +274,6 @@ if __name__ == "__main__":
 
     if MPI:
         use_proc_files()  # do this here manually so that it will crate ?.out files under new dir
-
-    kwargs = {
-        'setup_delay': float(os.environ.get('SETUP_DELAY', 0.0)),
-        'compute_delay': float(os.environ.get('COMPUTE_DELAY', 0.0)),
-        'comp_partials_delay': float(os.environ.get('COMP_PARTIALS_DELAY', 0.0)),
-    }
 
     if int(os.environ.get('USE_WING', 0)):
         import wingdbstub
