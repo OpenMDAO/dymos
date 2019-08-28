@@ -165,6 +165,7 @@ class BrachGroup(om.Group):
 def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
                              compressed=False, optimizer='SLSQP', ode=BrachComp,
                              ode_kwargs={}):
+
     p = om.Problem(model=om.Group())
 
     p.driver = om.pyOptSparseDriver()
@@ -237,48 +238,49 @@ if __name__ == "__main__":
     from openmdao.utils.general_utils import do_nothing_context
     from openmdao.utils.mpi import MPI
 
-    if MPI:
-        rank = MPI.COMM_WORLD.rank
-        nproc = MPI.COMM_WORLD.size
-    else:
-        rank = 0
-
     ode = os.environ.get('ODE', 'BrachComp')
     nseg = int(os.environ.get('NSEG', 20))
     profile = int(os.environ.get('PROFILE', 0))
 
+    if MPI:
+        rank = MPI.COMM_WORLD.rank
+        nproc = MPI.COMM_WORLD.size
+        suffix = '{}_nseg{}_{}procs'.format(ode, nseg, nproc)
+    else:
+        rank = 0
+        suffix = '{}_nseg{}_serial'.format(ode, nseg)
+
     if profile:
-        suffix = '{}_nseg{}'.format(ode, nseg)
-        if MPI:
-            suffix = '{}_{}procs'.format(suffix, nproc)
-        else:
-            suffix = '{}_serial'.format(suffix)
-        profile = 'prof_{}'.format(suffix)
+        profile = 'prof_{}_{}.out'.format(suffix, rank)
 
     kwargs = {
-        'setup_delay': 1e-3,
-        'compute_delay': 1e-3,
-        'comp_partials_delay': 1e-3,
+        'setup_delay': float(os.environ.get('SETUP_DELAY', 0.0)),
+        'compute_delay': float(os.environ.get('COMPUTE_DELAY', 0.0)),
+        'comp_partials_delay': float(os.environ.get('COMP_PARTIALS_DELAY', 0.0)),
     }
-
 
     if int(os.environ.get('USE_WING', 0)):
         import wingdbstub
 
+    start_time = time.time()
+
     # num_nodes
-    with profiling(profile + '_%d.out' % rank) if profile else do_nothing_context():
+    with profiling(profile) if profile else do_nothing_context():
         p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=nseg,
                                      transcription_order=3,
                                      compressed=False, optimizer='SNOPT',
                                      ode=globals()[ode], ode_kwargs=kwargs)
 
-    if os.path.exists('SNOPT_print.out'):
-        os.system('mv SNOPT_print.out SNOPT_print_{}.out'.format(suffix))
-    if os.path.exists('SNOPT_summary.out'):
-        os.system('mv SNOPT_summary.out SNOPT_summary_{}.out'.format(suffix))
+    print("Elapsed time:", time.time() - start_time)
+
+    if rank == 0:
+        if os.path.exists('SNOPT_print.out'):
+            os.system('mv SNOPT_print.out SNOPT_print_{}.out'.format(suffix))
+        if os.path.exists('SNOPT_summary.out'):
+            os.system('mv SNOPT_summary.out SNOPT_summary_{}.out'.format(suffix))
 
     # check the answer
-    print(18.016043, list(p.driver.get_objective_values().values())[0])
+    np.testing.assert_allclose(list(p.driver.get_objective_values().values())[0], 18.016043, 1e-5)
 
     # Plot results
     do_plots = int(os.environ.get('PLOT', 0))
