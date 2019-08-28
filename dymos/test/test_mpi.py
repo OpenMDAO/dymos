@@ -272,7 +272,7 @@ if __name__ == "__main__":
     start_time = time.time()
 
     # num_nodes
-    with profiling('prof.out') if profile else do_nothing_context():
+    with profiling('prof_{}.out'.format(rank)) if profile else do_nothing_context():
         p = brachistochrone_min_time(transcription='gauss-lobatto', num_segments=nseg,
                                      transcription_order=3,
                                      compressed=False, optimizer='SNOPT',
