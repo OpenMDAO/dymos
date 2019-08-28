@@ -236,7 +236,7 @@ if __name__ == "__main__":
     import os
     from openmdao.devtools.debug import profiling
     from openmdao.utils.general_utils import do_nothing_context
-    from openmdao.utils.mpi import MPI
+    from openmdao.utils.mpi import MPI, use_proc_files
 
     ode = os.environ.get('ODE', 'BrachComp')
     nseg = int(os.environ.get('NSEG', 20))
@@ -259,6 +259,9 @@ if __name__ == "__main__":
         MPI.COMM_WORLD.barrier()
 
     os.chdir(dname)
+
+    if MPI:
+        use_proc_files()  # do this here manually so that it will crate ?.out files under new dir
 
     kwargs = {
         'setup_delay': float(os.environ.get('SETUP_DELAY', 0.0)),
