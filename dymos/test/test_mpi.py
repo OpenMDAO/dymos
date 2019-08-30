@@ -258,9 +258,9 @@ if __name__ == "__main__":
     else:
         rank = 0
         dname = '{}_nseg{}_serial_delay_{}_{}_{}'.format(ode, nseg,
-                                                          kwargs['setup_delay'],
-                                                          kwargs['compute_delay'],
-                                                          kwargs['comp_partials_delay'])
+                                                         kwargs['setup_delay'],
+                                                         kwargs['compute_delay'],
+                                                         kwargs['comp_partials_delay'])
 
     startdir = os.getcwd()
 
@@ -341,4 +341,4 @@ if __name__ == "__main__":
 
         plt.show()
 
-os.chdir(startdir)
+    os.chdir(startdir)
