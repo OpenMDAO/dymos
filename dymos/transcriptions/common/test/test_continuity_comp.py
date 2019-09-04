@@ -21,8 +21,8 @@ class TestContinuityComp(unittest.TestCase):
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           ['compressed', 'uncompressed'],  # compressed
                           ), name_func=lambda f, n, p: '_'.join(['test_continuity_comp',
-                                                                          p.args[0],
-                                                                          p.args[1]])
+                                                                 p.args[0],
+                                                                 p.args[1]])
     )
     def test_continuity_comp(self, transcription='gauss-lobatto', compressed='compressed'):
 
