@@ -53,8 +53,8 @@ class TestInputParameterConnections(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0.0, 100.0), duration_bounds=(0., 100.))
 
-        phase.set_state_options('h', fix_initial=True, fix_final=True, lower=0.0, units='m')
-        phase.set_state_options('v', fix_initial=True, fix_final=False, units='m/s')
+        phase.add_state('h', fix_initial=True, fix_final=True, lower=0.0, units='m')
+        phase.add_state('v', fix_initial=True, fix_final=False, units='m/s')
 
         phase.add_input_parameter('m', val=[[1, 2], [3, 4]], units='kg')
 
@@ -116,8 +116,8 @@ class TestInputParameterConnections(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0.0, 100.0), duration_bounds=(0., 100.))
 
-        phase.set_state_options('h', fix_initial=True, fix_final=True, lower=0.0, units='m')
-        phase.set_state_options('v', fix_initial=True, fix_final=False, units='m/s')
+        phase.add_state('h', fix_initial=True, fix_final=True, lower=0.0, units='m')
+        phase.add_state('v', fix_initial=True, fix_final=False, units='m/s')
 
         phase.add_input_parameter('m', val=[[1, 2], [3, 4]], units='kg')
 
@@ -178,8 +178,8 @@ class TestInputParameterConnections(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0.0, 100.0), duration_bounds=(0., 100.))
 
-        phase.set_state_options('h', fix_initial=True, fix_final=True, lower=0.0, units='m')
-        phase.set_state_options('v', fix_initial=True, fix_final=False, units='m/s')
+        phase.add_state('h', fix_initial=True, fix_final=True, lower=0.0, units='m')
+        phase.add_state('v', fix_initial=True, fix_final=False, units='m/s')
 
         phase.add_input_parameter('m', val=[[1, 2], [3, 4]], units='kg')
 
@@ -247,8 +247,8 @@ class TestInputParameterConnections(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0.0, 100.0), duration_bounds=(0., 100.))
 
-        phase.set_state_options('h', fix_initial=True, fix_final=True, lower=0.0, units='m')
-        phase.set_state_options('v', fix_initial=True, fix_final=False, units='m/s')
+        phase.add_state('h', fix_initial=True, fix_final=True, lower=0.0, units='m')
+        phase.add_state('v', fix_initial=True, fix_final=False, units='m/s')
 
         phase.add_input_parameter('m', val=[[1, 2], [3, 4]], units='kg')
 

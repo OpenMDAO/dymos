@@ -32,8 +32,8 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
 
     phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
 
-    phase.set_state_options('x', fix_initial=True, rate_source='v', units='m')
-    phase.set_state_options('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s')
+    phase.add_state('x', fix_initial=True, rate_source='v', units='m')
+    phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s')
 
     phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
                       rate2_continuity=False, lower=-1.0, upper=1.0)
@@ -68,7 +68,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           ['compressed', 'uncompressed'],  # compressed transcription
-                          ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
+                          ), name_func=lambda f, n, p: '_'.join(['test_results',
                                                                           p.args[0],
                                                                           p.args[1]])
     )
@@ -108,8 +108,8 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         phase.set_time_options(input_initial=True, input_duration=True, units='s')
 
-        phase.set_state_options('x', fix_initial=True, rate_source='v', units='m')
-        phase.set_state_options('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s')
+        phase.add_state('x', fix_initial=True, rate_source='v', units='m')
+        phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s')
 
         phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
                           rate2_continuity=False, lower=-1.0, upper=1.0)
@@ -144,8 +144,8 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
 
-        phase.set_state_options('x', fix_initial=True, rate_source='v', units='m')
-        phase.set_state_options('v', fix_initial=True, fix_final=False, rate_source='u', units='m/s')
+        phase.add_state('x', fix_initial=True, rate_source='v', units='m')
+        phase.add_state('v', fix_initial=True, fix_final=False, rate_source='u', units='m/s')
 
         phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
                           rate2_continuity=False, lower=-1.0, upper=1.0)

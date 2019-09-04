@@ -85,7 +85,7 @@ Path Constraints
 The second class of constraints supported by Dymos are *path* constraints, so called because
 they are imposed throughout the entire phase.  Like bound constraints, path constraints can be
 imposed on design variables using simple bounds.  This is accomplished using the `lower` and `upper`
-arguments to `set_state_options`, `add_control`, and `add_design_parameter`.
+arguments to `add_state`, `add_control`, and `add_design_parameter`.
 (Since time is monotonically increasing or decreasing the notion of a path constraint is
 irrelevant for it).
 

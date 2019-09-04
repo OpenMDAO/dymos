@@ -241,9 +241,6 @@ class Trajectory(om.Group):
 
             for name, options in iteritems(self.input_parameter_options):
 
-                # Connect the input parameter to its target(s) in each phase
-                src_name = 'input_parameters:{0}_out'.format(name)
-
                 for phase_name, phs in iteritems(self._phases):
                     # The default target in the phase is name unless otherwise specified.
                     kwargs = {'dynamic': options['dynamic'],
@@ -265,8 +262,6 @@ class Trajectory(om.Group):
                                 kwargs['targets'] = options['custom_targets'][short]
 
                     phs.add_traj_parameter(param_name, **kwargs)
-                    tgt = '{0}.traj_parameters:{1}'.format(short, param_name)
-                    self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_design_parameters(self):
         """
@@ -295,9 +290,6 @@ class Trajectory(om.Group):
                                  shape=(1, np.prod(options['shape'])),
                                  units=options['units'])
 
-                # Connect the design parameter to its target in each phase
-                src_name = 'design_parameters:{0}'.format(name)
-
                 for phase_name, phs in iteritems(self._phases):
                     short = phase_name.rsplit('.', 1)[-1]
 
@@ -319,13 +311,9 @@ class Trajectory(om.Group):
                                 kwargs['targets'] = options['custom_targets'][short]
 
                     phs.add_traj_parameter(param_name, **kwargs)
-                    tgt = '{0}.traj_parameters:{1}'.format(short, param_name)
-                    self.connect(src_name=src_name, tgt_name=tgt)
 
     def _setup_linkages(self):
         link_comp = None
-
-        print('--- Linkage Report [{0}] ---'.format(self.pathname))
 
         for pair, vars in iteritems(self._linkages):
             phase_name1, phase_name2 = pair
@@ -341,19 +329,10 @@ class Trajectory(om.Group):
             p1 = self._phases[phase_name1]
             p2 = self._phases[phase_name2]
 
-            print('  ', phase_name1, '   ', phase_name2)
-
             p1_states = set([key for key in p1.state_options])
             p2_states = set([key for key in p2.state_options])
 
             p1_controls = set([key for key in p1.control_options])
-            p2_controls = set([key for key in p2.control_options])
-
-            p1_design_parameters = set([key for key in p1.design_parameter_options])
-            p2_design_parameters = set([key for key in p2.design_parameter_options])
-
-            p1_input_parameters = set([key for key in p1.input_parameter_options])
-            p2_input_parameters = set([key for key in p2.input_parameter_options])
 
             # Dict of vars that expands '*' to include time and states
             _vars = {}
@@ -365,8 +344,6 @@ class Trajectory(om.Group):
                 else:
                     _vars[var] = vars[var].copy()
 
-            max_varname_length = max(len(name) for name in _vars.keys())
-
             units_map = {}
             shape_map = {}
             vars_to_constrain = []
@@ -376,7 +353,7 @@ class Trajectory(om.Group):
                     # If this is a state, and we are linking it, we need to do some checks.
                     if var in p2_states:
                         # Trajectory linkage modifies these options in connected states.
-                        p2.set_state_options(var, connected_initial=True)
+                        p2.add_state(var, connected_initial=True)
                     elif var == 'time':
                         p2.set_time_options(input_initial=True)
                 else:
@@ -403,68 +380,6 @@ class Trajectory(om.Group):
                                       vars=vars_to_constrain,
                                       shape=shape_map,
                                       units=units_map)
-
-            for var, options in iteritems(_vars):
-                loc1, loc2 = options['locs']
-
-                if var in p1_states:
-                    source1 = 'states:{0}{1}'.format(var, loc1)
-                elif var in p1_controls:
-                    source1 = 'controls:{0}{1}'.format(var, loc1)
-                elif var == 'time':
-                    source1 = '{0}{1}'.format(var, loc1)
-                elif var in p1_design_parameters:
-                    source1 = 'design_parameters:{0}'.format(var)
-                elif var in p1_input_parameters:
-                    source1 = 'input_parameters:{0}'.format(var)
-                else:
-                    raise ValueError('Cannot find linkage variable \'{0}\' in '
-                                     'phase \'{1}\'.  Only states, time, controls, or parameters '
-                                     'may be linked via link_phases.'.format(var, pair[0]))
-
-                if var in p2_states:
-                    source2 = 'states:{0}{1}'.format(var, loc2)
-                elif var in p2_controls:
-                    source2 = 'controls:{0}{1}'.format(var, loc2)
-                elif var == 'time':
-                    source2 = '{0}{1}'.format(var, loc2)
-                elif var in p2_design_parameters:
-                    source2 = 'design_parameters:{0}'.format(var)
-                elif var in p2_input_parameters:
-                    source2 = 'input_parameters:{0}'.format(var)
-                else:
-                    raise ValueError('Cannot find linkage variable \'{0}\' in '
-                                     'phase \'{1}\'.  Only states, time, controls, or parameters '
-                                     'may be linked via link_phases.'.format(var, pair[1]))
-
-                if options['connected']:
-
-                    if var == 'time':
-                        src = '{0}.{1}'.format(short1, source1)
-                        path = 't_initial'
-                        self.connect(src, '{0}.{1}'.format(short2, path))
-
-                    else:
-                        path = 'initial_states:{0}'.format(var)
-
-                        self.connect('{0}.{1}'.format(short1, source1),
-                                     '{0}.{1}'.format(short2, path))
-
-                    print('       {0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
-                                                                  max_varname_length + 9))
-
-                else:
-
-                    self.connect('{0}.{1}'.format(short1, source1),
-                                 'linkages.{0}_{1}:lhs'.format(linkage_name, var))
-
-                    self.connect('{0}.{1}'.format(short2, source2),
-                                 'linkages.{0}_{1}:rhs'.format(linkage_name, var))
-
-                    print('       {0:<{2}s} = {1:<{2}s}'.format(source1, source2,
-                                                                max_varname_length + 9))
-
-        print('----------------------------')
 
     def setup(self):
         """
@@ -520,6 +435,204 @@ class Trajectory(om.Group):
 
         if self._linkages:
             self._setup_linkages()
+
+    def _configure_design_parameters(self):
+        for name, options in iteritems(self.design_parameter_options):
+
+            # Connect the design parameter to its target in each phase
+            src_name = 'design_parameters:{0}'.format(name)
+
+            for phase_name, phs in iteritems(self._phases):
+                # The default target in the phase is name unless otherwise specified.
+                kwargs = {'dynamic': options['dynamic'],
+                          'units': options['units'],
+                          'val': options['val']}
+
+                param_name = name
+
+                if 'custom_targets' in options and options['custom_targets'] is not None:
+                    # Dont add the traj parameter to the phase if it is explicitly excluded.
+                    if phase_name in options['custom_targets']:
+                        if options['custom_targets'][phase_name] is None:
+                            continue
+                        if isinstance(options['custom_targets'][phase_name], string_types):
+                            param_name = options['custom_targets'][phase_name]
+                        elif isinstance(options['custom_targets'][phase_name], Iterable):
+                            kwargs['targets'] = options['custom_targets'][phase_name]
+
+                tgt = '{0}.traj_parameters:{1}'.format(phase_name, param_name)
+                self.connect(src_name=src_name, tgt_name=tgt)
+
+    def _configure_input_parameters(self):
+            for name, options in iteritems(self.input_parameter_options):
+
+                # Connect the input parameter to its target(s) in each phase
+                src_name = 'input_parameters:{0}_out'.format(name)
+
+                for phase_name, phs in iteritems(self._phases):
+                    # The default target in the phase is name unless otherwise specified.
+                    kwargs = {'dynamic': options['dynamic'],
+                              'units': options['units'],
+                              'val': options['val']}
+
+                    param_name = name
+
+                    if 'custom_targets' in options and options['custom_targets'] is not None:
+                        # Dont add the traj parameter to the phase if it is explicitly excluded.
+                        if phase_name in options['custom_targets']:
+                            if options['custom_targets'][phase_name] is None:
+                                continue
+                            if isinstance(options['custom_targets'][phase_name], string_types):
+                                param_name = options['custom_targets'][phase_name]
+                            elif isinstance(options['custom_targets'][phase_name], Iterable):
+                                kwargs['targets'] = options['custom_targets'][phase_name]
+
+                    tgt = '{0}.traj_parameters:{1}'.format(phase_name, param_name)
+                    self.connect(src_name=src_name, tgt_name=tgt)
+
+    def _configure_linkages(self):
+
+        print('--- Linkage Report [{0}] ---'.format(self.pathname))
+
+        indent = '    '
+
+        for pair, vars in iteritems(self._linkages):
+            phase_name1, phase_name2 = pair
+
+            for name in pair:
+                if name not in self._phases:
+                    raise ValueError('Invalid linkage.  Phase \'{0}\' does not exist in '
+                                     'trajectory \'{1}\'.'.format(name, self.pathname))
+
+            p1 = self._phases[phase_name1]
+            p2 = self._phases[phase_name2]
+
+            short1 = phase_name1.rsplit('.', 1)[-1]
+            short2 = phase_name2.rsplit('.', 1)[-1]
+
+            print(indent * 1, phase_name1, '    ', phase_name2)
+
+            p1_states = set([key for key in p1.state_options])
+            p2_states = set([key for key in p2.state_options])
+
+            p1_controls = set([key for key in p1.control_options])
+            p2_controls = set([key for key in p2.control_options])
+
+            p1_design_parameters = set([key for key in p1.design_parameter_options])
+            p2_design_parameters = set([key for key in p2.design_parameter_options])
+
+            p1_input_parameters = set([key for key in p1.input_parameter_options])
+            p2_input_parameters = set([key for key in p2.input_parameter_options])
+
+            # Dict of vars that expands '*' to include time and states
+            _vars = {}
+            for var in sorted(vars.keys()):
+                if var == '*':
+                    _vars['time'] = vars[var].copy()
+                    for state in p2_states:
+                        _vars[state] = vars[var].copy()
+                else:
+                    _vars[var] = vars[var].copy()
+
+            max_varname_length = max(len(name) for name in _vars.keys())
+
+            units_map = {}
+            shape_map = {}
+            vars_to_constrain = []
+
+            for var, options in iteritems(_vars):
+                if not options['connected']:
+                    vars_to_constrain.append(var)
+                    if var in p1_states:
+                        units_map[var] = p1.state_options[var]['units']
+                        shape_map[var] = p1.state_options[var]['shape']
+                    elif var in p1_controls:
+                        units_map[var] = p1.control_options[var]['units']
+                        shape_map[var] = p1.control_options[var]['shape']
+                    elif var == 'time':
+                        units_map[var] = p1.time_options['units']
+                        shape_map[var] = (1,)
+                    else:
+                        units_map[var] = None
+                        shape_map[var] = (1,)
+
+            if vars_to_constrain:
+
+                linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
+
+            for var, options in iteritems(_vars):
+                loc1, loc2 = options['locs']
+
+                if var in p1_states:
+                    source1 = 'states:{0}{1}'.format(var, loc1)
+                elif var in p1_controls:
+                    source1 = 'controls:{0}{1}'.format(var, loc1)
+                elif var == 'time':
+                    source1 = '{0}{1}'.format(var, loc1)
+                elif var in p1_design_parameters:
+                    source1 = 'design_parameters:{0}'.format(var)
+                elif var in p1_input_parameters:
+                    source1 = 'input_parameters:{0}'.format(var)
+                else:
+                    raise ValueError('Cannot find linkage variable \'{0}\' in '
+                                     'phase \'{1}\'.  Only states, time, controls, or parameters '
+                                     'may be linked via link_phases.'.format(var, pair[0]))
+
+                if var in p2_states:
+                    source2 = 'states:{0}{1}'.format(var, loc2)
+                elif var in p2_controls:
+                    source2 = 'controls:{0}{1}'.format(var, loc2)
+                elif var == 'time':
+                    source2 = '{0}{1}'.format(var, loc2)
+                elif var in p2_design_parameters:
+                    source2 = 'design_parameters:{0}'.format(var)
+                elif var in p2_input_parameters:
+                    source2 = 'input_parameters:{0}'.format(var)
+                else:
+                    raise ValueError('Cannot find linkage variable \'{0}\' in '
+                                     'phase \'{1}\'.  Only states, time, controls, or parameters '
+                                     'may be linked via link_phases.'.format(var, pair[1]))
+
+                if options['connected']:
+                    if var == 'time':
+                        src = '{0}.{1}'.format(short1, source1)
+                        path = 't_initial'
+                        self.connect(src, '{0}.{1}'.format(phase_name2, path))
+                    else:
+                        path = 'initial_states:{0}'.format(var)
+                        self.connect('{0}.{1}'.format(short1, source1),
+                                     '{0}.{1}'.format(short2, path))
+                    print('{3}{0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
+                                                              max_varname_length + 9,
+                                                              indent*2))
+                else:
+
+                    self.connect('{0}.{1}'.format(short1, source1),
+                                 'linkages.{0}_{1}:lhs'.format(linkage_name, var))
+
+                    self.connect('{0}.{1}'.format(short2, source2),
+                                 'linkages.{0}_{1}:rhs'.format(linkage_name, var))
+
+                    print('{3}{0:<{2}s}  =  {1:<{2}s}'.format(source1, source2,
+                                                              max_varname_length + 9,
+                                                              indent*2))
+
+        print('----------------------------')
+
+    def configure(self):
+        """
+        Configure the Trajectory Group.
+
+        This method is used to handle connections to the phases in the Trajectory, since
+        setup has already been called on all children of the Trajectory, we can query them for
+        variables at this point.
+        """
+        if self.design_parameter_options:
+            self._configure_design_parameters()
+        if self.input_parameter_options:
+            self._configure_input_parameters()
+        if self._linkages:
+            self._configure_linkages()
 
     def link_phases(self, phases, vars=None, locs=('++', '--'), connected=False):
         """

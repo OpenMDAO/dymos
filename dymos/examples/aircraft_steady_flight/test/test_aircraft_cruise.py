@@ -52,18 +52,28 @@ class TestAircraftCruise(unittest.TestCase):
                                duration_bounds=(3600, 3600),
                                duration_ref=3600)
 
-        phase.set_state_options('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
-                                defect_scaler=0.01)
-        phase.set_state_options('mass_fuel', fix_final=True, upper=20000.0, lower=0.0,
-                                scaler=1.0E-4, defect_scaler=1.0E-2)
-        phase.set_state_options('alt', units='km', fix_initial=True)
+        phase.add_state('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
+                        rate_source='range_rate_comp.dXdt:range',
+                        defect_scaler=0.01)
+        phase.add_state('mass_fuel', units='kg', fix_final=True, upper=20000.0, lower=0.0,
+                        rate_source='propulsion.dXdt:mass_fuel',
+                        targets=['mass_comp.mass_fuel'],
+                        scaler=1.0E-4, defect_scaler=1.0E-2)
+        phase.add_state('alt',
+                        rate_source='climb_rate',
+                        targets=['atmos.h', 'aero.alt', 'propulsion.alt'],
+                        units='km', fix_initial=True)
 
-        phase.add_control('mach', units=None, opt=False)
-        phase.add_control('climb_rate', units='m/s', opt=False)
+        phase.add_control('mach',  targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
 
-        phase.add_input_parameter('S', units='m**2')
-        phase.add_input_parameter('mass_empty', units='kg')
-        phase.add_input_parameter('mass_payload', units='kg')
+        phase.add_control('climb_rate', targets=['gam_comp.climb_rate'], units='m/s', opt=False)
+
+        phase.add_input_parameter('S',
+                                  targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
+                                  units='m**2')
+
+        phase.add_input_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
+        phase.add_input_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0, shape=(1,))
 
@@ -132,18 +142,32 @@ class TestAircraftCruise(unittest.TestCase):
                                duration_bounds=(3600, 3600),
                                duration_ref=3600)
 
-        phase.set_state_options('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
-                                defect_scaler=0.01)
-        phase.set_state_options('mass_fuel', fix_final=True, upper=20000.0, lower=0.0,
-                                scaler=1.0E-4, defect_scaler=1.0E-2)
-        phase.set_state_options('alt', units='km', fix_initial=True)
+        phase.set_time_options(initial_bounds=(0, 0),
+                               duration_bounds=(3600, 3600),
+                               duration_ref=3600)
 
-        phase.add_control('mach', units=None, opt=False)
-        phase.add_control('climb_rate', units='m/s', opt=False)
+        phase.add_state('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
+                        rate_source='range_rate_comp.dXdt:range',
+                        defect_scaler=0.01)
+        phase.add_state('mass_fuel', units='kg', fix_final=True, upper=20000.0, lower=0.0,
+                        rate_source='propulsion.dXdt:mass_fuel',
+                        targets=['mass_comp.mass_fuel'],
+                        scaler=1.0E-4, defect_scaler=1.0E-2)
+        phase.add_state('alt',
+                        rate_source='climb_rate',
+                        targets=['atmos.h', 'aero.alt', 'propulsion.alt'],
+                        units='km', fix_initial=True)
 
-        phase.add_input_parameter('S', units='m**2')
-        phase.add_input_parameter('mass_empty', units='kg')
-        phase.add_input_parameter('mass_payload', units='kg')
+        phase.add_control('mach',  targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
+
+        phase.add_control('climb_rate', targets=['gam_comp.climb_rate'], units='m/s', opt=False)
+
+        phase.add_input_parameter('S',
+                                  targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
+                                  units='m**2')
+
+        phase.add_input_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
+        phase.add_input_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0, shape=(1,))
 

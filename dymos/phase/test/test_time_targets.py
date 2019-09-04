@@ -118,9 +118,9 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(1, 1), duration_bounds=(.5, 10))
 
-        phase.set_state_options('x', fix_initial=True)
-        phase.set_state_options('y', fix_initial=True)
-        phase.set_state_options('v', fix_initial=True)
+        phase.add_state('x', fix_initial=True)
+        phase.add_state('y', fix_initial=True)
+        phase.add_state('v', fix_initial=True)
 
         phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
 

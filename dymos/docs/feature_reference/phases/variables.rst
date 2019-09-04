@@ -45,7 +45,7 @@ polynomial is specified using the *transcription_order* method.  In Dymos, the m
 transcription order is 3.
 
 Users can specify bounds, scaling, and units of the state variables with the
-phase method `set_state_options`.  The following options are valid:
+phase method `add_state`.  The following options are valid:
 
 .. embed-options::
     dymos.phase.options
