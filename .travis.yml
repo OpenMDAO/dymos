@@ -9,7 +9,7 @@ os:
   - linux
 
 env:
-  - PY=2.7 PETSc=3.9.1
+  - PY=3.7 PETSc=3.9.1
   - PY=3.6 UPLOAD_DOCS=1 PETSc=3.9.1
 
 language: generic
@@ -131,7 +131,10 @@ install:
 
 script:
 - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos;
-- travis-sphinx build --source=dymos/docs;
+- testflo -b -n 1 --pre_announce
+- if [ "$UPLOAD_DOCS" ]; then
+    travis-sphinx build --source=dymos/docs;
+  fi
 
 after_success:
 - if [ "$MASTER_BUILD" ] && [ "$UPLOAD_DOCS" ]; then

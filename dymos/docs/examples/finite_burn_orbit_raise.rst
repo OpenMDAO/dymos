@@ -51,8 +51,8 @@ ODE for the coast phase, as in the example.
 
 This example runs inconsistently with SLSQP but is solved handily by SNOPT.
 
-.. .. embed-code::
-    dymos.examples.finite_burn_orbit_raise.doc.test_doc_finite_burn_orbit_raise.TestFiniteBurnOrbitRaise.test_doc_finite_burn_orbit_raise
+.. embed-code::
+    dymos.examples.finite_burn_orbit_raise.doc.test_doc_finite_burn_orbit_raise.TestFiniteBurnOrbitRaise.test_finite_burn_orbit_raise
     :layout: code, output, plot
 
 References
