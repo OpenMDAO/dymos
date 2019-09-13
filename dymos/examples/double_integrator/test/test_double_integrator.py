@@ -68,9 +68,9 @@ class TestDoubleIntegratorExample(unittest.TestCase):
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           ['compressed', 'uncompressed'],  # compressed transcription
-                          ), testcase_func_name=lambda f, n, p: '_'.join(['test_results',
-                                                                          p.args[0],
-                                                                          p.args[1]])
+                          ), name_func=lambda f, n, p: '_'.join(['test_results',
+                                                                 p.args[0],
+                                                                 p.args[1]])
     )
     def test_ex_double_integrator(self, transcription='radau-ps', compressed='compressed'):
         p = double_integrator_direct_collocation(transcription,

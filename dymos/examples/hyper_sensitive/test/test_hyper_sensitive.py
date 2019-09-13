@@ -1,7 +1,7 @@
 import unittest
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
-from openmdao.utils.general_utils import set_pyoptsparse_opt
+from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 import numpy as np
@@ -56,7 +56,7 @@ class TestHyperSensitive(unittest.TestCase):
     def test_partials(self):
         p = self.make_problem(transcription=Radau, optimizer='SLSQP')
         p.run_model()
-        with np.printoptions(linewidth=1024, edgeitems=100):
+        with printoptions(linewidth=1024, edgeitems=100):
             cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
 
     def test_hyper_sensitive_radau(self):

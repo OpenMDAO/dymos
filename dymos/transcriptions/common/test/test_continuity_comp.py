@@ -20,9 +20,9 @@ class TestContinuityComp(unittest.TestCase):
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           ['compressed', 'uncompressed'],  # compressed
-                          ), testcase_func_name=lambda f, n, p: '_'.join(['test_continuity_comp',
-                                                                          p.args[0],
-                                                                          p.args[1]])
+                          ), name_func=lambda f, n, p: '_'.join(['test_continuity_comp',
+                                                                 p.args[0],
+                                                                 p.args[1]])
     )
     def test_continuity_comp(self, transcription='gauss-lobatto', compressed='compressed'):
 
