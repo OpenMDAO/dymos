@@ -42,7 +42,7 @@ desired value.
     \mathrm{Design \, Parameters:}& \qquad \bar{d}_{lb} \leq \bar{d} \leq \bar{d}_{ub} \\
     \end{align*}
 
-Other times we may we to constrain an output of our system at a specific point along the trajectory
+Other times we may want to constrain an output of our system at a specific point along the trajectory
 (boundary constraints) or along the entire trajectory (path constraints).  These are so-called
 nonlinear constraints because they *may* be nonlinear functions of our independent variables.
 

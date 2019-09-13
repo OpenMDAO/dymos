@@ -1,0 +1,101 @@
+import unittest
+from openmdao.api import Problem, Group, pyOptSparseDriver
+from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
+from dymos import Trajectory, GaussLobatto, Phase, Radau
+from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
+import numpy as np
+
+tf = np.float128(10)
+
+
+class TestHyperSensitive(unittest.TestCase):
+
+    def make_problem(self, transcription=GaussLobatto, optimizer='SLSQP', numseg=30):
+        p = Problem(model=Group())
+        p.driver = pyOptSparseDriver()
+        p.driver.declare_coloring()
+        OPT, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=False)
+        p.driver.options['optimizer'] = OPTIMIZER
+
+        traj = p.model.add_subsystem('traj', Trajectory())
+        phase0 = traj.add_phase('phase0', Phase(ode_class=HyperSensitiveODE,
+                                                transcription=transcription(num_segments=numseg, order=3)))
+        phase0.set_time_options(fix_initial=True, fix_duration=True)
+        phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
+        phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
+        phase0.add_control('u', opt=True, targets=['u'])
+
+        phase0.add_boundary_constraint('x', loc='final', equals=1)
+
+        phase0.add_objective('xL', loc='final')
+
+        p.setup(check=True)
+
+        p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[1.5, 1], nodes='state_input'))
+        p.set_val('traj.phase0.states:xL', phase0.interpolate(ys=[0, 1], nodes='state_input'))
+        p.set_val('traj.phase0.t_initial', 0)
+        p.set_val('traj.phase0.t_duration', tf)
+        p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
+                                                               nodes='control_input'))
+
+        return p
+
+    def solution(self):
+        sqrt_two = np.sqrt(2)
+        val = sqrt_two * tf
+        c1 = (1.5 * np.exp(-val) - 1) / (np.exp(-val) - np.exp(val))
+        c2 = (1 - 1.5 * np.exp(val)) / (np.exp(-val) - np.exp(val))
+
+        ui = c1 * (1 + sqrt_two) + c2 * (1 - sqrt_two)
+        uf = c1 * (1 + sqrt_two) * np.exp(val) + c2 * (1 - sqrt_two) * np.exp(-val)
+        J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) * np.exp(-2 * val) -
+                   (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
+        return ui, uf, J
+
+    def test_partials(self):
+        p = self.make_problem(transcription=Radau, optimizer='SLSQP')
+        p.run_model()
+        with printoptions(linewidth=1024, edgeitems=100):
+            cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
+
+    def test_hyper_sensitive_radau(self):
+        p = self.make_problem(transcription=Radau, optimizer='SLSQP')
+        p.run_driver()
+        ui, uf, J = self.solution()
+
+        assert_rel_error(self,
+                         p.get_val('traj.phase0.timeseries.controls:u')[0],
+                         ui,
+                         tolerance=1e-1)
+
+        assert_rel_error(self,
+                         p.get_val('traj.phase0.timeseries.controls:u')[-1],
+                         uf,
+                         tolerance=1e-1)
+
+        assert_rel_error(self,
+                         p.get_val('traj.phase0.timeseries.states:xL')[-1],
+                         J,
+                         tolerance=1e-1)
+
+    def test_hyper_sensitive_gauss_lobatto(self):
+        p = self.make_problem(transcription=GaussLobatto, optimizer='SLSQP')
+        p.run_driver()
+
+        ui, uf, J = self.solution()
+
+        assert_rel_error(self,
+                         p.get_val('traj.phase0.timeseries.controls:u')[0],
+                         ui,
+                         tolerance=1.5e-2)
+
+        assert_rel_error(self,
+                         p.get_val('traj.phase0.timeseries.controls:u')[-1],
+                         uf,
+                         tolerance=1.5e-2)
+
+        assert_rel_error(self,
+                         p.get_val('traj.phase0.timeseries.states:xL')[-1],
+                         J,
+                         tolerance=1e-2)
