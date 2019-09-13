@@ -24,7 +24,8 @@ class AerodynamicsGroup(om.Group):
 
         if MBI is None:
             self.add_subsystem(name='aero_coef_comp',
-                               subsys=AeroCoefComp(vec_size=n, extrapolate=True),
+                               subsys=AeroCoefComp(vec_size=n, extrapolate=True,
+                                                   method='lagrange3'),
                                promotes_inputs=['mach', 'alpha', 'alt', 'eta'],
                                promotes_outputs=['CL', 'CD', 'CM'])
 

@@ -19,7 +19,7 @@ class TestAeroCoefComp(unittest.TestCase):
 
         prob = om.Problem(model=om.Group())
 
-        prob.model.add_subsystem(name='aero', subsys=AeroCoefComp(vec_size=nn, method='scipy_quintic'))
+        prob.model.add_subsystem(name='aero', subsys=AeroCoefComp(vec_size=nn, method='lagrange3'))
 
         ivc = prob.model.add_subsystem(name='ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
 
