@@ -60,27 +60,27 @@ class TestHyperSensitive(unittest.TestCase):
             cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
 
     def test_hyper_sensitive_radau(self):
-        p = self.make_problem(transcription=Radau, optimizer='SNOPT')
+        p = self.make_problem(transcription=Radau, optimizer='SLSQP')
         p.run_driver()
         ui, uf, J = self.solution()
 
         assert_rel_error(self,
                          p.get_val('traj.phase0.timeseries.controls:u')[0],
                          ui,
-                         tolerance=1e-2)
+                         tolerance=1e-1)
 
         assert_rel_error(self,
                          p.get_val('traj.phase0.timeseries.controls:u')[-1],
                          uf,
-                         tolerance=1e-2)
+                         tolerance=1e-1)
 
         assert_rel_error(self,
                          p.get_val('traj.phase0.timeseries.states:xL')[-1],
                          J,
-                         tolerance=1e-2)
+                         tolerance=1e-1)
 
     def test_hyper_sensitive_gauss_lobatto(self):
-        p = self.make_problem(transcription=GaussLobatto, optimizer='SNOPT')
+        p = self.make_problem(transcription=GaussLobatto, optimizer='SLSQP')
         p.run_driver()
 
         ui, uf, J = self.solution()
