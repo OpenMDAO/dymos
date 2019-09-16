@@ -1,6 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
-from collections import Iterable
+from collections.abc import Iterable
 
 import numpy as np
 from dymos.transcriptions.common import EndpointConditionsComp

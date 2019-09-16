@@ -1,6 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
-from collections import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 import inspect
 import warnings
 

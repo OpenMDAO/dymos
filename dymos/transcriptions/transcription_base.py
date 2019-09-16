@@ -1,6 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
-from collections import Sequence
+from collections.abc import Sequence
 import warnings
 
 from six import iteritems

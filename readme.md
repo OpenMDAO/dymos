@@ -32,22 +32,16 @@ differential equations to be integrated.  The user first builds an OpenMDAO mode
 that provide the rates of the state variables.  This model can be an OpenMDAO model of arbitrary
 complexity, including nested groups and components, layers of nonlinear solvers, etc.
 
-Next we can wrap our system with decorators that provide information regarding the states to be
-integrated, which sources in the model provide their rates, and where any externally provided
-parameters should be connected.  When used in an optimal control context, these external parameters
-may serve as controls.
+When setting up a phase, we can add state variables, dynamic controls, and design parameters to
+the phase, tell Dymos how to the value of each should be connected to the ODE system, tell Dymos
+the variable paths in the system that contain the rates of our state variables that are to be
+integrated.
+
 
     import numpy as np
     from openmdao.api import ExplicitComponent
     
-    from dymos import declare_time, declare_state, declare_parameter
-    
-    @declare_time(units='s')
-    @declare_state('x', rate_source='xdot', units='m')
-    @declare_state('y', rate_source='ydot', units='m')
-    @declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
-    @declare_parameter('theta', targets=['theta'])
-    @declare_parameter('g', units='m/s**2', targets=['g'])
+
     class BrachistochroneEOM(ExplicitComponent):
     
         def initialize(self):
