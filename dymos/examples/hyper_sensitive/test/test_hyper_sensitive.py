@@ -79,6 +79,11 @@ class TestHyperSensitive(unittest.TestCase):
                          J,
                          tolerance=1e-2)
 
+        inputs = p.model.traj.list_inputs(units=False, out_stream=None)
+
+        in_values_dict = {k: v['value'] for k, v in inputs}
+        print(in_values_dict)
+
     def test_hyper_sensitive_gauss_lobatto(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='SNOPT')
         p.run_driver()
