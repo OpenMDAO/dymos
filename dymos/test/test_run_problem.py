@@ -14,7 +14,7 @@ class TestRunProblem(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
-                                                transcription=dm.Radau(num_segments=10, order=3)))
+                                                transcription=dm.Radau(num_segments=30, order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
