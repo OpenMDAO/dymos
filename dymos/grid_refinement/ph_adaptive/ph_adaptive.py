@@ -4,7 +4,6 @@ from collections import Iterable, Sequence
 from ...transcriptions.grid_data import GridData
 from ...transcriptions.common import TimeComp
 from ...phase.phase import Phase
-from ...utils.lgr import lgr
 from ...utils.lagrange import lagrange_matrices
 
 from scipy.linalg import block_diag
@@ -12,32 +11,112 @@ from scipy.linalg import block_diag
 import numpy as np
 
 import openmdao.api as om
-from openmdao.api import Problem
 from openmdao.core.system import System
 import dymos as dm
 
 
-def err(y_dot, f):
-    error = np.absolute(y_dot - f)
-    return error
+def interpolation_lagrange_matrix(old_grid, new_grid):
+    """
+    Evaluate lagrange matrix to interpolate state and control values from the solved grid onto the new grid
+
+    Parameters
+    ----------
+    old_grid: GridData
+        The GridData object representing the grid on which the problem has been solved
+    new_grid: GridData
+        The GridData object representing the new, higher-order grid
+
+    Returns
+    -------
+    L: np.ndarray
+        The lagrange interpolation matrix
+
+    """
+    L_blocks = []
+
+    for iseg in range(old_grid.num_segments):
+        i1, i2 = old_grid.subset_segment_indices['all'][iseg, :]
+        indices = old_grid.subset_node_indices['all'][i1:i2]
+        nodes_given = old_grid.node_stau[indices]
+
+        i1, i2 = new_grid.subset_segment_indices['all'][iseg, :]
+        indices = new_grid.subset_node_indices['all'][i1:i2]
+        nodes_eval = new_grid.node_stau[indices]
+
+        L_block, _ = lagrange_matrices(nodes_given, nodes_eval)
+
+        L_blocks.append(L_block)
+
+    L = block_diag(*L_blocks)
+
+    return L
 
 
-def quadrature(func, t0, t1, n):
-    x, w = lgr(n)
-    x = 0.5*(x + 1)*(t1 - t0) + t0
-    w = 0.5*(w + 1)*(t1 - t0) + t0
+def integration_matrix(grid):
+    """
+    Evaluate the Integration matrix of the given grid.
 
-    integral = func(x[0])*w[0]
+    Parameters
+    ----------
+    grid: GridData
+        The GridData object representing the grid on which the integration matrix is to be evaluated
 
-    for i in range(1, n+1):
-        integral += func(x[i])*w[i]
+    Returns
+    -------
+    I: np.ndarray
+        The integration matrix used to propagate initial states over segments
 
-    return integral
+    """
+    I_blocks = []
+
+    for iseg in range(grid.num_segments):
+        i1, i2 = grid.subset_segment_indices['all'][iseg, :]
+        indices = grid.subset_node_indices['all'][i1:i2]
+        nodes_given = grid.node_stau[indices]
+
+        i1, i2 = grid.subset_segment_indices['all'][iseg, :]
+        indices = grid.subset_node_indices['all'][i1:i2]
+        nodes_eval = grid.node_stau[indices][1:]
+
+        _, D_block = lagrange_matrices(nodes_given, nodes_eval)
+        I_block = np.linalg.inv(D_block[:, 1:])
+        I_blocks.append(I_block)
+
+    I = block_diag(*I_blocks)
+
+    return I
 
 
-class PHAdaptive():
+class PHAdaptive:
+    """
+    Grid refinement object for the p-then-h grid refinement algorithm
+
+    The error on a solved phase is evaluated. If error exceeds chosen tolerance, the grid is refined following the
+    p-then-h refinement algorithm.
+    Patterson, M. A., Hager, W. W., and Rao. A. V., “A ph Mesh Refinement Method for Optimal Control”,
+    Optimal Control Applications and Methods, Vol. 36, No. 4, July - August 2015, pp. 398 - 421. DOI: 10.1002/oca2114
+
+    """
 
     def __init__(self, phase, tol=1e-6, min_order=3, max_order=7):
+        """
+        Initialize and compute attributes
+
+        Parameters
+        ----------
+        phase: Phase
+            The Phase object representing the solved phase
+
+        tol: float
+            The tolerance on the error for determining whether refinement
+
+        min_order: int
+            The minimum allowed order for a refined segment
+
+        max_order: int
+            The maximum allowed order for a refined segment
+
+        """
         self.phase = phase
         self.tol = tol
         self.min_order = min_order
@@ -46,6 +125,15 @@ class PHAdaptive():
         self.error = 0
 
     def check_error(self):
+        """
+        Compute the error in every solved segment
+
+        Returns
+        -------
+        need_refinement: bool
+            Indicator for whether grid refinement is necessary for the given phase
+
+        """
         gd = self.gd
         phase = self.phase
         num_nodes = gd.subset_num_nodes['all']
@@ -54,7 +142,6 @@ class PHAdaptive():
         inputs = phase.list_inputs(units=False, out_stream=None)
         outputs = phase.list_outputs(units=False, out_stream=None)
 
-        in_values_dict = {k: v['value'] for k, v in inputs}
         out_values_dict = {k: v['value'] for k, v in outputs}
 
         prom_to_abs_map = phase._var_allprocs_prom2abs_list['output']
@@ -65,7 +152,7 @@ class PHAdaptive():
             size = np.prod(shape)
             num_scalar_states += size
 
-        y = np.zeros([num_nodes, num_scalar_states])
+        x = np.zeros([num_nodes, num_scalar_states])
         f = np.zeros([num_nodes, num_scalar_states])
         c = 0
 
@@ -75,7 +162,7 @@ class PHAdaptive():
             abs_name = prom_to_abs_map[prom_name][0]
             rate_source_prom_name = 'rhs_all.' + options['rate_source']
             rate_abs_name = prom_to_abs_map[rate_source_prom_name][0]
-            y[:, c] = out_values_dict[abs_name].ravel()
+            x[:, c] = out_values_dict[abs_name].ravel()
             f[:, c] = out_values_dict[rate_abs_name].ravel()
             c += 1
 
@@ -83,23 +170,26 @@ class PHAdaptive():
         # interpolate y at t_hat
         new_order = gd.transcription_order + 1
         new_grid = GridData(numseg, gd.transcription, new_order, gd.segment_ends, gd.compressed)
+        nodes_per_seg_new = new_grid.subset_num_nodes_per_segment['all']
 
-        L = self.interpolation_lagrange_matrix(gd, new_grid)
-        I = self.integration_matrix(new_grid)
+        L = interpolation_lagrange_matrix(gd, new_grid)
+        I = integration_matrix(new_grid)
 
         # Call the ODE at all nodes of the new grid
-        f_hat = self.eval_ode(new_grid, L, I)
+        x_hat, x_prime = self.eval_ode(new_grid, L, I)
+        E = {}
+        e = {}
+        max_per_seg = np.zeros((numseg, c))
+        c = 0
+        left_end_idxs = new_grid.subset_node_indices['segment_ends'][0::2]
+        for state_name, options in self.phase.state_options.items():
+            E[state_name] = np.absolute(x_prime[state_name] - x_hat[state_name])
+            for k in range(0, numseg):
+                max_per_seg[k, c] = np.max(x_hat[state_name][k*nodes_per_seg_new[k]:(k+1)*nodes_per_seg_new[k]])
+                e[state_name] = E[state_name]/(1 + np.max(x_hat[state_name][k*nodes_per_seg_new[k]:(k+1)*nodes_per_seg_new[k]]))
+            c+=1
 
-        print(f_hat)
-        exit(0)
-
-
-        y_hat = np.dot(L, y)
-        y_hat_prime = y[0, :] + np.dot(I, f)
-
-        E = np.absolute(y_hat_prime - y_hat)
-        self.error = E/(1 + np.max(y_hat))
-
+        self.error = np.max(e)
         need_refinement = False
         print(self.error)
         if np.any(self.error > self.tol):
@@ -108,20 +198,36 @@ class PHAdaptive():
         return need_refinement
 
     def refine(self):
+        """
+        Compute the order, number of nodes, and segment ends required for the new grid
+
+        Returns
+        -------
+
+        new_order: int
+            Computed new order of the segments
+
+        new_segment_ends: np.array
+            New segment ends computed from splitting existing segments
+
+        new_num_nodes: int
+            Number of nodes in the refined grid
+
+        """
         gd = self.gd
         phase = self.phase
         num_nodes = gd.subset_num_nodes['all']
         numseg = gd.num_segments
 
-        # N = phase.options['order']
-
         P = np.log(self.error/self.tol)/np.log(gd.transcription_order)
 
         new_order = gd.transcription_order + P
+        new_segment_ends = gd.segment_ends
+        new_num_nodes = num_nodes
         B = np.ones(numseg)
-        if new_order <= self.max_order:
-            return new_order, num_nodes, gd.segment_ends
-        else:
+
+        if new_order > self.max_order:
+            new_order = gd.transcription_order
             new_segment_ends = gd.segment_ends
             new_num_nodes = 0
             for q in range(0, numseg+1):
@@ -131,47 +237,8 @@ class PHAdaptive():
                     new_num_nodes += B[q]*self.min_order
                 else:
                     new_num_nodes += gd.transcription_order
-            return gd.transcription_order, new_num_nodes, new_segment_ends
 
-    def interpolation_lagrange_matrix(self, old_grid, new_grid):
-        L_blocks = []
-
-        for iseg in range(old_grid.num_segments):
-            i1, i2 = old_grid.subset_segment_indices['all'][iseg, :]
-            indices = old_grid.subset_node_indices['all'][i1:i2]
-            nodes_given = old_grid.node_stau[indices]
-
-            i1, i2 = new_grid.subset_segment_indices['all'][iseg, :]
-            indices = new_grid.subset_node_indices['all'][i1:i2]
-            nodes_eval = new_grid.node_stau[indices]
-
-            L_block, _ = lagrange_matrices(nodes_given, nodes_eval)
-
-            L_blocks.append(L_block)
-
-        L = block_diag(*L_blocks)
-
-        return L
-
-    def integration_matrix(self, grid):
-        I_blocks = []
-
-        for iseg in range(grid.num_segments):
-            i1, i2 = grid.subset_segment_indices['all'][iseg, :]
-            indices = grid.subset_node_indices['all'][i1:i2]
-            nodes_given = grid.node_stau[indices]
-
-            i1, i2 = grid.subset_segment_indices['all'][iseg, :]
-            indices = grid.subset_node_indices['all'][i1:i2]
-            nodes_eval = grid.node_stau[indices][1:]
-
-            _, D_block = lagrange_matrices(nodes_given, nodes_eval)
-            I_block = np.linalg.inv(D_block[:, 1:])
-            I_blocks.append(I_block)
-
-        I = block_diag(*I_blocks)
-
-        return I
+        return new_order, new_segment_ends, new_num_nodes
 
     def eval_ode(self, grid, L, I):
         """
@@ -184,13 +251,15 @@ class PHAdaptive():
         L : np.ndarray
             The interpolation matrix used to obtain interpolated values for the states and controls
             on the given grid, using the existing values on the current grid.
+        I : np.ndarray
+            The integration matrix used to propagate the initial states of segments across the given grid
 
         Returns
         -------
         x_hat : dict
             Interpolated state values at all nodes of the given grid.
-        f_hat : dict
-            Evaluted state rates at all nodes of the given grid.
+        x_prime : dict
+            Evaluted state values at all nodes of the given grid from use of Integration matrix.
 
         """
         time_units = self.phase.time_options['units']
@@ -218,7 +287,7 @@ class PHAdaptive():
         outputs = self.phase.list_outputs(units=False, out_stream=None)
         out_values_dict = {k: v['value'] for k, v in outputs}
         prom_to_abs_map = self.phase._var_allprocs_prom2abs_list['output']
-        
+
         if self.phase.time_options['targets']:
             self.phase.connect('time',
                           ['rhs_all.{0}'.format(t) for t in self.phase.time_options['targets']],
@@ -293,29 +362,18 @@ class PHAdaptive():
             x_prime[state_name][left_end_idxs, ...] = x_hat[state_name][left_end_idxs, ...]
             nnps = np.array(grid.subset_num_nodes_per_segment['all']) - 1
             left_end_idxs_repeated = np.repeat(left_end_idxs, nnps)
-            x_prime[state_name][not_left_end_idxs, ...] = x_hat[state_name][left_end_idxs_repeated, ...] + oodt_dstau * np.dot(I, f_hat[state_name][not_left_end_idxs, ...])
 
-        # y_hat = np.dot(L, y)
-        # y_hat_prime = y[0, :] + np.dot(I, f)
+            x_prime[state_name][not_left_end_idxs, ...] = \
+                x_hat[state_name][left_end_idxs_repeated, ...] \
+                + oodt_dstau * np.dot(I, f_hat[state_name][not_left_end_idxs, ...])
 
-        import matplotlib.pyplot as plt
-        ptau_old = self.gd.node_ptau
-        ptau_new = grid.node_ptau
-        plt.plot(ptau_old, x['x'], 'ro', label='x')
-        plt.plot(ptau_new, x_hat['x'], 'bx', label='x hat')
-        plt.plot(ptau_new, x_prime['x'], 'k.', label='x prime')
-        plt.legend()
-        plt.show()
+        # import matplotlib.pyplot as plt
+        # ptau_old = self.gd.node_ptau
+        # ptau_new = grid.node_ptau
+        # plt.plot(ptau_old, x['x'], 'ro', label='x')
+        # plt.plot(ptau_new, x_hat['x'], 'bx', label='x hat')
+        # plt.plot(ptau_new, x_prime['x'], 'k.', label='x prime')
+        # plt.legend()
+        # plt.show()
 
-        return x_hat, f_hat
-
-
-    # def _simulate_solution(self, new_grid):
-    #     """
-    #     Use phase.simulate() to obtain a "truth" solution on the new grid.
-    #
-    #     Returns
-    #     -------
-    #
-    #     """
-    #
+        return x_hat, x_prime
