@@ -122,7 +122,7 @@ class PHAdaptive:
         self.min_order = min_order
         self.max_order = max_order
         self.gd = phase.options['transcription'].grid_data
-        self.error = 0
+        self.error = {}
 
     def check_error(self):
         """
@@ -130,8 +130,8 @@ class PHAdaptive:
 
         Returns
         -------
-        need_refinement: bool
-            Indicator for whether grid refinement is necessary for the given phase
+        need_refinement: np.array bool
+            Indicator for which segments of the given phase require grid refinement
 
         """
         gd = self.gd
@@ -139,7 +139,6 @@ class PHAdaptive:
         num_nodes = gd.subset_num_nodes['all']
         numseg = gd.num_segments
 
-        inputs = phase.list_inputs(units=False, out_stream=None)
         outputs = phase.list_outputs(units=False, out_stream=None)
 
         out_values_dict = {k: v['value'] for k, v in outputs}
@@ -179,21 +178,22 @@ class PHAdaptive:
         x_hat, x_prime = self.eval_ode(new_grid, L, I)
         E = {}
         e = {}
-        max_per_seg = np.zeros((numseg, c))
-        c = 0
-        left_end_idxs = new_grid.subset_node_indices['segment_ends'][0::2]
+
         for state_name, options in self.phase.state_options.items():
             E[state_name] = np.absolute(x_prime[state_name] - x_hat[state_name])
             for k in range(0, numseg):
-                max_per_seg[k, c] = np.max(x_hat[state_name][k*nodes_per_seg_new[k]:(k+1)*nodes_per_seg_new[k]])
                 e[state_name] = E[state_name]/(1 + np.max(x_hat[state_name][k*nodes_per_seg_new[k]:(k+1)*nodes_per_seg_new[k]]))
-            c+=1
+            self.error[state_name] = np.zeros(numseg)
 
-        self.error = np.max(e)
-        need_refinement = False
-        print(self.error)
-        if np.any(self.error > self.tol):
-            need_refinement = True
+        for state_name, options in self.phase.state_options.items():
+            for k in range(0, numseg):
+                self.error[state_name][k] = np.max(e[state_name][k*nodes_per_seg_new[k]:(k+1)*nodes_per_seg_new[k]])
+
+        need_refinement = np.zeros(numseg, dtype=bool)
+        for state_name, options in self.phase.state_options.items():
+            for k in range(0, numseg):
+                if self.error[state_name][k] > self.tol:
+                    need_refinement[k] = True
 
         return need_refinement
 
@@ -273,7 +273,6 @@ class PHAdaptive:
                              node_dptau_dstau=grid.node_dptau_dstau, units=time_units)
 
         p.model.add_subsystem('time', time_comp, promotes_outputs=['*'], promotes_inputs=['*'])
-
 
         p.model.add_subsystem('ode', subsys=ode_class(num_nodes=grid.num_nodes, **ode_init_kwargs))
 
