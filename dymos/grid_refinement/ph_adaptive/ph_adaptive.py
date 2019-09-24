@@ -87,6 +87,31 @@ def integration_matrix(grid):
     return I
 
 
+def split_segments(old_seg_ends, B):
+    """
+    Funcion to compute the new segment ends for the refined grid by splitting the necessary segments
+
+    Parameters
+    ----------
+    old_seg_ends: np.array
+        segment ends of grid on which the problem was solved
+
+    B: np.array of ints
+        Number of segments to be split into
+
+    Returns
+    -------
+    new_segment_ends: np.array
+        Segment ends of refined grid
+
+    """
+    new_segment_ends = []
+    for q in range(0, B.size):
+        new_segment_ends.extend(list(np.linspace(old_seg_ends[q], old_seg_ends[q+1], B[q])))
+    new_segment_ends = np.asarray(new_segment_ends)
+    return new_segment_ends
+
+
 class PHAdaptive:
     """
     Grid refinement object for the p-then-h grid refinement algorithm
@@ -98,7 +123,7 @@ class PHAdaptive:
 
     """
 
-    def __init__(self, phase, tol=1e-6, min_order=3, max_order=7):
+    def __init__(self, phase, iteration_limit=10, tol=1e-6, min_order=3, max_order=7, plot=False):
         """
         Initialize and compute attributes
 
@@ -106,6 +131,8 @@ class PHAdaptive:
         ----------
         phase: Phase
             The Phase object representing the solved phase
+
+        iteration_limit: Maximum number of iterations allowed
 
         tol: float
             The tolerance on the error for determining whether refinement
@@ -116,13 +143,18 @@ class PHAdaptive:
         max_order: int
             The maximum allowed order for a refined segment
 
+        plot: bool
+            Allows for plotting the integrated and interpolated solutions
+
         """
         self.phase = phase
+        self.iteration_limit = iteration_limit
         self.tol = tol
         self.min_order = min_order
         self.max_order = max_order
         self.gd = phase.options['transcription'].grid_data
-        self.error = {}
+        self.error = []
+        self.plot = plot
 
     def check_error(self):
         """
@@ -166,7 +198,7 @@ class PHAdaptive:
             c += 1
 
         # Obtain the solution on the new grid
-        # interpolate y at t_hat
+        # interpolate x at t_hat
         new_order = gd.transcription_order + 1
         new_grid = GridData(numseg, gd.transcription, new_order, gd.segment_ends, gd.compressed)
         nodes_per_seg_new = new_grid.subset_num_nodes_per_segment['all']
@@ -178,26 +210,31 @@ class PHAdaptive:
         x_hat, x_prime = self.eval_ode(new_grid, L, I)
         E = {}
         e = {}
+        err_over_states = {}
 
         for state_name, options in self.phase.state_options.items():
             E[state_name] = np.absolute(x_prime[state_name] - x_hat[state_name])
             for k in range(0, numseg):
                 e[state_name] = E[state_name]/(1 + np.max(x_hat[state_name][k*nodes_per_seg_new[k]:(k+1)*nodes_per_seg_new[k]]))
-            self.error[state_name] = np.zeros(numseg)
+            err_over_states[state_name] = np.zeros(numseg)
 
         for state_name, options in self.phase.state_options.items():
             for k in range(0, numseg):
-                self.error[state_name][k] = np.max(e[state_name][k*nodes_per_seg_new[k]:(k+1)*nodes_per_seg_new[k]])
+                err_over_states[state_name][k] = np.max(e[state_name][k*nodes_per_seg_new[k]:(k+1)*nodes_per_seg_new[k]])
 
+        self.error = np.zeros(numseg)
         need_refinement = np.zeros(numseg, dtype=bool)
+
         for state_name, options in self.phase.state_options.items():
             for k in range(0, numseg):
-                if self.error[state_name][k] > self.tol:
-                    need_refinement[k] = True
+                if err_over_states[state_name][k] > self.error[k]:
+                    self.error[k] = err_over_states[state_name][k]
+                    if self.error[k] > self.tol:
+                        need_refinement[k] = True
 
         return need_refinement
 
-    def refine(self):
+    def refine(self, need_refinement):
         """
         Compute the order, number of nodes, and segment ends required for the new grid
 
@@ -215,30 +252,29 @@ class PHAdaptive:
 
         """
         gd = self.gd
-        phase = self.phase
-        num_nodes = gd.subset_num_nodes['all']
         numseg = gd.num_segments
 
-        P = np.log(self.error/self.tol)/np.log(gd.transcription_order)
+        refine_seg_idxs = np.where(need_refinement)
+
+        P = np.zeros(numseg)
+        P[refine_seg_idxs] = np.log(self.error[refine_seg_idxs]/self.tol)/np.log(gd.transcription_order[refine_seg_idxs])
+        P = np.around(P).astype(int)
 
         new_order = gd.transcription_order + P
-        new_segment_ends = gd.segment_ends
-        new_num_nodes = num_nodes
         B = np.ones(numseg)
 
-        if new_order > self.max_order:
-            new_order = gd.transcription_order
-            new_segment_ends = gd.segment_ends
-            new_num_nodes = 0
-            for q in range(0, numseg+1):
-                B[q] = np.max(int(new_order[q]/self.min_order), 2)
-                if B[q] != 1:
-                    np.insert(new_segment_ends, np.linspace(new_segment_ends[q], new_segment_ends[q + 1], B[q]), q)
-                    new_num_nodes += B[q]*self.min_order
-                else:
-                    new_num_nodes += gd.transcription_order
+        raise_order_idxs = np.where(gd.transcription_order + P < self.max_order)
+        split_seg_idxs = np.where(gd.transcription_order + P > self.max_order)
 
-        return new_order, new_segment_ends, new_num_nodes
+        new_order[raise_order_idxs] = gd.transcription_order[raise_order_idxs] + P[raise_order_idxs]
+        new_order[split_seg_idxs] = self.min_order
+
+        B[split_seg_idxs] = np.around((gd.transcription_order[split_seg_idxs] + P[split_seg_idxs])/self.min_order).astype(int)
+
+        new_num_segments = int(np.sum(B))
+        new_segment_ends = split_segments(gd.segment_ends, B)
+
+        return new_order, new_num_segments, new_segment_ends
 
     def eval_ode(self, grid, L, I):
         """
@@ -366,13 +402,14 @@ class PHAdaptive:
                 x_hat[state_name][left_end_idxs_repeated, ...] \
                 + oodt_dstau * np.dot(I, f_hat[state_name][not_left_end_idxs, ...])
 
-        # import matplotlib.pyplot as plt
-        # ptau_old = self.gd.node_ptau
-        # ptau_new = grid.node_ptau
-        # plt.plot(ptau_old, x['x'], 'ro', label='x')
-        # plt.plot(ptau_new, x_hat['x'], 'bx', label='x hat')
-        # plt.plot(ptau_new, x_prime['x'], 'k.', label='x prime')
-        # plt.legend()
-        # plt.show()
+        if self.plot:
+            import matplotlib.pyplot as plt
+            ptau_old = self.gd.node_ptau
+            ptau_new = grid.node_ptau
+            plt.plot(ptau_old, x['x'], 'ro', label='x')
+            plt.plot(ptau_new, x_hat['x'], 'bx', label='x hat')
+            plt.plot(ptau_new, x_prime['x'], 'k.', label='x prime')
+            plt.legend()
+            plt.show()
 
         return x_hat, x_prime
