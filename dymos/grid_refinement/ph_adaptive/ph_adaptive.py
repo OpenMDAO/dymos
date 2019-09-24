@@ -107,7 +107,9 @@ def split_segments(old_seg_ends, B):
     """
     new_segment_ends = []
     for q in range(0, B.size):
-        new_segment_ends.extend(list(np.linspace(old_seg_ends[q], old_seg_ends[q+1], B[q])))
+        new_ends = list(np.linspace(old_seg_ends[q], old_seg_ends[q+1], B[q]+1))
+        new_segment_ends.extend(new_ends[:-1])
+    new_segment_ends.extend([1])
     new_segment_ends = np.asarray(new_segment_ends)
     return new_segment_ends
 
