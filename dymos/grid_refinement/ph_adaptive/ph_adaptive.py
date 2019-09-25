@@ -154,7 +154,7 @@ class PHAdaptive:
         self.tol = tol
         self.min_order = min_order
         self.max_order = max_order
-        self.gd = phase.options['transcription'].grid_data
+        # self.gd = phase.options['transcription'].grid_data
         self.error = []
         self.plot = plot
 
@@ -168,7 +168,7 @@ class PHAdaptive:
             Indicator for which segments of the given phase require grid refinement
 
         """
-        gd = self.gd
+        gd = self.phase.options['transcription'].grid_data
         phase = self.phase
         num_nodes = gd.subset_num_nodes['all']
         numseg = gd.num_segments
@@ -217,6 +217,7 @@ class PHAdaptive:
         for state_name, options in self.phase.state_options.items():
             E[state_name] = np.absolute(x_prime[state_name] - x_hat[state_name])
             for k in range(0, numseg):
+                print(k)
                 e[state_name] = E[state_name]/(1 + np.max(x_hat[state_name][k*nodes_per_seg_new[k]:(k+1)*nodes_per_seg_new[k]]))
             err_over_states[state_name] = np.zeros(numseg)
 
@@ -253,7 +254,7 @@ class PHAdaptive:
             Number of nodes in the refined grid
 
         """
-        gd = self.gd
+        gd = self.phase.options['transcription'].grid_data
         numseg = gd.num_segments
 
         refine_seg_idxs = np.where(need_refinement)
@@ -263,7 +264,7 @@ class PHAdaptive:
         P = np.around(P).astype(int)
 
         new_order = gd.transcription_order + P
-        B = np.ones(numseg)
+        B = np.ones(numseg, dtype=int)
 
         raise_order_idxs = np.where(gd.transcription_order + P < self.max_order)
         split_seg_idxs = np.where(gd.transcription_order + P > self.max_order)
@@ -273,6 +274,7 @@ class PHAdaptive:
 
         B[split_seg_idxs] = np.around((gd.transcription_order[split_seg_idxs] + P[split_seg_idxs])/self.min_order).astype(int)
 
+        new_order = np.repeat(new_order, repeats=B)
         new_num_segments = int(np.sum(B))
         new_segment_ends = split_segments(gd.segment_ends, B)
 
