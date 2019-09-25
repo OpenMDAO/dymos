@@ -20,9 +20,10 @@ def run_problem(problem, refine=True):
             while np.any(need_refine) or M >= ph.iteration_limit:
                 new_order, new_num_segments, new_segment_ends = ph.refine(need_refine)
                 T = phase.options['transcription']
-                T['order'] = new_order
-                T['num_segments'] = new_num_segments
-                T['segment_ends'] = new_segment_ends
+                T.setup_grid(phase)
+                T.options['order'] = new_order
+                T.options['num_segments'] = new_num_segments
+                T.options['segment_ends'] = new_segment_ends
                 exit(0)
                 need_refine = ph.check_error()
                 M += 1
