@@ -11,7 +11,7 @@ class TestRunProblem(unittest.TestCase):
         p.driver = om.pyOptSparseDriver()
         # p.driver.declare_coloring()
         p.driver.options['optimizer'] = 'SNOPT'
-        # p.driver.opt_settings['iSumm'] = 6
+        p.driver.opt_settings['iSumm'] = 6
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
