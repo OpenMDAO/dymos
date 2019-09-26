@@ -9,7 +9,7 @@ class TestRunProblem(unittest.TestCase):
     def test_run_problem(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
-        p.driver.declare_coloring()
+        # p.driver.declare_coloring()
         p.driver.options['optimizer'] = 'SNOPT'
         # p.driver.opt_settings['iSumm'] = 6
 
@@ -30,7 +30,7 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[1.5, 1], nodes='state_input'))
         p.set_val('traj.phase0.states:xL', phase0.interpolate(ys=[0, 1], nodes='state_input'))
         p.set_val('traj.phase0.t_initial', 0)
-        p.set_val('traj.phase0.t_duration', 75)
+        p.set_val('traj.phase0.t_duration', 100)
         p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
                                                                nodes='control_input'))
         dm.run_problem(p, True)

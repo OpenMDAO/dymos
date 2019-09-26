@@ -125,7 +125,7 @@ class PHAdaptive:
 
     """
 
-    def __init__(self, phase, iteration_limit=10, tol=1e-6, min_order=3, max_order=7, plot=False):
+    def __init__(self, phase, iteration_limit=10, tol=1e-6, min_order=3, max_order=14, plot=False):
         """
         Initialize and compute attributes
 
@@ -154,7 +154,7 @@ class PHAdaptive:
         self.tol = tol
         self.min_order = min_order
         self.max_order = max_order
-        self.gd = phase.options['transcription'].grid_data
+        # self.gd = phase.options['transcription'].grid_data
         self.error = []
         self.plot = plot
 
@@ -168,7 +168,7 @@ class PHAdaptive:
             Indicator for which segments of the given phase require grid refinement
 
         """
-        gd = self.gd
+        gd = self.phase.options['transcription'].grid_data
         phase = self.phase
         num_nodes = gd.subset_num_nodes['all']
         numseg = gd.num_segments
@@ -203,7 +203,8 @@ class PHAdaptive:
         # interpolate x at t_hat
         new_order = gd.transcription_order + 1
         new_grid = GridData(numseg, gd.transcription, new_order, gd.segment_ends, gd.compressed)
-        nodes_per_seg_new = new_grid.subset_num_nodes_per_segment['all']
+        left_end_idxs = new_grid.subset_node_indices['segment_ends'][0::2]
+        left_end_idxs = np.append(left_end_idxs, new_grid.subset_num_nodes['all']-1)
 
         L = interpolation_lagrange_matrix(gd, new_grid)
         I = integration_matrix(new_grid)
@@ -213,16 +214,15 @@ class PHAdaptive:
         E = {}
         e = {}
         err_over_states = {}
-
         for state_name, options in self.phase.state_options.items():
             E[state_name] = np.absolute(x_prime[state_name] - x_hat[state_name])
             for k in range(0, numseg):
-                e[state_name] = E[state_name]/(1 + np.max(x_hat[state_name][k*nodes_per_seg_new[k]:(k+1)*nodes_per_seg_new[k]]))
+                e[state_name] = E[state_name]/(1 + np.max(x_hat[state_name][left_end_idxs[k]:left_end_idxs[k+1]]))
             err_over_states[state_name] = np.zeros(numseg)
 
         for state_name, options in self.phase.state_options.items():
             for k in range(0, numseg):
-                err_over_states[state_name][k] = np.max(e[state_name][k*nodes_per_seg_new[k]:(k+1)*nodes_per_seg_new[k]])
+                err_over_states[state_name][k] = np.max(e[state_name][left_end_idxs[k]:left_end_idxs[k+1]])
 
         self.error = np.zeros(numseg)
         need_refinement = np.zeros(numseg, dtype=bool)
@@ -253,7 +253,7 @@ class PHAdaptive:
             Number of nodes in the refined grid
 
         """
-        gd = self.gd
+        gd = self.phase.options['transcription'].grid_data
         numseg = gd.num_segments
 
         refine_seg_idxs = np.where(need_refinement)
@@ -263,7 +263,7 @@ class PHAdaptive:
         P = np.around(P).astype(int)
 
         new_order = gd.transcription_order + P
-        B = np.ones(numseg)
+        B = np.ones(numseg, dtype=int)
 
         raise_order_idxs = np.where(gd.transcription_order + P < self.max_order)
         split_seg_idxs = np.where(gd.transcription_order + P > self.max_order)
@@ -273,6 +273,7 @@ class PHAdaptive:
 
         B[split_seg_idxs] = np.around((gd.transcription_order[split_seg_idxs] + P[split_seg_idxs])/self.min_order).astype(int)
 
+        new_order = np.repeat(new_order, repeats=B)
         new_num_segments = int(np.sum(B))
         new_segment_ends = split_segments(gd.segment_ends, B)
 
@@ -406,9 +407,9 @@ class PHAdaptive:
 
         if self.plot:
             import matplotlib.pyplot as plt
-            ptau_old = self.gd.node_ptau
+            # ptau_old = self.phase.options['transcription'].grid_data.node_ptau
             ptau_new = grid.node_ptau
-            plt.plot(ptau_old, x['x'], 'ro', label='x')
+            # plt.plot(ptau_old, x['x'], 'ro', label='x')
             plt.plot(ptau_new, x_hat['x'], 'bx', label='x hat')
             plt.plot(ptau_new, x_prime['x'], 'k.', label='x prime')
             plt.legend()
