@@ -125,7 +125,7 @@ class PHAdaptive:
 
     """
 
-    def __init__(self, phase, iteration_limit=10, tol=1e-6, min_order=3, max_order=14, plot=False):
+    def __init__(self, phases, iteration_limit=10, tol=1e-6, min_order=3, max_order=14, plot=False):
         """
         Initialize and compute attributes
 
@@ -149,13 +149,13 @@ class PHAdaptive:
             Allows for plotting the integrated and interpolated solutions
 
         """
-        self.phase = phase
+        self.phases = phases
         self.iteration_limit = iteration_limit
         self.tol = tol
         self.min_order = min_order
         self.max_order = max_order
         # self.gd = phase.options['transcription'].grid_data
-        self.error = []
+        self.error = {}
         self.plot = plot
 
     def check_error(self):
@@ -168,123 +168,140 @@ class PHAdaptive:
             Indicator for which segments of the given phase require grid refinement
 
         """
-        gd = self.phase.options['transcription'].grid_data
-        phase = self.phase
-        num_nodes = gd.subset_num_nodes['all']
-        numseg = gd.num_segments
+        need_refinement = {}
+        for phase_path, phase in self.phases.items():
+            gd = phase.options['transcription'].grid_data
+            num_nodes = gd.subset_num_nodes['all']
+            numseg = gd.num_segments
 
-        outputs = phase.list_outputs(units=False, out_stream=None)
+            outputs = phase.list_outputs(units=False, out_stream=None)
 
-        out_values_dict = {k: v['value'] for k, v in outputs}
+            out_values_dict = {k: v['value'] for k, v in outputs}
 
-        prom_to_abs_map = phase._var_allprocs_prom2abs_list['output']
+            prom_to_abs_map = phase._var_allprocs_prom2abs_list['output']
 
-        num_scalar_states = 0
-        for state_name, options in phase.state_options.items():
-            shape = options['shape']
-            size = np.prod(shape)
-            num_scalar_states += size
+            num_scalar_states = 0
+            for state_name, options in phase.state_options.items():
+                shape = options['shape']
+                size = np.prod(shape)
+                num_scalar_states += size
 
-        x = np.zeros([num_nodes, num_scalar_states])
-        f = np.zeros([num_nodes, num_scalar_states])
-        c = 0
+            x = np.zeros([num_nodes, num_scalar_states])
+            f = np.zeros([num_nodes, num_scalar_states])
+            c = 0
 
-        # Obtain the solution on the current grid
-        for state_name, options in phase.state_options.items():
-            prom_name = f'timeseries.states:{state_name}'
-            abs_name = prom_to_abs_map[prom_name][0]
-            rate_source_prom_name = 'rhs_all.' + options['rate_source']
-            rate_abs_name = prom_to_abs_map[rate_source_prom_name][0]
-            x[:, c] = out_values_dict[abs_name].ravel()
-            f[:, c] = out_values_dict[rate_abs_name].ravel()
-            c += 1
+            # Obtain the solution on the current grid
+            for state_name, options in phase.state_options.items():
+                prom_name = f'timeseries.states:{state_name}'
+                abs_name = prom_to_abs_map[prom_name][0]
+                rate_source_prom_name = 'rhs_all.' + options['rate_source']
+                rate_abs_name = prom_to_abs_map[rate_source_prom_name][0]
+                x[:, c] = out_values_dict[abs_name].ravel()
+                f[:, c] = out_values_dict[rate_abs_name].ravel()
+                c += 1
 
-        # Obtain the solution on the new grid
-        # interpolate x at t_hat
-        new_order = gd.transcription_order + 1
-        new_grid = GridData(numseg, gd.transcription, new_order, gd.segment_ends, gd.compressed)
-        left_end_idxs = new_grid.subset_node_indices['segment_ends'][0::2]
-        left_end_idxs = np.append(left_end_idxs, new_grid.subset_num_nodes['all']-1)
+            # Obtain the solution on the new grid
+            # interpolate x at t_hat
+            new_order = gd.transcription_order + 1
+            new_grid = GridData(numseg, gd.transcription, new_order, gd.segment_ends, gd.compressed)
+            left_end_idxs = new_grid.subset_node_indices['segment_ends'][0::2]
+            left_end_idxs = np.append(left_end_idxs, new_grid.subset_num_nodes['all']-1)
 
-        L = interpolation_lagrange_matrix(gd, new_grid)
-        I = integration_matrix(new_grid)
+            L = interpolation_lagrange_matrix(gd, new_grid)
+            I = integration_matrix(new_grid)
 
-        # Call the ODE at all nodes of the new grid
-        x_hat, x_prime = self.eval_ode(new_grid, L, I)
-        E = {}
-        e = {}
-        err_over_states = {}
-        for state_name, options in self.phase.state_options.items():
-            E[state_name] = np.absolute(x_prime[state_name] - x_hat[state_name])
-            for k in range(0, numseg):
-                e[state_name] = E[state_name]/(1 + np.max(x_hat[state_name][left_end_idxs[k]:left_end_idxs[k+1]]))
-            err_over_states[state_name] = np.zeros(numseg)
+            # Call the ODE at all nodes of the new grid
+            x_hat, x_prime = self.eval_ode(phase, new_grid, L, I)
+            E = {}
+            e = {}
+            err_over_states = {}
+            for state_name, options in phase.state_options.items():
+                E[state_name] = np.absolute(x_prime[state_name] - x_hat[state_name])
+                for k in range(0, numseg):
+                    e[state_name] = E[state_name]/(1 + np.max(x_hat[state_name][left_end_idxs[k]:left_end_idxs[k+1]]))
+                err_over_states[state_name] = np.zeros(numseg)
 
-        for state_name, options in self.phase.state_options.items():
-            for k in range(0, numseg):
-                err_over_states[state_name][k] = np.max(e[state_name][left_end_idxs[k]:left_end_idxs[k+1]])
+            for state_name, options in phase.state_options.items():
+                for k in range(0, numseg):
+                    err_over_states[state_name][k] = np.max(e[state_name][left_end_idxs[k]:left_end_idxs[k+1]])
 
-        self.error = np.zeros(numseg)
-        need_refinement = np.zeros(numseg, dtype=bool)
+            self.error[phase_path] = np.zeros(numseg)
+            need_refinement[phase_path] = np.zeros(numseg, dtype=bool)
 
-        for state_name, options in self.phase.state_options.items():
-            for k in range(0, numseg):
-                if err_over_states[state_name][k] > self.error[k]:
-                    self.error[k] = err_over_states[state_name][k]
-                    if self.error[k] > self.tol:
-                        need_refinement[k] = True
+            for state_name, options in phase.state_options.items():
+                for k in range(0, numseg):
+                    if err_over_states[state_name][k] > self.error[phase_path][k]:
+                        self.error[phase_path][k] = err_over_states[state_name][k]
+                        if self.error[phase_path][k] > self.tol:
+                            need_refinement[phase_path][k] = True
 
         return need_refinement
 
     def refine(self, need_refinement):
         """
         Compute the order, number of nodes, and segment ends required for the new grid
+        and assigns them to the transcription of each phase.
+
+        Parameters
+        ----------
+        need_refinement : dict
+            A dictionary where each key is the path to a phase in the problem, and the
+            associated value is a sequence of True/False indicating whether each segment
+            in that phase needs refinement.
 
         Returns
         -------
-
-        new_order: int
-            Computed new order of the segments
-
-        new_segment_ends: np.array
-            New segment ends computed from splitting existing segments
-
-        new_num_nodes: int
-            Number of nodes in the refined grid
+        refined : dict
+            A dictionary of phase paths : phases which were refined.
 
         """
-        gd = self.phase.options['transcription'].grid_data
-        numseg = gd.num_segments
+        refined = {}
+        for phase_path, need_refine in need_refinement.items():
+            if not np.any(need_refine):
+                continue
+            refined[phase_path] = self.phases[phase_path]
 
-        refine_seg_idxs = np.where(need_refinement)
+            # Refinement is needed
+            phase = self.phases[phase_path]
+            gd = phase.options['transcription'].grid_data
+            numseg = gd.num_segments
 
-        P = np.zeros(numseg)
-        P[refine_seg_idxs] = np.log(self.error[refine_seg_idxs]/self.tol)/np.log(gd.transcription_order[refine_seg_idxs])
-        P = np.around(P).astype(int)
+            refine_seg_idxs = np.where(need_refine)
 
-        new_order = gd.transcription_order + P
-        B = np.ones(numseg, dtype=int)
+            P = np.zeros(numseg)
+            P[refine_seg_idxs] = np.log(self.error[phase_path][refine_seg_idxs]/self.tol)/np.log(gd.transcription_order[refine_seg_idxs])
+            P = np.around(P).astype(int)
 
-        raise_order_idxs = np.where(gd.transcription_order + P < self.max_order)
-        split_seg_idxs = np.where(gd.transcription_order + P > self.max_order)
+            new_order = gd.transcription_order + P
+            B = np.ones(numseg, dtype=int)
 
-        new_order[raise_order_idxs] = gd.transcription_order[raise_order_idxs] + P[raise_order_idxs]
-        new_order[split_seg_idxs] = self.min_order
+            raise_order_idxs = np.where(gd.transcription_order + P < self.max_order)
+            split_seg_idxs = np.where(gd.transcription_order + P > self.max_order)
 
-        B[split_seg_idxs] = np.around((gd.transcription_order[split_seg_idxs] + P[split_seg_idxs])/self.min_order).astype(int)
+            new_order[raise_order_idxs] = gd.transcription_order[raise_order_idxs] + P[raise_order_idxs]
+            new_order[split_seg_idxs] = self.min_order
 
-        new_order = np.repeat(new_order, repeats=B)
-        new_num_segments = int(np.sum(B))
-        new_segment_ends = split_segments(gd.segment_ends, B)
+            B[split_seg_idxs] = np.around((gd.transcription_order[split_seg_idxs] + P[split_seg_idxs])/self.min_order).astype(int)
 
-        return new_order, new_num_segments, new_segment_ends
+            new_order = np.repeat(new_order, repeats=B)
+            new_num_segments = int(np.sum(B))
+            new_segment_ends = split_segments(gd.segment_ends, B)
 
-    def eval_ode(self, grid, L, I):
+            T = phase.options['transcription']
+            T.options['order'] = new_order
+            T.options['num_segments'] = new_num_segments
+            T.options['segment_ends'] = new_segment_ends
+
+        return refined
+
+    def eval_ode(self, phase, grid, L, I):
         """
         Evaluate the phase ODE on the given grid.
 
         Parameters
         ----------
+        phase : Phase
+            The phase object whose ODE is to be evaluated at the given grid.
         grid : GridData
             The GridData object representing the grid at which the ODE is to be evaluated.
         L : np.ndarray
@@ -301,10 +318,11 @@ class PHAdaptive:
             Evaluted state values at all nodes of the given grid from use of Integration matrix.
 
         """
-        time_units = self.phase.time_options['units']
+        time_units = phase.time_options['units']
+        grid_data = phase.options['transcription'].grid_data
         p = om.Problem(model=om.Group())
-        ode_class = self.phase.options['ode_class']
-        ode_init_kwargs = self.phase.options['ode_init_kwargs']
+        ode_class = phase.options['ode_class']
+        ode_init_kwargs = phase.options['ode_init_kwargs']
         ivc = om.IndepVarComp()
         p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
@@ -322,31 +340,31 @@ class PHAdaptive:
         f_hat = {}
         x_prime = {}
 
-        outputs = self.phase.list_outputs(units=False, out_stream=None)
+        outputs = phase.list_outputs(units=False, out_stream=None)
         out_values_dict = {k: v['value'] for k, v in outputs}
-        prom_to_abs_map = self.phase._var_allprocs_prom2abs_list['output']
+        prom_to_abs_map = phase._var_allprocs_prom2abs_list['output']
 
-        if self.phase.time_options['targets']:
-            self.phase.connect('time',
-                          ['rhs_all.{0}'.format(t) for t in self.phase.time_options['targets']],
-                          src_indices=self.grid_data.subset_node_indices['all'])
+        if phase.time_options['targets']:
+            phase.connect('time',
+                          ['rhs_all.{0}'.format(t) for t in phase.time_options['targets']],
+                          src_indices=grid_data.subset_node_indices['all'])
 
-        if self.phase.time_options['time_phase_targets']:
-            self.phase.connect('time_phase',
-                          ['rhs_all.{0}'.format(t) for t in self.phase.time_options['time_phase_targets']],
-                          src_indices=self.grid_data.subset_node_indices['all'])
+        if phase.time_options['time_phase_targets']:
+            phase.connect('time_phase',
+                          ['rhs_all.{0}'.format(t) for t in phase.time_options['time_phase_targets']],
+                          src_indices=grid_data.subset_node_indices['all'])
 
-        if self.phase.time_options['t_initial_targets']:
-            tgts = self.phase.time_options['t_initial_targets']
-            self.phase.connect('t_initial',
+        if phase.time_options['t_initial_targets']:
+            tgts = phase.time_options['t_initial_targets']
+            phase.connect('t_initial',
                           ['rhs_all.{0}'.format(t) for t in tgts])
 
-        if self.phase.time_options['t_duration_targets']:
-            tgts = self.phase.time_options['t_duration_targets']
-            self.phase.connect('t_duration',
+        if phase.time_options['t_duration_targets']:
+            tgts = phase.time_options['t_duration_targets']
+            phase.connect('t_duration',
                           ['rhs_all.{0}'.format(t) for t in tgts])
 
-        for state_name, options in self.phase.state_options.items():
+        for state_name, options in phase.state_options.items():
             prom_name = f'timeseries.states:{state_name}'
             abs_name = prom_to_abs_map[prom_name][0]
             x[state_name] = out_values_dict[abs_name]
@@ -354,7 +372,7 @@ class PHAdaptive:
             ivc.add_output(f'states:{state_name}', val=x_hat[state_name], units=options['units'])
             p.model.connect(f'states:{state_name}', [f'ode.{tgt}' for tgt in options['targets']])
 
-        for control_name, options in self.phase.control_options.items():
+        for control_name, options in phase.control_options.items():
             prom_name = f'timeseries.controls:{control_name}'
             abs_name = prom_to_abs_map[prom_name][0]
             u[control_name] = out_values_dict[abs_name]
@@ -362,7 +380,7 @@ class PHAdaptive:
             ivc.add_output(f'controls:{control_name}', val=u_hat[control_name], units=options['units'])
             p.model.connect(f'controls:{control_name}', [f'ode.{tgt}' for tgt in options['targets']])
 
-        for dp_name, options in self.phase.design_parameter_options.items():
+        for dp_name, options in phase.design_parameter_options.items():
             prom_name = f'design_parameters:{dp_name}'
             abs_name = prom_to_abs_map[prom_name][0]
             dp_val = out_values_dict[abs_name]
@@ -391,7 +409,7 @@ class PHAdaptive:
 
         oodt_dstau = np.atleast_2d(p.get_val('dt_dstau')[not_left_end_idxs]).T
 
-        for state_name, options in self.phase.state_options.items():
+        for state_name, options in phase.state_options.items():
             rate_source = options['rate_source']
             f_hat[state_name] = np.atleast_2d(p.get_val(f'ode.{rate_source}'))
             if options['shape'] == (1,):
@@ -407,7 +425,7 @@ class PHAdaptive:
 
         if self.plot:
             import matplotlib.pyplot as plt
-            # ptau_old = self.phase.options['transcription'].grid_data.node_ptau
+            # ptau_old = phase.options['transcription'].grid_data.node_ptau
             ptau_new = grid.node_ptau
             # plt.plot(ptau_old, x['x'], 'ro', label='x')
             plt.plot(ptau_new, x_hat['x'], 'bx', label='x hat')
