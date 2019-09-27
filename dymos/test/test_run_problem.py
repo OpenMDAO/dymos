@@ -9,17 +9,17 @@ class TestRunProblem(unittest.TestCase):
     def test_run_problem(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
-        # p.driver.declare_coloring()
+        p.driver.declare_coloring()
         p.driver.options['optimizer'] = 'SNOPT'
         p.driver.opt_settings['iSumm'] = 6
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
-                                                transcription=dm.Radau(num_segments=30, order=3)))
+                                                transcription=dm.Radau(num_segments=10, order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
-        phase0.add_control('u', opt=True, targets=['u'])
+        phase0.add_control('u', opt=True, targets=['u'], rate_continuity=False)
 
         phase0.add_boundary_constraint('x', loc='final', equals=1)
 

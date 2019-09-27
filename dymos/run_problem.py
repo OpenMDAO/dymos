@@ -18,73 +18,19 @@ def run_problem(problem, refine=True):
         for i in range(ph.iteration_limit):
             need_refine = ph.check_error()
 
-            import copy
             prev_soln = {}
-            prev_soln['inputs'] = copy.deepcopy(problem.model.list_inputs(out_stream=None, units=True))
-            prev_soln['outputs'] = copy.deepcopy(problem.model.list_outputs(out_stream=None, units=True))
+            prev_soln['inputs'] = problem.model.list_inputs(out_stream=None, units=True)
+            prev_soln['outputs'] = problem.model.list_outputs(out_stream=None, units=True)
 
-            ph.refine(need_refine)
+            refined_phases = ph.refine(need_refine)
+            if not refined_phases:
+                break
 
             problem.setup()
 
             re_interpolate_solution(problem, phases, previous_solution=prev_soln)
 
             problem.run_driver()
-
-        exit(0)
-
-        # for i in range ph.iteration_limit:
-
-        # need_refine = {}
-
-        # #
-        # # Determine the phase/segments which need refinement
-        # #
-        # phase_paths = find_phases(problem.model)
-        # print(phase_paths)
-        # for phase_path in phase_paths:
-        #     phase = problem.model._get_subsystem(phase_path)
-        #     ph = PHAdaptive(phase)
-        #     need_refine[phase_path] = ph.check_error()
-        #     M = 0
-        #     while np.any(need_refine[phase_path]) or M >= ph.iteration_limit:
-        #         new_order, new_num_segments, new_segment_ends = ph.refine(need_refine[phase_path])
-        #         T = phase.options['transcription']
-        #
-        #         T.options['order'] = new_order
-        #         T.options['num_segments'] = new_num_segments
-        #         T.options['segment_ends'] = new_segment_ends
-
-        #
-        # If refinement was needed, setup a new problem
-        #
-        # problem.setup()
-        #
-        # re_interpolate_solution(problem, phase, phase_path)
-        #
-        # #
-        # # Set the initial values for the newly refined phases
-        # #
-        # for phase_path in phase_paths:
-        #     phase = problem.model._get_subsystem(phase_path)
-        #     ph = PHAdaptive(phase)
-        #     need_refine[phase_path] = ph.check_error()
-        #     M = 0
-        #     while np.any(need_refine[phase_path]) or M >= ph.iteration_limit:
-        #         new_order, new_num_segments, new_segment_ends = ph.refine(need_refine[phase_path])
-        #         T = phase.options['transcription']
-        #
-        #         T.options['order'] = new_order
-        #         T.options['num_segments'] = new_num_segments
-        #         T.options['segment_ends'] = new_segment_ends
-        #
-        #
-        #         # interpolate previous solution into new grid
-        #         re_interpolate_solution(problem, phase, phase_path)
-        #
-        #         problem.run_driver()
-        #         need_refine = ph.check_error()
-        #         M += 1
 
 
 def find_phases(sys):
@@ -139,7 +85,7 @@ def re_interpolate_solution(problem, phases, previous_solution):
             prev_state_soln_abs_name = f'{phase_path}.timeseries.states:{state_name}'
             state_prom_name = abs_to_prom_op_map[state_abs_name]
             prev_state_val = prev_op_dict[prev_state_soln_abs_name]
-            problem.set_val(state_prom_name, phase.interpolate(xs=prev_time, ys=prev_state_val, nodes='state_input'))
+            problem.set_val(state_prom_name, phase.interpolate(xs=prev_time, ys=prev_state_val, nodes='state_input', kind='slinear'))
 
         print(abs_to_prom_op_map.keys())
 
@@ -148,7 +94,7 @@ def re_interpolate_solution(problem, phases, previous_solution):
             prev_control_soln_abs_name = f'{phase_path}.timeseries.controls:{control_name}'
             control_prom_name = abs_to_prom_op_map[control_abs_name]
             prev_control_val = prev_op_dict[prev_control_soln_abs_name]
-            problem.set_val(control_prom_name, phase.interpolate(xs=prev_time, ys=prev_control_val, nodes='control_input'))
+            problem.set_val(control_prom_name, phase.interpolate(xs=prev_time, ys=prev_control_val, nodes='control_input', kind='slinear'))
 
     #
     #

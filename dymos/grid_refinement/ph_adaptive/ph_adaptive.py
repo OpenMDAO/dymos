@@ -249,10 +249,17 @@ class PHAdaptive:
             associated value is a sequence of True/False indicating whether each segment
             in that phase needs refinement.
 
+        Returns
+        -------
+        refined : dict
+            A dictionary of phase paths : phases which were refined.
+
         """
+        refined = {}
         for phase_path, need_refine in need_refinement.items():
             if not np.any(need_refine):
                 continue
+            refined[phase_path] = self.phases[phase_path]
 
             # Refinement is needed
             phase = self.phases[phase_path]
@@ -284,6 +291,8 @@ class PHAdaptive:
             T.options['order'] = new_order
             T.options['num_segments'] = new_num_segments
             T.options['segment_ends'] = new_segment_ends
+
+        return refined
 
     def eval_ode(self, phase, grid, L, I):
         """
