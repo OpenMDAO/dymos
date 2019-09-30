@@ -370,7 +370,8 @@ class PHAdaptive:
             x[state_name] = out_values_dict[abs_name]
             x_hat[state_name] = np.dot(L, x[state_name])
             ivc.add_output(f'states:{state_name}', val=x_hat[state_name], units=options['units'])
-            p.model.connect(f'states:{state_name}', [f'ode.{tgt}' for tgt in options['targets']])
+            if options['targets'] is not None:
+                p.model.connect(f'states:{state_name}', [f'ode.{tgt}' for tgt in options['targets']])
 
         for control_name, options in phase.control_options.items():
             prom_name = f'timeseries.controls:{control_name}'
@@ -378,15 +379,16 @@ class PHAdaptive:
             u[control_name] = out_values_dict[abs_name]
             u_hat[control_name] = np.dot(L, u[control_name])
             ivc.add_output(f'controls:{control_name}', val=u_hat[control_name], units=options['units'])
-            p.model.connect(f'controls:{control_name}', [f'ode.{tgt}' for tgt in options['targets']])
+            if options['targets'] is not None:
+                p.model.connect(f'controls:{control_name}', [f'ode.{tgt}' for tgt in options['targets']])
 
         for dp_name, options in phase.design_parameter_options.items():
             prom_name = f'design_parameters:{dp_name}'
             abs_name = prom_to_abs_map[prom_name][0]
             dp_val = out_values_dict[abs_name]
             ivc.add_output(f'design_parameters:{dp_name}', val=dp_val, units=options['units'])
-            p.model.connect(f'design_parameters:{dp_name}',
-                            [f'ode.{tgt}' for tgt in options['targets']])
+            if options['targets'] is not None:
+                p.model.connect(f'design_parameters:{dp_name}', [f'ode.{tgt}' for tgt in options['targets']])
 
         p.setup()
 
