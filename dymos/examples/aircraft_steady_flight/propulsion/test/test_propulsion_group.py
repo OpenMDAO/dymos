@@ -36,22 +36,11 @@ class TestPropulsionComp(unittest.TestCase):
 
         cls.p.run_model()
 
-    @unittest.skip('temporaryily skipped until CT is worked out analytically')
     def test_results(self):
 
         assert_rel_error(self,
                          self.p['propulsion.tsfc'],
                          2 * 8.951e-6 * 9.80665 * np.ones(self.n))
-
-        print(self.p['propulsion.tau'])
-
-        # assert_rel_error(self,
-        #                  self.p['propulsion.tau'],
-        #                  np.linspace(0, 1.0, self.n))
-        #
-        # assert_rel_error(self,
-        #                  self.p['propulsion.dXdt:mass_fuel'],
-        #                  np.linspace(0, -1.02E6 * 2 * 8.951E-6, self.n))
 
     def test_partials(self):
         cpd = self.p.check_partials(method='cs', out_stream=None)

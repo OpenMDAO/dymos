@@ -116,14 +116,14 @@ class TestStateInterpComp(unittest.TestCase):
             xdot2 = f_v(t)
 
             ax[0].plot(t, x1, 'b-', label='$x$')
-            ax[0].plot(t, xdot1, 'b--', label='$\dot{x}$')
+            ax[0].plot(t, xdot1, 'b--', label=r'$\dot{x}$')
             ax[0].plot(t_disc, p['state_disc:x'], 'bo', label='$X_d:x$')
             ax[0].plot(t_col, p['state_interp_comp.state_col:x'], 'bv', label='$X_c:x$')
             ax[0].plot(t_col, p['state_interp_comp.staterate_col:x'], marker='v', color='None',
                        mec='b', label='$Xdot_c:x$')
 
             ax[1].plot(t, x2, 'r-', label='$v$')
-            ax[1].plot(t, xdot2, 'r--', label='$\dot{v}$')
+            ax[1].plot(t, xdot2, 'r--', label=r'$\dot{v}$')
             ax[1].plot(t_disc, p['state_disc:v'], 'ro', label='$X_d:v$')
             ax[1].plot(t_col, p['state_interp_comp.state_col:v'], 'rv', label='$X_c:v$')
             ax[1].plot(t_col, p['state_interp_comp.staterate_col:v'], marker='v', color='None',
@@ -226,14 +226,14 @@ class TestStateInterpComp(unittest.TestCase):
             xdot2 = f_v(t)
 
             ax[0].plot(t, x1, 'b-', label='$x$')
-            ax[0].plot(t, xdot1, 'b--', label='$\dot{x}$')
+            ax[0].plot(t, xdot1, 'b--', label='r$\dot{x}$')
             ax[0].plot(t_disc, p['state_disc:pos'][:, 0], 'bo', label='$X_d:pos$')
             ax[0].plot(t_col, p['state_interp_comp.state_col:pos'][:, 0], 'bv', label='$X_c:pos$')
             ax[0].plot(t_col, p['state_interp_comp.staterate_col:pos'][:, 0], marker='v',
                        color='None', mec='b', label='$Xdot_c:pos$')
 
             ax[1].plot(t, x2, 'r-', label='$v$')
-            ax[1].plot(t, xdot2, 'r--', label='$\dot{v}$')
+            ax[1].plot(t, xdot2, 'r--', label='r$\dot{v}$')
             ax[1].plot(t_disc, p['state_disc:pos'][:, 1], 'ro', label='$X_d:vel$')
             ax[1].plot(t_col, p['state_interp_comp.state_col:pos'][:, 1], 'rv', label='$X_c:vel$')
             ax[1].plot(t_col, p['state_interp_comp.staterate_col:pos'][:, 1], marker='v',

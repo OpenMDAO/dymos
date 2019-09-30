@@ -56,7 +56,7 @@ this complexity, Dymos Trajectory objects support their own Design Parameters an
 
 Like their Phase-based counterparts, Trajectory design parameters produce an output which can be used
 as a design variable to provide an optimal solution.  Similarly, input parameters provide an input
-at the trajectory level which maybe be connected to some output external to the trajectory.
+at the trajectory level which may be connected to some output external to the trajectory.
 
 When using Trajectory Design and Input parameters, their values are connected to each phase as an
 Input Parameter within the Phase.  Because ODEs in different phases may have different names

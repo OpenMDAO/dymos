@@ -1,6 +1,10 @@
 from __future__ import print_function, division, absolute_import
 
+<<<<<<< HEAD
 from collections import Iterable
+=======
+from collections.abc import Iterable
+>>>>>>> 29f9b49554bdbaa6a04b5a590f9bae97003e905b
 import warnings
 from six import string_types
 import numpy as np

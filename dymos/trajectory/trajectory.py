@@ -1,6 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
-from collections import Sequence, OrderedDict, Iterable
+from collections import OrderedDict
+from collections.abc import Sequence, Iterable
 import itertools
 from six import iteritems, string_types
 
@@ -69,7 +70,7 @@ class Trajectory(om.Group):
                             targets=_unspecified, custom_targets=_unspecified,
                             shape=_unspecified, dynamic=_unspecified):
         """
-        Add na input parameter to the trajectory.
+        Add an input parameter to the trajectory.
 
         Parameters
         ----------

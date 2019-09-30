@@ -1,7 +1,8 @@
 import unittest
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
-from openmdao.utils.general_utils import set_pyoptsparse_opt
+from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
+
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 import numpy as np
@@ -56,36 +57,31 @@ class TestHyperSensitive(unittest.TestCase):
     def test_partials(self):
         p = self.make_problem(transcription=Radau, optimizer='SLSQP')
         p.run_model()
-        with np.printoptions(linewidth=1024, edgeitems=100):
+        with printoptions(linewidth=1024, edgeitems=100):
             cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
 
     def test_hyper_sensitive_radau(self):
-        p = self.make_problem(transcription=Radau, optimizer='SNOPT')
+        p = self.make_problem(transcription=Radau, optimizer='SLSQP')
         p.run_driver()
         ui, uf, J = self.solution()
 
         assert_rel_error(self,
                          p.get_val('traj.phase0.timeseries.controls:u')[0],
                          ui,
-                         tolerance=1e-2)
+                         tolerance=1e-1)
 
         assert_rel_error(self,
                          p.get_val('traj.phase0.timeseries.controls:u')[-1],
                          uf,
-                         tolerance=1e-2)
+                         tolerance=1e-1)
 
         assert_rel_error(self,
                          p.get_val('traj.phase0.timeseries.states:xL')[-1],
                          J,
-                         tolerance=1e-2)
-
-        inputs = p.model.traj.list_inputs(units=False, out_stream=None)
-
-        in_values_dict = {k: v['value'] for k, v in inputs}
-        print(in_values_dict)
+                         tolerance=1e-1)
 
     def test_hyper_sensitive_gauss_lobatto(self):
-        p = self.make_problem(transcription=GaussLobatto, optimizer='SNOPT')
+        p = self.make_problem(transcription=GaussLobatto, optimizer='SLSQP')
         p.run_driver()
 
         ui, uf, J = self.solution()

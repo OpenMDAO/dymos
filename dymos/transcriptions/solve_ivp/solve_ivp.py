@@ -17,7 +17,7 @@ class SolveIVP(TranscriptionBase):
     """
     The SolveIVP Transcription class.
 
-    SolveIVP transcription in Dymos uses the scipy.simulate.solve_ivp method explicitly integrate
+    SolveIVP transcription in Dymos uses the scipy.simulate.solve_ivp method to explicitly integrate
     the states from the phase initial time to the phase final time.
 
     SolveIVP transcription does not currently support optimization since it does not propagate
