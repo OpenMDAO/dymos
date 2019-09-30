@@ -65,9 +65,6 @@ def re_interpolate_solution(problem, phases, previous_solution):
     prev_ip_dict = {k: v['value'] for k, v in previous_solution['inputs']}
     prev_op_dict = {k: v['value'] for k, v in previous_solution['outputs']}
 
-    # prom_to_abs_ip_map = problem.model._var_allprocs_prom2abs_list['input']
-    # prom_to_abs_op_map = problem.model._var_allprocs_prom2abs_list['output']
-
     abs_to_prom_ip_map = {}
     for prom_name, abs_names in problem.model._var_allprocs_prom2abs_list['input'].items():
         for abs_name in abs_names:
@@ -132,10 +129,7 @@ def write_iteration(f, iter_number, phases):
         gd = phase.options['transcription'].grid_data
 
         f.write('Number of Segments = {}\n'.format(T.options['num_segments']))
-        #
-        # if isinstance(T.options['segment_ends'], int):
-        #     f.write('Segment Order = {}\n'.format(gd.segment_ends))
-        # else gd.segment_ends:
+
         f.write('Segment Ends = [')
         f.write(', '.join(str(round(elem, 4)) for elem in gd.segment_ends))
         f.write(']\n')

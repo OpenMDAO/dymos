@@ -152,7 +152,6 @@ class PHAdaptive:
         self.min_order = min_order
         self.max_order = max_order
         self.error = {}
-        self.create_output = create_output
 
     def check_error(self):
         """
