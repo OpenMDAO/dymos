@@ -3,19 +3,28 @@ from .phase.phase import Phase
 
 import numpy as np
 import openmdao.api as om
+import os
 
 
 def run_problem(problem, refine=True):
     problem.run_driver()
 
     if refine:
+        out_file = 'grid_refinement.out'
 
         phases = {phase_path: problem.model._get_subsystem(phase_path)
                   for phase_path in find_phases(problem.model)}
 
+        # for phase_path, phase in phases.items():
+        #     f.write('\nIteration number: 0')
+        #     f.write('')
+
         ph = PHAdaptive(phases)
+        f = open(out_file, 'w+')
+        write_initial(f, ph.min_order, ph.max_order, ph.iteration_limit, ph.tol)
 
         for i in range(ph.iteration_limit):
+            write_iteration(f, i, phases)
             need_refine = ph.check_error()
             if all(refine_segment is False for refine_segment in need_refine.values()):
                 break
@@ -32,6 +41,11 @@ def run_problem(problem, refine=True):
             re_interpolate_solution(problem, phases, previous_solution=prev_soln)
 
             problem.run_driver()
+        if i == ph.iteration_limit:
+            f.write('\nIteration limit exceeded. Unable to satisfy specified tolerance')
+        else:
+            f.write('\nSuccessfully completed grid refinement')
+        f.close()
 
 
 def find_phases(sys):
@@ -86,41 +100,49 @@ def re_interpolate_solution(problem, phases, previous_solution):
             prev_state_soln_abs_name = f'{phase_path}.timeseries.states:{state_name}'
             state_prom_name = abs_to_prom_op_map[state_abs_name]
             prev_state_val = prev_op_dict[prev_state_soln_abs_name]
-            problem.set_val(state_prom_name, phase.interpolate(xs=prev_time, ys=prev_state_val, nodes='state_input', kind='slinear'))
+            problem.set_val(state_prom_name,
+                            phase.interpolate(xs=prev_time, ys=prev_state_val, nodes='state_input', kind='slinear'))
 
         for control_name, options in phase.control_options.items():
             control_abs_name = f'{phase_path}.control_group.indep_controls.controls:{control_name}'
             prev_control_soln_abs_name = f'{phase_path}.timeseries.controls:{control_name}'
             control_prom_name = abs_to_prom_op_map[control_abs_name]
             prev_control_val = prev_op_dict[prev_control_soln_abs_name]
-            problem.set_val(control_prom_name, phase.interpolate(xs=prev_time, ys=prev_control_val, nodes='control_input', kind='slinear'))
+            problem.set_val(control_prom_name,
+                            phase.interpolate(xs=prev_time, ys=prev_control_val, nodes='control_input', kind='slinear'))
 
-    #
-    #
-    # abs_to_prom_ip_map = {v: k for k, v in prom_to_abs_ip_map.items()}
-    # abs_to_prom_op_map = {v: k for k, v in prom_to_abs_op_map.items()}
 
-    # First reassign anything that wasn't in a regridded phase
-    # for ip_name, value in prev_ip_dict.items():
-    #     prom_name = abs_to_prom_ip_map[ip_name]
-    #     problem.set_val(prom_name, value)
-    #
-    # for op_name, value in prev_op_dict.items():
-    #     prom_name = abs_to_prom_op_map[op_name]
-    #     print(prom_name, len(value), len(problem.get_val(prom_name)))
-    #     problem[prom_name][...] = value
-    #     print(value.T)
-    #     print()
-    #     print(problem[prom_name].T)
+def write_initial(f, min, max, iter_limit, tol):
+    f.write('======================\n')
+    f.write('   Grid Refinement\n')
+    f.write('======================\n')
+    f.write('ph-refinement\n')
+    f.write('Minimum order = {}\n'.format(min))
+    f.write('Maximum order = {}\n'.format(max))
+    f.write('Tolerance = {}\n'.format(tol))
+    f.write('Iteration limit = {}\n'.format(iter_limit))
 
-    # for phase_path, phase in phases.items():
-    #
-    # problem.set_val('traj.phase0.states:x', phase.interpolate(ys=[1.5, 1], nodes='state_input'))
-    # problem.set_val('traj.phase0.states:xL', phase.interpolate(ys=[0, 1], nodes='state_input'))
-    # problem.set_val('traj.phase0.t_initial', 0)
-    # problem.set_val('traj.phase0.t_duration', 100)
-    # problem.set_val('traj.phase0.controls:u', phase.interpolate(ys=[-0.6, 2.4], nodes='control_input'))
-    #
-    # # phase_items = phase.list_outputs(explicit=True, implicit=True, values=False, prom_name=True)
-    # # for item in phase_items:
-    # #     problem.set_val(item, 0)
+
+def write_iteration(f, iter_number, phases):
+    f.write('\n\n')
+    f.write('Iteration number: {}\n'.format(iter_number))
+    for phase_path, phase in phases.items():
+        f.write('Phase: {}\n'.format(phase_path))
+        T = phase.options['transcription']
+        gd = phase.options['transcription'].grid_data
+
+        f.write('Number of Segments = {}\n'.format(T.options['num_segments']))
+        #
+        # if isinstance(T.options['segment_ends'], int):
+        #     f.write('Segment Order = {}\n'.format(gd.segment_ends))
+        # else gd.segment_ends:
+        f.write('Segment Ends = [')
+        f.write(', '.join(str(round(elem, 4)) for elem in gd.segment_ends))
+        f.write(']\n')
+
+        if isinstance(T.options['order'], int):
+            f.write('Segment Order = {}\n'.format(T.options['order']))
+        else:
+            f.write('Segment Order = [')
+            f.write(', '.join(str(elem) for elem in T.options['order']))
+            f.write(']\n')
