@@ -17,10 +17,11 @@ def run_problem(problem, refine=True):
 
         for i in range(ph.iteration_limit):
             need_refine = ph.check_error()
+            if all(refine_segment is False for refine_segment in need_refine.values()):
+                break
 
-            prev_soln = {}
-            prev_soln['inputs'] = problem.model.list_inputs(out_stream=None, units=True)
-            prev_soln['outputs'] = problem.model.list_outputs(out_stream=None, units=True)
+            prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True),
+                         'outputs': problem.model.list_outputs(out_stream=None, units=True)}
 
             refined_phases = ph.refine(need_refine)
             if not refined_phases:
@@ -86,8 +87,6 @@ def re_interpolate_solution(problem, phases, previous_solution):
             state_prom_name = abs_to_prom_op_map[state_abs_name]
             prev_state_val = prev_op_dict[prev_state_soln_abs_name]
             problem.set_val(state_prom_name, phase.interpolate(xs=prev_time, ys=prev_state_val, nodes='state_input', kind='slinear'))
-
-        print(abs_to_prom_op_map.keys())
 
         for control_name, options in phase.control_options.items():
             control_abs_name = f'{phase_path}.control_group.indep_controls.controls:{control_name}'
