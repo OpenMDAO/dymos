@@ -15,17 +15,14 @@ def run_problem(problem, refine=True):
         phases = {phase_path: problem.model._get_subsystem(phase_path)
                   for phase_path in find_phases(problem.model)}
 
-        # for phase_path, phase in phases.items():
-        #     f.write('\nIteration number: 0')
-        #     f.write('')
-
-        ph = PHAdaptive(phases)
+        ph = PHAdaptive(phases, iteration_limit=20, tol=1e-4)
         f = open(out_file, 'w+')
         write_initial(f, ph.min_order, ph.max_order, ph.iteration_limit, ph.tol)
 
         for i in range(ph.iteration_limit):
             write_iteration(f, i, phases)
             need_refine = ph.check_error()
+
             if all(refine_segment is False for refine_segment in need_refine.values()):
                 break
 
@@ -41,7 +38,7 @@ def run_problem(problem, refine=True):
             re_interpolate_solution(problem, phases, previous_solution=prev_soln)
 
             problem.run_driver()
-        if i == ph.iteration_limit:
+        if i == ph.iteration_limit-1:
             f.write('\nIteration limit exceeded. Unable to satisfy specified tolerance')
         else:
             f.write('\nSuccessfully completed grid refinement')
