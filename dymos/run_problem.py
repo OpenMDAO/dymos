@@ -40,6 +40,8 @@ def run_problem(problem, refine=True):
             problem.run_driver()
         if i == ph.iteration_limit-1:
             f.write('\nIteration limit exceeded. Unable to satisfy specified tolerance')
+        elif i == 0:
+            f.write('\nError is within tolerance. Grid refinement is not required')
         else:
             f.write('\nSuccessfully completed grid refinement')
         f.close()
