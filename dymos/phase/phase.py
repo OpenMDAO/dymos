@@ -412,9 +412,9 @@ class Phase(om.Group):
         rate and rate2 continuity are not enforced for input controls.
 
         """
-        self.check_parameter(name)
 
         if name not in self.user_control_options:
+            self.check_parameter(name)
             self.user_control_options[name] = {'name': name}
 
         if units is not _unspecified:
@@ -1058,22 +1058,31 @@ class Phase(om.Group):
                     'vectorize_derivs': vectorize_derivs}
         self._objectives[name] = obj_dict
 
-    def set_time_options(self, **kwargs):
+    def set_time_options(self, units=_unspecified, fix_initial=_unspecified,
+                         fix_duration=_unspecified, input_initial=_unspecified,
+                         input_duration=_unspecified, initial_val=_unspecified,
+                         initial_bounds=_unspecified, initial_scaler=_unspecified,
+                         initial_adder=_unspecified, initial_ref0=_unspecified,
+                         initial_ref=_unspecified, duration_val=_unspecified,
+                         duration_bounds=_unspecified, duration_scaler=_unspecified,
+                         duration_adder=_unspecified, duration_ref0=_unspecified,
+                         duration_ref=_unspecified, targets=_unspecified,
+                         time_phase_targets=_unspecified, t_initial_targets=_unspecified,
+                         t_duration_targets=_unspecified):
         """
-        Set options for the time (or the integration variable) in the Phase.
+        Sets options for time in the phase.  Only those options which are specified in the
+        arguments will be updated.
 
         Parameters
         ----------
-        opt_initial : bool, deprecated
-            If True, the initial time of the phase is a design variable
-            for optimization, otherwise False. This option is deprecated in favor of fix_initial.
-        opt_duration : bool, deprecated
-            If True, the duration of the phase is a design variable
-            for optimization, otherwise False. This option is deprecated in favor of fix_duration.
+        units : str
+            The default units for time variables in the phase.  Default is 's'.
         fix_initial : bool
-            If True, the initial time of the phase is not a design variable.
+            If True, the initial time of the phase is not treated as a design variable for the
+            optimization problem.
         fix_duration : bool
-            If True, the duration of the phase is not a design variable
+            If True, the duration of the phase is not treated as a design variable for the
+            optimization problem.
         input_initial : bool
             If True, the user is expected to link phase.t_initial to an external output source.
             Providing input_initial=True makes all initial time optimization settings irrelevant.
@@ -1082,31 +1091,111 @@ class Phase(om.Group):
             Providing input_duration=True makes all time duration optimization settings irrelevant.
         initial_val : float
             Default value of the time at the start of the phase.
-        initial_bounds : Iterable of size 2
-            Tuple of (lower, upper) bounds for time at the start of the phase.
+        initial_bounds : iterable of (float, float)
+            The bounds (lower, upper) for time at the start of the phase.
         initial_scaler : float
             Scalar for the initial value of time.
         initial_adder : float
             Adder for the initial value of time.
         initial_ref0 : float
-            Zero-reference value for the initial value of time.
+            Zero-reference for the initial value of time
         initial_ref : float
-            Unit-reference value for the initial value of time.
+            Unit-reference for the initial value of time.
         duration_val : float
-            Value of the duration of time across the phase.
-        duration_bounds : Iterable of size 2
-            Tuple of (lower, upper) bounds for the duration of time
-            across the phase.
+            Default value for the time duration of the phase.
+        duration_bounds : iterable of (float, float)
+            The bounds (lower, upper) for the time duration of the phase.
         duration_scaler : float
-            Scalar for the duration of time across the phase.
+            Scaler for phase time duration.
         duration_adder : float
-            Adder for the duration of time across the phase.
+            Adder for phase time duration.
         duration_ref0 : float
-            Zero-reference value for the duration of time across the phase.
+            Zero-reference for phase time duration.
         duration_ref : float
-            Unit-reference value for the duration of time across the phase.
+            Unit-reference for phase time duration.
+        targets : iterable of str
+            Targets in the ODE for the value of current time.
+        time_phase_targets : iterable of str
+            Targets in the ODE for the value of current phase elapsed time.
+        t_initial_targets : iterable of str
+            Targets in the ODE for the value of phase initial time.
+        t_duration_targets :  iterable of str
+            Targets in the ODE for the value of phase time duration.
         """
-        self.user_time_options.update(kwargs)
+        if units is not _unspecified:
+            self.user_time_options['units'] = units
+
+        if fix_initial is not _unspecified:
+            self.user_time_options['fix_initial'] = fix_initial
+
+        if fix_duration is not _unspecified:
+            self.user_time_options['fix_duration'] = fix_duration
+
+        if input_initial is not _unspecified:
+            self.user_time_options['input_initial'] = input_initial
+
+        if input_duration is not _unspecified:
+            self.user_time_options['input_duration'] = input_duration
+
+        if initial_val is not _unspecified:
+            self.user_time_options['initial_val'] = initial_val
+
+        if initial_bounds is not _unspecified:
+            self.user_time_options['initial_bounds'] = initial_bounds
+
+        if initial_scaler is not _unspecified:
+            self.user_time_options['initial_scaler'] = initial_scaler
+
+        if initial_adder is not _unspecified:
+            self.user_time_options['initial_adder'] = initial_adder
+
+        if initial_ref0 is not _unspecified:
+            self.user_time_options['initial_ref0'] = initial_ref0
+
+        if initial_ref is not _unspecified:
+            self.user_time_options['initial_ref'] = initial_ref
+
+        if duration_val is not _unspecified:
+            self.user_time_options['duration_val'] = duration_val
+
+        if duration_bounds is not _unspecified:
+            self.user_time_options['duration_bounds'] = duration_bounds
+
+        if duration_scaler is not _unspecified:
+            self.user_time_options['duration_scaler'] = duration_scaler
+
+        if duration_adder is not _unspecified:
+            self.user_time_options['duration_adder'] = duration_adder
+
+        if duration_ref0 is not _unspecified:
+            self.user_time_options['duration_ref0'] = duration_ref0
+
+        if duration_ref is not _unspecified:
+            self.user_time_options['duration_ref'] = duration_ref
+
+        if targets is not _unspecified:
+            if isinstance(targets, string_types):
+                self.user_time_options['targets'] = (targets,)
+            else:
+                self.user_time_options['targets'] = targets
+
+        if time_phase_targets is not _unspecified:
+            if isinstance(time_phase_targets, string_types):
+                self.user_time_options['time_phase_targets'] = (time_phase_targets,)
+            else:
+                self.user_time_options['time_phase_targets'] = time_phase_targets
+
+        if t_initial_targets is not _unspecified:
+            if isinstance(t_initial_targets, string_types):
+                self.user_time_options['t_initial_targets'] = (t_initial_targets,)
+            else:
+                self.user_time_options['t_initial_targets'] = t_initial_targets
+
+        if t_duration_targets is not _unspecified:
+            if isinstance(t_duration_targets, string_types):
+                self.user_time_options['t_duration_targets'] = (t_duration_targets,)
+            else:
+                self.user_time_options['t_duration_targets'] = t_duration_targets
 
     def classify_var(self, var):
         """
@@ -1308,7 +1397,8 @@ class Phase(om.Group):
                 if self.time_options[opt] is not None:
                     invalid_options.append(opt)
             if invalid_options:
-                warnings.warn('Phase time options have no effect because fix_initial=True for '
+                warnings.warn('Phase time options have no effect because fix_initial=True or '
+                              'input_initial=True for '
                               'phase \'{0}\': {1}'.format(self.name, ', '.join(invalid_options)),
                               RuntimeWarning)
 
@@ -1326,7 +1416,8 @@ class Phase(om.Group):
                 if self.time_options[opt] is not None:
                     invalid_options.append(opt)
             if invalid_options:
-                warnings.warn('Phase time options have no effect because fix_duration=True for '
+                warnings.warn('Phase time options have no effect because fix_duration=True or '
+                              'input_duration=True for '
                               'phase \'{0}\': {1}'.format(self.name, ', '.join(invalid_options)))
 
         if self.time_options['fix_duration'] and self.time_options['input_duration']:

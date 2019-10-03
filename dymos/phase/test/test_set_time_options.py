@@ -65,13 +65,13 @@ class TestPhaseTimeOptions(unittest.TestCase):
 
         p.model.linear_solver = om.DirectSolver()
 
-        expected_msg0 = 'Phase time options have no effect because fix_initial=True for ' \
-                        'phase \'phase0\': initial_bounds, initial_scaler, initial_adder, ' \
-                        'initial_ref, initial_ref0'
+        expected_msg0 = 'Phase time options have no effect because fix_initial=True or ' \
+                        'input_initial=True for phase \'phase0\': initial_bounds, initial_scaler, ' \
+                        'initial_adder, initial_ref, initial_ref0'
 
-        expected_msg1 = 'Phase time options have no effect because fix_duration=True for' \
-                        ' phase \'phase0\': duration_bounds, duration_scaler, ' \
-                        'duration_adder, duration_ref, duration_ref0'
+        expected_msg1 = 'Phase time options have no effect because fix_duration=True or ' \
+                        'input_duration=True for phase \'phase0\': duration_bounds, ' \
+                        'duration_scaler, duration_adder, duration_ref, duration_ref0'
 
         with warnings.catch_warnings(record=True) as ctx:
             warnings.simplefilter('always')
@@ -225,13 +225,13 @@ class TestPhaseTimeOptions(unittest.TestCase):
 
         p.model.linear_solver = om.DirectSolver()
 
-        expected_msg0 = 'Phase time options have no effect because fix_initial=True for ' \
-                        'phase \'phase0\': initial_bounds, initial_scaler, initial_adder, ' \
-                        'initial_ref, initial_ref0'
+        expected_msg0 = 'Phase time options have no effect because fix_initial=True or ' \
+                        'input_initial=True for phase \'phase0\': initial_bounds, ' \
+                        'initial_scaler, initial_adder, initial_ref, initial_ref0'
 
-        expected_msg1 = 'Phase time options have no effect because fix_duration=True for' \
-                        ' phase \'phase0\': duration_bounds, duration_scaler, ' \
-                        'duration_adder, duration_ref, duration_ref0'
+        expected_msg1 = 'Phase time options have no effect because fix_duration=True or ' \
+                        'input_duration=True for phase \'phase0\': duration_bounds, ' \
+                        'duration_scaler, duration_adder, duration_ref, duration_ref0'
 
         with warnings.catch_warnings(record=True) as ctx:
             warnings.simplefilter('always')
