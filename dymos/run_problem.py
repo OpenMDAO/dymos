@@ -15,13 +15,13 @@ def run_problem(problem, refine=True):
         phases = {phase_path: problem.model._get_subsystem(phase_path)
                   for phase_path in find_phases(problem.model)}
 
-        ph = PHAdaptive(phases, iteration_limit=20, tol=1e-4)
+        ph = PHAdaptive(phases, iteration_limit=10, tol=1e-4)
         f = open(out_file, 'w+')
         write_initial(f, ph.min_order, ph.max_order, ph.iteration_limit, ph.tol)
 
         for i in range(ph.iteration_limit):
-            write_iteration(f, i, phases)
             need_refine = ph.check_error()
+            write_iteration(f, i, phases, ph.error)
 
             if all(refine_segment is False for refine_segment in need_refine.values()):
                 break
@@ -119,7 +119,7 @@ def write_initial(f, min, max, iter_limit, tol):
     f.write('Iteration limit = {}\n'.format(iter_limit))
 
 
-def write_iteration(f, iter_number, phases):
+def write_iteration(f, iter_number, phases, error):
     f.write('\n\n')
     f.write('Iteration number: {}\n'.format(iter_number))
     for phase_path, phase in phases.items():
@@ -139,3 +139,7 @@ def write_iteration(f, iter_number, phases):
             f.write('Segment Order = [')
             f.write(', '.join(str(elem) for elem in T.options['order']))
             f.write(']\n')
+
+        f.write('Error = [')
+        f.write(', '.join(str(elem) for elem in error[phase_path]))
+        f.write(']\n')

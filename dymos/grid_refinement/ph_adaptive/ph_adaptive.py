@@ -1,6 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
-from collections import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 from ...transcriptions.grid_data import GridData
 from ...transcriptions.common import TimeComp
 from ...phase.phase import Phase
@@ -262,16 +262,15 @@ class PHAdaptive:
             numseg = gd.num_segments
 
             refine_seg_idxs = np.where(need_refine)
-
             P = np.zeros(numseg)
             P[refine_seg_idxs] = np.log(self.error[phase_path][refine_seg_idxs] / self.tol) / np.log(
                 gd.transcription_order[refine_seg_idxs])
-            P = np.around(P).astype(int)
+            P = np.ceil(P).astype(int)
 
             new_order = gd.transcription_order + P
             B = np.ones(numseg, dtype=int)
 
-            raise_order_idxs = np.where(gd.transcription_order + P < self.max_order)
+            raise_order_idxs = np.where(gd.transcription_order + P <= self.max_order)
             split_seg_idxs = np.where(gd.transcription_order + P > self.max_order)
 
             new_order[raise_order_idxs] = gd.transcription_order[raise_order_idxs] + P[raise_order_idxs]
