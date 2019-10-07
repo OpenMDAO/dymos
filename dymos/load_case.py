@@ -107,15 +107,18 @@ def load_case(problem, case):
 
         for state_name, options in phase.state_options.items():
             state_all = outputs[f'{phase_path}.timeseries.states:{state_name}']
-            problem[f'{phase_path}.states:{state_name}'] = phase.interpolate(t_all, state_all, nodes='state_input')
+            problem[f'{phase_path}.states:{state_name}'] = \
+                phase.interpolate(t_all, state_all, nodes='state_input')
 
         for control_name, options in phase.control_options.items():
             control_all = outputs[f'{phase_path}.timeseries.controls:{control_name}']
-            problem[f'{phase_path}.controls:{control_name}'] = phase.interpolate(t_all, control_all, nodes='control_input')
+            problem[f'{phase_path}.controls:{control_name}'] = \
+                phase.interpolate(t_all, control_all, nodes='control_input')
 
         for control_name, options in phase.polynomial_control_options.items():
             control_all = outputs[f'{phase_path}.timeseries.polynomial_controls:{control_name}']
-            problem[f'{phase_path}.polynomial_controls:{control_name}'] = phase.interpolate(t_all, control_all, nodes='control_input')
+            problem[f'{phase_path}.polynomial_controls:{control_name}'] = \
+                phase.interpolate(t_all, control_all, nodes='control_input')
 
         for param_name, options in phase.design_parameter_options.items():
             param_val = outputs[f'{phase_path}.design_parameters:{param_name}']
@@ -134,13 +137,13 @@ def load_case(problem, case):
                 val_all = inputs[var_path]
                 var_shape = problem[var_path].shape
                 problem[var_path] = np.reshape(phase.interpolate(t_all, val_all, nodes='all'), var_shape)
-                
+
             if f'{phase_path}.rhs_disc' in var_path:
                 t_disc = t_all[phase.options['transcription'].grid_data.subset_node_indices['state_disc']]
                 val_disc = inputs[var_path]
                 var_shape = problem[var_path].shape
                 problem[var_path] = np.reshape(phase.interpolate(t_disc, val_disc, nodes='state_disc'), var_shape)
-                
+
             if f'{phase_path}.rhs_col' in var_path:
                 t_col = t_all[phase.options['transcription'].grid_data.subset_node_indices['col']]
                 val_col = inputs[var_path]
