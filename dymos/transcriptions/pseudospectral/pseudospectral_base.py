@@ -316,6 +316,7 @@ class PseudospectralBase(TranscriptionBase):
         if self.any_solved_segs:
             newton = phase.nonlinear_solver = om.NewtonSolver()
             newton.options['solve_subsystems'] = True
+            newton.options['maxiter'] = 100
             newton.options['iprint'] = -1
             newton.linesearch = om.BoundsEnforceLS()
             phase.linear_solver = om.DirectSolver()
