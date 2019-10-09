@@ -41,7 +41,7 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.t_duration', tf)
         p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
                                                                nodes='control_input'))
-        dm.run_problem(p, True)
+        dm.run_problem(p, True,  tol=1e-4)
 
         sqrt_two = np.sqrt(2)
         val = sqrt_two * tf
@@ -97,7 +97,7 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.t_duration', tf)
         p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
                                                                nodes='control_input'))
-        dm.run_problem(p, True)
+        dm.run_problem(p, True, tol=1e-4)
 
         sqrt_two = np.sqrt(2)
         val = sqrt_two * tf
