@@ -125,7 +125,7 @@ class PHAdaptive:
 
     """
 
-    def __init__(self, phases, iteration_limit=10, tol=1e-6, min_order=3, max_order=14):
+    def __init__(self, phases, iteration_limit, tol, min_order, max_order):
         """
         Initialize and compute attributes
 
@@ -189,7 +189,7 @@ class PHAdaptive:
             for state_name, options in phase.state_options.items():
                 prom_name = f'timeseries.states:{state_name}'
                 abs_name = prom_to_abs_map[prom_name][0]
-                rate_source_prom_name = 'rhs_all.' + options['rate_source']
+                rate_source_prom_name = f"timeseries.state_rates:{options['rate_source']}"
                 rate_abs_name = prom_to_abs_map[rate_source_prom_name][0]
                 x[:, c] = out_values_dict[abs_name].ravel()
                 f[:, c] = out_values_dict[rate_abs_name].ravel()
@@ -198,6 +198,9 @@ class PHAdaptive:
             # Obtain the solution on the new grid
             # interpolate x at t_hat
             new_order = gd.transcription_order + 1
+            # Gauss-Lobatto does not allow even orders so increase order by 2 instead
+            if gd.transcription == 'gauss-lobatto':
+                new_order += 1
             new_grid = GridData(numseg, gd.transcription, new_order, gd.segment_ends, gd.compressed)
             left_end_idxs = new_grid.subset_node_indices['segment_ends'][0::2]
             left_end_idxs = np.append(left_end_idxs, new_grid.subset_num_nodes['all'] - 1)
@@ -266,6 +269,10 @@ class PHAdaptive:
             P[refine_seg_idxs] = np.log(self.error[phase_path][refine_seg_idxs] / self.tol) / np.log(
                 gd.transcription_order[refine_seg_idxs])
             P = np.ceil(P).astype(int)
+
+            if gd.transcription == 'gauss-lobatto':
+                odd_idxs = np.where(P % 2 != 0)
+                P[odd_idxs] += 1
 
             new_order = gd.transcription_order + P
             B = np.ones(numseg, dtype=int)

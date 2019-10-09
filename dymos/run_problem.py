@@ -6,7 +6,7 @@ import openmdao.api as om
 import os
 
 
-def run_problem(problem, refine=True):
+def run_problem(problem, refine, refine_iteration_limit=10, tol=1e-6, refine_min_order=3, refine_max_order=14):
     problem.run_driver()
 
     if refine:
@@ -15,13 +15,13 @@ def run_problem(problem, refine=True):
         phases = {phase_path: problem.model._get_subsystem(phase_path)
                   for phase_path in find_phases(problem.model)}
 
-        ph = PHAdaptive(phases, iteration_limit=10, tol=1e-4)
+        ref = PHAdaptive(phases, refine_iteration_limit, tol, refine_min_order, refine_max_order)
         f = open(out_file, 'w+')
-        write_initial(f, ph.min_order, ph.max_order, ph.iteration_limit, ph.tol)
+        write_initial(f, ref.min_order, ref.max_order, ref.iteration_limit, ref.tol)
 
-        for i in range(ph.iteration_limit):
-            need_refine = ph.check_error()
-            write_iteration(f, i, phases, ph.error)
+        for i in range(ref.iteration_limit):
+            need_refine = ref.check_error()
+            write_iteration(f, i, phases, ref.error)
 
             if all(refine_segment is False for refine_segment in need_refine.values()):
                 break
@@ -29,7 +29,7 @@ def run_problem(problem, refine=True):
             prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True),
                          'outputs': problem.model.list_outputs(out_stream=None, units=True)}
 
-            refined_phases = ph.refine(need_refine)
+            refined_phases = ref.refine(need_refine)
             if not refined_phases:
                 break
 
@@ -38,7 +38,7 @@ def run_problem(problem, refine=True):
             re_interpolate_solution(problem, phases, previous_solution=prev_soln)
 
             problem.run_driver()
-        if i == ph.iteration_limit-1:
+        if i == ref.iteration_limit-1:
             f.write('\nIteration limit exceeded. Unable to satisfy specified tolerance')
         elif i == 0:
             f.write('\nError is within tolerance. Grid refinement is not required')
