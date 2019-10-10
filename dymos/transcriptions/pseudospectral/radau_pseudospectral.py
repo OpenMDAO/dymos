@@ -347,7 +347,7 @@ class Radau(PseudospectralBase):
                                                        var_class=phase.classify_var(options['rate_source']),
                                                        shape=options['shape'],
                                                        units=get_rate_units(options['units'], time_units))
-                phase.connect(src_name='rhs_all.{0}'.format(options['rate_source']),
+                phase.connect(src_name=rate_src,
                               tgt_name='{0}.input_values:state_rates:{1}'.format(name, state_name),
                               src_indices=src_idxs, flat_src_indices=True)
 

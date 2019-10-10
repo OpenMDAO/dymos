@@ -6,7 +6,7 @@ import openmdao.api as om
 import os
 
 
-def run_problem(problem, refine, refine_iteration_limit=10, tol=1e-6, refine_min_order=3, refine_max_order=14):
+def run_problem(problem, refine=False, refine_iteration_limit=10):
     problem.run_driver()
 
     if refine:
@@ -15,11 +15,11 @@ def run_problem(problem, refine, refine_iteration_limit=10, tol=1e-6, refine_min
         phases = {phase_path: problem.model._get_subsystem(phase_path)
                   for phase_path in find_phases(problem.model)}
 
-        ref = PHAdaptive(phases, refine_iteration_limit, tol, refine_min_order, refine_max_order)
+        ref = PHAdaptive(phases)
         f = open(out_file, 'w+')
-        write_initial(f, ref.min_order, ref.max_order, ref.iteration_limit, ref.tol)
+        write_initial(f, phases)
 
-        for i in range(ref.iteration_limit):
+        for i in range(refine_iteration_limit):
             need_refine = ref.check_error()
             write_iteration(f, i, phases, ref.error)
 
@@ -38,7 +38,7 @@ def run_problem(problem, refine, refine_iteration_limit=10, tol=1e-6, refine_min
             re_interpolate_solution(problem, phases, previous_solution=prev_soln)
 
             problem.run_driver()
-        if i == ref.iteration_limit-1:
+        if i == refine_iteration_limit-1:
             f.write('\nIteration limit exceeded. Unable to satisfy specified tolerance')
         elif i == 0:
             f.write('\nError is within tolerance. Grid refinement is not required')
@@ -108,15 +108,16 @@ def re_interpolate_solution(problem, phases, previous_solution):
                             phase.interpolate(xs=prev_time, ys=prev_control_val, nodes='control_input', kind='slinear'))
 
 
-def write_initial(f, min, max, iter_limit, tol):
+def write_initial(f, phases):
     f.write('======================\n')
     f.write('   Grid Refinement\n')
     f.write('======================\n')
     f.write('ph-refinement\n')
-    f.write('Minimum order = {}\n'.format(min))
-    f.write('Maximum order = {}\n'.format(max))
-    f.write('Tolerance = {}\n'.format(tol))
-    f.write('Iteration limit = {}\n'.format(iter_limit))
+    for phase_path, phase in phases.items():
+        f.write('Phase: {}\n'.format(phase_path))
+        f.write('Tolerance: {}\n'.format(phase.refine_options['tolerance']))
+        f.write('Minimum Order: {}\n'.format(phase.refine_options['min_order']))
+        f.write('Maximum Order: {}\n'.format(phase.refine_options['max_order']))
 
 
 def write_iteration(f, iter_number, phases, error):

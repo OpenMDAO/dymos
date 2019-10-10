@@ -31,6 +31,8 @@ class TestRunProblem(unittest.TestCase):
 
         phase0.add_objective('xL', loc='final')
 
+        phase0.set_refine_options(refine=True)
+
         p.setup(check=True)
 
         tf = 100
@@ -41,7 +43,7 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.t_duration', tf)
         p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
                                                                nodes='control_input'))
-        dm.run_problem(p, True,  tol=1e-4)
+        dm.run_problem(p, True)
 
         sqrt_two = np.sqrt(2)
         val = sqrt_two * tf
@@ -87,6 +89,8 @@ class TestRunProblem(unittest.TestCase):
 
         phase0.add_objective('xL', loc='final')
 
+        phase0.set_refine_options(refine=True)
+
         p.setup(check=True)
 
         tf = 100
@@ -97,7 +101,7 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.t_duration', tf)
         p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
                                                                nodes='control_input'))
-        dm.run_problem(p, True, tol=1e-4)
+        dm.run_problem(p, refine=True)
 
         sqrt_two = np.sqrt(2)
         val = sqrt_two * tf
@@ -154,6 +158,8 @@ class TestRunProblem(unittest.TestCase):
         phase0.add_boundary_constraint('y', loc='final', equals=5)
         # Minimize time at the end of the phase
         phase0.add_objective('time_phase', loc='final', scaler=10)
+
+        phase0.set_refine_options(refine=True)
 
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)

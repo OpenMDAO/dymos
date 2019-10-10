@@ -125,7 +125,7 @@ class PHAdaptive:
 
     """
 
-    def __init__(self, phases, iteration_limit, tol, min_order, max_order):
+    def __init__(self, phases):
         """
         Initialize and compute attributes
 
@@ -134,23 +134,8 @@ class PHAdaptive:
         phases: Phase
             The Phase object representing the solved phase
 
-        iteration_limit: Maximum number of iterations allowed
-
-        tol: float
-            The tolerance on the error for determining whether refinement
-
-        min_order: int
-            The minimum allowed order for a refined segment
-
-        max_order: int
-            The maximum allowed order for a refined segment
-
         """
         self.phases = phases
-        self.iteration_limit = iteration_limit
-        self.tol = tol
-        self.min_order = min_order
-        self.max_order = max_order
         self.error = {}
 
     def check_error(self):
@@ -165,6 +150,10 @@ class PHAdaptive:
         """
         need_refinement = {}
         for phase_path, phase in self.phases.items():
+            if not phase.refine_options['refine']:
+                self.error[phase_path] = 'Not computed'
+                need_refinement[phase_path] = False
+                continue
             gd = phase.options['transcription'].grid_data
             num_nodes = gd.subset_num_nodes['all']
             numseg = gd.num_segments
@@ -230,7 +219,7 @@ class PHAdaptive:
                 for k in range(0, numseg):
                     if err_over_states[state_name][k] > self.error[phase_path][k]:
                         self.error[phase_path][k] = err_over_states[state_name][k]
-                        if self.error[phase_path][k] > self.tol:
+                        if self.error[phase_path][k] > phase.refine_options['tolerance']:
                             need_refinement[phase_path][k] = True
 
         return need_refinement
@@ -266,7 +255,8 @@ class PHAdaptive:
 
             refine_seg_idxs = np.where(need_refine)
             P = np.zeros(numseg)
-            P[refine_seg_idxs] = np.log(self.error[phase_path][refine_seg_idxs] / self.tol) / np.log(
+            P[refine_seg_idxs] = np.log(self.error[phase_path][refine_seg_idxs] /
+                                        phase.refine_options['tolerance']) / np.log(
                 gd.transcription_order[refine_seg_idxs])
             P = np.ceil(P).astype(int)
 
@@ -277,14 +267,14 @@ class PHAdaptive:
             new_order = gd.transcription_order + P
             B = np.ones(numseg, dtype=int)
 
-            raise_order_idxs = np.where(gd.transcription_order + P <= self.max_order)
-            split_seg_idxs = np.where(gd.transcription_order + P > self.max_order)
+            raise_order_idxs = np.where(gd.transcription_order + P <= phase.refine_options['max_order'])
+            split_seg_idxs = np.where(gd.transcription_order + P > phase.refine_options['max_order'])
 
             new_order[raise_order_idxs] = gd.transcription_order[raise_order_idxs] + P[raise_order_idxs]
-            new_order[split_seg_idxs] = self.min_order
+            new_order[split_seg_idxs] = phase.refine_options['min_order']
 
             B[split_seg_idxs] = np.around((gd.transcription_order[split_seg_idxs] +
-                                           P[split_seg_idxs]) / self.min_order).astype(int)
+                                           P[split_seg_idxs]) / phase.refine_options['min_order']).astype(int)
 
             new_order = np.repeat(new_order, repeats=B)
             new_num_segments = int(np.sum(B))
