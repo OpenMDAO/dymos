@@ -343,12 +343,12 @@ class Radau(PseudospectralBase):
                               src_indices=src_idxs, flat_src_indices=True)
 
                 rate_src, src_idxs = self.get_rate_source_path(state_name, 'all', phase)
-                timeseries_comp._add_timeseries_output('state_rates:{0}'.format(options['rate_source']),
+                timeseries_comp._add_timeseries_output('state_rates:{0}'.format(state_name),
                                                        var_class=phase.classify_var(options['rate_source']),
                                                        shape=options['shape'],
-                                                       units=options['units'])
+                                                       units=get_rate_units(options['units'], time_units))
                 phase.connect(src_name='rhs_all.{0}'.format(options['rate_source']),
-                              tgt_name='{0}.input_values:state_rates:{1}'.format(name, options['rate_source']),
+                              tgt_name='{0}.input_values:state_rates:{1}'.format(name, state_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
             for control_name, options in iteritems(phase.control_options):

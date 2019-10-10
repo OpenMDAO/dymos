@@ -189,7 +189,7 @@ class PHAdaptive:
             for state_name, options in phase.state_options.items():
                 prom_name = f'timeseries.states:{state_name}'
                 abs_name = prom_to_abs_map[prom_name][0]
-                rate_source_prom_name = f"timeseries.state_rates:{options['rate_source']}"
+                rate_source_prom_name = f"timeseries.state_rates:{state_name}"
                 rate_abs_name = prom_to_abs_map[rate_source_prom_name][0]
                 x[:, c] = out_values_dict[abs_name].ravel()
                 f[:, c] = out_values_dict[rate_abs_name].ravel()
