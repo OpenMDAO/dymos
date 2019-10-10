@@ -215,7 +215,7 @@ class GaussLobatto(PseudospectralBase):
         map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
 
         interleave_comp = GaussLobattoInterleaveComp(grid_data=self.grid_data)
-
+        time_units = phase.time_options['units']
         #
         # First do the states
         #
@@ -223,7 +223,8 @@ class GaussLobatto(PseudospectralBase):
             shape = options['shape']
             units = options['units']
             interleave_comp.add_var('states:{0}'.format(state_name), shape, units)
-            interleave_comp.add_var('state_rates:{0}'.format(state_name), shape, units)
+            interleave_comp.add_var('state_rates:{0}'.format(state_name), shape,
+                                    get_rate_units(options['units'], time_units))
 
             size = np.prod(options['shape'])
             src_idxs_mat = np.reshape(np.arange(size * num_input_nodes, dtype=int),
