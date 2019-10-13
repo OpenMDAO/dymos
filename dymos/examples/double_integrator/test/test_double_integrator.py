@@ -65,16 +65,9 @@ class TestDoubleIntegratorExample(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @parameterized.expand(
-        itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                          ['compressed', 'uncompressed'],  # compressed transcription
-                          ), name_func=lambda f, n, p: '_'.join(['test_results',
-                                                                 p.args[0],
-                                                                 p.args[1]])
-    )
-    def test_ex_double_integrator(self, transcription='radau-ps', compressed='compressed'):
-        p = double_integrator_direct_collocation(transcription,
-                                                 compressed=compressed == 'compressed')
+    def test_ex_double_integrator_gl_compressed(self):
+        p = double_integrator_direct_collocation('gauss-lobatto',
+                                                 compressed=True)
 
         x = p.get_val('traj.phase0.timeseries.states:x')
         v = p.get_val('traj.phase0.timeseries.states:v')
@@ -85,11 +78,95 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         assert_rel_error(self, v[0], 0.0, tolerance=1.0E-4)
         assert_rel_error(self, v[-1], 0.0, tolerance=1.0E-4)
 
-    def test_ex_double_integrator_input_times(self, compressed=True):
+    def test_ex_double_integrator_gl_uncompressed(self):
+        p = double_integrator_direct_collocation('gauss-lobatto',
+                                                 compressed=False)
+
+        x = p.get_val('traj.phase0.timeseries.states:x')
+        v = p.get_val('traj.phase0.timeseries.states:v')
+
+        assert_rel_error(self, x[0], 0.0, tolerance=1.0E-4)
+        assert_rel_error(self, x[-1], 0.25, tolerance=1.0E-4)
+
+        assert_rel_error(self, v[0], 0.0, tolerance=1.0E-4)
+        assert_rel_error(self, v[-1], 0.0, tolerance=1.0E-4)
+
+    def test_ex_double_integrator_radau_compressed(self):
+        p = double_integrator_direct_collocation('radau-ps',
+                                                 compressed=True)
+
+        x = p.get_val('traj.phase0.timeseries.states:x')
+        v = p.get_val('traj.phase0.timeseries.states:v')
+
+        assert_rel_error(self, x[0], 0.0, tolerance=1.0E-4)
+        assert_rel_error(self, x[-1], 0.25, tolerance=1.0E-4)
+
+        assert_rel_error(self, v[0], 0.0, tolerance=1.0E-4)
+        assert_rel_error(self, v[-1], 0.0, tolerance=1.0E-4)
+
+    def test_ex_double_integrator_radau_uncompressed(self):
+        p = double_integrator_direct_collocation('radau-ps',
+                                                 compressed=False)
+
+        x = p.get_val('traj.phase0.timeseries.states:x')
+        v = p.get_val('traj.phase0.timeseries.states:v')
+
+        assert_rel_error(self, x[0], 0.0, tolerance=1.0E-4)
+        assert_rel_error(self, x[-1], 0.25, tolerance=1.0E-4)
+
+        assert_rel_error(self, v[0], 0.0, tolerance=1.0E-4)
+        assert_rel_error(self, v[-1], 0.0, tolerance=1.0E-4)
+
+    def test_ex_double_integrator_input_times_uncompressed(self):
         """
         Tests that externally connected t_initial and t_duration function as expected.
         """
+        compressed = False
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
 
+        times_ivc = p.model.add_subsystem('times_ivc', om.IndepVarComp(),
+                                          promotes_outputs=['t0', 'tp'])
+        times_ivc.add_output(name='t0', val=0.0, units='s')
+        times_ivc.add_output(name='tp', val=1.0, units='s')
+
+        transcription = dm.Radau(num_segments=20, order=3, compressed=compressed)
+        phase = dm.Phase(ode_class=DoubleIntegratorODE, transcription=transcription)
+        p.model.add_subsystem('phase0', phase)
+
+        p.model.connect('t0', 'phase0.t_initial')
+        p.model.connect('tp', 'phase0.t_duration')
+
+        phase.set_time_options(input_initial=True, input_duration=True, units='s')
+
+        phase.add_state('x', fix_initial=True, rate_source='v', units='m')
+        phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s')
+
+        phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
+                          rate2_continuity=False, lower=-1.0, upper=1.0)
+
+        # Maximize distance travelled in one second.
+        phase.add_objective('x', loc='final', scaler=-1)
+
+        p.model.linear_solver = om.DirectSolver()
+
+        p.setup(check=True)
+
+        p['t0'] = 0.0
+        p['tp'] = 1.0
+
+        p['phase0.states:x'] = phase.interpolate(ys=[0, 0.25], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 0], nodes='state_input')
+        p['phase0.controls:u'] = phase.interpolate(ys=[1, -1], nodes='control_input')
+
+        p.run_driver()
+
+    def test_ex_double_integrator_input_times_compressed(self):
+        """
+        Tests that externally connected t_initial and t_duration function as expected.
+        """
+        compressed = True
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()

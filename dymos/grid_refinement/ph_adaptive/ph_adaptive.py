@@ -125,7 +125,7 @@ class PHAdaptive:
 
     """
 
-    def __init__(self, phases, iteration_limit=10, tol=1e-6, min_order=3, max_order=14):
+    def __init__(self, phases):
         """
         Initialize and compute attributes
 
@@ -134,23 +134,8 @@ class PHAdaptive:
         phases: Phase
             The Phase object representing the solved phase
 
-        iteration_limit: Maximum number of iterations allowed
-
-        tol: float
-            The tolerance on the error for determining whether refinement
-
-        min_order: int
-            The minimum allowed order for a refined segment
-
-        max_order: int
-            The maximum allowed order for a refined segment
-
         """
         self.phases = phases
-        self.iteration_limit = iteration_limit
-        self.tol = tol
-        self.min_order = min_order
-        self.max_order = max_order
         self.error = {}
 
     def check_error(self):
@@ -165,6 +150,10 @@ class PHAdaptive:
         """
         need_refinement = {}
         for phase_path, phase in self.phases.items():
+            if not phase.refine_options['refine']:
+                self.error[phase_path] = 'Not computed'
+                need_refinement[phase_path] = False
+                continue
             gd = phase.options['transcription'].grid_data
             num_nodes = gd.subset_num_nodes['all']
             numseg = gd.num_segments
@@ -189,7 +178,7 @@ class PHAdaptive:
             for state_name, options in phase.state_options.items():
                 prom_name = f'timeseries.states:{state_name}'
                 abs_name = prom_to_abs_map[prom_name][0]
-                rate_source_prom_name = 'rhs_all.' + options['rate_source']
+                rate_source_prom_name = f"timeseries.state_rates:{state_name}"
                 rate_abs_name = prom_to_abs_map[rate_source_prom_name][0]
                 x[:, c] = out_values_dict[abs_name].ravel()
                 f[:, c] = out_values_dict[rate_abs_name].ravel()
@@ -198,6 +187,9 @@ class PHAdaptive:
             # Obtain the solution on the new grid
             # interpolate x at t_hat
             new_order = gd.transcription_order + 1
+            # Gauss-Lobatto does not allow even orders so increase order by 2 instead
+            if gd.transcription == 'gauss-lobatto':
+                new_order += 1
             new_grid = GridData(numseg, gd.transcription, new_order, gd.segment_ends, gd.compressed)
             left_end_idxs = new_grid.subset_node_indices['segment_ends'][0::2]
             left_end_idxs = np.append(left_end_idxs, new_grid.subset_num_nodes['all'] - 1)
@@ -227,7 +219,7 @@ class PHAdaptive:
                 for k in range(0, numseg):
                     if err_over_states[state_name][k] > self.error[phase_path][k]:
                         self.error[phase_path][k] = err_over_states[state_name][k]
-                        if self.error[phase_path][k] > self.tol:
+                        if self.error[phase_path][k] > phase.refine_options['tolerance']:
                             need_refinement[phase_path][k] = True
 
         return need_refinement
@@ -263,21 +255,26 @@ class PHAdaptive:
 
             refine_seg_idxs = np.where(need_refine)
             P = np.zeros(numseg)
-            P[refine_seg_idxs] = np.log(self.error[phase_path][refine_seg_idxs] / self.tol) / np.log(
+            P[refine_seg_idxs] = np.log(self.error[phase_path][refine_seg_idxs] /
+                                        phase.refine_options['tolerance']) / np.log(
                 gd.transcription_order[refine_seg_idxs])
             P = np.ceil(P).astype(int)
+
+            if gd.transcription == 'gauss-lobatto':
+                odd_idxs = np.where(P % 2 != 0)
+                P[odd_idxs] += 1
 
             new_order = gd.transcription_order + P
             B = np.ones(numseg, dtype=int)
 
-            raise_order_idxs = np.where(gd.transcription_order + P <= self.max_order)
-            split_seg_idxs = np.where(gd.transcription_order + P > self.max_order)
+            raise_order_idxs = np.where(gd.transcription_order + P <= phase.refine_options['max_order'])
+            split_seg_idxs = np.where(gd.transcription_order + P > phase.refine_options['max_order'])
 
             new_order[raise_order_idxs] = gd.transcription_order[raise_order_idxs] + P[raise_order_idxs]
-            new_order[split_seg_idxs] = self.min_order
+            new_order[split_seg_idxs] = phase.refine_options['min_order']
 
             B[split_seg_idxs] = np.around((gd.transcription_order[split_seg_idxs] +
-                                           P[split_seg_idxs]) / self.min_order).astype(int)
+                                           P[split_seg_idxs]) / phase.refine_options['min_order']).astype(int)
 
             new_order = np.repeat(new_order, repeats=B)
             new_num_segments = int(np.sum(B))
