@@ -67,6 +67,12 @@ class Phase(om.Group):
             self.user_input_parameter_options = {}
             self.user_traj_parameter_options = {}
 
+            self.refine_options = {'refine': False,
+                                   'iteration_limit': 10,
+                                   'tolerance': 1e-4,
+                                   'min_order': 3,
+                                   'max_order': 14}
+
             self._initial_boundary_constraints = {}
             self._final_boundary_constraints = {}
             self._path_constraints = {}
@@ -86,6 +92,8 @@ class Phase(om.Group):
             # Don't copy over the trajectory parameters.  The owning trajectory object will
             # handle that.
             self.user_traj_parameter_options = {}
+
+            self.refine_options = from_phase.refine_options.copy()
 
             self._initial_boundary_constraints = from_phase._initial_boundary_constraints.copy()
             self._final_boundary_constraints = from_phase._final_boundary_constraints.copy()
@@ -1696,3 +1704,12 @@ class Phase(om.Group):
         sim_prob.cleanup()
 
         return sim_prob
+
+    def set_refine_options(self, refine=False, iteration_limit=10, tol=1e-4, min_order=3, max_order=14):
+        self.refine_options['refine'] = refine
+        self.refine_options['iteration_limit'] = iteration_limit
+        self.refine_options['tolerance'] = tol
+        self.refine_options['min_order'] = min_order
+        self.refine_options['max_order'] = max_order
+
+        return

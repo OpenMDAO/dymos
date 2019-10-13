@@ -338,6 +338,15 @@ class Radau(PseudospectralBase):
                               tgt_name='{0}.input_values:states:{1}'.format(name, state_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
+                rate_src, src_idxs = self.get_rate_source_path(state_name, 'all', phase)
+                timeseries_comp._add_timeseries_output('state_rates:{0}'.format(state_name),
+                                                       var_class=phase.classify_var(options['rate_source']),
+                                                       shape=options['shape'],
+                                                       units=get_rate_units(options['units'], time_units))
+                phase.connect(src_name=rate_src,
+                              tgt_name='{0}.input_values:state_rates:{1}'.format(name, state_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
             for control_name, options in iteritems(phase.control_options):
                 control_units = options['units']
                 timeseries_comp._add_timeseries_output('controls:{0}'.format(control_name),
@@ -492,12 +501,23 @@ class Radau(PseudospectralBase):
             rate_path = 'time_phase'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'state':
+            rate_path = 'states:{0}'.format(var)
+            # Find the state_input indices which occur at segment endpoints, and repeat them twice
+            state_input_idxs = gd.subset_node_indices['state_input']
+            repeat_idxs = np.ones_like(state_input_idxs)
             if self.options['compressed']:
-                rate_path = 'states:{0}'.format(var)
-                node_idxs = np.arange(gd.subset_num_nodes['state_input'] - 1, dtype=int)
-            else:
-                rate_path = 'states:{0}'.format(var)
-                node_idxs = gd.subset_node_indices[nodes]
+                segment_end_idxs = gd.subset_node_indices['segment_ends'][1:-1]
+                # Repeat nodes that are on segment bounds (but not the first or last nodes in the phase)
+                nodes_to_repeat = list(set(state_input_idxs).intersection(set(segment_end_idxs)))
+                # Now find these nodes in the state input indices
+                idxs_of_ntr_in_state_inputs = np.where(np.in1d(state_input_idxs, nodes_to_repeat))[0]
+                # All state input nodes are used once, but nodes_to_repeat are used twice
+                repeat_idxs[idxs_of_ntr_in_state_inputs] = 2
+            # Now we have a way of mapping the state input indices to all nodes
+            map_input_node_idxs_to_all = np.repeat(np.arange(gd.subset_num_nodes['state_input'],
+                                                             dtype=int), repeats=repeat_idxs)
+            # Now select the subset of nodes we want to use.
+            node_idxs = map_input_node_idxs_to_all[gd.subset_node_indices[nodes]]
         elif var_type == 'indep_control':
             rate_path = 'control_values:{0}'.format(var)
             node_idxs = gd.subset_node_indices[nodes]
