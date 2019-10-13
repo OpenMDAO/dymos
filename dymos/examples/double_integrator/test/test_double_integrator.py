@@ -17,8 +17,6 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
 
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()
-    p.driver.options['optimizer'] = 'SNOPT'
-    p.driver.opt_settings['iSumm'] = 6
     p.driver.declare_coloring()
 
     if transcription == 'gauss-lobatto':
@@ -118,8 +116,6 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         assert_rel_error(self, v[0], 0.0, tolerance=1.0E-4)
         assert_rel_error(self, v[-1], 0.0, tolerance=1.0E-4)
-
-
 
     def test_ex_double_integrator_input_times_uncompressed(self):
         """
