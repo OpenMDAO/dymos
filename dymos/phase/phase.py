@@ -730,17 +730,15 @@ class Phase(om.Group):
         units : str or None or 0
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
-        desc : str
-            A description of the input parameter
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
+        desc : str
+            A description of the input parameter
         shape : Sequence of str or None
-            Targets in the ODE to which this parameter is connected.
+            The shape of the input parameter.
         dynamic : bool
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
             of nodes) else False.
-        targets : Sequence of str or None
-            Targets in the ODE to which this parameter is connected.
         """
         self.check_parameter(name)
 
@@ -783,17 +781,15 @@ class Phase(om.Group):
         units : str or None or 0
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
-        desc : str
-            A description of the input parameter
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
+        desc : str
+            A description of the input parameter
         shape : Sequence of str or None
-            Targets in the ODE to which this parameter is connected.
+            The shape of the trajectory parameter.
         dynamic : bool
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
             of nodes) else False.
-        targets : Sequence of str or None
-            Targets in the ODE to which this parameter is connected.
         """
         self.check_parameter(name)
 
