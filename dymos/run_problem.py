@@ -16,35 +16,34 @@ def run_problem(problem, refine=False, refine_iteration_limit=10):
                   for phase_path in find_phases(problem.model)}
 
         ref = PHAdaptive(phases)
-        f = open(out_file, 'w+')
-        write_initial(f, phases)
+        with open(out_file, 'w+') as f:
+            write_initial(f, phases)
 
-        for i in range(refine_iteration_limit):
-            need_refine = ref.check_error()
-            write_iteration(f, i, phases, ref.error)
+            for i in range(refine_iteration_limit):
+                need_refine = ref.check_error()
+                write_iteration(f, i, phases, ref.error)
 
-            if all(refine_segment is False for refine_segment in need_refine.values()):
-                break
+                if all(refine_segment is False for refine_segment in need_refine.values()):
+                    break
 
-            prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True),
-                         'outputs': problem.model.list_outputs(out_stream=None, units=True)}
+                prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True),
+                             'outputs': problem.model.list_outputs(out_stream=None, units=True)}
 
-            refined_phases = ref.refine(need_refine)
-            if not refined_phases:
-                break
+                refined_phases = ref.refine(need_refine)
+                if not refined_phases:
+                    break
 
-            problem.setup()
+                problem.setup()
 
-            re_interpolate_solution(problem, phases, previous_solution=prev_soln)
+                re_interpolate_solution(problem, phases, previous_solution=prev_soln)
 
-            problem.run_driver()
-        if i == refine_iteration_limit-1:
-            f.write('\nIteration limit exceeded. Unable to satisfy specified tolerance')
-        elif i == 0:
-            f.write('\nError is within tolerance. Grid refinement is not required')
-        else:
-            f.write('\nSuccessfully completed grid refinement')
-        f.close()
+                problem.run_driver()
+            if i == refine_iteration_limit-1:
+                f.write('\nIteration limit exceeded. Unable to satisfy specified tolerance')
+            elif i == 0:
+                f.write('\nError is within tolerance. Grid refinement is not required')
+            else:
+                f.write('\nSuccessfully completed grid refinement')
 
 
 def find_phases(sys):

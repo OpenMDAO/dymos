@@ -338,24 +338,24 @@ class PHAdaptive:
         prom_to_abs_map = phase._var_allprocs_prom2abs_list['output']
 
         if phase.time_options['targets']:
-            phase.connect('time',
-                          ['rhs_all.{0}'.format(t) for t in phase.time_options['targets']],
-                          src_indices=grid_data.subset_node_indices['all'])
+            p.model.connect('time',
+                            [f'ode.{t}' for t in phase.time_options['targets']])
+                            # src_indices=grid_data.subset_node_indices['all'])
 
         if phase.time_options['time_phase_targets']:
-            phase.connect('time_phase',
-                          ['rhs_all.{0}'.format(t) for t in phase.time_options['time_phase_targets']],
-                          src_indices=grid_data.subset_node_indices['all'])
+            p.model.connect('time_phase',
+                            [f'ode.{t}'for t in phase.time_options['time_phase_targets']],
+                            src_indices=grid_data.subset_node_indices['all'])
 
         if phase.time_options['t_initial_targets']:
             tgts = phase.time_options['t_initial_targets']
-            phase.connect('t_initial',
-                          ['rhs_all.{0}'.format(t) for t in tgts])
+            p.model.connect('t_initial',
+                            [f'ode.{t}' for t in tgts])
 
         if phase.time_options['t_duration_targets']:
             tgts = phase.time_options['t_duration_targets']
-            phase.connect('t_duration',
-                          ['rhs_all.{0}'.format(t) for t in tgts])
+            p.model.connect('t_duration',
+                            [f'ode.{t}' for t in tgts])
 
         for state_name, options in phase.state_options.items():
             prom_name = f'timeseries.states:{state_name}'
@@ -378,10 +378,22 @@ class PHAdaptive:
         for dp_name, options in phase.design_parameter_options.items():
             prom_name = f'design_parameters:{dp_name}'
             abs_name = prom_to_abs_map[prom_name][0]
-            dp_val = out_values_dict[abs_name]
+            dp_val = out_values_dict[abs_name][0, ...]
             ivc.add_output(f'design_parameters:{dp_name}', val=dp_val, units=options['units'])
             if options['targets'] is not None:
-                p.model.connect(f'design_parameters:{dp_name}', [f'ode.{tgt}' for tgt in options['targets']])
+                p.model.connect(f'design_parameters:{dp_name}',
+                                [f'ode.{tgt}' for tgt in options['targets']],
+                                src_indices=np.zeros(grid.num_nodes, dtype=int))
+
+        for dp_name, options in phase.input_parameter_options.items():
+            prom_name = f'input_parameters:{dp_name}'
+            abs_name = prom_to_abs_map[prom_name][0]
+            dp_val = out_values_dict[abs_name][0, ...]
+            ivc.add_output(f'input_parameters:{dp_name}', val=dp_val, units=options['units'])
+            if options['targets'] is not None:
+                p.model.connect(f'input_parameters:{dp_name}',
+                                [f'ode.{tgt}' for tgt in options['targets']],
+                                src_indices=np.zeros(grid.num_nodes, dtype=int))
 
         p.setup()
 
