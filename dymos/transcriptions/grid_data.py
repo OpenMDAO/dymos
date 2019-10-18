@@ -402,7 +402,7 @@ class GridData(object):
             transcription_order = num_segments * [transcription_order]
         elif np.isscalar(transcription_order):
             transcription_order = np.ones(num_segments, int) * transcription_order
-        self.transcription_order = transcription_order
+        self.transcription_order = np.asarray(transcription_order, dtype=int)
 
         # Make sure num_steps_per_segment is a vector
         num_steps_per_segment = np.ones(num_segments, int) * num_steps_per_segment

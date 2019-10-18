@@ -160,20 +160,6 @@ class SolveIVP(TranscriptionBase):
         segments_group = phase.add_subsystem(name='segments', subsys=om.Group(),
                                              promotes_outputs=['*'], promotes_inputs=['*'])
 
-        # All segments use a common ODEIntegrationInterface to save some memory.
-        # If this phase is ever converted to a multiple-shooting formulation, this will
-        # have to change.
-        ode_interface = ODEIntegrationInterface(
-            ode_class=phase.options['ode_class'],
-            time_options=phase.time_options,
-            state_options=phase.state_options,
-            control_options=phase.control_options,
-            polynomial_control_options=phase.polynomial_control_options,
-            design_parameter_options=phase.design_parameter_options,
-            input_parameter_options=phase.input_parameter_options,
-            traj_parameter_options=phase.traj_parameter_options,
-            ode_init_kwargs=phase.options['ode_init_kwargs'])
-
         for i in range(num_seg):
             seg_i_comp = SegmentSimulationComp(
                 index=i,
@@ -190,7 +176,6 @@ class SolveIVP(TranscriptionBase):
                 design_parameter_options=phase.design_parameter_options,
                 input_parameter_options=phase.input_parameter_options,
                 traj_parameter_options=phase.traj_parameter_options,
-                ode_integration_interface=ode_interface,
                 output_nodes_per_seg=self.options['output_nodes_per_seg'])
 
             segments_group.add_subsystem('segment_{0}'.format(i), subsys=seg_i_comp)
