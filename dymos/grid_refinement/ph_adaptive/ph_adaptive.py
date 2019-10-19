@@ -340,7 +340,6 @@ class PHAdaptive:
         if phase.time_options['targets']:
             p.model.connect('time',
                             [f'ode.{t}' for t in phase.time_options['targets']])
-                            # src_indices=grid_data.subset_node_indices['all'])
 
         if phase.time_options['time_phase_targets']:
             p.model.connect('time_phase',

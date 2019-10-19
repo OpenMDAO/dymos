@@ -134,7 +134,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         p.model.linear_solver = om.DirectSolver()
 
-        p.setup()
+        p.setup(check=True)
 
         p['phase0.t_initial'] = 1.0
         p['phase0.t_duration'] = 3.0
@@ -151,6 +151,8 @@ class TestPhaseTimeTargets(unittest.TestCase):
         p = self._make_problem('gauss-lobatto', num_seg)
 
         # Solve for the optimal trajectory
+        # p.run_model()
+        # om.n2(p.model)
         p.run_driver()
 
         gd = p.model.phase0.options['transcription'].grid_data
@@ -158,12 +160,14 @@ class TestPhaseTimeTargets(unittest.TestCase):
         time_all = p['phase0.time']
         time_col = time_all[gd.subset_node_indices['col']]
         time_disc = time_all[gd.subset_node_indices['disc']]
-        time_segends = time_all[gd.subset_node_indices['segment_ends']]
+        time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
+                                  newshape=(gd.num_segments, 2))
 
         time_phase_all = p['phase0.time_phase']
         time_phase_col = time_phase_all[gd.subset_node_indices['col']]
         time_phase_disc = time_phase_all[gd.subset_node_indices['disc']]
-        time_phase_segends = time_phase_all[gd.subset_node_indices['segment_ends']]
+        time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
+                                        newshape=(gd.num_segments, 2))
 
         assert_rel_error(self, p['phase0.rhs_disc.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
@@ -193,8 +197,8 @@ class TestPhaseTimeTargets(unittest.TestCase):
             # at the end of each segment.
             assert_rel_error(self, t_initial_i, p['phase0.t_initial'])
             assert_rel_error(self, t_duration_i, p['phase0.t_duration'])
-            assert_rel_error(self, time_phase_i, time_phase_segends[2*num_seg - 1], tolerance=1.0E-12)
-            assert_rel_error(self, time_i, time_segends[2*num_seg - 1], tolerance=1.0E-12)
+            assert_rel_error(self, time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
+            assert_rel_error(self, time_i, time_segends[iseg, 1], tolerance=1.0E-12)
 
     def test_radau(self):
         num_seg = 20
@@ -206,10 +210,12 @@ class TestPhaseTimeTargets(unittest.TestCase):
         gd = p.model.phase0.options['transcription'].grid_data
 
         time_all = p['phase0.time']
-        time_segends = time_all[gd.subset_node_indices['segment_ends']]
+        time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
+                                  newshape=(gd.num_segments, 2))
 
         time_phase_all = p['phase0.time_phase']
-        time_phase_segends = time_phase_all[gd.subset_node_indices['segment_ends']]
+        time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
+                                        newshape=(gd.num_segments, 2))
 
         assert_rel_error(self, p['phase0.rhs_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
@@ -235,9 +241,8 @@ class TestPhaseTimeTargets(unittest.TestCase):
             # at the end of each segment.
             assert_rel_error(self, t_initial_i, p['phase0.t_initial'])
             assert_rel_error(self, t_duration_i, p['phase0.t_duration'])
-            assert_rel_error(self, time_phase_i, time_phase_segends[2 * num_seg - 1],
-                             tolerance=1.0E-12)
-            assert_rel_error(self, time_i, time_segends[2 * num_seg - 1], tolerance=1.0E-12)
+            assert_rel_error(self, time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
+            assert_rel_error(self, time_i, time_segends[iseg, 1], tolerance=1.0E-12)
 
     def test_runge_kutta(self):
         num_seg = 20
@@ -249,10 +254,12 @@ class TestPhaseTimeTargets(unittest.TestCase):
         gd = p.model.phase0.options['transcription'].grid_data
 
         time_all = p['phase0.time']
-        time_segends = time_all[gd.subset_node_indices['segment_ends']]
+        time_segends = np.reshape(time_all[gd.subset_node_indices['segment_ends']],
+                                  newshape=(gd.num_segments, 2))
 
         time_phase_all = p['phase0.time_phase']
-        time_phase_segends = time_phase_all[gd.subset_node_indices['segment_ends']]
+        time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
+                                        newshape=(gd.num_segments, 2))
 
         # Test the iteration ODE
 
@@ -276,9 +283,9 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         assert_rel_error(self, p['phase0.ode.t_duration'], p['phase0.t_duration'])
 
-        assert_rel_error(self, p['phase0.ode.time_phase'], time_phase_segends)
+        assert_rel_error(self, p['phase0.ode.time_phase'], time_phase_segends.ravel())
 
-        assert_rel_error(self, p['phase0.ode.time'], time_segends)
+        assert_rel_error(self, p['phase0.ode.time'], time_segends.ravel())
 
         exp_out = p.model.phase0.simulate()
 
@@ -294,9 +301,8 @@ class TestPhaseTimeTargets(unittest.TestCase):
             # at the end of each segment.
             assert_rel_error(self, t_initial_i, p['phase0.t_initial'])
             assert_rel_error(self, t_duration_i, p['phase0.t_duration'])
-            assert_rel_error(self, time_phase_i, time_phase_segends[2 * num_seg - 1],
-                             tolerance=1.0E-12)
-            assert_rel_error(self, time_i, time_segends[2 * num_seg - 1], tolerance=1.0E-12)
+            assert_rel_error(self, time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
+            assert_rel_error(self, time_i, time_segends[iseg, 1], tolerance=1.0E-12)
 
 
 if __name__ == "__main__":

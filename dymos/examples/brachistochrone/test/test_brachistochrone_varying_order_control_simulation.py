@@ -98,7 +98,6 @@ class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
 
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
-
     def test_radau(self):
         p = om.Problem(model=om.Group())
 
