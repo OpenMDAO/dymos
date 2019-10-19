@@ -399,10 +399,12 @@ class GridData(object):
 
         # Make sure transcription_order is a vector
         if isinstance(transcription_order, str):
-            transcription_order = num_segments * [transcription_order]
+            self.transcription_order = num_segments * [transcription_order]
         elif np.isscalar(transcription_order):
             transcription_order = np.ones(num_segments, int) * transcription_order
-        self.transcription_order = transcription_order
+            self.transcription_order = np.asarray(transcription_order, dtype=int)
+        else:
+            self.transcription_order = np.asarray(transcription_order, dtype=int)
 
         # Make sure num_steps_per_segment is a vector
         num_steps_per_segment = np.ones(num_segments, int) * num_steps_per_segment
@@ -412,7 +414,7 @@ class GridData(object):
         self.segment_indices[0, 0] = 0
         ind0 = 0  # index of the first node in the segment
         for iseg in range(num_segments):
-            subsets_i, nodes_i = get_subsets_and_nodes(transcription_order[iseg],
+            subsets_i, nodes_i = get_subsets_and_nodes(self.transcription_order[iseg],
                                                        seg_idx=iseg,
                                                        compressed=compressed)
 
