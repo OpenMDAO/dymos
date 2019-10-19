@@ -334,8 +334,12 @@ class PHAdaptive:
         x_prime = {}
 
         outputs = phase.list_outputs(units=False, out_stream=None)
-        out_values_dict = {k: v['value'] for k, v in outputs}
+        values_dict = {k: v['value'] for k, v in outputs}
         prom_to_abs_map = phase._var_allprocs_prom2abs_list['output']
+
+        inputs = phase.list_inputs(units=False, out_stream=None)
+        prom_to_abs_map.update(phase._var_allprocs_prom2abs_list['input'])
+        values_dict.update({k: v['value'] for k, v in inputs})
 
         if phase.time_options['targets']:
             p.model.connect('time',
@@ -359,7 +363,7 @@ class PHAdaptive:
         for state_name, options in phase.state_options.items():
             prom_name = f'timeseries.states:{state_name}'
             abs_name = prom_to_abs_map[prom_name][0]
-            x[state_name] = out_values_dict[abs_name]
+            x[state_name] = values_dict[abs_name]
             x_hat[state_name] = np.dot(L, x[state_name])
             ivc.add_output(f'states:{state_name}', val=x_hat[state_name], units=options['units'])
             if options['targets'] is not None:
@@ -368,7 +372,7 @@ class PHAdaptive:
         for control_name, options in phase.control_options.items():
             prom_name = f'timeseries.controls:{control_name}'
             abs_name = prom_to_abs_map[prom_name][0]
-            u[control_name] = out_values_dict[abs_name]
+            u[control_name] = values_dict[abs_name]
             u_hat[control_name] = np.dot(L, u[control_name])
             ivc.add_output(f'controls:{control_name}', val=u_hat[control_name], units=options['units'])
             if options['targets'] is not None:
@@ -377,7 +381,7 @@ class PHAdaptive:
         for dp_name, options in phase.design_parameter_options.items():
             prom_name = f'design_parameters:{dp_name}'
             abs_name = prom_to_abs_map[prom_name][0]
-            dp_val = out_values_dict[abs_name][0, ...]
+            dp_val = values_dict[abs_name][0, ...]
             ivc.add_output(f'design_parameters:{dp_name}', val=dp_val, units=options['units'])
             if options['targets'] is not None:
                 p.model.connect(f'design_parameters:{dp_name}',
@@ -387,7 +391,7 @@ class PHAdaptive:
         for dp_name, options in phase.input_parameter_options.items():
             prom_name = f'input_parameters:{dp_name}'
             abs_name = prom_to_abs_map[prom_name][0]
-            dp_val = out_values_dict[abs_name][0, ...]
+            dp_val = values_dict[abs_name][0, ...]
             ivc.add_output(f'input_parameters:{dp_name}', val=dp_val, units=options['units'])
             if options['targets'] is not None:
                 p.model.connect(f'input_parameters:{dp_name}',
@@ -398,11 +402,11 @@ class PHAdaptive:
 
         ti_prom_name = f't_initial'
         ti_abs_name = prom_to_abs_map[ti_prom_name][0]
-        t_initial = out_values_dict[ti_abs_name]
+        t_initial = values_dict[ti_abs_name]
 
         td_prom_name = f't_duration'
         td_abs_name = prom_to_abs_map[td_prom_name][0]
-        t_duration = out_values_dict[td_abs_name]
+        t_duration = values_dict[td_abs_name]
 
         p.set_val('t_initial', t_initial)
         p.set_val('t_duration', t_duration)
