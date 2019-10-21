@@ -1530,6 +1530,11 @@ class Phase(om.Group):
             raise ValueError('xs must be viewable as a 1D array')
 
         gd = self.options['transcription'].grid_data
+
+        if gd is None:
+            raise RuntimeError('interpolate cannot be called until the associated '
+                               'problem has been setup')
+
         node_locations = gd.node_ptau[gd.subset_node_indices[nodes]]
         # Affine transform xs into tau space [-1, 1]
         _xs = np.asarray(xs).ravel()
