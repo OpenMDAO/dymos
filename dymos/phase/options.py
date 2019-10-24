@@ -290,6 +290,16 @@ class TrajDesignParameterOptionsDictionary(DesignParameterOptionsDictionary):
 
         self._dict.pop('targets')
 
+        self.declare(name='targets', types=dict, default=None, allow_none=True,
+                     desc='Used to specify the targets for the input parameter in each phase. '
+                          'If None, Dymos will attempt to connect it to an input parameter of '
+                          'the same name in each phase.  Otherwise, targets should be a given '
+                          'as a dictionary.  For each phase name given as a key in the dictionary,'
+                          'if the associated value is a string, connect the parameter to the phase'
+                          ' input parameter given by the string. If the associated value is a'
+                          ' sequence, treat it as a list of ODE-relative targets for the parameter'
+                          ' in that phase')
+
 
 class InputParameterOptionsDictionary(om.OptionsDictionary):
     """
@@ -300,7 +310,7 @@ class InputParameterOptionsDictionary(om.OptionsDictionary):
         super(InputParameterOptionsDictionary, self).__init__(read_only)
 
         self.declare(name='name', types=string_types,
-                     desc='The name of ODE system parameter to be set via input parameter, or'
+                     desc='The name of ODE system parameter to be set via input parameter, or '
                           'an alias.  If an alias is provided, then "target_param" should provide'
                           'the ODE system parameter name.')
 
@@ -336,6 +346,16 @@ class TrajInputParameterOptionsDictionary(InputParameterOptionsDictionary):
                           ' in each phase.  By default its target will be the same as its name')
 
         self._dict.pop('targets')
+
+        self.declare(name='targets', types=dict, default=None, allow_none=True,
+                     desc='Used to specify the targets for the input parameter in each phase. '
+                          'If None, Dymos will attempt to connect it to an input parameter of '
+                          'the same name in each phase.  Otherwise, targets should be a given '
+                          'as a dictionary.  For each phase name given as a key in the dictionary,'
+                          'if the associated value is a string, connect the parameter to the phase'
+                          ' input parameter given by the string. If the associated value is a'
+                          ' sequence, treat it as a list of ODE-relative targets for the parameter'
+                          ' in that phase')
 
 
 class StateOptionsDictionary(om.OptionsDictionary):

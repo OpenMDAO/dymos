@@ -23,7 +23,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     traj = dm.Trajectory()
 
     traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU',
-                              custom_targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
+                              targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
 
     # First Phase (burn)
 
