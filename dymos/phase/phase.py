@@ -65,7 +65,6 @@ class Phase(om.Group):
             self.user_polynomial_control_options = {}
             self.user_design_parameter_options = {}
             self.user_input_parameter_options = {}
-            self.user_traj_parameter_options = {}
 
             self.refine_options = {'refine': False,
                                    'iteration_limit': 10,
@@ -89,9 +88,6 @@ class Phase(om.Group):
             self.user_polynomial_control_options = from_phase.polynomial_control_options.copy()
             self.user_design_parameter_options = from_phase.design_parameter_options.copy()
             self.user_input_parameter_options = from_phase.input_parameter_options.copy()
-            # Don't copy over the trajectory parameters.  The owning trajectory object will
-            # handle that.
-            self.user_traj_parameter_options = {}
 
             self.refine_options = from_phase.refine_options.copy()
 
@@ -332,9 +328,6 @@ class Phase(om.Group):
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
         if name in self.user_polynomial_control_options:
             raise ValueError('{0} has already been added as a polynomial control.'.format(name))
-        if name in self.user_traj_parameter_options:
-            raise ValueError('{0} has already been added as a trajectory-level '
-                             'parameter.'.format(name))
 
     def add_control(self, name, units=_unspecified, desc=_unspecified, opt=_unspecified,
                     fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
@@ -766,57 +759,6 @@ class Phase(om.Group):
         if dynamic is not _unspecified:
             self.user_input_parameter_options[name]['dynamic'] = dynamic
 
-    def add_traj_parameter(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
-                           desc=_unspecified, shape=_unspecified, dynamic=_unspecified):
-        """
-        Add an input parameter to the phase that is connected to an input or design parameter
-        in the parent trajectory.
-
-        Parameters
-        ----------
-        name : str
-            Name of the ODE parameter to be controlled via this input parameter.
-        val : float or ndarray
-            Default value of the design parameter at all nodes.
-        units : str or None or 0
-            Units in which the design parameter is defined.  If 0, use the units declared
-            for the parameter in the ODE.
-        targets : Sequence of str or None
-            Targets in the ODE to which this parameter is connected.
-        desc : str
-            A description of the input parameter
-        shape : Sequence of str or None
-            The shape of the trajectory parameter.
-        dynamic : bool
-            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
-            of nodes) else False.
-        """
-        self.check_parameter(name)
-
-        if name not in self.user_traj_parameter_options:
-            self.user_traj_parameter_options[name] = {'name': name}
-
-        if units is not _unspecified:
-            self.user_traj_parameter_options[name]['units'] = units
-
-        if val is not _unspecified:
-            self.user_traj_parameter_options[name]['val'] = val
-
-        if desc is not _unspecified:
-            self.user_traj_parameter_options[name]['desc'] = desc
-
-        if targets is not _unspecified:
-            if isinstance(targets, string_types):
-                self.user_traj_parameter_options[name]['targets'] = (targets,)
-            else:
-                self.user_traj_parameter_options[name]['targets'] = targets
-
-        if shape is not _unspecified:
-            self.user_traj_parameter_options[name]['shape'] = shape
-
-        if dynamic is not _unspecified:
-            self.user_traj_parameter_options[name]['dynamic'] = dynamic
-
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
                                 scaler=None, adder=None, ref=None, ref0=None, linear=False):
@@ -1245,8 +1187,6 @@ class Phase(om.Group):
             return 'design_parameter'
         elif var in self.input_parameter_options:
             return 'input_parameter'
-        elif var in self.traj_parameter_options:
-            return 'traj_parameter'
         elif var.endswith('_rate') and var[:-5] in self.control_options:
             return 'control_rate'
         elif var.endswith('_rate2') and var[:-6] in self.control_options:
@@ -1270,7 +1210,6 @@ class Phase(om.Group):
         self.polynomial_control_options = {}
         self.design_parameter_options = {}
         self.input_parameter_options = {}
-        self.traj_parameter_options = {}
 
         # First apply any defaults set in the ode options
         if self.options['ode_class'] is not None and hasattr(self.options['ode_class'], 'ode_options'):
@@ -1316,12 +1255,6 @@ class Phase(om.Group):
                 self.input_parameter_options[ip].update(ode_options._parameters[ip])
             self.input_parameter_options[ip].update(self.user_input_parameter_options[ip])
 
-        for tp in list(self.user_traj_parameter_options.keys()):
-            self.traj_parameter_options[tp] = InputParameterOptionsDictionary()
-            if ode_options and tp in ode_options._parameters:
-                self.traj_parameter_options[tp].update(ode_options._parameters[tp])
-            self.traj_parameter_options[tp].update(self.user_traj_parameter_options[tp])
-
     def _check_ode(self):
         """
         Check that the provided ODE class meets minimum requirements.
@@ -1364,9 +1297,6 @@ class Phase(om.Group):
 
         if self.input_parameter_options:
             transcription.setup_input_parameters(self)
-
-        if self.traj_parameter_options:
-            transcription.setup_traj_parameters(self)
 
         transcription.setup_states(self)
         self._check_ode()
@@ -1648,11 +1578,6 @@ class Phase(om.Group):
         for name in phs.input_parameter_options:
             op = op_dict['{0}input_params.input_parameters:{1}_out'.format(phs_path, name)]
             prob['{0}input_parameters:{1}'.format(self_path, name)][...] = op['value']
-
-        # Assign traj parameter values
-        for name in phs.traj_parameter_options:
-            op = op_dict['{0}traj_params.traj_parameters:{1}_out'.format(phs_path, name)]
-            prob['{0}traj_parameters:{1}'.format(self_path, name)][...] = op['value']
 
     def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9,
                  record_file=None):

@@ -385,7 +385,6 @@ class TestLoadCase(unittest.TestCase):
     @use_tempdirs
     def test_load_case_lgl_to_rk4(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 

@@ -27,7 +27,6 @@ Path                                                           Description
 ``<phase path>.timeseries.polynomial_control_rates:<p>_rate2`` Second time derivative of polynomial control named u
 ``<phase path>.timeseries.design_parameters:<d>``              Value of design parameter named d
 ``<phase path>.timeseries.input_parameters:<s>``               Value of input parameter named s
-``<phase path>.timeseries.traj_parameters:<s>``                Value of the trajectory parameter named s
 ============================================================== ====================================================
 
 In addition to these default values, any output of the ODE can be added to the timeseries output

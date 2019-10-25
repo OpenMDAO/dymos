@@ -61,41 +61,20 @@ at the trajectory level which may be connected to some output external to the tr
 When using Trajectory Design and Input parameters, their values are connected to each phase as an
 Input Parameter within the Phase.  Because ODEs in different phases may have different names
 for parameters (e.g. 'mass', 'm', 'm_total', etc) Dymos allows the user to specify the targeted
-ODE parameters on a phase-by-phase basis using the `custom_targets` option.  It can take on the
-following values.
+ODE parameters on a phase-by-phase basis using the `targets` and `target_params` option.
+It can take on the following values.
 
-*  Left unspecified (`custom_targets = None`), a trajectory design or input parameter will be connected to a decorated ODE parameter of the same name in each phase.
+*  If `targets` is `None` the trajectory design or input parameter will be connected to the phase input parameter of the same name in each phase, if it exists (otherwise it is not connected to that phase).
 
-*  Otherwise, `custom_targets` is specified as a dictionary keyed by phase name.
+*  Otherwise targets should be specified as a dictionary. And the behavior depends on the value associated with each phase name:
 
-    * If the name of a phase is omitted from `custom_targets`, the trajectory design or input parameter will be connected to a decorated ODE parameter of the same name in that phase.
+    * If the phase name is not in the given dictionary, attempt to connect to an existing input parameter of the same name in that phase.
 
-    * If the phase is specified with a corresponding value of `None`, **the trajectory parameter will not be passed to the phase**.
+    * If the associated value is None, explicitly omit a connection to that phase.
 
-    * If the phase is specified and the corresponding value is a string, assume the given value is a decorated ODE parameter to which the trajectory parameter should be connected.
+    * If the associated value is a string, connect to an existing input parameter whose name is given by the string in that phase.
 
-    * If the phase is specified and the corresponding parameter value is a list, assume the list gives ODE-level targets to which the parameter should be connected in that phase.
-
-If a phase exists within the Trajectory that doesn't utilize the trajectory
-design/input parameters, it is simply ignored for the purposes of that phase.
-
-Retrieving the Solution
------------------------
-
-The current solution (the values of the time, states, controls, design parameters, etc.) for the
-trajectory can be obtained using the `get_values` method.  This method is almost identical to
-the `get_values` method on Phases, with two exceptions.  First, it accepts an argument `phases`,
-which allows the user to specify from which phase or phases the values of a variable should be
-retrieved.  This allows the user to obtain values from only those phases which are contiguous in time,
-such as the abort branch of a trajectory.
-The other difference is that the Trajectory `get_values` method provides a `flat` argument which defaults
-to False.  By default, `get_values` returns a dictionary which maps the name of a phase to the values
-of the requested variable within that phase.  If `flat == True`, then the return value is a single
-array of the variable values sorted in ascending time.  If requesting flattened values for one or
-more phases which are parallel in time, the user may receive confusing results!
-
-.. note::
-    If the variable is not present in a given phase, it is returned as np.nan for each returned node in the phase.
+    * If the associated value is a Sequence, create an input parameter in that phase connected to the ODE targets given by the Sequence.
 
 Explicit Simulation of Trajectories
 -----------------------------------

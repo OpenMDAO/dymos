@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import unittest
 
 import matplotlib.pyplot as plt
-plt.switch_backend('Agg')
+# plt.switch_backend('Agg')
 
 
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
@@ -53,6 +53,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                          targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'],
                          fix_initial=False, fix_final=False)
 
+        ascent.add_input_parameter('S', targets=['aero.S'], units='m**2')
+        ascent.add_input_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+
         # Limit the muzzle energy
         ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
                                        upper=400000, lower=0, ref=100000, shape=(1,))
@@ -77,34 +80,33 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                           targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'],
                           fix_initial=False, fix_final=False)
 
+        descent.add_input_parameter('S', targets=['aero.S'], units='m**2')
+        descent.add_input_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+
         descent.add_objective('r', loc='final', scaler=-1.0)
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_design_parameter('CD',
-                                  custom_targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
+                                  targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
                                   val=0.5, units=None, opt=False)
         traj.add_design_parameter('CL',
-                                  custom_targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
+                                  targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
                                   val=0.0, units=None, opt=False)
         traj.add_design_parameter('T',
-                                  custom_targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
+                                  targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
                                   val=0.0, units='N', opt=False)
         traj.add_design_parameter('alpha',
-                                  custom_targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
+                                  targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
                                   val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
-        traj.add_input_parameter('mass',
-                                 units='kg',
-                                 custom_targets={'ascent': ['eom.m', 'kinetic_energy.m'],
-                                                 'descent': ['eom.m', 'kinetic_energy.m']},
-                                 val=1.0)
+        # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
+        traj.add_input_parameter('m', units='kg', val=1.0,
+                                 targets={'ascent': 'mass', 'descent': 'mass'})
 
-        traj.add_input_parameter('S',
-                                 units='m**2',
-                                 custom_targets={'ascent': ['aero.S'],
-                                                 'descent': ['aero.S']},
-                                 val=0.005)
+        # In this case, by omitting targets, we're connecting these parameters to parameters
+        # with the same name in each phase.
+        traj.add_input_parameter('S', units='m**2', val=0.005)
 
         # Link Phases (link time and all state variables)
         traj.link_phases(phases=['ascent', 'descent'], vars=['*'])
@@ -113,7 +115,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.model.connect('external_params.radius', 'size_comp.radius')
         p.model.connect('external_params.dens', 'size_comp.dens')
 
-        p.model.connect('size_comp.mass', 'traj.input_parameters:mass')
+        p.model.connect('size_comp.mass', 'traj.input_parameters:m')
         p.model.connect('size_comp.S', 'traj.input_parameters:S')
 
         # Finish Problem Setup
@@ -121,7 +123,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         p.driver.add_recorder(om.SqliteRecorder('ex_two_phase_cannonball.db'))
 
-        p.setup(check=True)
+        p.setup()
 
         # Set Initial Guesses
         p.set_val('external_params.radius', 0.05, units='m')
@@ -216,13 +218,13 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
         for i, param in enumerate(params):
             p_imp = {
-                'ascent': p.get_val('traj.ascent.timeseries.traj_parameters:{0}'.format(param)),
-                'descent': p.get_val('traj.descent.timeseries.traj_parameters:{0}'.format(param))}
+                'ascent': p.get_val('traj.ascent.timeseries.input_parameters:{0}'.format(param)),
+                'descent': p.get_val('traj.descent.timeseries.input_parameters:{0}'.format(param))}
 
             p_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.'
-                                               'traj_parameters:{0}'.format(param)),
+                                               'input_parameters:{0}'.format(param)),
                      'descent': exp_out.get_val('traj.descent.timeseries.'
-                                                'traj_parameters:{0}'.format(param))}
+                                                'input_parameters:{0}'.format(param))}
 
             axes[i].set_ylabel(param)
 
