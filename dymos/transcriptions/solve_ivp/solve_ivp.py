@@ -45,7 +45,7 @@ class SolveIVP(TranscriptionBase):
                                   'segment.  If an int (n) then results are provided at n '
                                   'equally distributed points in time within each segment.')
 
-    def setup_grid(self, phase):
+    def init_grid(self):
         pass
 
     def setup_time(self, phase):

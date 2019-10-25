@@ -1255,8 +1255,6 @@ class Phase(om.Group):
 
         transcription = self.options['transcription']
 
-        transcription.setup_grid(self)
-
         transcription.setup_time(self)
 
         # The control interpolation comp to which we'll connect controls

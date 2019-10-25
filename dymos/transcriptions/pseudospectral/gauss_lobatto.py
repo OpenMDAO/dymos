@@ -24,7 +24,7 @@ class GaussLobatto(PseudospectralBase):
     High-Order Gauss-Lobatto Quadrature Rules." Journal of Guidance, Control, and
     Dynamics 19.3 (1996): 592-599.
     """
-    def setup_grid(self, phase):
+    def init_grid(self):
         self.grid_data = GridData(num_segments=self.options['num_segments'],
                                   transcription='gauss-lobatto',
                                   transcription_order=self.options['order'],
@@ -447,7 +447,6 @@ class GaussLobatto(PseudospectralBase):
             if options['transcription'] is None:
                 ogd = None
             else:
-                options['transcription'].setup_grid(phase)
                 ogd = options['transcription'].grid_data
 
             timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=gd,

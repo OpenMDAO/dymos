@@ -39,6 +39,7 @@ class TranscriptionBase(object):
         self._declare_options()
         self.initialize()
         self.options.update(kwargs)
+        self.init_grid()
 
     def _declare_options(self):
         pass
@@ -46,17 +47,13 @@ class TranscriptionBase(object):
     def initialize(self):
         pass
 
-    def setup_grid(self, phase):
+    def init_grid(self):
         """
         Setup the GridData object for the Transcription
-
-        Parameters
-        ----------
-        phase
-            The phase to which this transcription applies.
         """
+
         raise NotImplementedError('Transcription {0} does not implement method'
-                                  'setup_grid.'.format(self.__class__.__name__))
+                                  'init_grid.'.format(self.__class__.__name__))
 
     def setup_time(self, phase):
         """
