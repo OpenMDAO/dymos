@@ -40,7 +40,7 @@ class TestReentry(unittest.TestCase):
                          rate_source='thetadot', targets=['theta'],
                          lower=-89. * np.pi / 180, upper=89. * np.pi / 180)
         phase0.add_state('v', fix_initial=True, fix_final=True, units='ft/s',
-                         rate_source='vdot', targets=['v'], lower=0, ref0=2500, ref=25000)
+                         rate_source='vdot', targets=['v'], lower=1, ref0=2500, ref=25000)
         phase0.add_control('alpha', units='rad', opt=True,
                            lower=-np.pi / 2, upper=np.pi / 2, targets=['alpha'])
         phase0.add_control('beta', units='rad', opt=True,

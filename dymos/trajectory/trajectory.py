@@ -448,7 +448,7 @@ class Trajectory(om.Group):
 
             for phase_name, phs in iteritems(self._phases):
 
-                if targets is None:
+                if targets is None or phase_name not in targets:
                     # Attempt to connect to an input parameter of the same name in the phase, if
                     # it exists.
                     if name in phs.user_input_parameter_options:

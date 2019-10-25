@@ -26,7 +26,7 @@ class InputParameterComp(om.ExplicitComponent):
         self._input_names = {}
 
     def setup(self):
-        name_prefix = 'traj_parameters' if self.options['traj_params'] else 'input_parameters'
+        name_prefix = 'input_parameters'
 
         for param_name, options in iteritems(self.options['input_parameter_options']):
 

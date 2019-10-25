@@ -211,24 +211,6 @@ class TranscriptionBase(object):
                 phase.connect(src_name, [t for t in tgts],
                               src_indices=src_idxs, flat_src_indices=True)
 
-    def setup_traj_parameters(self, phase):
-        """
-        Adds a InputParameterComp to allow input parameters to be connected from sources
-        external to the phase.
-        """
-        if phase.traj_parameter_options:
-            passthru = \
-                InputParameterComp(input_parameter_options=phase.traj_parameter_options,
-                                   traj_params=True)
-
-            phase.add_subsystem('traj_params', subsys=passthru, promotes_inputs=['*'],
-                                promotes_outputs=['*'])
-
-        for name, options in iteritems(phase.traj_parameter_options):
-            src_name = 'traj_parameters:{0}_out'.format(name)
-            for tgts, src_idxs in self.get_parameter_connections(name, phase):
-                phase.connect(src_name, [t for t in tgts], src_indices=src_idxs)
-
     def setup_states(self, phase):
         raise NotImplementedError('Transcription {0} does not implement method '
                                   'setup_states.'.format(self.__class__.__name__))

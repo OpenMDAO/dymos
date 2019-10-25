@@ -175,7 +175,6 @@ class SolveIVP(TranscriptionBase):
                 polynomial_control_options=phase.polynomial_control_options,
                 design_parameter_options=phase.design_parameter_options,
                 input_parameter_options=phase.input_parameter_options,
-                traj_parameter_options=phase.traj_parameter_options,
                 output_nodes_per_seg=self.options['output_nodes_per_seg'])
 
             segments_group.add_subsystem('segment_{0}'.format(i), subsys=seg_i_comp)
@@ -287,13 +286,6 @@ class SolveIVP(TranscriptionBase):
         for name, options in iteritems(phase.input_parameter_options):
             phase.connect('input_parameters:{0}_out'.format(name),
                           ['segment_{0}.input_parameters:{1}'.format(iseg, name) for iseg in range(num_seg)])
-
-    def setup_traj_parameters(self, phase):
-        super(SolveIVP, self).setup_traj_parameters(phase)
-        num_seg = self.grid_data.num_segments
-        for name, options in iteritems(phase.traj_parameter_options):
-            phase.connect('traj_parameters:{0}_out'.format(name),
-                          ['segment_{0}.traj_parameters:{1}'.format(iseg, name) for iseg in range(num_seg)])
 
     def setup_defects(self, phase):
         """
@@ -444,23 +436,6 @@ class SolveIVP(TranscriptionBase):
                           tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
                           src_indices=src_idxs, flat_src_indices=True)
 
-        for name, options in iteritems(phase.traj_parameter_options):
-            units = options['units']
-            timeseries_comp._add_timeseries_output('traj_parameters:{0}'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   units=units)
-
-            if output_nodes_per_seg is None:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-            else:
-                src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
-
-            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-
-            phase.connect(src_name='traj_parameters:{0}_out'.format(name),
-                          tgt_name='timeseries.all_values:traj_parameters:{0}'.format(name),
-                          src_indices=src_idxs, flat_src_indices=True)
-
         for var, options in iteritems(phase._timeseries['timeseries']['outputs']):
             output_name = options['output_name']
 
@@ -508,7 +483,6 @@ class SolveIVP(TranscriptionBase):
 
         parameter_options = phase.design_parameter_options.copy()
         parameter_options.update(phase.input_parameter_options)
-        parameter_options.update(phase.traj_parameter_options)
         parameter_options.update(phase.control_options)
 
         if name in parameter_options:

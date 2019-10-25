@@ -66,10 +66,6 @@ class SegmentSimulationComp(om.ExplicitComponent):
                              desc='Dictionary of input parameter names/options for the segments '
                                   'parent Phase.')
 
-        self.options.declare('traj_parameter_options', default=None, types=dict, allow_none=True,
-                             desc='Dictionary of traj parameter names/options for the segments '
-                                  'parent Phase.')
-
         self.options.declare('ode_integration_interface', default=None, allow_none=True,
                              types=ODEIntegrationInterface,
                              desc='The instance of the ODE integration interface used to provide '
@@ -113,7 +109,6 @@ class SegmentSimulationComp(om.ExplicitComponent):
                 polynomial_control_options=self.options['polynomial_control_options'],
                 design_parameter_options=self.options['design_parameter_options'],
                 input_parameter_options=self.options['input_parameter_options'],
-                traj_parameter_options=self.options['traj_parameter_options'],
                 ode_init_kwargs=self.options['ode_init_kwargs'])
 
         self.add_input(name='time', val=np.ones(nnps_i),
@@ -179,12 +174,6 @@ class SegmentSimulationComp(om.ExplicitComponent):
                                units=options['units'],
                                desc='values of input parameter {0}'.format(name))
 
-        if self.options['traj_parameter_options']:
-            for name, options in iteritems(self.options['traj_parameter_options']):
-                self.add_input(name='traj_parameters:{0}'.format(name), val=np.ones(options['shape']),
-                               units=options['units'],
-                               desc='values of trajectory parameter {0}'.format(name))
-
         self.options['ode_integration_interface'].prob.setup(check=False)
 
         self.declare_partials(of='*', wrt='*', method='fd')
@@ -245,13 +234,6 @@ class SegmentSimulationComp(om.ExplicitComponent):
             for param_name, options in iteritems(self.options['input_parameter_options']):
                 iface_prob.set_val('input_parameters:{0}'.format(param_name),
                                    value=inputs['input_parameters:{0}'.format(param_name)],
-                                   units=options['units'])
-
-        # Set the values of the trajectory parameters
-        if self.options['traj_parameter_options']:
-            for param_name, options in iteritems(self.options['traj_parameter_options']):
-                iface_prob.set_val('traj_parameters:{0}'.format(param_name),
-                                   value=inputs['traj_parameters:{0}'.format(param_name)],
                                    units=options['units'])
 
         # Setup the evaluation times.

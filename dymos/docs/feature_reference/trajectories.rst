@@ -64,20 +64,17 @@ for parameters (e.g. 'mass', 'm', 'm_total', etc) Dymos allows the user to speci
 ODE parameters on a phase-by-phase basis using the `targets` and `target_params` option.
 It can take on the following values.
 
-*  If `targets` is `None` the trajectory design or input parameter will be connected to the phase input parameter of the same name in each phase.
+*  If `targets` is `None` the trajectory design or input parameter will be connected to the phase input parameter of the same name in each phase, if it exists (otherwise it is not connected to that phase).
 
-*  Otherwise targets should be specified as a dictionary.
+*  Otherwise targets should be specified as a dictionary. And the behavior depends on the value associated with each phase name:
 
-    * For each phase name specified as a key in `targets`, the parameter will be connected to the ODE inputs whose names are given as a sequence.
+    * If the phase name is not in the given dictionary, attempt to connect to an existing input parameter of the same name in that phase.
 
-    * If the phase is specified but the corresponding value is `None, **the trajectory parameter will not be passed to the phase**.
+    * If the associated value is None, explicitly omit a connection to that phase.
 
-    * If the phase is specified and the corresponding value is a string, assume the given value is a decorated ODE parameter to which the trajectory parameter should be connected.
+    * If the associated value is a string, connect to an existing input parameter whose name is given by the string in that phase.
 
-    * If the phase is specified and the corresponding parameter value is a list, assume the list gives ODE-level targets to which the parameter should be connected in that phase.
-
-If a phase exists within the Trajectory that doesn't utilize the trajectory
-design/input parameters, it is simply ignored for the purposes of that phase.
+    * If the associated value is a Sequence, create an input parameter in that phase connected to the ODE targets given by the Sequence.
 
 Explicit Simulation of Trajectories
 -----------------------------------
