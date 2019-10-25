@@ -23,7 +23,7 @@ class Radau(PseudospectralBase):
     Control Problems Using a Radau Pseudospectral Method." American Institute of Aeronautics
     and Astronautics, 2009.
     """
-    def setup_grid(self, phase):
+    def init_grid(self):
         self.grid_data = GridData(num_segments=self.options['num_segments'],
                                   transcription='radau-ps',
                                   transcription_order=self.options['order'],
@@ -309,7 +309,6 @@ class Radau(PseudospectralBase):
             if options['transcription'] is None:
                 ogd = None
             else:
-                options['transcription'].setup_grid(phase)
                 ogd = options['transcription'].grid_data
 
             timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=gd,

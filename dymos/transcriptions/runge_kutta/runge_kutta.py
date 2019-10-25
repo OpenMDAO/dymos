@@ -38,7 +38,7 @@ class RungeKutta(TranscriptionBase):
                              desc='The options passed to the nonlinear solver used to converge the'
                                   'Runge-Kutta propagation across each step.')
 
-    def setup_grid(self, phase):
+    def init_grid(self):
         self.grid_data = GridData(num_segments=self.options['num_segments'],
                                   transcription='runge-kutta',
                                   transcription_order=self.options['method'],
@@ -685,7 +685,6 @@ class RungeKutta(TranscriptionBase):
             if options['transcription'] is None:
                 ogd = None
             else:
-                options['transcription'].setup_grid(phase)
                 ogd = options['transcription'].grid_data
 
             timeseries_comp = RungeKuttaTimeseriesOutputComp(input_grid_data=gd,

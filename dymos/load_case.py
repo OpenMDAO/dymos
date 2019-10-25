@@ -65,6 +65,8 @@ def load_case(problem, case):
     """
     inputs = case.inputs if case.inputs is not None else None
     outputs = case.outputs if case.outputs is not None else None
+    vars = dict(inputs)
+    vars.update(outputs)
 
     phases_in_case = set()
     phase_inputs = {}
@@ -130,18 +132,18 @@ def load_case(problem, case):
 
         for var_path in phase_inputs[phase] + phase_outputs[phase]:
             if f'{phase_path}.rhs_all' in var_path:
-                val_all = inputs[var_path]
+                val_all = vars[var_path]
                 var_shape = problem[var_path].shape
                 problem[var_path] = np.reshape(phase.interpolate(t_all, val_all, nodes='all'), var_shape)
 
             if f'{phase_path}.rhs_disc' in var_path:
                 t_disc = t_all[phase.options['transcription'].grid_data.subset_node_indices['state_disc']]
-                val_disc = inputs[var_path]
+                val_disc = vars[var_path]
                 var_shape = problem[var_path].shape
                 problem[var_path] = np.reshape(phase.interpolate(t_disc, val_disc, nodes='state_disc'), var_shape)
 
             if f'{phase_path}.rhs_col' in var_path:
                 t_col = t_all[phase.options['transcription'].grid_data.subset_node_indices['col']]
-                val_col = inputs[var_path]
+                val_col = vars[var_path]
                 var_shape = problem[var_path].shape
                 problem[var_path] = np.reshape(phase.interpolate(t_col, val_col, nodes='col'), var_shape)
