@@ -16,7 +16,7 @@ class TestRunProblem(unittest.TestCase):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
-        _, optimizer = set_pyoptsparse_opt('SLSQP', fallback=True)
+        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
         p.driver.options['optimizer'] = optimizer
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
@@ -76,7 +76,6 @@ class TestRunProblem(unittest.TestCase):
         p.driver.declare_coloring()
         _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
         p.driver.options['optimizer'] = optimizer
-        p.driver.opt_settings['iSumm'] = 6
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
