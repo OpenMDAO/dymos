@@ -284,6 +284,7 @@ class PHAdaptive:
             T.options['order'] = new_order
             T.options['num_segments'] = new_num_segments
             T.options['segment_ends'] = new_segment_ends
+            T.init_grid()
 
         return refined
 
