@@ -424,59 +424,54 @@ class Trajectory(om.Group):
         if self._linkages:
             self._setup_linkages()
 
-    def _configure_design_parameters(self):
-        for name, options in iteritems(self.design_parameter_options):
+    def _configure_parameters(self, mode):
+        """
+        Configure connections from input or design parameters to the appropriate targets
+        in each phase.
+
+        Parameters
+        ----------
+        mode : str
+            One of 'input' or 'design' to specify if we are dealing with input parameters or
+            design parameters.
+        """
+        parameter_options = self.input_parameter_options if mode == 'input' \
+            else self.design_parameter_options
+
+        for name, options in iteritems(parameter_options):
 
             # Connect the design parameter to its target in each phase
-            src_name = 'design_parameters:{0}'.format(name)
+            suffix = '' if mode == 'design' else '_out'
+            src_name = '{0}_parameters:{1}{2}'.format(mode, name, suffix)
+
+            targets = options['targets']
 
             for phase_name, phs in iteritems(self._phases):
-                # The default target in the phase is name unless otherwise specified.
-                kwargs = {'dynamic': options['dynamic'],
-                          'units': options['units'],
-                          'val': options['val']}
 
-                param_name = name
+                if targets is None:
+                    # Attempt to connect to an input parameter of the same name in the phase, if
+                    # it exists.
+                    if name in phs.user_input_parameter_options:
+                        tgt = '{0}.input_parameters:{1}'.format(phase_name, name)
+                    else:
+                        continue
+                elif targets[phase_name] is None:
+                    # Connections to this phase are explicitly omitted
+                    continue
+                elif isinstance(targets[phase_name], string_types) and \
+                        targets[phase_name] in phs.user_input_parameter_options:
+                    # Connect to an input parameter with a different name in this phase
+                    tgt = '{0}.input_parameters:{1}'.format(phase_name, targets[phase_name])
+                elif isinstance(targets[phase_name], Sequence) and \
+                        name in phs.user_input_parameter_options:
+                    # User gave a list of ODE targets which were passed to the creation of a
+                    # new input parameter in setup, just connect to that new input parameter
+                    tgt = '{0}.input_parameters:{1}'.format(phase_name, name)
+                else:
+                    raise ValueError('Unhandled {0} parameter target in '
+                                     'phase {1}'.format(mode, phase_name))
 
-                if 'targets' in options and options['targets'] is not None:
-                    # Dont add the traj parameter to the phase if it is explicitly excluded.
-                    if phase_name in options['targets']:
-                        if options['targets'][phase_name] is None:
-                            continue
-                        if isinstance(options['targets'][phase_name], string_types):
-                            param_name = options['targets'][phase_name]
-                        elif isinstance(options['targets'][phase_name], Iterable):
-                            kwargs['targets'] = options['targets'][phase_name]
-
-                tgt = '{0}.input_parameters:{1}'.format(phase_name, param_name)
                 self.connect(src_name=src_name, tgt_name=tgt)
-
-    def _configure_input_parameters(self):
-            for name, options in iteritems(self.input_parameter_options):
-
-                # Connect the input parameter to its target(s) in each phase
-                src_name = 'input_parameters:{0}_out'.format(name)
-
-                for phase_name, phs in iteritems(self._phases):
-                    # The default target in the phase is name unless otherwise specified.
-                    kwargs = {'dynamic': options['dynamic'],
-                              'units': options['units'],
-                              'val': options['val']}
-
-                    param_name = name
-
-                    if 'targets' in options and options['targets'] is not None:
-                        # Dont add the traj parameter to the phase if it is explicitly excluded.
-                        if phase_name in options['targets']:
-                            if options['targets'][phase_name] is None:
-                                continue
-                            if isinstance(options['targets'][phase_name], string_types):
-                                param_name = options['targets'][phase_name]
-                            elif isinstance(options['targets'][phase_name], Iterable):
-                                kwargs['targets'] = options['targets'][phase_name]
-
-                    tgt = '{0}.input_parameters:{1}'.format(phase_name, param_name)
-                    self.connect(src_name=src_name, tgt_name=tgt)
 
     def _configure_linkages(self):
 
@@ -613,9 +608,9 @@ class Trajectory(om.Group):
         variables at this point.
         """
         if self.design_parameter_options:
-            self._configure_design_parameters()
+            self._configure_parameters(mode='design')
         if self.input_parameter_options:
-            self._configure_input_parameters()
+            self._configure_parameters(mode='input')
         if self._linkages:
             self._configure_linkages()
 

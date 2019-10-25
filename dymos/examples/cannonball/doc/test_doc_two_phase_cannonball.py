@@ -100,9 +100,12 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
                                   val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
-        # Note that by omitting targets, we're connecting these parameters to parameters
+        # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
+        traj.add_input_parameter('m', units='kg', val=1.0,
+                                 targets={'ascent': 'mass', 'descent': 'mass'})
+
+        # In this case, by omitting targets, we're connecting these parameters to parameters
         # with the same name in each phase.
-        traj.add_input_parameter('mass', units='kg', val=1.0)
         traj.add_input_parameter('S', units='m**2', val=0.005)
 
         # Link Phases (link time and all state variables)
@@ -112,7 +115,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.model.connect('external_params.radius', 'size_comp.radius')
         p.model.connect('external_params.dens', 'size_comp.dens')
 
-        p.model.connect('size_comp.mass', 'traj.input_parameters:mass')
+        p.model.connect('size_comp.mass', 'traj.input_parameters:m')
         p.model.connect('size_comp.S', 'traj.input_parameters:S')
 
         # Finish Problem Setup
@@ -120,7 +123,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         p.driver.add_recorder(om.SqliteRecorder('ex_two_phase_cannonball.db'))
 
-        p.setup(check=True)
+        p.setup()
 
         # Set Initial Guesses
         p.set_val('external_params.radius', 0.05, units='m')
