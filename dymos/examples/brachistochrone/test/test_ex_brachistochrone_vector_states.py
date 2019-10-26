@@ -6,7 +6,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
-from dymos.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
 from openmdao.utils.assert_utils import assert_check_partials
@@ -14,7 +14,6 @@ from openmdao.utils.assert_utils import assert_check_partials
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 
-@use_tempdirs
 class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
     def assert_results(self, p):
@@ -52,6 +51,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
             cpd = p.check_partials(method='cs')
         assert_check_partials(cpd)
 
+    @use_tempdirs
     def test_ex_brachistochrone_vs_radau_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
@@ -64,6 +64,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         if os.path.exists('ex_brachvs_radau_compressed.db'):
             os.remove('ex_brachvs_radau_compressed.db')
 
+    @use_tempdirs
     def test_ex_brachistochrone_vs_radau_uncompressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
@@ -76,6 +77,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         if os.path.exists('ex_brachvs_radau_uncompressed.db'):
             os.remove('ex_brachvs_radau_uncompressed.db')
 
+    @use_tempdirs
     def test_ex_brachistochrone_vs_gl_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
@@ -89,6 +91,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         if os.path.exists('ex_brachvs_gl_compressed.db'):
             os.remove('ex_brachvs_gl_compressed.db')
 
+    @use_tempdirs
     def test_ex_brachistochrone_vs_gl_uncompressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
@@ -102,6 +105,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         if os.path.exists('ex_brachvs_gl_compressed.db'):
             os.remove('ex_brachvs_gl_compressed.db')
 
+    @use_tempdirs
     def test_ex_brachistochrone_vs_rungekutta_compressed(self):
         import openmdao.api as om
         import dymos as dm
@@ -204,6 +208,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
+    @use_tempdirs
     def test_ex_brachistochrone_vs_radau_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
@@ -238,6 +243,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         if os.path.exists('ex_brachvs_radau_compressed.db'):
             os.remove('ex_brachvs_radau_compressed.db')
 
+    @use_tempdirs
     def test_ex_brachistochrone_vs_gl_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',

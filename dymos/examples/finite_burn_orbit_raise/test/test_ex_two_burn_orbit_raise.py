@@ -10,7 +10,7 @@ from openmdao.utils.general_utils import set_pyoptsparse_opt
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
-from dymos.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs
 
 
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
@@ -265,9 +265,9 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     return p
 
 
-@use_tempdirs
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
+    @use_tempdirs
     def test_ex_two_burn_orbit_raise(self):
         _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
 
@@ -281,9 +281,9 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
 
 # This test is separate because connected phases aren't directly parallelizable.
-@use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
+    @use_tempdirs
     def test_ex_two_burn_orbit_raise_connected(self):
         _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
 

@@ -7,7 +7,7 @@ import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
 import dymos as dm
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
-from dymos.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs
 
 
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
@@ -104,9 +104,9 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     return p
 
 
-@use_tempdirs
 class TestMinTimeClimb(unittest.TestCase):
 
+    @use_tempdirs
     def test_results_gauss_lobatto(self):
         p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
                            transcription='gauss-lobatto')
@@ -117,6 +117,7 @@ class TestMinTimeClimb(unittest.TestCase):
         # Verify that ODE output mach is added to the timeseries
         assert_rel_error(self, p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
+    @use_tempdirs
     def test_results_radau(self):
         p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
                            transcription='radau-ps')
