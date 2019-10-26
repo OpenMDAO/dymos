@@ -222,6 +222,8 @@ class GaussLobatto(PseudospectralBase):
         for state_name, options in iteritems(phase.state_options):
             shape = options['shape']
             units = options['units']
+            rate_source = options['rate_source']
+
             interleave_comp.add_var('states:{0}'.format(state_name), shape, units)
             interleave_comp.add_var('state_rates:{0}'.format(state_name), shape,
                                     get_rate_units(options['units'], time_units))
@@ -241,6 +243,12 @@ class GaussLobatto(PseudospectralBase):
 
             phase.connect('state_interp.state_col:{0}'.format(state_name),
                           'interleave_comp.col_values:states:{0}'.format(state_name))
+
+            phase.connect('rhs_disc.{0}'.format(rate_source),
+                          'interleave_comp.disc_values:state_rates:{0}'.format(state_name))
+
+            phase.connect('rhs_col.{0}'.format(rate_source),
+                          'interleave_comp.col_values:state_rates:{0}'.format(state_name))
 
         #
         # Do the path constraints
