@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division
 
 import os
 import unittest
-from dymos.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs
 import openmdao
 
 om_version = tuple([int(s) for s in openmdao.__version__.split('.')])

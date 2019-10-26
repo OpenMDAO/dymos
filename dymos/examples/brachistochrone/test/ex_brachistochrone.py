@@ -69,7 +69,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     phase.add_objective('time_phase', loc='final', scaler=10)
 
     p.model.linear_solver = om.DirectSolver()
-    p.setup(check=True)
+    p.setup(check=['unconnected_inputs'])
 
     p['phase0.t_initial'] = 0.0
     p['phase0.t_duration'] = 2.0

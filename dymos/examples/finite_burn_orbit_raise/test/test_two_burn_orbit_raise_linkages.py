@@ -5,12 +5,12 @@ import unittest
 import matplotlib
 matplotlib.use('Agg')
 
-from dymos.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs
 
 
-@use_tempdirs
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
+    @use_tempdirs
     def test_two_burn_orbit_raise_gl_rk_gl_constrained(self):
         import numpy as np
 

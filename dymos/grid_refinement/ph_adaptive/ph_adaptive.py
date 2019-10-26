@@ -434,13 +434,4 @@ class PHAdaptive:
                 x_hat[state_name][left_end_idxs_repeated, ...] \
                 + oodt_dstau * np.dot(I, f_hat[state_name][not_left_end_idxs, ...])
 
-        # import matplotlib.pyplot as plt
-        # # ptau_old = phase.options['transcription'].grid_data.node_ptau
-        # ptau_new = grid.node_ptau
-        # # plt.plot(ptau_old, x['x'], 'ro', label='x')
-        # plt.plot(ptau_new, x_hat['x'], 'bx', label='x hat')
-        # plt.plot(ptau_new, x_prime['x'], 'k.', label='x prime')
-        # plt.legend()
-        # plt.show()
-
         return x_hat, x_prime

@@ -203,6 +203,16 @@ class GaussLobatto(PseudospectralBase):
                           'state_interp.staterate_disc:{0}'.format(name),
                           src_indices=src_idxs)
 
+            phase.connect(rate_path,
+                          'interleave_comp.disc_values:state_rates:{0}'.format(name),
+                          src_indices=src_idxs)
+
+            rate_path, src_idxs = self.get_rate_source_path(name, nodes='col', phase=phase)
+
+            phase.connect(rate_path,
+                          'interleave_comp.col_values:state_rates:{0}'.format(name),
+                          src_indices=src_idxs)
+
         #
         # Setup the interleave comp to interleave all states, any path constraints from the ODE,
         # and any timeseries outputs from the ODE.
@@ -222,6 +232,8 @@ class GaussLobatto(PseudospectralBase):
         for state_name, options in iteritems(phase.state_options):
             shape = options['shape']
             units = options['units']
+            rate_source = options['rate_source']
+
             interleave_comp.add_var('states:{0}'.format(state_name), shape, units)
             interleave_comp.add_var('state_rates:{0}'.format(state_name), shape,
                                     get_rate_units(options['units'], time_units))
