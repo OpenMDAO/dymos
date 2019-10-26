@@ -265,23 +265,6 @@ class ODEIntegrationInterface(object):
                                    'state_rates:{0}_rate'.format(state_name)])
         return self._state_rate_vec
 
-    def _pack_state_vec(self, x_dict):
-        """
-        Pack the state into a 1D vector for use by scipy.integrate.ode.
-
-        Returns
-        -------
-        x: np.array
-            The 1D state vector.
-
-        """
-        self._state_vec[:] = 0.0
-        for state_name, state_options in self.state_options.items():
-            pos = state_options['pos']
-            size = state_options['size']
-            self._state_vec[pos:pos + size] = np.ravel(x_dict[state_name])
-        return self._state_vec
-
     def __call__(self, t, x):
         """
         The function interface used by scipy.ode
