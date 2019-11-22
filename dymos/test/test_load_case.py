@@ -9,6 +9,7 @@ om_version = tuple([int(s) for s in openmdao.__version__.split('.')])
 
 
 @unittest.skipIf(om_version <= (2, 9, 0), 'load_case requires an OpenMDAO version later than 2.9.0')
+@use_tempdirs
 class TestLoadCase(unittest.TestCase):
 
     @classmethod
@@ -17,7 +18,6 @@ class TestLoadCase(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @use_tempdirs
     def test_load_case_unchanged_grid(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
@@ -103,7 +103,6 @@ class TestLoadCase(unittest.TestCase):
         assert_rel_error(self, p['phase0.controls:theta'],
                          outputs['phase0.control_group.indep_controls.controls:theta']['value'])
 
-    @use_tempdirs
     def test_load_case_lgl_to_radau(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
@@ -197,7 +196,6 @@ class TestLoadCase(unittest.TestCase):
                          phase.interpolate(xs=time_val, ys=theta_val, nodes='all'),
                          tolerance=1.0E-3)
 
-    @use_tempdirs
     def test_load_case_radau_to_lgl(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
@@ -291,7 +289,6 @@ class TestLoadCase(unittest.TestCase):
                          phase.interpolate(xs=time_val, ys=theta_val, nodes='all'),
                          tolerance=1.0E-3)
 
-    @use_tempdirs
     def test_load_case_rk4_to_lgl(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_rel_error
@@ -382,7 +379,6 @@ class TestLoadCase(unittest.TestCase):
 
         self.assertFalse(fail_flag)
 
-    @use_tempdirs
     def test_load_case_lgl_to_rk4(self):
         import openmdao.api as om
         import dymos as dm
