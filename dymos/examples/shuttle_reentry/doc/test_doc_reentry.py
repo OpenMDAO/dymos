@@ -32,7 +32,7 @@ class TestReentryForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0',
                                 dm.Phase(ode_class=ShuttleODE,
-                                         transcription=dm.GaussLobatto(num_segments=30, order=3)))
+                                         transcription=dm.Radau(num_segments=15, order=3)))
 
         phase0.set_time_options(fix_initial=True, units='s', duration_ref=200)
         phase0.add_state('h', fix_initial=True, fix_final=True, units='ft', rate_source='hdot',
