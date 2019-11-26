@@ -51,27 +51,6 @@ class TestBrachistochroneExample(unittest.TestCase):
 
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
-    def check_unconnected_inputs(self):
-        with open('openmdao_checks.out') as f:
-            lines = f.readlines()
-
-        in_unconnected_params = False
-        unexpected = []
-        for line in lines:
-            if line.startswith('WARNING: The following inputs are not connected'):
-                in_unconnected_params = True
-                continue
-            if in_unconnected_params:
-                if line.startswith('   '):
-                    if 'phase0.input_parameters:g' not in line:
-                        unexpected.append(line.strip())
-                else:
-                    in_unconnected_params = False
-
-        if unexpected:
-            raise ValueError('Unexpected unconnected inputs '
-                             'found:\n    ' + '\n    '.join(unexpected))
-
     @use_tempdirs
     def test_ex_brachistochrone_radau_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
@@ -98,7 +77,6 @@ class TestBrachistochroneExample(unittest.TestCase):
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
                                                         compressed=True)
         self.run_asserts(p)
-        self.check_unconnected_inputs()
         self.tearDown()
         if os.path.exists('ex_brach_gl_compressed.db'):
             os.remove('ex_brach_gl_compressed.db')
