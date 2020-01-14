@@ -229,16 +229,21 @@ class RungeKutta(TranscriptionBase):
         num_state_input_nodes = num_seg + 1
 
         for state_name, options in iteritems(phase.state_options):
-            size = np.prod(options['shape'])
+            shape = options['shape']
+            size = np.prod(shape)
 
             # Connect the states at the segment ends to the final ODE instance.
             row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
             row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
-            src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
+            src_idxs = get_src_indices_by_row(row_idxs, shape)
+
+            if shape == (1,):
+                src_idxs = src_idxs.ravel()
+
             if options['targets']:
                 phase.connect('states:{0}'.format(state_name),
                               ['ode.{0}'.format(tgt) for tgt in options['targets']],
-                              src_indices=src_idxs.ravel(), flat_src_indices=True)
+                              src_indices=src_idxs, flat_src_indices=True)
 
             # Connect the state rate source to the k comp
             rate_path, src_idxs = self._get_rate_source_path(state_name, phase)
@@ -300,21 +305,26 @@ class RungeKutta(TranscriptionBase):
         grid_data = self.grid_data
 
         for name, options in iteritems(phase.control_options):
+            shape = options['shape']
             segment_end_idxs = grid_data.subset_node_indices['segment_ends']
             all_idxs = grid_data.subset_node_indices['all']
-            segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=options['shape'])
-            all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
+            segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=shape)
+            all_src_idxs = get_src_indices_by_row(all_idxs, shape=shape)
+
+            if shape == (1,):
+                segend_src_idxs = segend_src_idxs.ravel()
+                all_src_idxs = all_src_idxs.ravel()
 
             if phase.control_options[name]['targets']:
                 src_name = 'control_values:{0}'.format(name)
                 targets = phase.control_options[name]['targets']
                 phase.connect(src_name,
                               ['ode.{0}'.format(t) for t in targets],
-                              src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
+                              src_indices=segend_src_idxs, flat_src_indices=True)
 
                 phase.connect(src_name,
                               ['rk_solve_group.ode.{0}'.format(t) for t in targets],
-                              src_indices=all_src_idxs.ravel(), flat_src_indices=True)
+                              src_indices=all_src_idxs, flat_src_indices=True)
 
             if phase.control_options[name]['rate_targets']:
                 src_name = 'control_rates:{0}_rate'.format(name)
@@ -345,21 +355,26 @@ class RungeKutta(TranscriptionBase):
         grid_data = self.grid_data
 
         for name, options in iteritems(phase.polynomial_control_options):
+            shape = options['shape']
             segment_end_idxs = grid_data.subset_node_indices['segment_ends']
             all_idxs = grid_data.subset_node_indices['all']
-            segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=options['shape'])
-            all_src_idxs = get_src_indices_by_row(all_idxs, shape=options['shape'])
+            segend_src_idxs = get_src_indices_by_row(segment_end_idxs, shape=shape)
+            all_src_idxs = get_src_indices_by_row(all_idxs, shape=shape)
+
+            if shape == (1,):
+                segend_src_idxs = segend_src_idxs.ravel()
+                all_src_idxs = all_src_idxs.ravel()
 
             if phase.polynomial_control_options[name]['targets']:
                 src_name = 'polynomial_control_values:{0}'.format(name)
                 targets = phase.polynomial_control_options[name]['targets']
                 phase.connect(src_name,
                               ['ode.{0}'.format(t) for t in targets],
-                              src_indices=segend_src_idxs.ravel(), flat_src_indices=True)
+                              src_indices=segend_src_idxs, flat_src_indices=True)
 
                 phase.connect(src_name,
                               ['rk_solve_group.ode.{0}'.format(t) for t in targets],
-                              src_indices=all_src_idxs.ravel(), flat_src_indices=True)
+                              src_indices=all_src_idxs, flat_src_indices=True)
 
             if phase.polynomial_control_options[name]['rate_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate'.format(name)
