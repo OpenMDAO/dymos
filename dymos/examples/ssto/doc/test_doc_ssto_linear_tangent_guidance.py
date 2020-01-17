@@ -276,7 +276,7 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
         p['traj.phase0.design_parameters:a_ctrl'] = -0.01
         p['traj.phase0.design_parameters:b_ctrl'] = 3.0
 
-        p.run_driver()
+        dm.run_problem(p)
 
         #
         # Check the results.

@@ -108,7 +108,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         #
         # Solve for the optimal trajectory
         #
-        p.run_driver()
+        dm.run_problem(p)
 
         #
         # Test the results

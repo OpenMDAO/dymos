@@ -101,7 +101,7 @@ class TestAircraftCruise(unittest.TestCase):
         p['assumptions.mass_empty'] = 0.15E6
         p['assumptions.mass_payload'] = 84.02869 * 400
 
-        p.run_driver()
+        dm.run_problem(p)
 
         time = p.get_val('phase0.timeseries.time')
         tas = p.get_val('phase0.timeseries.TAS', units='km/s')
@@ -195,7 +195,7 @@ class TestAircraftCruise(unittest.TestCase):
         p['assumptions.mass_empty'] = 0.15E6
         p['assumptions.mass_payload'] = 84.02869 * 400
 
-        p.run_driver()
+        dm.run_problem(p)
 
         time = p.get_val('phase0.timeseries.time')
         tas = p.get_val('phase0.timeseries.TAS', units='km/s')

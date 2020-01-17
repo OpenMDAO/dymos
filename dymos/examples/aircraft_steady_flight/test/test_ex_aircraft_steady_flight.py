@@ -107,7 +107,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
     p['assumptions.mass_empty'] = 0.15E6
     p['assumptions.mass_payload'] = 84.02869 * 400
 
-    p.run_driver()
+    dm.run_problem(p)
 
     return p
 

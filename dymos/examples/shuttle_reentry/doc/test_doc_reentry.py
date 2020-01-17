@@ -83,7 +83,7 @@ class TestReentryForDocs(unittest.TestCase):
                   phase0.interpolate(ys=[-75, 0], nodes='control_input'), units='deg')
 
         # Run the driver
-        p.run_driver()
+        dm.run_problem(p)
 
         # Check the validity of the solution
         assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 2008.59,

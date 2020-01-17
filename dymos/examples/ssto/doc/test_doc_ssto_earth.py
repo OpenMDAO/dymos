@@ -83,7 +83,7 @@ class TestDocSSTOEarth(unittest.TestCase):
         #
         # Solve the Problem
         #
-        p.run_driver()
+        dm.run_problem(p)
 
         #
         # Check the results.

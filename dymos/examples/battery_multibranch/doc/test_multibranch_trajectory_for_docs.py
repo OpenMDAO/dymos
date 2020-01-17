@@ -94,7 +94,7 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
         prob['traj.phase1_mfail.t_duration'] = 1.0*3600
 
         prob.set_solver_print(level=0)
-        prob.run_driver()
+        dm.run_problem(prob)
 
         soc0 = prob['traj.phase0.states:state_of_charge']
         soc1 = prob['traj.phase1.states:state_of_charge']
