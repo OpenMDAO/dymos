@@ -1,3 +1,6 @@
+from __future__ import print_function, division, absolute_import
+
+import os
 import unittest
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_rel_error
@@ -11,6 +14,12 @@ from openmdao.utils.general_utils import set_pyoptsparse_opt
 
 
 class TestRunProblem(unittest.TestCase):
+
+    @classmethod
+    def tearDownClass(cls):
+        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
+            if os.path.exists(filename):
+                os.remove(filename)
 
     def test_run_HS_problem_radau(self):
         p = om.Problem(model=om.Group())

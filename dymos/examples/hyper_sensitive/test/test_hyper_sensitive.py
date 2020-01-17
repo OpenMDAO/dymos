@@ -1,3 +1,6 @@
+from __future__ import print_function, division, absolute_import
+
+import os
 import unittest
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
@@ -10,6 +13,12 @@ tf = np.float128(10)
 
 
 class TestHyperSensitive(unittest.TestCase):
+
+    @classmethod
+    def tearDownClass(cls):
+        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
+            if os.path.exists(filename):
+                os.remove(filename)
 
     def make_problem(self, transcription=GaussLobatto, optimizer='SLSQP', numseg=30):
         p = Problem(model=Group())
