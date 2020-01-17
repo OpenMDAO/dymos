@@ -3,8 +3,8 @@ Grid Refinement
 ===============
 
 Grid refinement is carried out via ph-refinement as proposed by Patterson, Hager, and Rao for Radau pseudospectral
-methods [PattersonHagerRao2015]. A similar method was shown for a Gauss-Lobatto transcription by Lei et al
-[LeiLiuLiYeShao2017].
+methods [PattersonHagerRao2015]_. A similar method was shown for a Gauss-Lobatto transcription by Lei et al
+[LeiLiuLiYeShao2017]_.
 
 Refinement is carried out iteratively in four steps:
 
