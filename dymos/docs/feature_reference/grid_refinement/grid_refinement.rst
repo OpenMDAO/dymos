@@ -17,8 +17,8 @@ Refinement is carried out iteratively in four steps:
     :maxdepth: 2
     :titlesonly:
 
-    error estimation
-    ph-refinement
+    error-estimate
+    ph-adaptive
 
 
 References
