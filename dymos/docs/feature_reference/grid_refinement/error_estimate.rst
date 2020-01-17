@@ -16,7 +16,7 @@ The Lagrange interpolating polynomial :math:`\ell` is used to obtain values for 
 
 .. math::
 
-    \widehat{\ell}_j(\tau) = \prod_{{l=0 \\ l \neq j}}_^{n-1}\,\frac{\tau - \tau_l^{(k)}}{\tau_j^{(k)} - \tau_l^{(k)}}
+    \widehat{\ell}_j(\tau) = \prod_{{l=0, l \neq j}}_^{n-1}\,\frac{\tau - \tau_l^{(k)}}{\tau_j^{(k)} - \tau_l^{(k)}}
 
 The state and control are then interpolated as
 
