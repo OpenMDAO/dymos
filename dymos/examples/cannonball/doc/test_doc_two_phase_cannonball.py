@@ -151,7 +151,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45], nodes='state_input'),
                   units='deg')
 
-        p.run_driver()
+        dm.run_problem(p)
 
         assert_rel_error(self, p.get_val('traj.descent.states:r')[-1],
                          3183.25, tolerance=1.0E-2)

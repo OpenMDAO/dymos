@@ -106,7 +106,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         p['assumptions.mass_empty'] = 0.15E6
         p['assumptions.mass_payload'] = 84.02869 * 400
 
-        p.run_driver()
+        dm.run_problem(p)
 
         assert_rel_error(self, p.get_val('traj.phase0.timeseries.states:range', units='NM')[-1],
                          726.85, tolerance=1.0E-2)

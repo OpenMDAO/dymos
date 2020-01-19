@@ -253,7 +253,7 @@ class TestDocSSTOPolynomialControl(unittest.TestCase):
         #
         # Solve the problem.
         #
-        p.run_driver()
+        dm.run_problem(p)
 
         #
         # Check the results.

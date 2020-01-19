@@ -71,7 +71,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         #
         # Solve the problem.
         #
-        p.run_driver()
+        dm.run_problem(p)
 
         #
         # Verify that the results are correct.

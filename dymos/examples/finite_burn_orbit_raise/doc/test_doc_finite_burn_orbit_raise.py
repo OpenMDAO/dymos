@@ -185,7 +185,7 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         p.set_val('traj.burn2.controls:u1', value=burn2.interpolate(ys=[0, 0],
                                                                     nodes='control_input'))
 
-        p.run_driver()
+        dm.run_problem(p)
 
         assert_rel_error(self, p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
                          tolerance=2.0E-3)

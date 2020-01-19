@@ -174,7 +174,7 @@ class TestDocTandemPhases(unittest.TestCase):
 
         p['phase1.states:S'] = 0.0
 
-        p.run_driver()
+        dm.run_problem(p)
 
         expected = np.sqrt((10-0)**2 + (10 - 5)**2)
         assert_rel_error(self, p['phase1.timeseries.states:S'][-1], expected, tolerance=1.0E-3)

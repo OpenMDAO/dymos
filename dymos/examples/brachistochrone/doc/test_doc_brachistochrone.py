@@ -89,7 +89,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Solve for the optimal trajectory
         #
-        p.run_driver()
+        dm.run_problem(p)
 
         # Test the results
         assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
@@ -180,7 +180,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Solve for the optimal trajectory
         #
-        p.run_driver()
+        dm.run_problem(p)
 
         # Test the results
         assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
@@ -279,7 +279,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Solve for the optimal trajectory
         #
-        p.run_driver()
+        dm.run_problem(p)
 
         # Test the results
         assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
@@ -379,7 +379,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Solve for the optimal trajectory
         #
-        p.run_driver()
+        dm.run_problem(p)
 
         # Test the results
         assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
