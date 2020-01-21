@@ -2,7 +2,6 @@ from __future__ import print_function, division
 
 import numpy as np
 import openmdao.api as om
-from six import iteritems, string_types
 
 from ..grid_data import GridData
 from ...utils.misc import get_rate_units
@@ -24,7 +23,7 @@ class ContinuityCompBase(om.ExplicitComponent):
         self.options.declare('control_options', types=dict,
                              desc='Dictionary of control names/options for the phase')
 
-        self.options.declare('time_units', default=None, allow_none=True, types=string_types,
+        self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of the integration variable')
 
     def _setup_state_continuity(self):
@@ -36,7 +35,7 @@ class ContinuityCompBase(om.ExplicitComponent):
         if num_segments <= 1 or compressed:
             return
 
-        for state_name, options in iteritems(state_options):
+        for state_name, options in state_options.items():
             shape = options['shape']
             size = np.prod(shape)
             units = options['units']
@@ -90,7 +89,7 @@ class ContinuityCompBase(om.ExplicitComponent):
         self.add_input('t_duration', units=time_units, val=1.0,
                        desc='time duration of the phase')
 
-        for control_name, options in iteritems(control_options):
+        for control_name, options in control_options.items():
             shape = options['shape']
             size = np.prod(shape)
             units = options['units']
@@ -219,7 +218,7 @@ class ContinuityCompBase(om.ExplicitComponent):
         if num_segments <= 1 or compressed:
             return
 
-        for state_name, options in iteritems(state_options):
+        for state_name, options in state_options.items():
             input_name, output_name = self.name_maps[state_name]['value_names']
             end_vals = inputs[input_name][1:-1:2, ...]
             start_vals = inputs[input_name][2:-1:2, ...]
@@ -230,7 +229,7 @@ class ContinuityCompBase(om.ExplicitComponent):
 
         dt_dptau = inputs['t_duration'] / 2.0
 
-        for name, options in iteritems(control_options):
+        for name, options in control_options.items():
             input_name, output_name = self.name_maps[name]['value_names']
             end_vals = inputs[input_name][1:-1:2, ...]
             start_vals = inputs[input_name][2:-1:2, ...]
@@ -255,7 +254,7 @@ class ContinuityCompBase(om.ExplicitComponent):
         control_options = self.options['control_options']
         dt_dptau = 0.5 * inputs['t_duration']
 
-        for control_name, options in iteritems(control_options):
+        for control_name, options in control_options.items():
             input_name, output_name = self.name_maps[control_name]['rate_names']
             val = self.rate_jac_templates[control_name]
             partials[output_name, input_name] = val * dt_dptau
@@ -289,7 +288,7 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
 
         super(GaussLobattoContinuityComp, self)._setup_state_continuity()
 
-        for state_name, options in iteritems(state_options):
+        for state_name, options in state_options.items():
             if options['continuity'] and not compressed:
 
                 # linear if states are optimized, because they are dvs.
@@ -309,7 +308,7 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
 
         super(GaussLobattoContinuityComp, self)._setup_control_continuity()
 
-        for control_name, options in iteritems(control_options):
+        for control_name, options in control_options.items():
 
             if options['continuity'] and not compressed:
                 self.add_constraint(name='defect_controls:{0}'.format(control_name),
@@ -348,7 +347,7 @@ class RadauPSContinuityComp(ContinuityCompBase):
 
         super(RadauPSContinuityComp, self)._setup_state_continuity()
 
-        for state_name, options in iteritems(state_options):
+        for state_name, options in state_options.items():
             if options['continuity'] and not compressed:
                 # linear if states are optimized, because they are dvs.
                 # but nonlinear if solve_segments, because its like multiple shooting
@@ -367,7 +366,7 @@ class RadauPSContinuityComp(ContinuityCompBase):
 
         super(RadauPSContinuityComp, self)._setup_control_continuity()
 
-        for control_name, options in iteritems(control_options):
+        for control_name, options in control_options.items():
             if options['continuity']:
                 self.add_constraint(name='defect_controls:{0}'.format(control_name),
                                     equals=0.0, scaler=1.0, linear=False)

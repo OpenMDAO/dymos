@@ -1,8 +1,6 @@
 from __future__ import division, print_function
 
 import numpy as np
-from six import iteritems
-
 import openmdao.api as om
 
 
@@ -28,7 +26,7 @@ class InputParameterComp(om.ExplicitComponent):
     def setup(self):
         name_prefix = 'input_parameters'
 
-        for param_name, options in iteritems(self.options['input_parameter_options']):
+        for param_name, options in self.options['input_parameter_options'].items():
 
             self._input_design_parameters.append(param_name)
             self._input_names[param_name] = '{0}:{1}'.format(name_prefix, param_name)

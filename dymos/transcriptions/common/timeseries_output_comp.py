@@ -1,7 +1,5 @@
 from __future__ import division, print_function
 
-from six import iteritems
-
 import numpy as np
 import openmdao.api as om
 from scipy.linalg import block_diag

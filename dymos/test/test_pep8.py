@@ -4,7 +4,7 @@ import os
 import sys
 import pep8
 import unittest
-from six import StringIO
+from io import StringIO
 
 import dymos
 

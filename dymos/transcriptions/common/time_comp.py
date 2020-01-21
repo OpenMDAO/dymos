@@ -2,7 +2,6 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 import openmdao.api as om
-from six import string_types
 
 
 class TimeComp(om.ExplicitComponent):
@@ -21,7 +20,7 @@ class TimeComp(om.ExplicitComponent):
                                   ' of the nodes containing segment.')
 
         # Optional
-        self.options.declare('units', default=None, allow_none=True, types=string_types,
+        self.options.declare('units', default=None, allow_none=True, types=str,
                              desc='Units of time (or the integration variable)')
 
     def setup(self):

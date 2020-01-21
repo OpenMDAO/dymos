@@ -2,8 +2,6 @@
 
 from __future__ import print_function, division, absolute_import
 
-from six import iteritems
-
 import numpy as np
 
 import openmdao.api as om
@@ -47,7 +45,7 @@ class StateIndependentsComp(om.ImplicitComponent):
         self.solver_node_idx = list(np.where(np.in1d(state_input, solver_solved))[0])
         self.indep_node_idx = list(np.where(np.in1d(state_input, solver_indep))[0])
 
-        for state_name, options in iteritems(state_options):
+        for state_name, options in state_options.items():
             self.state_idx_map[state_name] = {'solver': None, 'indep': None}
 
             if options['solve_segments']:
@@ -94,7 +92,7 @@ class StateIndependentsComp(om.ImplicitComponent):
                 'defect': 'defects:{0}'.format(state_name),
             }
 
-        for state_name, options in iteritems(state_options):
+        for state_name, options in state_options.items():
 
             shape = options['shape']
             units = options['units']
@@ -121,7 +119,7 @@ class StateIndependentsComp(om.ImplicitComponent):
                     units=units)
 
         # Setup partials
-        for state_name, options in iteritems(state_options):
+        for state_name, options in state_options.items():
             shape = options['shape']
             size = np.prod(shape)
             solved = options['solve_segments']
@@ -182,7 +180,7 @@ class StateIndependentsComp(om.ImplicitComponent):
         """
         state_options = self.options['state_options']
 
-        for state_name, options in iteritems(state_options):
+        for state_name, options in state_options.items():
 
             state_var_name = 'states:{0}'.format(state_name)
 
@@ -213,7 +211,7 @@ class StateIndependentsComp(om.ImplicitComponent):
     def solve_nonlinear(self, inputs, outputs):
         state_options = self.options['state_options']
 
-        for state_name, options in iteritems(state_options):
+        for state_name, options in state_options.items():
             if options['connected_initial']:
                 output_name = 'states:{0}'.format(state_name)
                 input_name = 'initial_states:{0}'.format(state_name)

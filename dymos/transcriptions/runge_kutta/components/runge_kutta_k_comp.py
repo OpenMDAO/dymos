@@ -1,7 +1,5 @@
 from __future__ import print_function, division, absolute_import
 
-from six import string_types, iteritems
-
 import numpy as np
 
 import openmdao.api as om
@@ -21,7 +19,7 @@ class RungeKuttaKComp(om.ExplicitComponent):
         self.options.declare('state_options', types=dict,
                              desc='Dictionary of state names/options for the phase')
 
-        self.options.declare('time_units', default=None, allow_none=True, types=string_types,
+        self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of the integration variable')
 
     def setup(self):
@@ -35,7 +33,7 @@ class RungeKuttaKComp(om.ExplicitComponent):
         self.add_input('h', val=np.ones(num_seg), units=self.options['time_units'],
                        desc='step size for current Runge-Kutta segment.')
 
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in self.options['state_options'].items():
             shape = options['shape']
             units = options['units']
             rate_units = get_rate_units(units, self.options['time_units'])
@@ -65,14 +63,14 @@ class RungeKuttaKComp(om.ExplicitComponent):
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         h = inputs['h']
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in self.options['state_options'].items():
             f = inputs[self._var_names[name]['f']]
             outputs[self._var_names[name]['k']] = f * h[:, np.newaxis, np.newaxis]
 
     def compute_partials(self, inputs, partials):
         num_stages = rk_methods[self.options['method']]['num_stages']
         h = inputs['h']
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in self.options['state_options'].items():
             size = np.prod(options['shape'])
             k_name = self._var_names[name]['k']
             f_name = self._var_names[name]['f']

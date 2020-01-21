@@ -1,8 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
 from collections.abc import Sequence
-from six import string_types
-
 import numpy as np
 
 import openmdao.api as om
@@ -21,7 +19,7 @@ class RungeKuttaStepsizeComp(om.ExplicitComponent):
         self.options.declare('seg_rel_lengths', types=(np.ndarray, Sequence),
                              desc='The relative lengths of the segments in the phase.')
 
-        self.options.declare('time_units', default=None, allow_none=True, types=string_types,
+        self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of the integration variable')
 
     def setup(self):

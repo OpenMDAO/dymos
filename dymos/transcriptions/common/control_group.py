@@ -1,7 +1,5 @@
 from __future__ import print_function, division
 
-from six import string_types, iteritems
-
 import numpy as np
 
 import openmdao.api as om
@@ -42,7 +40,7 @@ class ControlInterpComp(om.ExplicitComponent):
             'control_options', types=dict,
             desc='Dictionary of options for the dynamic controls')
         self.options.declare(
-            'time_units', default=None, allow_none=True, types=string_types,
+            'time_units', default=None, allow_none=True, types=str,
             desc='Units of time')
         self.options.declare(
             'grid_data', types=GridData,
@@ -61,7 +59,7 @@ class ControlInterpComp(om.ExplicitComponent):
         num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
         time_units = self.options['time_units']
 
-        for name, options in iteritems(control_options):
+        for name, options in control_options.items():
             self._input_names[name] = 'controls:{0}'.format(name)
             self._output_val_names[name] = 'control_values:{0}'.format(name)
             self._output_rate_names[name] = 'control_rates:{0}_rate'.format(name)
@@ -185,7 +183,7 @@ class ControlInterpComp(om.ExplicitComponent):
     def compute(self, inputs, outputs):
         control_options = self.options['control_options']
 
-        for name, options in iteritems(control_options):
+        for name, options in control_options.items():
 
             u = inputs[self._input_names[name]]
 
@@ -201,7 +199,7 @@ class ControlInterpComp(om.ExplicitComponent):
         control_options = self.options['control_options']
         num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
 
-        for name, options in iteritems(control_options):
+        for name, options in control_options.items():
             control_name = self._input_names[name]
 
             size = self.sizes[name]
@@ -236,7 +234,7 @@ class ControlGroup(om.Group):
     def initialize(self):
         self.options.declare('control_options', types=dict,
                              desc='Dictionary of options for the dynamic controls')
-        self.options.declare('time_units', default=None, allow_none=True, types=string_types,
+        self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of time')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
@@ -252,7 +250,7 @@ class ControlGroup(om.Group):
         if len(control_options) < 1:
             return
 
-        opt_controls = [name for (name, opts) in iteritems(control_options) if opts['opt']]
+        opt_controls = [name for (name, opts) in control_options.items() if opts['opt']]
 
         if len(opt_controls) > 0:
             ivc = self.add_subsystem('indep_controls', subsys=om.IndepVarComp(),
@@ -265,7 +263,7 @@ class ControlGroup(om.Group):
             promotes_inputs=['*'],
             promotes_outputs=['*'])
 
-        for name, options in iteritems(control_options):
+        for name, options in control_options.items():
             if options['opt']:
                 num_input_nodes = gd.subset_num_nodes['control_input']
 

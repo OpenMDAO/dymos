@@ -1,8 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
 import numpy as np
-from six import iteritems, string_types
-
 import openmdao.api as om
 
 from ...grid_data import GridData
@@ -17,7 +15,7 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
     """
 
     def initialize(self):
-        self.options.declare('time_units', default=None, allow_none=True, types=string_types,
+        self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of time')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
         self.options.declare('polynomial_control_options', types=dict,
@@ -68,7 +66,7 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
                        desc='duration of the phase to which this interpolated control group '
                             'belongs')
 
-        for name, options in iteritems(self.options['polynomial_control_options']):
+        for name, options in self.options['polynomial_control_options'].items():
             disc_nodes, _ = lgl(options['order'] + 1)
             num_control_input_nodes = len(disc_nodes)
             shape = options['shape']
@@ -149,7 +147,7 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
 
         dt_dptau = 0.5 * inputs['t_duration']
 
-        for name, options in iteritems(self.options['polynomial_control_options']):
+        for name, options in self.options['polynomial_control_options'].items():
             L_do, D_do, D2_do = self._matrices[name]
 
             u = inputs[self._input_names[name]]
@@ -165,7 +163,7 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
     def compute_partials(self, inputs, partials):
         nn = self.options['grid_data'].num_nodes
 
-        for name, options in iteritems(self.options['polynomial_control_options']):
+        for name, options in self.options['polynomial_control_options'].items():
             control_name = self._input_names[name]
             num_input_nodes = options['order'] + 1
             L_do, D_do, D2_do = self._matrices[name]
@@ -202,7 +200,7 @@ class SolveIVPPolynomialControlGroup(om.Group):
     def initialize(self):
         self.options.declare('polynomial_control_options', types=dict,
                              desc='Dictionary of options for the polynomial controls')
-        self.options.declare('time_units', default=None, allow_none=True, types=string_types,
+        self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of time')
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
         self.options.declare('output_nodes_per_seg', default=None, types=(int,), allow_none=True,
@@ -220,7 +218,7 @@ class SolveIVPPolynomialControlGroup(om.Group):
 
         # Pull out the interpolated controls
         num_opt = 0
-        for name, options in iteritems(opts['polynomial_control_options']):
+        for name, options in opts['polynomial_control_options'].items():
             if options['order'] < 1:
                 raise ValueError('Interpolation order must be >= 1 (linear)')
             if options['opt']:
@@ -240,7 +238,7 @@ class SolveIVPPolynomialControlGroup(om.Group):
 
         # For any interpolated control with `opt=True`, add an indep var comp output and
         # setup the design variable for optimization.
-        for name, options in iteritems(self.options['polynomial_control_options']):
+        for name, options in self.options['polynomial_control_options'].items():
             num_input_nodes = options['order'] + 1
             shape = options['shape']
             if options['opt']:

@@ -1,9 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
 from collections.abc import Sequence
-import warnings
-
-from six import iteritems
 
 import numpy as np
 
@@ -12,8 +9,6 @@ import openmdao.api as om
 from .common import BoundaryConstraintComp, InputParameterComp, ControlGroup, \
     PolynomialControlGroup
 from ..utils.constants import INF_BOUND
-from ..utils.indexing import get_src_indices_by_row
-from ..utils.rk_methods import rk_methods
 
 
 class TranscriptionBase(object):
@@ -164,7 +159,7 @@ class TranscriptionBase(object):
                                         subsys=om.IndepVarComp(),
                                         promotes_outputs=['*'])
 
-            for name, options in iteritems(phase.design_parameter_options):
+            for name, options in phase.design_parameter_options.items():
                 src_name = 'design_parameters:{0}'.format(name)
 
                 if options['opt']:
@@ -244,7 +239,7 @@ class TranscriptionBase(object):
             bc_comp = phase.add_subsystem('{0}_boundary_constraints'.format(loc),
                                           subsys=BoundaryConstraintComp(loc=loc))
 
-        for var, options in iteritems(bc_dict):
+        for var, options in bc_dict.items():
             con_name = options['constraint_name']
 
             # Constraint options are a copy of options with constraint_name key removed.
@@ -324,7 +319,7 @@ class TranscriptionBase(object):
         """
         Find the path of the objective(s) and add the objective using the standard OpenMDAO method.
         """
-        for name, options in iteritems(phase._objectives):
+        for name, options in phase._objectives.items():
             index = options['index']
             loc = options['loc']
 
@@ -392,7 +387,7 @@ class TranscriptionBase(object):
 
     def check_config(self, phase, logger):
 
-        for var, options in iteritems(phase._path_constraints):
+        for var, options in phase._path_constraints.items():
             # Determine the path to the variable which we will be constraining
             # This is more complicated for path constraints since, for instance,
             # a single state variable has two sources which must be connected to
@@ -407,7 +402,7 @@ class TranscriptionBase(object):
                                    'is not scalar, connection errors will '
                                    'result.'.format(var, phase.name))
 
-        for var, options in iteritems(phase._initial_boundary_constraints):
+        for var, options in phase._initial_boundary_constraints.items():
             # Determine the path to the variable which we will be constraining
             # This is more complicated for path constraints since, for instance,
             # a single state variable has two sources which must be connected to
@@ -422,7 +417,7 @@ class TranscriptionBase(object):
                                    'is not scalar, connection errors will '
                                    'result.'.format(var, phase.name))
 
-        for var, options in iteritems(phase._final_boundary_constraints):
+        for var, options in phase._final_boundary_constraints.items():
             # Determine the path to the variable which we will be constraining
             # This is more complicated for path constraints since, for instance,
             # a single state variable has two sources which must be connected to
@@ -437,8 +432,8 @@ class TranscriptionBase(object):
                                    'is not scalar, connection errors will '
                                    'result.'.format(var, phase.name))
 
-        for name, timeseries_options in iteritems(phase._timeseries):
-            for var, options in iteritems(phase._timeseries[name]['outputs']):
+        for name, timeseries_options in phase._timeseries.items():
+            for var, options in phase._timeseries[name]['outputs'].items():
 
                 # Determine the path to the variable which we will be constraining
                 # This is more complicated for path constraints since, for instance,

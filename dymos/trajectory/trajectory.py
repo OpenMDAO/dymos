@@ -1,11 +1,9 @@
 from __future__ import print_function, division, absolute_import
 
 from collections import OrderedDict
-from collections.abc import Sequence, Iterable
+from collections.abc import Sequence
 import itertools
 import warnings
-from six import iteritems, string_types
-
 try:
     from itertools import izip
 except ImportError:
@@ -107,7 +105,7 @@ class Trajectory(om.Group):
             self.input_parameter_options[name]['desc'] = desc
 
         if targets is not _unspecified:
-            if isinstance(targets, string_types):
+            if isinstance(targets, str):
                 self.input_parameter_options[name]['targets'] = (targets,)
             else:
                 self.input_parameter_options[name]['targets'] = targets
@@ -116,7 +114,7 @@ class Trajectory(om.Group):
             warnings.warn('Option custom_targets is now targets, and should provide the ode '
                           'targets for the parameter in each phase', DeprecationWarning)
 
-            if isinstance(custom_targets, string_types):
+            if isinstance(custom_targets, str):
                 self.input_parameter_options[name]['targets'] = (custom_targets,)
             else:
                 self.input_parameter_options[name]['targets'] = custom_targets
@@ -214,7 +212,7 @@ class Trajectory(om.Group):
             self.design_parameter_options[name]['ref'] = ref
 
         if targets is not _unspecified:
-            if isinstance(targets, string_types):
+            if isinstance(targets, str):
                 self.design_parameter_options[name]['targets'] = (targets,)
             else:
                 self.design_parameter_options[name]['targets'] = targets
@@ -223,7 +221,7 @@ class Trajectory(om.Group):
             warnings.warn('Option custom_targets is now targets, and should provide the ode '
                           'targets for the parameter in each phase', DeprecationWarning)
 
-            if isinstance(custom_targets, string_types):
+            if isinstance(custom_targets, str):
                 self.design_parameter_options[name]['targets'] = (custom_targets,)
             else:
                 self.design_parameter_options[name]['targets'] = custom_targets
@@ -245,7 +243,7 @@ class Trajectory(om.Group):
             self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
                                promotes_outputs=['*'])
 
-            for name, options in iteritems(self.input_parameter_options):
+            for name, options in self.input_parameter_options.items():
 
                 tgts = options['targets']
 
@@ -254,13 +252,13 @@ class Trajectory(om.Group):
                     # No need to create input parameters in each phase.
                     continue
 
-                for phase_name, phs in iteritems(self._phases):
+                for phase_name, phs in self._phases.items():
 
                     if tgts[phase_name] is None:
                         # Targets for this phase are explicitly None.
                         # Skip addition of input parameter to this phase.
                         continue
-                    elif isinstance(tgts[phase_name], string_types):
+                    elif isinstance(tgts[phase_name], str):
                         # User specified name of an input parameter in the phase for this parameter.
                         # Skip addition of input parameter to this phase.
                         continue
@@ -286,7 +284,7 @@ class Trajectory(om.Group):
             indep = self.add_subsystem('design_params', subsys=om.IndepVarComp(),
                                        promotes_outputs=['*'])
 
-            for name, options in iteritems(self.design_parameter_options):
+            for name, options in self.design_parameter_options.items():
                 if options['opt']:
                     lb = -INF_BOUND if options['lower'] is None else options['lower']
                     ub = INF_BOUND if options['upper'] is None else options['upper']
@@ -311,12 +309,12 @@ class Trajectory(om.Group):
                     # No need to create input parameters in each phase.
                     continue
 
-                for phase_name, phs in iteritems(self._phases):
+                for phase_name, phs in self._phases.items():
                     if tgts[phase_name] is None:
                         # Targets for this phase are explicitly None.
                         # Skip addition of input parameter to this phase.
                         continue
-                    elif isinstance(tgts[phase_name], string_types):
+                    elif isinstance(tgts[phase_name], str):
                         # User specified name of an input parameter in the phase for this parameter.
                         # Skip addition of input parameter to this phase.
                         continue
@@ -336,7 +334,7 @@ class Trajectory(om.Group):
     def _setup_linkages(self):
         link_comp = None
 
-        for pair, vars in iteritems(self._linkages):
+        for pair, vars in self._linkages.items():
             phase_name1, phase_name2 = pair
 
             for name in pair:
@@ -366,7 +364,7 @@ class Trajectory(om.Group):
             shape_map = {}
             vars_to_constrain = []
 
-            for var, options in iteritems(_vars):
+            for var, options in _vars.items():
                 if options['connected']:
                     # If this is a state, and we are linking it, we need to do some checks.
                     if var in p2_states:
@@ -414,7 +412,7 @@ class Trajectory(om.Group):
         phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup(), promotes_inputs=['*'],
                                           promotes_outputs=['*'])
 
-        for name, phs in iteritems(self._phases):
+        for name, phs in self._phases.items():
             g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
             # DirectSolvers were moved down into the phases for use with MPI
             g.linear_solver = om.DirectSolver()
@@ -438,7 +436,7 @@ class Trajectory(om.Group):
         parameter_options = self.input_parameter_options if mode == 'input' \
             else self.design_parameter_options
 
-        for name, options in iteritems(parameter_options):
+        for name, options in parameter_options.items():
 
             # Connect the design parameter to its target in each phase
             suffix = '' if mode == 'design' else '_out'
@@ -446,7 +444,7 @@ class Trajectory(om.Group):
 
             targets = options['targets']
 
-            for phase_name, phs in iteritems(self._phases):
+            for phase_name, phs in self._phases.items():
 
                 if targets is None or phase_name not in targets:
                     # Attempt to connect to an input parameter of the same name in the phase, if
@@ -458,7 +456,7 @@ class Trajectory(om.Group):
                 elif targets[phase_name] is None:
                     # Connections to this phase are explicitly omitted
                     continue
-                elif isinstance(targets[phase_name], string_types) and \
+                elif isinstance(targets[phase_name], str) and \
                         targets[phase_name] in phs.user_input_parameter_options:
                     # Connect to an input parameter with a different name in this phase
                     tgt = '{0}.input_parameters:{1}'.format(phase_name, targets[phase_name])
@@ -479,7 +477,7 @@ class Trajectory(om.Group):
 
         indent = '    '
 
-        for pair, vars in iteritems(self._linkages):
+        for pair, vars in self._linkages.items():
             phase_name1, phase_name2 = pair
 
             for name in pair:
@@ -520,7 +518,7 @@ class Trajectory(om.Group):
             shape_map = {}
             vars_to_constrain = []
 
-            for var, options in iteritems(_vars):
+            for var, options in _vars.items():
                 if not options['connected']:
                     vars_to_constrain.append(var)
                     if var in p1_states:
@@ -540,7 +538,7 @@ class Trajectory(om.Group):
 
                 linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
 
-            for var, options in iteritems(_vars):
+            for var, options in _vars.items():
                 loc1, loc2 = options['locs']
 
                 if var in p1_states:
@@ -744,7 +742,7 @@ class Trajectory(om.Group):
         """
         sim_traj = Trajectory(sim_mode=True)
 
-        for name, phs in iteritems(self._phases):
+        for name, phs in self._phases.items():
             sim_phs = phs.get_simulation_phase(times_per_seg=times_per_seg, method=method,
                                                atol=atol, rtol=rtol)
             sim_traj.add_phase(name, sim_phs)
@@ -770,19 +768,19 @@ class Trajectory(om.Group):
                                                                                 out_stream=None)])
 
         # Assign trajectory design parameter values
-        for name, options in iteritems(self.design_parameter_options):
+        for name, options in self.design_parameter_options.items():
             op = traj_op_dict['{0}.design_params.design_parameters:{1}'.format(self.pathname, name)]
             var_name = '{0}.design_parameters:{1}'.format(self.name, name)
             sim_prob[var_name] = op['value'][0, ...]
 
         # Assign trajectory input parameter values
-        for name, options in iteritems(self.input_parameter_options):
+        for name, options in self.input_parameter_options.items():
                 op = traj_op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.pathname,
                                                                                      name)]
                 var_name = '{0}.input_parameters:{1}'.format(self.name, name)
                 sim_prob[var_name] = op['value'][0, ...]
 
-        for phase_name, phs in iteritems(sim_traj._phases):
+        for phase_name, phs in sim_traj._phases.items():
             phs.initialize_values_from_phase(sim_prob, self._phases[phase_name])
 
         print('\nSimulating trajectory {0}'.format(self.pathname))

@@ -1,6 +1,5 @@
 from __future__ import print_function, division, absolute_import
 
-from six import iteritems
 import numpy as np
 import openmdao.api as om
 
@@ -20,7 +19,7 @@ class EndpointConditionsComp(om.ExplicitComponent):
 
     def _setup_states(self):
         loc = self.options['loc']
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in self.options['state_options'].items():
             shape = options['shape']
             units = options['units']
             size = int(np.prod(shape))
@@ -103,7 +102,7 @@ class EndpointConditionsComp(om.ExplicitComponent):
 
     def _setup_controls(self):
         loc = self.options['loc']
-        for name, options in iteritems(self.options['control_options']):
+        for name, options in self.options['control_options'].items():
             shape = options['shape']
             units = options['units']
             size = int(np.prod(shape))
@@ -266,7 +265,7 @@ class EndpointConditionsComp(om.ExplicitComponent):
             outputs['time+-'] = inputs['final_value:time'][0]
             outputs['time++'] = inputs['final_value:time'][0] + inputs['final_jump:time']
 
-        for state_name, options in iteritems(self.options['state_options']):
+        for state_name, options in self.options['state_options'].items():
             if loc == 'initial':
                 outputs['states:{0}--'.format(state_name)] = \
                     inputs['initial_value:{0}'.format(state_name)] - \
@@ -283,7 +282,7 @@ class EndpointConditionsComp(om.ExplicitComponent):
                     inputs['final_value:{0}'.format(state_name)] + \
                     inputs['final_jump:{0}'.format(state_name)]
 
-        for control_name, options in iteritems(self.options['control_options']):
+        for control_name, options in self.options['control_options'].items():
 
             if loc == 'initial':
                 outputs['controls:{0}--'.format(control_name)] = \

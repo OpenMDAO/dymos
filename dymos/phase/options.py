@@ -1,7 +1,5 @@
 from collections.abc import Iterable
 from numbers import Number
-from six import string_types
-
 import numpy as np
 
 import openmdao.api as om
@@ -15,13 +13,13 @@ class ControlOptionsDictionary(om.OptionsDictionary):
     def __init__(self, read_only=False):
         super(ControlOptionsDictionary, self).__init__(read_only)
 
-        self.declare(name='name', types=string_types,
+        self.declare(name='name', types=str,
                      desc='The name of ODE system parameter to be controlled.')
 
-        self.declare(name='units', types=string_types, default=None,
+        self.declare(name='units', types=str, default=None,
                      allow_none=True, desc='The units in which the control variable is defined.')
 
-        self.declare(name='desc', types=string_types, default='',
+        self.declare(name='desc', types=str, default='',
                      desc='The description of the control variable.')
 
         self.declare(name='opt', default=True, types=bool,
@@ -126,13 +124,13 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
     def __init__(self, read_only=False):
         super(PolynomialControlOptionsDictionary, self).__init__(read_only)
 
-        self.declare(name='name', types=string_types,
+        self.declare(name='name', types=str,
                      desc='The name of ODE system parameter to be controlled.')
 
-        self.declare(name='units', types=string_types, default=None,
+        self.declare(name='units', types=str, default=None,
                      allow_none=True, desc='The units in which the control variable is defined.')
 
-        self.declare(name='desc', types=string_types, default='',
+        self.declare(name='desc', types=str, default='',
                      desc='The description of the control variable.')
 
         self.declare(name='opt', default=True, types=bool,
@@ -219,13 +217,13 @@ class DesignParameterOptionsDictionary(om.OptionsDictionary):
     def __init__(self, read_only=False):
         super(DesignParameterOptionsDictionary, self).__init__(read_only)
 
-        self.declare(name='name', types=string_types,
+        self.declare(name='name', types=str,
                      desc='The name of ODE system parameter to be set via design parameter.')
 
-        self.declare(name='units', types=string_types, default=None,
+        self.declare(name='units', types=str, default=None,
                      allow_none=True, desc='The units in which the design parameter is defined.')
 
-        self.declare(name='desc', types=string_types, default='',
+        self.declare(name='desc', types=str, default='',
                      desc='The description of the design parameter.')
 
         self.declare(name='opt', default=True, types=bool,
@@ -309,15 +307,15 @@ class InputParameterOptionsDictionary(om.OptionsDictionary):
     def __init__(self, read_only=False):
         super(InputParameterOptionsDictionary, self).__init__(read_only)
 
-        self.declare(name='name', types=string_types,
+        self.declare(name='name', types=str,
                      desc='The name of ODE system parameter to be set via input parameter, or '
                           'an alias.  If an alias is provided, then "target_param" should provide'
                           'the ODE system parameter name.')
 
-        self.declare(name='units', types=string_types, default=None,
+        self.declare(name='units', types=str, default=None,
                      allow_none=True, desc='The units in which the design parameter is defined.')
 
-        self.declare(name='desc', types=string_types, default='',
+        self.declare(name='desc', types=str, default='',
                      desc='The description of the design parameter.')
 
         self.declare(name='dynamic', types=bool, default=True,
@@ -366,10 +364,10 @@ class StateOptionsDictionary(om.OptionsDictionary):
     def __init__(self, read_only=False):
         super(StateOptionsDictionary, self).__init__(read_only)
 
-        self.declare(name='name', types=string_types,
+        self.declare(name='name', types=str,
                      desc='name of ODE state variable')
 
-        self.declare(name='units', types=string_types, default=None,
+        self.declare(name='units', types=str, default=None,
                      allow_none=True, desc='units in which the state variable is defined')
 
         self.declare(name='opt', types=bool, default=True,
@@ -400,13 +398,13 @@ class StateOptionsDictionary(om.OptionsDictionary):
         self.declare(name='val', types=(Iterable, Number), default=0.0,
                      desc='Default value of the state variable at the discretization nodes')
 
-        self.declare(name='desc', types=string_types, default='',
+        self.declare(name='desc', types=str, default='',
                      desc='description of the state variable')
 
         self.declare(name='shape', types=Iterable, default=(1,),
                      desc='shape of the state variable')
 
-        self.declare(name='rate_source', types=string_types,
+        self.declare(name='rate_source', types=str,
                      desc='ODE-path to the derivative of the state variable')
 
         self.declare(name='targets', types=Iterable, allow_none=True, default=None,
@@ -486,7 +484,7 @@ class TimeOptionsDictionary(om.OptionsDictionary):
     def __init__(self, read_only=False):
         super(TimeOptionsDictionary, self).__init__(read_only)
 
-        self.declare('units', types=string_types, allow_none=True,
+        self.declare('units', types=str, allow_none=True,
                      default='s', desc='Units for the integration variable')
 
         self.declare(name='fix_initial', types=bool, default=False,

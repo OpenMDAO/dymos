@@ -2,8 +2,6 @@
 
 from __future__ import print_function, division, absolute_import
 
-from six import iteritems
-
 import numpy as np
 
 from openmdao.core.implicitcomponent import ImplicitComponent
@@ -37,7 +35,7 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
 
         self._var_names = {}
 
-        for state_name, options in iteritems(state_options):
+        for state_name, options in state_options.items():
             self._var_names[state_name] = {
                 'initial': 'initial_states:{0}'.format(state_name),
                 'states': 'states:{0}'.format(state_name),
@@ -114,7 +112,7 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
         """
         state_options = self.options['state_options']
 
-        for state_name, options in iteritems(state_options):
+        for state_name, options in state_options.items():
             names = self._var_names[state_name]
 
             x_i = outputs[names['states']][:-1, ...]

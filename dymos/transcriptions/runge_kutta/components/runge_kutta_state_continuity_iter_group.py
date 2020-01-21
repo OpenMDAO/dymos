@@ -1,8 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
-from six import string_types, iteritems
-
 import openmdao.api as om
 
 from .runge_kutta_k_iter_group import RungeKuttaKIterGroup
@@ -31,7 +29,7 @@ class RungeKuttaStateContinuityIterGroup(om.Group):
         self.options.declare('state_options', types=dict,
                              desc='Dictionary of state names/options for the phase')
 
-        self.options.declare('time_units', default=None, allow_none=True, types=string_types,
+        self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of the integration variable')
 
         self.options.declare('ode_class',
@@ -84,7 +82,7 @@ class RungeKuttaStateContinuityIterGroup(om.Group):
                            promotes_inputs=promoted_inputs,
                            promotes_outputs=['states:*'])
 
-        for state_name, options in iteritems(self.options['state_options']):
+        for state_name, options in self.options['state_options'].items():
             self.connect('k_comp.k:{0}'.format(state_name),
                          'state_advance_comp.k:{0}'.format(state_name))
             row_idxs = np.arange(self.options['num_segments'], dtype=int)

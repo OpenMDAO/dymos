@@ -1,7 +1,6 @@
 from __future__ import division, print_function
 
 import numpy as np
-from six import iteritems
 
 import openmdao.api as om
 
@@ -40,7 +39,7 @@ class BoundaryConstraintComp(om.ExplicitComponent):
             self.add_constraint(output_name, **constraint_kwargs)
 
         # Setup partials
-        for name, options in iteritems(self._vars):
+        for name, options in self._vars.items():
             size = int(np.prod(options['shape']))
 
             rs = np.arange(size)
@@ -52,9 +51,9 @@ class BoundaryConstraintComp(om.ExplicitComponent):
                                   rows=rs,
                                   cols=cs)
 
-    def compute(self, inputs, outputs):
+    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
 
-        for name, options in iteritems(self._vars):
+        for name, options in self._vars.items():
             outputs[options['output_name']] = inputs[options['input_name']]
 
     def _add_constraint(self, name, units=None, res_units=None, desc='',

@@ -2,8 +2,6 @@ from __future__ import print_function, division, absolute_import
 
 from collections import OrderedDict
 
-from six import iteritems, string_types
-
 import numpy as np
 from .odeint_control_interpolation_comp import ODEIntControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
@@ -56,7 +54,7 @@ class ODEIntegrationInterface(object):
 
         pos = 0
 
-        for state, options in iteritems(state_options):
+        for state, options in state_options.items():
             self.state_options[state] = {'rate_source': options['rate_source'],
                                          'pos': pos,
                                          'shape': options['shape'],
@@ -99,7 +97,7 @@ class ODEIntegrationInterface(object):
                        self.time_options['t_duration_targets']])
 
         # The States Comp
-        for name, options in iteritems(self.state_options):
+        for name, options in self.state_options.items():
             ivc.add_output('states:{0}'.format(name),
                            shape=(1, np.prod(options['shape'])),
                            units=options['units'])
@@ -125,7 +123,7 @@ class ODEIntegrationInterface(object):
             model.connect('time', ['indep_controls.time'])
 
         if self.control_options:
-            for name, options in iteritems(self.control_options):
+            for name, options in self.control_options.items():
                 if options['targets']:
                     model.connect('controls:{0}'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in options['targets']])
@@ -137,46 +135,46 @@ class ODEIntegrationInterface(object):
                                   ['ode.{0}'.format(tgt) for tgt in options['rate2_targets']])
 
         if self.polynomial_control_options:
-            for name, options in iteritems(self.polynomial_control_options):
+            for name, options in self.polynomial_control_options.items():
                 tgts = options['targets']
                 rate_tgts = options['rate_targets']
                 rate2_tgts = options['rate2_targets']
                 if options['targets']:
-                    if isinstance(tgts, string_types):
+                    if isinstance(tgts, str):
                         tgts = [tgts]
                     model.connect('polynomial_controls:{0}'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in tgts])
                 if options['rate_targets']:
-                    if isinstance(rate_tgts, string_types):
+                    if isinstance(rate_tgts, str):
                         rate_tgts = [rate_tgts]
                     model.connect('polynomial_control_rates:{0}_rate'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in rate_tgts])
                 if options['rate2_targets']:
-                    if isinstance(rate2_tgts, string_types):
+                    if isinstance(rate2_tgts, str):
                         rate2_tgts = [rate2_tgts]
                     model.connect('polynomial_control_rates:{0}_rate2'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in rate2_tgts])
 
         if self.design_parameter_options:
-            for name, options in iteritems(self.design_parameter_options):
+            for name, options in self.design_parameter_options.items():
                 ivc.add_output('design_parameters:{0}'.format(name),
                                shape=options['shape'],
                                units=options['units'])
                 if options['targets'] is not None:
                     tgts = options['targets']
-                    if isinstance(tgts, string_types):
+                    if isinstance(tgts, str):
                         tgts = [tgts]
                     model.connect('design_parameters:{0}'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in tgts])
 
         if self.input_parameter_options:
-            for name, options in iteritems(self.input_parameter_options):
+            for name, options in self.input_parameter_options.items():
                 ivc.add_output('input_parameters:{0}'.format(name),
                                shape=options['shape'],
                                units=options['units'])
                 if options['targets'] is not None:
                     tgts = options['targets']
-                    if isinstance(tgts, string_types):
+                    if isinstance(tgts, str):
                         tgts = [tgts]
                     model.connect('input_parameters:{0}'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in tgts])

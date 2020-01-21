@@ -2,8 +2,6 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from six import iteritems
-
 from scipy.linalg import block_diag
 
 from dymos.utils.lgl import lgl
@@ -442,7 +440,7 @@ class GridData(object):
             if iseg < num_segments - 1:
                 self.segment_indices[iseg + 1, 0] = self.segment_indices[iseg, 1]
 
-            for subset_name, subset_idxs_i in iteritems(subsets_i):
+            for subset_name, subset_idxs_i in subsets_i.items():
                 if iseg == 0:
                     self.subset_num_nodes[subset_name] = 0
                     self.subset_num_nodes_per_segment[subset_name] = []

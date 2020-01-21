@@ -3,10 +3,8 @@ from __future__ import division, print_function, absolute_import
 import numpy as np
 
 import openmdao.api as om
-from six import iteritems, string_types
-
 from ..transcription_base import TranscriptionBase
-from .components import SegmentSimulationComp, ODEIntegrationInterface, SegmentStateMuxComp, \
+from .components import SegmentSimulationComp, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
 from ..common import TimeComp
 from ...utils.misc import get_rate_units
@@ -119,7 +117,7 @@ class SolveIVP(TranscriptionBase):
         indep_states_ivc = phase.add_subsystem('indep_states', om.IndepVarComp(),
                                                promotes_outputs=['*'])
 
-        for state_name, options in iteritems(phase.state_options):
+        for state_name, options in phase.state_options.items():
             indep_states_ivc.add_output('initial_states:{0}'.format(state_name),
                                         val=np.ones(((1,) + options['shape'])),
                                         units=options['units'])
@@ -213,7 +211,7 @@ class SolveIVP(TranscriptionBase):
                                           'control_rates:*'])
             phase.connect('dt_dstau', 'control_group.dt_dstau')
 
-        for name, options in iteritems(phase.control_options):
+        for name, options in phase.control_options.items():
             for i in range(grid_data.num_segments):
                 i1, i2 = grid_data.subset_segment_indices['control_disc'][i, :]
                 seg_idxs = grid_data.subset_node_indices['control_disc'][i1:i2]
@@ -246,7 +244,7 @@ class SolveIVP(TranscriptionBase):
             phase.add_subsystem('polynomial_control_group', subsys=sys,
                                 promotes_inputs=['*'], promotes_outputs=['*'])
 
-        for name, options in iteritems(phase.polynomial_control_options):
+        for name, options in phase.polynomial_control_options.items():
 
             for iseg in range(self.grid_data.num_segments):
                 phase.connect(src_name='polynomial_controls:{0}'.format(name),
@@ -255,35 +253,35 @@ class SolveIVP(TranscriptionBase):
             if phase.polynomial_control_options[name]['targets']:
                 src_name = 'polynomial_control_values:{0}'.format(name)
                 targets = phase.polynomial_control_options[name]['targets']
-                if isinstance(targets, string_types):
+                if isinstance(targets, str):
                     targets = [targets]
                 phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
 
             if phase.polynomial_control_options[name]['rate_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate'.format(name)
                 targets = phase.polynomial_control_options[name]['rate_targets']
-                if isinstance(targets, string_types):
+                if isinstance(targets, str):
                     targets = [targets]
                 phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
 
             if phase.polynomial_control_options[name]['rate2_targets']:
                 src_name = 'polynomial_control_rates:{0}_rate2'.format(name)
                 targets = phase.polynomial_control_options[name]['rate2_targets']
-                if isinstance(targets, string_types):
+                if isinstance(targets, str):
                     targets = [targets]
                 phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
 
     def setup_design_parameters(self, phase):
         super(SolveIVP, self).setup_design_parameters(phase)
         num_seg = self.grid_data.num_segments
-        for name, options in iteritems(phase.design_parameter_options):
+        for name, options in phase.design_parameter_options.items():
             phase.connect('design_parameters:{0}'.format(name),
                           ['segment_{0}.design_parameters:{1}'.format(iseg, name) for iseg in range(num_seg)])
 
     def setup_input_parameters(self, phase):
         super(SolveIVP, self).setup_input_parameters(phase)
         num_seg = self.grid_data.num_segments
-        for name, options in iteritems(phase.input_parameter_options):
+        for name, options in phase.input_parameter_options.items():
             phase.connect('input_parameters:{0}_out'.format(name),
                           ['segment_{0}.input_parameters:{1}'.format(iseg, name) for iseg in range(num_seg)])
 
@@ -331,7 +329,7 @@ class SolveIVP(TranscriptionBase):
                                                units=time_units)
         phase.connect(src_name='time_phase', tgt_name='timeseries.all_values:time_phase')
 
-        for name, options in iteritems(phase.state_options):
+        for name, options in phase.state_options.items():
             timeseries_comp._add_timeseries_output('states:{0}'.format(name),
                                                    var_class=phase.classify_var(name),
                                                    shape=options['shape'],
@@ -339,7 +337,7 @@ class SolveIVP(TranscriptionBase):
             phase.connect(src_name='state_mux_comp.states:{0}'.format(name),
                           tgt_name='timeseries.all_values:states:{0}'.format(name))
 
-        for name, options in iteritems(phase.control_options):
+        for name, options in phase.control_options.items():
             control_units = options['units']
             timeseries_comp._add_timeseries_output('controls:{0}'.format(name),
                                                    var_class=phase.classify_var(name),
@@ -369,7 +367,7 @@ class SolveIVP(TranscriptionBase):
             phase.connect(src_name='control_rates:{0}_rate2'.format(name),
                           tgt_name='timeseries.all_values:control_rates:{0}_rate2'.format(name))
 
-        for name, options in iteritems(phase.polynomial_control_options):
+        for name, options in phase.polynomial_control_options.items():
             control_units = options['units']
             timeseries_comp._add_timeseries_output('polynomial_controls:{0}'.format(name),
                                                    var_class=phase.classify_var(name),
@@ -402,7 +400,7 @@ class SolveIVP(TranscriptionBase):
                           tgt_name='timeseries.all_values:polynomial_control_rates'
                                    ':{0}_rate2'.format(name))
 
-        for name, options in iteritems(phase.design_parameter_options):
+        for name, options in phase.design_parameter_options.items():
             units = options['units']
             timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
                                                    var_class=phase.classify_var(name),
@@ -419,7 +417,7 @@ class SolveIVP(TranscriptionBase):
                           tgt_name='timeseries.all_values:design_parameters:{0}'.format(name),
                           src_indices=src_idxs, flat_src_indices=True)
 
-        for name, options in iteritems(phase.input_parameter_options):
+        for name, options in phase.input_parameter_options.items():
             units = options['units']
             timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
                                                    var_class=phase.classify_var(name),
@@ -436,7 +434,7 @@ class SolveIVP(TranscriptionBase):
                           tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
                           src_indices=src_idxs, flat_src_indices=True)
 
-        for var, options in iteritems(phase._timeseries['timeseries']['outputs']):
+        for var, options in phase._timeseries['timeseries']['outputs'].items():
             output_name = options['output_name']
 
             # Determine the path to the variable which we will be constraining

@@ -1,7 +1,5 @@
 """Define the CollocationComp class."""
 from __future__ import print_function, division, absolute_import
-from six import string_types, iteritems
-
 import numpy as np
 
 import openmdao.api as om
@@ -27,7 +25,7 @@ class CollocationComp(om.ExplicitComponent):
             desc='Dictionary of state names/options for the phase')
 
         self.options.declare(
-            'time_units', default=None, allow_none=True, types=string_types,
+            'time_units', default=None, allow_none=True, types=str,
             desc='Units of time')
 
     def setup(self):
@@ -46,7 +44,7 @@ class CollocationComp(om.ExplicitComponent):
                 'defect': 'defects:{0}'.format(state_name),
             }
 
-        for state_name, options in iteritems(state_options):
+        for state_name, options in state_options.items():
             shape = options['shape']
             units = options['units']
 
@@ -130,7 +128,7 @@ class CollocationComp(om.ExplicitComponent):
 
     def compute_partials(self, inputs, partials):
         dt_dstau = inputs['dt_dstau']
-        for state_name, options in iteritems(self.options['state_options']):
+        for state_name, options in self.options['state_options'].items():
             size = np.prod(options['shape'])
             var_names = self.var_names[state_name]
             f_approx = inputs[var_names['f_approx']]

@@ -6,8 +6,6 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 
-from six import iteritems
-
 from scipy.integrate import solve_ivp
 
 import openmdao.api as om
@@ -127,7 +125,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         # Setup the initial state vector for integration
         self.state_vec_size = 0
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in self.options['state_options'].items():
             self.state_vec_size += np.prod(options['shape'])
             self.add_input(name='initial_states:{0}'.format(name), val=np.ones((1,) + options['shape']),
                            units=options['units'], desc='initial values of state {0} '
@@ -141,7 +139,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         # Setup the control interpolants
         if self.options['control_options']:
-            for name, options in iteritems(self.options['control_options']):
+            for name, options in self.options['control_options'].items():
                 self.add_input(name='controls:{0}'.format(name),
                                val=np.ones(((ncdsps,) + options['shape'])),
                                units=options['units'],
@@ -151,7 +149,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
                 self.options['ode_integration_interface'].control_interpolants[name] = interp
 
         if self.options['polynomial_control_options']:
-            for name, options in iteritems(self.options['polynomial_control_options']):
+            for name, options in self.options['polynomial_control_options'].items():
                 poly_control_disc_ptau, _ = lgl(options['order'] + 1)
                 self.add_input(name='polynomial_controls:{0}'.format(name),
                                val=np.ones(((options['order'] + 1,) + options['shape'])),
@@ -163,13 +161,13 @@ class SegmentSimulationComp(om.ExplicitComponent):
                     interp
 
         if self.options['design_parameter_options']:
-            for name, options in iteritems(self.options['design_parameter_options']):
+            for name, options in self.options['design_parameter_options'].items():
                 self.add_input(name='design_parameters:{0}'.format(name), val=np.ones(options['shape']),
                                units=options['units'],
                                desc='values of design parameter {0}.'.format(name))
 
         if self.options['input_parameter_options']:
-            for name, options in iteritems(self.options['input_parameter_options']):
+            for name, options in self.options['input_parameter_options'].items():
                 self.add_input(name='input_parameters:{0}'.format(name), val=np.ones(options['shape']),
                                units=options['units'],
                                desc='values of input parameter {0}'.format(name))
@@ -186,7 +184,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
         # Create the vector of initial state values
         self.initial_state_vec[:] = 0.0
         pos = 0
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in self.options['state_options'].items():
             size = np.prod(options['shape'])
             self.initial_state_vec[pos:pos + size] = \
                 np.ravel(inputs['initial_states:{0}'.format(name)])
@@ -196,7 +194,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
         if self.options['control_options']:
             t0_seg = inputs['time'][0]
             tf_seg = inputs['time'][-1]
-            for name, options in iteritems(self.options['control_options']):
+            for name, options in self.options['control_options'].items():
                 ctrl_vals = inputs['controls:{0}'.format(name)]
                 self.options['ode_integration_interface'].control_interpolants[name].setup(x0=t0_seg,
                                                                                            xf=tf_seg,
@@ -206,7 +204,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
         if self.options['polynomial_control_options']:
             t0_phase = inputs['t_initial']
             tf_phase = inputs['t_initial'] + inputs['t_duration']
-            for name, options in iteritems(self.options['polynomial_control_options']):
+            for name, options in self.options['polynomial_control_options'].items():
                 ctrl_vals = inputs['polynomial_controls:{0}'.format(name)]
                 self.options['ode_integration_interface'].polynomial_control_interpolants[name].setup(x0=t0_phase,
                                                                                                       xf=tf_phase,
@@ -223,7 +221,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         # Set the values of the phase design parameters
         if self.options['design_parameter_options']:
-            for param_name, options in iteritems(self.options['design_parameter_options']):
+            for param_name, options in self.options['design_parameter_options'].items():
                 val = inputs['design_parameters:{0}'.format(param_name)]
                 iface_prob.set_val('design_parameters:{0}'.format(param_name),
                                    value=val,
@@ -231,7 +229,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         # Set the values of the phase input parameters
         if self.options['input_parameter_options']:
-            for param_name, options in iteritems(self.options['input_parameter_options']):
+            for param_name, options in self.options['input_parameter_options'].items():
                 iface_prob.set_val('input_parameters:{0}'.format(param_name),
                                    value=inputs['input_parameters:{0}'.format(param_name)],
                                    units=options['units'])
@@ -261,7 +259,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         # Extract the solution
         pos = 0
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in self.options['state_options'].items():
             size = np.prod(options['shape'])
             outputs['states:{0}'.format(name)] = sol.y[pos:pos+size, :].T
             pos += size
