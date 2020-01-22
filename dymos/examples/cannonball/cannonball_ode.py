@@ -1,5 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
 import openmdao.api as om
 from dymos.examples.min_time_climb.aero.dynamic_pressure_comp import DynamicPressureComp
 from dymos.examples.min_time_climb.aero.lift_drag_force_comp import LiftDragForceComp

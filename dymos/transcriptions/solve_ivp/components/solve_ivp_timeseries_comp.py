@@ -1,5 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
 from dymos.transcriptions.common.timeseries_output_comp import TimeseriesOutputCompBase
 
 

@@ -1,8 +1,6 @@
 """
 Simple dynamic model of a LI battery.
 """
-from __future__ import print_function, division, absolute_import
-
 import numpy as np
 from scipy.interpolate import Akima1DInterpolator
 

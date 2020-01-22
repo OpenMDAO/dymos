@@ -1,5 +1,3 @@
-from __future__ import division, print_function, absolute_import
-
 from collections.abc import Iterable, Sequence
 from ...transcriptions.grid_data import GridData
 from ...transcriptions.common import TimeComp

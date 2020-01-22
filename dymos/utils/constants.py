@@ -1,5 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
 """
 This module houses constants that are used throughout dymos
 

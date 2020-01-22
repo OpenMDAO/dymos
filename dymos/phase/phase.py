@@ -1,5 +1,3 @@
-from __future__ import division, print_function, absolute_import
-
 from collections.abc import Iterable, Sequence
 import inspect
 import warnings

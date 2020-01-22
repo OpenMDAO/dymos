@@ -2,8 +2,6 @@
 SimulationPhase is an instance that resembles a Phase in structure but is intended for
 use with scipy.solve_ivp to verify the accuracy of the implicit solutions of Dymos.
 """
-from __future__ import print_function, division, absolute_import
-
 import numpy as np
 
 from scipy.integrate import solve_ivp

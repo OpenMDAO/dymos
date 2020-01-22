@@ -1,5 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
 """RK Methods
 
 Contains data used by the Runge-Kutta methods in Dymos.

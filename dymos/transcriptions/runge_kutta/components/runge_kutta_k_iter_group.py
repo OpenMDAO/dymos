@@ -1,5 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
 import openmdao.api as om
 
 from ....utils.rk_methods import rk_methods

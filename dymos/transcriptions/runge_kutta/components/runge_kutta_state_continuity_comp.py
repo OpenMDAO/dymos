@@ -1,7 +1,5 @@
 """Define the BalanceComp class."""
 
-from __future__ import print_function, division, absolute_import
-
 import numpy as np
 
 from openmdao.core.implicitcomponent import ImplicitComponent
