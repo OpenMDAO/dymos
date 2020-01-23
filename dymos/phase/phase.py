@@ -751,6 +751,13 @@ class Phase(om.Group):
 
         if shape is not _unspecified:
             self.user_input_parameter_options[name]['shape'] = shape
+        elif val is not _unspecified:
+            if isinstance(val, float):
+                self.user_input_parameter_options[name]['shape'] = (1,)
+            else:
+                self.user_input_parameter_options[name]['shape'] = np.asarray(val).shape
+        else:
+            self.user_input_parameter_options[name]['shape'] = (1,)
 
         if dynamic is not _unspecified:
             self.user_input_parameter_options[name]['dynamic'] = dynamic

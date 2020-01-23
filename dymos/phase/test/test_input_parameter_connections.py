@@ -29,11 +29,6 @@ class MyComp(om.ExplicitComponent):
 
 
 class MyODE(om.Group):
-    ode_options = dm.ODEOptions()
-    ode_options.declare_time(units='s', targets=['comp.time'])
-    ode_options.declare_state(name='F', rate_source='comp.y')
-    ode_options.declare_parameter(name='alpha', shape=(n_traj, 2), targets='comp.alpha',
-                                  dynamic=False)
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -60,9 +55,12 @@ class TestStaticInputParameters(unittest.TestCase):
                                                 order=3,
                                                 compressed=True))
 
-        p.model.add_subsystem('phase0', phase)
+        phase.set_time_options(units='s', targets=['comp.time'])
+        phase.add_state(name='F', rate_source='comp.y')
+        phase.add_input_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
+                                  targets='comp.alpha', dynamic=False)
 
-        phase.add_input_parameter('alpha', val=np.ones((n_traj, 2)), units='m')
+        p.model.add_subsystem('phase0', phase)
 
         try:
             p.setup()
@@ -79,9 +77,12 @@ class TestStaticInputParameters(unittest.TestCase):
                                                        order=3,
                                                        compressed=True))
 
-        p.model.add_subsystem('phase0', phase)
+        phase.set_time_options(units='s', targets=['comp.time'])
+        phase.add_state(name='F', rate_source='comp.y')
+        phase.add_input_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
+                                  targets='comp.alpha', dynamic=False)
 
-        phase.add_input_parameter('alpha', val=np.ones((n_traj, 2)), units='m')
+        p.model.add_subsystem('phase0', phase)
 
         try:
             p.setup()

@@ -8,13 +8,6 @@ import openmdao.api as om
 import dymos as dm
 
 
-@dm.declare_time(units='s')
-@dm.declare_state('x', rate_source='xdot', units='m')
-@dm.declare_state('y', rate_source='ydot', units='m')
-@dm.declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
-@dm.declare_state('theta', targets=['theta'], rate_source='theta_dot', units='rad')
-@dm.declare_parameter('theta_dot', targets=[], units='rad/s')
-@dm.declare_parameter('g', units='m/s**2', targets=['g'])
 class BrachistochroneODE(om.ExplicitComponent):
 
     def initialize(self):
@@ -107,16 +100,16 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
 
-        phase.add_state('x', fix_initial=True, fix_final=True)
-        phase.add_state('y', fix_initial=True, fix_final=True)
-        phase.add_state('v', fix_initial=True)
-        phase.add_state('theta', targets='theta', fix_initial=False)
+        phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot', units='m')
+        phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot', units='m')
+        phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s', targets=['v'])
+        phase.add_state('theta', targets='theta', fix_initial=False, rate_source='theta_dot', units='rad')
 
         phase.add_control('theta_dot', units='deg/s', rate_continuity=True, lower=0, upper=60)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -182,16 +175,16 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
 
-        phase.add_state('x', fix_initial=True, fix_final=True)
-        phase.add_state('y', fix_initial=True, fix_final=True)
-        phase.add_state('v', fix_initial=True)
-        phase.add_state('theta', targets='theta', fix_initial=False)
+        phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot', units='m')
+        phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot', units='m')
+        phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s', targets=['v'])
+        phase.add_state('theta', targets='theta', fix_initial=False, rate_source='theta_dot', units='rad')
 
         phase.add_control('theta_dot', units='deg/s', rate_continuity=True, lower=0, upper=60)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)

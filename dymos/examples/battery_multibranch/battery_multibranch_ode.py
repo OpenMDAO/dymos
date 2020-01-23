@@ -4,10 +4,9 @@ in a simple electrical system.
 """
 import numpy as np
 import openmdao.api as om
-import dymos as dm
 
 from dymos.examples.battery_multibranch.batteries import Battery
-from dymos.examples.battery_multibranch.motors import Motors, MotorsStaticGearboxPower
+from dymos.examples.battery_multibranch.motors import Motors
 
 
 class BatteryODE(om.Group):

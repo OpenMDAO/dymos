@@ -197,16 +197,16 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
                 jacobian['theta', 'b_ctrl'] = 1.0 / denom
                 jacobian['theta', 'time_phase'] = a / denom
 
-        @dm.declare_time(units='s', targets=['guidance.time_phase'])
-        @dm.declare_state('x', rate_source='eom.xdot', units='m')
-        @dm.declare_state('y', rate_source='eom.ydot', units='m')
-        @dm.declare_state('vx', rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
-        @dm.declare_state('vy', rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
-        @dm.declare_state('m', rate_source='eom.mdot', targets=['eom.m'], units='kg')
-        @dm.declare_parameter('thrust', targets=['eom.thrust'], units='N')
-        @dm.declare_parameter('a_ctrl', targets=['guidance.a_ctrl'], units='1/s')
-        @dm.declare_parameter('b_ctrl', targets=['guidance.b_ctrl'], units=None)
-        @dm.declare_parameter('Isp', targets=['eom.Isp'], units='s')
+        # @dm.declare_time(units='s', targets=['guidance.time_phase'])
+        # @dm.declare_state('x', rate_source='eom.xdot', units='m')
+        # @dm.declare_state('y', rate_source='eom.ydot', units='m')
+        # @dm.declare_state('vx', rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
+        # @dm.declare_state('vy', rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
+        # @dm.declare_state('m', rate_source='eom.mdot', targets=['eom.m'], units='kg')
+        # @dm.declare_parameter('thrust', targets=['eom.thrust'], units='N')
+        # @dm.declare_parameter('a_ctrl', targets=['guidance.a_ctrl'], units='1/s')
+        # @dm.declare_parameter('b_ctrl', targets=['guidance.b_ctrl'], units=None)
+        # @dm.declare_parameter('Isp', targets=['eom.Isp'], units='s')
         class LaunchVehicleLinearTangentODE(om.Group):
             """
             The LaunchVehicleLinearTangentODE for this case consists of a guidance component and
@@ -239,22 +239,23 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
 
         traj.add_phase('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 1000))
+        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 1000),
+                               units='s', targets=['guidance.time_phase'])
 
-        phase.add_state('x', fix_initial=True, lower=0)
-        phase.add_state('y', fix_initial=True, lower=0)
-        phase.add_state('vx', fix_initial=True, lower=0)
-        phase.add_state('vy', fix_initial=True)
-        phase.add_state('m', fix_initial=True)
+        phase.add_state('x', fix_initial=True, lower=0, rate_source='eom.xdot', units='m')
+        phase.add_state('y', fix_initial=True, lower=0, rate_source='eom.ydot', units='m')
+        phase.add_state('vx', fix_initial=True, lower=0, rate_source='eom.vxdot', targets=['eom.vx'], units='m/s')
+        phase.add_state('vy', fix_initial=True, rate_source='eom.vydot', targets=['eom.vy'], units='m/s')
+        phase.add_state('m', fix_initial=True, rate_source='eom.mdot', targets=['eom.m'], units='kg')
 
         phase.add_boundary_constraint('y', loc='final', equals=1.85E5, linear=True)
         phase.add_boundary_constraint('vx', loc='final', equals=1627.0)
         phase.add_boundary_constraint('vy', loc='final', equals=0)
 
-        phase.add_design_parameter('a_ctrl', units='1/s', opt=True)
-        phase.add_design_parameter('b_ctrl', units=None, opt=True)
-        phase.add_design_parameter('thrust', units='N', opt=False, val=3.0 * 50000.0 * 1.61544)
-        phase.add_design_parameter('Isp', units='s', opt=False, val=1.0E6)
+        phase.add_design_parameter('a_ctrl', units='1/s', opt=True, targets=['guidance.a_ctrl'])
+        phase.add_design_parameter('b_ctrl', units=None, opt=True, targets=['guidance.b_ctrl'])
+        phase.add_design_parameter('thrust', units='N', opt=False, val=3.0 * 50000.0 * 1.61544, targets=['eom.thrust'])
+        phase.add_design_parameter('Isp', units='s', opt=False, val=1.0E6, targets=['eom.Isp'])
 
         phase.add_objective('time', index=-1, scaler=0.01)
 
