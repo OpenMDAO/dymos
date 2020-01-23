@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-
-import numpy as np
-
 import openmdao.api as om
 from .dynamic_pressure_comp import DynamicPressureComp
 from .lift_drag_force_comp import LiftDragForceComp

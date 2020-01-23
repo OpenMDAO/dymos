@@ -1,6 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
-from six import string_types
 import numpy as np
 import openmdao.api as om
 
@@ -96,12 +93,12 @@ class PhaseLinkageComp(om.ExplicitComponent):
         if equals is None and lower is None and upper is None:
             equals = 0.0
 
-        if isinstance(vars, string_types):
+        if isinstance(vars, str):
             _vars = (vars,)
         else:
             _vars = vars
 
-        if isinstance(units, string_types) or units is None:
+        if isinstance(units, str) or units is None:
             _units = {}
             for var in _vars:
                 _units[var] = units
@@ -119,19 +116,19 @@ class PhaseLinkageComp(om.ExplicitComponent):
 
             lnk = om.OptionsDictionary()
 
-            lnk.declare('name', types=(string_types,))
+            lnk.declare('name', types=(str,))
             lnk.declare('equals', types=(float, np.ndarray), allow_none=True)
             lnk.declare('lower', types=(float, np.ndarray), allow_none=True)
             lnk.declare('upper', types=(float, np.ndarray), allow_none=True)
-            lnk.declare('units', types=string_types, allow_none=True)
+            lnk.declare('units', types=str, allow_none=True)
             lnk.declare('scaler', types=(float, np.ndarray), allow_none=True)
             lnk.declare('adder', types=(float, np.ndarray), allow_none=True)
             lnk.declare('ref0', types=(float, np.ndarray), allow_none=True)
             lnk.declare('ref', types=(float, np.ndarray), allow_none=True)
             lnk.declare('linear', types=bool)
             lnk.declare('shape', types=tuple)
-            lnk.declare('cond0_name', types=string_types)
-            lnk.declare('cond1_name', types=string_types)
+            lnk.declare('cond0_name', types=str)
+            lnk.declare('cond1_name', types=str)
 
             lnk['name'] = '{0}_{1}'.format(name, var)
             lnk['equals'] = equals

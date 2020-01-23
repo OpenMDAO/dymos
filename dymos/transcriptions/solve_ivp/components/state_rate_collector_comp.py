@@ -1,7 +1,6 @@
 import numpy as np
 from dymos.utils.misc import get_rate_units
 import openmdao.api as om
-from six import string_types, iteritems
 
 
 class StateRateCollectorComp(om.ExplicitComponent):
@@ -15,7 +14,7 @@ class StateRateCollectorComp(om.ExplicitComponent):
             'state_options', types=dict,
             desc='Dictionary of options for the ODE state variables.')
         self.options.declare(
-            'time_units', default=None, allow_none=True, types=string_types,
+            'time_units', default=None, allow_none=True, types=str,
             desc='Units of time')
 
         # Save the names of the dynamic controls/parameters
@@ -26,7 +25,7 @@ class StateRateCollectorComp(om.ExplicitComponent):
         state_options = self.options['state_options']
         time_units = self.options['time_units']
 
-        for name, options in iteritems(state_options):
+        for name, options in state_options.items():
             self._input_names[name] = 'state_rates_in:{0}_rate'.format(name)
             self._output_names[name] = 'state_rates:{0}_rate'.format(name)
             shape = options['shape']
@@ -40,5 +39,5 @@ class StateRateCollectorComp(om.ExplicitComponent):
     def compute(self, inputs, outputs):
         state_options = self.options['state_options']
 
-        for name, options in iteritems(state_options):
+        for name, options in state_options.items():
             outputs[self._output_names[name]] = inputs[self._input_names[name]]

@@ -1,9 +1,5 @@
-from __future__ import division, print_function, absolute_import
-
 import numpy as np
 import openmdao.api as om
-from six import iteritems
-
 from ...grid_data import GridData
 
 
@@ -43,7 +39,7 @@ class ControlEndpointDefectComp(om.ExplicitComponent):
         self._input_str = {}
         self._output_str = {}
 
-        for control_name, options in iteritems(control_options):
+        for control_name, options in control_options.items():
             if not (options['dynamic'] and options['opt']):
                 continue
 

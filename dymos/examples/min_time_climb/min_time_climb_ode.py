@@ -1,5 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
 import openmdao.api as om
 from ...models.atmosphere import USatm1976Comp
 from .aero import AeroGroup

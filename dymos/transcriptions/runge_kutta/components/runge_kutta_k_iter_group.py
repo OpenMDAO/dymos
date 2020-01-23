@@ -1,7 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
-from six import string_types, iteritems
-
 import openmdao.api as om
 
 from ....utils.rk_methods import rk_methods
@@ -27,7 +23,7 @@ class RungeKuttaKIterGroup(om.Group):
         self.options.declare('state_options', types=dict,
                              desc='Dictionary of state names/options for the phase')
 
-        self.options.declare('time_units', default=None, allow_none=True, types=string_types,
+        self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of the integration variable')
 
         self.options.declare('ode_class',
@@ -68,7 +64,7 @@ class RungeKuttaKIterGroup(om.Group):
                                                   time_units=self.options['time_units']),
                            promotes_inputs=['h'])
 
-        for state_name, options in iteritems(self.options['state_options']):
+        for state_name, options in self.options['state_options'].items():
             # Connect the state predicted (assumed) value to its targets in the ode
             if options['targets']:
                 self.connect('state_predict_comp.predicted_states:{0}'.format(state_name),

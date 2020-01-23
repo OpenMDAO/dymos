@@ -1,5 +1,3 @@
-from __future__ import division, print_function
-
 import numpy as np
 
 
@@ -10,7 +8,7 @@ def lg(n, tol=1.0E-15):
 
     The nodes are on the range (-1, 1).
 
-    Based on the routine written by Greg von Winckel (BSD License follows)
+    Based on the routine written by Greg von Winckel (License follows)
 
     Copyright (c) 2004, Greg von Winckel
     All rights reserved.
@@ -39,8 +37,10 @@ def lg(n, tol=1.0E-15):
 
     Parameters
     ----------
-    order : int
-        Order of the polynomial whose cardinal nodes are to be returned
+    n : int
+        The number of Legendre-Gauss nodes to be returned
+    tol : float
+        The tolerance to which the location of the nodes should be converged.
 
     Returns
     -------
@@ -66,7 +66,10 @@ def lg(n, tol=1.0E-15):
 
     L[:, 0] = 1.0
 
-    while np.max(np.abs(x - x0)) > tol:
+    for i in range(100):
+        if np.all(np.abs(x - x0)) <= tol:
+            break
+
         L[:, 1] = x
 
         for k in range(2, n2):
@@ -76,6 +79,8 @@ def lg(n, tol=1.0E-15):
 
         x0 = x
         x = x0 - L[:, n1] / Lp
+    else:
+        raise RuntimeError('Failed to converge LG nodes for order {0}'.format(n))
 
     # Put the nodes in ascending order
     x = -x

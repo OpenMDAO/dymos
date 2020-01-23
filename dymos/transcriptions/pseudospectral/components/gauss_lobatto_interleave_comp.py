@@ -1,8 +1,5 @@
-from __future__ import division, print_function, absolute_import
-
 import numpy as np
 import openmdao.api as om
-from six import iteritems
 
 from ...grid_data import GridData
 
@@ -43,7 +40,7 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
 
         self._varnames = {}
 
-        for name, options in iteritems(self.vars):
+        for name, options in self.vars.items():
             shape = options['shape']
             units = options['units']
             size = np.prod(shape)

@@ -2,8 +2,6 @@
 Example that shows how to use multiple phases in Dymos to model failure of a battery cell
 in a simple electrical system.
 """
-from __future__ import division, print_function, absolute_import
-
 import unittest
 
 import openmdao.api as om

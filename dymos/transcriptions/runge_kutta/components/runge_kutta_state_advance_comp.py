@@ -1,7 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
-from six import iteritems
-
 import numpy as np
 from scipy.linalg import block_diag
 
@@ -35,7 +31,7 @@ class RungeKuttaStateAdvanceComp(om.ExplicitComponent):
         rk_data = rk_methods[self.options['method']]
         num_stages = rk_data['num_stages']
 
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in self.options['state_options'].items():
             shape = options['shape']
             size = np.prod(shape)
             units = options['units']
@@ -81,7 +77,7 @@ class RungeKuttaStateAdvanceComp(om.ExplicitComponent):
                                   val=np.tile(rk_data['b'], size*num_segs))
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in self.options['state_options'].items():
             x0 = inputs[self._var_names[name]['initial']]
             k = inputs[self._var_names[name]['k']]
             b = rk_methods[self.options['method']]['b']

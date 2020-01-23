@@ -1,8 +1,5 @@
-from __future__ import print_function, division, absolute_import
-
 from collections.abc import Iterable
 import warnings
-from six import string_types
 import numpy as np
 
 from openmdao.utils.options_dictionary import OptionsDictionary
@@ -29,7 +26,7 @@ class _ODETimeOptionsDictionary(OptionsDictionary):
         self.declare('t_duration_targets', default=[], types=Iterable, allow_none=True,
                      desc='Target path(s) for the t_duration variable relative to the top-level '
                           'system.')
-        self.declare('units', default=None, types=string_types, allow_none=True,
+        self.declare('units', default=None, types=str, allow_none=True,
                      desc='Units for time.')
 
 
@@ -40,8 +37,8 @@ class _ODEStateOptionsDictionary(OptionsDictionary):
     """
     def __init__(self, read_only=False):
         super(_ODEStateOptionsDictionary, self).__init__(read_only)
-        self.declare('name', types=string_types, desc='The name of the state variable.')
-        self.declare('rate_source', types=string_types,
+        self.declare('name', types=str, desc='The name of the state variable.')
+        self.declare('rate_source', types=str,
                      desc='The path to the output in the system which is the time-derivative '
                           'of the state.')
         self.declare('targets', default=[], types=Iterable,
@@ -49,7 +46,7 @@ class _ODEStateOptionsDictionary(OptionsDictionary):
         self.declare('shape', default=(1,), types=tuple,
                      desc='The shape of the variable (ignoring the time-dimension along '
                           'the first axis).')
-        self.declare('units', default=None, types=string_types, allow_none=True,
+        self.declare('units', default=None, types=str, allow_none=True,
                      desc='The units of the parameter.')
 
 
@@ -60,7 +57,7 @@ class _ODEParameterOptionsDictionary(OptionsDictionary):
     """
     def __init__(self, read_only=False):
         super(_ODEParameterOptionsDictionary, self).__init__(read_only)
-        self.declare('name', types=string_types, desc='The name of the parameter.')
+        self.declare('name', types=str, desc='The name of the parameter.')
         self.declare('targets', default=[], types=Iterable,
                      desc='Target paths for the parameter, relative to the top-level system.')
         self.declare('shape', default=(1,), types=tuple,
@@ -73,7 +70,7 @@ class _ODEParameterOptionsDictionary(OptionsDictionary):
                           'derivatives matrix.  Unless a parameter is large and broadcasting a '
                           'value to each individual node would be inefficient, users should stick '
                           'to the default value of True.')
-        self.declare('units', default=None, types=string_types, allow_none=True,
+        self.declare('units', default=None, types=str, allow_none=True,
                      desc='The units of the parameter.')
 
 
@@ -242,39 +239,39 @@ class ODEOptions(object):
 
         Parameters
         ----------
-        targets : string_types or Iterable or None
+        targets : str or Iterable or None
             Targets for the time or time-like variable within the ODE, or None if no models
             are explicitly time-dependent. Default is None.
         units : str or None
             Units for the integration variable within the ODE. Default is None.
         """
-        if isinstance(targets, string_types):
+        if isinstance(targets, str):
             self._time_options['targets'] = [targets]
         elif isinstance(targets, Iterable):
             self._time_options['targets'] = targets
         elif targets is not None:
-            raise ValueError('targets must be of type string_types or Iterable or None')
+            raise ValueError('targets must be of type str or Iterable or None')
 
-        if isinstance(time_phase_targets, string_types):
+        if isinstance(time_phase_targets, str):
             self._time_options['time_phase_targets'] = [time_phase_targets]
         elif isinstance(time_phase_targets, Iterable):
             self._time_options['time_phase_targets'] = time_phase_targets
         elif time_phase_targets is not None:
-            raise ValueError('time_phase_targets must be of type string_types or Iterable or None')
+            raise ValueError('time_phase_targets must be of type str or Iterable or None')
 
-        if isinstance(t_initial_targets, string_types):
+        if isinstance(t_initial_targets, str):
             self._time_options['t_initial_targets'] = [t_initial_targets]
         elif isinstance(t_initial_targets, Iterable):
             self._time_options['t_initial_targets'] = t_initial_targets
         elif t_initial_targets is not None:
-            raise ValueError('t_initial_targets must be of type string_types or Iterable or None')
+            raise ValueError('t_initial_targets must be of type str or Iterable or None')
 
-        if isinstance(t_duration_targets, string_types):
+        if isinstance(t_duration_targets, str):
             self._time_options['t_duration_targets'] = [t_duration_targets]
         elif isinstance(t_duration_targets, Iterable):
             self._time_options['t_duration_targets'] = t_duration_targets
         elif t_duration_targets is not None:
-            raise ValueError('t_duration_targets must be of type string_types or Iterable or None')
+            raise ValueError('t_duration_targets must be of type str or Iterable or None')
 
         if units is not None:
             self._time_options['units'] = units
@@ -294,7 +291,7 @@ class ODEOptions(object):
         rate_source : str
             The path to the variable within the ODE which represents the derivative of
             the state variable w.r.t. the variable of integration.
-        targets : string_types or Iterable or None
+        targets : str or Iterable or None
             Paths to inputs in the ODE to which the incoming value of the state variable
             needs to be connected.
         shape : int or tuple or None
@@ -312,12 +309,12 @@ class ODEOptions(object):
         options['name'] = name
         options['rate_source'] = rate_source
 
-        if isinstance(targets, string_types):
+        if isinstance(targets, str):
             options['targets'] = [targets]
         elif isinstance(targets, Iterable):
             options['targets'] = targets
         elif targets is not None:
-            raise ValueError('targets must be of type string_types or Iterable or None')
+            raise ValueError('targets must be of type str or Iterable or None')
         if np.isscalar(shape):
             options['shape'] = (shape,)
         elif isinstance(shape, Iterable):
@@ -338,7 +335,7 @@ class ODEOptions(object):
         ----------
         name : str
             The name of the parameter.
-        targets : string_types or Iterable or None
+        targets : str or Iterable or None
             Paths to inputs in the ODE to which the incoming value of the parameter
             needs to be connected.
         shape : int or tuple or None
@@ -361,12 +358,12 @@ class ODEOptions(object):
         options = _ODEParameterOptionsDictionary()
 
         options['name'] = name
-        if isinstance(targets, string_types):
+        if isinstance(targets, str):
             options['targets'] = [targets]
         elif isinstance(targets, Iterable):
             options['targets'] = targets
         elif targets is not None:
-            raise ValueError('targets must be of type string_types or Iterable or None')
+            raise ValueError('targets must be of type str or Iterable or None')
         if np.isscalar(shape):
             options['shape'] = (shape,)
         elif isinstance(shape, Iterable):

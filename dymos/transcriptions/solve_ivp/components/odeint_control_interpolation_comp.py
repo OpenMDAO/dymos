@@ -1,6 +1,5 @@
 from dymos.utils.misc import get_rate_units
 import openmdao.api as om
-from six import string_types, iteritems
 
 
 class ODEIntControlInterpolationComp(om.ExplicitComponent):
@@ -12,7 +11,7 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
     derivative of the control at time `t`, respectively.
     """
     def initialize(self):
-        self.options.declare('time_units', default='s', allow_none=True, types=string_types,
+        self.options.declare('time_units', default='s', allow_none=True, types=str,
                              desc='Units of time')
         self.options.declare('control_options', types=dict, allow_none=True, default=None,
                              desc='Dictionary of options for the dynamic controls')
@@ -26,7 +25,7 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
 
         self.add_input('time', val=1.0, units=time_units)
 
-        for control_name, options in iteritems(self.options['control_options']):
+        for control_name, options in self.options['control_options'].items():
             shape = options['shape']
             units = options['units']
             rate_units = get_rate_units(units, time_units, deriv=1)
@@ -40,7 +39,7 @@ class ODEIntControlInterpolationComp(om.ExplicitComponent):
             self.add_output('control_rates:{0}_rate2'.format(control_name), shape=shape,
                             units=rate2_units)
 
-        for control_name, options in iteritems(self.options['polynomial_control_options']):
+        for control_name, options in self.options['polynomial_control_options'].items():
             shape = options['shape']
             units = options['units']
             rate_units = get_rate_units(units, time_units, deriv=1)

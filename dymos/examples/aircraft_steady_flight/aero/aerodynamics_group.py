@@ -1,5 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
 import openmdao.api as om
 from .aero_coef_comp import AeroCoefComp
 from .aero_forces_comp import AeroForcesComp

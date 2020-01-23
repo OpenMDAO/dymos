@@ -1,5 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
 import unittest
 
 import numpy as np
@@ -19,8 +17,8 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         phase = dm.Phase(ode_class=TestODE, transcription=dm.RungeKutta(num_segments=200, method='RK4'))
         p.model.add_subsystem('phase0', subsys=phase)
 
-        phase.set_time_options(fix_initial=True, fix_duration=True)
-        phase.add_state('y', fix_initial=True)
+        phase.set_time_options(fix_initial=True, fix_duration=True, targets=['t'])
+        phase.add_state('y', fix_initial=True, targets=['y'], rate_source='ydot', units='m')
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
@@ -44,8 +42,8 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         phase = dm.Phase(ode_class=TestODE, transcription=dm.RungeKutta(num_segments=200, method='RK4'))
         traj.add_phase('phase0', phase)
 
-        phase.set_time_options(fix_initial=True, fix_duration=True)
-        phase.add_state('y', fix_initial=False, connected_initial=True)
+        phase.set_time_options(fix_initial=True, fix_duration=True, targets=['t'])
+        phase.add_state('y', fix_initial=False, connected_initial=True, targets=['y'], rate_source='ydot', units='m')
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
@@ -72,8 +70,8 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         phase = dm.Phase(ode_class=TestODE, transcription=dm.RungeKutta(num_segments=200, method='RK4'))
         p.model.add_subsystem('phase0', subsys=phase)
 
-        phase.set_time_options(fix_initial=True, fix_duration=True)
-        phase.add_state('y', fix_initial=True, connected_initial=True)
+        phase.set_time_options(fix_initial=True, fix_duration=True, targets=['t'])
+        phase.add_state('y', fix_initial=True, connected_initial=True, targets=['y'], rate_source='ydot', units='m')
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
@@ -90,8 +88,8 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         phase = dm.Phase(ode_class=TestODE, transcription=dm.RungeKutta(num_segments=200, method='RK4'))
         p.model.add_subsystem('phase0', subsys=phase)
 
-        phase.set_time_options(fix_initial=True, fix_duration=True)
-        phase.add_state('y', fix_initial=True)
+        phase.set_time_options(fix_initial=True, fix_duration=True, targets=['t'])
+        phase.add_state('y', fix_initial=True, targets=['y'], rate_source='ydot', units='m')
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 
@@ -105,8 +103,6 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         p.run_model()
 
         expected = np.atleast_2d(_test_ode_solution(p['phase0.ode.y'], p['phase0.timeseries.time']))
-        print(expected)
-        print(p['phase0.timeseries.states:y'])
         assert_rel_error(self, p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
 
     def test_simple_integration_backward_connected_initial(self):
@@ -116,8 +112,8 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         phase = dm.Phase(ode_class=TestODE, transcription=dm.RungeKutta(num_segments=200, method='RK4'))
         p.model.add_subsystem('phase0', subsys=phase)
 
-        phase.set_time_options(fix_initial=True, fix_duration=True)
-        phase.add_state('y', connected_initial=True)
+        phase.set_time_options(fix_initial=True, fix_duration=True, targets=['t'])
+        phase.add_state('y', connected_initial=True, targets=['y'], rate_source='ydot', units='m')
 
         phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
 

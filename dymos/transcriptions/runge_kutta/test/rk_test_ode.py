@@ -1,12 +1,10 @@
-from __future__ import print_function, division, absolute_import
-
 import numpy as np
 import openmdao.api as om
 import dymos as dm
 
 
-@dm.declare_time(targets=['t'], units='s')
-@dm.declare_state('y', targets=['y'], rate_source='ydot', units='m')
+# @dm.declare_time(targets=['t'], units='s')
+# @dm.declare_state('y', targets=['y'], rate_source='ydot', units='m')
 class TestODE(om.ExplicitComponent):
 
     def initialize(self):

@@ -1,13 +1,9 @@
-from __future__ import division, print_function, absolute_import
-
 from collections.abc import Iterable
 
 import numpy as np
 from dymos.transcriptions.common import EndpointConditionsComp
 
 import openmdao.api as om
-from six import iteritems
-
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
@@ -44,7 +40,7 @@ class PseudospectralBase(TranscriptionBase):
 
         self.any_solved_segs = False
         self.any_connected_opt_segs = False
-        for name, options in iteritems(phase.state_options):
+        for name, options in phase.state_options.items():
             if options['solve_segments'] is None:
                 options['solve_segments'] = self.options['solve_segments']
 
@@ -57,7 +53,7 @@ class PseudospectralBase(TranscriptionBase):
             indep = StateIndependentsComp(grid_data=grid_data,
                                           state_options=phase.state_options)
 
-            for name, options in iteritems(phase.state_options):
+            for name, options in phase.state_options.items():
                 if options['solve_segments']:
                     phase.connect('collocation_constraint.defects:{0}'.format(name),
                                   'indep_states.defects:{0}'.format(name))
@@ -65,20 +61,20 @@ class PseudospectralBase(TranscriptionBase):
         else:
             indep = om.IndepVarComp()
 
-            for name, options in iteritems(phase.state_options):
+            for name, options in phase.state_options.items():
                 if not options['solve_segments'] and not options['connected_initial']:
                     indep.add_output(name='states:{0}'.format(name),
                                      shape=(num_state_input_nodes, np.prod(options['shape'])),
                                      units=options['units'])
 
-        num_connected = len([s for (s, opts) in iteritems(phase.state_options) if opts['connected_initial']])
+        num_connected = len([s for (s, opts) in phase.state_options.items() if opts['connected_initial']])
         prom_inputs = ['initial_states:*'] if num_connected > 0 else None
         phase.add_subsystem('indep_states', indep, promotes_inputs=prom_inputs,
                             promotes_outputs=['*'])
 
         # add all the des-vars (either from the IndepVarComp or from the indep-var-like
         # outputs of the collocation comp)
-        for name, options in iteritems(phase.state_options):
+        for name, options in phase.state_options.items():
             size = np.prod(options['shape'])
             if options['opt']:
                 if options['solve_segments']:
@@ -156,7 +152,7 @@ class PseudospectralBase(TranscriptionBase):
         phase.connect('dt_dstau', 'state_interp.dt_dstau',
                       src_indices=grid_data.subset_node_indices['col'])
 
-        for name, options in iteritems(phase.state_options):
+        for name, options in phase.state_options.items():
             size = np.prod(options['shape'])
 
             src_idxs_mat = np.reshape(np.arange(size * num_input_nodes, dtype=int),
@@ -193,7 +189,7 @@ class PseudospectralBase(TranscriptionBase):
             if not self.options['compressed']:
                 state_input_subidxs = np.where(np.in1d(state_disc_idxs, segment_end_idxs))[0]
 
-                for name, options in iteritems(phase.state_options):
+                for name, options in phase.state_options.items():
                     shape = options['shape']
                     flattened_src_idxs = get_src_indices_by_row(state_input_subidxs, shape=shape,
                                                                 flat=True)
@@ -201,7 +197,7 @@ class PseudospectralBase(TranscriptionBase):
                                   'continuity_comp.states:{}'.format(name),
                                   src_indices=flattened_src_idxs, flat_src_indices=True)
 
-            for name, options in iteritems(phase.control_options):
+            for name, options in phase.control_options.items():
                 control_src_name = 'control_values:{0}'.format(name)
 
                 # The sub-indices of control_disc indices that are segment ends
@@ -253,7 +249,7 @@ class PseudospectralBase(TranscriptionBase):
         phase.connect('final_jump:time',
                       'final_conditions.final_jump:time')
 
-        for state_name, options in iteritems(phase.state_options):
+        for state_name, options in phase.state_options.items():
             size = np.prod(options['shape'])
             ar = np.arange(size)
 
@@ -282,7 +278,7 @@ class PseudospectralBase(TranscriptionBase):
                           'final_conditions.final_jump:{0}'.format(state_name),
                           src_indices=ar, flat_src_indices=True)
 
-        for control_name, options in iteritems(phase.control_options):
+        for control_name, options in phase.control_options.items():
             size = np.prod(options['shape'])
             ar = np.arange(size)
 

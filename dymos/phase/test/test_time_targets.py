@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import unittest
 
 import matplotlib
@@ -12,13 +10,6 @@ import numpy as np
 import dymos as dm
 
 
-@dm.declare_time(units='s', time_phase_targets=['time_phase'], t_duration_targets=['t_duration'],
-                 t_initial_targets=['t_initial'], targets=['time'])
-@dm.declare_state('x', rate_source='xdot', units='m')
-@dm.declare_state('y', rate_source='ydot', units='m')
-@dm.declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
-@dm.declare_parameter('theta', targets=['theta'], units='rad')
-@dm.declare_parameter('g', units='m/s**2', targets=['g'])
 class _BrachistochroneTestODE(om.ExplicitComponent):
 
     def initialize(self):
@@ -116,15 +107,17 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(1, 1), duration_bounds=(.5, 10))
+        phase.set_time_options(initial_bounds=(1, 1), duration_bounds=(.5, 10), units='s',
+                               time_phase_targets=['time_phase'], t_duration_targets=['t_duration'],
+                               t_initial_targets=['t_initial'], targets=['time'])
 
-        phase.add_state('x', fix_initial=True)
-        phase.add_state('y', fix_initial=True)
-        phase.add_state('v', fix_initial=True)
+        phase.add_state('x', fix_initial=True, rate_source='xdot', units='m')
+        phase.add_state('y', fix_initial=True, rate_source='ydot', units='m')
+        phase.add_state('v', fix_initial=True, rate_source='vdot', targets=['v'], units='m/s')
 
-        phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9, targets=['theta'])
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)

@@ -1,5 +1,3 @@
-from __future__ import division, print_function
-
 import numpy as np
 
 
@@ -15,7 +13,7 @@ def lgr(n, include_endpoint=False, tol=1.0E-15):
         If True return the non-free abscissa at the right endpoint of the interval [-1, 1].
         The weight associated with this endpoint is 0.
     tol : float
-        The convergence tolerance for the finding the abscissae.
+        The tolerance to which the location of the nodes should be converged.
 
     Returns
     -------
@@ -43,7 +41,7 @@ def lgr(n, include_endpoint=False, tol=1.0E-15):
 
     The nodes are on the range [-1, 1).
 
-    Based on the routine written by Greg von Winckel (BSD License follows)
+    Based on the routine written by Greg von Winckel (License follows)
 
     Copyright (c) 2004, Greg von Winckel
     All rights reserved.

@@ -1,5 +1,3 @@
-from __future__ import division, print_function
-
 import numpy as np
 
 _lgl_cache = {}
@@ -13,7 +11,7 @@ def _lgl(n, tol=np.finfo(float).eps):
 
     The nodes are on the range [-1, 1].
 
-    Based on the routine written by Greg von Winckel (BSD License follows)
+    Based on the routine written by Greg von Winckel (License follows)
 
     Copyright (c) 2009, Greg von Winckel
     All rights reserved.
@@ -44,6 +42,8 @@ def _lgl(n, tol=np.finfo(float).eps):
     ----------
     n : int
         The number of LGL nodes requested.  The order of the polynomial is n-1.
+    tol : float
+        The tolerance to which the location of the nodes should be converged.
 
     Returns
     -------

@@ -1,5 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
 import unittest
 
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -10,13 +8,9 @@ import numpy as np
 import openmdao.api as om
 import dymos as dm
 
-from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+from openmdao.utils.assert_utils import assert_rel_error
 
 
-@dm.declare_time(units='s')
-@dm.declare_state('S', rate_source='Sdot', units='m')
-@dm.declare_parameter('v', targets='v', units='m/s')
-@dm.declare_parameter('theta', targets='theta', units='rad')
 class BrachistochroneArclengthODE(om.ExplicitComponent):
 
     def initialize(self):
@@ -155,10 +149,10 @@ class TestTandemPhases(unittest.TestCase):
 
         phase1.set_time_options(fix_initial=True, input_duration=True)
 
-        phase1.add_state('S', fix_initial=True, fix_final=False)
+        phase1.add_state('S', fix_initial=True, fix_final=False, rate_source='Sdot', units='m')
 
-        phase1.add_control('theta', opt=False, units='deg')
-        phase1.add_control('v', opt=False, units='m/s')
+        phase1.add_control('theta', opt=False, units='deg', targets=['theta'])
+        phase1.add_control('v', opt=False, units='m/s', targets=['v'])
 
         #
         # Connect the two phases

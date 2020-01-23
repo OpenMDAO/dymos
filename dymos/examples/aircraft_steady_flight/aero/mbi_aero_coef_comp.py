@@ -1,5 +1,3 @@
-from __future__ import print_function, division
-
 __author__ = 'rfalck'
 
 import os.path

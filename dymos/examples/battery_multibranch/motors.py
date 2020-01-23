@@ -1,8 +1,6 @@
 """
 Simple model for a set of motors in parallel where efficiency is a function of current.
 """
-from __future__ import print_function, division, absolute_import
-
 import numpy as np
 
 import openmdao.api as om

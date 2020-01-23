@@ -1,9 +1,5 @@
-from __future__ import division, print_function, absolute_import
-
 import numpy as np
 import openmdao.api as om
-from six import string_types, iteritems
-
 from ...grid_data import GridData
 from ....utils.misc import get_rate_units
 
@@ -41,7 +37,7 @@ class StateInterpComp(om.ExplicitComponent):
             desc='Dictionary of state names/options for the phase')
 
         self.options.declare(
-            'time_units', default=None, allow_none=True, types=string_types,
+            'time_units', default=None, allow_none=True, types=str,
             desc='Units of the integration variable')
 
     def setup(self):
@@ -120,7 +116,7 @@ class StateInterpComp(om.ExplicitComponent):
         self.sizes = {}
         self.num_col_nodes = num_col_nodes
         self.num_disc_nodes = num_disc_nodes
-        for name, options in iteritems(state_options):
+        for name, options in state_options.items():
             shape = options['shape']
 
             size = np.prod(shape)
@@ -253,7 +249,7 @@ class StateInterpComp(om.ExplicitComponent):
 
         dt_dstau = inputs['dt_dstau']
 
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in self.options['state_options'].items():
             size = self.sizes[name]
 
             xdotc_name = self.xdotc_str[name]

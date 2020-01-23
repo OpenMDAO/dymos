@@ -1,10 +1,8 @@
-from __future__ import print_function, division, absolute_import
-
 import os
 import sys
 import pep8
 import unittest
-from six import StringIO
+from io import StringIO
 
 import dymos
 

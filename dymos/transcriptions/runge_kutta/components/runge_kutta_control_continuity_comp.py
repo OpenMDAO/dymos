@@ -1,7 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
-from six import iteritems
-
 from ...common.continuity_comp import ContinuityCompBase
 
 
@@ -26,7 +22,7 @@ class RungeKuttaControlContinuityComp(ContinuityCompBase):
 
         super(RungeKuttaControlContinuityComp, self)._setup_control_continuity()
 
-        for control_name, options in iteritems(control_options):
+        for control_name, options in control_options.items():
             if not compressed and options['continuity']:
                 self.add_constraint(name='defect_controls:{0}'.format(control_name),
                                     equals=0.0, scaler=1.0, linear=False)

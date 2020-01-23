@@ -1,9 +1,6 @@
-from __future__ import division, print_function, absolute_import
-
 import numpy as np
 
 import openmdao.api as om
-from six import iteritems
 
 from ..transcription_base import TranscriptionBase
 from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
@@ -228,7 +225,7 @@ class RungeKutta(TranscriptionBase):
         num_seg = self.options['num_segments']
         num_state_input_nodes = num_seg + 1
 
-        for state_name, options in iteritems(phase.state_options):
+        for state_name, options in phase.state_options.items():
             shape = options['shape']
             size = np.prod(shape)
 
@@ -304,7 +301,7 @@ class RungeKutta(TranscriptionBase):
         super(RungeKutta, self).setup_controls(phase)
         grid_data = self.grid_data
 
-        for name, options in iteritems(phase.control_options):
+        for name, options in phase.control_options.items():
             shape = options['shape']
             segment_end_idxs = grid_data.subset_node_indices['segment_ends']
             all_idxs = grid_data.subset_node_indices['all']
@@ -354,7 +351,7 @@ class RungeKutta(TranscriptionBase):
         super(RungeKutta, self).setup_polynomial_controls(phase)
         grid_data = self.grid_data
 
-        for name, options in iteritems(phase.polynomial_control_options):
+        for name, options in phase.polynomial_control_options.items():
             shape = options['shape']
             segment_end_idxs = grid_data.subset_node_indices['segment_ends']
             all_idxs = grid_data.subset_node_indices['all']
@@ -421,7 +418,7 @@ class RungeKutta(TranscriptionBase):
                                                                 time_units=time_units),
                                 promotes_inputs=['t_duration'])
 
-            for name, options in iteritems(phase.control_options):
+            for name, options in phase.control_options.items():
                 # The sub-indices of control_disc indices that are segment ends
                 segment_end_idxs = grid_data.subset_node_indices['segment_ends']
                 src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
@@ -468,7 +465,7 @@ class RungeKutta(TranscriptionBase):
         phase.connect('initial_jump:time', 'initial_conditions.initial_jump:time')
         phase.connect('final_jump:time', 'final_conditions.final_jump:time')
 
-        for state_name, options in iteritems(phase.state_options):
+        for state_name, options in phase.state_options.items():
             size = np.prod(options['shape'])
             ar = np.arange(size)
 
@@ -498,7 +495,7 @@ class RungeKutta(TranscriptionBase):
                           'final_conditions.final_jump:{0}'.format(state_name),
                           src_indices=ar, flat_src_indices=True)
 
-        for control_name, options in iteritems(phase.control_options):
+        for control_name, options in phase.control_options.items():
             size = np.prod(options['shape'])
             ar = np.arange(size)
 
@@ -542,7 +539,7 @@ class RungeKutta(TranscriptionBase):
             path_comp = PathConstraintComp(num_nodes=gd.subset_num_nodes['segment_ends'])
             phase.add_subsystem('path_constraints', subsys=path_comp)
 
-        for var, options in iteritems(phase._path_constraints):
+        for var, options in phase._path_constraints.items():
             con_units = options.get('units', None)
             con_name = options['constraint_name']
 
@@ -695,7 +692,7 @@ class RungeKutta(TranscriptionBase):
         num_seg = gd.num_segments
         time_units = phase.time_options['units']
 
-        for name, options in iteritems(phase._timeseries):
+        for name, options in phase._timeseries.items():
 
             if options['transcription'] is None:
                 ogd = None
@@ -720,7 +717,7 @@ class RungeKutta(TranscriptionBase):
             phase.connect(src_name='time_phase', tgt_name='{0}.input_values:time_phase'.format(name),
                           src_indices=src_idxs, flat_src_indices=True)
 
-            for state_name, options in iteritems(phase.state_options):
+            for state_name, options in phase.state_options.items():
                 timeseries_comp._add_timeseries_output('states:{0}'.format(state_name),
                                                        var_class=phase.classify_var(state_name),
                                                        shape=options['shape'],
@@ -732,7 +729,7 @@ class RungeKutta(TranscriptionBase):
                               tgt_name='{0}.input_values:states:{1}'.format(name, state_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
-            for control_name, options in iteritems(phase.control_options):
+            for control_name, options in phase.control_options.items():
                 control_units = options['units']
                 timeseries_comp._add_timeseries_output('controls:{0}'.format(control_name),
                                                        var_class=phase.classify_var(control_name),
@@ -766,7 +763,7 @@ class RungeKutta(TranscriptionBase):
                               tgt_name='{0}.input_values:control_rates:{1}_rate2'.format(name, control_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
-            for control_name, options in iteritems(phase.polynomial_control_options):
+            for control_name, options in phase.polynomial_control_options.items():
                 control_units = options['units']
                 timeseries_comp._add_timeseries_output('polynomial_controls:{0}'.format(control_name),
                                                        var_class=phase.classify_var(control_name),
@@ -803,7 +800,7 @@ class RungeKutta(TranscriptionBase):
                                        ':{1}_rate2'.format(name, control_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
-            for param_name, options in iteritems(phase.design_parameter_options):
+            for param_name, options in phase.design_parameter_options.items():
                 units = options['units']
                 timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(param_name),
                                                        var_class=phase.classify_var(param_name),
@@ -817,7 +814,7 @@ class RungeKutta(TranscriptionBase):
                               tgt_name='{0}.input_values:design_parameters:{1}'.format(name, param_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
-            for param_name, options in iteritems(phase.input_parameter_options):
+            for param_name, options in phase.input_parameter_options.items():
                 units = options['units']
                 timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
                                                        var_class=phase.classify_var(param_name),
@@ -830,7 +827,7 @@ class RungeKutta(TranscriptionBase):
                               tgt_name='{0}.input_values:input_parameters:{1}'.format(name, param_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
-            for var, options in iteritems(phase._timeseries[name]['outputs']):
+            for var, options in phase._timeseries[name]['outputs'].items():
                 output_name = options['output_name']
 
                 # Determine the path to the variable which we will be constraining

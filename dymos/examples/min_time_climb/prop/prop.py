@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import openmdao.api as om
 from .mdot_comp import MassFlowRateComp
 from .max_thrust_comp import MaxThrustComp

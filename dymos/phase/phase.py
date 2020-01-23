@@ -1,10 +1,6 @@
-from __future__ import division, print_function, absolute_import
-
 from collections.abc import Iterable, Sequence
 import inspect
 import warnings
-
-from six import iteritems, string_types
 
 import numpy as np
 
@@ -185,7 +181,7 @@ class Phase(om.Group):
             self.user_state_options[name]['rate_source'] = rate_source
 
         if targets is not _unspecified:
-            if isinstance(targets, string_types):
+            if isinstance(targets, str):
                 self.user_state_options[name]['targets'] = (targets,)
             else:
                 self.user_state_options[name]['targets'] = targets
@@ -428,19 +424,19 @@ class Phase(om.Group):
             self.user_control_options[name]['desc'] = desc
 
         if targets is not _unspecified:
-            if isinstance(targets, string_types):
+            if isinstance(targets, str):
                 self.user_control_options[name]['targets'] = (targets,)
             else:
                 self.user_control_options[name]['targets'] = targets
 
         if rate_targets is not _unspecified:
-            if isinstance(rate_targets, string_types):
+            if isinstance(rate_targets, str):
                 self.user_control_options[name]['rate_targets'] = (rate_targets,)
             else:
                 self.user_control_options[name]['rate_targets'] = rate_targets
 
         if rate2_targets is not _unspecified:
-            if isinstance(rate2_targets, string_types):
+            if isinstance(rate2_targets, str):
                 self.user_control_options[name]['rate2_targets'] = (rate2_targets,)
             else:
                 self.user_control_options[name]['rate2_targets'] = rate2_targets
@@ -572,19 +568,19 @@ class Phase(om.Group):
             self.user_polynomial_control_options[name]['desc'] = desc
 
         if targets is not _unspecified:
-            if isinstance(targets, string_types):
+            if isinstance(targets, str):
                 self.user_polynomial_control_options[name]['targets'] = (targets,)
             else:
                 self.user_polynomial_control_options[name]['targets'] = targets
 
         if rate_targets is not _unspecified:
-            if isinstance(rate_targets, string_types):
+            if isinstance(rate_targets, str):
                 self.user_polynomial_control_options[name]['rate_targets'] = (rate_targets,)
             else:
                 self.user_polynomial_control_options[name]['rate_targets'] = rate_targets
 
         if rate2_targets is not _unspecified:
-            if isinstance(rate2_targets, string_types):
+            if isinstance(rate2_targets, str):
                 self.user_polynomial_control_options[name]['rate2_targets'] = (rate2_targets,)
             else:
                 self.user_polynomial_control_options[name]['rate2_targets'] = rate2_targets
@@ -677,7 +673,7 @@ class Phase(om.Group):
             self.user_design_parameter_options[name]['desc'] = desc
 
         if targets is not _unspecified:
-            if isinstance(targets, string_types):
+            if isinstance(targets, str):
                 self.user_design_parameter_options[name]['targets'] = (targets,)
             else:
                 self.user_design_parameter_options[name]['targets'] = targets
@@ -748,13 +744,20 @@ class Phase(om.Group):
             self.user_input_parameter_options[name]['desc'] = desc
 
         if targets is not _unspecified:
-            if isinstance(targets, string_types):
+            if isinstance(targets, str):
                 self.user_input_parameter_options[name]['targets'] = (targets,)
             else:
                 self.user_input_parameter_options[name]['targets'] = targets
 
         if shape is not _unspecified:
             self.user_input_parameter_options[name]['shape'] = shape
+        elif val is not _unspecified:
+            if isinstance(val, float):
+                self.user_input_parameter_options[name]['shape'] = (1,)
+            else:
+                self.user_input_parameter_options[name]['shape'] = np.asarray(val).shape
+        else:
+            self.user_input_parameter_options[name]['shape'] = (1,)
 
         if dynamic is not _unspecified:
             self.user_input_parameter_options[name]['dynamic'] = dynamic
@@ -1120,25 +1123,25 @@ class Phase(om.Group):
             self.user_time_options['duration_ref'] = duration_ref
 
         if targets is not _unspecified:
-            if isinstance(targets, string_types):
+            if isinstance(targets, str):
                 self.user_time_options['targets'] = (targets,)
             else:
                 self.user_time_options['targets'] = targets
 
         if time_phase_targets is not _unspecified:
-            if isinstance(time_phase_targets, string_types):
+            if isinstance(time_phase_targets, str):
                 self.user_time_options['time_phase_targets'] = (time_phase_targets,)
             else:
                 self.user_time_options['time_phase_targets'] = time_phase_targets
 
         if t_initial_targets is not _unspecified:
-            if isinstance(t_initial_targets, string_types):
+            if isinstance(t_initial_targets, str):
                 self.user_time_options['t_initial_targets'] = (t_initial_targets,)
             else:
                 self.user_time_options['t_initial_targets'] = t_initial_targets
 
         if t_duration_targets is not _unspecified:
-            if isinstance(t_duration_targets, string_types):
+            if isinstance(t_duration_targets, str):
                 self.user_time_options['t_duration_targets'] = (t_duration_targets,)
             else:
                 self.user_time_options['t_duration_targets'] = t_duration_targets
@@ -1366,7 +1369,7 @@ class Phase(om.Group):
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """
-        for name, options in iteritems(self.control_options):
+        for name, options in self.control_options.items():
             if not options['opt']:
                 invalid_options = []
                 for opt in 'lower', 'upper', 'scaler', 'adder', 'ref', 'ref0':
@@ -1392,7 +1395,7 @@ class Phase(om.Group):
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """
-        for name, options in iteritems(self.design_parameter_options):
+        for name, options in self.design_parameter_options.items():
             if not options['opt']:
                 invalid_options = []
                 for opt in 'lower', 'upper', 'scaler', 'adder', 'ref', 'ref0':
@@ -1548,7 +1551,7 @@ class Phase(om.Group):
             prob['{0}initial_states:{1}'.format(self_path, name)][...] = op['value'][0, ...]
 
         # Assign control values
-        for name, options in iteritems(phs.control_options):
+        for name, options in phs.control_options.items():
             if options['opt']:
                 op = op_dict['{0}control_group.indep_controls.controls:{1}'.format(phs_path, name)]
                 prob['{0}controls:{1}'.format(self_path, name)][...] = op['value']
@@ -1557,7 +1560,7 @@ class Phase(om.Group):
                 prob['{0}controls:{1}'.format(self_path, name)][...] = ip['value']
 
         # Assign polynomial control values
-        for name, options in iteritems(phs.polynomial_control_options):
+        for name, options in phs.polynomial_control_options.items():
             if options['opt']:
                 op = op_dict['{0}polynomial_control_group.indep_polynomial_controls.'
                              'polynomial_controls:{1}'.format(phs_path, name)]

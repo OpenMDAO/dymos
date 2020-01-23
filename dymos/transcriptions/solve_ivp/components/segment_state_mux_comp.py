@@ -1,6 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
-from six import iteritems
 import numpy as np
 
 import openmdao.api as om
@@ -31,7 +28,7 @@ class SegmentStateMuxComp(om.ExplicitComponent):
 
         self._vars = {}
 
-        for name, options in iteritems(self.options['state_options']):
+        for name, options in self.options['state_options'].items():
             self._vars[name] = {'inputs': {},
                                 'output': 'states:{0}'.format(name),
                                 'shape': {}}

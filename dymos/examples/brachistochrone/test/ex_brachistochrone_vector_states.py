@@ -1,5 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
 import openmdao.api as om
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \

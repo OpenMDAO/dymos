@@ -1,9 +1,6 @@
 """
 Integration test for a battery+motor example that demonstrates phase branching in trajectories.
 """
-from __future__ import print_function, division, absolute_import
-
-import os
 import unittest
 
 import matplotlib
