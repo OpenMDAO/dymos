@@ -43,7 +43,7 @@ where
 The following code shows the procedure for solving the problem
 
 ..  embed-code::
-    examples.hyper_sensitive.docs.test_doc_hyper_sensitive
+    examples.hyper_sensitive.doc.test_doc_hyper_sensitive
     :layout: code
 
 References
