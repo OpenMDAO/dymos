@@ -45,8 +45,3 @@ The following code shows the procedure for solving the problem
 ..  embed-code::
     examples.hyper_sensitive.doc.test_doc_hyper_sensitive
     :layout: code
-
-References
-----------
-.. [PattersonHagerRao2015] Michael A. Patterson and William W. Hager and Anil V. Rao. "A ph Mesh Refinement Method for Optimal Control." Optimal Control Applications and Methods 36.4 (2015): 398-421
-
