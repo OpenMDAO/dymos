@@ -9,6 +9,7 @@ Dymos by Example
   brachistochrone
   commercial_aircraft
   double_integrator
+  hyper_sensitive
   finite_burn_orbit_raise
   min_time_climb
   multi_phase_cannonball
