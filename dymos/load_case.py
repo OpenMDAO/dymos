@@ -95,7 +95,7 @@ def load_case(problem, case):
             if parent_phase:
                 if parent_phase not in phase_outputs:
                     phase_outputs[parent_phase] = []
-                    phase_outputs[parent_phase].append(name)
+                phase_outputs[parent_phase].append(name)
                 phases_in_case.add(parent_phase)
             else:
                 problem[name] = outputs[name]

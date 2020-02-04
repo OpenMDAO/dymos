@@ -1,14 +1,128 @@
 from .grid_refinement.ph_adaptive.ph_adaptive import PHAdaptive
 from .phase.phase import Phase
 
-import numpy as np
 import openmdao.api as om
+import dymos as dm
+import dymos.run_problem as rp
 import os
+
+'''
+--- run_problem call sequence when being called from a user script:
+
+python user_script.py
+    script sets up problem
+    script calls run_problem(), hooked is False
+        problem.run_driver()
+            final_setup()
+            model._clear_iprint()
+            driver.run()
+        if refine: do grid refinement, loop:
+            problem.setup()
+            re_interpolate_solution()
+            problem.run_driver()
+                final_setup()
+                model._clear_iprint()
+                driver.run()
+    script might do post run analysis or plotting
+
+--- run_problem call sequence when being called from Dymos command line:
+
+dymos user_script.py
+    command_line.dymos_cmd()
+        parse arguments and extract options for run_problem
+        modify_enabled = True to enable hook's effect
+        register pre hook function for final_setup
+        exec script.py
+            script sets up problem
+            script calls run_problem()
+                    problem.run_driver()
+                        final_setup(), pre hook function is triggered just before this starts
+        hook function hijacks final_setup
+            modify_enabled = False to disable hook's effect the next time it is called
+            modify_problem() is called with parsed options
+                driver.add_recorder
+                if restart: load problem configuration from supplied database using load_case
+                # if simulate: ?
+                # if no_solve: ?
+                # if reset_grid: ?
+            hook returns
+                        final_setup() resumes
+                        model._clear_iprint()
+                        driver.run()
+                    override refine from command line options, if applicable
+                    if refine: do grid refinement, loop:
+                        problem.setup()
+                        re_interpolate_solution()
+                        problem.run_driver()
+                            final_setup()
+                            model._clear_iprint()
+                            driver.run()
+            script might do post run analysis or plotting
+'''
+
+options = {}
+
+
+def modify_problem(problem, opts):
+    rp.options = opts  # save options for potential use in run_problem
+    print('modify_problem is starting')  # TODO delete this when we know it is working
+
+    restart = opts.get('restart')
+    if restart:  # restore variables from database file specified by 'restart'
+        print('Restarting run_problem using the %s database.' % restart)
+        cr = om.CaseReader(restart)
+        cases = cr.list_cases()
+        if len(cases) < 1:
+            print('WARNING: the requested %s database file does not have any cases to load.')
+        else:
+            case = cr.get_case(cases[-1])  # TODO: use last case, ideally it should be the only one, but there are many
+
+            # Initialize the system with values from the case.
+            # We unnecessarily call setup again just to make sure we obliterate the previous solution
+            # First reset the connections at the top level model until fixed in OpenMDAO
+            problem.setup()
+
+            # Load the values from the previous solution
+            dm.load_case(problem, case)
+
+            # Invalidate the cache to avoid copying old arrays with the wrong size over new configuration
+            problem._initial_condition_cache = {}
+
+    # record variables to database when running driver under hook
+    # pre-hook is important, because recording initialization is skipped if final_setup has run once
+    save_db = os.getcwd() + '/dymos_solution.db'
+
+    try:
+        os.remove(save_db)
+    except FileNotFoundError:
+        pass  # OK if old database is not present to be deleted
+
+    print('adding recorder at:', save_db)
+    problem.driver.add_recorder(om.SqliteRecorder(save_db))
+    #problem.driver.recording_options['includes'] = ['*timeseries*']
+    problem.driver.recording_options['includes'] = ['*']
+    problem.driver.recording_options['record_inputs'] = True
+    #problem.record_iteration('final')    # TODO: not working to save only last iteration?
+
+    if opts.get('reset_grid'):  # TODO: implement this option
+        pass
+
+    print('modify problem is finished')
+    return problem
 
 
 def run_problem(problem, refine=False, refine_iteration_limit=10):
-    problem.run_driver()
+    problem.final_setup()  # make sure command line option hook has a chance to run
 
+    if rp.options.get('no_solve'):  # TODO: implement this option
+        problem.run_model()
+    else:
+        problem.run_driver()
+
+    iteration_limit = rp.options.get('refine_iteration_limit')
+    if iteration_limit:  # override arguments with options from command line
+        refine_iteration_limit = iteration_limit
+        refine = True
     if refine:
         out_file = 'grid_refinement.out'
 
@@ -45,6 +159,9 @@ def run_problem(problem, refine=False, refine_iteration_limit=10):
             else:
                 f.write('\nSuccessfully completed grid refinement')
 
+    if rp.options.get('simulate'):  # TODO: implement this option
+        # do all phase.simulate(); traj.simulate
+        pass
 
 def find_phases(sys):
     phase_paths = []
