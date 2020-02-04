@@ -372,12 +372,21 @@ class Trajectory(om.Group):
                         p2.set_time_options(input_initial=True)
                 else:
                     vars_to_constrain.append(var)
-                    if var in p1_states:
+                    if var in p1.state_options:
                         units_map[var] = p1.state_options[var]['units']
                         shape_map[var] = p1.state_options[var]['shape']
-                    elif var in p1_controls:
+                    elif var in p1.control_options:
                         units_map[var] = p1.control_options[var]['units']
                         shape_map[var] = p1.control_options[var]['shape']
+                    elif var in p1.polynomial_control_options:
+                        units_map[var] = p1.polynomial_control_options[var]['units']
+                        shape_map[var] = p1.polynomial_control_options[var]['shape']
+                    elif var in p1.design_parameter_options:
+                        units_map[var] = p1.design_parameter_options[var]['units']
+                        shape_map[var] = p1.design_parameter_options[var]['shape']
+                    elif var in p1.input_parameter_options:
+                        units_map[var] = p1.input_parameter_options[var]['units']
+                        shape_map[var] = p1.input_parameter_options[var]['shape']
                     elif var == 'time':
                         units_map[var] = p1.time_options['units']
                         shape_map[var] = (1,)
