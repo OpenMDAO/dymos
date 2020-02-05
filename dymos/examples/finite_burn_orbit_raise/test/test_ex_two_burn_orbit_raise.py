@@ -263,9 +263,9 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     return p
 
 
+@use_tempdirs
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
-    @use_tempdirs
     def test_ex_two_burn_orbit_raise(self):
         _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
 
@@ -279,9 +279,9 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
 
 # This test is separate because connected phases aren't directly parallelizable.
+@use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
-    @use_tempdirs
     def test_ex_two_burn_orbit_raise_connected(self):
         _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
 
