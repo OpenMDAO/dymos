@@ -9,8 +9,8 @@ os:
   - linux
 
 env:
-  - PY=3.7 PETSc=3.9.1
-  - PY=3.6 PETSc=3.9.1 UPLOAD_DOCS=1
+  - PY=3.7 PETSc=3.11.0
+  - PY=3.6 PETSc=3.11.0 UPLOAD_DOCS=1
 
 language: generic
 
@@ -77,7 +77,7 @@ install:
     conda create --yes -n PY$PY python=$PY;
     source $HOME/miniconda/bin/activate PY$PY;
 
-    config --add channels conda-forge
+    config --add channels conda-forge;
     conda install --yes cython sphinx mock swig pip numpy=1.18.0 scipy=1.2.0 mpi4py matplotlib;
     sudo apt-get install gfortran;
 
