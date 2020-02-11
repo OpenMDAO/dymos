@@ -78,49 +78,49 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
     p['phase0.input_parameters:g'] = 9.80665
 
-    dm.run_problem(p)
-
-    # Plot results
-    if SHOW_PLOTS:
-        exp_out = phase.simulate()
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
-
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
-
-        ax.plot(x_imp, y_imp, 'ro', label='implicit')
-        ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.grid(True)
-        ax.legend(loc='upper right')
-
-        fig, ax = plt.subplots()
-        fig.suptitle('Brachistochrone Solution')
-
-        x_imp = p.get_val('phase0.timeseries.time_phase')
-        y_imp = p.get_val('phase0.timeseries.controls:theta')
-
-        x_exp = exp_out.get_val('phase0.timeseries.time_phase')
-        y_exp = exp_out.get_val('phase0.timeseries.controls:theta')
-
-        ax.plot(x_imp, y_imp, 'ro', label='implicit')
-        ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel('theta (rad)')
-        ax.grid(True)
-        ax.legend(loc='lower right')
-
-        plt.show()
-
-    return p
+    # p.final_setup()
+    #
+    # # Plot results
+    # if SHOW_PLOTS:
+    #     exp_out = phase.simulate()
+    #
+    #     fig, ax = plt.subplots()
+    #     fig.suptitle('Brachistochrone Solution')
+    #
+    #     x_imp = p.get_val('phase0.timeseries.states:x')
+    #     y_imp = p.get_val('phase0.timeseries.states:y')
+    #
+    #     x_exp = exp_out.get_val('phase0.timeseries.states:x')
+    #     y_exp = exp_out.get_val('phase0.timeseries.states:y')
+    #
+    #     ax.plot(x_imp, y_imp, 'ro', label='implicit')
+    #     ax.plot(x_exp, y_exp, 'b-', label='explicit')
+    #
+    #     ax.set_xlabel('x (m)')
+    #     ax.set_ylabel('y (m)')
+    #     ax.grid(True)
+    #     ax.legend(loc='upper right')
+    #
+    #     fig, ax = plt.subplots()
+    #     fig.suptitle('Brachistochrone Solution')
+    #
+    #     x_imp = p.get_val('phase0.timeseries.time_phase')
+    #     y_imp = p.get_val('phase0.timeseries.controls:theta')
+    #
+    #     x_exp = exp_out.get_val('phase0.timeseries.time_phase')
+    #     y_exp = exp_out.get_val('phase0.timeseries.controls:theta')
+    #
+    #     ax.plot(x_imp, y_imp, 'ro', label='implicit')
+    #     ax.plot(x_exp, y_exp, 'b-', label='explicit')
+    #
+    #     ax.set_xlabel('time (s)')
+    #     ax.set_ylabel('theta (rad)')
+    #     ax.grid(True)
+    #     ax.legend(loc='lower right')
+    #
+    #     plt.show()
+    #
+    # return p
 
 
 if __name__ == '__main__':

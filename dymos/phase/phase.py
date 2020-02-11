@@ -298,7 +298,7 @@ class Phase(om.Group):
         """
         Checks that the parameter of the given name is valid.
 
-        First name is checked against all existing controls, input parameters, and design
+        First name is checked against all existing states, controls, input parameters, and design
         parameters.  If it has already been assigned to one of those, ValueError is raised.
         Finally, if *dynamic* is True, the control is not a dynamic parameter in the ODE,
         ValueError is raised.
@@ -315,13 +315,18 @@ class Phase(om.Group):
             incompatible with the type of control to which it is assigned.
         """
         # ode_params = None if self.ode_options is None else self.ode_options._parameters
-        if name in self.control_options:
+        if name in ['time', 'time_phase', 't_initial', 't_duration']:
+            raise ValueError('The name {0} is reserved for the independent variable of integration'
+                             ' in Dymos and may not be used as a state, control, or parameter name')
+        elif name in self.state_options:
+            raise ValueError('{0} has already been added as a state.'.format(name))
+        elif name in self.control_options:
             raise ValueError('{0} has already been added as a control.'.format(name))
-        if name in self.design_parameter_options:
+        elif name in self.design_parameter_options:
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
-        if name in self.input_parameter_options:
+        elif name in self.input_parameter_options:
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
-        if name in self.polynomial_control_options:
+        elif name in self.polynomial_control_options:
             raise ValueError('{0} has already been added as a polynomial control.'.format(name))
 
     def add_control(self, name, units=_unspecified, desc=_unspecified, opt=_unspecified,
@@ -427,7 +432,7 @@ class Phase(om.Group):
                             rate_continuity_scaler=_unspecified, rate2_continuity=_unspecified,
                             rate2_continuity_scaler=_unspecified):
         """
-        Adds a dynamic control variable to be tied to a parameter in the ODE.
+        Set options on an existing dynamic control variable in the phase.
 
         Parameters
         ----------
@@ -647,6 +652,71 @@ class Phase(om.Group):
             self.polynomial_control_options[name]['name'] = name
             self.polynomial_control_options[name]['order'] = order
 
+        self.set_polynomial_control_options(name, order, desc, val, units, opt,
+                                            fix_initial, fix_final, lower, upper,
+                                            scaler, adder, ref0, ref,
+                                            targets, rate_targets, rate2_targets, shape)
+
+    def set_polynomial_control_options(self, name, order, desc=_unspecified, val=_unspecified,
+                                       units=_unspecified, opt=_unspecified, fix_initial=_unspecified,
+                                       fix_final=_unspecified, lower=_unspecified, upper=_unspecified,
+                                       scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
+                                       ref=_unspecified, targets=_unspecified, rate_targets=_unspecified,
+                                       rate2_targets=_unspecified, shape=_unspecified):
+        """
+        Set options on an existing polynomial control variable in the phase.
+
+        Parameters
+        ----------
+        name : str
+            Name of the controllable parameter in the ODE.
+        order : int
+            The order of the interpolating polynomial used to represent the control value in
+            phase tau space.
+        val : float or ndarray
+            Default value of the control at all nodes.  If val scalar and the control
+            is dynamic it will be broadcast.
+        desc : str
+            A description of the polynomial control.
+        units : str or None or 0
+            Units in which the control variable is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        opt : bool
+            If True (default) the value(s) of this control will be design variables in
+            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
+            If False, the values of this control will exist as input controls:{name}
+        fix_initial : bool
+            If True, the given initial value of the polynomial control is not a design variable and
+            will not be changed during the optimization.
+        fix_final : bool
+            If True, the given final value of the polynomial control is not a design variable and
+            will not be changed during the optimization.
+        lower : float or ndarray
+            The lower bound of the control at the nodes of the phase.
+        upper : float or ndarray
+            The upper bound of the control at the nodes of the phase.
+        scaler : float or ndarray
+            The scaler of the control value at the nodes of the phase.
+        adder : float or ndarray
+            The adder of the control value at the nodes of the phase.
+        ref0 : float or ndarray
+            The zero-reference value of the control at the nodes of the phase.
+        ref : float or ndarray
+            The unit-reference value of the control at the nodes of the phase
+        targets : Sequence of str or None
+            Targets in the ODE to which this polynomial control is connected.
+        rate_targets : None or str
+            The name of the parameter in the ODE to which the first time-derivative
+            of the control value is connected.
+        rate2_targets : None or str
+            The name of the parameter in the ODE to which the second time-derivative
+            of the control value is connected.
+        shape : Sequence of int
+            The shape of the control variable at each point in time.
+        """
+        if order is not _unspecified:
+            self.polynomial_control_options[name]['order'] = order
+
         if units is not _unspecified:
             self.polynomial_control_options[name]['units'] = units
 
@@ -753,6 +823,53 @@ class Phase(om.Group):
             self.design_parameter_options[name] = DesignParameterOptionsDictionary()
             self.design_parameter_options[name]['name'] = name
 
+        self.set_design_parameter_options(name, val, units, opt, desc, lower, upper,
+                                          scaler, adder, ref0, ref, targets, shape, dynamic)
+
+    def set_design_parameter_options(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
+                                     desc=_unspecified, lower=_unspecified, upper=_unspecified,
+                                     scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
+                                     ref=_unspecified, targets=_unspecified, shape=_unspecified,
+                                     dynamic=_unspecified):
+        """
+        Set options for an existing design parameter (static control variable) in the phase.
+
+        Parameters
+        ----------
+        name : str
+            Name of the design parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        opt : bool
+            If True (default) the value(s) of this design parameter will be design variables in
+            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
+            If False, the this design parameter will still be owned by an IndepVarComp in the phase,
+            but it will not be a design variable in the optimization.
+        desc : str
+            A description of the design parameter.
+        lower : float or ndarray
+            The lower bound of the design parameter value.
+        upper : float or ndarray
+            The upper bound of the design parameter value.
+        scaler : float or ndarray
+            The scaler of the design parameter value for the optimizer.
+        adder : float or ndarray
+            The adder of the design parameter value for the optimizer.
+        ref0 : float or ndarray
+            The zero-reference value of the design parameter for the optimizer.
+        ref : float or ndarray
+            The unit-reference value of the design parameter for the optimizer.
+        targets : Sequence of str or None
+            Targets in the ODE to which this parameter is connected.
+        shape : Sequence of int
+            The shape of the design parameter.
+        dynamic : bool
+            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
+            of nodes) else False.
+        """
         if units is not _unspecified:
             self.design_parameter_options[name]['units'] = units
 
@@ -798,7 +915,7 @@ class Phase(om.Group):
     def add_input_parameter(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
                             desc=_unspecified, shape=_unspecified, dynamic=_unspecified):
         """
-        Add an input parameter (static control variable) to the phase.
+        Add an input parameter to the phase.
 
         Parameters
         ----------
@@ -825,6 +942,58 @@ class Phase(om.Group):
             self.input_parameter_options[name] = InputParameterOptionsDictionary()
             self.input_parameter_options[name]['name'] = name
 
+        if units is not _unspecified:
+            self.input_parameter_options[name]['units'] = units
+
+        if val is not _unspecified:
+            self.input_parameter_options[name]['val'] = val
+
+        if desc is not _unspecified:
+            self.input_parameter_options[name]['desc'] = desc
+
+        if targets is not _unspecified:
+            if isinstance(targets, str):
+                self.input_parameter_options[name]['targets'] = (targets,)
+            else:
+                self.input_parameter_options[name]['targets'] = targets
+
+        if shape is not _unspecified:
+            self.input_parameter_options[name]['shape'] = shape
+        elif val is not _unspecified:
+            if isinstance(val, float):
+                self.input_parameter_options[name]['shape'] = (1,)
+            else:
+                self.input_parameter_options[name]['shape'] = np.asarray(val).shape
+        else:
+            self.input_parameter_options[name]['shape'] = (1,)
+
+        if dynamic is not _unspecified:
+            self.input_parameter_options[name]['dynamic'] = dynamic
+
+    def set_input_parameter_options(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
+                                    desc=_unspecified, shape=_unspecified, dynamic=_unspecified):
+        """
+        Set options of an existing input parameter in the phase.
+
+        Parameters
+        ----------
+        name : str
+            Name of the ODE parameter to be controlled via this input parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        targets : Sequence of str or None
+            Targets in the ODE to which this parameter is connected.
+        desc : str
+            A description of the input parameter
+        shape : Sequence of str or None
+            The shape of the input parameter.
+        dynamic : bool
+            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
+            of nodes) else False.
+        """
         if units is not _unspecified:
             self.input_parameter_options[name]['units'] = units
 
