@@ -79,7 +79,7 @@ install:
     conda activate PY$PY;
     conda config --add channels conda-forge
 
-    conda install --yes cython sphinx mock swig pip numpy=1.18.0 scipy=1.2.0 mpi4py matplotlib;
+    conda install --yes cython sphinx mock swig pip numpy=1.17.0 scipy=1.2.0 mpi4py matplotlib;
     sudo apt-get install gfortran;
 
     pip install --upgrade pip;
@@ -109,7 +109,7 @@ install:
 
     if [ "$PETSc" ]; then
       echo " >> Installing parallel processing dependencies";
-      conda install petsc4py=$PETSc;
+      conda install --yes petsc4py=$PETSc;
     fi
 
   fi
