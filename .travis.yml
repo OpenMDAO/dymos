@@ -74,7 +74,7 @@ install:
     ./miniconda.sh -b  -p $HOME/miniconda;
     export PATH=$HOME/miniconda/bin:$PATH;
 
-    conda update -n base -c defaults conda
+    conda update -n base -c defaults --yes conda
     conda create --yes -n PY$PY python=$PY;
     conda activate PY$PY;
     conda config --add channels conda-forge
