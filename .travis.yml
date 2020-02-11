@@ -10,7 +10,7 @@ os:
 
 env:
   - PY=3.7 PETSc=3.9.1
-  - PY=3.6 UPLOAD_DOCS=1 PETSc=3.9.1
+  - PY=3.6 PETSc=3.9.1 UPLOAD_DOCS=1
 
 language: generic
 
@@ -69,25 +69,21 @@ install:
     source $HOME/miniconda/bin/activate PY$PY;
   else
     echo "Building python environment...";
-    wget "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-latest-Linux-x86_64.sh" -O miniconda.sh;
+    wget "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-4.5.11-Linux-x86_64.sh" -O miniconda.sh;
     chmod +x miniconda.sh;
     ./miniconda.sh -b  -p $HOME/miniconda;
     export PATH=$HOME/miniconda/bin:$PATH;
 
-    conda config --add channels conda-forge
     conda create --yes -n PY$PY python=$PY;
     source $HOME/miniconda/bin/activate PY$PY;
 
-    conda install --yes cython sphinx mock swig pip numpy==1.18.0 scipy==1.2.0 matplotlib mpi4py networkx;
+    config --add channels conda-forge
+    conda install --yes cython sphinx mock swig pip numpy=1.18.0 scipy=1.2.0 mpi4py matplotlib;
     sudo apt-get install gfortran;
+
     pip install --upgrade pip;
-
-    if [ "$PETSc" ]; then
-    echo " >> Installing parallel processing dependencies";
-    pip install mpi4py;
-    conda install --yes petsc4py==$PETSc;
-    fi
-
+    pip install nose;
+    pip install networkx;
     pip install testflo;
     pip install pyyaml;
     pip install coveralls;
@@ -110,13 +106,18 @@ install:
     python setup.py build install;
     cd ..;
 
-    # install OpenMDAO in developer mode so we have access to its sphinx extensions
-    git clone https://github.com/OpenMDAO/OpenMDAO.git;
-    cd OpenMDAO;
-    pip install -e .[all];
-    cd ..;
+    if [ "$PETSc" ]; then
+      echo " >> Installing parallel processing dependencies";
+      conda install petsc4py=$PETSc;
+    fi
 
   fi
+
+# install OpenMDAO in developer mode so we have access to its sphinx extensions
+- git clone https://github.com/OpenMDAO/OpenMDAO.git;
+- cd OpenMDAO;
+- pip install -e .[all];
+- cd ..;
 
 # install dymos itself in developer mode.
 - pip install -e .;
