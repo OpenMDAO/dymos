@@ -9,8 +9,8 @@ os:
   - linux
 
 env:
-  - PY=3.7 PETSc=3.11.0
-  - PY=3.6 UPLOAD_DOCS=1 PETSc=3.11.0
+  - PY=3.7 PETSc=3.9.1
+  - PY=3.6 UPLOAD_DOCS=1 PETSc=3.9.1
 
 language: generic
 
@@ -67,7 +67,6 @@ install:
     echo "Using cached environment..."
     export PATH=$HOME/miniconda/bin:$PATH;
     source $HOME/miniconda/bin/activate PY$PY;
-    conda config --add channels conda-forge
   else
     echo "Building python environment...";
     wget "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-4.5.11-Linux-x86_64.sh" -O miniconda.sh;
@@ -85,6 +84,7 @@ install:
     pip install --upgrade pip;
     pip install numpy==1.16.0;
     pip install scipy==1.2.0;
+    pip install mpi4py;
     pip install matplotlib;
     pip install nose;
     pip install networkx;
@@ -113,7 +113,7 @@ install:
     if [ "$PETSc" ]; then
       echo " >> Installing parallel processing dependencies";
       pip install mpi4py;
-      conda install petsc4py==$PETSc;
+      pip install petsc4py==$PETSc;
     fi
 
   fi
