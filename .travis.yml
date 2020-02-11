@@ -31,7 +31,7 @@ cache:
   apt: true
   timeout: 300
   directories:
-#    - $HOME/.cache/pip
+    - $HOME/.cache/pip
     - $HOME/miniconda
 
 before_install:
@@ -75,6 +75,7 @@ install:
     ./miniconda.sh -b  -p $HOME/miniconda;
     export PATH=$HOME/miniconda/bin:$PATH;
 
+    conda config --add channels conda-forge
     conda create --yes -n PY$PY python=$PY;
     source $HOME/miniconda/bin/activate PY$PY;
 
