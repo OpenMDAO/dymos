@@ -67,6 +67,7 @@ install:
     echo "Using cached environment..."
     export PATH=$HOME/miniconda/bin:$PATH;
     source $HOME/miniconda/bin/activate PY$PY;
+    conda config --add channels conda-forge
   else
     echo "Building python environment...";
     wget "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-4.5.11-Linux-x86_64.sh" -O miniconda.sh;
