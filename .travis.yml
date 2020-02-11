@@ -9,8 +9,8 @@ os:
   - linux
 
 env:
-  - PY=3.7 PETSc=3.9.1
-  - PY=3.6 UPLOAD_DOCS=1 PETSc=3.9.1
+  - PY=3.7 PETSc=3.11.0
+  - PY=3.6 UPLOAD_DOCS=1 PETSc=3.11.0
 
 language: generic
 
@@ -83,7 +83,6 @@ install:
     pip install --upgrade pip;
     pip install numpy==1.16.0;
     pip install scipy==1.2.0;
-    pip install mpi4py;
     pip install matplotlib;
     pip install nose;
     pip install networkx;
@@ -112,7 +111,7 @@ install:
     if [ "$PETSc" ]; then
       echo " >> Installing parallel processing dependencies";
       pip install mpi4py;
-      pip install petsc4py==$PETSc;
+      conda install petsc4py==$PETSc;
     fi
 
   fi
