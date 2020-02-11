@@ -69,7 +69,7 @@ install:
     source $HOME/miniconda/bin/activate PY$PY;
   else
     echo "Building python environment...";
-    wget "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-4.5.11-Linux-x86_64.sh" -O miniconda.sh;
+    wget "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-latest-Linux-x86_64.sh" -O miniconda.sh;
     chmod +x miniconda.sh;
     ./miniconda.sh -b  -p $HOME/miniconda;
     export PATH=$HOME/miniconda/bin:$PATH;
@@ -80,18 +80,30 @@ install:
 
     conda install --yes cython sphinx mock swig pip;
     sudo apt-get install gfortran;
-
     pip install --upgrade pip;
-    pip install numpy==1.16.0;
-    pip install scipy==1.2.0;
-    pip install mpi4py;
-    pip install matplotlib;
-    pip install nose;
-    pip install networkx;
+
+    conda install --yes numpy==1.18.0;
+    conda install --yes scipy==1.2.0;
+    conda install --yes matplotlib;
+    conda install --yes mpi4py;
+    conda install --yes networkx;
+
     pip install testflo;
     pip install pyyaml;
     pip install coveralls;
     pip install --user travis-sphinx;
+
+#    pip install --upgrade pip;
+#    pip install numpy==1.16.0;
+#    pip install scipy==1.2.0;
+#    pip install mpi4py;
+#    pip install matplotlib;
+#    pip install nose;
+#    pip install networkx;
+#    pip install testflo;
+#    pip install pyyaml;
+#    pip install coveralls;
+#    pip install --user travis-sphinx;
 
     git clone https://github.com/mdolab/pyoptsparse.git;
     cd pyoptsparse;
@@ -113,7 +125,7 @@ install:
     if [ "$PETSc" ]; then
       echo " >> Installing parallel processing dependencies";
       pip install mpi4py;
-      pip install petsc4py==$PETSc;
+      conda install --yes petsc4py==$PETSc;
     fi
 
   fi
