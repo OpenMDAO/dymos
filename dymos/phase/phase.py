@@ -64,13 +64,6 @@ class Phase(om.Group):
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
         if from_phase is None:
-            self.user_time_options = {}
-            self.user_state_options = {}
-            self.user_control_options = {}
-            self.user_polynomial_control_options = {}
-            self.user_design_parameter_options = {}
-            self.user_input_parameter_options = {}
-
             self.refine_options = {'refine': False,
                                    'iteration_limit': 10,
                                    'tolerance': 1e-4,
@@ -86,13 +79,12 @@ class Phase(om.Group):
                                               'outputs': {}}
             self._objectives = {}
         else:
-            self.user_time_options = TimeOptionsDictionary()
-            self.user_time_options.update(from_phase.time_options)
-            self.user_state_options = from_phase.state_options.copy()
-            self.user_control_options = from_phase.control_options.copy()
-            self.user_polynomial_control_options = from_phase.polynomial_control_options.copy()
-            self.user_design_parameter_options = from_phase.design_parameter_options.copy()
-            self.user_input_parameter_options = from_phase.input_parameter_options.copy()
+            self.time_options.update(from_phase.time_options)
+            self.state_options = from_phase.state_options.copy()
+            self.control_options = from_phase.control_options.copy()
+            self.polynomial_control_options = from_phase.polynomial_control_options.copy()
+            self.design_parameter_options = from_phase.design_parameter_options.copy()
+            self.input_parameter_options = from_phase.input_parameter_options.copy()
 
             self.refine_options = from_phase.refine_options.copy()
 
@@ -177,8 +169,9 @@ class Phase(om.Group):
             If True, then the initial value for this state comes from an externally connected
             source.
         """
-        if name not in self.user_state_options:
-            self.user_state_options[name] = {'name': name}
+        if name not in self.state_options:
+            self.state_options[name] = StateOptionsDictionary()
+            self.state_options[name]['name'] = name
 
         self.set_state_options(name=name, units=units, shape=shape, rate_source=rate_source,
                                targets=targets, val=val, fix_initial=fix_initial,
@@ -248,58 +241,58 @@ class Phase(om.Group):
             source.
         """
         if units is not _unspecified:
-            self.user_state_options[name]['units'] = units
+            self.state_options[name]['units'] = units
 
         if shape is not _unspecified:
-            self.user_state_options[name]['shape'] = shape
+            self.state_options[name]['shape'] = shape
 
         if rate_source is not _unspecified:
-            self.user_state_options[name]['rate_source'] = rate_source
+            self.state_options[name]['rate_source'] = rate_source
 
         if targets is not _unspecified:
             if isinstance(targets, str):
-                self.user_state_options[name]['targets'] = (targets,)
+                self.state_options[name]['targets'] = (targets,)
             else:
-                self.user_state_options[name]['targets'] = targets
+                self.state_options[name]['targets'] = targets
 
         if val is not _unspecified:
-            self.user_state_options[name]['val'] = val
+            self.state_options[name]['val'] = val
 
         if fix_initial is not _unspecified:
-            self.user_state_options[name]['fix_initial'] = fix_initial
+            self.state_options[name]['fix_initial'] = fix_initial
 
         if fix_final is not _unspecified:
-            self.user_state_options[name]['fix_final'] = fix_final
+            self.state_options[name]['fix_final'] = fix_final
 
         if lower is not _unspecified:
-            self.user_state_options[name]['lower'] = lower
+            self.state_options[name]['lower'] = lower
 
         if upper is not _unspecified:
-            self.user_state_options[name]['upper'] = upper
+            self.state_options[name]['upper'] = upper
 
         if scaler is not _unspecified:
-            self.user_state_options[name]['scaler'] = scaler
+            self.state_options[name]['scaler'] = scaler
 
         if adder is not _unspecified:
-            self.user_state_options[name]['adder'] = adder
+            self.state_options[name]['adder'] = adder
 
         if ref0 is not _unspecified:
-            self.user_state_options[name]['ref0'] = ref0
+            self.state_options[name]['ref0'] = ref0
 
         if ref is not _unspecified:
-            self.user_state_options[name]['ref'] = ref
+            self.state_options[name]['ref'] = ref
 
         if defect_scaler is not _unspecified:
-            self.user_state_options[name]['defect_scaler'] = defect_scaler
+            self.state_options[name]['defect_scaler'] = defect_scaler
 
         if defect_ref is not _unspecified:
-            self.user_state_options[name]['defect_ref'] = defect_ref
+            self.state_options[name]['defect_ref'] = defect_ref
 
         if solve_segments is not _unspecified:
-            self.user_state_options[name]['solve_segments'] = solve_segments
+            self.state_options[name]['solve_segments'] = solve_segments
 
         if connected_initial is not _unspecified:
-            self.user_state_options[name]['connected_initial'] = connected_initial
+            self.state_options[name]['connected_initial'] = connected_initial
 
     def check_parameter(self, name):
         """
@@ -322,13 +315,13 @@ class Phase(om.Group):
             incompatible with the type of control to which it is assigned.
         """
         # ode_params = None if self.ode_options is None else self.ode_options._parameters
-        if name in self.user_control_options:
+        if name in self.control_options:
             raise ValueError('{0} has already been added as a control.'.format(name))
-        if name in self.user_design_parameter_options:
+        if name in self.design_parameter_options:
             raise ValueError('{0} has already been added as a design parameter.'.format(name))
-        if name in self.user_input_parameter_options:
+        if name in self.input_parameter_options:
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
-        if name in self.user_polynomial_control_options:
+        if name in self.polynomial_control_options:
             raise ValueError('{0} has already been added as a polynomial control.'.format(name))
 
     def add_control(self, name, units=_unspecified, desc=_unspecified, opt=_unspecified,
@@ -415,15 +408,16 @@ class Phase(om.Group):
         rate and rate2 continuity are not enforced for input controls.
 
         """
-        if name not in self.user_control_options:
+        if name not in self.control_options:
             self.check_parameter(name)
-            self.user_control_options[name] = {'name': name}
+            self.control_options[name] = ControlOptionsDictionary()
+            self.control_options[name]['name'] = name
 
         self.set_control_options(name, units, desc, opt, fix_initial, fix_final, targets,
                                  rate_targets, rate2_targets, val, shape, lower, upper, scaler,
                                  adder, ref0, ref, continuity, continuity_scaler, rate_continuity,
                                  rate_continuity_scaler, rate2_continuity, rate2_continuity_scaler)
-            
+
     def set_control_options(self, name, units=_unspecified, desc=_unspecified, opt=_unspecified,
                             fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
                             rate_targets=_unspecified, rate2_targets=_unspecified, val=_unspecified,
@@ -509,79 +503,79 @@ class Phase(om.Group):
 
         """
         if units is not _unspecified:
-            self.user_control_options[name]['units'] = units
+            self.control_options[name]['units'] = units
 
         if opt is not _unspecified:
-            self.user_control_options[name]['opt'] = opt
+            self.control_options[name]['opt'] = opt
 
         if desc is not _unspecified:
-            self.user_control_options[name]['desc'] = desc
+            self.control_options[name]['desc'] = desc
 
         if targets is not _unspecified:
             if isinstance(targets, str):
-                self.user_control_options[name]['targets'] = (targets,)
+                self.control_options[name]['targets'] = (targets,)
             else:
-                self.user_control_options[name]['targets'] = targets
+                self.control_options[name]['targets'] = targets
 
         if rate_targets is not _unspecified:
             if isinstance(rate_targets, str):
-                self.user_control_options[name]['rate_targets'] = (rate_targets,)
+                self.control_options[name]['rate_targets'] = (rate_targets,)
             else:
-                self.user_control_options[name]['rate_targets'] = rate_targets
+                self.control_options[name]['rate_targets'] = rate_targets
 
         if rate2_targets is not _unspecified:
             if isinstance(rate2_targets, str):
-                self.user_control_options[name]['rate2_targets'] = (rate2_targets,)
+                self.control_options[name]['rate2_targets'] = (rate2_targets,)
             else:
-                self.user_control_options[name]['rate2_targets'] = rate2_targets
+                self.control_options[name]['rate2_targets'] = rate2_targets
 
         if val is not _unspecified:
-            self.user_control_options[name]['val'] = val
+            self.control_options[name]['val'] = val
 
         if shape is not _unspecified:
-            self.user_control_options[name]['shape'] = shape
+            self.control_options[name]['shape'] = shape
 
         if fix_initial is not _unspecified:
-            self.user_control_options[name]['fix_initial'] = fix_initial
+            self.control_options[name]['fix_initial'] = fix_initial
 
         if fix_final is not _unspecified:
-            self.user_control_options[name]['fix_final'] = fix_final
+            self.control_options[name]['fix_final'] = fix_final
 
         if lower is not _unspecified:
-            self.user_control_options[name]['lower'] = lower
+            self.control_options[name]['lower'] = lower
 
         if upper is not _unspecified:
-            self.user_control_options[name]['upper'] = upper
+            self.control_options[name]['upper'] = upper
 
         if scaler is not _unspecified:
-            self.user_control_options[name]['scaler'] = scaler
+            self.control_options[name]['scaler'] = scaler
 
         if adder is not _unspecified:
-            self.user_control_options[name]['adder'] = adder
+            self.control_options[name]['adder'] = adder
 
         if ref0 is not _unspecified:
-            self.user_control_options[name]['ref0'] = ref0
+            self.control_options[name]['ref0'] = ref0
 
         if ref is not _unspecified:
-            self.user_control_options[name]['ref'] = ref
+            self.control_options[name]['ref'] = ref
 
         if continuity is not _unspecified:
-            self.user_control_options[name]['continuity'] = continuity
+            self.control_options[name]['continuity'] = continuity
 
         if continuity_scaler is not _unspecified:
-            self.user_control_options[name]['continuity_scaler'] = continuity_scaler
+            self.control_options[name]['continuity_scaler'] = continuity_scaler
 
         if rate_continuity is not _unspecified:
-            self.user_control_options[name]['rate_continuity'] = rate_continuity
+            self.control_options[name]['rate_continuity'] = rate_continuity
 
         if rate_continuity_scaler is not _unspecified:
-            self.user_control_options[name]['rate_continuity_scaler'] = rate_continuity_scaler
+            self.control_options[name]['rate_continuity_scaler'] = rate_continuity_scaler
 
         if rate2_continuity is not _unspecified:
-            self.user_control_options[name]['rate2_continuity'] = rate2_continuity
+            self.control_options[name]['rate2_continuity'] = rate2_continuity
 
         if rate2_continuity_scaler is not _unspecified:
-            self.user_control_options[name]['rate2_continuity_scaler'] = rate2_continuity_scaler
+            self.control_options[name]['rate2_continuity_scaler'] = rate2_continuity_scaler
 
     def add_polynomial_control(self, name, order, desc=_unspecified, val=_unspecified, units=_unspecified,
                                opt=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
@@ -648,66 +642,67 @@ class Phase(om.Group):
         """
         self.check_parameter(name)
 
-        if name not in self.user_polynomial_control_options:
-            self.user_polynomial_control_options[name] = {'name': name,
-                                                          'order': order}
+        if name not in self.polynomial_control_options:
+            self.polynomial_control_options[name] = PolynomialControlOptionsDictionary()
+            self.polynomial_control_options[name]['name'] = name
+            self.polynomial_control_options[name]['order'] = order
 
         if units is not _unspecified:
-            self.user_polynomial_control_options[name]['units'] = units
+            self.polynomial_control_options[name]['units'] = units
 
         if opt is not _unspecified:
-            self.user_polynomial_control_options[name]['opt'] = opt
+            self.polynomial_control_options[name]['opt'] = opt
 
         if desc is not _unspecified:
-            self.user_polynomial_control_options[name]['desc'] = desc
+            self.polynomial_control_options[name]['desc'] = desc
 
         if targets is not _unspecified:
             if isinstance(targets, str):
-                self.user_polynomial_control_options[name]['targets'] = (targets,)
+                self.polynomial_control_options[name]['targets'] = (targets,)
             else:
-                self.user_polynomial_control_options[name]['targets'] = targets
+                self.polynomial_control_options[name]['targets'] = targets
 
         if rate_targets is not _unspecified:
             if isinstance(rate_targets, str):
-                self.user_polynomial_control_options[name]['rate_targets'] = (rate_targets,)
+                self.polynomial_control_options[name]['rate_targets'] = (rate_targets,)
             else:
-                self.user_polynomial_control_options[name]['rate_targets'] = rate_targets
+                self.polynomial_control_options[name]['rate_targets'] = rate_targets
 
         if rate2_targets is not _unspecified:
             if isinstance(rate2_targets, str):
-                self.user_polynomial_control_options[name]['rate2_targets'] = (rate2_targets,)
+                self.polynomial_control_options[name]['rate2_targets'] = (rate2_targets,)
             else:
-                self.user_polynomial_control_options[name]['rate2_targets'] = rate2_targets
+                self.polynomial_control_options[name]['rate2_targets'] = rate2_targets
 
         if val is not _unspecified:
-            self.user_polynomial_control_options[name]['val'] = val
+            self.polynomial_control_options[name]['val'] = val
 
         if shape is not _unspecified:
-            self.user_polynomial_control_options[name]['shape'] = shape
+            self.polynomial_control_options[name]['shape'] = shape
 
         if fix_initial is not _unspecified:
-            self.user_polynomial_control_options[name]['fix_initial'] = fix_initial
+            self.polynomial_control_options[name]['fix_initial'] = fix_initial
 
         if fix_final is not _unspecified:
-            self.user_polynomial_control_options[name]['fix_final'] = fix_final
+            self.polynomial_control_options[name]['fix_final'] = fix_final
 
         if lower is not _unspecified:
-            self.user_polynomial_control_options[name]['lower'] = lower
+            self.polynomial_control_options[name]['lower'] = lower
 
         if upper is not _unspecified:
-            self.user_polynomial_control_options[name]['upper'] = upper
+            self.polynomial_control_options[name]['upper'] = upper
 
         if scaler is not _unspecified:
-            self.user_polynomial_control_options[name]['scaler'] = scaler
+            self.polynomial_control_options[name]['scaler'] = scaler
 
         if adder is not _unspecified:
-            self.user_polynomial_control_options[name]['adder'] = adder
+            self.polynomial_control_options[name]['adder'] = adder
 
         if ref0 is not _unspecified:
-            self.user_polynomial_control_options[name]['ref0'] = ref0
+            self.polynomial_control_options[name]['ref0'] = ref0
 
         if ref is not _unspecified:
-            self.user_polynomial_control_options[name]['ref'] = ref
+            self.polynomial_control_options[name]['ref'] = ref
 
     def add_design_parameter(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
                              desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
@@ -754,50 +749,51 @@ class Phase(om.Group):
         """
         self.check_parameter(name)
 
-        if name not in self.user_design_parameter_options:
-            self.user_design_parameter_options[name] = {'name': name}
+        if name not in self.design_parameter_options:
+            self.design_parameter_options[name] = DesignParameterOptionsDictionary()
+            self.design_parameter_options[name]['name'] = name
 
         if units is not _unspecified:
-            self.user_design_parameter_options[name]['units'] = units
+            self.design_parameter_options[name]['units'] = units
 
         if opt is not _unspecified:
-            self.user_design_parameter_options[name]['opt'] = opt
+            self.design_parameter_options[name]['opt'] = opt
 
         if desc is not _unspecified:
-            self.user_design_parameter_options[name]['desc'] = desc
+            self.design_parameter_options[name]['desc'] = desc
 
         if targets is not _unspecified:
             if isinstance(targets, str):
-                self.user_design_parameter_options[name]['targets'] = (targets,)
+                self.design_parameter_options[name]['targets'] = (targets,)
             else:
-                self.user_design_parameter_options[name]['targets'] = targets
+                self.design_parameter_options[name]['targets'] = targets
 
         if val is not _unspecified:
-            self.user_design_parameter_options[name]['val'] = val
+            self.design_parameter_options[name]['val'] = val
 
         if shape is not _unspecified:
-            self.user_design_parameter_options[name]['shape'] = shape
+            self.design_parameter_options[name]['shape'] = shape
 
         if dynamic is not _unspecified:
-            self.user_design_parameter_options[name]['dynamic'] = dynamic
+            self.design_parameter_options[name]['dynamic'] = dynamic
 
         if lower is not _unspecified:
-            self.user_design_parameter_options[name]['lower'] = lower
+            self.design_parameter_options[name]['lower'] = lower
 
         if upper is not _unspecified:
-            self.user_design_parameter_options[name]['upper'] = upper
+            self.design_parameter_options[name]['upper'] = upper
 
         if scaler is not _unspecified:
-            self.user_design_parameter_options[name]['scaler'] = scaler
+            self.design_parameter_options[name]['scaler'] = scaler
 
         if adder is not _unspecified:
-            self.user_design_parameter_options[name]['adder'] = adder
+            self.design_parameter_options[name]['adder'] = adder
 
         if ref0 is not _unspecified:
-            self.user_design_parameter_options[name]['ref0'] = ref0
+            self.design_parameter_options[name]['ref0'] = ref0
 
         if ref is not _unspecified:
-            self.user_design_parameter_options[name]['ref'] = ref
+            self.design_parameter_options[name]['ref'] = ref
 
     def add_input_parameter(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
                             desc=_unspecified, shape=_unspecified, dynamic=_unspecified):
@@ -825,36 +821,37 @@ class Phase(om.Group):
         """
         self.check_parameter(name)
 
-        if name not in self.user_input_parameter_options:
-            self.user_input_parameter_options[name] = {'name': name}
+        if name not in self.input_parameter_options:
+            self.input_parameter_options[name] = InputParameterOptionsDictionary()
+            self.input_parameter_options[name]['name'] = name
 
         if units is not _unspecified:
-            self.user_input_parameter_options[name]['units'] = units
+            self.input_parameter_options[name]['units'] = units
 
         if val is not _unspecified:
-            self.user_input_parameter_options[name]['val'] = val
+            self.input_parameter_options[name]['val'] = val
 
         if desc is not _unspecified:
-            self.user_input_parameter_options[name]['desc'] = desc
+            self.input_parameter_options[name]['desc'] = desc
 
         if targets is not _unspecified:
             if isinstance(targets, str):
-                self.user_input_parameter_options[name]['targets'] = (targets,)
+                self.input_parameter_options[name]['targets'] = (targets,)
             else:
-                self.user_input_parameter_options[name]['targets'] = targets
+                self.input_parameter_options[name]['targets'] = targets
 
         if shape is not _unspecified:
-            self.user_input_parameter_options[name]['shape'] = shape
+            self.input_parameter_options[name]['shape'] = shape
         elif val is not _unspecified:
             if isinstance(val, float):
-                self.user_input_parameter_options[name]['shape'] = (1,)
+                self.input_parameter_options[name]['shape'] = (1,)
             else:
-                self.user_input_parameter_options[name]['shape'] = np.asarray(val).shape
+                self.input_parameter_options[name]['shape'] = np.asarray(val).shape
         else:
-            self.user_input_parameter_options[name]['shape'] = (1,)
+            self.input_parameter_options[name]['shape'] = (1,)
 
         if dynamic is not _unspecified:
-            self.user_input_parameter_options[name]['dynamic'] = dynamic
+            self.input_parameter_options[name]['dynamic'] = dynamic
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
@@ -1166,79 +1163,79 @@ class Phase(om.Group):
             Targets in the ODE for the value of phase time duration.
         """
         if units is not _unspecified:
-            self.user_time_options['units'] = units
+            self.time_options['units'] = units
 
         if fix_initial is not _unspecified:
-            self.user_time_options['fix_initial'] = fix_initial
+            self.time_options['fix_initial'] = fix_initial
 
         if fix_duration is not _unspecified:
-            self.user_time_options['fix_duration'] = fix_duration
+            self.time_options['fix_duration'] = fix_duration
 
         if input_initial is not _unspecified:
-            self.user_time_options['input_initial'] = input_initial
+            self.time_options['input_initial'] = input_initial
 
         if input_duration is not _unspecified:
-            self.user_time_options['input_duration'] = input_duration
+            self.time_options['input_duration'] = input_duration
 
         if initial_val is not _unspecified:
-            self.user_time_options['initial_val'] = initial_val
+            self.time_options['initial_val'] = initial_val
 
         if initial_bounds is not _unspecified:
-            self.user_time_options['initial_bounds'] = initial_bounds
+            self.time_options['initial_bounds'] = initial_bounds
 
         if initial_scaler is not _unspecified:
-            self.user_time_options['initial_scaler'] = initial_scaler
+            self.time_options['initial_scaler'] = initial_scaler
 
         if initial_adder is not _unspecified:
-            self.user_time_options['initial_adder'] = initial_adder
+            self.time_options['initial_adder'] = initial_adder
 
         if initial_ref0 is not _unspecified:
-            self.user_time_options['initial_ref0'] = initial_ref0
+            self.time_options['initial_ref0'] = initial_ref0
 
         if initial_ref is not _unspecified:
-            self.user_time_options['initial_ref'] = initial_ref
+            self.time_options['initial_ref'] = initial_ref
 
         if duration_val is not _unspecified:
-            self.user_time_options['duration_val'] = duration_val
+            self.time_options['duration_val'] = duration_val
 
         if duration_bounds is not _unspecified:
-            self.user_time_options['duration_bounds'] = duration_bounds
+            self.time_options['duration_bounds'] = duration_bounds
 
         if duration_scaler is not _unspecified:
-            self.user_time_options['duration_scaler'] = duration_scaler
+            self.time_options['duration_scaler'] = duration_scaler
 
         if duration_adder is not _unspecified:
-            self.user_time_options['duration_adder'] = duration_adder
+            self.time_options['duration_adder'] = duration_adder
 
         if duration_ref0 is not _unspecified:
-            self.user_time_options['duration_ref0'] = duration_ref0
+            self.time_options['duration_ref0'] = duration_ref0
 
         if duration_ref is not _unspecified:
-            self.user_time_options['duration_ref'] = duration_ref
+            self.time_options['duration_ref'] = duration_ref
 
         if targets is not _unspecified:
             if isinstance(targets, str):
-                self.user_time_options['targets'] = (targets,)
+                self.time_options['targets'] = (targets,)
             else:
-                self.user_time_options['targets'] = targets
+                self.time_options['targets'] = targets
 
         if time_phase_targets is not _unspecified:
             if isinstance(time_phase_targets, str):
-                self.user_time_options['time_phase_targets'] = (time_phase_targets,)
+                self.time_options['time_phase_targets'] = (time_phase_targets,)
             else:
-                self.user_time_options['time_phase_targets'] = time_phase_targets
+                self.time_options['time_phase_targets'] = time_phase_targets
 
         if t_initial_targets is not _unspecified:
             if isinstance(t_initial_targets, str):
-                self.user_time_options['t_initial_targets'] = (t_initial_targets,)
+                self.time_options['t_initial_targets'] = (t_initial_targets,)
             else:
-                self.user_time_options['t_initial_targets'] = t_initial_targets
+                self.time_options['t_initial_targets'] = t_initial_targets
 
         if t_duration_targets is not _unspecified:
             if isinstance(t_duration_targets, str):
-                self.user_time_options['t_duration_targets'] = (t_duration_targets,)
+                self.time_options['t_duration_targets'] = (t_duration_targets,)
             else:
-                self.user_time_options['t_duration_targets'] = t_duration_targets
+                self.time_options['t_duration_targets'] = t_duration_targets
 
     def classify_var(self, var):
         """
@@ -1295,36 +1292,6 @@ class Phase(om.Group):
         else:
             return 'ode'
 
-    def finalize_variables(self):
-        """ Finalize the variable options by combining the user-defined options and the ODE options.
-
-        First apply any variable options that may be defined via ODEOptions properties on the ODE
-        class.  Then apply any user-specified options over those.
-        """
-        # Now update with any user-supplied options
-        self.time_options.update(self.user_time_options)
-
-        for state in list(self.user_state_options.keys()):
-            if state not in self.state_options:
-                self.state_options[state] = StateOptionsDictionary()
-            self.state_options[state].update(self.user_state_options[state])
-
-        for control in list(self.user_control_options.keys()):
-            self.control_options[control] = ControlOptionsDictionary()
-            self.control_options[control].update(self.user_control_options[control])
-
-        for pc in list(self.user_polynomial_control_options.keys()):
-            self.polynomial_control_options[pc] = PolynomialControlOptionsDictionary()
-            self.polynomial_control_options[pc].update(self.user_polynomial_control_options[pc])
-
-        for dp in list(self.user_design_parameter_options.keys()):
-            self.design_parameter_options[dp] = DesignParameterOptionsDictionary()
-            self.design_parameter_options[dp].update(self.user_design_parameter_options[dp])
-
-        for ip in list(self.user_input_parameter_options.keys()):
-            self.input_parameter_options[ip] = InputParameterOptionsDictionary()
-            self.input_parameter_options[ip].update(self.user_input_parameter_options[ip])
-
     def _check_ode(self):
         """
         Check that the provided ODE class meets minimum requirements.
@@ -1347,8 +1314,6 @@ class Phase(om.Group):
     def setup(self):
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
-        self.finalize_variables()
-
         transcription = self.options['transcription']
 
         transcription.setup_time(self)

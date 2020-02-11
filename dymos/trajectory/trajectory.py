@@ -423,7 +423,6 @@ class Trajectory(om.Group):
             g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
             # DirectSolvers were moved down into the phases for use with MPI
             g.linear_solver = om.DirectSolver()
-            phs.finalize_variables()
 
         if self._linkages:
             self._setup_linkages()
