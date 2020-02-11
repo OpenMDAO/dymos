@@ -13,11 +13,6 @@ OPTIMIZER = 'SLSQP'
 SHOW_PLOTS = False
 
 
-@dm.declare_time(units='s')
-@dm.declare_state(name='r', rate_source='r_dot', units='m')
-@dm.declare_state(name='h', rate_source='h_dot', units='m')
-@dm.declare_state(name='gam', rate_source='gam_dot', targets='gam', units='rad')
-@dm.declare_state(name='v', rate_source='v_dot', targets='v', units='m/s')
 class _CannonballODE(FlightPathEOM2D):
     pass
 
@@ -39,19 +34,22 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         self.p.model.add_subsystem('phase0', phase)
 
-        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 20))
+        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(10, 20), units='s')
 
-        phase.add_state('r', fix_initial=True, fix_final=False,
+        phase.add_state('r', rate_source='r_dot', units='m',
+                        fix_initial=True, fix_final=False,
                         scaler=0.001, defect_scaler=0.001)
 
-        phase.add_state('h', fix_initial=True, fix_final=True,  # Require final altitude
+        phase.add_state('h', rate_source='h_dot', units='m',
+                        fix_initial=True, fix_final=True,
                         scaler=0.001, defect_scaler=0.001)
 
-        phase.add_state('v', fix_initial=True, fix_final=False,
+        phase.add_state('v', rate_source='v_dot', targets='v', units='m/s',
+                        fix_initial=True, fix_final=False,
                         scaler=0.01, defect_scaler=0.01)
 
-        phase.add_state('gam', fix_final=False,
-                        scaler=1.0, defect_scaler=1.0)
+        phase.add_state('gam', rate_source='gam_dot', targets='gam', units='rad',
+                        fix_final=False, scaler=1.0, defect_scaler=1.0)
 
         # Maximize final range by varying initial flight path angle
         phase.add_objective('r', loc='final', scaler=-0.01)

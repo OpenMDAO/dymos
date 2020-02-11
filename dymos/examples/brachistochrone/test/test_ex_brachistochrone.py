@@ -10,6 +10,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 
 
+@use_tempdirs
 class TestBrachistochroneExample(unittest.TestCase):
 
     @classmethod
@@ -49,7 +50,6 @@ class TestBrachistochroneExample(unittest.TestCase):
 
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
-    @use_tempdirs
     def test_ex_brachistochrone_radau_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
@@ -59,7 +59,6 @@ class TestBrachistochroneExample(unittest.TestCase):
         if os.path.exists('ex_brach_radau_compressed.db'):
             os.remove('ex_brach_radau_compressed.db')
 
-    @use_tempdirs
     def test_ex_brachistochrone_radau_uncompressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
@@ -69,7 +68,6 @@ class TestBrachistochroneExample(unittest.TestCase):
         if os.path.exists('ex_brach_radau_uncompressed.db'):
             os.remove('ex_brach_radau_uncompressed.db')
 
-    @use_tempdirs
     def test_ex_brachistochrone_gl_compressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
@@ -79,7 +77,6 @@ class TestBrachistochroneExample(unittest.TestCase):
         if os.path.exists('ex_brach_gl_compressed.db'):
             os.remove('ex_brach_gl_compressed.db')
 
-    @use_tempdirs
     def test_ex_brachistochrone_gl_uncompressed(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
@@ -89,7 +86,6 @@ class TestBrachistochroneExample(unittest.TestCase):
         if os.path.exists('ex_brach_gl_uncompressed.db'):
             os.remove('ex_brach_gl_uncompressed.db')
 
-    @use_tempdirs
     def test_ex_brachistochrone_rk(self):
         ex_brachistochrone.SHOW_PLOTS = True
         p = ex_brachistochrone.brachistochrone_min_time(transcription='runge-kutta')

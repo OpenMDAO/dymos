@@ -52,6 +52,15 @@ class Phase(om.Group):
 
         _kwargs = kwargs.copy()
 
+        # These are the options which will be set at setup time.
+        # Prior to setup, the options are placed into the user_*_options dictionaries.
+        self.time_options = TimeOptionsDictionary()
+        self.state_options = {}
+        self.control_options = {}
+        self.polynomial_control_options = {}
+        self.design_parameter_options = {}
+        self.input_parameter_options = {}
+
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
         if from_phase is None:
@@ -171,59 +180,12 @@ class Phase(om.Group):
         if name not in self.user_state_options:
             self.user_state_options[name] = {'name': name}
 
-        if units is not _unspecified:
-            self.user_state_options[name]['units'] = units
-
-        if shape is not _unspecified:
-            self.user_state_options[name]['shape'] = shape
-
-        if rate_source is not _unspecified:
-            self.user_state_options[name]['rate_source'] = rate_source
-
-        if targets is not _unspecified:
-            if isinstance(targets, str):
-                self.user_state_options[name]['targets'] = (targets,)
-            else:
-                self.user_state_options[name]['targets'] = targets
-
-        if val is not _unspecified:
-            self.user_state_options[name]['val'] = val
-
-        if fix_initial is not _unspecified:
-            self.user_state_options[name]['fix_initial'] = fix_initial
-
-        if fix_final is not _unspecified:
-            self.user_state_options[name]['fix_final'] = fix_final
-
-        if lower is not _unspecified:
-            self.user_state_options[name]['lower'] = lower
-
-        if upper is not _unspecified:
-            self.user_state_options[name]['upper'] = upper
-
-        if scaler is not _unspecified:
-            self.user_state_options[name]['scaler'] = scaler
-
-        if adder is not _unspecified:
-            self.user_state_options[name]['adder'] = adder
-
-        if ref0 is not _unspecified:
-            self.user_state_options[name]['ref0'] = ref0
-
-        if ref is not _unspecified:
-            self.user_state_options[name]['ref'] = ref
-
-        if defect_scaler is not _unspecified:
-            self.user_state_options[name]['defect_scaler'] = defect_scaler
-
-        if defect_ref is not _unspecified:
-            self.user_state_options[name]['defect_ref'] = defect_ref
-
-        if solve_segments is not _unspecified:
-            self.user_state_options[name]['solve_segments'] = solve_segments
-
-        if connected_initial is not _unspecified:
-            self.user_state_options[name]['connected_initial'] = connected_initial
+        self.set_state_options(name=name, units=units, shape=shape, rate_source=rate_source,
+                               targets=targets, val=val, fix_initial=fix_initial,
+                               fix_final=fix_final, lower=lower, upper=upper, scaler=scaler,
+                               adder=adder, ref0=ref0, ref=ref, defect_scaler=defect_scaler,
+                               defect_ref=defect_ref, solve_segments=solve_segments,
+                               connected_initial=connected_initial)
 
     def set_state_options(self, name, units=_unspecified, shape=_unspecified,
                           rate_source=_unspecified, targets=_unspecified,
@@ -285,15 +247,59 @@ class Phase(om.Group):
             If True, then the initial value for this state comes from an externally connected
             source.
         """
-        warnings.warn('Phase method set_state_options for Dymos has been deprecated. '
-                      'Use the add_state method on phase to provide units, targets and '
-                      'other options for the state variable.', DeprecationWarning)
+        if units is not _unspecified:
+            self.user_state_options[name]['units'] = units
 
-        self.add_state(name=name, units=units, shape=shape, rate_source=rate_source, targets=targets,
-                       val=val, fix_initial=fix_initial, fix_final=fix_final, lower=lower,
-                       upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
-                       defect_scaler=defect_scaler, defect_ref=defect_ref,
-                       solve_segments=solve_segments, connected_initial=connected_initial)
+        if shape is not _unspecified:
+            self.user_state_options[name]['shape'] = shape
+
+        if rate_source is not _unspecified:
+            self.user_state_options[name]['rate_source'] = rate_source
+
+        if targets is not _unspecified:
+            if isinstance(targets, str):
+                self.user_state_options[name]['targets'] = (targets,)
+            else:
+                self.user_state_options[name]['targets'] = targets
+
+        if val is not _unspecified:
+            self.user_state_options[name]['val'] = val
+
+        if fix_initial is not _unspecified:
+            self.user_state_options[name]['fix_initial'] = fix_initial
+
+        if fix_final is not _unspecified:
+            self.user_state_options[name]['fix_final'] = fix_final
+
+        if lower is not _unspecified:
+            self.user_state_options[name]['lower'] = lower
+
+        if upper is not _unspecified:
+            self.user_state_options[name]['upper'] = upper
+
+        if scaler is not _unspecified:
+            self.user_state_options[name]['scaler'] = scaler
+
+        if adder is not _unspecified:
+            self.user_state_options[name]['adder'] = adder
+
+        if ref0 is not _unspecified:
+            self.user_state_options[name]['ref0'] = ref0
+
+        if ref is not _unspecified:
+            self.user_state_options[name]['ref'] = ref
+
+        if defect_scaler is not _unspecified:
+            self.user_state_options[name]['defect_scaler'] = defect_scaler
+
+        if defect_ref is not _unspecified:
+            self.user_state_options[name]['defect_ref'] = defect_ref
+
+        if solve_segments is not _unspecified:
+            self.user_state_options[name]['solve_segments'] = solve_segments
+
+        if connected_initial is not _unspecified:
+            self.user_state_options[name]['connected_initial'] = connected_initial
 
     def check_parameter(self, name):
         """
@@ -409,11 +415,99 @@ class Phase(om.Group):
         rate and rate2 continuity are not enforced for input controls.
 
         """
-
         if name not in self.user_control_options:
             self.check_parameter(name)
             self.user_control_options[name] = {'name': name}
 
+        self.set_control_options(name, units, desc, opt, fix_initial, fix_final, targets,
+                                 rate_targets, rate2_targets, val, shape, lower, upper, scaler,
+                                 adder, ref0, ref, continuity, continuity_scaler, rate_continuity,
+                                 rate_continuity_scaler, rate2_continuity, rate2_continuity_scaler)
+            
+    def set_control_options(self, name, units=_unspecified, desc=_unspecified, opt=_unspecified,
+                            fix_initial=_unspecified, fix_final=_unspecified, targets=_unspecified,
+                            rate_targets=_unspecified, rate2_targets=_unspecified, val=_unspecified,
+                            shape=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
+                            adder=_unspecified, ref0=_unspecified, ref=_unspecified, continuity=_unspecified,
+                            continuity_scaler=_unspecified, rate_continuity=_unspecified,
+                            rate_continuity_scaler=_unspecified, rate2_continuity=_unspecified,
+                            rate2_continuity_scaler=_unspecified):
+        """
+        Adds a dynamic control variable to be tied to a parameter in the ODE.
+
+        Parameters
+        ----------
+        name : str
+            The name assigned to the control variable.  If the ODE has been decorated with
+            parameters, this should be the name of a control in the system.
+        units : str or None
+            The units with which the control parameter in this phase will be defined.  It must be
+            compatible with the units of the targets to which the control is connected.
+        desc : str
+            A description of the control variable.
+        opt : bool
+            If True, the control value will be a design variable for the optimization problem.
+            If False, allow the control to be connected externally.
+        fix_initial : bool
+            If True, the initial value of this control is fixed and not a design variable.
+            This option is invalid if opt=False.
+        fix_final : bool
+            If True, the final value of this control is fixed and not a design variable.
+            This option is invalid if opt=False.
+        targets : Sequence of str or None
+            Targets in the ODE to which this control is connected.
+        rate_targets : Sequence of str or None
+            The targets in the ODE to which the control rate is connected.
+        rate2_targets : Sequence of str or None
+            The parameter in the ODE to which the control 2nd derivative is connected.
+        val : float
+            The default value of the control variable at the control input nodes.
+        shape : Sequence of int
+            The shape of the control variable at each point in time.
+        lower : Sequence of Number or None
+            The lower bound of the control variable at the nodes.
+            This option is invalid if opt=False.
+        upper : Sequence or Number or None
+            The upper bound of the control variable at the nodes.
+            This option is invalid if opt=False.
+        scaler : float or None
+            The scaler of the control variable at the nodes.
+            This option is invalid if opt=False.
+        adder : float or None
+            The adder of the control variable at the nodes.
+            This option is invalid if opt=False.
+        ref0 : float or None
+            The zero-reference value of the control variable at the nodes.
+            This option is invalid if opt=False.
+        ref : float or None
+            The unit-reference value of the control variable at the nodes.
+            This option is invalid if opt=False.
+        continuity : bool
+            Enforce continuity of control values at segment boundaries.
+            This option is invalid if opt=False.
+        continuity_scaler : bool
+            Scaler of the continuity constraint. This option is invalid if opt=False.  This
+            option is only relevant in the Radau pseudospectral transcription where the continuity
+            constraint is nonlinear.  For Gauss-Lobatto the continuity constraint is linear.
+        rate_continuity : bool
+            Enforce continuity of control first derivatives  (in dimensionless time) at
+            segment boundaries.
+            This option is invalid if opt=False.
+        rate_continuity_scaler : float
+            Scaler of the rate continuity constraint at segment boundaries.
+            This option is invalid if opt=False.
+        rate2_continuity : bool
+            Enforce continuity of control second derivatives at segment boundaries.
+            This option is invalid if opt=False.
+        rate2_continuity_scaler : float
+            Scaler of the dimensionless rate continuity constraint at segment boundaries.
+            This option is invalid if opt=False.
+
+        Notes
+        -----
+        rate and rate2 continuity are not enforced for input controls.
+
+        """
         if units is not _unspecified:
             self.user_control_options[name]['units'] = units
 
@@ -1207,28 +1301,9 @@ class Phase(om.Group):
         First apply any variable options that may be defined via ODEOptions properties on the ODE
         class.  Then apply any user-specified options over those.
         """
-        self.time_options = TimeOptionsDictionary()
-        self.state_options = {}
-        self.control_options = {}
-        self.polynomial_control_options = {}
-        self.design_parameter_options = {}
-        self.input_parameter_options = {}
-
-        # First apply any defaults set in the ode options
-        if self.options['ode_class'] is not None and hasattr(self.options['ode_class'], 'ode_options'):
-            ode_options = self.options['ode_class'].ode_options
-        else:
-            ode_options = None
-
         # Now update with any user-supplied options
-        if ode_options:
-            self.time_options.update(ode_options._time_options)
         self.time_options.update(self.user_time_options)
 
-        if ode_options:
-            for state in ode_options._states:
-                self.state_options[state] = StateOptionsDictionary()
-                self.state_options[state].update(ode_options._states[state])
         for state in list(self.user_state_options.keys()):
             if state not in self.state_options:
                 self.state_options[state] = StateOptionsDictionary()
@@ -1236,26 +1311,18 @@ class Phase(om.Group):
 
         for control in list(self.user_control_options.keys()):
             self.control_options[control] = ControlOptionsDictionary()
-            if ode_options and control in ode_options._parameters:
-                self.control_options[control].update(ode_options._parameters[control])
             self.control_options[control].update(self.user_control_options[control])
 
         for pc in list(self.user_polynomial_control_options.keys()):
             self.polynomial_control_options[pc] = PolynomialControlOptionsDictionary()
-            if ode_options and pc in ode_options._parameters:
-                self.polynomial_control_options[pc].update(ode_options._parameters[pc])
             self.polynomial_control_options[pc].update(self.user_polynomial_control_options[pc])
 
         for dp in list(self.user_design_parameter_options.keys()):
             self.design_parameter_options[dp] = DesignParameterOptionsDictionary()
-            if ode_options and dp in ode_options._parameters:
-                self.design_parameter_options[dp].update(ode_options._parameters[dp])
             self.design_parameter_options[dp].update(self.user_design_parameter_options[dp])
 
         for ip in list(self.user_input_parameter_options.keys()):
             self.input_parameter_options[ip] = InputParameterOptionsDictionary()
-            if ode_options and ip in ode_options._parameters:
-                self.input_parameter_options[ip].update(ode_options._parameters[ip])
             self.input_parameter_options[ip].update(self.user_input_parameter_options[ip])
 
     def _check_ode(self):

@@ -11,9 +11,8 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         from openmdao.utils.assert_utils import assert_rel_error
 
         import dymos as dm
-        from dymos.examples.cannonball.cannonball_ode import CannonballODE
-
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
+        from dymos.examples.cannonball.cannonball_phase import CannonballPhase
 
         p = om.Problem(model=om.Group())
 
@@ -33,23 +32,17 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
-        ascent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
+        ascent = CannonballPhase(transcription=transcription)
 
         ascent = traj.add_phase('ascent', ascent)
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
-        ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100),
-                                duration_ref=100, units='s')
-        ascent.add_state('r', units='m', rate_source='eom.r_dot',
-                         fix_initial=True, fix_final=False)
-        ascent.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
-                         fix_initial=True, fix_final=False)
-        ascent.add_state('gam', units='rad', rate_source='eom.gam_dot', targets=['eom.gam'],
-                         fix_initial=False, fix_final=True)
-        ascent.add_state('v', units='m/s', rate_source='eom.v_dot',
-                         targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'],
-                         fix_initial=False, fix_final=False)
+        ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100), duration_ref=100, units='s')
+        ascent.set_state_options('r', fix_initial=True, fix_final=False)
+        ascent.set_state_options('h', fix_initial=True, fix_final=False)
+        ascent.set_state_options('gam', fix_initial=False, fix_final=True)
+        ascent.set_state_options('v', fix_initial=False, fix_final=False)
 
         ascent.add_input_parameter('S', targets=['aero.S'], units='m**2')
         ascent.add_input_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
@@ -60,7 +53,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         # Second Phase (descent)
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent = dm.Phase(ode_class=CannonballODE, transcription=transcription)
+        descent = CannonballPhase(transcription=transcription)
 
         traj.add_phase('descent', descent)
 
@@ -68,15 +61,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100, units='s')
-        descent.add_state('r', units='m', rate_source='eom.r_dot',
-                          fix_initial=False, fix_final=False)
-        descent.add_state('h', units='m', rate_source='eom.h_dot', targets=['atmos.h'],
-                          fix_initial=False, fix_final=True)
-        descent.add_state('gam', units='rad', rate_source='eom.gam_dot', targets=['eom.gam'],
-                          fix_initial=False, fix_final=False)
-        descent.add_state('v', units='m/s', rate_source='eom.v_dot',
-                          targets=['dynamic_pressure.v', 'eom.v', 'kinetic_energy.v'],
-                          fix_initial=False, fix_final=False)
+        descent.add_state('r', )
+        descent.add_state('h', fix_initial=False, fix_final=True)
+        descent.add_state('gam', fix_initial=False, fix_final=False)
+        descent.add_state('v', fix_initial=False, fix_final=False)
 
         descent.add_input_parameter('S', targets=['aero.S'], units='m**2')
         descent.add_input_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
