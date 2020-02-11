@@ -74,10 +74,11 @@ install:
     ./miniconda.sh -b  -p $HOME/miniconda;
     export PATH=$HOME/miniconda/bin:$PATH;
 
+    conda update -n base -c defaults conda
     conda create --yes -n PY$PY python=$PY;
-    source $HOME/miniconda/bin/activate PY$PY;
+    conda $HOME/miniconda/bin/activate PY$PY;
+    conda config --add channels conda-forge
 
-    config --add channels conda-forge;
     conda install --yes cython sphinx mock swig pip numpy=1.18.0 scipy=1.2.0 mpi4py matplotlib;
     sudo apt-get install gfortran;
 
