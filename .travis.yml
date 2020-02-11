@@ -78,32 +78,20 @@ install:
     conda create --yes -n PY$PY python=$PY;
     source $HOME/miniconda/bin/activate PY$PY;
 
-    conda install --yes cython sphinx mock swig pip;
+    conda install --yes cython sphinx mock swig pip numpy==1.18.0 scipy==1.2.0 matplotlib mpi4py networkx;
     sudo apt-get install gfortran;
     pip install --upgrade pip;
 
-    conda install --yes numpy==1.18.0;
-    conda install --yes scipy==1.2.0;
-    conda install --yes matplotlib;
-    conda install --yes mpi4py;
-    conda install --yes networkx;
+    if [ "$PETSc" ]; then
+    echo " >> Installing parallel processing dependencies";
+    pip install mpi4py;
+    conda install --yes petsc4py==$PETSc;
+    fi
 
     pip install testflo;
     pip install pyyaml;
     pip install coveralls;
     pip install --user travis-sphinx;
-
-#    pip install --upgrade pip;
-#    pip install numpy==1.16.0;
-#    pip install scipy==1.2.0;
-#    pip install mpi4py;
-#    pip install matplotlib;
-#    pip install nose;
-#    pip install networkx;
-#    pip install testflo;
-#    pip install pyyaml;
-#    pip install coveralls;
-#    pip install --user travis-sphinx;
 
     git clone https://github.com/mdolab/pyoptsparse.git;
     cd pyoptsparse;
@@ -122,19 +110,13 @@ install:
     python setup.py build install;
     cd ..;
 
-    if [ "$PETSc" ]; then
-      echo " >> Installing parallel processing dependencies";
-      pip install mpi4py;
-      conda install --yes petsc4py==$PETSc;
-    fi
+    # install OpenMDAO in developer mode so we have access to its sphinx extensions
+    git clone https://github.com/OpenMDAO/OpenMDAO.git;
+    cd OpenMDAO;
+    pip install -e .[all];
+    cd ..;
 
   fi
-
-# install OpenMDAO in developer mode so we have access to its sphinx extensions
-- git clone https://github.com/OpenMDAO/OpenMDAO.git;
-- cd OpenMDAO;
-- pip install -e .[all];
-- cd ..;
 
 # install dymos itself in developer mode.
 - pip install -e .;
