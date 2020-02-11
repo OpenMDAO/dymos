@@ -70,14 +70,16 @@ install:
   else
     echo "Building python environment...";
     wget "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-latest-Linux-x86_64.sh" -O miniconda.sh;
-    chmod +x miniconda.sh;
-    ./miniconda.sh -b  -p $HOME/miniconda;
-    export PATH=$HOME/miniconda/bin:$PATH;
+    bash miniconda.sh -b -p $HOME/miniconda;
+    source "$HOME/miniconda/etc/profile.d/conda.sh";
+    hash -r;
+    conda config --set always_yes yes --set changeps1 no;
+    conda update -q conda;
+    conda info -a;
 
-    conda update -n base -c defaults --yes conda
     conda create --yes -n PY$PY python=$PY;
     conda activate PY$PY;
-    conda config --add channels conda-forge
+    conda config --add channels conda-forge;
 
     conda install --yes cython sphinx mock swig pip numpy=1.17.0 scipy=1.2.0 mpi4py matplotlib;
     sudo apt-get install gfortran;
