@@ -7,8 +7,9 @@ controls, and parameters which determines targets for various variables in the O
 path which serves as the rate for states being integrated, and default units to be used for these
 variables.  In a trajectory with many phases, this can lead to a lot of unnecessary code duplication.
 Afterall, an ODE system will generally be associated with a given set of state variables, and the
-rate sources, targets, and default units of those state variables _shouldn't_ need to be specified
-each time you decide to use it.
+rate sources, targets, and default units of those state variables *shouldn't* need to be specified
+each time you decide to use it.  This is a pretty significant violation of the
+<DRY https://en.wikipedia.org/wiki/Don%27t_repeat_yourself>_ principle.
 
 
 The developers didn't want to require that non-standard OpenMDAO systems be used in ODEs.
