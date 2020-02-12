@@ -424,8 +424,6 @@ class Trajectory(om.Group):
             # DirectSolvers were moved down into the phases for use with MPI
             g.linear_solver = om.DirectSolver()
 
-            phs.finalize_variables()
-
         if self._linkages:
             self._setup_linkages()
 
@@ -456,7 +454,7 @@ class Trajectory(om.Group):
                 if targets is None or phase_name not in targets:
                     # Attempt to connect to an input parameter of the same name in the phase, if
                     # it exists.
-                    if name in phs.user_input_parameter_options:
+                    if name in phs.input_parameter_options:
                         tgt = '{0}.input_parameters:{1}'.format(phase_name, name)
                     else:
                         continue
@@ -464,11 +462,11 @@ class Trajectory(om.Group):
                     # Connections to this phase are explicitly omitted
                     continue
                 elif isinstance(targets[phase_name], str) and \
-                        targets[phase_name] in phs.user_input_parameter_options:
+                        targets[phase_name] in phs.input_parameter_options:
                     # Connect to an input parameter with a different name in this phase
                     tgt = '{0}.input_parameters:{1}'.format(phase_name, targets[phase_name])
                 elif isinstance(targets[phase_name], Sequence) and \
-                        name in phs.user_input_parameter_options:
+                        name in phs.input_parameter_options:
                     # User gave a list of ODE targets which were passed to the creation of a
                     # new input parameter in setup, just connect to that new input parameter
                     tgt = '{0}.input_parameters:{1}'.format(phase_name, name)

@@ -18,6 +18,7 @@ problems.
     phases/phases
     trajectories
     timeseries
+    subclassing_phases
     grid_refinement/grid_refinement
     tandem_phases
     simultaneous_derivs

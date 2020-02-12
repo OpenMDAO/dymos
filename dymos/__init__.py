@@ -1,6 +1,5 @@
-__version__ = '0.14.2'
+__version__ = '0.15.0'
 
-from .ode_options import ODEOptions, declare_time, declare_state, declare_parameter
 from .phase import Phase
 from .transcriptions import GaussLobatto, Radau, RungeKutta
 from .trajectory.trajectory import Trajectory

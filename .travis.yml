@@ -9,8 +9,8 @@ os:
   - linux
 
 env:
-  - PY=3.7 PETSc=3.9.1
-  - PY=3.6 UPLOAD_DOCS=1 PETSc=3.9.1
+  - PY=3.7 PETSc=3.11.0
+  - PY=3.6 PETSc=3.11.0 UPLOAD_DOCS=1
 
 language: generic
 
@@ -69,22 +69,23 @@ install:
     source $HOME/miniconda/bin/activate PY$PY;
   else
     echo "Building python environment...";
-    wget "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-4.5.11-Linux-x86_64.sh" -O miniconda.sh;
-    chmod +x miniconda.sh;
-    ./miniconda.sh -b  -p $HOME/miniconda;
-    export PATH=$HOME/miniconda/bin:$PATH;
+    wget "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-latest-Linux-x86_64.sh" -O miniconda.sh;
+    bash miniconda.sh -b -p $HOME/miniconda;
+    source "$HOME/miniconda/etc/profile.d/conda.sh";
+    hash -r;
+    conda config --set always_yes yes --set changeps1 no;
+    conda update -q conda;
+    conda info -a;
 
     conda create --yes -n PY$PY python=$PY;
-    source $HOME/miniconda/bin/activate PY$PY;
+    conda activate PY$PY;
+    conda config --add channels conda-forge;
 
-    conda install --yes cython sphinx mock swig pip;
+    conda install --yes cython sphinx mock swig pip numpy=1.17.0 scipy=1.2.0 mpi4py matplotlib;
     sudo apt-get install gfortran;
 
     pip install --upgrade pip;
-    pip install numpy==1.16.0;
-    pip install scipy==1.2.0;
-    pip install mpi4py;
-    pip install matplotlib;
+    pip install sqlitedict;
     pip install nose;
     pip install networkx;
     pip install testflo;
@@ -101,7 +102,7 @@ install:
       cd ../..;
     fi
 
-    python setup.py install;
+    python setup.py build install;
     cd ..;
 
     git clone https://github.com/OpenMDAO/MBI.git;
@@ -111,8 +112,7 @@ install:
 
     if [ "$PETSc" ]; then
       echo " >> Installing parallel processing dependencies";
-      pip install mpi4py;
-      pip install petsc4py==$PETSc;
+      conda install --yes petsc4py=$PETSc;
     fi
 
   fi
@@ -130,8 +130,9 @@ install:
 - conda list
 
 script:
+- export OMPI_MCA_rmaps_base_oversubscribe=1
 - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos;
-- testflo -b -n 1 --pre_announce
+- testflo -b -n 1 benchmark --pre_announce
 - if [ "$UPLOAD_DOCS" ]; then
     travis-sphinx build --source=dymos/docs;
   fi
