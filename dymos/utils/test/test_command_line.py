@@ -4,6 +4,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 import sys
 import os
 
+
 # TODO: these tests currently just check that the problem runs, they should check results
 @use_tempdirs
 class TestCommandLine(unittest.TestCase):

@@ -85,9 +85,6 @@ def modify_problem(problem, opts):
             # Load the values from the previous solution
             dm.load_case(problem, case)
 
-            # Invalidate the cache to avoid copying old arrays with the wrong size over new configuration
-            problem._initial_condition_cache = {}
-
     # record variables to database when running driver under hook
     # pre-hook is important, because recording initialization is skipped if final_setup has run once
     save_db = os.getcwd() + '/dymos_solution.db'
@@ -99,7 +96,6 @@ def modify_problem(problem, opts):
 
     print('adding recorder at:', save_db)
     problem.driver.add_recorder(om.SqliteRecorder(save_db))
-    #problem.driver.recording_options['includes'] = ['*timeseries*']
     problem.driver.recording_options['includes'] = ['*']
     problem.driver.recording_options['record_inputs'] = True
     #problem.record_iteration('final')    # TODO: not working to save only last iteration?
@@ -114,15 +110,17 @@ def modify_problem(problem, opts):
 def run_problem(problem, refine=False, refine_iteration_limit=10):
     problem.final_setup()  # make sure command line option hook has a chance to run
 
-    if rp.options.get('no_solve'):  # TODO: implement this option
+    if rp.options.get('no_solve'):
         problem.run_model()
     else:
         problem.run_driver()
 
     iteration_limit = rp.options.get('refine_iteration_limit')
-    if iteration_limit:  # override arguments with options from command line
+    if iteration_limit:
+        print('overriding run_problem arguments with refine_iteration_limit from command line')
         refine_iteration_limit = iteration_limit
         refine = True
+
     if refine:
         out_file = 'grid_refinement.out'
 
@@ -159,9 +157,10 @@ def run_problem(problem, refine=False, refine_iteration_limit=10):
             else:
                 f.write('\nSuccessfully completed grid refinement')
 
-    if rp.options.get('simulate'):  # TODO: implement this option
-        # do all phase.simulate(); traj.simulate
-        pass
+    if rp.options.get('simulate'):
+        for subsys, local in problem.model._all_subsystem_iter():
+            subsys.simulate()
+
 
 def find_phases(sys):
     phase_paths = []

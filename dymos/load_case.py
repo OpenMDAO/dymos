@@ -127,7 +127,7 @@ def load_case(problem, case):
             problem[f'{phase_path}.design_parameters:{param_name}'] = param_val
 
         for param_name, options in phase.input_parameter_options.items():
-            param_val = outputs[f'{phase_path}.input_parameters:{param_name}']
+            param_val = inputs[f'{phase_path}.input_parameters:{param_name}']
             problem[f'{phase_path}.input_parameters:{param_name}'] = param_val
 
         for var_path in phase_inputs[phase] + phase_outputs[phase]:
