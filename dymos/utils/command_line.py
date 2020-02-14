@@ -1,5 +1,3 @@
-#from __future__ import print_function
-
 import openmdao.utils.hooks as hooks
 import argparse
 import sys
@@ -8,6 +6,7 @@ from dymos.run_problem import modify_problem
 import dymos.utils.command_line as cl
 
 modify_enabled = True
+
 
 def _simple_exec(script_name, pre_hook_function, user_args):
     """
@@ -74,11 +73,11 @@ def dymos_cmd():
         args.solution = db_copy
 
     opts = {
-        'refine_iteration_limit':int(args.refine_limit),
-        'restart':args.solution,
-        'simulate':args.simulate,
-        'no_solve':args.no_solve,
-        'reset_grid':args.reset_grid
+        'refine_iteration_limit': int(args.refine_limit),
+        'restart': args.solution,
+        'simulate': args.simulate,
+        'no_solve': args.no_solve,
+        'reset_grid': args.reset_grid
     }
 
     hooks.use_hooks = True

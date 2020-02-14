@@ -7,60 +7,6 @@ import dymos.run_problem as rp
 from dymos.trajectory.trajectory import Trajectory
 import os
 
-'''
---- run_problem call sequence when being called from a user script:
-
-python user_script.py
-    script sets up problem
-    script calls run_problem(), hooked is False
-        problem.run_driver()
-            final_setup()
-            model._clear_iprint()
-            driver.run()
-        if refine: do grid refinement, loop:
-            problem.setup()
-            re_interpolate_solution()
-            problem.run_driver()
-                final_setup()
-                model._clear_iprint()
-                driver.run()
-    script might do post run analysis or plotting
-
---- run_problem call sequence when being called from Dymos command line:
-
-dymos user_script.py
-    command_line.dymos_cmd()
-        parse arguments and extract options for run_problem
-        modify_enabled = True to enable hook's effect
-        register pre hook function for final_setup
-        exec script.py
-            script sets up problem
-            script calls run_problem()
-                    problem.run_driver()
-                        final_setup(), pre hook function is triggered just before this starts
-        hook function hijacks final_setup
-            modify_enabled = False to disable hook's effect the next time it is called
-            modify_problem() is called with parsed options
-                driver.add_recorder
-                if restart: load problem configuration from supplied database using load_case
-                # if simulate: ?
-                # if no_solve: ?
-                # if reset_grid: ?
-            hook returns
-                        final_setup() resumes
-                        model._clear_iprint()
-                        driver.run()
-                    override refine from command line options, if applicable
-                    if refine: do grid refinement, loop:
-                        problem.setup()
-                        re_interpolate_solution()
-                        problem.run_driver()
-                            final_setup()
-                            model._clear_iprint()
-                            driver.run()
-            script might do post run analysis or plotting
-'''
-
 options = {}
 
 
@@ -99,7 +45,7 @@ def modify_problem(problem, opts):
     problem.driver.add_recorder(om.SqliteRecorder(save_db))
     problem.driver.recording_options['includes'] = ['*']
     problem.driver.recording_options['record_inputs'] = True
-    #problem.record_iteration('final')    # TODO: not working to save only last iteration?
+    # problem.record_iteration('final')    # TODO: not working to save only last iteration?
 
     if opts.get('reset_grid'):  # TODO: implement this option
         pass
