@@ -4,6 +4,7 @@ from .phase.phase import Phase
 import openmdao.api as om
 import dymos as dm
 import dymos.run_problem as rp
+from dymos.trajectory.trajectory import Trajectory
 import os
 
 '''
@@ -159,7 +160,8 @@ def run_problem(problem, refine=False, refine_iteration_limit=10):
 
     if rp.options.get('simulate'):
         for subsys, local in problem.model._all_subsystem_iter():
-            subsys.simulate()
+            if isinstance(subsys, Trajectory):
+                subsys.simulate()
 
 
 def find_phases(sys):
