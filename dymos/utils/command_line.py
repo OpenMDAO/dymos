@@ -3,9 +3,8 @@ import argparse
 import sys
 import os
 from dymos.run_problem import modify_problem
-import dymos.utils.command_line as cl
 
-modify_enabled = True
+hook_options = {'modify_enabled': True}
 
 
 def _simple_exec(script_name, pre_hook_function, user_args):
@@ -81,14 +80,14 @@ def dymos_cmd():
     }
 
     hooks.use_hooks = True
-    cl.modify_enabled = True  # enable hook's effect
+    hook_options['modify_enabled'] = True  # enable hook's effect
 
     def _pre_final_setup(prob):
-        if not cl.modify_enabled:  # unregistering the hook does not allow it to be reliably re-enabled
+        if not hook_options['modify_enabled']:  # unregistering the hook does not allow it to be reliably re-enabled
             return
 
         modify_problem(prob, opts)
-        cl.modify_enabled = False  # disable hook's effect
+        hook_options['modify_enabled'] = False  # disable hook's effect
 
     hooks._register_hook('final_setup', 'Problem', pre=_pre_final_setup)  # enable pre-hook
     _simple_exec(args.script, lambda _: _pre_final_setup, user_args)

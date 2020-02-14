@@ -3,16 +3,16 @@ from .phase.phase import Phase
 
 import openmdao.api as om
 import dymos as dm
-import dymos.run_problem as rp
 from dymos.trajectory.trajectory import Trajectory
 import os
 
 options = {}
 
 
+# modify_problem is called once from the pre final_setup hook
 def modify_problem(problem, opts):
-    rp.options = opts  # save options for potential use in run_problem
-    print('modify_problem is starting')  # TODO delete this when we know it is working
+    for k, v in opts.items():  # save options for potential use in run_problem
+        options[k] = v
 
     restart = opts.get('restart')
     if restart:  # restore variables from database file specified by 'restart'
@@ -50,19 +50,18 @@ def modify_problem(problem, opts):
     if opts.get('reset_grid'):  # TODO: implement this option
         pass
 
-    print('modify problem is finished')
     return problem
 
 
 def run_problem(problem, refine=False, refine_iteration_limit=10):
     problem.final_setup()  # make sure command line option hook has a chance to run
 
-    if rp.options.get('no_solve'):
+    if options.get('no_solve'):
         problem.run_model()
     else:
         problem.run_driver()
 
-    iteration_limit = rp.options.get('refine_iteration_limit')
+    iteration_limit = options.get('refine_iteration_limit')
     if iteration_limit:
         print('overriding run_problem arguments with refine_iteration_limit from command line')
         refine_iteration_limit = iteration_limit
@@ -104,7 +103,7 @@ def run_problem(problem, refine=False, refine_iteration_limit=10):
             else:
                 f.write('\nSuccessfully completed grid refinement')
 
-    if rp.options.get('simulate'):
+    if options.get('simulate'):
         for subsys, local in problem.model._all_subsystem_iter():
             if isinstance(subsys, Trajectory):
                 subsys.simulate()
