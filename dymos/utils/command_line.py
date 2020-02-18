@@ -2,9 +2,12 @@ import openmdao.utils.hooks as hooks
 import argparse
 import sys
 import os
-from dymos.run_problem import modify_problem
+from dymos.run_problem import modify_problem, run_problem
 
-hook_options = {'modify_enabled': True}
+hook_options = {
+    'pre_hook_enabled': True,
+    'post_hook_enabled': True
+}
 
 
 def _simple_exec(script_name, pre_hook_function, user_args):
@@ -80,17 +83,33 @@ def dymos_cmd():
     }
 
     hooks.use_hooks = True
-    hook_options['modify_enabled'] = True  # enable hook's effect
+    hook_options['pre_hook_enabled'] = True  # enable hook's effect
+    hook_options['post_hook_enabled'] = True
 
     def _pre_final_setup(prob):
-        if not hook_options['modify_enabled']:  # unregistering the hook does not allow it to be reliably re-enabled
+        if not hook_options['pre_hook_enabled']:  # unregistering the hook does not allow it to be reliably re-enabled
             return
 
-        modify_problem(prob, opts)
-        hook_options['modify_enabled'] = False  # disable hook's effect
+        hook_options['pre_hook_enabled'] = False  # disable hook's effect
 
-    hooks._register_hook('final_setup', 'Problem', pre=_pre_final_setup)  # enable pre-hook
-    _simple_exec(args.script, lambda _: _pre_final_setup, user_args)
+        modify_problem(prob, opts)
+
+    def _post_final_setup(prob):
+        if not hook_options['post_hook_enabled']:
+            return
+
+        hook_options['post_hook_enabled'] = False  # disable hook's effect
+
+        if not opts['no_solve']:  # execute run_problem unless told otherwise
+            refine = opts.get('refine_iteration_limit')
+            run_problem(prob, refine, refine_iteration_limit=refine)
+
+    hooks._register_hook('final_setup',
+                         'Problem',
+                         pre=_pre_final_setup,
+                         post=_post_final_setup)
+
+    _simple_exec(args.script, lambda _: _pre_final_setup, user_args)  # run the script
 
 
 if __name__ == '__main__':
