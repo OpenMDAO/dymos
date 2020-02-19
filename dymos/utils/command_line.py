@@ -39,6 +39,7 @@ def _simple_exec(script_name, pre_hook_function, user_args):
 
     pre_hook_function(0)  # set up the hook function
     exec(code, globals_dict)
+    return globals_dict
 
 
 def dymos_cmd():
@@ -109,7 +110,8 @@ def dymos_cmd():
                          pre=_pre_final_setup,
                          post=_post_final_setup)
 
-    _simple_exec(args.script, lambda _: _pre_final_setup, user_args)  # run the script
+    globals_dict = _simple_exec(args.script, lambda _: _pre_final_setup, user_args)  # run the script
+    return globals_dict
 
 
 if __name__ == '__main__':

@@ -79,9 +79,9 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.input_parameters:g'] = 9.80665
 
     p.final_setup()
-
+    return p
 
 if __name__ == '__main__':
-    brachistochrone_min_time(transcription='radau-ps', num_segments=50,
-                             transcription_order=3, compressed=True,
-                             optimizer='SLSQP')
+    p = brachistochrone_min_time(transcription='radau-ps', num_segments=50,
+                                 transcription_order=3, compressed=True,
+                                 optimizer='SLSQP')
