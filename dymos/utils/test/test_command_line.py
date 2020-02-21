@@ -12,7 +12,8 @@ import openmdao.api as om
 @use_tempdirs
 class TestCommandLine(unittest.TestCase):
     def setUp(self):
-        self.test_dir = os.path.dirname(os.path.abspath(__file__))
+        test_dir = os.path.dirname(os.path.abspath(__file__))
+        self.base_args = ['dymos_testing', os.path.join(test_dir, 'brachistochrone_for_command_line.py')]
 
         print('Removing the stale test databases before running.')
         for filename in ['dymos_solution.db', 'old_dymos_solution.db', 'grid_refinement.out']:
@@ -40,9 +41,7 @@ class TestCommandLine(unittest.TestCase):
         """ Test to verify that the command line interface intercepts final_setup and runs
         dm.run_problem by default without any additional arguments. """
         print('test_ex_brachistochrone_stock')
-        args = ['dymos_testing',
-                os.path.join(self.test_dir, 'brachistochrone_for_command_line.py')]
-        with patch.object(sys, 'argv', args):
+        with patch.object(sys, 'argv', self.base_args):
             globals_dict = command_line.dymos_cmd()
 
         self._assert_correct_solution()
@@ -50,26 +49,22 @@ class TestCommandLine(unittest.TestCase):
         assert_almost_equal(globals_dict['p']['traj0.phase0.controls:theta'][:3],
                             np.array([[2.44713004], [1.08682697], [1.32429102]]))
 
+    # TODO: causes random seeming testflo errors:
     def test_ex_brachistochrone_stock_nosolve_nosim(self):
         """ Test to verify that the command line interface intercepts final_setup and
         does nothing if given `--no_solve` and not given `--simulate`. """
         print('test_ex_brachistochrone_stock_nosolve_nosim')
-        args = ['dymos_testing',
-                os.path.join(self.test_dir, 'brachistochrone_for_command_line.py'),
-                '--no_solve']
-        with patch.object(sys, 'argv', args):
+        with patch.object(sys, 'argv', self.base_args + ['--no_solve']):
             command_line.dymos_cmd()
 
         self.assertTrue(os.path.exists('dymos_solution.db'))
         cr = om.CaseReader('dymos_solution.db')
         self.assertTrue(len(cr.list_cases()) == 0)  # no case recorded
 
+    # TODO: causes random seeming testflo errors:
     def test_ex_brachistochrone_iteration(self):
         print('test_ex_brachistochrone_iteration')
-        args = ['dymos_testing',
-                os.path.join(self.test_dir, 'brachistochrone_for_command_line.py'),
-                '--refine_limit=5']
-        with patch.object(sys, 'argv', args):
+        with patch.object(sys, 'argv', self.base_args + ['--refine_limit=5']):
             command_line.dymos_cmd()
 
         self._assert_correct_solution()
@@ -78,28 +73,21 @@ class TestCommandLine(unittest.TestCase):
     def test_ex_brachistochrone_solution(self):
         # run stock problem first to record the output database
         print('test_ex_brachistochrone_solution first run')
-        args = ['dymos_testing',
-                os.path.join(self.test_dir, 'brachistochrone_for_command_line.py')]
-        with patch.object(sys, 'argv', args):
+        with patch.object(sys, 'argv', self.base_args):
             command_line.dymos_cmd()
 
         # run problem again loading the output database
         print('test_ex_brachistochrone_solution second run')
-        args = ['dymos_testing',
-                os.path.join(self.test_dir, 'brachistochrone_for_command_line.py'),
-                '--solution=dymos_solution.db']
-        with patch.object(sys, 'argv', args):
+        with patch.object(sys, 'argv', self.base_args + ['--solution=dymos_solution.db']):
             command_line.dymos_cmd()
 
         self._assert_correct_solution()
         self.assertTrue(os.path.exists('old_dymos_solution.db'))  # old database renamed when used as input
 
+    # TODO: causes random seeming testflo errors:
     def test_ex_brachistochrone_no_solve(self):
         print('test_ex_brachistochrone_no_solve')
-        args = ['dymos_testing',
-                os.path.join(self.test_dir, 'brachistochrone_for_command_line.py'),
-                '--no_solve']
-        with patch.object(sys, 'argv', args):
+        with patch.object(sys, 'argv', self.base_args + ['--no_solve']):
             command_line.dymos_cmd()
 
         self.assertTrue(os.path.exists('dymos_solution.db'))
@@ -108,20 +96,14 @@ class TestCommandLine(unittest.TestCase):
 
     def test_ex_brachistochrone_simulate(self):
         print('test_ex_brachistochrone_simulate')
-        args = ['dymos_testing',
-                os.path.join(self.test_dir, 'brachistochrone_for_command_line.py'),
-                '--simulate']
-        with patch.object(sys, 'argv', args):
+        with patch.object(sys, 'argv', self.base_args + ['--simulate']):
             command_line.dymos_cmd()
 
         self._assert_correct_solution()
 
     def test_ex_brachistochrone_reset_grid(self):
         print('test_ex_brachistochrone_reset_grid')
-        args = ['dymos_testing',
-                os.path.join(self.test_dir, 'brachistochrone_for_command_line.py'),
-                '--reset_grid']
-        with patch.object(sys, 'argv', args):
+        with patch.object(sys, 'argv', self.base_args + ['--reset_grid']):
             command_line.dymos_cmd()
 
         self._assert_correct_solution()
