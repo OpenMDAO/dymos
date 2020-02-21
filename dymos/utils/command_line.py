@@ -3,6 +3,7 @@ import argparse
 import sys
 import os
 from dymos.run_problem import modify_problem, run_problem
+from unittest.mock import patch
 
 hook_options = {
     'pre_hook_enabled': True,
@@ -23,32 +24,34 @@ def _simple_exec(script_name, pre_hook_function, user_args):
     user_args: list of strings
         Any user supplied arguments for the script.
     """
+    # use patch to avoid writing to sys.argv and sys.path
+    with patch.object(sys, 'argv', [script_name] + user_args):
+        with patch.object(sys, 'path', [os.path.dirname(script_name)] + sys.path[1:]):
 
-    sys.path.insert(0, os.path.dirname(script_name))
-    sys.argv[:] = [script_name] + user_args
+            with open(script_name, 'rb') as fp:
+                code = compile(fp.read(), script_name, 'exec')
 
-    with open(script_name, 'rb') as fp:
-        code = compile(fp.read(), script_name, 'exec')
+            globals_dict = {
+                '__file__': script_name,
+                '__name__': '__main__',
+                '__package__': None,
+                '__cached__': None,
+            }
 
-    globals_dict = {
-        '__file__': script_name,
-        '__name__': '__main__',
-        '__package__': None,
-        '__cached__': None,
-    }
+            pre_hook_function(0)  # set up the hook function
+            exec(code, globals_dict)
 
-    pre_hook_function(0)  # set up the hook function
-    exec(code, globals_dict)
     return globals_dict
 
 
-def dymos_cmd():
+def dymos_cmd(argv=None):
     # pre-parse sys.argv to split between before and after '--'
-    if '--' in sys.argv:
-        idx = sys.argv.index('--')
-        sys_args = sys.argv[:idx]
-        user_args = sys.argv[idx + 1:]
-        sys.argv[:] = sys_args
+    alt_args = argv if argv else sys.argv
+    if '--' in alt_args:
+        idx = alt_args.index('--')
+        sys_args = alt_args[:idx]
+        user_args = alt_args[idx + 1:]
+        argv = sys_args  # don't change sys.argv
     else:
         user_args = []
 
@@ -68,7 +71,7 @@ def dymos_cmd():
     parser.add_argument('-l', '--refine_limit', default=0,
                         help='The number of passes through the grid refinement algorithm'
                              ' to use. (default: 0)')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)  # sys.argv is used if argv parameter is None
 
     if args.solution == 'dymos_solution.db':  # make sure the loaded db is not being overwritten by the new db
         db_copy = 'old_dymos_solution.db'
