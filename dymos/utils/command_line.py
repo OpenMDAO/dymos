@@ -111,7 +111,9 @@ def dymos_cmd():
                          post=_post_final_setup)
 
     globals_dict = _simple_exec(args.script, lambda _: _pre_final_setup, user_args)  # run the script
-    return globals_dict
+
+    if not sys.argv[0].endswith('dymos'):  # suppress printing return value when running from command line
+        return globals_dict  # return globals for possible checking in unit tests
 
 
 if __name__ == '__main__':
