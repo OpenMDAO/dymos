@@ -40,6 +40,7 @@ def _simple_exec(script_name, pre_hook_function, user_args):
 
             pre_hook_function(0)  # set up the hook function
             exec(code, globals_dict)
+            hooks._reset_all_hooks()
 
     return globals_dict
 
