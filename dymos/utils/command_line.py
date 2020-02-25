@@ -11,7 +11,7 @@ hook_options = {
 }
 
 
-def _simple_exec(script_name, pre_hook_function, user_args):
+def _simple_exec(script_name, user_args):
     """
     Use this as executor for commands that run as Problem commands.
 
@@ -19,8 +19,6 @@ def _simple_exec(script_name, pre_hook_function, user_args):
     ----------
     script_name : string
         Name of the script to run.
-    pre_hook_function: function
-        final_setup hook function.
     user_args: list of strings
         Any user supplied arguments for the script.
     """
@@ -38,7 +36,6 @@ def _simple_exec(script_name, pre_hook_function, user_args):
                 '__cached__': None,
             }
 
-            pre_hook_function(0)  # set up the hook function
             exec(code, globals_dict)
             hooks._reset_all_hooks()
 
@@ -114,7 +111,7 @@ def dymos_cmd(argv=None):
                          pre=_pre_final_setup,
                          post=_post_final_setup)
 
-    globals_dict = _simple_exec(args.script, lambda _: _pre_final_setup, user_args)  # run the script
+    globals_dict = _simple_exec(args.script, user_args)  # run the script
 
     if not sys.argv[0].endswith('dymos'):  # suppress printing return value when running from command line
         return globals_dict  # return globals for possible checking in unit tests
