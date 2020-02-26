@@ -63,7 +63,7 @@ solving the optization problem.
 The Objective
 -------------
 
-Dymos man be used to both simulate and optimize dynamical systems. The phase construct is
+Dymos may be used to both simulate and optimize dynamical systems. The phase construct is
 generally used in optimization contexts.  Within each phase, the user can set the objective:
 
 .. math::
@@ -94,4 +94,3 @@ The optimization problem as defined by Dymos can Thus be stated as:
     \mathrm{Final \, Boundary \, Constraints:}& \qquad \bar{g}_{f,lb} \leq g_{f}(\bar{x}_f,t_f,\bar{u}_f, \bar{d}) \leq \bar{g}_{f,ub} \\
     \mathrm{Path \, Constraints:}& \qquad \bar{p}_{f,lb} \leq p_{f}(\bar{x},t,\bar{u},\bar{d}) \leq \bar{p}_{f,ub} \\
     \end{align*}
-
