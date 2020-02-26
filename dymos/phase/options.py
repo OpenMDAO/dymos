@@ -557,6 +557,27 @@ class TimeOptionsDictionary(om.OptionsDictionary):
                           'connected')
 
 
+class GridRefinementOptionsDictionary(om.OptionsDictionary):
+    """
+    An OptionsDictionary for grid refinement options in a Phase.
+    """
+
+    def __init__(self, read_only=False):
+        super(GridRefinementOptionsDictionary, self).__init__(read_only)
+
+        self.declare('refine', types=bool, default=True,
+                     desc='If True, this Phase may be refined during the grid refinement procedure.')
+
+        self.declare(name='tolerance', types=float, default=1.0E-4,
+                     desc='Default tolerance for grid refinement in this phase.')
+
+        self.declare(name='min_order', types=int, default=3,
+                     desc='Minimum transcription order for segments in this phase.')
+
+        self.declare(name='max_order', types=int, default=3,
+                     desc='Maximum transcription order for segments in this phase.')
+
+
 class _ForDocs(object):  # pragma: no cover
     """
     This class is provided as a way to automatically display options dictionaries in the docs,

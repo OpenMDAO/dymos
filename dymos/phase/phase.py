@@ -12,7 +12,7 @@ import dymos as dm
 
 from .options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
     InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary, \
-    PolynomialControlOptionsDictionary
+    PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
 
@@ -60,15 +60,11 @@ class Phase(om.Group):
         self.polynomial_control_options = {}
         self.design_parameter_options = {}
         self.input_parameter_options = {}
+        self.refine_options = GridRefinementOptionsDictionary()
 
         # Dictionaries of variable options that are set by the user via the API
         # These will be applied over any defaults specified by decorators on the ODE
         if from_phase is None:
-            self.refine_options = {'refine': False,
-                                   'iteration_limit': 10,
-                                   'tolerance': 1e-4,
-                                   'min_order': 3,
-                                   'max_order': 14}
 
             self._initial_boundary_constraints = {}
             self._final_boundary_constraints = {}
@@ -1833,11 +1829,27 @@ class Phase(om.Group):
 
         return sim_prob
 
-    def set_refine_options(self, refine=False, iteration_limit=10, tol=1e-4, min_order=3, max_order=14):
-        self.refine_options['refine'] = refine
-        self.refine_options['iteration_limit'] = iteration_limit
-        self.refine_options['tolerance'] = tol
-        self.refine_options['min_order'] = min_order
-        self.refine_options['max_order'] = max_order
+    def set_refine_options(self, refine=_unspecified, tol=_unspecified, min_order=_unspecified,
+                           max_order=_unspecified):
+        """
+        Set the specified option(s) for grid refinement in the phase.
 
-        return
+        Parameters
+        ----------
+        refine : bool
+            If True, this Phase will undergo refinement during the grid refinement procedure.
+        tol : float
+            The error tolerance for the ph grid refinement algorithm.
+        min_order : int
+            The minimum allowable transcription order for segments in the phase.
+        max_order : int
+            The maximum allowable transcription order for segments in the phase.
+        """
+        if refine is not _unspecified:
+            self.refine_options['refine'] = refine
+        if tol is not _unspecified:
+            self.refine_options['tolerance'] = tol
+        if min_order is not _unspecified:
+            self.refine_options['min_order'] = min_order
+        if max_order is not _unspecified:
+            self.refine_options['max_order'] = max_order
