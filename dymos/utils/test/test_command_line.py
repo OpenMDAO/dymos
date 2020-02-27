@@ -9,7 +9,7 @@ import os
 import openmdao.api as om
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestCommandLine(unittest.TestCase):
 
     def setUp(self):
@@ -91,6 +91,9 @@ class TestCommandLine(unittest.TestCase):
         with patch.object(sys, 'argv', self.base_args + ['--no_solve']):
             command_line.dymos_cmd()
 
+        # Until the problem recorder is fixed, the driver recorder shouldn't be
+        # invoked by this test, and thus we won't get a dymos_solution.db file
+
         self.assertTrue(os.path.exists('dymos_solution.db'))
         cr = om.CaseReader('dymos_solution.db')
         self.assertTrue(len(cr.list_cases()) == 0)  # no case recorded
@@ -100,8 +103,13 @@ class TestCommandLine(unittest.TestCase):
         with patch.object(sys, 'argv', self.base_args + ['--simulate']):
             command_line.dymos_cmd()
 
+        # We need to make sure the run_problem function has the simulate use a recording
+        # (can use dymos_simulation.db as the output of that for now), and then test
+        # that it's generated here.
+
         self._assert_correct_solution()
 
+    @unittest.skip
     def test_ex_brachistochrone_reset_grid(self):
         print('test_ex_brachistochrone_reset_grid')
         with patch.object(sys, 'argv', self.base_args + ['--reset_grid']):
