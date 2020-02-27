@@ -574,7 +574,7 @@ class GridRefinementOptionsDictionary(om.OptionsDictionary):
         self.declare(name='min_order', types=int, default=3,
                      desc='Minimum transcription order for segments in this phase.')
 
-        self.declare(name='max_order', types=int, default=3,
+        self.declare(name='max_order', types=int, default=14,
                      desc='Maximum transcription order for segments in this phase.')
 
 
