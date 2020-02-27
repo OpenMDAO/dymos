@@ -9,7 +9,7 @@ import os
 import openmdao.api as om
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestCommandLine(unittest.TestCase):
 
     def setUp(self):
@@ -109,7 +109,7 @@ class TestCommandLine(unittest.TestCase):
 
         self._assert_correct_solution()
 
-    @unittest.skip
+    @unittest.skipIf(True, reason='grid resetting not yet implemented')
     def test_ex_brachistochrone_reset_grid(self):
         print('test_ex_brachistochrone_reset_grid')
         with patch.object(sys, 'argv', self.base_args + ['--reset_grid']):
