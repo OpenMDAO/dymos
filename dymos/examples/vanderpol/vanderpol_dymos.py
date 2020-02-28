@@ -55,8 +55,8 @@ def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order
                     units=None)
 
     # define the control
-    phase.add_control(name='u', units=None, lower=-0.75, upper=1.0, continuity=True, rate_continuity=True,
-                      targets='u')  # target required because u is an input
+    phase.add_control(name='u', units=None, lower=-0.75, upper=1.0, continuity=True,
+                      rate_continuity=True, targets='u')  # target required because u is an input
 
     # add constraints
     phase.add_boundary_constraint('x0', loc='initial', equals=1.0)
@@ -75,7 +75,7 @@ def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order
     p['traj.phase0.t_initial'] = 0.0
     p['traj.phase0.t_duration'] = t_final
 
-    # TODO: explain what this does and why it is necessary
+    # add a linearly interpolated initial guess for the state and control curves
     p['traj.phase0.states:x0'] = phase.interpolate(ys=[1, 0], nodes='state_input')
     p['traj.phase0.states:x1'] = phase.interpolate(ys=[1, 0], nodes='state_input')
     p['traj.phase0.states:J'] = phase.interpolate(ys=[0, 1], nodes='state_input')

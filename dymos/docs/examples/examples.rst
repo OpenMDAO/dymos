@@ -7,6 +7,7 @@ Dymos by Example
   :titlesonly:
 
   brachistochrone
+  vanderpol
   commercial_aircraft
   double_integrator
   hyper_sensitive
