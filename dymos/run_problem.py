@@ -1,15 +1,83 @@
 from .grid_refinement.ph_adaptive.ph_adaptive import PHAdaptive
 from .phase.phase import Phase
 
-import numpy as np
 import openmdao.api as om
+import dymos as dm
+from dymos.trajectory.trajectory import Trajectory
 import os
 
 
-def run_problem(problem, refine=False, refine_iteration_limit=10):
-    problem.run_driver()
+# modify_problem is called once from the pre final_setup hook
+def modify_problem(problem, restart=None, reset_grid=False):
+    """
 
-    if refine:
+    Parameters
+    ----------
+    problem : om.Problem
+        The problem instance being modified.
+    restart : String or None
+        The name of a database to use for restarting the problem.
+    reset_grid: Boolean
+        Flag to trigger a grid reset.
+    """
+    if restart is not None:  # restore variables from database file specified by 'restart'
+        print('Restarting run_problem using the %s database.' % restart)
+        cr = om.CaseReader(restart)
+        cases = cr.list_cases()
+        if len(cases) < 1:
+            print('WARNING: the requested %s database file does not have any cases to load.')
+        else:
+            case = cr.get_case(cases[-1])  # TODO: use last case, ideally it should be the only one, but there are many
+
+            # Initialize the system with values from the case.
+            # We unnecessarily call setup again just to make sure we obliterate the previous solution
+            # First reset the connections at the top level model until fixed in OpenMDAO
+            problem.setup()
+
+            # Load the values from the previous solution
+            dm.load_case(problem, case)
+
+    # record variables to database when running driver under hook
+    # pre-hook is important, because recording initialization is skipped if final_setup has run once
+    save_db = os.getcwd() + '/dymos_solution.db'
+
+    try:
+        os.remove(save_db)
+    except FileNotFoundError:
+        pass  # OK if old database is not present to be deleted
+
+    print('adding recorder at:', save_db)
+    problem.driver.add_recorder(om.SqliteRecorder(save_db))
+    problem.driver.recording_options['includes'] = ['*']
+    problem.driver.recording_options['record_inputs'] = True
+    # problem.record_iteration('final')    # TODO: not working to save only last iteration?
+
+    # if opts.get('reset_grid'):  # TODO: implement this option
+    #     pass
+
+
+def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=True, simulate=False):
+    """
+
+    Parameters
+    ----------
+    problem
+    refine
+    refine_iteration_limit
+    solve
+
+    Returns
+    -------
+
+    """
+    problem.final_setup()  # make sure command line option hook has a chance to run
+
+    if run_driver:
+        problem.run_driver()
+    else:
+        problem.run_model()
+
+    if refine and refine_iteration_limit > 0 and run_driver:
         out_file = 'grid_refinement.out'
 
         phases = {phase_path: problem.model._get_subsystem(phase_path)
@@ -44,6 +112,11 @@ def run_problem(problem, refine=False, refine_iteration_limit=10):
                 f.write('\nError is within tolerance. Grid refinement is not required')
             else:
                 f.write('\nSuccessfully completed grid refinement')
+
+    if simulate:
+        for subsys, local in problem.model._all_subsystem_iter():
+            if isinstance(subsys, Trajectory):
+                subsys.simulate()
 
 
 def find_phases(sys):
