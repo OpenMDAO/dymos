@@ -5,11 +5,6 @@ import os
 from dymos.run_problem import modify_problem, run_problem
 from unittest.mock import patch
 
-# hook_options = {
-#     'pre_hook_enabled': True,
-#     'post_hook_enabled': True
-# }
-
 
 def _simple_exec(script_name, user_args):
     """
@@ -37,7 +32,6 @@ def _simple_exec(script_name, user_args):
             }
 
             exec(code, globals_dict)
-            hooks._reset_all_hooks()
 
     return globals_dict
 
@@ -84,8 +78,6 @@ def dymos_cmd(argv=None):
         'reset_grid': args.reset_grid
     }
 
-    hooks.use_hooks = True
-
     class DymosHooks:
         """
         DymosHooks is a lightweight class which provides the Dymos command-line OpenMDAO
@@ -117,10 +109,9 @@ def dymos_cmd(argv=None):
                 run_problem(prob, refine_iterations > 0, refine_iteration_limit=refine_iterations,
                             run_driver=not opts['no_solve'], simulate=opts['simulate'])
 
-            self._hooks_enabled = True
-
     dymos_hooks = DymosHooks()
 
+    hooks.use_hooks = True
     hooks._register_hook('final_setup',
                          'Problem',
                          pre=dymos_hooks._pre_final_setup,

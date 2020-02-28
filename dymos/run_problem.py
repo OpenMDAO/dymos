@@ -15,12 +15,11 @@ def modify_problem(problem, restart=None, reset_grid=False):
     ----------
     problem : om.Problem
         The problem instance being modified.
-    opts : dict
-        A dictionary of options that includes instructions for this function.
+    restart : String or None
+        The name of a database to use for restarting the problem.
+    reset_grid: Boolean
+        Flag to trigger a grid reset.
     """
-    # for k, v in opts.items():  # save options for potential use in run_problem
-    #     options[k] = v
-
     if restart is not None:  # restore variables from database file specified by 'restart'
         print('Restarting run_problem using the %s database.' % restart)
         cr = om.CaseReader(restart)
@@ -77,12 +76,6 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
         problem.run_driver()
     else:
         problem.run_model()
-
-    # iteration_limit = options.get('refine_iteration_limit')
-    # if iteration_limit:
-    #     print('overriding run_problem arguments with refine_iteration_limit from command line')
-    #     refine_iteration_limit = iteration_limit
-    #     refine = True
 
     if refine and refine_iteration_limit > 0 and run_driver:
         out_file = 'grid_refinement.out'
