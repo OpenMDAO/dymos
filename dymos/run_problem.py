@@ -6,16 +6,22 @@ import dymos as dm
 from dymos.trajectory.trajectory import Trajectory
 import os
 
-options = {}
-
 
 # modify_problem is called once from the pre final_setup hook
-def modify_problem(problem, opts):
-    for k, v in opts.items():  # save options for potential use in run_problem
-        options[k] = v
+def modify_problem(problem, restart=None, reset_grid=False):
+    """
 
-    restart = opts.get('restart')
-    if restart:  # restore variables from database file specified by 'restart'
+    Parameters
+    ----------
+    problem : om.Problem
+        The problem instance being modified.
+    opts : dict
+        A dictionary of options that includes instructions for this function.
+    """
+    # for k, v in opts.items():  # save options for potential use in run_problem
+    #     options[k] = v
+
+    if restart is not None:  # restore variables from database file specified by 'restart'
         print('Restarting run_problem using the %s database.' % restart)
         cr = om.CaseReader(restart)
         cases = cr.list_cases()
@@ -47,27 +53,38 @@ def modify_problem(problem, opts):
     problem.driver.recording_options['record_inputs'] = True
     # problem.record_iteration('final')    # TODO: not working to save only last iteration?
 
-    if opts.get('reset_grid'):  # TODO: implement this option
-        pass
-
-    return problem
+    # if opts.get('reset_grid'):  # TODO: implement this option
+    #     pass
 
 
-def run_problem(problem, refine=False, refine_iteration_limit=10):
+def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=True, simulate=False):
+    """
+
+    Parameters
+    ----------
+    problem
+    refine
+    refine_iteration_limit
+    solve
+
+    Returns
+    -------
+
+    """
     problem.final_setup()  # make sure command line option hook has a chance to run
 
-    if options.get('no_solve'):
-        problem.run_model()
-    else:
+    if run_driver:
         problem.run_driver()
+    else:
+        problem.run_model()
 
-    iteration_limit = options.get('refine_iteration_limit')
-    if iteration_limit:
-        print('overriding run_problem arguments with refine_iteration_limit from command line')
-        refine_iteration_limit = iteration_limit
-        refine = True
+    # iteration_limit = options.get('refine_iteration_limit')
+    # if iteration_limit:
+    #     print('overriding run_problem arguments with refine_iteration_limit from command line')
+    #     refine_iteration_limit = iteration_limit
+    #     refine = True
 
-    if refine:
+    if refine and refine_iteration_limit > 0 and run_driver:
         out_file = 'grid_refinement.out'
 
         phases = {phase_path: problem.model._get_subsystem(phase_path)
@@ -103,7 +120,7 @@ def run_problem(problem, refine=False, refine_iteration_limit=10):
             else:
                 f.write('\nSuccessfully completed grid refinement')
 
-    if options.get('simulate'):
+    if simulate:
         for subsys, local in problem.model._all_subsystem_iter():
             if isinstance(subsys, Trajectory):
                 subsys.simulate()

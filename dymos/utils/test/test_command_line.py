@@ -11,6 +11,7 @@ import openmdao.api as om
 
 @use_tempdirs
 class TestCommandLine(unittest.TestCase):
+
     def setUp(self):
         test_dir = os.path.dirname(os.path.abspath(__file__))
         self.base_args = ['dymos_testing', os.path.join(test_dir, 'brachistochrone_for_command_line.py')]
@@ -37,17 +38,17 @@ class TestCommandLine(unittest.TestCase):
         # Make sure the driver converged
         self.assertTrue(case.success)
 
-    def test_ex_brachistochrone_stock(self):
-        """ Test to verify that the command line interface intercepts final_setup and runs
-        dm.run_problem by default without any additional arguments. """
-        print('test_ex_brachistochrone_stock')
-        with patch.object(sys, 'argv', self.base_args):
-            globals_dict = command_line.dymos_cmd()
-
-        self._assert_correct_solution()
-        # check first part of controls result:
-        assert_almost_equal(globals_dict['p']['traj0.phase0.controls:theta'][:3],
-                            np.array([[2.44713004], [1.08682697], [1.32429102]]))
+    # def test_ex_brachistochrone_stock(self):
+    #     """ Test to verify that the command line interface intercepts final_setup and runs
+    #     dm.run_problem by default without any additional arguments. """
+    #     print('test_ex_brachistochrone_stock')
+    #     with patch.object(sys, 'argv', self.base_args):
+    #         globals_dict = command_line.dymos_cmd()
+    #
+    #     self._assert_correct_solution()
+    #     # check first part of controls result:
+    #     assert_almost_equal(globals_dict['p']['traj0.phase0.controls:theta'][:3],
+    #                         np.array([[2.44713004], [1.08682697], [1.32429102]]))
 
     # TODO: causes random seeming testflo errors:
     def test_ex_brachistochrone_stock_nosolve_nosim(self):
@@ -90,6 +91,9 @@ class TestCommandLine(unittest.TestCase):
         with patch.object(sys, 'argv', self.base_args + ['--no_solve']):
             command_line.dymos_cmd()
 
+        # Until the problem recorder is fixed, the driver recorder shouldn't be
+        # invoked by this test, and thus we won't get a dymos_solution.db file
+
         self.assertTrue(os.path.exists('dymos_solution.db'))
         cr = om.CaseReader('dymos_solution.db')
         self.assertTrue(len(cr.list_cases()) == 0)  # no case recorded
@@ -99,8 +103,13 @@ class TestCommandLine(unittest.TestCase):
         with patch.object(sys, 'argv', self.base_args + ['--simulate']):
             command_line.dymos_cmd()
 
+        # We need to make sure the run_problem function has the simulate use a recording
+        # (can use dymos_simulation.db as the output of that for now), and then test
+        # that it's generated here.
+
         self._assert_correct_solution()
 
+    @unittest.skipIf(True, reason='grid resetting not yet implemented')
     def test_ex_brachistochrone_reset_grid(self):
         print('test_ex_brachistochrone_reset_grid')
         with patch.object(sys, 'argv', self.base_args + ['--reset_grid']):

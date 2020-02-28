@@ -82,6 +82,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     return p
 
 if __name__ == '__main__':
-    p = brachistochrone_min_time(transcription='radau-ps', num_segments=50,
+    p = brachistochrone_min_time(transcription='radau-ps', num_segments=8,
                                  transcription_order=3, compressed=True,
                                  optimizer='SLSQP')

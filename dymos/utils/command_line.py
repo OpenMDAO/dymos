@@ -5,10 +5,10 @@ import os
 from dymos.run_problem import modify_problem, run_problem
 from unittest.mock import patch
 
-hook_options = {
-    'pre_hook_enabled': True,
-    'post_hook_enabled': True
-}
+# hook_options = {
+#     'pre_hook_enabled': True,
+#     'post_hook_enabled': True
+# }
 
 
 def _simple_exec(script_name, user_args):
@@ -85,31 +85,46 @@ def dymos_cmd(argv=None):
     }
 
     hooks.use_hooks = True
-    hook_options['pre_hook_enabled'] = True  # enable hook's effect
-    hook_options['post_hook_enabled'] = True
 
-    def _pre_final_setup(prob):
-        if not hook_options['pre_hook_enabled']:  # unregistering the hook does not allow it to be reliably re-enabled
-            return
+    class DymosHooks:
+        """
+        DymosHooks is a lightweight class which provides the Dymos command-line OpenMDAO
+        hooks with a state.
 
-        hook_options['pre_hook_enabled'] = False  # disable hook's effect
+        Attributes
+        ----------
+        _hooks_enabled : bool
+            When True, the associated hooks will be allowed to run.
+        """
 
-        modify_problem(prob, opts)
+        def __init__(self):
+            self._hooks_enabled = True
 
-    def _post_final_setup(prob):
-        if not hook_options['post_hook_enabled']:
-            return
+        def _pre_final_setup(self, prob):
+            if not self._hooks_enabled:
+                return
 
-        hook_options['post_hook_enabled'] = False  # disable hook's effect
+            modify_problem(prob, restart=opts['restart'])
 
-        if not opts['no_solve']:  # execute run_problem unless told otherwise
-            refine = opts.get('refine_iteration_limit')
-            run_problem(prob, refine, refine_iteration_limit=refine)
+        def _post_final_setup(self, prob):
+            if not self._hooks_enabled:
+                return
+
+            self._hooks_enabled = False
+
+            if not opts['no_solve']:  # execute run_problem unless told otherwise
+                refine_iterations = opts.get('refine_iteration_limit')
+                run_problem(prob, refine_iterations > 0, refine_iteration_limit=refine_iterations,
+                            run_driver=not opts['no_solve'], simulate=opts['simulate'])
+
+            self._hooks_enabled = True
+
+    dymos_hooks = DymosHooks()
 
     hooks._register_hook('final_setup',
                          'Problem',
-                         pre=_pre_final_setup,
-                         post=_post_final_setup)
+                         pre=dymos_hooks._pre_final_setup,
+                         post=dymos_hooks._post_final_setup)
 
     globals_dict = _simple_exec(args.script, user_args)  # run the script
 
