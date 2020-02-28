@@ -146,10 +146,14 @@ class PHAdaptive:
             Indicator for which segments of the given phase require grid refinement
 
         """
-        need_refinement = {}
+        refine_results = {}
         for phase_path, phase in self.phases.items():
+            refine_results[phase_path] = {}
+
             if not phase.refine_options['refine']:
                 self.error[phase_path] = 'Not computed'
+                refine_results[phase_path]['error'] = None
+                refine_results[phase_path]['refine'] = False
                 need_refinement[phase_path] = False
                 continue
             gd = phase.options['transcription'].grid_data
@@ -211,28 +215,33 @@ class PHAdaptive:
                     err_over_states[state_name][k] = np.max(e[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
 
             self.error[phase_path] = np.zeros(numseg)
-            need_refinement[phase_path] = np.zeros(numseg, dtype=bool)
+            refine_results[phase_path]['error'] = np.zeros(numseg)
 
+            refine_results[phase_path]['need_refinement'] = np.zeros(numseg, dtype=bool)
+
+            # Assess the errors in each state
             for state_name, options in phase.state_options.items():
                 for k in range(0, numseg):
                     if err_over_states[state_name][k] > self.error[phase_path][k]:
                         self.error[phase_path][k] = err_over_states[state_name][k]
+                        refine_results[phase_path]['error'][k] = err_over_states[state_name][k]
                         if self.error[phase_path][k] > phase.refine_options['tolerance']:
-                            need_refinement[phase_path][k] = True
+                            refine_results[phase_path]['need_refinement'][k] = True
 
-        return need_refinement
+        return refine_results
 
-    def refine(self, need_refinement):
+    def refine(self, refine_results):
         """
         Compute the order, number of nodes, and segment ends required for the new grid
         and assigns them to the transcription of each phase.
 
         Parameters
         ----------
-        need_refinement : dict
+        refine_results : dict
             A dictionary where each key is the path to a phase in the problem, and the
-            associated value is a sequence of True/False indicating whether each segment
-            in that phase needs refinement.
+            associated value are various properties of that phase needed by the refinement
+            algorithm.  refine_results is returned by check_error.  This method modifies it
+            in place, adding the new_num_segments, new_order, and new_segment_ends.
 
         Returns
         -------
@@ -240,14 +249,18 @@ class PHAdaptive:
             A dictionary of phase paths : phases which were refined.
 
         """
-        refined = {}
-        for phase_path, need_refine in need_refinement.items():
+        for phase_path, phase_refinement_results in refine_results.items():
+            phase = self.phases[phase_path]
+            tx = phase.options['transcription']
+
+            need_refine = phase_refinement_results['need_refinement']
             if not np.any(need_refine):
+                refine_results[phase_path]['new_order'] = tx.options['order']
+                refine_results[phase_path]['new_num_segments'] = tx.options['num_segments']
+                refine_results[phase_path]['new_segment_ends'] = tx.options['segment_ends']
                 continue
-            refined[phase_path] = self.phases[phase_path]
 
             # Refinement is needed
-            phase = self.phases[phase_path]
             gd = phase.options['transcription'].grid_data
             numseg = gd.num_segments
 
@@ -278,13 +291,14 @@ class PHAdaptive:
             new_num_segments = int(np.sum(B))
             new_segment_ends = split_segments(gd.segment_ends, B)
 
-            T = phase.options['transcription']
-            T.options['order'] = new_order
-            T.options['num_segments'] = new_num_segments
-            T.options['segment_ends'] = new_segment_ends
-            T.init_grid()
+            refine_results[phase_path]['new_order'] = new_order
+            refine_results[phase_path]['new_num_segments'] = new_num_segments
+            refine_results[phase_path]['new_segment_ends'] = new_segment_ends
 
-        return refined
+            tx.options['order'] = new_order
+            tx.options['num_segments'] = new_num_segments
+            tx.options['segment_ends'] = new_segment_ends
+            tx.init_grid()
 
     def eval_ode(self, phase, grid, L, I):
         """
