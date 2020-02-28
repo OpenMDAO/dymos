@@ -95,7 +95,7 @@ def load_case(problem, case):
             if parent_phase:
                 if parent_phase not in phase_outputs:
                     phase_outputs[parent_phase] = []
-                    phase_outputs[parent_phase].append(name)
+                phase_outputs[parent_phase].append(name)
                 phases_in_case.add(parent_phase)
             else:
                 problem[name] = outputs[name]
@@ -127,7 +127,7 @@ def load_case(problem, case):
             problem[f'{phase_path}.design_parameters:{param_name}'] = param_val
 
         for param_name, options in phase.input_parameter_options.items():
-            param_val = outputs[f'{phase_path}.input_parameters:{param_name}']
+            param_val = inputs[f'{phase_path}.input_parameters:{param_name}']
             problem[f'{phase_path}.input_parameters:{param_name}'] = param_val
 
         for var_path in phase_inputs[phase] + phase_outputs[phase]:

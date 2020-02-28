@@ -32,4 +32,7 @@ setup(name='dymos',
         'redbaron'
     ],
     zip_safe=False,
+    entry_points={
+      'console_scripts': ['dymos=dymos.utils.command_line:dymos_cmd'],
+    }
 )
