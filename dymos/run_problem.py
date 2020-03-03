@@ -27,17 +27,25 @@ def modify_problem(problem, restart=None, reset_grid=False):
         cr = om.CaseReader(restart)
         cases = cr.list_cases()
         if len(cases) < 1:
-            print('WARNING: the requested %s database file does not have any cases to load.')
+            print('WARNING: the requested %s database file does not have any cases to load.' % restart)
         else:
             case = cr.get_case(cases[-1])  # TODO: use last case, ideally it should be the only one, but there are many
 
-            # Initialize the system with values from the case.
-            # We unnecessarily call setup again just to make sure we obliterate the previous solution
-            # First reset the connections at the top level model until fixed in OpenMDAO
-            problem.setup()
+            # identify database as a simulation output and not a solution recording, based on the content
+            check_simulation = cr.problem_metadata['driver']['name'] == 'Driver'
+            if check_simulation:
+                prev_soln = {'inputs':  case.list_inputs(out_stream=None,  units=True, prom_name=True),
+                             'outputs': case.list_outputs(out_stream=None, units=True, prom_name=True)}
+                problem.run_model()
+                re_interpolate_solution(problem, previous_solution=prev_soln)
+            else:
+                # Initialize the system with values from the case.
+                # We unnecessarily call setup again just to make sure we obliterate the previous solution
+                # First reset the connections at the top level model until fixed in OpenMDAO
+                problem.setup()
 
-            # Load the values from the previous solution
-            dm.load_case(problem, case)
+                # Load the values from the previous solution
+                dm.load_case(problem, case)
 
     # record variables to database when running driver under hook
     # pre-hook is important, because recording initialization is skipped if final_setup has run once
@@ -58,7 +66,7 @@ def modify_problem(problem, restart=None, reset_grid=False):
     #     pass
 
 
-def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=True, simulate=False):
+def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=True, simulate=False, no_iterate=False):
     """
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
     Phases.  This function can iteratively call run_driver to perform grid refinement, and automatically
@@ -74,6 +82,8 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
         The number of passes through the grid refinement algorithm to be made.
     run_driver : bool
         If True, run the driver (optimize the problem), otherwise just run the model one time.
+    no_iterate : bool
+        If True, run the driver but do not iterate.
     simulate : bool
         If True, perform a simulation of Trajectories found in the Problem after the driver
         has been run and grid refinement is complete.
@@ -81,6 +91,8 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
     problem.final_setup()  # make sure command line option hook has a chance to run
 
     if run_driver:
+        if no_iterate:
+            problem.driver.opt_settings['maxiter'] = 0
         problem.run_driver()
     else:
         problem.run_model()
@@ -130,7 +142,7 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
     if simulate:
         for subsys, local in problem.model._all_subsystem_iter():
             if isinstance(subsys, Trajectory):
-                subsys.simulate()
+                subsys.simulate(record_file='dymos_simulation.db')
 
 
 def find_phases(sys):
@@ -178,30 +190,31 @@ def re_interpolate_solution(problem, previous_solution):
     if not phase_paths:
         return
 
-    prev_inputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in previous_solution['inputs']}
     prev_outputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in previous_solution['outputs']}
 
     phase_io = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
                 'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 
-    phase_inputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in phase_io['inputs']}
     phase_outputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in phase_io['outputs']}
 
     for phase_abs_path, phase in phase_paths.items():
         phase_name = phase_abs_path.split('.')[-1]
 
         # Get the initial time and duration from the previous result and set them into the new phase.
-        ti_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.t_initial')][0]
-        t_initial = prev_outputs[ti_path]['value']
-        t_initial_units = prev_outputs[ti_path]['units']
+        t_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.timeseries.time_phase')][0]
 
-        td_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.t_duration')][0]
-        t_duration = prev_outputs[td_path]['value']
-        t_duration_units = prev_outputs[td_path]['units']
+        t_initial = prev_outputs[t_path]['value'][0]
+        t_initial_units = prev_outputs[t_path]['units']
+
+        t_duration = prev_outputs[t_path]['value'][-1] - prev_outputs[t_path]['value'][0]
+        t_duration_units = t_initial_units
 
         prev_time_path = [s for s in prev_outputs if s.endswith(f'{phase_name}.timeseries.time')][0]
         prev_time = prev_outputs[prev_time_path]['value']
 
+        # initial time and duration may not be present if a simulation was loaded
+        ti_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.t_initial')][0]
+        td_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.t_duration')][0]
         problem.set_val(ti_path, t_initial, units=t_initial_units)
         problem.set_val(td_path, t_duration, units=t_duration_units)
 
