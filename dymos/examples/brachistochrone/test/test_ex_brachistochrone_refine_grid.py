@@ -19,10 +19,7 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
 
         self.p = p = om.Problem(model=om.Group())
 
-        # p.driver = om.ScipyOptimizeDriver()
-        p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SNOPT'
-        p.driver.opt_settings['iSumm'] = 6
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.declare_coloring()
 
         if transcription == 'gauss-lobatto':
