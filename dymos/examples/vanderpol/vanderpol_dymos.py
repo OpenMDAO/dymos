@@ -4,15 +4,18 @@ from dymos.examples.vanderpol.vanderpol_ode import vanderpol_ode
 
 
 def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-              compressed=True, optimizer='SLSQP', refine=False):
+              compressed=True, optimizer='SLSQP', use_pyoptsparse=False):
     """Dymos problem definition for optimal control of a Van der Pol oscillator"""
 
     # define the OpenMDAO problem
     p = om.Problem(model=om.Group())
 
-    p.driver = om.pyOptSparseDriver()
+    if not use_pyoptsparse:
+        p.driver = om.ScipyOptimizeDriver()
+    else:
+        p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    if optimizer == 'SNOPT':
+    if use_pyoptsparse and optimizer == 'SNOPT':
         p.driver.opt_settings['iSumm'] = 6  # show detailed SNOPT output
     p.driver.declare_coloring()
 

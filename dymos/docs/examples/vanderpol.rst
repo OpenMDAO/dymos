@@ -71,6 +71,9 @@ Th returned `Problem` object is ready for simulation or solution.
 
 The `vanderpol` function that sets up this Dymos problem has several optional arguments
 that can set non-default values for the transcription type, number of segments, optimizer, etc.
+The OpenMDAO `ScipyOptimizeDriver` is used by default because it has compact output suitable
+for this example. When developing a new solution, more detailed output can be helpful and can
+be enabled by using OpenMDAO `pyOptSparseDriver` instead.
 
 Some other noteworthy issues are:
 
