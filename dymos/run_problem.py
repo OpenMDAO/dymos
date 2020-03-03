@@ -87,14 +87,9 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
 
         ref = PHAdaptive(phases)
         with open(out_file, 'w+') as f:
-            for stream in f, sys.stdout:
-                write_initial(stream, phases)
 
             for i in range(refine_iteration_limit):
                 refine_results = ref.check_error()
-
-                # write_iteration(f, i, phases, ref.error)
-                # write_iteration(sys.stdout, i, phases, ref.error)
 
                 ref.refine(refine_results)
 
@@ -102,6 +97,7 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
                     write_iteration(stream, i, phases, refine_results)
 
                 refined_phases = [phase_path for phase_path in refine_results if
+                                  phases[phase_path].refine_options['refine'] and
                                   np.any(refine_results[phase_path]['need_refinement'])]
 
                 if not refined_phases:
@@ -109,6 +105,10 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
 
                 prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True),
                              'outputs': problem.model.list_outputs(out_stream=None, units=True)}
+
+                # TODO: Until this is fixed in OpenMDAO 3.0.1
+                if isinstance(problem.driver, om.pyOptSparseDriver):
+                    problem.driver._res_jacs = None
 
                 problem.setup()
 
@@ -118,8 +118,6 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
             for stream in [f, sys.stdout]:
                 if i == refine_iteration_limit-1:
                     print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
-                elif i == 0:
-                    print('Error is within tolerance. Grid refinement is not required.', file=stream)
                 else:
                     print('Successfully completed grid refinement.', file=stream)
             print(50 * '=')
@@ -225,43 +223,45 @@ def write_iteration(f, iter_number, phases, refine_results):
     print(f'{str_gr:^50}', file=f)
     print(50 * '-', file=f)
     for phase_path, phase in phases.items():
+        refine_data = refine_results[phase_path]
+        refine_options = phase.refine_options
+
         f.write('    Phase: {}\n'.format(phase_path))
-        T = phase.options['transcription']
-        gd = phase.options['transcription'].grid_data
+
+        # Print the phase grid-refinement settings
+        print('        Refinement Options:', file=f)
+        print('            Allow Refinement = {}'.format(refine_options['refine']), file=f)
+        print('            Tolerance = {}'.format(refine_options['tolerance']), file=f)
+        print('            Min Order = {}'.format(refine_options['min_order']), file=f)
+        print('            Max Order = {}'.format(refine_options['max_order']), file=f)
 
         # Print the original grid specs
         print('        Original Grid:', file=f)
-        print('            Number of Segments = {}'.format(T.options['num_segments']), file=f)
+        print('            Number of Segments = {}'.format(refine_data['num_segments']), file=f)
 
-        str_segends = ', '.join(str(round(elem, 4)) for elem in gd.segment_ends)
+        str_segends = ', '.join(str(round(elem, 4)) for elem in refine_data['segment_ends'])
         print(f'            Segment Ends = [{str_segends}]', file=f)
 
-        if isinstance(T.options['order'], int):
-            str_segorders = ', '.join(T.options['num_segments'] * [str(T.options['order'])])
-        else:
-            str_segorders = ', '.join(str(elem) for elem in T.options['order'])
-
+        str_segorders = ', '.join(str(elem) for elem in refine_data['order'])
         print(f'            Segment Order = [{str_segorders}]', file=f)
 
-        error = refine_results[phase_path]['error']
+        error = refine_data['error']
         str_errors = ', '.join(f'{elem:8.4g}' for elem in error)
         print(f'            Error = [{str_errors}]', file=f)
+
         # Print the modified grid specs
         print('        New Grid:', file=f)
-        print('            Number of Segments = {}'.format(refine_results[phase_path]['new_num_segments']), file=f)
+        print('            Number of Segments = {}'.format(refine_data['new_num_segments']), file=f)
 
-        str_segends = ', '.join(str(round(elem, 4)) for elem in refine_results[phase_path]['new_segment_ends'])
+        str_segends = ', '.join(str(round(elem, 4)) for elem in refine_data['new_segment_ends'])
         print(f'            Segment Ends = [{str_segends}]', file=f)
 
-        new_order = refine_results[phase_path]['new_order']
-        if isinstance(new_order, int):
-            str_segorders = ', '.join(T.options['num_segments'] * [str(new_order)])
-        else:
-            str_segorders = ', '.join(str(elem) for elem in new_order)
+        new_order = refine_data['new_order']
+        str_segorders = ', '.join(str(elem) for elem in new_order)
 
         print(f'            Segment Order = [{str_segorders}]', file=f)
 
-        is_refined = True if np.any(refine_results[phase_path]['need_refinement']) else False
+        is_refined = True if np.any(refine_data['need_refinement']) and refine_options['refine'] else False
         print(f'        Refined: {is_refined}', file=f)
         print(file=f)
 

@@ -12,13 +12,14 @@ from openmdao.utils.testing_utils import use_tempdirs
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestBrachistochroneRefineGrid(unittest.TestCase):
 
     def make_problem(self, transcription='radau-ps', num_segments=5, transcription_order=3, compressed=True):
 
         self.p = p = om.Problem(model=om.Group())
 
+        # p.driver = om.ScipyOptimizeDriver()
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SNOPT'
         p.driver.opt_settings['iSumm'] = 6
@@ -39,7 +40,7 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
 
-        phase.set_refine_options(tol=1.0E-6)
+        phase.set_refine_options(refine=True, tol=1.0E-6)
 
         traj.add_phase('phase0', phase)
 

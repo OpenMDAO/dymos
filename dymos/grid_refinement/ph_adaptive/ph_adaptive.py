@@ -150,15 +150,15 @@ class PHAdaptive:
         for phase_path, phase in self.phases.items():
             refine_results[phase_path] = {}
 
-            if not phase.refine_options['refine']:
-                self.error[phase_path] = 'Not computed'
-                refine_results[phase_path]['error'] = None
-                refine_results[phase_path]['refine'] = False
-                need_refinement[phase_path] = False
-                continue
-            gd = phase.options['transcription'].grid_data
+            # Save the original grid to the refine results
+            tx = phase.options['transcription']
+            gd = tx.grid_data
             num_nodes = gd.subset_num_nodes['all']
             numseg = gd.num_segments
+
+            refine_results[phase_path]['num_segments'] = gd.num_segments
+            refine_results[phase_path]['order'] = gd.transcription_order
+            refine_results[phase_path]['segment_ends'] = gd.segment_ends
 
             outputs = phase.list_outputs(units=False, out_stream=None)
 
@@ -216,7 +216,6 @@ class PHAdaptive:
 
             self.error[phase_path] = np.zeros(numseg)
             refine_results[phase_path]['error'] = np.zeros(numseg)
-
             refine_results[phase_path]['need_refinement'] = np.zeros(numseg, dtype=bool)
 
             # Assess the errors in each state
@@ -252,12 +251,13 @@ class PHAdaptive:
         for phase_path, phase_refinement_results in refine_results.items():
             phase = self.phases[phase_path]
             tx = phase.options['transcription']
+            gd = tx.grid_data
 
             need_refine = phase_refinement_results['need_refinement']
-            if not np.any(need_refine):
-                refine_results[phase_path]['new_order'] = tx.options['order']
-                refine_results[phase_path]['new_num_segments'] = tx.options['num_segments']
-                refine_results[phase_path]['new_segment_ends'] = tx.options['segment_ends']
+            if not phase.refine_options['refine'] or not np.any(need_refine):
+                refine_results[phase_path]['new_order'] = gd.transcription_order
+                refine_results[phase_path]['new_num_segments'] = gd.num_segments
+                refine_results[phase_path]['new_segment_ends'] = gd.segment_ends
                 continue
 
             # Refinement is needed
