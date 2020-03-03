@@ -156,9 +156,14 @@ class PHAdaptive:
             num_nodes = gd.subset_num_nodes['all']
             numseg = gd.num_segments
 
-            refine_results[phase_path]['num_segments'] = gd.num_segments
+            refine_results[phase_path]['num_segments'] = numseg
             refine_results[phase_path]['order'] = gd.transcription_order
             refine_results[phase_path]['segment_ends'] = gd.segment_ends
+            refine_results[phase_path]['need_refinement'] = np.zeros(numseg, dtype=bool)
+            refine_results[phase_path]['error'] = np.zeros(numseg, dtype=float)
+
+            if isinstance(tx, dm.RungeKutta):
+                continue
 
             outputs = phase.list_outputs(units=False, out_stream=None)
 

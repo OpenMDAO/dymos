@@ -189,18 +189,6 @@ def re_interpolate_solution(problem, phases, previous_solution):
                             phase.interpolate(xs=prev_time, ys=prev_control_val, nodes='control_input', kind='slinear'))
 
 
-def write_initial(f, phases):
-    f.write('======================\n')
-    f.write('   Grid Refinement\n')
-    f.write('======================\n')
-    f.write('ph-refinement\n')
-    for phase_path, phase in phases.items():
-        f.write('Phase: {}\n'.format(phase_path))
-        f.write('Tolerance: {}\n'.format(phase.refine_options['tolerance']))
-        f.write('Minimum Order: {}\n'.format(phase.refine_options['min_order']))
-        f.write('Maximum Order: {}\n'.format(phase.refine_options['max_order']))
-
-
 def write_iteration(f, iter_number, phases, refine_results):
     """
     Writes a summary of the current grid refinement iteration to the given stream.
