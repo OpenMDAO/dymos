@@ -82,7 +82,7 @@ class Phase(om.Group):
             self.design_parameter_options = from_phase.design_parameter_options.copy()
             self.input_parameter_options = from_phase.input_parameter_options.copy()
 
-            self.refine_options = from_phase.refine_options.copy()
+            self.refine_options.update(from_phase.refine_options)
 
             self._initial_boundary_constraints = from_phase._initial_boundary_constraints.copy()
             self._final_boundary_constraints = from_phase._final_boundary_constraints.copy()
