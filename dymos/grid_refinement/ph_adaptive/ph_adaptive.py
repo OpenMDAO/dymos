@@ -146,15 +146,24 @@ class PHAdaptive:
             Indicator for which segments of the given phase require grid refinement
 
         """
-        need_refinement = {}
+        refine_results = {}
         for phase_path, phase in self.phases.items():
-            if not phase.refine_options['refine']:
-                self.error[phase_path] = 'Not computed'
-                need_refinement[phase_path] = False
-                continue
-            gd = phase.options['transcription'].grid_data
+            refine_results[phase_path] = {}
+
+            # Save the original grid to the refine results
+            tx = phase.options['transcription']
+            gd = tx.grid_data
             num_nodes = gd.subset_num_nodes['all']
             numseg = gd.num_segments
+
+            refine_results[phase_path]['num_segments'] = numseg
+            refine_results[phase_path]['order'] = gd.transcription_order
+            refine_results[phase_path]['segment_ends'] = gd.segment_ends
+            refine_results[phase_path]['need_refinement'] = np.zeros(numseg, dtype=bool)
+            refine_results[phase_path]['error'] = np.zeros(numseg, dtype=float)
+
+            if isinstance(tx, dm.RungeKutta):
+                continue
 
             outputs = phase.list_outputs(units=False, out_stream=None)
 
@@ -211,28 +220,32 @@ class PHAdaptive:
                     err_over_states[state_name][k] = np.max(e[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
 
             self.error[phase_path] = np.zeros(numseg)
-            need_refinement[phase_path] = np.zeros(numseg, dtype=bool)
+            refine_results[phase_path]['error'] = np.zeros(numseg)
+            refine_results[phase_path]['need_refinement'] = np.zeros(numseg, dtype=bool)
 
+            # Assess the errors in each state
             for state_name, options in phase.state_options.items():
                 for k in range(0, numseg):
                     if err_over_states[state_name][k] > self.error[phase_path][k]:
                         self.error[phase_path][k] = err_over_states[state_name][k]
+                        refine_results[phase_path]['error'][k] = err_over_states[state_name][k]
                         if self.error[phase_path][k] > phase.refine_options['tolerance']:
-                            need_refinement[phase_path][k] = True
+                            refine_results[phase_path]['need_refinement'][k] = True
 
-        return need_refinement
+        return refine_results
 
-    def refine(self, need_refinement):
+    def refine(self, refine_results):
         """
         Compute the order, number of nodes, and segment ends required for the new grid
         and assigns them to the transcription of each phase.
 
         Parameters
         ----------
-        need_refinement : dict
+        refine_results : dict
             A dictionary where each key is the path to a phase in the problem, and the
-            associated value is a sequence of True/False indicating whether each segment
-            in that phase needs refinement.
+            associated value are various properties of that phase needed by the refinement
+            algorithm.  refine_results is returned by check_error.  This method modifies it
+            in place, adding the new_num_segments, new_order, and new_segment_ends.
 
         Returns
         -------
@@ -240,14 +253,19 @@ class PHAdaptive:
             A dictionary of phase paths : phases which were refined.
 
         """
-        refined = {}
-        for phase_path, need_refine in need_refinement.items():
-            if not np.any(need_refine):
+        for phase_path, phase_refinement_results in refine_results.items():
+            phase = self.phases[phase_path]
+            tx = phase.options['transcription']
+            gd = tx.grid_data
+
+            need_refine = phase_refinement_results['need_refinement']
+            if not phase.refine_options['refine'] or not np.any(need_refine):
+                refine_results[phase_path]['new_order'] = gd.transcription_order
+                refine_results[phase_path]['new_num_segments'] = gd.num_segments
+                refine_results[phase_path]['new_segment_ends'] = gd.segment_ends
                 continue
-            refined[phase_path] = self.phases[phase_path]
 
             # Refinement is needed
-            phase = self.phases[phase_path]
             gd = phase.options['transcription'].grid_data
             numseg = gd.num_segments
 
@@ -278,13 +296,14 @@ class PHAdaptive:
             new_num_segments = int(np.sum(B))
             new_segment_ends = split_segments(gd.segment_ends, B)
 
-            T = phase.options['transcription']
-            T.options['order'] = new_order
-            T.options['num_segments'] = new_num_segments
-            T.options['segment_ends'] = new_segment_ends
-            T.init_grid()
+            refine_results[phase_path]['new_order'] = new_order
+            refine_results[phase_path]['new_num_segments'] = new_num_segments
+            refine_results[phase_path]['new_segment_ends'] = new_segment_ends
 
-        return refined
+            tx.options['order'] = new_order
+            tx.options['num_segments'] = new_num_segments
+            tx.options['segment_ends'] = new_segment_ends
+            tx.init_grid()
 
     def eval_ode(self, phase, grid, L, I):
         """
@@ -433,3 +452,67 @@ class PHAdaptive:
                 + oodt_dstau * np.dot(I, f_hat[state_name][not_left_end_idxs, ...])
 
         return x_hat, x_prime
+
+    def write_iteration(self, f, iter_number, phases, refine_results):
+        """
+        Writes a summary of the current grid refinement iteration to the given stream.
+
+        Parameters
+        ----------
+        f : stream
+            The output stream to which the grid refinment should be printed.
+        iter_number : int
+            The current grid refinement iteration index.
+        phases : dict of {phase_path: Phase}
+            The phases in the problem being refined.
+        refine_results : dict
+            A dictionary containing the grid refinement data for each phase, keyed by the phase path
+            in the model.
+        """
+        f.write('\n\n')
+        print(50 * '=', file=f)
+        str_gr = f'Grid Refinement - Iteration {iter_number}'
+        print(f'{str_gr:^50}', file=f)
+        print(50 * '-', file=f)
+        for phase_path, phase in phases.items():
+            refine_data = refine_results[phase_path]
+            refine_options = phase.refine_options
+
+            f.write('    Phase: {}\n'.format(phase_path))
+
+            # Print the phase grid-refinement settings
+            print('        Refinement Options:', file=f)
+            print('            Allow Refinement = {}'.format(refine_options['refine']), file=f)
+            print('            Tolerance = {}'.format(refine_options['tolerance']), file=f)
+            print('            Min Order = {}'.format(refine_options['min_order']), file=f)
+            print('            Max Order = {}'.format(refine_options['max_order']), file=f)
+
+            # Print the original grid specs
+            print('        Original Grid:', file=f)
+            print('            Number of Segments = {}'.format(refine_data['num_segments']), file=f)
+
+            str_segends = ', '.join(str(round(elem, 4)) for elem in refine_data['segment_ends'])
+            print(f'            Segment Ends = [{str_segends}]', file=f)
+
+            str_segorders = ', '.join(str(elem) for elem in refine_data['order'])
+            print(f'            Segment Order = [{str_segorders}]', file=f)
+
+            error = refine_data['error']
+            str_errors = ', '.join(f'{elem:8.4g}' for elem in error)
+            print(f'            Error = [{str_errors}]', file=f)
+
+            # Print the modified grid specs
+            print('        New Grid:', file=f)
+            print('            Number of Segments = {}'.format(refine_data['new_num_segments']), file=f)
+
+            str_segends = ', '.join(str(round(elem, 4)) for elem in refine_data['new_segment_ends'])
+            print(f'            Segment Ends = [{str_segends}]', file=f)
+
+            new_order = refine_data['new_order']
+            str_segorders = ', '.join(str(elem) for elem in new_order)
+
+            print(f'            Segment Order = [{str_segorders}]', file=f)
+
+            is_refined = True if np.any(refine_data['need_refinement']) and refine_options['refine'] else False
+            print(f'        Refined: {is_refined}', file=f)
+            print(file=f)
