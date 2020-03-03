@@ -12,7 +12,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestBrachistochroneRefineGrid(unittest.TestCase):
 
     def make_problem(self, transcription='radau-ps', num_segments=5, transcription_order=3, compressed=True):
