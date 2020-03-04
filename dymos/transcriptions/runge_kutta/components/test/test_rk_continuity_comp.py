@@ -295,7 +295,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.model.nonlinear_solver = om.NewtonSolver(iprint=2)
+        p.model.nonlinear_solver = om.NewtonSolver(iprint=2, solve_subsystems=True)
         p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)
@@ -528,7 +528,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
-        p.model.nonlinear_solver = om.NewtonSolver(iprint=2)
+        p.model.nonlinear_solver = om.NewtonSolver(iprint=2, solve_subsystems=True)
         p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)

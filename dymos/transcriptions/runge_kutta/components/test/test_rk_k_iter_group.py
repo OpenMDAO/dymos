@@ -167,7 +167,8 @@ class TestRungeKuttaKIterGroup(unittest.TestCase):
                                                    ode_class=TestODE,
                                                    ode_init_kwargs={},
                                                    solver_class=om.NewtonSolver,
-                                                   solver_options={'iprint': 2}))
+                                                   solver_options={'iprint': 2,
+                                                                   'solve_subsystems': True}))
 
         p.model.connect('t', 'k_iter_group.ode.t')
         p.model.connect('h', 'k_iter_group.h')
