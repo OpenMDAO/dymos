@@ -144,7 +144,7 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         p.model.connect('cnty_iter_group.ode.ydot', 'cnty_iter_group.k_comp.f:y',
                         src_indices=src_idxs, flat_src_indices=True)
 
-        p.model.nonlinear_solver = om.NewtonSolver()
+        p.model.nonlinear_solver = om.NewtonSolver(solve_subsystems=False)
         p.model.linear_solver = om.DirectSolver()
 
         p.setup(check=True, force_alloc_complex=True)

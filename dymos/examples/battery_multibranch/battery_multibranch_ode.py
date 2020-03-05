@@ -38,6 +38,5 @@ class BatteryODE(om.Group):
         self.connect('pwr_balance.I_Li', 'battery.I_Li')
         self.connect('battery.I_pack', 'motors.current_in_motor')
 
-        self.nonlinear_solver = om.NewtonSolver()
-        self.nonlinear_solver.options['maxiter'] = 20
+        self.nonlinear_solver = om.NewtonSolver(solve_subsystems=False, maxiter=20)
         self.linear_solver = om.DirectSolver()
