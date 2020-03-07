@@ -93,8 +93,8 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 if __name__ == '__main__':
     p = brachistochrone_min_time(transcription='radau-ps', num_segments=5, run_driver=True,
-                             transcription_order=5, compressed=False, optimizer='SNOPT',
-                             solve_segments=True, force_alloc_complex=True, dynamic_simul_derivs=True)
+                                 transcription_order=5, compressed=False, optimizer='SNOPT',
+                                 solve_segments=True, force_alloc_complex=True, dynamic_simul_derivs=True)
 
     # p.model.list_outputs(print_arrays=True)
 

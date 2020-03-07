@@ -97,7 +97,7 @@ class PseudospectralBase(TranscriptionBase):
                         # once for each segment, with the number of nodes in all but the
                         # last segments added to it
                         desvar_indices = size * np.repeat(desvar_node_idxs, size) + \
-                                         np.tile(np.arange(size, dtype=int), num_seg)
+                            np.tile(np.arange(size, dtype=int), num_seg)
                     desvar_indices = list(desvar_indices)
                 else:
                     desvar_indices = list(range(size * num_state_input_nodes))
