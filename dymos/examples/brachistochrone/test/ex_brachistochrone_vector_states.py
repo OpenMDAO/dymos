@@ -74,7 +74,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p.setup(check=True, force_alloc_complex=force_alloc_complex)
 
     p['phase0.t_initial'] = 0.0
-    p['phase0.t_duration'] = 2.0
+    p['phase0.t_duration'] = 1.8016
 
     pos0 = [0, 10]
     posf = [10, 5]
@@ -92,6 +92,22 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 
 if __name__ == '__main__':
-    brachistochrone_min_time(transcription='radau-ps', num_segments=10, run_driver=True,
-                             transcription_order=3, compressed=True, optimizer='SNOPT',
-                             solve_segments=True)
+    p = brachistochrone_min_time(transcription='radau-ps', num_segments=5, run_driver=True,
+                             transcription_order=5, compressed=False, optimizer='SNOPT',
+                             solve_segments=True, force_alloc_complex=True, dynamic_simul_derivs=True)
+
+    # p.model.list_outputs(print_arrays=True)
+
+    # p.list_problem_vars(print_arrays=True, desvar_opts=['indices'])
+
+    # for key, options in p.model.get_design_vars(get_sizes=True).items():
+    #     print(key)
+    #     print(options)
+
+    # import numpy as np
+    # with np.printoptions(linewidth=1024, edgeitems=500):
+    #     p.check_totals(wrt='phase0.states:pos', method='cs', compact_print=True)
+
+    import matplotlib.pyplot as plt
+    plt.plot(p.get_val('phase0.timeseries.time')[:, 0], p.get_val('phase0.timeseries.states:pos')[:, 0], 'ro')
+    plt.show()
