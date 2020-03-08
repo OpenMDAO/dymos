@@ -14,21 +14,21 @@ OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP')
 class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 
     def assert_results(self, p):
-        t_initial = p.get_val('phase0.time')[0]
-        t_final = p.get_val('phase0.time')[-1]
+        t_initial = p.get_val('traj0.phase0.time')[0]
+        t_final = p.get_val('traj0.phase0.time')[-1]
 
-        x0 = p.get_val('phase0.timeseries.states:pos')[0, 0]
-        xf = p.get_val('phase0.timeseries.states:pos')[0, -1]
+        x0 = p.get_val('traj0.phase0.timeseries.states:pos')[0, 0]
+        xf = p.get_val('traj0.phase0.timeseries.states:pos')[0, -1]
 
-        y0 = p.get_val('phase0.timeseries.states:pos')[0, 1]
-        yf = p.get_val('phase0.timeseries.states:pos')[-1, 1]
+        y0 = p.get_val('traj0.phase0.timeseries.states:pos')[0, 1]
+        yf = p.get_val('traj0.phase0.timeseries.states:pos')[-1, 1]
 
-        v0 = p.get_val('phase0.timeseries.states:v')[0, 0]
-        vf = p.get_val('phase0.timeseries.states:v')[-1, 0]
+        v0 = p.get_val('traj0.phase0.timeseries.states:v')[0, 0]
+        vf = p.get_val('traj0.phase0.timeseries.states:v')[-1, 0]
 
-        g = p.get_val('phase0.timeseries.design_parameters:g')
+        g = p.get_val('traj0.phase0.timeseries.design_parameters:g')
 
-        thetaf = p.get_val('phase0.timeseries.controls:theta')[-1, 0]
+        thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1, 0]
 
         assert_almost_equal(t_initial, 0.0)
         assert_almost_equal(x0, 0.0)
@@ -128,21 +128,21 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 class TestBrachistochroneExampleSolveSegments(unittest.TestCase):
 
     def assert_results(self, p):
-        t_initial = p.get_val('phase0.time')[0]
-        t_final = p.get_val('phase0.time')[-1]
+        t_initial = p.get_val('traj0.phase0.time')[0]
+        t_final = p.get_val('traj0.phase0.time')[-1]
 
-        x0 = p.get_val('phase0.timeseries.states:x')[0]
-        xf = p.get_val('phase0.timeseries.states:x')[-1]
+        x0 = p.get_val('traj0.phase0.timeseries.states:x')[0]
+        xf = p.get_val('traj0.phase0.timeseries.states:x')[-1]
 
-        y0 = p.get_val('phase0.timeseries.states:y')[0]
-        yf = p.get_val('phase0.timeseries.states:y')[-1]
+        y0 = p.get_val('traj0.phase0.timeseries.states:y')[0]
+        yf = p.get_val('traj0.phase0.timeseries.states:y')[-1]
 
-        v0 = p.get_val('phase0.timeseries.states:v')[0]
-        vf = p.get_val('phase0.timeseries.states:v')[-1]
+        v0 = p.get_val('traj0.phase0.timeseries.states:v')[0]
+        vf = p.get_val('traj0.phase0.timeseries.states:v')[-1]
 
-        g = p.get_val('phase0.timeseries.input_parameters:g')
+        g = p.get_val('traj0.phase0.timeseries.input_parameters:g')
 
-        thetaf = p.get_val('phase0.timeseries.controls:theta')[-1, 0]
+        thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1, 0]
 
         assert_almost_equal(t_initial, 0.0)
         assert_almost_equal(x0, 0.0)

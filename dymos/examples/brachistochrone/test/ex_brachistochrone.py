@@ -31,10 +31,10 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         t = dm.RungeKutta(num_segments=num_segments,
                           order=transcription_order,
                           compressed=compressed)
-    # traj = dm.Trajectory()
+    traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
-    p.model.add_subsystem('phase0', phase)
-    # traj.add_phase('phase0', phase)
+    p.model.add_subsystem('traj0', traj)
+    traj.add_phase('phase0', phase)
 
     # p.model.add_subsystem('traj0', traj)
 
@@ -69,32 +69,31 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     # Minimize time at the end of the phase
     phase.add_objective('time_phase', loc='final', scaler=10)
 
-    p.model.linear_solver = om.DirectSolver()
     p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
 
-    p['phase0.t_initial'] = 0.0
-    p['phase0.t_duration'] = 2.0
+    p['traj0.phase0.t_initial'] = 0.0
+    p['traj0.phase0.t_duration'] = 2.0
 
-    p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-    p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-    p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-    p['phase0.input_parameters:g'] = 9.80665
+    p['traj0.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+    p['traj0.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+    p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+    p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+    p['traj0.phase0.input_parameters:g'] = 9.80665
 
     dm.run_problem(p, run_driver=run_driver)
 
     # Plot results
     if SHOW_PLOTS:
-        exp_out = phase.simulate()
+        exp_out = traj.simulate()
 
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.states:x')
-        y_imp = p.get_val('phase0.timeseries.states:y')
+        x_imp = p.get_val('traj0.phase0.timeseries.states:x')
+        y_imp = p.get_val('traj0.phase0.timeseries.states:y')
 
-        x_exp = exp_out.get_val('phase0.timeseries.states:x')
-        y_exp = exp_out.get_val('phase0.timeseries.states:y')
+        x_exp = exp_out.get_val('traj0.phase0.timeseries.states:x')
+        y_exp = exp_out.get_val('traj0.phase0.timeseries.states:y')
 
         ax.plot(x_imp, y_imp, 'ro', label='implicit')
         ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -107,11 +106,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         fig, ax = plt.subplots()
         fig.suptitle('Brachistochrone Solution')
 
-        x_imp = p.get_val('phase0.timeseries.time_phase')
-        y_imp = p.get_val('phase0.timeseries.controls:theta')
+        x_imp = p.get_val('traj0.phase0.timeseries.time_phase')
+        y_imp = p.get_val('traj0.phase0.timeseries.controls:theta')
 
-        x_exp = exp_out.get_val('phase0.timeseries.time_phase')
-        y_exp = exp_out.get_val('phase0.timeseries.controls:theta')
+        x_exp = exp_out.get_val('traj0.phase0.timeseries.time_phase')
+        y_exp = exp_out.get_val('traj0.phase0.timeseries.controls:theta')
 
         ax.plot(x_imp, y_imp, 'ro', label='implicit')
         ax.plot(x_exp, y_exp, 'b-', label='explicit')
@@ -129,14 +128,4 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 if __name__ == '__main__':
     p = brachistochrone_min_time(transcription='radau-ps', num_segments=3, run_driver=True,
                                  transcription_order=5, compressed=False, optimizer='SNOPT',
-                                 solve_segments=True, force_alloc_complex=True)
-
-    p.model.list_outputs(print_arrays=True)
-
-    import numpy as np
-    with np.printoptions(linewidth=1024, edgeitems=500):
-        p.check_totals(wrt='phase0.states:x', method='cs')
-
-    import matplotlib.pyplot as plt
-    plt.plot(p.get_val('phase0.timeseries.time')[:, 0], p.get_val('phase0.timeseries.states:x'), 'ro')
-    plt.show()
+                                 solve_segments=False, force_alloc_complex=True)

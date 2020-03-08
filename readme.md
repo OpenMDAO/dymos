@@ -15,7 +15,7 @@ Installation
 ------------
 
 ```
-pip install git+https://github.com/OpenMDAO/dymos.git
+python -m pip install git+https://github.com/OpenMDAO/dymos.git
 ```
 
 Documentation
