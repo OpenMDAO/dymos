@@ -7,7 +7,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 
-OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
+OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP')
 
 
 @use_tempdirs
@@ -83,6 +83,46 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                                                            transcription_order=3)
         self.assert_results(p)
 
+    def test_ex_brachistochrone_vs_radau_single_segment(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
+                                                           compressed=True,
+                                                           force_alloc_complex=True,
+                                                           solve_segments=True,
+                                                           num_segments=1,
+                                                           transcription_order=11)
+        self.assert_results(p)
+
+    def test_ex_brachistochrone_vs_gl_single_segment(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
+                                                           compressed=True,
+                                                           force_alloc_complex=True,
+                                                           solve_segments=True,
+                                                           num_segments=1,
+                                                           transcription_order=11)
+        self.assert_results(p)
+
+    def test_ex_brachistochrone_vs_radau_single_segment(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
+                                                           compressed=False,
+                                                           force_alloc_complex=True,
+                                                           solve_segments=True,
+                                                           num_segments=1,
+                                                           transcription_order=11)
+        self.assert_results(p)
+
+    def test_ex_brachistochrone_vs_gl_single_segment(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
+                                                           compressed=False,
+                                                           force_alloc_complex=True,
+                                                           solve_segments=True,
+                                                           num_segments=1,
+                                                           transcription_order=11)
+        self.assert_results(p)
+
 
 @use_tempdirs
 class TestBrachistochroneExampleSolveSegments(unittest.TestCase):
@@ -155,4 +195,44 @@ class TestBrachistochroneExampleSolveSegments(unittest.TestCase):
                                                         solve_segments=True,
                                                         num_segments=10,
                                                         transcription_order=3)
+        self.assert_results(p)
+
+    def test_ex_brachistochrone_vs_radau_single_segment(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
+                                                        compressed=True,
+                                                        force_alloc_complex=True,
+                                                        solve_segments=True,
+                                                        num_segments=1,
+                                                        transcription_order=11)
+        self.assert_results(p)
+
+    def test_ex_brachistochrone_vs_gl_single_segment(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
+                                                        compressed=True,
+                                                        force_alloc_complex=True,
+                                                        solve_segments=True,
+                                                        num_segments=1,
+                                                        transcription_order=11)
+        self.assert_results(p)
+
+    def test_ex_brachistochrone_vs_radau_single_segment(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
+                                                        compressed=False,
+                                                        force_alloc_complex=True,
+                                                        solve_segments=True,
+                                                        num_segments=1,
+                                                        transcription_order=11)
+        self.assert_results(p)
+
+    def test_ex_brachistochrone_vs_gl_single_segment(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
+                                                        compressed=False,
+                                                        force_alloc_complex=True,
+                                                        solve_segments=True,
+                                                        num_segments=1,
+                                                        transcription_order=11)
         self.assert_results(p)
