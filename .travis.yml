@@ -81,7 +81,7 @@ install:
     conda activate PY$PY;
     conda config --add channels conda-forge;
 
-    conda install --yes cython sphinx mock swig pip numpy=1.17.0 scipy=1.2.0 mpi4py matplotlib;
+    conda install --yes cython sphinx mock swig pip numpy=1.18.1 scipy=1.3.0 mpi4py matplotlib;
     sudo apt-get install gfortran;
 
     pip install --upgrade pip;
