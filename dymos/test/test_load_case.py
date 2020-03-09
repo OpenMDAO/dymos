@@ -10,8 +10,7 @@ om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.'
 @use_tempdirs
 class TestLoadCase(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(self):
         for filename in ['brachistochrone_solution.db']:
             if os.path.exists(filename):
                 os.remove(filename)
