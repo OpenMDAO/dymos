@@ -11,6 +11,7 @@ from openmdao.utils.assert_utils import assert_check_partials
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 
+@use_tempdirs
 class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
     def assert_results(self, p):
@@ -45,10 +46,9 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
     def assert_partials(self, p):
         with printoptions(linewidth=1024, edgeitems=100):
-            cpd = p.check_partials(method='cs')
+            cpd = p.check_partials(method='cs', compact_print=True)
         assert_check_partials(cpd)
 
-    @use_tempdirs
     def test_ex_brachistochrone_vs_radau_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
@@ -57,11 +57,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                                                            run_driver=True)
         self.assert_results(p)
         self.assert_partials(p)
-        self.tearDown()
-        if os.path.exists('ex_brachvs_radau_compressed.db'):
-            os.remove('ex_brachvs_radau_compressed.db')
 
-    @use_tempdirs
     def test_ex_brachistochrone_vs_radau_uncompressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
@@ -70,11 +66,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                                                            run_driver=True)
         self.assert_results(p)
         self.assert_partials(p)
-        self.tearDown()
-        if os.path.exists('ex_brachvs_radau_uncompressed.db'):
-            os.remove('ex_brachvs_radau_uncompressed.db')
 
-    @use_tempdirs
     def test_ex_brachistochrone_vs_gl_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
@@ -84,11 +76,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
         self.assert_results(p)
         self.assert_partials(p)
-        self.tearDown()
-        if os.path.exists('ex_brachvs_gl_compressed.db'):
-            os.remove('ex_brachvs_gl_compressed.db')
 
-    @use_tempdirs
     def test_ex_brachistochrone_vs_gl_uncompressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = True
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
@@ -98,11 +86,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                                                            run_driver=True)
         self.assert_results(p)
         self.assert_partials(p)
-        self.tearDown()
-        if os.path.exists('ex_brachvs_gl_compressed.db'):
-            os.remove('ex_brachvs_gl_compressed.db')
 
-    @use_tempdirs
     def test_ex_brachistochrone_vs_rungekutta_compressed(self):
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='runge-kutta',
                                                            transcription_order='RK4',
@@ -111,7 +95,6 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                                                            run_driver=True)
 
         self.assert_results(p)
-        self.tearDown()
 
 
 if __name__ == "__main__":

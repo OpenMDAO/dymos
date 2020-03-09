@@ -11,7 +11,7 @@ import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
     import BrachistochroneVectorStatesODE
 
-SHOW_PLOTS = False
+SHOW_PLOTS = True
 
 
 class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
@@ -312,5 +312,5 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
         return p
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

@@ -49,5 +49,5 @@ class TestLGL(unittest.TestCase):
         assert_almost_equal(w_6, w_i[6], decimal=6)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

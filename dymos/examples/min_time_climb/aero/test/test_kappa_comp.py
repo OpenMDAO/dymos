@@ -70,5 +70,5 @@ class TestKappaComp(unittest.TestCase):
         assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-4)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

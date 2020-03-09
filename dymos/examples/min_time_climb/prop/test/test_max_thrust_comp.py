@@ -36,5 +36,5 @@ class TestBrysonThrustComp(unittest.TestCase):
             assert_almost_equal(thrust_N, THR_DATA['thrust'][i, :])
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

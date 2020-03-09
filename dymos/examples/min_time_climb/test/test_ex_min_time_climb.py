@@ -126,5 +126,5 @@ class TestMinTimeClimb(unittest.TestCase):
         assert_rel_error(self, p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

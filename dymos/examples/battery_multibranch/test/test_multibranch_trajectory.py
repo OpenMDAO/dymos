@@ -598,5 +598,5 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         assert_rel_error(self, soc1m[-1], 0.18625395, 5e-5)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

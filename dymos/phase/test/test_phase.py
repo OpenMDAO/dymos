@@ -664,5 +664,5 @@ class TestPhaseBase(unittest.TestCase):
                          tolerance=1.0E-6)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

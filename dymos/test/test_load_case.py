@@ -467,5 +467,5 @@ class TestLoadCase(unittest.TestCase):
         self.assertFalse(fail_flag)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

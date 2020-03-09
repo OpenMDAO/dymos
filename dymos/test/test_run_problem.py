@@ -183,3 +183,7 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.input_parameters:g', 9.80665)
 
         dm.run_problem(p, True)
+
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()

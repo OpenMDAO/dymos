@@ -266,5 +266,5 @@ class TestInputParameterConnections(unittest.TestCase):
         assert_rel_error(self, p.get_val('phase0.rhs_col.sum.m'), expected)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

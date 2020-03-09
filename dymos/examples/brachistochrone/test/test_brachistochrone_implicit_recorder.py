@@ -94,5 +94,5 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
                          outputs['phase0.control_group.indep_controls.controls:theta']['value'])
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

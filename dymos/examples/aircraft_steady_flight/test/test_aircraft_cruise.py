@@ -202,5 +202,5 @@ class TestAircraftCruise(unittest.TestCase):
         assert_rel_error(self, range, tas*time, tolerance=1.0E-4)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

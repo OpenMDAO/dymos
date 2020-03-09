@@ -8,14 +8,6 @@ from dymos.models.atmosphere.atmos_1976 import USatm1976Comp
 
 assert_almost_equal = np.testing.assert_almost_equal
 
-SHOW_PLOTS = False
-
-if SHOW_PLOTS:
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-
-
 reference = np.array([[0.00000, 288.150, 101325., 1.22500,  340.294, 0.0000181206],
                       [1000.00, 281.650, 89874.6, 1.111640, 336.434, 0.0000177943],
                       [2000.00, 275.150, 79495.2, 1.006490, 332.529, 0.0000174645],
@@ -55,17 +47,6 @@ class TestAtmosphere(unittest.TestCase):
         p.setup()
         p.run_model()
 
-        var_map = ['alt_m', 'atmos.temp', 'atmos.pres', 'atmos.rho', 'atmos.sos']
-        var_unit_map = ['m', 'K', 'Pa', 'kg/m**3', 'm/s']
-
-        for i in range(1, 5):
-            if SHOW_PLOTS:
-                # print('i', i, var_map[i], var_unit_map[i])
-                plt.plot(p['alt_m'], p.get_val(var_map[i], units=var_unit_map[i]))
-                plt.title(var_map[i])
-                plt.plot(reference[:, 0], reference[:, i], 'ro')
-                plt.show()
-
         assert_rel_error(self, p.get_val('atmos.temp', units='K'),
                          reference[:, 1], tolerance=1.0E-2)
         assert_rel_error(self, p.get_val('atmos.pres', units='Pa'),
@@ -75,5 +56,6 @@ class TestAtmosphere(unittest.TestCase):
         assert_rel_error(self, p.get_val('atmos.sos', units='m/s'),
                          reference[:, 4], tolerance=1.0E-2)
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()
