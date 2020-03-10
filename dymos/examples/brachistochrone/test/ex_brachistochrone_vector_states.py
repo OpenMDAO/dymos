@@ -25,23 +25,28 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     if transcription == 'runge-kutta':
         transcription = dm.RungeKutta(num_segments=num_segments, compressed=compressed)
+        fix_final = False
     elif transcription == 'gauss-lobatto':
         transcription = dm.GaussLobatto(num_segments=num_segments,
                                         order=transcription_order,
                                         compressed=compressed)
+        fix_final = not solve_segments
     elif transcription == 'radau-ps':
         transcription = dm.Radau(num_segments=num_segments,
                                  order=transcription_order,
                                  compressed=compressed)
+        fix_final = not solve_segments
 
+    traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                      transcription=transcription)
+    traj.add_phase('phase0', phase)
 
-    p.model.add_subsystem('phase0', phase)
+    p.model.add_subsystem('traj0', traj)
 
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='s')
 
-    fix_final = not solve_segments  # can't fix final position if you're solving the segments
+    # can't fix final position if you're solving the segments
 
     phase.add_state('pos',
                     rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
@@ -73,16 +78,16 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p.model.linear_solver = om.DirectSolver()
     p.setup(check=True, force_alloc_complex=force_alloc_complex)
 
-    p['phase0.t_initial'] = 0.0
-    p['phase0.t_duration'] = 2.0
+    p['traj0.phase0.t_initial'] = 0.0
+    p['traj0.phase0.t_duration'] = 1.8016
 
     pos0 = [0, 10]
     posf = [10, 5]
 
-    p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
-    p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-    p['phase0.design_parameters:g'] = 9.80665
+    p['traj0.phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
+    p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+    p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+    p['traj0.phase0.design_parameters:g'] = 9.80665
 
     p.run_model()
     if run_driver:
@@ -92,6 +97,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 
 if __name__ == '__main__':
-    brachistochrone_min_time(transcription='radau-ps', num_segments=10, run_driver=True,
-                             transcription_order=3, compressed=True, optimizer='SNOPT',
-                             solve_segments=True)
+    p = brachistochrone_min_time(transcription='radau-ps', num_segments=5, run_driver=True,
+                                 transcription_order=5, compressed=False, optimizer='SNOPT',
+                                 solve_segments=False, force_alloc_complex=True, dynamic_simul_derivs=True)

@@ -130,5 +130,5 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
                          726.85, tolerance=1.0E-2)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

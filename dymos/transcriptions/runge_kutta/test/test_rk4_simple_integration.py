@@ -134,5 +134,5 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         assert_rel_error(self, p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

@@ -144,5 +144,5 @@ class TestFlightPathEOM2D(unittest.TestCase):
                                             ' {0} wrt {1} in {2}'.format(var, wrt, comp))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

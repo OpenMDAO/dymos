@@ -18,8 +18,8 @@ class TestMisc(unittest.TestCase):
 
         with self.assertRaises(ValueError) as e:
             get_rate_units('m', 's', deriv=0)
-            self.assertEqual(str(e.exception), 'deriv argument must be 1 or 2.')
+        self.assertEqual(str(e.exception), 'deriv argument must be 1 or 2.')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

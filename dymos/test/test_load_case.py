@@ -3,15 +3,14 @@ import unittest
 from openmdao.utils.testing_utils import use_tempdirs
 import openmdao
 
-om_version = tuple([int(s) for s in openmdao.__version__.split('.')])
+om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
 @unittest.skipIf(om_version <= (2, 9, 0), 'load_case requires an OpenMDAO version later than 2.9.0')
 @use_tempdirs
 class TestLoadCase(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(self):
         for filename in ['brachistochrone_solution.db']:
             if os.path.exists(filename):
                 os.remove(filename)
@@ -467,5 +466,5 @@ class TestLoadCase(unittest.TestCase):
         self.assertFalse(fail_flag)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

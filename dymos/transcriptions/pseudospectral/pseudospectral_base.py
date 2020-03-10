@@ -41,6 +41,7 @@ class PseudospectralBase(TranscriptionBase):
         self.any_solved_segs = False
         self.any_connected_opt_segs = False
         for name, options in phase.state_options.items():
+            # Transcription solve_segments overrides state solve_segments if its not set
             if options['solve_segments'] is None:
                 options['solve_segments'] = self.options['solve_segments']
 
@@ -78,7 +79,26 @@ class PseudospectralBase(TranscriptionBase):
             size = np.prod(options['shape'])
             if options['opt']:
                 if options['solve_segments']:
-                    desvar_indices = list(indep.state_idx_map[name]['indep'])
+                    # If we are using a solver on the defects, then our design variables
+                    # are the first nodes in each segment.
+                    # For instance, for two 5th order radau segments, the indep indices are [0, 6].
+                    # If we have vectorized states of size n, then there are n design variables
+                    # at each node.  For instance, with n=2, the desvar indices are [0, 1, 12, 13]
+                    num_seg = grid_data.num_segments
+                    num_state_input_nodes_per_seg = grid_data.subset_num_nodes_per_segment['state_input']
+                    # Get the desvar node indices
+                    desvar_node_idxs = np.asarray(indep.state_idx_map[name]['indep'])
+                    # In compressed transcription, the desvar indices are just the first
+                    # index for each element in the state shape
+                    if self.options['compressed']:
+                        desvar_indices = np.arange(size, dtype=int)
+                    else:
+                        # In uncompressed transcription, we need desvar_indices repeated
+                        # once for each segment, with the number of nodes in all but the
+                        # last segments added to it
+                        desvar_indices = size * np.repeat(desvar_node_idxs, size) + \
+                            np.tile(np.arange(size, dtype=int), num_seg)
+                    desvar_indices = list(desvar_indices)
                 else:
                     desvar_indices = list(range(size * num_state_input_nodes))
 

@@ -188,5 +188,5 @@ class TestDocTandemPhases(unittest.TestCase):
         plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

@@ -197,5 +197,5 @@ class TestTandemPhases(unittest.TestCase):
         self._run_transcription('runge-kutta')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

@@ -116,5 +116,5 @@ class TestCommandLine(unittest.TestCase):
         self._assert_correct_solution()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

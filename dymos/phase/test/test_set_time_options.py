@@ -293,5 +293,5 @@ class TestPhaseTimeOptions(unittest.TestCase):
                             msg='Brachistochrone with outbounded times has failed')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

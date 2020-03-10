@@ -36,5 +36,5 @@ class TestIndexing(unittest.TestCase):
                          'Currently get_src_indices_by_row only returns flat source indices.')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()
