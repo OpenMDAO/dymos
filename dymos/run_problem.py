@@ -5,6 +5,7 @@ import openmdao.api as om
 import dymos as dm
 import numpy as np
 from dymos.trajectory.trajectory import Trajectory
+from dymos.load_case import load_case, find_phases
 import os
 import sys
 
@@ -22,31 +23,6 @@ def modify_problem(problem, restart=None, reset_grid=False):
     reset_grid: Boolean
         Flag to trigger a grid reset.
     """
-    if restart is not None:  # restore variables from database file specified by 'restart'
-        print('Restarting run_problem using the %s database.' % restart)
-        cr = om.CaseReader(restart)
-        cases = cr.list_cases()
-        if len(cases) < 1:
-            print('WARNING: the requested %s database file does not have any cases to load.' % restart)
-        else:
-            case = cr.get_case(cases[-1])  # TODO: use last case, ideally it should be the only one, but there are many
-
-            # identify database as a simulation output and not a solution recording, based on the content
-            check_simulation = cr.problem_metadata['driver']['name'] == 'Driver'
-            if check_simulation:
-                prev_soln = {'inputs':  case.list_inputs(out_stream=None,  units=True, prom_name=True),
-                             'outputs': case.list_outputs(out_stream=None, units=True, prom_name=True)}
-                problem.run_model()
-                re_interpolate_solution(problem, previous_solution=prev_soln)
-            else:
-                # Initialize the system with values from the case.
-                # We unnecessarily call setup again just to make sure we obliterate the previous solution
-                # First reset the connections at the top level model until fixed in OpenMDAO
-                problem.setup()
-
-                # Load the values from the previous solution
-                dm.load_case(problem, case)
-
     # record variables to database when running driver under hook
     # pre-hook is important, because recording initialization is skipped if final_setup has run once
     save_db = os.getcwd() + '/dymos_solution.db'
@@ -64,6 +40,31 @@ def modify_problem(problem, restart=None, reset_grid=False):
 
     # if opts.get('reset_grid'):  # TODO: implement this option
     #     pass
+
+    if restart is not None:  # restore variables from database file specified by 'restart'
+        print('Restarting run_problem using the %s database.' % restart)
+        cr = om.CaseReader(restart)
+        cases = cr.list_cases()
+        if len(cases) < 1:
+            print('WARNING: the requested %s database file does not have any cases to load.' % restart)
+        else:
+            case = cr.get_case(cases[-1])  # TODO: use last case, ideally it should be the only one, but there are many
+
+            # identify database as a simulation output and not a solution recording, based on the content
+            check_simulation = cr.problem_metadata['driver']['name'] == 'Driver'
+            if check_simulation:
+                prev_soln = {'inputs':  case.list_inputs(out_stream=None,  units=True, prom_name=True),
+                             'outputs': case.list_outputs(out_stream=None, units=True, prom_name=True)}
+
+                load_case(problem, prev_soln)
+            else:
+                # Initialize the system with values from the case.
+                # We unnecessarily call setup again just to make sure we obliterate the previous solution
+                # First reset the connections at the top level model until fixed in OpenMDAO
+                problem.setup()
+
+                # Load the values from the previous solution
+                load_case(problem, case)
 
 
 def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=True, simulate=False, no_iterate=False):
@@ -129,7 +130,7 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
 
                 problem.setup()
 
-                re_interpolate_solution(problem, previous_solution=prev_soln)
+                load_case(problem, prev_soln)
 
                 problem.run_driver()
             for stream in [f, sys.stdout]:
@@ -143,102 +144,3 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
         for subsys, local in problem.model._all_subsystem_iter():
             if isinstance(subsys, Trajectory):
                 subsys.simulate(record_file='dymos_simulation.db')
-
-
-def find_phases(sys):
-    """
-    Finds all instances of Dymos Phases within the given system, and returns them as a dictionary.
-    They are keyed by promoted name if use_prom_path=True, otherwise they are keyed by their
-    absolute name.
-
-    Parameters
-    ----------
-    sys : om.Group
-        The OpenMDAO Group to be searched for Dymos Phases.
-
-    Returns
-    -------
-    dict
-        A dictionary mapping the absolute path of each Phase object in the given group to each
-        Phase object.
-    """
-    phase_paths = {}
-    if isinstance(sys, Phase):
-        phase_paths[sys.pathname] = sys
-    elif isinstance(sys, om.Group):
-        for subsys in sys._loc_subsys_map:
-            phase_paths.update(find_phases(getattr(sys, subsys)))
-    return phase_paths
-
-
-def re_interpolate_solution(problem, previous_solution):
-    """
-    Populate a guess for the given problem involving Dymos Phases by interpolating results
-    from the previous solution.
-
-    Parameters
-    ----------
-    problem : om.Problem
-        An OpenMDAO Problem object which contains one or more Dymos Phases.
-    previous_solution : dict
-        A dictionary with key 'inputs' mapped to the output of problem.model.list_inputs for
-        a previous iteration, and key 'outputs' mapped to the output of prob.model.list_outputs.
-        Both list_inputs and list_outputs should be called with `units=True` and `prom_names=True`.
-    """
-    phase_paths = find_phases(problem.model)
-
-    if not phase_paths:
-        return
-
-    prev_outputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in previous_solution['outputs']}
-
-    phase_io = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
-                'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
-
-    phase_outputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in phase_io['outputs']}
-
-    for phase_abs_path, phase in phase_paths.items():
-        phase_name = phase_abs_path.split('.')[-1]
-
-        # Get the initial time and duration from the previous result and set them into the new phase.
-        t_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.timeseries.time_phase')][0]
-
-        t_initial = prev_outputs[t_path]['value'][0]
-        t_initial_units = prev_outputs[t_path]['units']
-
-        t_duration = prev_outputs[t_path]['value'][-1] - prev_outputs[t_path]['value'][0]
-        t_duration_units = t_initial_units
-
-        prev_time_path = [s for s in prev_outputs if s.endswith(f'{phase_name}.timeseries.time')][0]
-        prev_time = prev_outputs[prev_time_path]['value']
-
-        # initial time and duration may not be present if a simulation was loaded
-        ti_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.t_initial')][0]
-        td_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.t_duration')][0]
-        problem.set_val(ti_path, t_initial, units=t_initial_units)
-        problem.set_val(td_path, t_duration, units=t_duration_units)
-
-        # TODO: set the previous values of the phase and trajectory design parameters and polynomial controls
-
-        # Interpolate the timeseries state outputs from the previous solution onto the new grid.
-        for state_name, options in phase.state_options.items():
-            state_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.states:{state_name}')][0]
-            prev_state_path = [s for s in prev_outputs if s.endswith(f'{phase_name}.timeseries.states:{state_name}')][0]
-            prev_state_val = prev_outputs[prev_state_path]['value']
-            prev_state_units = prev_outputs[prev_state_path]['units']
-            problem.set_val(state_path,
-                            phase.interpolate(xs=prev_time, ys=prev_state_val,
-                                              nodes='state_input', kind='slinear'),
-                            units=prev_state_units)
-
-        # Interpolate the timeseries control outputs from the previous solution onto the new grid.
-        for control_name, options in phase.control_options.items():
-            control_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.controls:{control_name}')][0]
-            prev_control_path = [s for s in prev_outputs
-                                 if s.endswith(f'{phase_name}.timeseries.controls:{control_name}')][0]
-            prev_control_val = prev_outputs[prev_control_path]['value']
-            prev_control_units = prev_outputs[prev_control_path]['units']
-            problem.set_val(control_path,
-                            phase.interpolate(xs=prev_time, ys=prev_control_val,
-                                              nodes='control_input', kind='slinear'),
-                            units=prev_control_units)
