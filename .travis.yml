@@ -125,7 +125,7 @@ install:
 - cd ..;
 
 # install dymos itself.
-- python -m pip install .;
+- python -m pip install -e .;
 
 # display summary of installed packages and their versions
 - conda list
