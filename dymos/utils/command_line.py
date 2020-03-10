@@ -54,6 +54,8 @@ def dymos_cmd(argv=None):
                         help='If given, perform simulation after solving the problem.')
     parser.add_argument('-n', '--no_solve', action='store_true',
                         help='If given, do not run the driver on the problem (simulate only)')
+    parser.add_argument('-i', '--no_iterate', action='store_true',
+                        help='If given, do not iterate the driver on the problem)')
     parser.add_argument('-t', '--solution', default=None,
                         help='A previous solution record file (or explicit simulation record file)'
                              ' from which the initial guess should be loaded. (default: None)')
@@ -75,6 +77,7 @@ def dymos_cmd(argv=None):
         'restart': args.solution,
         'simulate': args.simulate,
         'no_solve': args.no_solve,
+        'no_iterate': args.no_iterate,
         'reset_grid': args.reset_grid
     }
 
@@ -90,24 +93,25 @@ def dymos_cmd(argv=None):
         """
 
         def __init__(self):
-            self._hooks_enabled = True
+            self._pre_hooks_enabled = True
+            self._post_hooks_enabled = False
 
         def _pre_final_setup(self, prob):
-            if not self._hooks_enabled:
+            if not self._pre_hooks_enabled:
                 return
+            self._pre_hooks_enabled = False
 
             modify_problem(prob, restart=opts['restart'])
+            self._post_hooks_enabled = True
 
         def _post_final_setup(self, prob):
-            if not self._hooks_enabled:
+            if not self._post_hooks_enabled:
                 return
+            self._post_hooks_enabled = False
 
-            self._hooks_enabled = False
-
-            if not opts['no_solve']:  # execute run_problem unless told otherwise
-                refine_iterations = opts.get('refine_iteration_limit')
-                run_problem(prob, refine_iterations > 0, refine_iteration_limit=refine_iterations,
-                            run_driver=not opts['no_solve'], simulate=opts['simulate'])
+            refine_iterations = opts.get('refine_iteration_limit')
+            run_problem(prob, refine_iterations > 0, refine_iteration_limit=refine_iterations,
+                        run_driver=not opts['no_solve'], simulate=opts['simulate'], no_iterate=opts['no_iterate'])
 
     dymos_hooks = DymosHooks()
 
