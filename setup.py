@@ -22,7 +22,7 @@ setup(name='dymos',
     license='Apache License',
     packages=find_packages(),
     install_requires=[
-        'openmdao>=2.10.1',
+        'openmdao>=3.0.0',
         'numpy>=1.14.1',
         'scipy>=1.0.0',
         'pep8',
@@ -32,6 +32,7 @@ setup(name='dymos',
         'redbaron'
     ],
     zip_safe=False,
+    package_data={'dymos.examples.aircraft_steady_flight.aero': ['data/CRM_aero_inputs.dat', 'data/CRM_aero_outputs.dat']},
     entry_points={
       'console_scripts': ['dymos=dymos.utils.command_line:dymos_cmd'],
     }

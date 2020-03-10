@@ -124,15 +124,17 @@ install:
 - pip install -e .[all];
 - cd ..;
 
-# install dymos itself in developer mode.
-- pip install -e .;
+# install dymos itself.
+- python -m pip install -e .;
 
 # display summary of installed packages and their versions
 - conda list
 
 script:
+# change to the dymos path and run unit tests
+- dymos_path=$(python -c "import dymos as dm; import inspect; import pathlib; p=pathlib.PurePath(inspect.getfile(dm)).parent; print(p)" | tail -1);
 - export OMPI_MCA_rmaps_base_oversubscribe=1
-- testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos;
+- testflo -n 1 $dymos_path --pre_announce --coverage --coverpkg dymos;
 - testflo -b -n 1 benchmark --pre_announce
 - if [ "$UPLOAD_DOCS" ]; then
     travis-sphinx build --source=dymos/docs;
