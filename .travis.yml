@@ -90,7 +90,7 @@ install:
     python -m pip install networkx;
     python -m pip install testflo==1.3.6;
     python -m pip install pyyaml;
-    python -m pip install coveralls;
+    python -m pip install python-coveralls;
     python -m pip install --user travis-sphinx;
 
     git clone https://github.com/mdolab/pyoptsparse.git;
@@ -143,4 +143,5 @@ after_success:
 - if [ "$MASTER_BUILD" ] && [ "$UPLOAD_DOCS" ]; then
     travis-sphinx deploy;
   fi
-- coveralls;
+- base_dir=`python -c 'import site; print(site.getsitepackages()[0] + "/dymos")'`
+- coveralls -b $base_dir;
