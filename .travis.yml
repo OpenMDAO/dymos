@@ -134,6 +134,7 @@ script:
 # change to the dymos path and run unit tests
 - export OMPI_MCA_rmaps_base_oversubscribe=1
 - testflo -n 1 dymos --pre_announce --coverage --coverpkg dymos;
+- cat .coverage
 - testflo -b -n 1 benchmark --pre_announce
 - if [ "$UPLOAD_DOCS" ]; then
     travis-sphinx build --source=dymos/docs;
