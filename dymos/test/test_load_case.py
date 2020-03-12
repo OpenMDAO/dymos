@@ -246,14 +246,14 @@ class TestLoadCase(unittest.TestCase):
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
 
-        time_val = outputs['phase0.timeseries.time']['value'][:,0]
-        theta_val = outputs['phase0.timeseries.controls:theta']['value'][:,0]
+        time_val = outputs['phase0.timeseries.time']['value'][:, 0]
+        theta_val = outputs['phase0.timeseries.controls:theta']['value'][:, 0]
         nodup = np.insert(time_val[1:] != time_val[:-1], 0, True)  # remove duplicate times
         time_val = time_val[nodup]
         theta_val = theta_val[nodup]
 
-        q_time = q['phase0.timeseries.time'][:,0]
-        q_theta = q['phase0.timeseries.controls:theta'][:,0]
+        q_time = q['phase0.timeseries.time'][:, 0]
+        q_theta = q['phase0.timeseries.controls:theta'][:, 0]
         nodup = np.insert(q_time[1:] != q_time[:-1], 0, True)  # remove duplicate times
         q_time = q_time[nodup]
         q_theta = q_theta[nodup]
