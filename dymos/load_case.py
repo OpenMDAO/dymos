@@ -1,5 +1,6 @@
 import numpy as np
-
+import openmdao.api as om
+from openmdao.recorders.case import Case
 from .phase.phase import Phase
 
 
@@ -51,99 +52,110 @@ def _get_parent_phase(problem, path):
     return None
 
 
-def load_case(problem, case):
+def find_phases(sys):
     """
-    Pull all input and output variables from a case into the model, taking special care to
-    interpolate any values that are within Dymos phases.
+    Finds all instances of Dymos Phases within the given system, and returns them as a dictionary.
+    They are keyed by promoted name if use_prom_path=True, otherwise they are keyed by their
+    absolute name.
 
     Parameters
     ----------
-    problem : OpenMDAO Problem instance
-        The Problem to be populated with data from the given Case.
-    case : Case object or OpenMDAO Problem instance
-        A Case from a CaseRecorder file.
+    sys : om.Group
+        The OpenMDAO Group to be searched for Dymos Phases.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping the absolute path of each Phase object in the given group to each
+        Phase object.
     """
-    inputs = case.inputs if case.inputs is not None else None
-    outputs = case.outputs if case.outputs is not None else None
-    vars = dict(inputs)
-    vars.update(outputs)
+    phase_paths = {}
+    if isinstance(sys, Phase):
+        phase_paths[sys.pathname] = sys
+    elif isinstance(sys, om.Group):
+        for subsys in sys._loc_subsys_map:
+            phase_paths.update(find_phases(getattr(sys, subsys)))
+    return phase_paths
 
-    phases_in_case = set()
-    phase_inputs = {}
-    phase_outputs = {}
 
-    if inputs:
-        for name in inputs.absolute_names():
-            if name not in problem.model._var_abs_names['input']:
-                continue
+def load_case(problem, previous_solution):
+    """
+    Populate a guess for the given problem involving Dymos Phases by interpolating results
+    from the previous solution.
 
-            parent_phase = _get_parent_phase(problem, name)
-            if parent_phase:
-                if parent_phase not in phase_inputs:
-                    phase_inputs[parent_phase] = []
-                phase_inputs[parent_phase].append(name)
-                phases_in_case.add(parent_phase)
-            else:
-                problem[name] = inputs[name]
+    Parameters
+    ----------
+    problem : om.Problem
+        An OpenMDAO Problem object which contains one or more Dymos Phases.
+    previous_solution : dict [or Case]
+        A dictionary with key 'inputs' mapped to the output of problem.model.list_inputs for
+        a previous iteration, and key 'outputs' mapped to the output of prob.model.list_outputs.
+        Both list_inputs and list_outputs should be called with `units=True` and `prom_names=True`.
+    """
 
-    if outputs:
-        for name in outputs.absolute_names():
-            if name not in problem.model._var_abs_names['output']:
-                continue
+    # allow old style arguments using a Case or OpenMDAO problem instead of dictionary
+    assert(isinstance(previous_solution, Case) or isinstance(previous_solution, dict))
+    if isinstance(previous_solution, Case):
+        case = previous_solution
+        previous_solution = {'inputs': case.list_inputs(out_stream=None, units=True, prom_name=True),
+                             'outputs': case.list_outputs(out_stream=None, units=True, prom_name=True)}
 
-            parent_phase = _get_parent_phase(problem, name)
-            if parent_phase:
-                if parent_phase not in phase_outputs:
-                    phase_outputs[parent_phase] = []
-                phase_outputs[parent_phase].append(name)
-                phases_in_case.add(parent_phase)
-            else:
-                problem[name] = outputs[name]
+    phase_paths = find_phases(problem.model)
 
-    for phase in phases_in_case:
-        phase_path = phase.pathname
-        t_all = outputs[f'{phase_path}.timeseries.time']
+    if not phase_paths:
+        return
 
-        problem[f'{phase_path}.t_initial'] = outputs[f'{phase_path}.t_initial']
-        problem[f'{phase_path}.t_duration'] = outputs[f'{phase_path}.t_duration']
+    prev_outputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in previous_solution['outputs']}
 
+    problem.final_setup()  # make sure list_inputs and list_outputs can work
+
+    phase_io = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
+                'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
+
+    phase_outputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in phase_io['outputs']}
+
+    for phase_abs_path, phase in phase_paths.items():
+        phase_name = phase_abs_path.split('.')[-1]
+
+        # Get the initial time and duration from the previous result and set them into the new phase.
+        t_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.timeseries.time_phase')][0]
+
+        t_initial = prev_outputs[t_path]['value'][0]
+        t_initial_units = prev_outputs[t_path]['units']
+
+        t_duration = prev_outputs[t_path]['value'][-1] - prev_outputs[t_path]['value'][0]
+        t_duration_units = t_initial_units
+
+        prev_time_path = [s for s in prev_outputs if s.endswith(f'{phase_name}.timeseries.time')][0]
+        prev_time = prev_outputs[prev_time_path]['value']
+
+        # initial time and duration may not be present if a simulation was loaded
+        ti_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.t_initial')][0]
+        td_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.t_duration')][0]
+        problem.set_val(ti_path, t_initial, units=t_initial_units)
+        problem.set_val(td_path, t_duration, units=t_duration_units)
+
+        # TODO: set the previous values of the phase and trajectory design parameters and polynomial controls
+
+        # Interpolate the timeseries state outputs from the previous solution onto the new grid.
         for state_name, options in phase.state_options.items():
-            state_all = outputs[f'{phase_path}.timeseries.states:{state_name}']
-            problem[f'{phase_path}.states:{state_name}'] = \
-                phase.interpolate(t_all, state_all, nodes='state_input')
+            state_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.states:{state_name}')][0]
+            prev_state_path = [s for s in prev_outputs if s.endswith(f'{phase_name}.timeseries.states:{state_name}')][0]
+            prev_state_val = prev_outputs[prev_state_path]['value']
+            prev_state_units = prev_outputs[prev_state_path]['units']
+            problem.set_val(state_path,
+                            phase.interpolate(xs=prev_time, ys=prev_state_val,
+                                              nodes='state_input', kind='slinear'),
+                            units=prev_state_units)
 
+        # Interpolate the timeseries control outputs from the previous solution onto the new grid.
         for control_name, options in phase.control_options.items():
-            control_all = outputs[f'{phase_path}.timeseries.controls:{control_name}']
-            problem[f'{phase_path}.controls:{control_name}'] = \
-                phase.interpolate(t_all, control_all, nodes='control_input')
-
-        for control_name, options in phase.polynomial_control_options.items():
-            control_all = outputs[f'{phase_path}.timeseries.polynomial_controls:{control_name}']
-            problem[f'{phase_path}.polynomial_controls:{control_name}'] = \
-                phase.interpolate(t_all, control_all, nodes='control_input')
-
-        for param_name, options in phase.design_parameter_options.items():
-            param_val = outputs[f'{phase_path}.design_parameters:{param_name}']
-            problem[f'{phase_path}.design_parameters:{param_name}'] = param_val
-
-        for param_name, options in phase.input_parameter_options.items():
-            param_val = inputs[f'{phase_path}.input_parameters:{param_name}']
-            problem[f'{phase_path}.input_parameters:{param_name}'] = param_val
-
-        for var_path in phase_inputs[phase] + phase_outputs[phase]:
-            if f'{phase_path}.rhs_all' in var_path:
-                val_all = vars[var_path]
-                var_shape = problem[var_path].shape
-                problem[var_path] = np.reshape(phase.interpolate(t_all, val_all, nodes='all'), var_shape)
-
-            if f'{phase_path}.rhs_disc' in var_path:
-                t_disc = t_all[phase.options['transcription'].grid_data.subset_node_indices['state_disc']]
-                val_disc = vars[var_path]
-                var_shape = problem[var_path].shape
-                problem[var_path] = np.reshape(phase.interpolate(t_disc, val_disc, nodes='state_disc'), var_shape)
-
-            if f'{phase_path}.rhs_col' in var_path:
-                t_col = t_all[phase.options['transcription'].grid_data.subset_node_indices['col']]
-                val_col = vars[var_path]
-                var_shape = problem[var_path].shape
-                problem[var_path] = np.reshape(phase.interpolate(t_col, val_col, nodes='col'), var_shape)
+            control_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.controls:{control_name}')][0]
+            prev_control_path = [s for s in prev_outputs
+                                 if s.endswith(f'{phase_name}.timeseries.controls:{control_name}')][0]
+            prev_control_val = prev_outputs[prev_control_path]['value']
+            prev_control_units = prev_outputs[prev_control_path]['units']
+            problem.set_val(control_path,
+                            phase.interpolate(xs=prev_time, ys=prev_control_val,
+                                              nodes='control_input', kind='slinear'),
+                            units=prev_control_units)
