@@ -352,9 +352,12 @@ class Trajectory(om.Group):
             _vars = {}
             for var in sorted(vars.keys()):
                 if var == '*':
-                    _vars['time'] = vars[var].copy()
+                    names = ['time']
                     for state in p2_states:
-                        _vars[state] = vars[var].copy()
+                        names.append(state)
+                    # sort to make converged solutions repeatable
+                    for n in sorted(names):
+                        _vars[n] = vars[var].copy()
                 else:
                     _vars[var] = vars[var].copy()
 
