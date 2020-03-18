@@ -1,10 +1,10 @@
 import openmdao.api as om
 import dymos as dm
-from dymos.examples.vanderpol.vanderpol_ode import vanderpol_ode
+from dymos.examples.vanderpol.vanderpol_ode import vanderpol_ode, vanderpol_ode_delay
 
 
 def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-              compressed=True, optimizer='SLSQP', use_pyoptsparse=False):
+              compressed=True, optimizer='SLSQP', use_pyoptsparse=False, delay=None):
     """Dymos problem definition for optimal control of a Van der Pol oscillator"""
 
     # define the OpenMDAO problem
@@ -38,7 +38,10 @@ def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order
                           compressed=compressed)
 
     # define a Phase as specified above and add to Phase
-    phase = dm.Phase(ode_class=vanderpol_ode, transcription=t)
+    if not delay:
+        phase = dm.Phase(ode_class=vanderpol_ode, transcription=t)
+    else:
+        phase = dm.Phase(ode_class=vanderpol_ode_delay, transcription=t)
     traj.add_phase(name='phase0', phase=phase)
 
     t_final = 15.0

@@ -32,6 +32,19 @@ class TestVanderpolExample(unittest.TestCase):
         assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x1++'], np.zeros(1))
         assert_almost_equal(p['traj.phases.phase0.final_conditions.controls:u++'], np.zeros(1), decimal=3)
 
+    def test_vanderpol_optimal_slow(self):
+        p = vanderpol(transcription='gauss-lobatto', num_segments=75, delay=True)
+        dm.run_problem(p)  # find optimal control solution to stop oscillation
+
+        if SHOW_PLOTS:
+            vanderpol_dymos_plots(p)
+
+        print('Objective function minimized to', p['traj.phases.phase0.final_conditions.states:J++'])
+        # check that ODE states (excluding J) and control are driven to near zero
+        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x0++'], np.zeros(1))
+        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x1++'], np.zeros(1))
+        assert_almost_equal(p['traj.phases.phase0.final_conditions.controls:u++'], np.zeros(1), decimal=3)
+
     def test_vanderpol_optimal_grid_refinement(self):
         # enabling grid refinement gives a faster and better solution with fewer segments
         p = vanderpol(transcription='gauss-lobatto', num_segments=15)
