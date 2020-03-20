@@ -419,6 +419,7 @@ class SolveIVP(TranscriptionBase):
             units = options['units']
             timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
                                                    var_class=phase.classify_var(name),
+                                                   shape=options['shape'],
                                                    units=units)
 
             if output_nodes_per_seg is None:
