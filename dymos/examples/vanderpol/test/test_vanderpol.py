@@ -33,8 +33,9 @@ class TestVanderpolExample(unittest.TestCase):
         assert_almost_equal(p['traj.phases.phase0.final_conditions.controls:u++'], np.zeros(1), decimal=3)
 
     def test_vanderpol_optimal_slow(self):
-        """test with:
-           OPENMDAO_REQUIRE_MPI=1 mpirun -n 1 python dymos/examples/vanderpol/test/test_vanderpol.py TestVanderpolExample.test_vanderpol_optimal_slow
+        """test with (varying numbers for n):
+           OPENMDAO_REQUIRE_MPI=1 mpirun -n 1 python
+               dymos/examples/vanderpol/test/test_vanderpol.py TestVanderpolExample.test_vanderpol_optimal_slow
         """
         p = vanderpol(transcription='gauss-lobatto', num_segments=75, delay=True)
         dm.run_problem(p)  # find optimal control solution to stop oscillation

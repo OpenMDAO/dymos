@@ -4,6 +4,7 @@ import time
 from openmdao.utils.array_utils import evenly_distrib_idxs
 from openmdao.utils.mpi import MPI
 
+
 class vanderpol_ode(om.ExplicitComponent):
     """ODE for optimal control of a Van der Pol oscillator
 
@@ -77,8 +78,30 @@ class vanderpol_ode(om.ExplicitComponent):
         jacobian['Jdot', 'u'] = 2.0 * u
 
 
+class vanderpol_ode_group(om.Group):
+    """Group containing distributed vanderpol_ode calculation and collection"""
+    def initialize(self):
+        self.options.declare('num_nodes', types=int)
+
+    def setup(self):
+        nn = self.options['num_nodes']
+
+        # pass through to one component for now
+        self.add_subsystem(name='vanderpol_ode_delay',
+                           subsys=vanderpol_ode_delay(num_nodes=nn),
+                           promotes_inputs=['x0', 'x1', 'u'])
+
+        self.add_subsystem(name='vanderpol_ode_delay_collect',
+                           subsys=vanderpol_ode_delay_collect(num_nodes=nn),
+                           promotes_outputs=['x0dot', 'x1dot', 'Jdot'])
+
+        self.connect('vanderpol_ode_delay.x0dot', 'vanderpol_ode_delay_collect.partx0dot')
+        self.connect('vanderpol_ode_delay.x1dot', 'vanderpol_ode_delay_collect.partx1dot')
+        self.connect('vanderpol_ode_delay.Jdot', 'vanderpol_ode_delay_collect.partJdot')
+
+
 class vanderpol_ode_delay(om.ExplicitComponent):
-    """slow version of vanderpol_ode for demonstrating distributed component calculations"""
+    """intentionally slow version of vanderpol_ode for effects of demonstrating distributed component calculations"""
 
     def __init__(self, *args, **kwargs):
         self.delay_time = 0.050
@@ -159,11 +182,13 @@ class vanderpol_ode_delay(om.ExplicitComponent):
         jacobian['Jdot', 'x1'] = 2.0 * x1
         jacobian['Jdot', 'u'] = 2.0 * u
 
+
 class vanderpol_ode_delay_collect(om.ExplicitComponent):
-    """Sums a distributed input."""
+    """Collects and combines the parts of a distributed ODE computation input."""
 
     def initialize(self):
         self.options.declare('size', types=int, default=1, desc="Size of input and output vectors.")
+        self.options.declare('num_nodes', types=int)
 
     def setup(self):
         comm = self.comm
@@ -174,22 +199,35 @@ class vanderpol_ode_delay_collect(om.ExplicitComponent):
         start = offsets[rank]
         end = start + sizes[rank]
 
-        self.add_input('invec', np.ones(sizes[rank], float),
+        # inputs are partial vectors of output to be combined
+        self.add_input('partx0dot', val=np.ones(sizes[rank]), desc='second derivative of Output', units='V/s',
+                       src_indices=np.arange(start, end, dtype=int))
+        self.add_input('partx1dot', val=np.ones(sizes[rank]), desc='derivative of Output', units='V/s',
+                       src_indices=np.arange(start, end, dtype=int))
+        self.add_input('partJdot', val=np.ones(sizes[rank]), desc='derivative of objective', units='1.0/s',
                        src_indices=np.arange(start, end, dtype=int))
 
-        self.add_output('out', np.ones(self.options['size'], float))  # total size of combined outputs
+        # outputs: derivative of states, total size of combined outputs
+        # the objective function will be treated as a state for computation, so its derivative is an output
+        self.add_output('x0dot', val=np.ones(self.options['size']), desc='second derivative of Output', units='V/s**2')
+        self.add_output('x1dot', val=np.ones(self.options['size']), desc='derivative of Output', units='V/s')
+        self.add_output('Jdot', val=np.ones(self.options['size']), desc='derivative of objective', units='1.0/s')
 
     def compute(self, inputs, outputs):
-        data = np.zeros(1)
-        data[0] = np.sum(inputs['invec'])  # sums all the inputs that this process knows about
+        # gathers results from here with other MPI results
+        self.comm.Allgather(inputs['partx0dot'], outputs['oux0dot'])
+        self.comm.Allgather(inputs['partx1dot'], outputs['oux1dot'])
+        self.comm.Allgather(inputs['partJdot'], outputs['Jdot'])
 
-        total = np.zeros(1)
-        self.comm.Allgather(inputs['invec'], outputs['out'])  # gathers results from here with other MPI results
+        print(self.comm.rank, 'vanderpol_ode_delay_collect inputs', inputs['partx0dot'], 'outputs', outputs['oux0dot'])
 
-        print(self.comm.rank, 'vanderpol_ode_delay_collect inputs', inputs['invec'], 'outputs', outputs['out'])
+# BUG: RuntimeError: Phase (traj.phases.phase0):
+#      src_indices has been defined in both connect('control_values:u', 'rhs_disc.u') and add_input('rhs_disc.u', ...)
 
-# BUG: RuntimeError: Phase (traj.phases.phase0): src_indices has been defined in both connect('control_values:u', 'rhs_disc.u') and add_input('rhs_disc.u', ...)
-
-# TODO: this needs to be changed into two components:
+# TODO: this needs to be implemented as two components:
 # 1 - a distributed computation component
+#     (vanderpol_ode_delay)
 # 2 - a distributed collect component that gets distributed inputs and merges them into a single array output
+#     (vanderpol_ode_delay_collect)
+# 3 - a Group that add the two new components, connects them, and can be used instead of the original ODE
+#     (vanderpol_ode_group)

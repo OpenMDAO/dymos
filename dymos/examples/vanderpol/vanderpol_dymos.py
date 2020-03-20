@@ -1,6 +1,6 @@
 import openmdao.api as om
 import dymos as dm
-from dymos.examples.vanderpol.vanderpol_ode import vanderpol_ode, vanderpol_ode_delay
+from dymos.examples.vanderpol.vanderpol_ode import vanderpol_ode, vanderpol_ode_group
 
 
 def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
@@ -41,7 +41,7 @@ def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order
     if not delay:
         phase = dm.Phase(ode_class=vanderpol_ode, transcription=t)
     else:
-        phase = dm.Phase(ode_class=vanderpol_ode_delay, transcription=t)
+        phase = dm.Phase(ode_class=vanderpol_ode_group, transcription=t)  # distributed component group
     traj.add_phase(name='phase0', phase=phase)
 
     t_final = 15.0
@@ -101,4 +101,4 @@ def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order
 if __name__ == '__main__':
     # just set up the problem, test it elsewhere
     p = vanderpol(transcription='gauss-lobatto', num_segments=75, transcription_order=3,
-                  compressed=True, optimizer='SLSQP')
+                  compressed=True, optimizer='SLSQP', delay=1)  # TODO remove delay=1 that forces MPI test
