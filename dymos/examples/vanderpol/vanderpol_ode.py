@@ -192,19 +192,19 @@ class vanderpol_ode_delay_collect(om.ExplicitComponent):
 
     def setup(self):
         comm = self.comm
-        rank = comm.rank
-        size = self.options['size']
+        self.rank = comm.rank
+        self.size = self.options['size']
 
-        sizes, offsets = evenly_distrib_idxs(comm.size, size)
-        start = offsets[rank]
-        end = start + sizes[rank]
+        self.sizes, self.offsets = evenly_distrib_idxs(comm.size, self.size)
+        start = self.offsets[self.rank]
+        end = start + self.sizes[self.rank]
 
         # inputs are partial vectors of output to be combined
-        self.add_input('partx0dot', val=np.ones(sizes[rank]), desc='second derivative of Output', units='V/s',
+        self.add_input('partx0dot', val=np.ones(self.sizes[self.rank]), desc='second derivative of Output', units='V/s',
                        src_indices=np.arange(start, end, dtype=int))
-        self.add_input('partx1dot', val=np.ones(sizes[rank]), desc='derivative of Output', units='V/s',
+        self.add_input('partx1dot', val=np.ones(self.sizes[self.rank]), desc='derivative of Output', units='V/s',
                        src_indices=np.arange(start, end, dtype=int))
-        self.add_input('partJdot', val=np.ones(sizes[rank]), desc='derivative of objective', units='1.0/s',
+        self.add_input('partJdot', val=np.ones(self.sizes[self.rank]), desc='derivative of objective', units='1.0/s',
                        src_indices=np.arange(start, end, dtype=int))
 
         # outputs: derivative of states, total size of combined outputs
@@ -215,9 +215,13 @@ class vanderpol_ode_delay_collect(om.ExplicitComponent):
 
     def compute(self, inputs, outputs):
         # gathers results from here with other MPI results
-        self.comm.Allgather(inputs['partx0dot'], outputs['oux0dot'])
-        self.comm.Allgather(inputs['partx1dot'], outputs['oux1dot'])
-        self.comm.Allgather(inputs['partJdot'], outputs['Jdot'])
+        self.comm.Gatherv(inputs['partx0dot'], [outputs['oux0dot'],
+                          self.sizes, self.offsets, MPI.DOUBLE], root=self.rank)
+        self.comm.Gatherv(inputs['partx1dot'], [outputs['oux1dot'],
+                          self.sizes, self.offsets, MPI.DOUBLE], root=self.rank)
+        self.comm.Gatherv(inputs['partJdot'], [outputs['Jdot'],
+                          self.sizes, self.offsets, MPI.DOUBLE], root=self.rank)
+
 
         print(self.comm.rank, 'vanderpol_ode_delay_collect inputs', inputs['partx0dot'], 'outputs', outputs['oux0dot'])
 
