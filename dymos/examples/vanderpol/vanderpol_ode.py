@@ -98,9 +98,9 @@ class vanderpol_ode_group(om.Group):
                            subsys=vanderpol_ode_rate_collect(num_nodes=nn),
                            promotes_outputs=['x0dot', 'x1dot', 'Jdot'])
 
-        self.connect('vanderpol_ode_collect_comp.x0pass', 'vanderpol_ode_delay.x0pass')
-        self.connect('vanderpol_ode_collect_comp.x1pass', 'vanderpol_ode_delay.x1pass')
-        self.connect('vanderpol_ode_collect_comp.upass', 'vanderpol_ode_delay.upass')
+        self.connect('vanderpol_ode_collect_comp.x0pass', 'vanderpol_ode_delay.x0')
+        self.connect('vanderpol_ode_collect_comp.x1pass', 'vanderpol_ode_delay.x1')
+        self.connect('vanderpol_ode_collect_comp.upass', 'vanderpol_ode_delay.u')
 
         self.connect('vanderpol_ode_delay.x0dot', 'vanderpol_ode_rate_collect.partx0dot')
         self.connect('vanderpol_ode_delay.x1dot', 'vanderpol_ode_rate_collect.partx1dot')
@@ -154,11 +154,11 @@ class vanderpol_ode_delay(om.ExplicitComponent):
         # sizes[rank] is the number of inputs and output in this process
 
         # inputs: 2 states and a control
-        self.add_input('x0pass', val=np.ones(sizes[rank]), desc='derivative of Output', units='V/s',
+        self.add_input('x0', val=np.ones(sizes[rank]), desc='derivative of Output', units='V/s',
                        src_indices=np.arange(start, end, dtype=int))
-        self.add_input('x1pass', val=np.ones(sizes[rank]), desc='Output', units='V',
+        self.add_input('x1', val=np.ones(sizes[rank]), desc='Output', units='V',
                        src_indices=np.arange(start, end, dtype=int))
-        self.add_input('upass', val=np.ones(sizes[rank]), desc='control', units=None,
+        self.add_input('u', val=np.ones(sizes[rank]), desc='control', units=None,
                        src_indices=np.arange(start, end, dtype=int))
 
         # outputs: derivative of states
@@ -170,47 +170,47 @@ class vanderpol_ode_delay(om.ExplicitComponent):
         # partials
         r = c = np.arange(nn)
 
-        self.declare_partials(of='x0dot', wrt='x0pass',  rows=r, cols=c)
-        self.declare_partials(of='x0dot', wrt='x1pass',  rows=r, cols=c)
-        self.declare_partials(of='x0dot', wrt='upass',   rows=r, cols=c, val=1.0)
+        self.declare_partials(of='x0dot', wrt='x0',  rows=r, cols=c)
+        self.declare_partials(of='x0dot', wrt='x1',  rows=r, cols=c)
+        self.declare_partials(of='x0dot', wrt='u',   rows=r, cols=c, val=1.0)
 
-        self.declare_partials(of='x1dot', wrt='x0pass',  rows=r, cols=c, val=1.0)
-        self.declare_partials(of='x1dot', wrt='x1pass',  rows=r, cols=c, val=0.0)
-        self.declare_partials(of='x1dot', wrt='upass',   rows=r, cols=c, val=0.0)
+        self.declare_partials(of='x1dot', wrt='x0',  rows=r, cols=c, val=1.0)
+        self.declare_partials(of='x1dot', wrt='x1',  rows=r, cols=c, val=0.0)
+        self.declare_partials(of='x1dot', wrt='u',   rows=r, cols=c, val=0.0)
 
-        self.declare_partials(of='Jdot', wrt='x0pass',  rows=r, cols=c)
-        self.declare_partials(of='Jdot', wrt='x1pass',  rows=r, cols=c)
-        self.declare_partials(of='Jdot', wrt='upass',   rows=r, cols=c)
+        self.declare_partials(of='Jdot', wrt='x0',  rows=r, cols=c)
+        self.declare_partials(of='Jdot', wrt='x1',  rows=r, cols=c)
+        self.declare_partials(of='Jdot', wrt='u',   rows=r, cols=c)
 
     def compute(self, inputs, outputs):
-        sizes = (len(inputs['x0pass']), len(inputs['x1pass']), len(inputs['upass']))
+        sizes = (len(inputs['x0']), len(inputs['x1']), len(inputs['u']))
         print('in vanderpol_ode_delay.compute', sizes, self.comm.rank)  # TODO delete print
         time.sleep(self.delay_time)  # make this method slow to test MPI
 
-        x0 = inputs['x0pass']
-        x1 = inputs['x1pass']
-        u = inputs['upass']
+        x0 = inputs['x0']
+        x1 = inputs['x1']
+        u = inputs['u']
 
         outputs['x0dot'] = (1.0 - x1**2) * x0 - x1 + u
         outputs['x1dot'] = x0
         outputs['Jdot'] = x0**2 + x1**2 + u**2
 
     def compute_partials(self, inputs, jacobian):
-        sizes = (len(inputs['x0pass']), len(inputs['x1pass']), len(inputs['upass']))
+        sizes = (len(inputs['x0']), len(inputs['x1']), len(inputs['u']))
         print('in vanderpol_ode_delay.compute_partials', sizes)  # TODO delete print
         time.sleep(self.delay_time)  # make this method slow to test MPI
 
         # partials declared with 'val' above do not need to be computed
-        x0 = inputs['x0pass']
-        x1 = inputs['x1pass']
-        u = inputs['upass']
+        x0 = inputs['x0']
+        x1 = inputs['x1']
+        u = inputs['u']
 
-        jacobian['x0dot', 'x0pass'] = 1.0 - x1 * x1
-        jacobian['x0dot', 'x1pass'] = -2.0 * x1 * x0 - 1.0
+        jacobian['x0dot', 'x0'] = 1.0 - x1 * x1
+        jacobian['x0dot', 'x1'] = -2.0 * x1 * x0 - 1.0
 
-        jacobian['Jdot', 'x0pass'] = 2.0 * x0
-        jacobian['Jdot', 'x1pass'] = 2.0 * x1
-        jacobian['Jdot', 'upass'] = 2.0 * u
+        jacobian['Jdot', 'x0'] = 2.0 * x0
+        jacobian['Jdot', 'x1'] = 2.0 * x1
+        jacobian['Jdot', 'u'] = 2.0 * u
 
 
 class vanderpol_ode_rate_collect(om.ExplicitComponent):
