@@ -98,10 +98,12 @@ class vanderpol_ode_group(om.Group):
                            subsys=vanderpol_ode_rate_collect(num_nodes=nn),
                            promotes_outputs=['x0dot', 'x1dot', 'Jdot'])
 
+        # connect collect_comp (pass through) output to distributed ODE input
         self.connect('vanderpol_ode_collect_comp.x0pass', 'vanderpol_ode_delay.x0')
         self.connect('vanderpol_ode_collect_comp.x1pass', 'vanderpol_ode_delay.x1')
         self.connect('vanderpol_ode_collect_comp.upass', 'vanderpol_ode_delay.u')
 
+        # connect distributed ODE output to rate_collect input
         self.connect('vanderpol_ode_delay.x0dot', 'vanderpol_ode_rate_collect.partx0dot')
         self.connect('vanderpol_ode_delay.x1dot', 'vanderpol_ode_rate_collect.partx1dot')
         self.connect('vanderpol_ode_delay.Jdot', 'vanderpol_ode_rate_collect.partJdot')
@@ -125,6 +127,9 @@ class vanderpol_ode_collect_comp(om.ExplicitComponent):
         self.add_output('x1pass', val=np.ones(nn), desc='Output', units='V')
         self.add_output('upass', val=np.ones(nn), desc='control', units=None)
 
+        # partials
+        self.declare_partials(of='*', wrt='*', method='fd')
+
     def compute(self, inputs, outputs):
         outputs['x0pass'] = inputs['x0']
         outputs['x1pass'] = inputs['x1']
@@ -135,7 +140,7 @@ class vanderpol_ode_delay(om.ExplicitComponent):
     """intentionally slow version of vanderpol_ode for effects of demonstrating distributed component calculations"""
 
     def __init__(self, *args, **kwargs):
-        self.delay_time = 0.050
+        self.delay_time = 0.0  # TODO: increase when debugged
         super().__init__(*args, **kwargs)
 
     def initialize(self):
@@ -168,7 +173,8 @@ class vanderpol_ode_delay(om.ExplicitComponent):
         self.add_output('Jdot', val=np.ones(sizes[rank]), desc='derivative of objective', units='1.0/s')
 
         # partials
-        r = c = np.arange(nn)
+        r = c = np.arange(sizes[rank])  # hangs with 'mpirun -n 4'
+        print('in vanderpol_ode_delay.setup', sizes[rank], self.comm.rank)  # TODO delete print
 
         self.declare_partials(of='x0dot', wrt='x0',  rows=r, cols=c)
         self.declare_partials(of='x0dot', wrt='x1',  rows=r, cols=c)
@@ -242,6 +248,9 @@ class vanderpol_ode_rate_collect(om.ExplicitComponent):
         self.add_output('x1dot', val=np.ones(nn), desc='derivative of Output', units='V/s')
         self.add_output('Jdot', val=np.ones(nn), desc='derivative of objective', units='1.0/s')
 
+        # partials
+        self.declare_partials(of='*', wrt='*', method='fd')
+
     def compute(self, inputs, outputs):
         # gathers results from here with other MPI results
         self.comm.Gatherv(inputs['partx0dot'], [outputs['x0dot'],
@@ -250,5 +259,3 @@ class vanderpol_ode_rate_collect(om.ExplicitComponent):
                           self.sizes, self.offsets, MPI.DOUBLE], root=self.rank)
         self.comm.Gatherv(inputs['partJdot'], [outputs['Jdot'],
                           self.sizes, self.offsets, MPI.DOUBLE], root=self.rank)
-
-        print(self.comm.rank, 'vanderpol_ode_rate_collect inputs', inputs['partx0dot'], 'outputs', outputs['x0dot'])
