@@ -91,16 +91,15 @@ class vanderpol_ode_group(om.Group):
                            promotes_inputs=['x0', 'x1', 'u'])
 
         self.add_subsystem(name='vanderpol_ode_delay',
-                           subsys=vanderpol_ode_delay(num_nodes=nn),
-                           promotes_inputs=['x0', 'x1', 'u'])
+                           subsys=vanderpol_ode_delay(num_nodes=nn))
 
         self.add_subsystem(name='vanderpol_ode_rate_collect',
                            subsys=vanderpol_ode_rate_collect(num_nodes=nn),
                            promotes_outputs=['x0dot', 'x1dot', 'Jdot'])
 
-        self.connect('vanderpol_ode_collect_comp.x0pass', 'vanderpol_ode_delay.x0')
-        self.connect('vanderpol_ode_collect_comp.x1pass', 'vanderpol_ode_delay.x1')
-        self.connect('vanderpol_ode_collect_comp.upass', 'vanderpol_ode_delay.u')
+        self.connect('vanderpol_ode_collect_comp.x0pass', 'vanderpol_ode_delay.x0pass')
+        self.connect('vanderpol_ode_collect_comp.x1pass', 'vanderpol_ode_delay.x1pass')
+        self.connect('vanderpol_ode_collect_comp.upass', 'vanderpol_ode_delay.upass')
 
         self.connect('vanderpol_ode_delay.x0dot', 'vanderpol_ode_rate_collect.partx0dot')
         self.connect('vanderpol_ode_delay.x1dot', 'vanderpol_ode_rate_collect.partx1dot')
@@ -155,11 +154,11 @@ class vanderpol_ode_delay(om.ExplicitComponent):
         # sizes[rank] is the number of inputs and output in this process
 
         # inputs: 2 states and a control
-        self.add_input('x0', val=np.ones(sizes[rank]), desc='derivative of Output', units='V/s',
+        self.add_input('x0pass', val=np.ones(sizes[rank]), desc='derivative of Output', units='V/s',
                        src_indices=np.arange(start, end, dtype=int))
-        self.add_input('x1', val=np.ones(sizes[rank]), desc='Output', units='V',
+        self.add_input('x1pass', val=np.ones(sizes[rank]), desc='Output', units='V',
                        src_indices=np.arange(start, end, dtype=int))
-        self.add_input('u', val=np.ones(sizes[rank]), desc='control', units=None,
+        self.add_input('upass', val=np.ones(sizes[rank]), desc='control', units=None,
                        src_indices=np.arange(start, end, dtype=int))
 
         # outputs: derivative of states
