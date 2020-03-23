@@ -86,18 +86,49 @@ class vanderpol_ode_group(om.Group):
     def setup(self):
         nn = self.options['num_nodes']
 
-        # pass through to one component for now
+        self.add_subsystem(name='vanderpol_ode_collect_comp',
+                           subsys=vanderpol_ode_collect_comp(),
+                           promotes_inputs=['x0', 'x1', 'u'])
+
         self.add_subsystem(name='vanderpol_ode_delay',
                            subsys=vanderpol_ode_delay(num_nodes=nn),
                            promotes_inputs=['x0', 'x1', 'u'])
 
-        self.add_subsystem(name='vanderpol_ode_delay_collect',
-                           subsys=vanderpol_ode_delay_collect(num_nodes=nn),
+        self.add_subsystem(name='vanderpol_ode_rate_collect',
+                           subsys=vanderpol_ode_rate_collect(num_nodes=nn),
                            promotes_outputs=['x0dot', 'x1dot', 'Jdot'])
 
-        self.connect('vanderpol_ode_delay.x0dot', 'vanderpol_ode_delay_collect.partx0dot')
-        self.connect('vanderpol_ode_delay.x1dot', 'vanderpol_ode_delay_collect.partx1dot')
-        self.connect('vanderpol_ode_delay.Jdot', 'vanderpol_ode_delay_collect.partJdot')
+        self.connect('vanderpol_ode_collect_comp.x0pass', 'vanderpol_ode_delay.x0')
+        self.connect('vanderpol_ode_collect_comp.x1pass', 'vanderpol_ode_delay.x1')
+        self.connect('vanderpol_ode_collect_comp.upass', 'vanderpol_ode_delay.u')
+
+        self.connect('vanderpol_ode_delay.x0dot', 'vanderpol_ode_rate_collect.partx0dot')
+        self.connect('vanderpol_ode_delay.x1dot', 'vanderpol_ode_rate_collect.partx1dot')
+        self.connect('vanderpol_ode_delay.Jdot', 'vanderpol_ode_rate_collect.partJdot')
+
+
+class vanderpol_ode_collect_comp(om.ExplicitComponent):
+    """Pass through component that just copies control and state from input to output so that Dymos can connect"""
+
+    def initialize(self):
+        self.options.declare('size', types=int, default=1, desc="Size of input and output vectors.")
+
+    def setup(self):
+        size = self.options['size']  # total number of inputs and outputs over all processes
+
+        # inputs: 2 states and a control
+        self.add_input('x0', val=np.ones(size), desc='derivative of Output', units='V/s')
+        self.add_input('x1', val=np.ones(size), desc='Output', units='V')
+        self.add_input('u', val=np.ones(size), desc='control', units=None)
+
+        self.add_output('x0pass', val=np.ones(size), desc='derivative of Output', units='V/s')
+        self.add_output('x1pass', val=np.ones(size), desc='Output', units='V')
+        self.add_output('upass', val=np.ones(size), desc='control', units=None)
+
+    def compute(self, inputs, outputs):
+        outputs['x0pass'] = inputs['x0']
+        outputs['x1pass'] = inputs['x1']
+        outputs['upass'] = inputs['u']
 
 
 class vanderpol_ode_delay(om.ExplicitComponent):
@@ -183,7 +214,7 @@ class vanderpol_ode_delay(om.ExplicitComponent):
         jacobian['Jdot', 'u'] = 2.0 * u
 
 
-class vanderpol_ode_delay_collect(om.ExplicitComponent):
+class vanderpol_ode_rate_collect(om.ExplicitComponent):
     """Collects and combines the parts of a distributed ODE computation input."""
 
     def initialize(self):
@@ -200,7 +231,7 @@ class vanderpol_ode_delay_collect(om.ExplicitComponent):
         end = start + self.sizes[self.rank]
 
         # inputs are partial vectors of output to be combined
-        self.add_input('partx0dot', val=np.ones(self.sizes[self.rank]), desc='second derivative of Output', units='V/s',
+        self.add_input('partx0dot', val=np.ones(self.sizes[self.rank]), desc='second derivative of Output', units='V/s**2',
                        src_indices=np.arange(start, end, dtype=int))
         self.add_input('partx1dot', val=np.ones(self.sizes[self.rank]), desc='derivative of Output', units='V/s',
                        src_indices=np.arange(start, end, dtype=int))
@@ -223,7 +254,7 @@ class vanderpol_ode_delay_collect(om.ExplicitComponent):
                           self.sizes, self.offsets, MPI.DOUBLE], root=self.rank)
 
 
-        print(self.comm.rank, 'vanderpol_ode_delay_collect inputs', inputs['partx0dot'], 'outputs', outputs['oux0dot'])
+        print(self.comm.rank, 'vanderpol_ode_rate_collect inputs', inputs['partx0dot'], 'outputs', outputs['oux0dot'])
 
 # BUG: RuntimeError: Phase (traj.phases.phase0):
 #      src_indices has been defined in both connect('control_values:u', 'rhs_disc.u') and add_input('rhs_disc.u', ...)
@@ -232,6 +263,6 @@ class vanderpol_ode_delay_collect(om.ExplicitComponent):
 # 1 - a distributed computation component
 #     (vanderpol_ode_delay)
 # 2 - a distributed collect component that gets distributed inputs and merges them into a single array output
-#     (vanderpol_ode_delay_collect)
+#     (vanderpol_ode_rate_collect)
 # 3 - a Group that add the two new components, connects them, and can be used instead of the original ODE
 #     (vanderpol_ode_group)
