@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.sparse as sp
 import openmdao.api as om
 from ...grid_data import GridData
 from ....utils.misc import get_rate_units
@@ -122,11 +123,28 @@ class StateInterpComp(om.ExplicitComponent):
             size = np.prod(shape)
 
             for key in self.jacs:
-                jac = np.zeros((num_col_nodes, size, num_disc_nodes, size))
-                for i in range(size):
-                    jac[:, i, :, i] = self.matrices[key]
-                jac = jac.reshape((num_col_nodes * size, num_disc_nodes * size), order='C')
-                self.jacs[key][name] = jac
+                # jac = np.zeros((num_col_nodes, size, num_disc_nodes, size))
+                # for i in range(size):
+                #     jac[:, i, :, i] = self.matrices[key]
+                # jac = jac.reshape((num_col_nodes * size, num_disc_nodes * size), order='C')
+                # self.jacs[key][name] = sp.csr_matrix(jac)
+                # with np.printoptions(linewidth=1000000, edgeitems=1000000):
+                #     print(name)
+                #     print(key)
+                #     # print(self.matrices[key])
+                #     print(self.jacs[key][name].nonzero())
+
+                # Each jacobian matrix has a form that is defined by the Kronecker product
+                # of the interpolation matrix and np.eye(size).
+                #
+                # We zero out any elements less than 1E-16 to prevent spurious nonzeros in the
+                # sparse form.
+                jac = np.kron(self.matrices[key], np.eye(size))
+                idxs_near_zero = np.where(abs(jac) < 1.0E-16)
+                jac[idxs_near_zero] = 0.0
+                self.jacs[key][name] = sp.csr_matrix(jac)
+
+                # self.jacs[key][name] = sp.kron(sp.csr_matrix(self.matrices[key]), sp.eye(size))
 
             self.sizes[name] = size
 
@@ -167,9 +185,17 @@ class StateInterpComp(om.ExplicitComponent):
                                       rows=Bd_rows, cols=Bd_cols,
                                       val=self.jacs['Bd'][name][Bd_rows, Bd_cols])
 
-            self.Ad_rows[name], self.Ad_cols[name] = np.where(self.jacs['Ad'][name] != 0)
+            self.Ad_rows[name], self.Ad_cols[name] = self.jacs['Ad'][name].nonzero()
             self.declare_partials(of=self.xdotc_str[name], wrt=self.xd_str[name],
                                   rows=self.Ad_rows[name], cols=self.Ad_cols[name])
+
+            # with np.printoptions(linewidth=1_000_000, edgeitems=1_000_000):
+            #     print(name)
+            #     print(self.Ad_rows[name])
+            #     print(self.Ad_cols[name])
+            #     print(self.jacs['Ad'][name])
+            #     print(self.jacs['Ad'][name].shape)
+            # exit(0)
 
     def _compute_radau(self, inputs, outputs):
         state_options = self.options['state_options']
@@ -239,10 +265,10 @@ class StateInterpComp(om.ExplicitComponent):
             partials[xdotc_name, 'dt_dstau'] = -np.dot(self.matrices['Ad'], xd).ravel(order='F') \
                 / np.tile(inputs['dt_dstau'], size) ** 2
 
-            dt_dstau_x_size = np.repeat(inputs['dt_dstau'], size)[:, np.newaxis]
+            dt_dstau_x_size = np.repeat(inputs['dt_dstau'], size)
 
-            r_nz, c_nz = self.Ad_rows[name], self.Ad_cols[name]
-            partials[xdotc_name, xd_name] = (self.jacs['Ad'][name] / dt_dstau_x_size)[r_nz, c_nz]
+            partial_xdotc_xd = self.jacs['Ad'][name] / dt_dstau_x_size[:, np.newaxis]
+            partials[xdotc_name, xd_name][:] = partial_xdotc_xd[partial_xdotc_xd.nonzero()]
 
     def _compute_partials_gauss_lobatto(self, inputs, partials):
         ndn = self.num_disc_nodes
@@ -273,6 +299,7 @@ class StateInterpComp(om.ExplicitComponent):
             partials[xc_name, fd_name] = (self.jacs['Bi'][name] * dt_dstau_x_size)[r_nz, c_nz]
 
             r_nz, c_nz = self.Ad_rows[name], self.Ad_cols[name]
+
             partials[xdotc_name, xd_name] = (self.jacs['Ad'][name] / dt_dstau_x_size)[r_nz, c_nz]
 
     def compute(self, inputs, outputs):
