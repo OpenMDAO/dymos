@@ -5,6 +5,13 @@ from ...grid_data import GridData
 from ....utils.misc import get_rate_units
 
 
+def sparse_tensor_dot(sps_mat, dense_vecs):
+    rows, cols = sps_mat.shape
+    dense_vecs = dense_vecs.reshape(-1, cols)
+    out = sps_mat.dot(dense_vecs.T).T
+    return out.reshape(dense_vecs.shape[:-1] + (rows,))
+
+
 class StateInterpComp(om.ExplicitComponent):
     r""" Provide interpolated state values and/or rates for pseudospectral transcriptions.
 
@@ -105,7 +112,7 @@ class StateInterpComp(om.ExplicitComponent):
         else:
             raise ValueError('unhandled transcription type: '
                              '{0}'.format(self.options['transcription']))
-        self.matrices = {'Ai': Ai, 'Bi': Bi, 'Ad': Ad, 'Bd': Bd}
+        self.matrices = {'Ai': Ai, 'Bi': Bi, 'Ad': sp.csr_matrix(Ad), 'Bd': Bd}
 
         # Setup partials
 
@@ -139,7 +146,13 @@ class StateInterpComp(om.ExplicitComponent):
                 #
                 # We zero out any elements less than 1E-16 to prevent spurious nonzeros in the
                 # sparse form.
-                jac = np.kron(self.matrices[key], np.eye(size))
+                # print(key)
+                try:
+                    jac = np.kron(self.matrices[key].toarray(), np.eye(size))
+                except:
+                    jac = np.kron(self.matrices[key], np.eye(size))
+                # print(jac)
+                # print(abs(jac) < 1.0E-16)
                 idxs_near_zero = np.where(abs(jac) < 1.0E-16)
                 jac[idxs_near_zero] = 0.0
                 self.jacs[key][name] = sp.csr_matrix(jac)
@@ -171,16 +184,16 @@ class StateInterpComp(om.ExplicitComponent):
                     of=self.xc_str[name], wrt='dt_dstau',
                     rows=rs_dtdstau, cols=cs_dtdstau)
 
-                Ai_rows, Ai_cols = np.where(self.jacs['Ai'][name] != 0)
+                Ai_rows, Ai_cols = self.jacs['Ai'][name].nonzero()
                 self.declare_partials(of=self.xc_str[name], wrt=self.xd_str[name],
                                       rows=Ai_rows, cols=Ai_cols,
                                       val=self.jacs['Ai'][name][Ai_rows, Ai_cols])
 
-                self.Bi_rows[name], self.Bi_cols[name] = np.where(self.jacs['Bi'][name] != 0)
+                self.Bi_rows[name], self.Bi_cols[name] = self.jacs['Bi'][name].nonzero()
                 self.declare_partials(of=self.xc_str[name], wrt=self.fd_str[name],
                                       rows=self.Bi_rows[name], cols=self.Bi_cols[name])
 
-                Bd_rows, Bd_cols = np.where(self.jacs['Bd'][name] != 0)
+                Bd_rows, Bd_cols = self.jacs['Bd'][name].nonzero()
                 self.declare_partials(of=self.xdotc_str[name], wrt=self.fd_str[name],
                                       rows=Bd_rows, cols=Bd_cols,
                                       val=self.jacs['Bd'][name][Bd_rows, Bd_cols])
@@ -200,7 +213,7 @@ class StateInterpComp(om.ExplicitComponent):
     def _compute_radau(self, inputs, outputs):
         state_options = self.options['state_options']
 
-        dt_dstau = np.atleast_1d(inputs['dt_dstau'])
+        dt_dstau = inputs['dt_dstau'][:, np.newaxis]
 
         for name in state_options:
             xdotc_str = self.xdotc_str[name]
@@ -209,8 +222,12 @@ class StateInterpComp(om.ExplicitComponent):
             xd = np.atleast_2d(inputs[xd_str])
 
             # Use transpose to divide each "row" of a by dt_dstau
-            a = np.tensordot(self.matrices['Ad'], xd, axes=(1, 0)).T
-            outputs[xdotc_str] = (a / dt_dstau).T
+            # a = np.tensordot(self.matrices['Ad'], xd, axes=(1, 0)).T
+            # a = sparse_tensor_dot(self.matrices['Ad'], xd)
+            outputs[xdotc_str] = self.matrices['Ad'].dot(xd) / dt_dstau
+            # print(a.shape)
+            # print(dt_dstau.shape)
+            # outputs[xdotc_str] = a / dt_dstau[:, np.newaxis]
 
     def _compute_gauss_lobatto(self, inputs, outputs):
         state_options = self.options['state_options']
@@ -262,7 +279,7 @@ class StateInterpComp(om.ExplicitComponent):
             # Unroll matrix-shaped states into an array at each node
             xd = np.reshape(inputs[xd_name], (ndn, size))
 
-            partials[xdotc_name, 'dt_dstau'] = -np.dot(self.matrices['Ad'], xd).ravel(order='F') \
+            partials[xdotc_name, 'dt_dstau'] = -self.matrices['Ad'].dot(xd).ravel(order='F') \
                 / np.tile(inputs['dt_dstau'], size) ** 2
 
             dt_dstau_x_size = np.repeat(inputs['dt_dstau'], size)
