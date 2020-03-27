@@ -1,6 +1,7 @@
 import numpy as np
 
 from scipy.linalg import block_diag
+import scipy.sparse as sp
 
 from dymos.utils.lgl import lgl
 from dymos.utils.lgr import lgr
@@ -472,7 +473,7 @@ class GridData(object):
         self.input_maps['dynamic_control_input_to_disc'] = make_subset_map(control_input_idxs,
                                                                            control_disc_idxs)
 
-    def phase_lagrange_matrices(self, given_set_name, eval_set_name):
+    def phase_lagrange_matrices(self, given_set_name, eval_set_name, sparse=False):
         """
         Compute the matrices mapping values at some nodes to values and derivatives at new nodes.
 
@@ -482,6 +483,9 @@ class GridData(object):
             Name of the set of nodes with which to perform the interpolation.
         eval_set_name : str
             Name of the set of nodes at which to evaluate the values and derivatives.
+        sparse : bool
+            If True, the returned matrix will be in scipy CSR sparse format.  Otherwise, it is
+            returned as a dense numpy.array.
 
         Returns
         -------
@@ -525,9 +529,13 @@ class GridData(object):
         L = block_diag(*L_blocks)
         D = block_diag(*D_blocks)
 
+        if sparse:
+            L = sp.csr_matrix(L)
+            D = sp.csr_matrix(D)
+
         return L, D
 
-    def phase_hermite_matrices(self, given_set_name, eval_set_name):
+    def phase_hermite_matrices(self, given_set_name, eval_set_name, sparse=False):
         """
         Compute the matrices mapping values at some nodes to values and derivatives at new nodes.
 
@@ -537,6 +545,9 @@ class GridData(object):
             Name of the set of nodes with which to perform the interpolation.
         eval_set_name : str
             Name of the set of nodes at which to evaluate the values and derivatives.
+        sparse : bool
+            If True, the returned matrix will be in scipy CSR sparse format.  Otherwise, it is
+            returned as a dense numpy.array.
 
         Returns
         -------
@@ -594,5 +605,11 @@ class GridData(object):
         Bi = block_diag(*Bi_list)
         Ad = block_diag(*Ad_list)
         Bd = block_diag(*Bd_list)
+
+        if sparse:
+            Ai = sp.csr_matrix(Ai)
+            Bi = sp.csr_matrix(Bi)
+            Ad = sp.csr_matrix(Ad)
+            Bd = sp.csr_matrix(Bd)
 
         return Ai, Bi, Ad, Bd

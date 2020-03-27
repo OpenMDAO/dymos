@@ -122,7 +122,7 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
         p.driver.add_recorder(om.SqliteRecorder('two_burn_orbit_raise_example.db'))
 
-        p.setup(check=True)
+        p.setup(check=True, mode='fwd')
 
         # Set Initial Guesses
         p.set_val('traj.design_parameters:c', value=1.5, units='DU/TU')
