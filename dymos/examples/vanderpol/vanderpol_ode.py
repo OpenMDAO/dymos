@@ -92,21 +92,13 @@ class vanderpol_ode_group(om.Group):
                            promotes_inputs=['x0', 'x1', 'u'])
 
         self.add_subsystem(name='vanderpol_ode_delay',
-                           subsys=vanderpol_ode_delay(num_nodes=nn))
-
-        self.add_subsystem(name='vanderpol_ode_rate_collect',
-                           subsys=vanderpol_ode_rate_collect(num_nodes=nn),
+                           subsys=vanderpol_ode_delay(num_nodes=nn),
                            promotes_outputs=['x0dot', 'x1dot', 'Jdot'])
 
         # connect collect_comp (pass through) output to distributed ODE input
         self.connect('vanderpol_ode_collect_comp.x0pass', 'vanderpol_ode_delay.x0')
         self.connect('vanderpol_ode_collect_comp.x1pass', 'vanderpol_ode_delay.x1')
         self.connect('vanderpol_ode_collect_comp.upass', 'vanderpol_ode_delay.u')
-
-        # connect distributed ODE output to rate_collect input
-        self.connect('vanderpol_ode_delay.x0dot', 'vanderpol_ode_rate_collect.partx0dot')
-        self.connect('vanderpol_ode_delay.x1dot', 'vanderpol_ode_rate_collect.partx1dot')
-        self.connect('vanderpol_ode_delay.Jdot', 'vanderpol_ode_rate_collect.partJdot')
 
 
 class vanderpol_ode_collect_comp(om.ExplicitComponent):
@@ -221,35 +213,3 @@ class vanderpol_ode_delay(om.ExplicitComponent):
         jacobian['Jdot', 'x1'] = 2.0 * x1
         jacobian['Jdot', 'u'] = 2.0 * u
 
-
-class vanderpol_ode_rate_collect(om.ExplicitComponent):
-    """Collects and combines the parts of a distributed ODE computation input."""
-
-    def initialize(self):
-        self.options.declare('num_nodes', types=int)
-
-    def setup(self):
-        nn = self.options['num_nodes']
-
-        # inputs are partial vectors of output to be combined
-        self.add_input('partx0dot', val=np.ones(nn), desc='second derivative of Output',
-                       units='V/s**2')
-        self.add_input('partx1dot', val=np.ones(nn), desc='derivative of Output',
-                       units='V/s')
-        self.add_input('partJdot', val=np.ones(nn), desc='derivative of objective',
-                       units='1.0/s')
-
-        self.add_output('x0dot', val=np.ones(nn), desc='second derivative of Output', units='V/s**2')
-        self.add_output('x1dot', val=np.ones(nn), desc='derivative of Output', units='V/s')
-        self.add_output('Jdot', val=np.ones(nn), desc='derivative of objective', units='1.0/s')
-
-        # partials
-        cols = np.arange(nn)
-        self.declare_partials(of='x0dot', wrt='partx0dot', rows=cols, cols=cols, val=1.0)
-        self.declare_partials(of='x1dot', wrt='partx1dot', rows=cols, cols=cols, val=1.0)
-        self.declare_partials(of='Jdot', wrt='partJdot', rows=cols, cols=cols, val=1.0)
-
-    def compute(self, inputs, outputs):
-        outputs['x0dot'] = inputs['partx0dot']
-        outputs['x1dot'] = inputs['partx1dot']
-        outputs['Jdot'] = inputs['partJdot']
