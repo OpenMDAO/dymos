@@ -128,7 +128,10 @@ class vanderpol_ode_collect_comp(om.ExplicitComponent):
         self.add_output('upass', val=np.ones(nn), desc='control', units=None)
 
         # partials
-        self.declare_partials(of='*', wrt='*', method='fd')
+        row_col = np.arange(nn)
+        self.declare_partials(of='x0pass', wrt='x0', rows=row_col, cols=row_col, val=1.0)
+        self.declare_partials(of='x1pass', wrt='x1', rows=row_col, cols=row_col, val=1.0)
+        self.declare_partials(of='upass', wrt='u', rows=row_col, cols=row_col, val=1.0)
 
     def compute(self, inputs, outputs):
         outputs['x0pass'] = inputs['x0']
@@ -227,35 +230,26 @@ class vanderpol_ode_rate_collect(om.ExplicitComponent):
 
     def setup(self):
         nn = self.options['num_nodes']
-        comm = self.comm
-        self.rank = comm.rank
-
-        self.sizes, self.offsets = evenly_distrib_idxs(comm.size, nn)
-        start = self.offsets[self.rank]
-        end = start + self.sizes[self.rank]
 
         # inputs are partial vectors of output to be combined
-        self.add_input('partx0dot', val=np.ones(self.sizes[self.rank]), desc='second derivative of Output',
-                       units='V/s**2', src_indices=np.arange(start, end, dtype=int))
-        self.add_input('partx1dot', val=np.ones(self.sizes[self.rank]), desc='derivative of Output',
-                       units='V/s', src_indices=np.arange(start, end, dtype=int))
-        self.add_input('partJdot', val=np.ones(self.sizes[self.rank]), desc='derivative of objective',
-                       units='1.0/s', src_indices=np.arange(start, end, dtype=int))
+        self.add_input('partx0dot', val=np.ones(nn), desc='second derivative of Output',
+                       units='V/s**2')
+        self.add_input('partx1dot', val=np.ones(nn), desc='derivative of Output',
+                       units='V/s')
+        self.add_input('partJdot', val=np.ones(nn), desc='derivative of objective',
+                       units='1.0/s')
 
-        # outputs: derivative of states, total size of combined outputs
-        # the objective function will be treated as a state for computation, so its derivative is an output
         self.add_output('x0dot', val=np.ones(nn), desc='second derivative of Output', units='V/s**2')
         self.add_output('x1dot', val=np.ones(nn), desc='derivative of Output', units='V/s')
         self.add_output('Jdot', val=np.ones(nn), desc='derivative of objective', units='1.0/s')
 
         # partials
-        self.declare_partials(of='*', wrt='*', method='fd')
+        cols = np.arange(nn)
+        self.declare_partials(of='x0dot', wrt='partx0dot', rows=cols, cols=cols, val=1.0)
+        self.declare_partials(of='x1dot', wrt='partx1dot', rows=cols, cols=cols, val=1.0)
+        self.declare_partials(of='Jdot', wrt='partJdot', rows=cols, cols=cols, val=1.0)
 
     def compute(self, inputs, outputs):
-        # gathers results from here with other MPI results
-        self.comm.Gatherv(inputs['partx0dot'], [outputs['x0dot'],
-                          self.sizes, self.offsets, MPI.DOUBLE], root=self.rank)
-        self.comm.Gatherv(inputs['partx1dot'], [outputs['x1dot'],
-                          self.sizes, self.offsets, MPI.DOUBLE], root=self.rank)
-        self.comm.Gatherv(inputs['partJdot'], [outputs['Jdot'],
-                          self.sizes, self.offsets, MPI.DOUBLE], root=self.rank)
+        outputs['x0dot'] = inputs['partx0dot']
+        outputs['x1dot'] = inputs['partx1dot']
+        outputs['Jdot'] = inputs['partJdot']

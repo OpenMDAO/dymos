@@ -78,6 +78,10 @@ def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order
     # setup the problem
     p.setup(check=True)
 
+    # TODO - Dymos API will soon provide a way to specify this.
+    for phase in traj._phases.values():
+        phase.linear_solver = om.LinearRunOnce()
+
     p['traj.phase0.t_initial'] = 0.0
     p['traj.phase0.t_duration'] = t_final
 
