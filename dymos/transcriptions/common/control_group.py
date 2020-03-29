@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.sparse as sp
 
 import openmdao.api as om
 
@@ -117,9 +118,12 @@ class ControlInterpComp(om.ExplicitComponent):
             rs = np.concatenate([np.arange(0, num_nodes * size, size, dtype=int) + i
                                  for i in range(size)])
 
+            rs2 = np.arange(num_nodes * size, dtype=int)
+            cs2 = np.repeat(np.arange(num_nodes, dtype=int), size)
+
             self.declare_partials(of=self._output_rate_names[name],
                                   wrt='dt_dstau',
-                                  rows=rs, cols=cs)
+                                  rows=rs2, cols=cs2)
 
             self.declare_partials(of=self._output_rate_names[name],
                                   wrt=self._input_names[name],
@@ -127,7 +131,7 @@ class ControlInterpComp(om.ExplicitComponent):
 
             self.declare_partials(of=self._output_rate2_names[name],
                                   wrt='dt_dstau',
-                                  rows=rs, cols=cs)
+                                  rows=rs2, cols=cs2)
 
             self.declare_partials(of=self._output_rate2_names[name],
                                   wrt=self._input_names[name],
@@ -180,22 +184,56 @@ class ControlInterpComp(om.ExplicitComponent):
 
     def compute(self, inputs, outputs):
         control_options = self.options['control_options']
+        num_nodes = self.num_nodes
+        num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
 
         for name, options in control_options.items():
-
+            size = np.prod(options['shape'])
             u = inputs[self._input_names[name]]
+
+            u_flat = np.reshape(inputs[self._input_names[name]],
+                                newshape=(num_control_input_nodes, size))
 
             a = np.tensordot(self.D, u, axes=(1, 0)).T
             b = np.tensordot(self.D2, u, axes=(1, 0)).T
 
+            # print(self.D.shape)
+            # print(u_flat.shape)
+            L_sp = sp.csr_matrix(self.L)
+            D_sp = sp.csr_matrix(self.D)
+            D2_sp = sp.csr_matrix(self.D2)
+            # print(np.dot(self.D, u_flat).shape)
+            a2 = D_sp.dot(u_flat)
+            b2 = D2_sp.dot(u_flat)
+
+            val = np.tensordot(self.L, u, axes=(1, 0))
+            val_2 = np.reshape(L_sp.dot(u_flat), (num_nodes,) + options['shape'])
+
+            rate = (a / inputs['dt_dstau']).T
+            rate_2 = a2 / inputs['dt_dstau'][:, np.newaxis]
+
+            rate_2 = np.reshape(rate_2, (num_nodes,) + options['shape'])
+
+            rate2 = (b / inputs['dt_dstau'] ** 2).T
+            rate2_2 = b2 / inputs['dt_dstau'][:, np.newaxis] ** 2
+            rate2_2 = np.reshape(rate2_2, (num_nodes,) + options['shape'])
+
             # divide each "row" by dt_dstau or dt_dstau**2
-            outputs[self._output_val_names[name]] = np.tensordot(self.L, u, axes=(1, 0))
-            outputs[self._output_rate_names[name]] = (a / inputs['dt_dstau']).T
-            outputs[self._output_rate2_names[name]] = (b / inputs['dt_dstau'] ** 2).T
+            outputs[self._output_val_names[name]] = val_2
+            outputs[self._output_rate_names[name]] = rate_2  # (a / inputs['dt_dstau']).T
+            outputs[self._output_rate2_names[name]] = rate2_2  # (b / inputs['dt_dstau'] ** 2).T
 
     def compute_partials(self, inputs, partials):
         control_options = self.options['control_options']
         num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
+        num_nodes = self.options['grid_data'].subset_num_nodes['all']
+
+        D_sp = sp.csr_matrix(self.D)
+        D2_sp = sp.csr_matrix(self.D2)
+
+        dt_dstau = inputs['dt_dstau']
+        dstau_dt2 = np.reciprocal(inputs['dt_dstau']) ** 2
+        dstau_dt3 = np.reciprocal(inputs['dt_dstau']) ** 3
 
         for name, options in control_options.items():
             control_name = self._input_names[name]
@@ -204,17 +242,21 @@ class ControlInterpComp(om.ExplicitComponent):
             rate_name = self._output_rate_names[name]
             rate2_name = self._output_rate2_names[name]
 
-            # Unroll matrix-shaped controls into an array at each node
-            u_d = np.reshape(inputs[control_name], (num_input_nodes, size))
+            # Unroll shaped controls into an array at each node
+            u_flat = np.reshape(inputs[control_name], (num_input_nodes, size))
 
-            dt_dstau = inputs['dt_dstau']
             dt_dstau_tile = np.tile(dt_dstau, size)
 
-            partials[rate_name, 'dt_dstau'] = \
-                (-np.dot(self.D, u_d).ravel(order='F') / dt_dstau_tile ** 2)
 
-            partials[rate2_name, 'dt_dstau'] = \
-                -2.0 * (np.dot(self.D2, u_d).ravel(order='F') / dt_dstau_tile ** 3)
+            # partials[rate_name, 'dt_dstau'] = \
+            #     (-np.dot(self.D, u_flat).ravel(order='F') / dt_dstau_tile ** 2)
+
+            partials[rate_name, 'dt_dstau'] = (-D_sp.dot(u_flat) * dstau_dt2[:, np.newaxis]).ravel()
+
+            # partials[rate2_name, 'dt_dstau'] = \
+            #     -2.0 * (np.dot(self.D2, u_flat).ravel(order='F') / dt_dstau_tile ** 3)
+
+            partials[rate2_name, 'dt_dstau'] = (-2.0 * D2_sp.dot(u_flat) * dstau_dt3[:, np.newaxis]).ravel()
 
             dt_dstau_x_size = np.repeat(dt_dstau, size)[:, np.newaxis]
 

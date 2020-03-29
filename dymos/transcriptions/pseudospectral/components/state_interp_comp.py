@@ -5,26 +5,6 @@ from ...grid_data import GridData
 from ....utils.misc import get_rate_units
 
 
-def sparse_tensor_dot(sps_mat, dense_vecs):
-    """
-    Performance a tensordot using a sparse matrix and dense vectors.
-
-    Parameters
-    ----------
-    sps_mat : scipy.sparse.spmatrix
-        A scipy sparse matrix.
-    dense_vecs
-        Dense columns to be dot multiplied by the sparse matrix.
-
-    Returns
-    -------
-    """
-    rows, cols = sps_mat.shape
-    dense_vecs = dense_vecs.reshape(-1, cols)
-    out = sps_mat.dot(dense_vecs.T).T
-    return out.reshape(dense_vecs.shape[:-1] + (rows,))
-
-
 class StateInterpComp(om.ExplicitComponent):
     r""" Provide interpolated state values and/or rates for pseudospectral transcriptions.
 
