@@ -158,11 +158,11 @@ class TestControlRateComp(unittest.TestCase):
         cpd = p.check_partials(compact_print=False, method='cs')
         assert_check_partials(cpd)
 
-    @parameterized.expand(
-        itertools.product([True, False],  # compressed
-                          ), name_func=lambda f, n, p: '_'.join(
-            ['test_control_interp_scalar_RK4', str(p.args[0])]))
-    def test_control_interp_scalar_rk4(self, compressed=True):
+    # @parameterized.expand(
+    #     itertools.product([True, False],  # compressed
+    #                       ), name_func=lambda f, n, p: '_'.join(
+    #         ['test_control_interp_scalar_RK4', str(p.args[0])]))
+    def test_control_interp_scalar_rk4(self, compressed=False):
 
         segends = np.array([0.0, 3.0, 9.0])
 

@@ -110,9 +110,12 @@ class ControlInterpComp(om.ExplicitComponent):
             self.sizes[name] = size
 
             rs, cs = self.val_jac_rows[name], self.val_jac_cols[name]
+
+            J_val = sp.kron(sp.csr_matrix(self.L), sp.eye(size), format='csr')
+            rs2, cs2, data = sp.find(J_val)
             self.declare_partials(of=self._output_val_names[name],
                                   wrt=self._input_names[name],
-                                  rows=rs, cols=cs, val=self.val_jacs[name][rs, cs])
+                                  rows=rs2, cols=cs2, val=data)
 
             cs = np.tile(np.arange(num_nodes, dtype=int), reps=size)
             rs = np.concatenate([np.arange(0, num_nodes * size, size, dtype=int) + i
@@ -125,17 +128,23 @@ class ControlInterpComp(om.ExplicitComponent):
                                   wrt='dt_dstau',
                                   rows=rs2, cols=cs2)
 
-            self.declare_partials(of=self._output_rate_names[name],
-                                  wrt=self._input_names[name],
-                                  rows=self.rate_jac_rows[name], cols=self.rate_jac_cols[name])
-
             self.declare_partials(of=self._output_rate2_names[name],
                                   wrt='dt_dstau',
                                   rows=rs2, cols=cs2)
 
+            self.rate_jacs[name] = sp.kron(sp.csr_matrix(self.D), sp.eye(size), format='csr')
+            rs2, cs2 = self.rate_jacs[name].nonzero()
+
+            self.declare_partials(of=self._output_rate_names[name],
+                                  wrt=self._input_names[name],
+                                  rows=rs2, cols=cs2)
+            self.rate2_jacs[name] = sp.kron(sp.csr_matrix(self.D2), sp.eye(size), format='csr')
+            rs2, cs2 = self.rate2_jacs[name].nonzero()
+            print(self.rate2_jacs[name].todense())
+
             self.declare_partials(of=self._output_rate2_names[name],
                                   wrt=self._input_names[name],
-                                  rows=self.rate2_jac_rows[name], cols=self.rate2_jac_cols[name])
+                                  rows=rs2, cols=cs2)
 
     def setup(self):
         num_nodes = self.options['grid_data'].num_nodes
@@ -232,8 +241,9 @@ class ControlInterpComp(om.ExplicitComponent):
         D2_sp = sp.csr_matrix(self.D2)
 
         dt_dstau = inputs['dt_dstau']
-        dstau_dt2 = np.reciprocal(inputs['dt_dstau']) ** 2
-        dstau_dt3 = np.reciprocal(inputs['dt_dstau']) ** 3
+        dstau_dt = np.reciprocal(inputs['dt_dstau'])
+        dstau_dt2 = dstau_dt ** 2
+        dstau_dt3 = dstau_dt2 * dstau_dt
 
         for name, options in control_options.items():
             control_name = self._input_names[name]
@@ -259,14 +269,20 @@ class ControlInterpComp(om.ExplicitComponent):
             partials[rate2_name, 'dt_dstau'] = (-2.0 * D2_sp.dot(u_flat) * dstau_dt3[:, np.newaxis]).ravel()
 
             dt_dstau_x_size = np.repeat(dt_dstau, size)[:, np.newaxis]
+            dstau_dt_x_size = np.repeat(dstau_dt, size)[:, np.newaxis]
+            dstau_dt2_x_size = np.repeat(dstau_dt2, size)[:, np.newaxis]
 
             r_nz, c_nz = self.rate_jac_rows[name], self.rate_jac_cols[name]
-            partials[rate_name, control_name] = \
-                (self.rate_jacs[name] / dt_dstau_x_size)[r_nz, c_nz]
+            # partials[rate_name, control_name] = \
+            #     (self.rate_jacs[name] / dt_dstau_x_size)[r_nz, c_nz]
 
-            r_nz, c_nz = self.rate2_jac_rows[name], self.rate2_jac_cols[name]
-            partials[rate2_name, control_name] = \
-                (self.rate2_jacs[name] / dt_dstau_x_size ** 2)[r_nz, c_nz]
+            partials[rate_name, control_name] = self.rate_jacs[name].multiply(dstau_dt_x_size).data
+
+            # r_nz, c_nz = self.rate2_jac_rows[name], self.rate2_jac_cols[name]
+            # partials[rate2_name, control_name] = \
+            #     (self.rate2_jacs[name] / dt_dstau_x_size ** 2)[r_nz, c_nz]
+
+            partials[rate2_name, control_name] = self.rate2_jacs[name].multiply(dstau_dt2_x_size).data
 
 
 class ControlGroup(om.Group):
