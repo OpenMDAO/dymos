@@ -218,9 +218,6 @@ class StateInterpComp(om.ExplicitComponent):
         Ad = self.matrices['Ad']
 
         dstau_dt = np.reciprocal(inputs['dt_dstau'])
-        dstau_dt2 = dstau_dt ** 2
-
-        dstau_dt = np.reciprocal(inputs['dt_dstau'])
         dstau_dt2 = (dstau_dt ** 2)
 
         for name in state_options:
@@ -241,6 +238,9 @@ class StateInterpComp(om.ExplicitComponent):
     def _compute_partials_gauss_lobatto(self, inputs, partials):
         ndn = self.options['grid_data'].subset_num_nodes['disc']
 
+        Ad = self.matrices['Ad']
+        Bi = self.matrices['Bi']
+
         dstau_dt = np.reciprocal(inputs['dt_dstau'])
         dstau_dt2 = dstau_dt ** 2
 
@@ -259,10 +259,9 @@ class StateInterpComp(om.ExplicitComponent):
 
             dt_dstau_x_size = np.repeat(inputs['dt_dstau'], size)[:, np.newaxis]
 
-            partials[xc_name, 'dt_dstau'] = self.matrices['Bi'].dot(fd).ravel()
+            partials[xc_name, 'dt_dstau'] = Bi.dot(fd).ravel()
 
-            partials[xdotc_name, 'dt_dstau'] = (-self.matrices['Ad'].dot(xd) \
-                                                * dstau_dt2[:, np.newaxis]).ravel()
+            partials[xdotc_name, 'dt_dstau'] = (-Ad.dot(xd) * dstau_dt2[:, np.newaxis]).ravel()
 
             dxc_dfd = self.jacs['Bi'][name].multiply(dt_dstau_x_size)
             partials[xc_name, fd_name] = dxc_dfd.data
