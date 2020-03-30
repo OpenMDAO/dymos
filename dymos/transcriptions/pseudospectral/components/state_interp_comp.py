@@ -176,61 +176,59 @@ class StateInterpComp(om.ExplicitComponent):
                                   rows=self.Ad_rows[name], cols=self.Ad_cols[name])
 
     def _compute_radau(self, inputs, outputs):
-        """
-        For each state, compute
-
-
-        """
-
         state_options = self.options['state_options']
-
         dt_dstau = inputs['dt_dstau'][:, np.newaxis]
 
         for name in state_options:
             xdotc_str = self.xdotc_str[name]
             xd_str = self.xd_str[name]
+            shape = state_options[name]['shape']
+            size = np.prod(shape)
 
-            xd = np.atleast_2d(inputs[xd_str])
+            xd_flat = np.reshape(inputs[xd_str],
+                                 newshape=(self.num_disc_nodes, size))
 
-            outputs[xdotc_str] = self.matrices['Ad'].dot(xd) / dt_dstau
+            outputs[xdotc_str] = np.reshape(self.matrices['Ad'].dot(xd_flat) / dt_dstau,
+                                            newshape=(self.num_col_nodes,) + shape)
 
     def _compute_gauss_lobatto(self, inputs, outputs):
         state_options = self.options['state_options']
 
-        dt_dstau = np.atleast_1d(inputs['dt_dstau'])
+        dt_dstau = inputs['dt_dstau'][:, np.newaxis]
 
+        num_disc_nodes = self.num_disc_nodes
         num_col_nodes = self.num_col_nodes
 
+        Ai = self.matrices['Ai']
+        Bi = self.matrices['Bi']
+        Ad = self.matrices['Ad']
+        Bd = self.matrices['Bd']
+
         for name in state_options:
+            shape = state_options[name]['shape']
+            size = np.prod(shape)
             xc_str = self.xc_str[name]
             xdotc_str = self.xdotc_str[name]
             xd_str = self.xd_str[name]
             fd_str = self.fd_str[name]
 
-            xd = np.atleast_2d(inputs[xd_str])
+            xd_flat = np.reshape(inputs[xd_str], newshape=(num_disc_nodes, size))
+            fd_flat = np.reshape(inputs[fd_str], newshape=(num_disc_nodes, size))
 
-            a = self.matrices['Bi'].dot(inputs[fd_str])
-            outputs[xc_str] = a * dt_dstau[:, np.newaxis]
-            outputs[xc_str] += self.matrices['Ai'].dot(xd)
+            col_val = Bi.dot(fd_flat) * dt_dstau + Ai.dot(xd_flat)
 
-            outputs[xdotc_str] = self.matrices['Ad'].dot(xd)
+            outputs[xc_str] = np.reshape(col_val, (num_col_nodes,) + shape)
 
-            if len(outputs[xdotc_str].shape) == 1:
-                outputs[xdotc_str] /= dt_dstau
-            elif len(outputs[xdotc_str].shape) == 2:
-                outputs[xdotc_str] /= dt_dstau[:, np.newaxis]
-            elif len(outputs[xdotc_str].shape) == 3:
-                outputs[xdotc_str] /= dt_dstau[:, np.newaxis, np.newaxis]
-            else:
-                for i in range(num_col_nodes):
-                    outputs[xdotc_str][i, ...] /= dt_dstau[i]
+            col_rate = Ad.dot(xd_flat) / dt_dstau + Bd.dot(fd_flat)
 
-            outputs[xdotc_str] += self.matrices['Bd'].dot(inputs[fd_str])
+            outputs[xdotc_str] = np.reshape(col_rate, (num_col_nodes,) + shape)
 
     def _compute_partials_radau(self, inputs, partials):
         state_options = self.options['state_options']
 
         ndn = self.num_disc_nodes
+
+        Ad = self.matrices['Ad']
 
         for name in state_options:
             size = self.sizes[name]
@@ -238,15 +236,16 @@ class StateInterpComp(om.ExplicitComponent):
             xdotc_name = self.xdotc_str[name]
             xd_name = self.xd_str[name]
 
-            # Unroll matrix-shaped states into an array at each node
-            xd = np.reshape(inputs[xd_name], (ndn, size))
+            dt_dstau_x_size = np.repeat(inputs['dt_dstau'], size)[:, np.newaxis]
 
-            partials[xdotc_name, 'dt_dstau'] = -self.matrices['Ad'].dot(xd).T.ravel() \
-                / np.tile(inputs['dt_dstau'], size) ** 2
+            # Unroll matrix-shaped states into an array at each node
+            xd_flat = np.reshape(inputs[xd_name], (ndn, size))
+
+            partials[xdotc_name, 'dt_dstau'] = (-Ad.dot(xd_flat) / dt_dstau_x_size ** 2).ravel()
 
             dt_dstau_x_size = np.repeat(inputs['dt_dstau'], size)[:, np.newaxis]
 
-            partial_xdotc_xd = self.jacs['Ad'][name].multiply(np.reciprocal(dt_dstau_x_size))
+            partial_xdotc_xd = self.jacs['Ad'][name].multiply(np.reciprocal(dt_dstau_x_size)).data
             partials[xdotc_name, xd_name][:] = partial_xdotc_xd.data
 
     def _compute_partials_gauss_lobatto(self, inputs, partials):
