@@ -46,7 +46,7 @@ class ControlInterpComp(om.ExplicitComponent):
             desc='Container object for grid info')
 
         # Save the names of the dynamic controls/parameters
-        self._dynamic_names = []
+        # self._dynamic_names = []
         self._input_names = {}
         self._output_val_names = {}
         self._output_rate_names = {}
@@ -54,7 +54,7 @@ class ControlInterpComp(om.ExplicitComponent):
 
     def _setup_controls(self):
         control_options = self.options['control_options']
-        num_nodes = self.num_nodes
+        num_nodes = self.options['grid_data'].num_nodes
         num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
         time_units = self.options['time_units']
 
@@ -71,7 +71,7 @@ class ControlInterpComp(om.ExplicitComponent):
             rate_units = get_rate_units(units, time_units)
             rate2_units = get_rate_units(units, time_units, deriv=2)
 
-            self._dynamic_names.append(name)
+            # self._dynamic_names.append(name)
 
             self.add_input(self._input_names[name], val=np.ones(input_shape), units=units)
 
@@ -83,68 +83,45 @@ class ControlInterpComp(om.ExplicitComponent):
                             units=rate2_units)
 
             size = np.prod(shape)
-            self.val_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
-            self.rate_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
-            self.rate2_jacs[name] = np.zeros((num_nodes, size, num_control_input_nodes, size))
-
-            for i in range(size):
-                self.val_jacs[name][:, i, :, i] = self.L
-                self.rate_jacs[name][:, i, :, i] = self.D
-                self.rate2_jacs[name][:, i, :, i] = self.D2
-            self.val_jacs[name] = self.val_jacs[name].reshape((num_nodes * size,
-                                                              num_control_input_nodes * size),
-                                                              order='C')
-            self.rate_jacs[name] = self.rate_jacs[name].reshape((num_nodes * size,
-                                                                num_control_input_nodes * size),
-                                                                order='C')
-            self.rate2_jacs[name] = self.rate2_jacs[name].reshape((num_nodes * size,
-                                                                  num_control_input_nodes * size),
-                                                                  order='C')
-            self.val_jac_rows[name], self.val_jac_cols[name] = \
-                np.where(self.val_jacs[name] != 0)
-            self.rate_jac_rows[name], self.rate_jac_cols[name] = \
-                np.where(self.rate_jacs[name] != 0)
-            self.rate2_jac_rows[name], self.rate2_jac_cols[name] = \
-                np.where(self.rate2_jacs[name] != 0)
-
             self.sizes[name] = size
 
-            rs, cs = self.val_jac_rows[name], self.val_jac_cols[name]
-
-            J_val = sp.kron(sp.csr_matrix(self.L), sp.eye(size), format='csr')
-            rs2, cs2, data = sp.find(J_val)
+            # The partial of interpolated value wrt the control input values is linear
+            # and can be computed as the kronecker product of the interpolation matrix (L)
+            # and eye(size).
+            J_val = sp.kron(self.L, sp.eye(size), format='csr')
+            rs, cs, data = sp.find(J_val)
             self.declare_partials(of=self._output_val_names[name],
                                   wrt=self._input_names[name],
-                                  rows=rs2, cols=cs2, val=data)
+                                  rows=rs, cols=cs, val=data)
 
-            cs = np.tile(np.arange(num_nodes, dtype=int), reps=size)
-            rs = np.concatenate([np.arange(0, num_nodes * size, size, dtype=int) + i
-                                 for i in range(size)])
-
-            rs2 = np.arange(num_nodes * size, dtype=int)
-            cs2 = np.repeat(np.arange(num_nodes, dtype=int), size)
+            # The partials of the output rate and second derivative wrt dt_dstau
+            rs = np.arange(num_nodes * size, dtype=int)
+            cs = np.repeat(np.arange(num_nodes, dtype=int), size)
 
             self.declare_partials(of=self._output_rate_names[name],
                                   wrt='dt_dstau',
-                                  rows=rs2, cols=cs2)
+                                  rows=rs, cols=cs)
 
             self.declare_partials(of=self._output_rate2_names[name],
                                   wrt='dt_dstau',
-                                  rows=rs2, cols=cs2)
+                                  rows=rs, cols=cs)
 
+            # The partials of the rates and second derivatives are nonlinear but the sparsity
+            # pattern is obtained from the kronecker product of the 1st and 2nd differentiation
+            # matrices (D and D2) and eye(size).
             self.rate_jacs[name] = sp.kron(sp.csr_matrix(self.D), sp.eye(size), format='csr')
-            rs2, cs2 = self.rate_jacs[name].nonzero()
+            rs, cs = self.rate_jacs[name].nonzero()
 
             self.declare_partials(of=self._output_rate_names[name],
                                   wrt=self._input_names[name],
-                                  rows=rs2, cols=cs2)
+                                  rows=rs, cols=cs)
+
             self.rate2_jacs[name] = sp.kron(sp.csr_matrix(self.D2), sp.eye(size), format='csr')
-            rs2, cs2 = self.rate2_jacs[name].nonzero()
-            print(self.rate2_jacs[name].todense())
+            rs, cs = self.rate2_jacs[name].nonzero()
 
             self.declare_partials(of=self._output_rate2_names[name],
                                   wrt=self._input_names[name],
-                                  rows=rs2, cols=cs2)
+                                  rows=rs, cols=cs)
 
     def setup(self):
         num_nodes = self.options['grid_data'].num_nodes
@@ -153,17 +130,9 @@ class ControlInterpComp(om.ExplicitComponent):
 
         self.add_input('dt_dstau', shape=num_nodes, units=time_units)
 
-        self.val_jacs = {}
         self.rate_jacs = {}
         self.rate2_jacs = {}
-        self.val_jac_rows = {}
-        self.val_jac_cols = {}
-        self.rate_jac_rows = {}
-        self.rate_jac_cols = {}
-        self.rate2_jac_rows = {}
-        self.rate2_jac_cols = {}
         self.sizes = {}
-        self.num_nodes = num_nodes
 
         num_disc_nodes = gd.subset_num_nodes['control_disc']
         num_input_nodes = gd.subset_num_nodes['control_input']
@@ -173,19 +142,20 @@ class ControlInterpComp(om.ExplicitComponent):
         L_id = np.zeros((num_disc_nodes, num_input_nodes), dtype=float)
         L_id[np.arange(num_disc_nodes, dtype=int),
              gd.input_maps['dynamic_control_input_to_disc']] = 1.0
+        L_id = sp.csr_matrix(L_id)
 
         # Matrices L_da and D_da interpolate values and rates (respectively) at all nodes from
         # values specified at control discretization nodes.
-        L_da, D_da = gd.phase_lagrange_matrices('control_disc', 'all')
-        self.L = np.dot(L_da, L_id)
-        self.D = np.dot(D_da, L_id)
+        L_da, D_da = gd.phase_lagrange_matrices('control_disc', 'all', sparse=True)
+        self.L = L_da.dot(L_id)
+        self.D = D_da.dot(L_id)
 
         # Matrix D_dd interpolates rates at discretization nodes from values given at control
         # discretization nodes.
-        _, D_dd = gd.phase_lagrange_matrices('control_disc', 'control_disc')
+        _, D_dd = gd.phase_lagrange_matrices('control_disc', 'control_disc', sparse=True)
 
         # Matrix D2 provides second derivatives at all nodes given values at input nodes.
-        self.D2 = np.dot(D_da, np.dot(D_dd, L_id))
+        self.D2 = D_da.dot(D_dd.dot(L_id))
 
         self._setup_controls()
 
@@ -193,57 +163,37 @@ class ControlInterpComp(om.ExplicitComponent):
 
     def compute(self, inputs, outputs):
         control_options = self.options['control_options']
-        num_nodes = self.num_nodes
+        num_nodes = self.options['grid_data'].num_nodes
         num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
 
         for name, options in control_options.items():
             size = np.prod(options['shape'])
-            u = inputs[self._input_names[name]]
 
             u_flat = np.reshape(inputs[self._input_names[name]],
                                 newshape=(num_control_input_nodes, size))
 
-            a = np.tensordot(self.D, u, axes=(1, 0)).T
-            b = np.tensordot(self.D2, u, axes=(1, 0)).T
+            a = self.D.dot(u_flat)
+            b = self.D2.dot(u_flat)
 
-            # print(self.D.shape)
-            # print(u_flat.shape)
-            L_sp = sp.csr_matrix(self.L)
-            D_sp = sp.csr_matrix(self.D)
-            D2_sp = sp.csr_matrix(self.D2)
-            # print(np.dot(self.D, u_flat).shape)
-            a2 = D_sp.dot(u_flat)
-            b2 = D2_sp.dot(u_flat)
+            val = np.reshape(self.L.dot(u_flat), (num_nodes,) + options['shape'])
 
-            val = np.tensordot(self.L, u, axes=(1, 0))
-            val_2 = np.reshape(L_sp.dot(u_flat), (num_nodes,) + options['shape'])
+            rate = a / inputs['dt_dstau'][:, np.newaxis]
+            rate = np.reshape(rate, (num_nodes,) + options['shape'])
 
-            rate = (a / inputs['dt_dstau']).T
-            rate_2 = a2 / inputs['dt_dstau'][:, np.newaxis]
+            rate2 = b / inputs['dt_dstau'][:, np.newaxis] ** 2
+            rate2 = np.reshape(rate2, (num_nodes,) + options['shape'])
 
-            rate_2 = np.reshape(rate_2, (num_nodes,) + options['shape'])
-
-            rate2 = (b / inputs['dt_dstau'] ** 2).T
-            rate2_2 = b2 / inputs['dt_dstau'][:, np.newaxis] ** 2
-            rate2_2 = np.reshape(rate2_2, (num_nodes,) + options['shape'])
-
-            # divide each "row" by dt_dstau or dt_dstau**2
-            outputs[self._output_val_names[name]] = val_2
-            outputs[self._output_rate_names[name]] = rate_2  # (a / inputs['dt_dstau']).T
-            outputs[self._output_rate2_names[name]] = rate2_2  # (b / inputs['dt_dstau'] ** 2).T
+            outputs[self._output_val_names[name]] = val
+            outputs[self._output_rate_names[name]] = rate
+            outputs[self._output_rate2_names[name]] = rate2
 
     def compute_partials(self, inputs, partials):
         control_options = self.options['control_options']
         num_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
-        num_nodes = self.options['grid_data'].subset_num_nodes['all']
 
-        D_sp = sp.csr_matrix(self.D)
-        D2_sp = sp.csr_matrix(self.D2)
-
-        dt_dstau = inputs['dt_dstau']
         dstau_dt = np.reciprocal(inputs['dt_dstau'])
-        dstau_dt2 = dstau_dt ** 2
-        dstau_dt3 = dstau_dt2 * dstau_dt
+        dstau_dt2 = (dstau_dt ** 2)[:, np.newaxis]
+        dstau_dt3 = (dstau_dt ** 3)[:, np.newaxis]
 
         for name, options in control_options.items():
             control_name = self._input_names[name]
@@ -255,32 +205,13 @@ class ControlInterpComp(om.ExplicitComponent):
             # Unroll shaped controls into an array at each node
             u_flat = np.reshape(inputs[control_name], (num_input_nodes, size))
 
-            dt_dstau_tile = np.tile(dt_dstau, size)
+            partials[rate_name, 'dt_dstau'] = (-self.D.dot(u_flat) * dstau_dt2).ravel()
+            partials[rate2_name, 'dt_dstau'] = (-2.0 * self.D2.dot(u_flat) * dstau_dt3).ravel()
 
-
-            # partials[rate_name, 'dt_dstau'] = \
-            #     (-np.dot(self.D, u_flat).ravel(order='F') / dt_dstau_tile ** 2)
-
-            partials[rate_name, 'dt_dstau'] = (-D_sp.dot(u_flat) * dstau_dt2[:, np.newaxis]).ravel()
-
-            # partials[rate2_name, 'dt_dstau'] = \
-            #     -2.0 * (np.dot(self.D2, u_flat).ravel(order='F') / dt_dstau_tile ** 3)
-
-            partials[rate2_name, 'dt_dstau'] = (-2.0 * D2_sp.dot(u_flat) * dstau_dt3[:, np.newaxis]).ravel()
-
-            dt_dstau_x_size = np.repeat(dt_dstau, size)[:, np.newaxis]
             dstau_dt_x_size = np.repeat(dstau_dt, size)[:, np.newaxis]
             dstau_dt2_x_size = np.repeat(dstau_dt2, size)[:, np.newaxis]
 
-            r_nz, c_nz = self.rate_jac_rows[name], self.rate_jac_cols[name]
-            # partials[rate_name, control_name] = \
-            #     (self.rate_jacs[name] / dt_dstau_x_size)[r_nz, c_nz]
-
             partials[rate_name, control_name] = self.rate_jacs[name].multiply(dstau_dt_x_size).data
-
-            # r_nz, c_nz = self.rate2_jac_rows[name], self.rate2_jac_cols[name]
-            # partials[rate2_name, control_name] = \
-            #     (self.rate2_jacs[name] / dt_dstau_x_size ** 2)[r_nz, c_nz]
 
             partials[rate2_name, control_name] = self.rate2_jacs[name].multiply(dstau_dt2_x_size).data
 
