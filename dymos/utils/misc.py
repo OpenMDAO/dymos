@@ -79,23 +79,3 @@ class CoerceDesvar(object):
                 raise ValueError('array-valued option {0} must have length '
                                  'num_input_nodes ({1})'.format(option, val))
             return val[self.desvar_indices]
-
-
-def sparse_tensor_dot(sps_mat, dense_vecs):
-    """
-    Performance a tensordot using a sparse matrix and dense vectors.
-
-    Parameters
-    ----------
-    sps_mat : scipy.sparse.spmatrix
-        A scipy sparse matrix.
-    dense_vecs
-        Dense columns to be dot multiplied by the sparse matrix.
-
-    Returns
-    -------
-    """
-    rows, cols = sps_mat.shape
-    dense_vecs = dense_vecs.reshape(-1, cols)
-    out = sps_mat.dot(dense_vecs.T).T
-    return out.reshape(dense_vecs.shape[:-1] + (rows,))
