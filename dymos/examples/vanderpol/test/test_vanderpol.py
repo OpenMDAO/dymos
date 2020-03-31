@@ -5,6 +5,7 @@ import dymos as dm
 from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
 from dymos.examples.vanderpol.vanderpol_dymos_plots import vanderpol_dymos_plots
 from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.mpi import MPI
 
 SHOW_PLOTS = False
 
@@ -32,9 +33,10 @@ class TestVanderpolExample(unittest.TestCase):
         assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x1++'], np.zeros(1))
         assert_almost_equal(p['traj.phases.phase0.final_conditions.controls:u++'], np.zeros(1), decimal=3)
 
+    @unittest.skipUnless(MPI, 'the test runs without MPI, but is very slow')
     def test_vanderpol_optimal_slow(self):
-        """test with MPI:
-           OPENMDAO_REQUIRE_MPI=1 mpirun -n 1 python
+        """to test with MPI:
+           OPENMDAO_REQUIRE_MPI=1 mpirun -n 4 python
                dymos/examples/vanderpol/test/test_vanderpol.py TestVanderpolExample.test_vanderpol_optimal_slow
            (using varying values for n should give the same answer)
         """

@@ -2,7 +2,6 @@ import numpy as np
 import openmdao.api as om
 import time
 from openmdao.utils.array_utils import evenly_distrib_idxs
-from openmdao.utils.mpi import MPI
 
 
 class vanderpol_ode(om.ExplicitComponent):
@@ -140,11 +139,11 @@ class vanderpol_ode_delay(om.ExplicitComponent):
 
     MPI can run this component in multiple processes, distributing the calculation of derivatives.
     This code has a delay in it to simulate a longer computation. It should run faster with more processes.
-    TODO: find out why it seems to run at about the same speed with more processors
     """
 
     def __init__(self, *args, **kwargs):
-        self.delay_time = 0.5
+        self.delay_time = 0.01
+        self.progress_prints = False
         super().__init__(*args, **kwargs)
 
     def initialize(self):
@@ -159,26 +158,28 @@ class vanderpol_ode_delay(om.ExplicitComponent):
 
         sizes, offsets = evenly_distrib_idxs(comm.size, nn)  # (#cpus, #inputs) -> (size array, offset array)
         start = offsets[rank]
-        end = start + sizes[rank]
+        self.io_size = sizes[rank]  # number of inputs and outputs managed by this distributed process
+        end = start + self.io_size
+
+        if self.progress_prints:
+            print('in vanderpol_ode_delay.setup', self.io_size, self.comm.rank)
 
         # inputs: 2 states and a control
-        # computation is distributed, sizes[rank] is the number of inputs and output in this process
-        self.add_input('x0', val=np.ones(sizes[rank]), desc='derivative of Output', units='V/s',
+        self.add_input('x0', val=np.ones(self.io_size), desc='derivative of Output', units='V/s',
                        src_indices=np.arange(start, end, dtype=int))
-        self.add_input('x1', val=np.ones(sizes[rank]), desc='Output', units='V',
+        self.add_input('x1', val=np.ones(self.io_size), desc='Output', units='V',
                        src_indices=np.arange(start, end, dtype=int))
-        self.add_input('u', val=np.ones(sizes[rank]), desc='control', units=None,
+        self.add_input('u', val=np.ones(self.io_size), desc='control', units=None,
                        src_indices=np.arange(start, end, dtype=int))
 
         # outputs: derivative of states
         # the objective function will be treated as a state for computation, so its derivative is an output
-        self.add_output('x0dot', val=np.ones(sizes[rank]), desc='second derivative of Output', units='V/s**2')
-        self.add_output('x1dot', val=np.ones(sizes[rank]), desc='derivative of Output', units='V/s')
-        self.add_output('Jdot', val=np.ones(sizes[rank]), desc='derivative of objective', units='1.0/s')
+        self.add_output('x0dot', val=np.ones(self.io_size), desc='second derivative of Output', units='V/s**2')
+        self.add_output('x1dot', val=np.ones(self.io_size), desc='derivative of Output', units='V/s')
+        self.add_output('Jdot', val=np.ones(self.io_size), desc='derivative of objective', units='1.0/s')
 
         # partials
-        r = c = np.arange(sizes[rank])
-        print('in vanderpol_ode_delay.setup', sizes[rank], self.comm.rank)  # TODO delete print
+        r = c = np.arange(self.io_size)
 
         self.declare_partials(of='x0dot', wrt='x0',  rows=r, cols=c)
         self.declare_partials(of='x0dot', wrt='x1',  rows=r, cols=c)
@@ -193,9 +194,11 @@ class vanderpol_ode_delay(om.ExplicitComponent):
         self.declare_partials(of='Jdot', wrt='u',   rows=r, cols=c)
 
     def compute(self, inputs, outputs):
-        sizes = (len(inputs['x0']), len(inputs['x1']), len(inputs['u']))
-        print('in vanderpol_ode_delay.compute', sizes, self.comm.rank)  # TODO delete print
-        time.sleep(self.delay_time)  # make this method slow to test MPI
+        if self.progress_prints:
+            sizes = (len(inputs['x0']), len(inputs['x1']), len(inputs['u']))
+            print('in vanderpol_ode_delay.compute', sizes, self.comm.rank)
+
+        time.sleep(self.delay_time * self.io_size)  # introduce slowness proportional to size of computation
 
         x0 = inputs['x0']
         x1 = inputs['x1']
@@ -206,9 +209,11 @@ class vanderpol_ode_delay(om.ExplicitComponent):
         outputs['Jdot'] = x0**2 + x1**2 + u**2
 
     def compute_partials(self, inputs, jacobian):
-        sizes = (len(inputs['x0']), len(inputs['x1']), len(inputs['u']))
-        print('in vanderpol_ode_delay.compute_partials', sizes)  # TODO delete print
-        time.sleep(self.delay_time)  # make this method slow to test MPI
+        if self.progress_prints:
+            sizes = (len(inputs['x0']), len(inputs['x1']), len(inputs['u']))
+            print('in vanderpol_ode_delay.compute_partials', sizes)
+
+        time.sleep(self.delay_time * self.io_size)  # introduce slowness proportional to size of computation
 
         # partials declared with 'val' above do not need to be computed
         x0 = inputs['x0']

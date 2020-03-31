@@ -106,4 +106,4 @@ def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order
 if __name__ == '__main__':
     # just set up the problem, test it elsewhere
     p = vanderpol(transcription='gauss-lobatto', num_segments=75, transcription_order=3,
-                  compressed=True, optimizer='SLSQP', delay=1)  # TODO remove delay=1 that forces MPI test
+                  compressed=True, optimizer='SLSQP')
