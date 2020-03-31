@@ -79,7 +79,7 @@ class vanderpol_ode(om.ExplicitComponent):
 
 
 class vanderpol_ode_group(om.Group):
-    """Group containing distributed vanderpol_ode calculation and collection"""
+    """Group containing distributed vanderpol_ode pass through and calculation"""
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -87,8 +87,8 @@ class vanderpol_ode_group(om.Group):
     def setup(self):
         nn = self.options['num_nodes']
 
-        self.add_subsystem(name='vanderpol_ode_collect_comp',
-                           subsys=vanderpol_ode_collect_comp(num_nodes=nn),
+        self.add_subsystem(name='vanderpol_ode_passthrough',
+                           subsys=vanderpol_ode_passthrough(num_nodes=nn),
                            promotes_inputs=['x0', 'x1', 'u'])
 
         self.add_subsystem(name='vanderpol_ode_delay',
@@ -96,13 +96,16 @@ class vanderpol_ode_group(om.Group):
                            promotes_outputs=['x0dot', 'x1dot', 'Jdot'])
 
         # connect collect_comp (pass through) output to distributed ODE input
-        self.connect('vanderpol_ode_collect_comp.x0pass', 'vanderpol_ode_delay.x0')
-        self.connect('vanderpol_ode_collect_comp.x1pass', 'vanderpol_ode_delay.x1')
-        self.connect('vanderpol_ode_collect_comp.upass', 'vanderpol_ode_delay.u')
+        self.connect('vanderpol_ode_passthrough.x0pass', 'vanderpol_ode_delay.x0')
+        self.connect('vanderpol_ode_passthrough.x1pass', 'vanderpol_ode_delay.x1')
+        self.connect('vanderpol_ode_passthrough.upass', 'vanderpol_ode_delay.u')
 
 
-class vanderpol_ode_collect_comp(om.ExplicitComponent):
-    """Pass through component that just copies control and state from input to output so that Dymos can connect"""
+class vanderpol_ode_passthrough(om.ExplicitComponent):
+    """Pass through component that just copies control and state from input to output
+
+    if you just use a plain old passthrough (non-distributed with a full sized input and output) component to connect
+    to the distributed output, the framework will do the MPI allgathering for you"""
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -115,6 +118,7 @@ class vanderpol_ode_collect_comp(om.ExplicitComponent):
         self.add_input('x1', val=np.ones(nn), desc='Output', units='V')
         self.add_input('u', val=np.ones(nn), desc='control', units=None)
 
+        # outputs: same as inputs
         self.add_output('x0pass', val=np.ones(nn), desc='derivative of Output', units='V/s')
         self.add_output('x1pass', val=np.ones(nn), desc='Output', units='V')
         self.add_output('upass', val=np.ones(nn), desc='control', units=None)
@@ -132,10 +136,15 @@ class vanderpol_ode_collect_comp(om.ExplicitComponent):
 
 
 class vanderpol_ode_delay(om.ExplicitComponent):
-    """intentionally slow version of vanderpol_ode for effects of demonstrating distributed component calculations"""
+    """intentionally slow version of vanderpol_ode for effects of demonstrating distributed component calculations
+
+    MPI can run this component in multiple processes, distributing the calculation of derivatives.
+    This code has a delay in it to simulate a longer computation. It should run faster with more processes.
+    TODO: find out why it seems to run at about the same speed with more processors
+    """
 
     def __init__(self, *args, **kwargs):
-        self.delay_time = 0.0  # TODO: increase when debugged
+        self.delay_time = 0.5
         super().__init__(*args, **kwargs)
 
     def initialize(self):
@@ -151,9 +160,9 @@ class vanderpol_ode_delay(om.ExplicitComponent):
         sizes, offsets = evenly_distrib_idxs(comm.size, nn)  # (#cpus, #inputs) -> (size array, offset array)
         start = offsets[rank]
         end = start + sizes[rank]
-        # sizes[rank] is the number of inputs and output in this process
 
         # inputs: 2 states and a control
+        # computation is distributed, sizes[rank] is the number of inputs and output in this process
         self.add_input('x0', val=np.ones(sizes[rank]), desc='derivative of Output', units='V/s',
                        src_indices=np.arange(start, end, dtype=int))
         self.add_input('x1', val=np.ones(sizes[rank]), desc='Output', units='V',
@@ -168,7 +177,7 @@ class vanderpol_ode_delay(om.ExplicitComponent):
         self.add_output('Jdot', val=np.ones(sizes[rank]), desc='derivative of objective', units='1.0/s')
 
         # partials
-        r = c = np.arange(sizes[rank])  # hangs with 'mpirun -n 4'
+        r = c = np.arange(sizes[rank])
         print('in vanderpol_ode_delay.setup', sizes[rank], self.comm.rank)  # TODO delete print
 
         self.declare_partials(of='x0dot', wrt='x0',  rows=r, cols=c)
@@ -212,4 +221,3 @@ class vanderpol_ode_delay(om.ExplicitComponent):
         jacobian['Jdot', 'x0'] = 2.0 * x0
         jacobian['Jdot', 'x1'] = 2.0 * x1
         jacobian['Jdot', 'u'] = 2.0 * u
-
