@@ -158,10 +158,10 @@ class TestControlRateComp(unittest.TestCase):
         cpd = p.check_partials(compact_print=False, method='cs')
         assert_check_partials(cpd)
 
-    # @parameterized.expand(
-    #     itertools.product([True, False],  # compressed
-    #                       ), name_func=lambda f, n, p: '_'.join(
-    #         ['test_control_interp_scalar_RK4', str(p.args[0])]))
+    @parameterized.expand(
+        itertools.product([True, False],  # compressed
+                          ), name_func=lambda f, n, p: '_'.join(
+            ['test_control_interp_scalar_RK4', str(p.args[0])]))
     def test_control_interp_scalar_rk4(self, compressed=False):
 
         segends = np.array([0.0, 3.0, 9.0])
@@ -237,7 +237,7 @@ class TestControlRateComp(unittest.TestCase):
                             np.atleast_2d(a_rate2_expected).T)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False, method='cs')
+        cpd = p.check_partials(compact_print=True, method='cs')
         assert_check_partials(cpd)
 
     @parameterized.expand(
@@ -338,7 +338,7 @@ class TestControlRateComp(unittest.TestCase):
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(method='cs')
+        cpd = p.check_partials(compact_print=True, method='cs')
 
         assert_check_partials(cpd)
 
@@ -439,7 +439,7 @@ class TestControlRateComp(unittest.TestCase):
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False, method='cs')
+        cpd = p.check_partials(compact_print=True, method='cs')
 
         assert_check_partials(cpd)
 
@@ -553,7 +553,7 @@ class TestControlRateComp(unittest.TestCase):
                             a3_rate2_expected)
 
         with np.printoptions(linewidth=100000, edgeitems=100000):
-            cpd = p.check_partials(compact_print=False, method='cs')
+            cpd = p.check_partials(compact_print=True, method='cs')
 
         assert_check_partials(cpd)
 
