@@ -155,14 +155,14 @@ class TestControlRateComp(unittest.TestCase):
                             np.atleast_2d(b_rate2_expected).T)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False, out_stream=None, method='cs')
+        cpd = p.check_partials(compact_print=False, method='cs')
         assert_check_partials(cpd)
 
     @parameterized.expand(
         itertools.product([True, False],  # compressed
                           ), name_func=lambda f, n, p: '_'.join(
             ['test_control_interp_scalar_RK4', str(p.args[0])]))
-    def test_control_interp_scalar_rk4(self, compressed=True):
+    def test_control_interp_scalar_rk4(self, compressed=False):
 
         segends = np.array([0.0, 3.0, 9.0])
 
@@ -237,7 +237,7 @@ class TestControlRateComp(unittest.TestCase):
                             np.atleast_2d(a_rate2_expected).T)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False, out_stream=None, method='cs')
+        cpd = p.check_partials(compact_print=True, method='cs')
         assert_check_partials(cpd)
 
     @parameterized.expand(
@@ -338,7 +338,7 @@ class TestControlRateComp(unittest.TestCase):
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(method='cs', out_stream=None)
+        cpd = p.check_partials(compact_print=True, method='cs')
 
         assert_check_partials(cpd)
 
@@ -439,7 +439,7 @@ class TestControlRateComp(unittest.TestCase):
                             a2_rate2_expected)
 
         np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False, method='cs', out_stream=None)
+        cpd = p.check_partials(compact_print=True, method='cs')
 
         assert_check_partials(cpd)
 
@@ -552,8 +552,8 @@ class TestControlRateComp(unittest.TestCase):
         assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'][:, 1, 1],
                             a3_rate2_expected)
 
-        np.set_printoptions(linewidth=1024)
-        cpd = p.check_partials(compact_print=False, method='cs', out_stream=None)
+        with np.printoptions(linewidth=100000, edgeitems=100000):
+            cpd = p.check_partials(compact_print=True, method='cs')
 
         assert_check_partials(cpd)
 

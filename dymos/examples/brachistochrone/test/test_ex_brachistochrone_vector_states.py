@@ -1,4 +1,3 @@
-import os
 import unittest
 from numpy.testing import assert_almost_equal
 
@@ -54,8 +53,8 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
                                                            compressed=True,
                                                            force_alloc_complex=True,
-                                                           run_driver=True)
-        self.assert_results(p)
+                                                           run_driver=False)
+        p.run_driver()
         self.assert_partials(p)
 
     def test_ex_brachistochrone_vs_radau_uncompressed(self):
