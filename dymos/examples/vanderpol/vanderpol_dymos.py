@@ -79,7 +79,7 @@ def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order
     p.setup(check=True)
 
     # TODO - Dymos API will soon provide a way to specify this.
-    # the linear solver used to compute derivatives is not working on MPI, so switch to Linear Block Gauss Seidel
+    # the linear solver used to compute derivatives is not working on MPI, so switch to LinearRunOnce
     for phase in traj._phases.values():
         phase.linear_solver = om.LinearRunOnce()
 
