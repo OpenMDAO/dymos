@@ -399,11 +399,12 @@ class SolveIVP(TranscriptionBase):
                                    ':{0}_rate2'.format(name))
 
         for name, options in phase.design_parameter_options.items():
-            units = options['units']
-            timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=units)
+            if options['include_timeseries']:
+                units = options['units']
+                timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
+                                                       var_class=phase.classify_var(name),
+                                                       shape=options['shape'],
+                                                       units=units)
 
             if output_nodes_per_seg is None:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
@@ -416,11 +417,12 @@ class SolveIVP(TranscriptionBase):
                           src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in phase.input_parameter_options.items():
-            units = options['units']
-            timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=units)
+            if options['include_timeseries']:
+                units = options['units']
+                timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
+                                                       var_class=phase.classify_var(name),
+                                                       shape=options['shape'],
+                                                       units=units)
 
             if output_nodes_per_seg is None:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
