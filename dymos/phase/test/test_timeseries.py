@@ -9,7 +9,7 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 
 class TestTimeseriesOutput(unittest.TestCase):
 
-    def test_timeseries_gl(self):
+    def test_timeseries_gl(self, test_smaller_timeseries=False):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
@@ -39,8 +39,12 @@ class TestTimeseriesOutput(unittest.TestCase):
                           targets=BrachistochroneODE.parameters['theta']['targets'],
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
-        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                   opt=True, units='m/s**2', val=9.80665)
+        if test_smaller_timeseries:
+            phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                       opt=True, units='m/s**2', val=9.80665, include_timeseries=False)
+        else:
+            phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                       opt=True, units='m/s**2', val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)
@@ -91,11 +95,26 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         for dp in ('g',):
             for i in range(gd.subset_num_nodes['all']):
-                assert_rel_error(self,
-                                 p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
-                                 p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))[i])
+                if test_smaller_timeseries:
+                    with self.assertRaises(KeyError):
+                        p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+                else:
+                    assert_rel_error(self,
+                                     p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
+                                     p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))[i])
 
-    def test_timeseries_radau(self):
+        # call simulate to test SolveIVP transcription
+        exp_out = phase.simulate()
+        if test_smaller_timeseries:
+            with self.assertRaises(KeyError):
+                exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+        else:  # no error accessing timseries.design_parameter
+            exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+
+    def test_timeseries_gl_smaller_timeseries(self):
+        self.test_timeseries_gl(test_smaller_timeseries=True)
+
+    def test_timeseries_radau(self, test_smaller_timeseries=False):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
@@ -125,8 +144,12 @@ class TestTimeseriesOutput(unittest.TestCase):
                           targets=BrachistochroneODE.parameters['theta']['targets'],
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
-        phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                   opt=True, units='m/s**2', val=9.80665)
+        if test_smaller_timeseries:
+            phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                       opt=True, units='m/s**2', val=9.80665, include_timeseries=False)
+        else:
+            phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                                       opt=True, units='m/s**2', val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)
@@ -172,10 +195,25 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         for dp in ('g',):
             for i in range(gd.subset_num_nodes['all']):
-                assert_rel_error(self,
-                                 p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
-                                 p.get_val('phase0.timeseries.design_parameters:'
-                                           '{0}'.format(dp))[i])
+                if test_smaller_timeseries:
+                    with self.assertRaises(KeyError):
+                        p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+                else:
+                    assert_rel_error(self,
+                                     p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
+                                     p.get_val('phase0.timeseries.design_parameters:'
+                                               '{0}'.format(dp))[i])
+
+        # call simulate to test SolveIVP transcription
+        exp_out = phase.simulate()
+        if test_smaller_timeseries:
+            with self.assertRaises(KeyError):
+                exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+        else:  # no error accessing timseries.design_parameter
+            exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+
+    def test_timeseries_radau_smaller_timeseries(self):
+        self.test_timeseries_radau(test_smaller_timeseries=True)
 
 
 if __name__ == '__main__':  # pragma: no cover

@@ -773,7 +773,7 @@ class Phase(om.Group):
     def add_design_parameter(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
                              desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
                              adder=_unspecified, ref0=_unspecified, ref=_unspecified, targets=_unspecified,
-                             shape=_unspecified, dynamic=_unspecified):
+                             shape=_unspecified, dynamic=_unspecified, include_timeseries=_unspecified):
         """
         Add a design parameter (static control variable) to the phase.
 
@@ -812,6 +812,8 @@ class Phase(om.Group):
         dynamic : bool
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
             of nodes) else False.
+        include_timeseries : bool
+            True if the static design parameters should be included in output timeseries, else False.
         """
         self.check_parameter(name)
 
@@ -820,13 +822,13 @@ class Phase(om.Group):
             self.design_parameter_options[name]['name'] = name
 
         self.set_design_parameter_options(name, val, units, opt, desc, lower, upper,
-                                          scaler, adder, ref0, ref, targets, shape, dynamic)
+                                          scaler, adder, ref0, ref, targets, shape, dynamic, include_timeseries)
 
     def set_design_parameter_options(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
                                      desc=_unspecified, lower=_unspecified, upper=_unspecified,
                                      scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
                                      ref=_unspecified, targets=_unspecified, shape=_unspecified,
-                                     dynamic=_unspecified):
+                                     dynamic=_unspecified, include_timeseries=_unspecified):
         """
         Set options for an existing design parameter (static control variable) in the phase.
 
@@ -865,6 +867,8 @@ class Phase(om.Group):
         dynamic : bool
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
             of nodes) else False.
+        include_timeseries : bool
+            True if the static design parameters should be included in output timeseries, else False.
         """
         if units is not _unspecified:
             self.design_parameter_options[name]['units'] = units
@@ -908,8 +912,12 @@ class Phase(om.Group):
         if ref is not _unspecified:
             self.design_parameter_options[name]['ref'] = ref
 
+        if include_timeseries is not _unspecified:
+            self.design_parameter_options[name]['include_timeseries'] = include_timeseries
+
     def add_input_parameter(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
-                            desc=_unspecified, shape=_unspecified, dynamic=_unspecified):
+                            desc=_unspecified, shape=_unspecified, dynamic=_unspecified,
+                            include_timeseries=_unspecified):
         """
         Add an input parameter to the phase.
 
@@ -931,6 +939,8 @@ class Phase(om.Group):
         dynamic : bool
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
             of nodes) else False.
+        include_timeseries : bool
+            True if the static input parameters should be included in output timeseries, else False.
         """
         self.check_parameter(name)
 
@@ -966,8 +976,12 @@ class Phase(om.Group):
         if dynamic is not _unspecified:
             self.input_parameter_options[name]['dynamic'] = dynamic
 
+        if include_timeseries is not _unspecified:
+            self.input_parameter_options[name]['include_timeseries'] = include_timeseries
+
     def set_input_parameter_options(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
-                                    desc=_unspecified, shape=_unspecified, dynamic=_unspecified):
+                                    desc=_unspecified, shape=_unspecified, dynamic=_unspecified,
+                                    include_timeseries=_unspecified):
         """
         Set options of an existing input parameter in the phase.
 
@@ -989,6 +1003,8 @@ class Phase(om.Group):
         dynamic : bool
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
             of nodes) else False.
+        include_timeseries : bool
+            True if the static input parameters should be included in output timeseries, else False.
         """
         if units is not _unspecified:
             self.input_parameter_options[name]['units'] = units
@@ -1017,6 +1033,9 @@ class Phase(om.Group):
 
         if dynamic is not _unspecified:
             self.input_parameter_options[name]['dynamic'] = dynamic
+
+        if include_timeseries is not _unspecified:
+            self.input_parameter_options[name]['include_timeseries'] = include_timeseries
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
