@@ -103,6 +103,14 @@ class TestTimeseriesOutput(unittest.TestCase):
                                      p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
                                      p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))[i])
 
+        # call simulate to test SolveIVP transcription
+        exp_out = phase.simulate()
+        if test_smaller_timeseries:
+            with self.assertRaises(KeyError):
+                exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+        else:  # no error accessing timseries.design_parameter
+            exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+
     def test_timeseries_gl_smaller_timeseries(self):
         self.test_timeseries_gl(test_smaller_timeseries=True)
 
@@ -195,6 +203,14 @@ class TestTimeseriesOutput(unittest.TestCase):
                                      p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
                                      p.get_val('phase0.timeseries.design_parameters:'
                                                '{0}'.format(dp))[i])
+
+        # call simulate to test SolveIVP transcription
+        exp_out = phase.simulate()
+        if test_smaller_timeseries:
+            with self.assertRaises(KeyError):
+                exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+        else:  # no error accessing timseries.design_parameter
+            exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
 
     def test_timeseries_radau_smaller_timeseries(self):
         self.test_timeseries_radau(test_smaller_timeseries=True)
