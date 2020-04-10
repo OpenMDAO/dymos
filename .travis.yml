@@ -97,7 +97,7 @@ install:
     export IPOPT_INC=/home/travis/ipopt/include/coin-or;
     export IPOPT_LIB=/home/travis/ipopt/lib;
     cd pyoptsparse;
-    python setup.py install;
+    python setup.py build install;
     cd ..;
 
     git clone https://github.com/OpenMDAO/MBI.git;
