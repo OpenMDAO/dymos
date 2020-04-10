@@ -94,8 +94,8 @@ install:
     pip install --user travis-sphinx;
 
     ./dev_tools/build_pyoptsparse_ipopt.sh -n;
-    export IPOPT_INC=$PREFIX/include/coin-or;
-    export IPOPT_LIB=$PREFIX/lib;
+    export IPOPT_INC=/home/travis/ipopt/include/coin-or;
+    export IPOPT_LIB=/home/travis/ipopt/lib;
     cd pyoptsparse;
     python setup.py install;
     cd ..;
