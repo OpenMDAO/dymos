@@ -801,31 +801,33 @@ class RungeKutta(TranscriptionBase):
                               src_indices=src_idxs, flat_src_indices=True)
 
             for param_name, options in phase.design_parameter_options.items():
-                units = options['units']
-                timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(param_name),
-                                                       var_class=phase.classify_var(param_name),
-                                                       shape=options['shape'],
-                                                       units=units)
+                if options['include_timeseries']:
+                    units = options['units']
+                    timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(param_name),
+                                                           var_class=phase.classify_var(param_name),
+                                                           shape=options['shape'],
+                                                           units=units)
 
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-                phase.connect(src_name='design_parameters:{0}'.format(param_name),
-                              tgt_name='{0}.input_values:design_parameters:{1}'.format(name, param_name),
-                              src_indices=src_idxs, flat_src_indices=True)
+                    phase.connect(src_name='design_parameters:{0}'.format(param_name),
+                                  tgt_name='{0}.input_values:design_parameters:{1}'.format(name, param_name),
+                                  src_indices=src_idxs, flat_src_indices=True)
 
             for param_name, options in phase.input_parameter_options.items():
-                units = options['units']
-                timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
-                                                       var_class=phase.classify_var(param_name),
-                                                       units=units)
+                if options['include_timeseries']:
+                    units = options['units']
+                    timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
+                                                           var_class=phase.classify_var(param_name),
+                                                           units=units)
 
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-                phase.connect(src_name='input_parameters:{0}_out'.format(param_name),
-                              tgt_name='{0}.input_values:input_parameters:{1}'.format(name, param_name),
-                              src_indices=src_idxs, flat_src_indices=True)
+                    phase.connect(src_name='input_parameters:{0}_out'.format(param_name),
+                                  tgt_name='{0}.input_values:input_parameters:{1}'.format(name, param_name),
+                                  src_indices=src_idxs, flat_src_indices=True)
 
             for var, options in phase._timeseries[name]['outputs'].items():
                 output_name = options['output_name']

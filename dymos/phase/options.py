@@ -273,6 +273,9 @@ class DesignParameterOptionsDictionary(om.OptionsDictionary):
                      desc='The unit-reference value of the design parameter. This '
                           'option is invalid if opt=False.')
 
+        self.declare(name='include_timeseries', types=bool, default=True,
+                     desc='True if the static design parameters should be included in output timeseries, else False')
+
 
 class TrajDesignParameterOptionsDictionary(DesignParameterOptionsDictionary):
     """
@@ -329,6 +332,9 @@ class InputParameterOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='shape', types=Iterable, default=(1,),
                      desc='The shape of the design parameter.')
+
+        self.declare(name='include_timeseries', types=bool, default=True,
+                     desc='True if the static input parameters should be included in output timeseries, else False')
 
 
 class TrajInputParameterOptionsDictionary(InputParameterOptionsDictionary):

@@ -399,39 +399,41 @@ class SolveIVP(TranscriptionBase):
                                    ':{0}_rate2'.format(name))
 
         for name, options in phase.design_parameter_options.items():
-            units = options['units']
-            timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=units)
+            if options['include_timeseries']:
+                units = options['units']
+                timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
+                                                       var_class=phase.classify_var(name),
+                                                       shape=options['shape'],
+                                                       units=units)
 
-            if output_nodes_per_seg is None:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-            else:
-                src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
-            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                if output_nodes_per_seg is None:
+                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                else:
+                    src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-            phase.connect(src_name='design_parameters:{0}'.format(name),
-                          tgt_name='timeseries.all_values:design_parameters:{0}'.format(name),
-                          src_indices=src_idxs, flat_src_indices=True)
+                phase.connect(src_name='design_parameters:{0}'.format(name),
+                              tgt_name='timeseries.all_values:design_parameters:{0}'.format(name),
+                              src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in phase.input_parameter_options.items():
-            units = options['units']
-            timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
-                                                   var_class=phase.classify_var(name),
-                                                   shape=options['shape'],
-                                                   units=units)
+            if options['include_timeseries']:
+                units = options['units']
+                timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
+                                                       var_class=phase.classify_var(name),
+                                                       shape=options['shape'],
+                                                       units=units)
 
-            if output_nodes_per_seg is None:
-                src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-            else:
-                src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
+                if output_nodes_per_seg is None:
+                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
+                else:
+                    src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
 
-            src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
+                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-            phase.connect(src_name='input_parameters:{0}_out'.format(name),
-                          tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
-                          src_indices=src_idxs, flat_src_indices=True)
+                phase.connect(src_name='input_parameters:{0}_out'.format(name),
+                              tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
+                              src_indices=src_idxs, flat_src_indices=True)
 
         for var, options in phase._timeseries['timeseries']['outputs'].items():
             output_name = options['output_name']

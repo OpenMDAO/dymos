@@ -1,10 +1,10 @@
 import openmdao.api as om
 import dymos as dm
-from dymos.examples.vanderpol.vanderpol_ode import vanderpol_ode
+from dymos.examples.vanderpol.vanderpol_ode import vanderpol_ode, vanderpol_ode_group
 
 
 def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
-              compressed=True, optimizer='SLSQP', use_pyoptsparse=False):
+              compressed=True, optimizer='SLSQP', use_pyoptsparse=False, delay=None):
     """Dymos problem definition for optimal control of a Van der Pol oscillator"""
 
     # define the OpenMDAO problem
@@ -38,7 +38,10 @@ def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order
                           compressed=compressed)
 
     # define a Phase as specified above and add to Phase
-    phase = dm.Phase(ode_class=vanderpol_ode, transcription=t)
+    if not delay:
+        phase = dm.Phase(ode_class=vanderpol_ode, transcription=t)
+    else:
+        phase = dm.Phase(ode_class=vanderpol_ode_group, transcription=t)  # distributed component group
     traj.add_phase(name='phase0', phase=phase)
 
     t_final = 15.0
@@ -74,6 +77,11 @@ def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order
 
     # setup the problem
     p.setup(check=True)
+
+    # TODO - Dymos API will soon provide a way to specify this.
+    # the linear solver used to compute derivatives is not working on MPI, so switch to LinearRunOnce
+    for phase in traj._phases.values():
+        phase.linear_solver = om.LinearRunOnce()
 
     p['traj.phase0.t_initial'] = 0.0
     p['traj.phase0.t_duration'] = t_final
