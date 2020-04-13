@@ -54,12 +54,14 @@ before_install:
 
 install:
 # get key decrypted, placed, chmodded, and added for passwordless access to WebFaction
-- if [ "$encrypted_4548f0b84c7d_key" ]; then
-    openssl aes-256-cbc -K $encrypted_4548f0b84c7d_key -iv $encrypted_4548f0b84c7d_iv -in travis_deploy_rsa.enc -out /tmp/travis_deploy_rsa -d;
+- if [ "$encrypted_38b986bc515e_key" ]; then
+    openssl aes-256-cbc -K $encrypted_38b986bc515e_key -iv $encrypted_38b986bc515e_iv -in travis_deploy_rsa.enc -out /tmp/travis_deploy_rsa -d;
     eval "$(ssh-agent -s)";
     chmod 600 /tmp/travis_deploy_rsa;
     ssh-add /tmp/travis_deploy_rsa;
     echo -e "Host web543.webfaction.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+  else
+    echo "KEY NOT FOUND";
   fi
 
 # if we have a cached miniconda environment then just activate the cached one, otherwise, build one
@@ -69,7 +71,7 @@ install:
     source $HOME/miniconda/bin/activate PY$PY;
   else
     echo "Building python environment...";
-    wget "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-latest-Linux-x86_64.sh" -O miniconda.sh;
+    wget -q "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-latest-Linux-x86_64.sh" -O miniconda.sh;
     bash miniconda.sh -b -p $HOME/miniconda;
     source "$HOME/miniconda/etc/profile.d/conda.sh";
     hash -r;
@@ -93,18 +95,21 @@ install:
     pip install coveralls;
     pip install --user travis-sphinx;
 
-    git clone https://github.com/mdolab/pyoptsparse.git;
-    cd pyoptsparse;
-    git checkout v1.2
-
-    if [ "$SNOPT_LOCATION" ] && [ "${PY:0:1}" = "3" ]; then
-      cd pyoptsparse/pySNOPT;
-      scp -r "$SNOPT_LOCATION" .;
-      cd ../..;
+    echo "Install pyoptsparse and along with IPOPT";
+    if [ "$PYOPT_INSTALL_SCRIPT" ]; then
+      echo "Copy install script";
+      cd ..;
+      scp "$PYOPT_INSTALL_SCRIPT" .;
+      chmod 755 ./build_pyoptsparse_ipopt.sh; ./build_pyoptsparse_ipopt.sh;
     fi
 
-    python setup.py build install;
-    cd ..;
+    if [ "$SNOPT_LOCATION" ] && [ "${PY:0:1}" = "3" ]; then
+      echo "Install SNOPT";
+      cd pyoptsparse/pyoptsparse/pySNOPT;
+      scp -r "$SNOPT_LOCATION";
+      cd ../../..;
+      cd dymos;
+    fi
 
     git clone https://github.com/OpenMDAO/MBI.git;
     cd MBI;
