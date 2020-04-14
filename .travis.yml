@@ -132,6 +132,7 @@ install:
 
 script:
 # change to the dymos path and run unit tests
+- export LD_LIBRARY_PATH=/home/travis/ipopt/lib
 - dymos_path=$(python -c "import dymos as dm; import inspect; import pathlib; p=pathlib.PurePath(inspect.getfile(dm)).parent; print(p)" | tail -1);
 - export OMPI_MCA_rmaps_base_oversubscribe=1
 - testflo -n 1 $dymos_path --pre_announce --coverage --coverpkg dymos;
