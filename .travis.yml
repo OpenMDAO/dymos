@@ -60,6 +60,8 @@ install:
     chmod 600 /tmp/travis_deploy_rsa;
     ssh-add /tmp/travis_deploy_rsa;
     echo -e "Host web543.webfaction.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+  else
+    echo "KEY NOT FOUND";
   fi
 
 # if we have a cached miniconda environment then just activate the cached one, otherwise, build one
@@ -69,7 +71,7 @@ install:
     source $HOME/miniconda/bin/activate PY$PY;
   else
     echo "Building python environment...";
-    wget "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-latest-Linux-x86_64.sh" -O miniconda.sh;
+    wget -q "https://repo.continuum.io/miniconda/Miniconda${PY:0:1}-latest-Linux-x86_64.sh" -O miniconda.sh;
     bash miniconda.sh -b -p $HOME/miniconda;
     source "$HOME/miniconda/etc/profile.d/conda.sh";
     hash -r;
@@ -93,18 +95,16 @@ install:
     pip install coveralls;
     pip install --user travis-sphinx;
 
-    git clone https://github.com/mdolab/pyoptsparse.git;
-    cd pyoptsparse;
-    git checkout v1.2
+    echo "Install pyoptsparse and along with IPOPT";
+    chmod 755 ./build_pyoptsparse_ipopt.sh; ./build_pyoptsparse_ipopt.sh;
 
     if [ "$SNOPT_LOCATION" ] && [ "${PY:0:1}" = "3" ]; then
-      cd pyoptsparse/pySNOPT;
-      scp -r "$SNOPT_LOCATION" .;
-      cd ../..;
+      echo "Install SNOPT";
+      cd pyoptsparse/pyoptsparse/pySNOPT;
+      scp -r "$SNOPT_LOCATION";
+      cd ../../../;
+      pwd;
     fi
-
-    python setup.py build install;
-    cd ..;
 
     git clone https://github.com/OpenMDAO/MBI.git;
     cd MBI;
@@ -132,6 +132,7 @@ install:
 
 script:
 # change to the dymos path and run unit tests
+- export LD_LIBRARY_PATH=/home/travis/ipopt/lib
 - dymos_path=$(python -c "import dymos as dm; import inspect; import pathlib; p=pathlib.PurePath(inspect.getfile(dm)).parent; print(p)" | tail -1);
 - export OMPI_MCA_rmaps_base_oversubscribe=1
 - testflo -n 1 $dymos_path --pre_announce --coverage --coverpkg dymos;

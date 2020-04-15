@@ -111,7 +111,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         burn2.add_objective('deltav', loc='final', scaler=100.0)
 
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=0.01, targets=['u1'])
+                          scaler=0.01, lower=-180, upper=180, targets=['u1'])
 
     burn1.add_timeseries_output('pos_x', units='DU')
     coast.add_timeseries_output('pos_x', units='DU')
@@ -154,15 +154,20 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
+    p.driver.declare_coloring()
     if optimizer == 'SNOPT':
-        p.driver.declare_coloring()
         p.driver.opt_settings['Major iterations limit'] = 100
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         if show_output:
             p.driver.opt_settings['iSumm'] = 6
-    else:
-        p.driver.declare_coloring()
+    elif optimizer == 'IPOPT':
+        p.driver.opt_settings['hessian_approximation'] = 'limited-memory'
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['linear_solver'] = 'mumps'
+        p.driver.opt_settings['mu_strategy'] = 'adaptive'
+        # p.driver.opt_settings['derivative_test'] = 'first-order'
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
                      compressed=compressed, connected=connected)
@@ -267,7 +272,8 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
     def test_ex_two_burn_orbit_raise(self):
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
+        # _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
+        optimizer = 'IPOPT'
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer=optimizer,
@@ -283,7 +289,8 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
     def test_ex_two_burn_orbit_raise_connected(self):
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
+        # _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+        optimizer = 'IPOPT'
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer=optimizer,
