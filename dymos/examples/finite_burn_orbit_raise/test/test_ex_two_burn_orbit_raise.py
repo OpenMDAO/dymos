@@ -111,7 +111,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         burn2.add_objective('deltav', loc='final', scaler=100.0)
 
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=0.01, targets=['u1'])
+                          scaler=0.01, lower=-180, upper=180, targets=['u1'])
 
     burn1.add_timeseries_output('pos_x', units='DU')
     coast.add_timeseries_output('pos_x', units='DU')
