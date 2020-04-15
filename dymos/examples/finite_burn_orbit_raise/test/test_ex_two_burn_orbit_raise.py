@@ -111,7 +111,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         burn2.add_objective('deltav', loc='final', scaler=100.0)
 
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=0.01, targets=['u1'])
+                          scaler=0.01, lower=-180, upper=180, targets=['u1'])
 
     burn1.add_timeseries_output('pos_x', units='DU')
     coast.add_timeseries_output('pos_x', units='DU')
@@ -163,10 +163,11 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
             p.driver.opt_settings['iSumm'] = 6
     elif optimizer == 'IPOPT':
         p.driver.opt_settings['hessian_approximation'] = 'limited-memory'
-        # p.driver.opt_settings['nlp_scaling_method'] = 'user-scaling'
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['linear_solver'] = 'mumps'
         p.driver.opt_settings['mu_strategy'] = 'adaptive'
+        # p.driver.opt_settings['derivative_test'] = 'first-order'
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
                      compressed=compressed, connected=connected)
