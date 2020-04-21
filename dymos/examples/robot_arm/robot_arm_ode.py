@@ -3,14 +3,6 @@ import openmdao.api as om
 
 
 class RobotArmODE(om.ExplicitComponent):
-    states = {'x0': {'rate_source': 'x0_dot'},
-              'x1': {'rate_source': 'x1_dot'},
-              'x2': {'rate_source': 'x2_dot'},
-              'x3': {'rate_source': 'x3_dot'},
-              'x4': {'rate_source': 'x4_dot'},
-              'x5': {'rate_source': 'x5_dot'}}
-
-    parameters = {}
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
