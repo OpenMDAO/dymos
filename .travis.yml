@@ -96,8 +96,8 @@ install:
     pip install --user travis-sphinx;
 
     echo "Install pyoptsparse and along with IPOPT";
-    git clone https://gist.github.com/robfalck/9fcefe17464bd1e6dccf0ccb21e59f46 ./pyoptsparse;
-    cd pyoptsparse;
+    git clone https://gist.github.com/robfalck/9fcefe17464bd1e6dccf0ccb21e59f46 ./pyoptsparse.git
+    cd pyoptsparse.git
     echo $PWD
     ls
     chmod 755 ./build_pyoptsparse_ipopt.sh; ./build_pyoptsparse_ipopt.sh;
@@ -122,6 +122,8 @@ install:
 - cd ..;
 
 # install dymos itself.
+- echo $PWD
+- ls -la
 - python -m pip install -e .;
 
 # display summary of installed packages and their versions
