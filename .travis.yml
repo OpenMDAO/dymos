@@ -98,15 +98,17 @@ install:
     echo "Install pyoptsparse and along with IPOPT";
     git clone https://gist.github.com/robfalck/9fcefe17464bd1e6dccf0ccb21e59f46 ./pyoptsparse;
     cd pyoptsparse;
+    echo $PWD
+    ls
     chmod 755 ./build_pyoptsparse_ipopt.sh; ./build_pyoptsparse_ipopt.sh;
 
-    if [ "$SNOPT_LOCATION" ] && [ "${PY:0:1}" = "3" ]; then
-      echo "Install SNOPT";
-      cd pyoptsparse/pySNOPT;
-      scp -r "$SNOPT_LOCATION";
-      cd ../../;
-      pwd;
-    fi
+#    if [ "$SNOPT_LOCATION" ] && [ "${PY:0:1}" = "3" ]; then
+#      echo "Install SNOPT";
+#      cd pyoptsparse/pySNOPT;
+#      scp -r "$SNOPT_LOCATION";
+#      cd ../../;
+#      pwd;
+#    fi
 
     cd ..
     git clone https://github.com/OpenMDAO/MBI.git;
