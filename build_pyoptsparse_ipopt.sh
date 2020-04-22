@@ -42,7 +42,7 @@ NOTES:
 
     If PARDISO is selected as the linear solver, the Intel compiler suite
     with MKL must be available.
-    
+
     Examples:
       $0
       $0 -l pardiso
@@ -215,7 +215,7 @@ build_pyoptsparse() {
 	echo these variables before building it yourself:
 	echo
 	echo export IPOPT_INC=$PREFIX/include/coin-or
-        echo export IPOPT_LIB=$PREFIX/lib
+    echo export IPOPT_LIB=$PREFIX/lib
 	echo -----------------------------------------------------
     fi
 }
@@ -229,7 +229,9 @@ install_with_mumps() {
     pushd ThirdParty-Mumps
     ./get.Mumps
     ./configure --with-metis --with-metis-lflags="-L${PREFIX}/lib -lcoinmetis" \
-       --with-metis-cflags="-I${PREFIX}/include" --prefix=$PREFIX
+       --with-metis-cflags="-I${PREFIX}/include -I${PREFIX}/include/coin-or -I${PREFIX}/include/coin-or/metis" \
+       --prefix=$PREFIX CFLAGS="-I${PREFIX}/include -I${PREFIX}/include/coin-or -I${PREFIX}/include/coin-or/metis" \
+       FCFLAGS="-I${PREFIX}/include -I${PREFIX}/include/coin-or -I${PREFIX}/include/coin-or/metis"
     make
     make install
     popd

@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 
 import dymos as dm
@@ -280,8 +280,8 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
                                          show_output=False)
 
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_rel_error(self, p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
-                             tolerance=2.0E-3)
+            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+                              tolerance=2.0E-3)
 
 
 # This test is separate because connected phases aren't directly parallelizable.
@@ -297,8 +297,8 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
                                          show_output=False, connected=True)
 
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_rel_error(self, p.get_val('traj.burn2.states:deltav')[0], 0.3995,
-                             tolerance=4.0E-3)
+            assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
+                              tolerance=4.0E-3)
 
 
 class TestExampleTwoBurnOrbitRaiseMPI(TestExampleTwoBurnOrbitRaise):

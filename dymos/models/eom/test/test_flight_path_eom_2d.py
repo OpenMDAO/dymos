@@ -4,7 +4,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 import dymos as dm
 from dymos.models.eom import FlightPathEOM2D
@@ -76,14 +76,14 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         exp_out = phase.simulate()
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:h', units='km')[-1], 0.0,
-                         tolerance=0.001)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:r')[-1], v0**2 / g,
-                         tolerance=0.001)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:gam')[-1], -gam0,
-                         tolerance=0.001)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:v')[-1], v0,
-                         tolerance=0.001)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:h', units='km')[-1], 0.0,
+                          tolerance=0.001)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:r')[-1], v0**2 / g,
+                          tolerance=0.001)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:gam')[-1], -gam0,
+                          tolerance=0.001)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:v')[-1], v0,
+                          tolerance=0.001)
 
     def test_cannonball_max_range(self):
         self.p.setup()
@@ -108,12 +108,12 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         exp_out = phase.simulate(times_per_seg=None)
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:r')[-1], v0**2 / g,
-                         tolerance=0.001)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:gam')[-1], -np.radians(45),
-                         tolerance=0.001)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:v')[-1], v0,
-                         tolerance=0.001)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:r')[-1], v0**2 / g,
+                          tolerance=0.001)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:gam')[-1], -np.radians(45),
+                          tolerance=0.001)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:v')[-1], v0,
+                          tolerance=0.001)
 
     def test_partials(self):
         self.p.setup(force_alloc_complex=True)
@@ -137,12 +137,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         cpd = self.p.check_partials(compact_print=True, method='cs')
 
-        for comp in cpd:
-            for (var, wrt) in cpd[comp]:
-                assert_almost_equal(cpd[comp][var, wrt]['abs error'], 0.0, decimal=2,
-                                    err_msg='error in partial of'
-                                            ' {0} wrt {1} in {2}'.format(var, wrt, comp))
-
+        assert_check_partials(cpd)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

@@ -62,18 +62,14 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         cpd = p.check_partials(method='cs', out_stream=None)
 
         J_fwd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fd']
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
         J_fwd = cpd['continuity_comp']['states:y', 'states:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
 
         J_fd[0, 0] = -1.0
 
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
     def test_continuity_comp_connected_scalar_no_iteration_fwd(self):
@@ -132,18 +128,13 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         cpd = p.check_partials(method='cs')
 
         J_fwd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fd']
-        assert_rel_error(self, J_fwd, J_rev)
-        assert_rel_error(self, J_fwd, J_fd)
 
         J_fwd = cpd['continuity_comp']['states:y', 'states:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
 
         J_fd[0, 0] = -1.0
 
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
     def test_continuity_comp_scalar_nonlinearblockgs_fwd(self):
@@ -197,18 +188,14 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         cpd = p.check_partials(method='cs', out_stream=None)
 
         J_fwd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fd']
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
         J_fwd = cpd['continuity_comp']['states:y', 'states:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
 
         J_fd[0, 0] = -1.0
 
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
     def test_continuity_comp_connected_scalar_nonlinearblockgs_fwd(self):
@@ -267,18 +254,14 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         cpd = p.check_partials(method='cs', out_stream=None)
 
         J_fwd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fd']
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
         J_fwd = cpd['continuity_comp']['states:y', 'states:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
 
         J_fd[0, 0] = -1.0
 
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
     def test_continuity_comp_scalar_newton_fwd(self):
@@ -324,18 +307,14 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         cpd = p.check_partials(method='cs', out_stream=None)
 
         J_fwd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fd']
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
         J_fwd = cpd['continuity_comp']['states:y', 'states:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
 
         J_fd[0, 0] = -1.0
 
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
     def test_continuity_comp_vector_no_iteration_fwd(self):
@@ -386,19 +365,15 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         cpd = p.check_partials(method='cs')
 
         J_fwd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fd']
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
         J_fwd = cpd['continuity_comp']['states:y', 'states:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
 
         size = np.prod(state_options['y']['shape'])
         J_fd[:size, :size] = -np.eye(size)
 
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
     def test_continuity_comp_vector_nonlinearblockgs_fwd(self):
@@ -440,19 +415,15 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         cpd = p.check_partials(method='cs', out_stream=None)
 
         J_fwd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fd']
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
         J_fwd = cpd['continuity_comp']['states:y', 'states:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
 
         size = np.prod(state_options['y']['shape'])
         J_fd[:size, :size] = -np.eye(size)
 
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
     def test_continuity_comp_connected_vector_nonlinearblockgs_fwd(self):
@@ -499,19 +470,15 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         cpd = p.check_partials(method='cs', out_stream=None)
 
         J_fwd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fd']
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
         J_fwd = cpd['continuity_comp']['states:y', 'states:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
 
         size = np.prod(state_options['y']['shape'])
         J_fd[:size, :size] = -np.eye(size)
 
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
     def test_continuity_comp_vector_newton_fwd(self):
@@ -553,17 +520,13 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
         cpd = p.check_partials(method='cs', out_stream=None)
 
         J_fwd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fd']
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
 
         J_fwd = cpd['continuity_comp']['states:y', 'states:y']['J_fwd']
-        J_rev = cpd['continuity_comp']['states:y', 'states:y']['J_rev']
         J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
 
         size = np.prod(state_options['y']['shape'])
         J_fd[:size, :size] = -np.eye(size)
 
-        assert_rel_error(self, J_fwd, J_rev)
         assert_rel_error(self, J_fwd, J_fd)
