@@ -11,7 +11,7 @@ class DoubleIntegratorODE(om.ExplicitComponent):
     Note we still have to declare the num_nodes option in initialize so that Dymos can instantiate
     the ODE.
 
-    Also note that neither time, states, nor paramters have targets, since there are no inputs
+    Also note that neither time, states, nor parameters have targets, since there are no inputs
     in the ODE system.
     """
 
