@@ -64,7 +64,7 @@ class TestRobotArm(unittest.TestCase):
 
     def test_robot_arm_radau(self):
         p = self.make_problem(transcription=Radau, optimizer='SNOPT', numseg=200)
-        dm.run_problem(p, refine=False)
+        dm.run_problem(p, refine=True)
 
         show_plots = True
 
@@ -93,7 +93,7 @@ class TestRobotArm(unittest.TestCase):
 
     def test_robot_arm_gl(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='SNOPT', numseg=100)
-        dm.run_problem(p, refine=True)
+        dm.run_problem(p, refine=False)
 
         show_plots = True
 

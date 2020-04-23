@@ -200,19 +200,24 @@ class PHAdaptive:
             new_grid = GridData(numseg, gd.transcription, new_order, gd.segment_ends, gd.compressed)
             left_end_idxs = new_grid.subset_node_indices['segment_ends'][0::2]
             left_end_idxs = np.append(left_end_idxs, new_grid.subset_num_nodes['all'] - 1)
-
+            print(left_end_idxs.shape)
             L = interpolation_lagrange_matrix(gd, new_grid)
             I = integration_matrix(new_grid)
 
             # Call the ODE at all nodes of the new grid
             x_hat, x_prime = self.eval_ode(phase, new_grid, L, I)
+
             E = {}
             e = {}
             err_over_states = {}
             for state_name, options in phase.state_options.items():
                 E[state_name] = np.absolute(x_prime[state_name] - x_hat[state_name])
+                e[state_name] = np.zeros(E[state_name].shape)
                 for k in range(0, numseg):
-                    e[state_name] = E[state_name]/(1 + np.max(x_hat[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))
+                    e[state_name][left_end_idxs[k]:left_end_idxs[k + 1]] = \
+                        E[state_name][left_end_idxs[k]:left_end_idxs[k + 1]] / \
+                        (1 + np.max(x_hat[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))
+
                 err_over_states[state_name] = np.zeros(numseg)
 
             for state_name, options in phase.state_options.items():
@@ -365,7 +370,7 @@ class PHAdaptive:
 
         if phase.time_options['time_phase_targets']:
             p.model.connect('time_phase',
-                            [f'ode.{t}'for t in phase.time_options['time_phase_targets']],
+                            [f'ode.{t}' for t in phase.time_options['time_phase_targets']],
                             src_indices=grid_data.subset_node_indices['all'])
 
         if phase.time_options['t_initial_targets']:
