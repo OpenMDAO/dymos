@@ -200,6 +200,7 @@ build_pyoptsparse() {
 
     if [ $INCLUDE_SNOPT = 1 ]; then
         cp -a "${SNOPT_DIR}/." ./pyoptsparse/pyoptsparse/pySNOPT/source/.
+        mv pyoptsparse/pyoptsparse/pySNOPT/source/snopth.f pyoptsparse/pyoptsparse/pySNOPT/source/snopth.f.bak
     fi
 
     if [ $BUILD_PYOPTSPARSE = 1 ]; then
