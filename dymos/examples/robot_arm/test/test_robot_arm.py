@@ -25,6 +25,13 @@ class TestRobotArm(unittest.TestCase):
         p.driver.declare_coloring()
         OPT, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=False)
         p.driver.options['optimizer'] = OPTIMIZER
+        if OPTIMIZER == 'SNOPT':
+            p.driver.opt_settings['iSumm'] = 6
+            p.driver.opt_settings['Verify level'] = 3
+        elif OPTIMIZER == 'IPOPT':
+            p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+            p.driver.opt_settings['max_iter'] = 500
+            p.driver.opt_settings['print_level'] = 5
 
         traj = p.model.add_subsystem('traj', Trajectory())
         phase = traj.add_phase('phase', Phase(ode_class=RobotArmODE,
@@ -38,13 +45,13 @@ class TestRobotArm(unittest.TestCase):
         phase.add_state('x4', fix_initial=True, fix_final=True, rate_source='x4_dot', targets=['x4'], units='rad/s')
         phase.add_state('x5', fix_initial=True, fix_final=True, rate_source='x5_dot', targets=['x5'], units='rad/s')
 
-        phase.add_control('u0', opt=True, lower=-1, upper=1, targets=['u0'], units='m**2/s**2')
-        phase.add_control('u1', opt=True, lower=-1, upper=1, targets=['u1'], units='m**3*rad/s**2')
-        phase.add_control('u2', opt=True, lower=-1, upper=1, targets=['u2'], units='m**3*rad/s**2')
+        phase.add_control('u0', opt=True, lower=-1, upper=1, scaler=0.1, targets=['u0'], units='m**2/s**2', rate_continuity=False)
+        phase.add_control('u1', opt=True, lower=-1, upper=1, scaler=0.1, targets=['u1'], units='m**3*rad/s**2', rate_continuity=False)
+        phase.add_control('u2', opt=True, lower=-1, upper=1, scaler=0.1, targets=['u2'], units='m**3*rad/s**2', rate_continuity=False)
 
-        phase.add_objective('time', index=-1, scaler=0.01)
+        phase.add_objective('time', scaler=1.0)
 
-        p.setup(check=True, force_alloc_complex=True)
+        p.setup(check=True, force_alloc_complex=False, mode='auto')
         p.set_val('traj.phase.t_initial', 0)
         p.set_val('traj.phase.t_duration', 10)
         p.set_val('traj.phase.states:x0', phase.interpolate(ys=[4.5, 4.5], nodes='state_input'))
@@ -63,8 +70,8 @@ class TestRobotArm(unittest.TestCase):
             cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
 
     def test_robot_arm_radau(self):
-        p = self.make_problem(transcription=Radau, optimizer='SNOPT', numseg=200)
-        dm.run_problem(p, refine=True)
+        p = self.make_problem(transcription=Radau, optimizer='IPOPT', numseg=50)
+        dm.run_problem(p, refine=False)
 
         show_plots = True
 
@@ -78,6 +85,18 @@ class TestRobotArm(unittest.TestCase):
         u1 = p.get_val('traj.phase.timeseries.controls:u1')
         u2 = p.get_val('traj.phase.timeseries.controls:u2')
 
+        exp_out = p.model.traj.simulate()
+
+        t_exp = p.get_val('traj.phase.timeseries.time')
+
+        rho_exp = p.get_val('traj.phase.timeseries.states:x0')
+        theta_exp = p.get_val('traj.phase.timeseries.states:x1')
+        phi_exp = p.get_val('traj.phase.timeseries.states:x2')
+
+        u0_exp = p.get_val('traj.phase.timeseries.controls:u0')
+        u1_exp = p.get_val('traj.phase.timeseries.controls:u1')
+        u2_exp = p.get_val('traj.phase.timeseries.controls:u2')
+
         if show_plots:
             import matplotlib.pyplot as plt
             fig, axs = plt.subplots(2, 3)
@@ -87,12 +106,19 @@ class TestRobotArm(unittest.TestCase):
             axs[1, 0].plot(t, u0)
             axs[1, 1].plot(t, u1)
             axs[1, 2].plot(t, u2)
+
+            axs[0, 0].plot(t_exp, rho_exp)
+            axs[0, 1].plot(t_exp, theta_exp)
+            axs[0, 2].plot(t_exp, phi_exp)
+            axs[1, 0].plot(t_exp, u0_exp)
+            axs[1, 1].plot(t_exp, u1_exp)
+            axs[1, 2].plot(t_exp, u2_exp)
             plt.show()
 
-        assert_rel_error(self, t[-1], 9.14138, tolerance=1e-6)
+        assert_rel_error(self, t[-1], 9.14138, tolerance=1e-3)
 
     def test_robot_arm_gl(self):
-        p = self.make_problem(transcription=GaussLobatto, optimizer='SNOPT', numseg=100)
+        p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT', numseg=20)
         dm.run_problem(p, refine=False)
 
         show_plots = True
