@@ -2,7 +2,7 @@
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 import dymos as dm
 from dymos.examples.brachistochrone import BrachistochroneODE
@@ -93,18 +93,18 @@ class BenchmarkBrachistochrone(unittest.TestCase):
 
         thetaf = p.get_val('phase0.timeseries.controls:theta')[-1]
 
-        assert_rel_error(self, t_initial, 0.0)
-        assert_rel_error(self, x0, 0.0)
-        assert_rel_error(self, y0, 10.0)
-        assert_rel_error(self, v0, 0.0)
+        assert_near_equal(t_initial, 0.0)
+        assert_near_equal(x0, 0.0)
+        assert_near_equal(y0, 10.0)
+        assert_near_equal(v0, 0.0)
 
-        assert_rel_error(self, tf, 1.8016, tolerance=0.0001)
-        assert_rel_error(self, xf, 10.0, tolerance=0.001)
-        assert_rel_error(self, yf, 5.0, tolerance=0.001)
-        assert_rel_error(self, vf, 9.902, tolerance=0.001)
-        assert_rel_error(self, g, 9.80665, tolerance=0.001)
+        assert_near_equal(tf, 1.8016, tolerance=0.0001)
+        assert_near_equal(xf, 10.0, tolerance=0.001)
+        assert_near_equal(yf, 5.0, tolerance=0.001)
+        assert_near_equal(vf, 9.902, tolerance=0.001)
+        assert_near_equal(g, 9.80665, tolerance=0.001)
 
-        assert_rel_error(self, thetaf, 100.12, tolerance=1)
+        assert_near_equal(thetaf, 100.12, tolerance=1)
 
     def benchmark_radau_30_3_color_simul_compressed_snopt(self):
         p = brachistochrone_min_time(transcription='radau-ps',

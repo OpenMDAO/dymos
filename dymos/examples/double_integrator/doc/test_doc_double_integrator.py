@@ -18,7 +18,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
     def test_double_integrator_for_docs(self):
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
@@ -77,11 +77,11 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         x = p.get_val('traj.phase0.timeseries.states:x')
         v = p.get_val('traj.phase0.timeseries.states:v')
 
-        assert_rel_error(self, x[0], 0.0, tolerance=1.0E-4)
-        assert_rel_error(self, x[-1], 0.25, tolerance=1.0E-4)
+        assert_near_equal(x[0], 0.0, tolerance=1.0E-4)
+        assert_near_equal(x[-1], 0.25, tolerance=1.0E-4)
 
-        assert_rel_error(self, v[0], 0.0, tolerance=1.0E-4)
-        assert_rel_error(self, v[-1], 0.0, tolerance=1.0E-4)
+        assert_near_equal(v[0], 0.0, tolerance=1.0E-4)
+        assert_near_equal(v[-1], 0.0, tolerance=1.0E-4)
 
         #
         # Simulate the explicit solution and plot the results.

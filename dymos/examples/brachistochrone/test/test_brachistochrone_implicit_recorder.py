@@ -16,7 +16,7 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
         import matplotlib
         matplotlib.use('Agg')
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -81,7 +81,7 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         cr = om.CaseReader('brachistochrone_solution.db')
         system_cases = cr.list_cases('root')
@@ -90,8 +90,8 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
 
-        assert_rel_error(self, p['phase0.controls:theta'],
-                         outputs['phase0.control_group.indep_controls.controls:theta']['value'])
+        assert_near_equal(p['phase0.controls:theta'],
+                          outputs['phase0.control_group.indep_controls.controls:theta']['value'])
 
 
 if __name__ == '__main__':  # pragma: no cover

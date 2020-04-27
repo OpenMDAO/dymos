@@ -82,7 +82,7 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         p = om.Problem(model=om.Group())
@@ -121,7 +121,7 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
     def test_brachistochrone_undecorated_ode_radau(self):
         import numpy as np
@@ -129,7 +129,7 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         p = om.Problem(model=om.Group())
@@ -168,7 +168,7 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
     def test_brachistochrone_undecorated_ode_rk(self):
         import numpy as np
@@ -176,7 +176,7 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         p = om.Problem(model=om.Group())
@@ -218,14 +218,14 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
 
 class TestBrachistochroneBasePhaseClass(unittest.TestCase):
 
     def test_brachistochrone_base_phase_class_gl(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         class BrachistochronePhase(dm.Phase):
@@ -273,9 +273,9 @@ class TestBrachistochroneBasePhaseClass(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         exp_out = phase.simulate()
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:x')[-1], 10, tolerance=1.0E-3)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1], 5, tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:x')[-1], 10, tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1], 5, tolerance=1.0E-3)

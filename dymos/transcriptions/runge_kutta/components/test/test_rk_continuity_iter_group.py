@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 from dymos.transcriptions.runge_kutta.components import RungeKuttaStateContinuityIterGroup
 from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
@@ -87,22 +87,22 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         expected_resids = np.zeros((num_seg + 1, 1))
 
         op_dict = dict([op for op in outputs])
-        assert_rel_error(self, op_dict['cnty_iter_group.continuity_comp.states:y']['resids'],
-                         expected_resids)
+        assert_near_equal(op_dict['cnty_iter_group.continuity_comp.states:y']['resids'],
+                          expected_resids)
 
         # Test the partials
         cpd = p.check_partials(method='cs', out_stream=None)
 
         J_fwd = cpd['cnty_iter_group.continuity_comp']['states:y', 'state_integrals:y']['J_fwd']
         J_fd = cpd['cnty_iter_group.continuity_comp']['states:y', 'state_integrals:y']['J_fd']
-        assert_rel_error(self, J_fwd, J_fd)
+        assert_near_equal(J_fwd, J_fd)
 
         J_fwd = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_fwd']
         J_fd = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_fd']
 
         J_fd[0, 0] = -1.0
 
-        assert_rel_error(self, J_fwd, J_fd)
+        assert_near_equal(J_fwd, J_fd)
 
     def test_continuity_comp_newtonsolver(self):
         num_seg = 4
@@ -157,19 +157,19 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         expected_resids = np.zeros((num_seg + 1, 1))
 
         op_dict = dict([op for op in outputs])
-        assert_rel_error(self, op_dict['cnty_iter_group.continuity_comp.states:y']['resids'],
-                         expected_resids)
+        assert_near_equal(op_dict['cnty_iter_group.continuity_comp.states:y']['resids'],
+                          expected_resids)
 
         # Test the partials
         cpd = p.check_partials(method='cs', out_stream=None)
 
         J_fwd = cpd['cnty_iter_group.continuity_comp']['states:y', 'state_integrals:y']['J_fwd']
         J_fd = cpd['cnty_iter_group.continuity_comp']['states:y', 'state_integrals:y']['J_fd']
-        assert_rel_error(self, J_fwd, J_fd)
+        assert_near_equal(J_fwd, J_fd)
 
         J_fwd = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_fwd']
         J_fd = cpd['cnty_iter_group.continuity_comp']['states:y', 'states:y']['J_fd']
 
         J_fd[0, 0] = -1.0
 
-        assert_rel_error(self, J_fwd, J_fd)
+        assert_near_equal(J_fwd, J_fd)

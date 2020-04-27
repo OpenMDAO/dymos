@@ -35,7 +35,7 @@ class TestHyperSensitive(unittest.TestCase):
 
     def test_hyper_sensitive_for_docs(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
@@ -81,20 +81,17 @@ class TestHyperSensitive(unittest.TestCase):
         #
         ui, uf, J = solution()
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.controls:u')[0],
-                         ui,
-                         tolerance=1.5e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+                          ui,
+                          tolerance=1.5e-2)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.controls:u')[-1],
-                         uf,
-                         tolerance=1.5e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+                          uf,
+                          tolerance=1.5e-2)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.states:xL')[-1],
-                         J,
-                         tolerance=1e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+                          J,
+                          tolerance=1e-2)
 
         #
         # Simulate the explicit solution and plot the results.

@@ -1,7 +1,7 @@
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 from dymos.transcriptions.solve_ivp.components.segment_simulation_comp import SegmentSimulationComp
 from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
@@ -41,7 +41,6 @@ class TestSegmentSimulationComp(unittest.TestCase):
 
         p.run_model()
 
-        assert_rel_error(self,
-                         p.get_val('segment_0.states:y', units='m')[-1, ...],
-                         1.425639364649936,
-                         tolerance=1.0E-6)
+        assert_near_equal(p.get_val('segment_0.states:y', units='m')[-1, ...],
+                          1.425639364649936,
+                          tolerance=1.0E-6)

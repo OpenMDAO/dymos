@@ -1,7 +1,7 @@
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.utils.lgl import lgl
@@ -75,7 +75,7 @@ class TestInputParameterConnections(unittest.TestCase):
 
         expected = np.broadcast_to(np.array([[1, 2], [3, 4]]),
                                    (p.model.phase0.options['transcription'].grid_data.num_nodes, 2, 2))
-        assert_rel_error(self, p.get_val('phase0.rhs_all.sum.m'), expected)
+        assert_near_equal(p.get_val('phase0.rhs_all.sum.m'), expected)
 
     def test_static_input_parameter_connections_radau(self):
 
@@ -135,7 +135,7 @@ class TestInputParameterConnections(unittest.TestCase):
         p.run_model()
 
         expected = np.array([[1, 2], [3, 4]])
-        assert_rel_error(self, p.get_val('phase0.rhs_all.sum.m'), expected)
+        assert_near_equal(p.get_val('phase0.rhs_all.sum.m'), expected)
 
     def test_dynamic_input_parameter_connections_gl(self):
 
@@ -198,11 +198,11 @@ class TestInputParameterConnections(unittest.TestCase):
 
         expected = np.broadcast_to(np.array([[1, 2], [3, 4]]),
                                    (gd.subset_num_nodes['state_disc'], 2, 2))
-        assert_rel_error(self, p.get_val('phase0.rhs_disc.sum.m'), expected)
+        assert_near_equal(p.get_val('phase0.rhs_disc.sum.m'), expected)
 
         expected = np.broadcast_to(np.array([[1, 2], [3, 4]]),
                                    (gd.subset_num_nodes['col'], 2, 2))
-        assert_rel_error(self, p.get_val('phase0.rhs_col.sum.m'), expected)
+        assert_near_equal(p.get_val('phase0.rhs_col.sum.m'), expected)
 
     def test_static_input_parameter_connections_gl(self):
 
@@ -262,8 +262,8 @@ class TestInputParameterConnections(unittest.TestCase):
         p.run_model()
 
         expected = np.array([[1, 2], [3, 4]])
-        assert_rel_error(self, p.get_val('phase0.rhs_disc.sum.m'), expected)
-        assert_rel_error(self, p.get_val('phase0.rhs_col.sum.m'), expected)
+        assert_near_equal(p.get_val('phase0.rhs_disc.sum.m'), expected)
+        assert_near_equal(p.get_val('phase0.rhs_col.sum.m'), expected)
 
 
 if __name__ == '__main__':  # pragma: no cover

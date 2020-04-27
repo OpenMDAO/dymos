@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_state_advance_comp import \
     RungeKuttaStateAdvanceComp
@@ -53,13 +53,12 @@ class TestRKStateAdvanceComp(unittest.TestCase):
 
         p.run_model()
 
-        assert_rel_error(self,
-                         p.get_val('c.final_states:y'),
-                         np.array([[1.425130208333333],
-                                   [2.639602661132812],
-                                   [4.006818970044454],
-                                   [5.301605229265987]]),
-                         tolerance=1.0E-9)
+        assert_near_equal(p.get_val('c.final_states:y'),
+                          np.array([[1.425130208333333],
+                                    [2.639602661132812],
+                                    [4.006818970044454],
+                                    [5.301605229265987]]),
+                          tolerance=1.0E-9)
 
         np.set_printoptions(linewidth=1024)
         cpd = p.check_partials(method='cs', out_stream=None)
@@ -92,11 +91,10 @@ class TestRKStateAdvanceComp(unittest.TestCase):
 
         p.run_model()
 
-        assert_rel_error(test_case=self,
-                         actual=p.get_val('c.final_states:y'),
-                         desired=[[1.425130208333333, 2.639602661132812],
-                                  [4.006818970044454, 5.301605229265987]],
-                         tolerance=1.0E-9)
+        assert_near_equal(actual=p.get_val('c.final_states:y'),
+                          desired=[[1.425130208333333, 2.639602661132812],
+                                   [4.006818970044454, 5.301605229265987]],
+                          tolerance=1.0E-9)
 
         np.set_printoptions(linewidth=1024)
         cpd = p.check_partials(method='cs', out_stream=None)
@@ -138,10 +136,9 @@ class TestRKStateAdvanceComp(unittest.TestCase):
 
         p.run_model()
 
-        assert_rel_error(self,
-                         p.get_val('c.final_states:y'),
-                         [[[1.425130208333333, 2.639602661132812],
-                          [4.006818970044454, 5.301605229265987]]])
+        assert_near_equal(p.get_val('c.final_states:y'),
+                          [[[1.425130208333333, 2.639602661132812],
+                           [4.006818970044454, 5.301605229265987]]])
 
         np.set_printoptions(linewidth=1024)
         cpd = p.check_partials(method='cs', out_stream=None)

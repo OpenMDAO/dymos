@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
@@ -52,9 +52,8 @@ class TestAircraftODEGroup(unittest.TestCase):
         cls.p.run_model()
 
     def test_results(self):
-        assert_rel_error(self,
-                         self.p['ode.range_rate_comp.dXdt:range'],
-                         self.p['ode.tas_comp.TAS'] * np.cos(self.p['ode.gam_comp.gam']))
+        assert_near_equal(self.p['ode.range_rate_comp.dXdt:range'],
+                          self.p['ode.tas_comp.TAS'] * np.cos(self.p['ode.gam_comp.gam']))
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
@@ -70,7 +70,7 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Plot results
         if SHOW_PLOTS:
@@ -168,7 +168,7 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Plot results
         if SHOW_PLOTS:
@@ -266,7 +266,7 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Plot results
         if SHOW_PLOTS:

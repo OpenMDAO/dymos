@@ -6,7 +6,7 @@ plt.switch_backend('Agg')
 plt.style.use('ggplot')
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -185,8 +185,8 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
         dm.run_problem(p)
 
-        assert_rel_error(self, p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
-                         tolerance=2.0E-3)
+        assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+                          tolerance=2.0E-3)
 
         #
         # Plot results

@@ -3,7 +3,7 @@ import unittest
 import warnings
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -119,8 +119,8 @@ class TestPhaseTimeOptions(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        assert_rel_error(self, p['phase0.t_initial'], 0.01)
-        assert_rel_error(self, p['phase0.t_duration'], 1.9)
+        assert_near_equal(p['phase0.t_initial'], 0.01)
+        assert_near_equal(p['phase0.t_duration'], 1.9)
 
     def test_input_and_fixed_times_warns(self):
         """

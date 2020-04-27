@@ -1,7 +1,7 @@
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 from openmdao.utils.testing_utils import use_tempdirs
@@ -109,10 +109,10 @@ class TestMinTimeClimb(unittest.TestCase):
                            transcription='gauss-lobatto')
 
         # Check that time matches to within 1% of an externally verified solution.
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
 
         # Verify that ODE output mach is added to the timeseries
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
     @use_tempdirs
     def test_results_radau(self):
@@ -120,10 +120,10 @@ class TestMinTimeClimb(unittest.TestCase):
                            transcription='radau-ps')
 
         # Check that time matches to within 1% of an externally verified solution.
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 321.0, tolerance=0.02)
 
         # Verify that ODE output mach is added to the timeseries
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
 
 if __name__ == '__main__':  # pragma: no cover

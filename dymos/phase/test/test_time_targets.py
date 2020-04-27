@@ -4,7 +4,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import numpy as np
 import dymos as dm
@@ -162,19 +162,19 @@ class TestPhaseTimeTargets(unittest.TestCase):
         time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
                                         newshape=(gd.num_segments, 2))
 
-        assert_rel_error(self, p['phase0.rhs_disc.time_phase'][-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.rhs_disc.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
-        assert_rel_error(self, p['phase0.rhs_disc.t_initial'], p['phase0.t_initial'])
-        assert_rel_error(self, p['phase0.rhs_col.t_initial'], p['phase0.t_initial'])
+        assert_near_equal(p['phase0.rhs_disc.t_initial'], p['phase0.t_initial'])
+        assert_near_equal(p['phase0.rhs_col.t_initial'], p['phase0.t_initial'])
 
-        assert_rel_error(self, p['phase0.rhs_disc.t_duration'], p['phase0.t_duration'])
-        assert_rel_error(self, p['phase0.rhs_col.t_duration'], p['phase0.t_duration'])
+        assert_near_equal(p['phase0.rhs_disc.t_duration'], p['phase0.t_duration'])
+        assert_near_equal(p['phase0.rhs_col.t_duration'], p['phase0.t_duration'])
 
-        assert_rel_error(self, p['phase0.rhs_disc.time_phase'], time_phase_disc)
-        assert_rel_error(self, p['phase0.rhs_col.time_phase'], time_phase_col)
+        assert_near_equal(p['phase0.rhs_disc.time_phase'], time_phase_disc)
+        assert_near_equal(p['phase0.rhs_col.time_phase'], time_phase_col)
 
-        assert_rel_error(self, p['phase0.rhs_disc.time'], time_disc)
-        assert_rel_error(self, p['phase0.rhs_col.time'], time_col)
+        assert_near_equal(p['phase0.rhs_disc.time'], time_disc)
+        assert_near_equal(p['phase0.rhs_col.time'], time_col)
 
         exp_out = p.model.phase0.simulate()
 
@@ -188,10 +188,10 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
             # Since the phase has simulated, all times should be equal to their respective value
             # at the end of each segment.
-            assert_rel_error(self, t_initial_i, p['phase0.t_initial'])
-            assert_rel_error(self, t_duration_i, p['phase0.t_duration'])
-            assert_rel_error(self, time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
-            assert_rel_error(self, time_i, time_segends[iseg, 1], tolerance=1.0E-12)
+            assert_near_equal(t_initial_i, p['phase0.t_initial'])
+            assert_near_equal(t_duration_i, p['phase0.t_duration'])
+            assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
+            assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
 
     def test_radau(self):
         num_seg = 20
@@ -210,15 +210,15 @@ class TestPhaseTimeTargets(unittest.TestCase):
         time_phase_segends = np.reshape(time_phase_all[gd.subset_node_indices['segment_ends']],
                                         newshape=(gd.num_segments, 2))
 
-        assert_rel_error(self, p['phase0.rhs_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.rhs_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
-        assert_rel_error(self, p['phase0.rhs_all.t_initial'], p['phase0.t_initial'])
+        assert_near_equal(p['phase0.rhs_all.t_initial'], p['phase0.t_initial'])
 
-        assert_rel_error(self, p['phase0.rhs_all.t_duration'], p['phase0.t_duration'])
+        assert_near_equal(p['phase0.rhs_all.t_duration'], p['phase0.t_duration'])
 
-        assert_rel_error(self, p['phase0.rhs_all.time_phase'], time_phase_all)
+        assert_near_equal(p['phase0.rhs_all.time_phase'], time_phase_all)
 
-        assert_rel_error(self, p['phase0.rhs_all.time'], time_all)
+        assert_near_equal(p['phase0.rhs_all.time'], time_all)
 
         exp_out = p.model.phase0.simulate()
 
@@ -232,10 +232,10 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
             # Since the phase has simulated, all times should be equal to their respective value
             # at the end of each segment.
-            assert_rel_error(self, t_initial_i, p['phase0.t_initial'])
-            assert_rel_error(self, t_duration_i, p['phase0.t_duration'])
-            assert_rel_error(self, time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
-            assert_rel_error(self, time_i, time_segends[iseg, 1], tolerance=1.0E-12)
+            assert_near_equal(t_initial_i, p['phase0.t_initial'])
+            assert_near_equal(t_duration_i, p['phase0.t_duration'])
+            assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
+            assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
 
     def test_runge_kutta(self):
         num_seg = 20
@@ -256,29 +256,29 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         # Test the iteration ODE
 
-        assert_rel_error(self, p['phase0.rk_solve_group.ode.time_phase'][-1], 1.8016,
-                         tolerance=1.0E-3)
+        assert_near_equal(p['phase0.rk_solve_group.ode.time_phase'][-1], 1.8016,
+                          tolerance=1.0E-3)
 
-        assert_rel_error(self, p['phase0.rk_solve_group.ode.t_initial'], p['phase0.t_initial'])
+        assert_near_equal(p['phase0.rk_solve_group.ode.t_initial'], p['phase0.t_initial'])
 
-        assert_rel_error(self, p['phase0.rk_solve_group.ode.t_duration'], p['phase0.t_duration'])
+        assert_near_equal(p['phase0.rk_solve_group.ode.t_duration'], p['phase0.t_duration'])
 
-        assert_rel_error(self, p['phase0.rk_solve_group.ode.time_phase'], time_phase_all)
+        assert_near_equal(p['phase0.rk_solve_group.ode.time_phase'], time_phase_all)
 
-        assert_rel_error(self, p['phase0.rk_solve_group.ode.time'], time_all)
+        assert_near_equal(p['phase0.rk_solve_group.ode.time'], time_all)
 
         # Now test the final ODE
 
-        assert_rel_error(self, p['phase0.ode.time_phase'][-1], 1.8016,
-                         tolerance=1.0E-3)
+        assert_near_equal(p['phase0.ode.time_phase'][-1], 1.8016,
+                          tolerance=1.0E-3)
 
-        assert_rel_error(self, p['phase0.ode.t_initial'], p['phase0.t_initial'])
+        assert_near_equal(p['phase0.ode.t_initial'], p['phase0.t_initial'])
 
-        assert_rel_error(self, p['phase0.ode.t_duration'], p['phase0.t_duration'])
+        assert_near_equal(p['phase0.ode.t_duration'], p['phase0.t_duration'])
 
-        assert_rel_error(self, p['phase0.ode.time_phase'], time_phase_segends.ravel())
+        assert_near_equal(p['phase0.ode.time_phase'], time_phase_segends.ravel())
 
-        assert_rel_error(self, p['phase0.ode.time'], time_segends.ravel())
+        assert_near_equal(p['phase0.ode.time'], time_segends.ravel())
 
         exp_out = p.model.phase0.simulate()
 
@@ -292,10 +292,10 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
             # Since the phase has simulated, all times should be equal to their respective value
             # at the end of each segment.
-            assert_rel_error(self, t_initial_i, p['phase0.t_initial'])
-            assert_rel_error(self, t_duration_i, p['phase0.t_duration'])
-            assert_rel_error(self, time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
-            assert_rel_error(self, time_i, time_segends[iseg, 1], tolerance=1.0E-12)
+            assert_near_equal(t_initial_i, p['phase0.t_initial'])
+            assert_near_equal(t_duration_i, p['phase0.t_duration'])
+            assert_near_equal(time_phase_i, time_phase_segends[iseg, 1], tolerance=1.0E-12)
+            assert_near_equal(time_i, time_segends[iseg, 1], tolerance=1.0E-12)
 
 
 if __name__ == "__main__":

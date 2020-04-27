@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
+from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 
 from dymos.examples.min_time_climb.aero.kappa_comp import KappaComp
 
@@ -40,8 +40,8 @@ class TestKappaComp(unittest.TestCase):
         kappa_analtic_0 = 0.54 + 0.15 * (1.0 + np.tanh((M[idxs_0] - 0.9)/0.06))
         kappa_analtic_1 = 0.54 + 0.15 * (1.0 + np.tanh(0.25/0.06)) + 0.14 * (M[idxs_1] - 1.15)
 
-        assert_rel_error(self, kappa[idxs_0], kappa_analtic_0)
-        assert_rel_error(self, kappa[idxs_1], kappa_analtic_1)
+        assert_near_equal(kappa[idxs_0], kappa_analtic_0)
+        assert_near_equal(kappa[idxs_1], kappa_analtic_1)
 
     def test_partials(self):
 

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import openmdao.api as om
 import dymos as dm
 
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 
 plt.switch_backend('Agg')
@@ -175,7 +175,7 @@ class TestDocTandemPhases(unittest.TestCase):
         dm.run_problem(p)
 
         expected = np.sqrt((10-0)**2 + (10 - 5)**2)
-        assert_rel_error(self, p['phase1.timeseries.states:S'][-1], expected, tolerance=1.0E-3)
+        assert_near_equal(p['phase1.timeseries.states:S'][-1], expected, tolerance=1.0E-3)
 
         fig, (ax0, ax1) = plt.subplots(2, 1)
         fig.tight_layout()

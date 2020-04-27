@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
+from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 
 from dymos.transcriptions.pseudospectral.components import GaussLobattoInterleaveComp
 from dymos.transcriptions.grid_data import GridData
@@ -80,21 +80,17 @@ class TestGaussLobattoInterleaveComp(unittest.TestCase):
         u_all = self.p.get_val('interleave_comp.all_values:u')
         v_all = self.p.get_val('interleave_comp.all_values:v')
 
-        assert_rel_error(self,
-                         u_all[self.grid_data.subset_node_indices['state_disc'], ...],
-                         u_disc)
+        assert_near_equal(u_all[self.grid_data.subset_node_indices['state_disc'], ...],
+                          u_disc)
 
-        assert_rel_error(self,
-                         v_all[self.grid_data.subset_node_indices['state_disc'], ...],
-                         v_disc)
+        assert_near_equal(v_all[self.grid_data.subset_node_indices['state_disc'], ...],
+                          v_disc)
 
-        assert_rel_error(self,
-                         u_all[self.grid_data.subset_node_indices['col'], ...],
-                         u_col)
+        assert_near_equal(u_all[self.grid_data.subset_node_indices['col'], ...],
+                          u_col)
 
-        assert_rel_error(self,
-                         v_all[self.grid_data.subset_node_indices['col'], ...],
-                         v_col)
+        assert_near_equal(v_all[self.grid_data.subset_node_indices['col'], ...],
+                          v_col)
 
     def test_partials(self):
         cpd = self.p.check_partials(compact_print=True, method='cs', out_stream=None)

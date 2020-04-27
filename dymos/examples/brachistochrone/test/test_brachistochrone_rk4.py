@@ -5,7 +5,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
 
     def test_brachistochrone_forward_shooting(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -64,19 +64,19 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
-                         tolerance=1.0E-3)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
-                         tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
+                          tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
+                          tolerance=1.0E-3)
 
     def test_brachistochrone_backward_shooting(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -136,19 +136,19 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p['phase0.time'][-1], -1.8016, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.time'][-1], -1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 0,
-                         tolerance=1.0E-3)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 10,
-                         tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 0,
+                          tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 10,
+                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_path_constrained_state(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -208,19 +208,19 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p['phase0.time'][-1], 1.805, tolerance=1.0E-2)
+        assert_near_equal(p['phase0.time'][-1], 1.805, tolerance=1.0E-2)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
-                         tolerance=1.0E-3)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
-                         tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
+                          tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
+                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_path_constrained_control(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -280,19 +280,19 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
-                         tolerance=1.0E-3)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
-                         tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
+                          tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
+                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_path_constrained_control_rate(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -352,19 +352,19 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
-                         tolerance=1.0E-3)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
-                         tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
+                          tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
+                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_path_constrained_ode_output(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -424,19 +424,19 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
-                         tolerance=1.0E-3)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
-                         tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
+                          tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
+                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_boundary_constrained_control_rate(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -496,21 +496,21 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
-        assert_rel_error(self, p.get_val('phase0.timeseries.control_rates:theta_rate2')[-1, 0], 0,
-                         tolerance=1.0E-6)
+        assert_near_equal(p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.control_rates:theta_rate2')[-1, 0], 0,
+                          tolerance=1.0E-6)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
-                         tolerance=1.0E-3)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
-                         tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
+                          tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
+                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_boundary_constrained_design_parameter(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -569,24 +569,23 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
-        assert_rel_error(self,
-                         p.get_val('phase0.timeseries.polynomial_control_rates:theta_rate2')[-1, 0],
-                         0.0,
-                         tolerance=1.0E-9)
+        assert_near_equal(p.get_val('phase0.timeseries.polynomial_control_rates:theta_rate2')[-1, 0],
+                          0.0,
+                          tolerance=1.0E-9)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
-                         tolerance=1.0E-3)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
-                         tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
+                          tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
+                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_boundary_constrained_ode_output(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -646,19 +645,19 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
-                         tolerance=1.0E-3)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
-                         tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
+                          tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
+                          tolerance=1.0E-3)
 
     def test_brachistochrone_forward_shooting_path_constrained_time(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -719,12 +718,12 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.time'][-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
 
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
-                         tolerance=1.0E-3)
-        assert_rel_error(self, exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
-                         tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:x')[-1, 0], 10,
+                          tolerance=1.0E-3)
+        assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
+                          tolerance=1.0E-3)

@@ -13,7 +13,7 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
         import matplotlib.pyplot as plt
 
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
 
         import dymos as dm
         from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
@@ -100,13 +100,13 @@ class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
 
         # Final value for State of Chrage in each segment should be a good test.
         print('State of Charge after 1 hour')
-        assert_rel_error(self, soc0[-1], 0.63464982, 1e-6)
+        assert_near_equal(soc0[-1], 0.63464982, 1e-6)
         print('State of Charge after 2 hours')
-        assert_rel_error(self, soc1[-1], 0.23794217, 1e-6)
+        assert_near_equal(soc1[-1], 0.23794217, 1e-6)
         print('State of Charge after 2 hours, battery fails at 1 hour')
-        assert_rel_error(self, soc1b[-1], 0.0281523, 1e-6)
+        assert_near_equal(soc1b[-1], 0.0281523, 1e-6)
         print('State of Charge after 2 hours, motor fails at 1 hour')
-        assert_rel_error(self, soc1m[-1], 0.18625395, 1e-6)
+        assert_near_equal(soc1m[-1], 0.18625395, 1e-6)
 
         # Plot Results
         t0 = prob['traj.phases.phase0.time.time']/3600
