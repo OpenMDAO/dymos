@@ -18,7 +18,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         import matplotlib.pyplot as plt
 
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
 
         import dymos as dm
 
@@ -106,8 +106,8 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         dm.run_problem(p)
 
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.states:range', units='NM')[-1],
-                         726.85, tolerance=1.0E-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:range', units='NM')[-1],
+                          726.85, tolerance=1.0E-2)
 
         exp_out = traj.simulate()
 

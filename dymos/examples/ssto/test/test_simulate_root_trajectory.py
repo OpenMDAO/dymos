@@ -17,7 +17,7 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
         import numpy as np
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         g = 1.61544  # lunar gravity, m/s**2
@@ -261,7 +261,7 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
         #
         # Check the results.
         #
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 481, tolerance=0.01)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 481, tolerance=0.01)
 
         #
         # Get the explitly simulated results

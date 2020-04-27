@@ -6,7 +6,7 @@ from parameterized import parameterized
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
+from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 
 from dymos.transcriptions.grid_data import GridData
 from dymos.transcriptions.common import GaussLobattoContinuityComp, RadauPSContinuityComp
@@ -131,9 +131,8 @@ class TestContinuityComp(unittest.TestCase):
                 xpectd = self.p[state][segment_end_idxs, ...][2::2, ...] - \
                     self.p[state][segment_end_idxs, ...][1:-1:2, ...]
 
-                assert_rel_error(self,
-                                 self.p['cnty_comp.defect_states:{0}'.format(state)],
-                                 xpectd.reshape((num_seg - 1,) + state_options[state]['shape']))
+                assert_near_equal(self.p['cnty_comp.defect_states:{0}'.format(state)],
+                                  xpectd.reshape((num_seg - 1,) + state_options[state]['shape']))
 
         for ctrl in ('u', 'v'):
 
@@ -141,9 +140,8 @@ class TestContinuityComp(unittest.TestCase):
                 self.p[ctrl][segment_end_idxs, ...][1:-1:2, ...]
 
             if compressed != 'compressed':
-                assert_rel_error(self,
-                                 self.p['cnty_comp.defect_controls:{0}'.format(ctrl)],
-                                 xpectd.reshape((num_seg-1,) + control_options[ctrl]['shape']))
+                assert_near_equal(self.p['cnty_comp.defect_controls:{0}'.format(ctrl)],
+                                  xpectd.reshape((num_seg-1,) + control_options[ctrl]['shape']))
 
         np.set_printoptions(linewidth=1024)
         cpd = self.p.check_partials(method='cs', out_stream=None)

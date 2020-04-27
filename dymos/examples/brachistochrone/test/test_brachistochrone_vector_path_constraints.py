@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
@@ -75,8 +75,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, np.min(p.get_val('phase0.timeseries.states:pos')[:, 1]), 5.0,
-                         tolerance=1.0E-3)
+        assert_near_equal(np.min(p.get_val('phase0.timeseries.states:pos')[:, 1]), 5.0,
+                          tolerance=1.0E-3)
 
         # Plot results
         if SHOW_PLOTS:
@@ -200,10 +200,9 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self,
-                         np.min(p.get_val('phase0.timeseries.pos_dot')[:, -1]),
-                         -4,
-                         tolerance=1.0E-2)
+        assert_near_equal(np.min(p.get_val('phase0.timeseries.pos_dot')[:, -1]),
+                          -4,
+                          tolerance=1.0E-2)
 
         # Plot results
         if SHOW_PLOTS:
@@ -327,10 +326,9 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self,
-                         np.min(p.get_val('phase0.timeseries.pos_dot')[:, -1]),
-                         -4,
-                         tolerance=1.0E-2)
+        assert_near_equal(np.min(p.get_val('phase0.timeseries.pos_dot')[:, -1]),
+                          -4,
+                          tolerance=1.0E-2)
 
         # Plot results
         if SHOW_PLOTS:
@@ -453,10 +451,9 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self,
-                         np.min(p.get_val('phase0.timeseries.states:pos')[:, 1]),
-                         5,
-                         tolerance=1.0E-2)
+        assert_near_equal(np.min(p.get_val('phase0.timeseries.states:pos')[:, 1]),
+                          5,
+                          tolerance=1.0E-2)
 
         # Plot results
         if SHOW_PLOTS:
@@ -582,8 +579,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, np.min(p.get_val('phase0.timeseries.pos_dot')[:, 1]), -4.0,
-                         tolerance=1.0E-3)
+        assert_near_equal(np.min(p.get_val('phase0.timeseries.pos_dot')[:, 1]), -4.0,
+                          tolerance=1.0E-3)
 
         # Plot results
         if SHOW_PLOTS:
@@ -707,10 +704,9 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self,
-                         np.min(p.get_val('phase0.timeseries.pos_dot')[:, -1]),
-                         -4,
-                         tolerance=1.0E-2)
+        assert_near_equal(np.min(p.get_val('phase0.timeseries.pos_dot')[:, -1]),
+                          -4,
+                          tolerance=1.0E-2)
 
         # Plot results
         if SHOW_PLOTS:
@@ -833,8 +829,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, np.min(p.get_val('phase0.timeseries.states:pos')[:, 1]), 5.0,
-                         tolerance=1.0E-3)
+        assert_near_equal(np.min(p.get_val('phase0.timeseries.states:pos')[:, 1]), 5.0,
+                          tolerance=1.0E-3)
 
         # Plot results
         if SHOW_PLOTS:
@@ -960,10 +956,9 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self,
-                         np.min(p.get_val('phase0.timeseries.pos_dot')[:, -1]),
-                         -4,
-                         tolerance=1.0E-2)
+        assert_near_equal(np.min(p.get_val('phase0.timeseries.pos_dot')[:, -1]),
+                          -4,
+                          tolerance=1.0E-2)
 
         # Plot results
         if SHOW_PLOTS:
@@ -1089,10 +1084,9 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self,
-                         np.min(p.get_val('phase0.timeseries.pos_dot')[:, -1]),
-                         -4,
-                         tolerance=1.0E-2)
+        assert_near_equal(np.min(p.get_val('phase0.timeseries.pos_dot')[:, -1]),
+                          -4,
+                          tolerance=1.0E-2)
 
         # Plot results
         if SHOW_PLOTS:

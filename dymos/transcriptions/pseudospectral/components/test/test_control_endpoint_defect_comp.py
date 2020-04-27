@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials, assert_rel_error
+from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 
 from dymos.transcriptions.pseudospectral.components import ControlEndpointDefectComp
 from dymos.transcriptions.grid_data import GridData
@@ -51,10 +51,9 @@ class TestControlEndpointDefectComp(unittest.TestCase):
         u_poly = np.poly1d(u_coefs.ravel())
         u_interp = u_poly(1.0)
         u_given = self.p['controls:u'][-1]
-        assert_rel_error(self,
-                         np.ravel(self.p['endpoint_defect_comp.control_endpoint_defects:u']),
-                         np.ravel(u_given - u_interp),
-                         tolerance=1.0E-12)
+        assert_near_equal(np.ravel(self.p['endpoint_defect_comp.control_endpoint_defects:u']),
+                          np.ravel(u_given - u_interp),
+                          tolerance=1.0E-12)
 
     def test_partials(self):
         cpd = self.p.check_partials(compact_print=False, method='cs')

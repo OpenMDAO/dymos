@@ -86,7 +86,7 @@ class TestLoadCase(unittest.TestCase):
 
     def test_load_case_unchanged_grid(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         p = setup_problem(dm.GaussLobatto(num_segments=10))
@@ -112,12 +112,12 @@ class TestLoadCase(unittest.TestCase):
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
 
-        assert_rel_error(self, p['phase0.controls:theta'],
-                         outputs['phase0.control_group.indep_controls.controls:theta']['value'])
+        assert_near_equal(p['phase0.controls:theta'],
+                          outputs['phase0.control_group.indep_controls.controls:theta']['value'])
 
     def test_load_case_lgl_to_radau(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         p = setup_problem(dm.GaussLobatto(num_segments=10))
@@ -145,13 +145,13 @@ class TestLoadCase(unittest.TestCase):
         time_val = outputs['phase0.timeseries.time']['value']
         theta_val = outputs['phase0.timeseries.controls:theta']['value']
 
-        assert_rel_error(self, q['phase0.timeseries.controls:theta'],
-                         q.model.phase0.interpolate(xs=time_val, ys=theta_val, nodes='all'),
-                         tolerance=1.0E-3)
+        assert_near_equal(q['phase0.timeseries.controls:theta'],
+                          q.model.phase0.interpolate(xs=time_val, ys=theta_val, nodes='all'),
+                          tolerance=1.0E-3)
 
     def test_load_case_radau_to_lgl(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         p = setup_problem(dm.Radau(num_segments=20))
@@ -179,14 +179,14 @@ class TestLoadCase(unittest.TestCase):
         time_val = outputs['phase0.timeseries.time']['value']
         theta_val = outputs['phase0.timeseries.controls:theta']['value']
 
-        assert_rel_error(self, q['phase0.timeseries.controls:theta'],
-                         q.model.phase0.interpolate(xs=time_val, ys=theta_val, nodes='all'),
-                         tolerance=1.0E-2)
+        assert_near_equal(q['phase0.timeseries.controls:theta'],
+                          q.model.phase0.interpolate(xs=time_val, ys=theta_val, nodes='all'),
+                          tolerance=1.0E-2)
 
     def test_load_case_rk4_to_lgl(self):
         import openmdao.api as om
         import dymos as dm
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
 
         p = setup_problem(dm.RungeKutta(num_segments=50))
 
@@ -213,14 +213,14 @@ class TestLoadCase(unittest.TestCase):
         time_val = outputs['phase0.timeseries.time']['value']
         theta_val = outputs['phase0.timeseries.controls:theta']['value']
 
-        assert_rel_error(self, q['phase0.timeseries.controls:theta'],
-                         q.model.phase0.interpolate(xs=time_val, ys=theta_val, nodes='all'),
-                         tolerance=1.0E-1)
+        assert_near_equal(q['phase0.timeseries.controls:theta'],
+                          q.model.phase0.interpolate(xs=time_val, ys=theta_val, nodes='all'),
+                          tolerance=1.0E-1)
 
     def test_load_case_lgl_to_rk4(self):
         import openmdao.api as om
         import dymos as dm
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         from scipy.interpolate import interp1d
         import numpy as np
 
@@ -259,9 +259,9 @@ class TestLoadCase(unittest.TestCase):
         q_theta = q_theta[nodup]
         fq_theta = interp1d(q_time, q_theta, kind='cubic', bounds_error=False, fill_value='extrapolate')
 
-        assert_rel_error(self, fq_theta(time_val),
-                         theta_val,
-                         tolerance=1.0E-2)
+        assert_near_equal(fq_theta(time_val),
+                          theta_val,
+                          tolerance=1.0E-2)
 
 
 if __name__ == '__main__':  # pragma: no cover

@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 from dymos.examples.aircraft_steady_flight.aero.mbi_aero_coef_comp import setup_surrogates_all, \
     MBIAeroCoeffComp
@@ -204,15 +204,13 @@ class TestAeroCoefComp(unittest.TestCase):
                             0.021332763445,  0.020777569791,  0.020306416459,  0.019901757560,
                             0.019550206447,  0.019241644947,  0.018968388593,  0.018724538140])
 
-        assert_rel_error(self,
-                         prob['aero.CL'],
-                         CL_data,
-                         tolerance=0.003)
+        assert_near_equal(prob['aero.CL'],
+                          CL_data,
+                          tolerance=0.003)
 
-        assert_rel_error(self,
-                         prob['aero.CD'],
-                         CD_data,
-                         tolerance=0.003)
+        assert_near_equal(prob['aero.CD'],
+                          CD_data,
+                          tolerance=0.003)
 
 
 if __name__ == '__main__':  # pragma: no cover

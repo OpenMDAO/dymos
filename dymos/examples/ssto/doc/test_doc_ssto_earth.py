@@ -10,7 +10,7 @@ class TestDocSSTOEarth(unittest.TestCase):
     def test_doc_ssto_earth(self):
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         #
@@ -86,10 +86,10 @@ class TestDocSSTOEarth(unittest.TestCase):
         #
         # Check the results.
         #
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 143, tolerance=0.05)
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.states:y')[-1], 1.85E5, 1e-4)
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.states:vx')[-1], 7796.6961, 1e-4)
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.states:vy')[-1], 0, 1e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 143, tolerance=0.05)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:y')[-1], 1.85E5, 1e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:vx')[-1], 7796.6961, 1e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:vy')[-1], 0, 1e-4)
         #
         # Get the explitly simulated results
         #

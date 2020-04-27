@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_stepsize_comp import RungeKuttaStepsizeComp
 
@@ -33,7 +33,7 @@ class TestRKStepsizeComp(unittest.TestCase):
 
         expected = np.array([0.5, 0.5, 0.5, 0.5])
 
-        assert_rel_error(self, p.get_val('c.h'), expected, tolerance=1.0E-9)
+        assert_near_equal(p.get_val('c.h'), expected, tolerance=1.0E-9)
 
         cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
@@ -61,7 +61,7 @@ class TestRKStepsizeComp(unittest.TestCase):
 
         expected = np.array([2.0, 2.0, 1.0, 0.5])
 
-        assert_rel_error(self, p.get_val('c.h'), expected, tolerance=1.0E-9)
+        assert_near_equal(p.get_val('c.h'), expected, tolerance=1.0E-9)
 
         cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)

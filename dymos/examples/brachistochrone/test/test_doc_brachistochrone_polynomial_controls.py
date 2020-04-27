@@ -8,7 +8,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -61,7 +61,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -103,7 +103,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -156,7 +156,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -198,7 +198,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -254,7 +254,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -298,7 +298,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -354,7 +354,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -395,7 +395,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -451,7 +451,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -491,7 +491,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -550,7 +550,7 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -593,7 +593,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -648,7 +648,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -688,7 +688,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -743,7 +743,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -783,7 +783,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -841,7 +841,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -886,7 +886,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -941,7 +941,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -983,7 +983,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -1038,7 +1038,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -1080,7 +1080,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -1138,7 +1138,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -1183,7 +1183,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -1238,7 +1238,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -1280,7 +1280,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -1335,7 +1335,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -1375,7 +1375,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -1433,7 +1433,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -1474,7 +1474,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
     def test_brachistochrone_polynomial_control_gauss_lobatto(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -1527,7 +1527,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -1535,12 +1535,12 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
         theta_exp = exp_out.get_val('phase0.timeseries.polynomial_controls:theta')
 
-        assert_rel_error(self, theta_exp[0], theta_imp[0])
-        assert_rel_error(self, theta_exp[-1], theta_imp[-1])
+        assert_near_equal(theta_exp[0], theta_imp[0])
+        assert_near_equal(theta_exp[-1], theta_imp[-1])
 
     def test_brachistochrone_polynomial_control_radau(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -1593,7 +1593,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -1601,12 +1601,12 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
         theta_exp = exp_out.get_val('phase0.timeseries.polynomial_controls:theta')
 
-        assert_rel_error(self, theta_exp[0], theta_imp[0])
-        assert_rel_error(self, theta_exp[-1], theta_imp[-1])
+        assert_near_equal(theta_exp[0], theta_imp[0])
+        assert_near_equal(theta_exp[-1], theta_imp[-1])
 
     def test_brachistochrone_polynomial_control_rungekutta(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -1662,7 +1662,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = phase.simulate()
@@ -1670,5 +1670,5 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
         theta_imp = p.get_val('phase0.timeseries.polynomial_controls:theta')
         theta_exp = exp_out.get_val('phase0.timeseries.polynomial_controls:theta')
 
-        assert_rel_error(self, theta_exp[0], theta_imp[0])
-        assert_rel_error(self, theta_exp[-1], theta_imp[-1])
+        assert_near_equal(theta_exp[0], theta_imp[0])
+        assert_near_equal(theta_exp[-1], theta_imp[-1])

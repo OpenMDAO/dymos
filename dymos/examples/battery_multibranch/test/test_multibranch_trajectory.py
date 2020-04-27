@@ -5,7 +5,7 @@ import os
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
@@ -109,10 +109,10 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         soc1m = prob['traj.phase1_mfail.states:state_of_charge']
 
         # Final value for State of Chrage in each segment should be a good test.
-        assert_rel_error(self, soc0[-1], 0.63464982, 1e-6)
-        assert_rel_error(self, soc1[-1], 0.23794217, 1e-6)
-        assert_rel_error(self, soc1b[-1], 0.0281523, 1e-6)
-        assert_rel_error(self, soc1m[-1], 0.18625395, 1e-6)
+        assert_near_equal(soc0[-1], 0.63464982, 1e-6)
+        assert_near_equal(soc1[-1], 0.23794217, 1e-6)
+        assert_near_equal(soc1b[-1], 0.0281523, 1e-6)
+        assert_near_equal(soc1m[-1], 0.18625395, 1e-6)
 
     def test_solver_defects(self):
         prob = om.Problem()
@@ -195,10 +195,10 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         soc1m = prob['traj.phase1_mfail.states:state_of_charge']
 
         # Final value for State of Charge in each segment should be a good test.
-        assert_rel_error(self, soc0[-1], 0.63464982, 1e-6)
-        assert_rel_error(self, soc1[-1], 0.23794217, 1e-6)
-        assert_rel_error(self, soc1b[-1], 0.0281523, 1e-6)
-        assert_rel_error(self, soc1m[-1], 0.18625395, 1e-6)
+        assert_near_equal(soc0[-1], 0.63464982, 1e-6)
+        assert_near_equal(soc1[-1], 0.23794217, 1e-6)
+        assert_near_equal(soc1b[-1], 0.0281523, 1e-6)
+        assert_near_equal(soc1m[-1], 0.18625395, 1e-6)
 
     def test_solver_defects_single_phase_reverse_propagation(self):
         prob = om.Problem()
@@ -227,7 +227,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         prob.run_model()
 
         soc0 = prob['phase0.states:state_of_charge']
-        assert_rel_error(self, soc0[-1], 1.0, 1e-6)
+        assert_near_equal(soc0[-1], 1.0, 1e-6)
 
     def test_solver_defects_reverse_propagation(self):
         prob = om.Problem()
@@ -273,7 +273,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         prob.run_model()
 
         soc1 = prob['traj.phase1.states:state_of_charge']
-        assert_rel_error(self, soc1[-1], 1.0, 1e-6)
+        assert_near_equal(soc1[-1], 1.0, 1e-6)
 
     def test_optimizer_segments_direct_connections(self):
         prob = om.Problem()
@@ -365,10 +365,10 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         soc1m = prob['traj.phase1_mfail.states:state_of_charge']
 
         # Final value for State of Chrage in each segment should be a good test.
-        assert_rel_error(self, soc0[-1], 0.63464982, 1e-6)
-        assert_rel_error(self, soc1[-1], 0.23794217, 1e-6)
-        assert_rel_error(self, soc1b[-1], 0.0281523, 1e-6)
-        assert_rel_error(self, soc1m[-1], 0.18625395, 1e-6)
+        assert_near_equal(soc0[-1], 0.63464982, 1e-6)
+        assert_near_equal(soc1[-1], 0.23794217, 1e-6)
+        assert_near_equal(soc1b[-1], 0.0281523, 1e-6)
+        assert_near_equal(soc1m[-1], 0.18625395, 1e-6)
 
 
 class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
@@ -465,10 +465,10 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         soc1m = prob['traj.phase1_mfail.states:state_of_charge']
 
         # Final value for State of Charge in each segment should be a good test.
-        assert_rel_error(self, soc0[-1], 0.63464982, 1e-4)
-        assert_rel_error(self, soc1[-1], 0.23794217, 1e-4)
-        assert_rel_error(self, soc1b[-1], 0.0281523, 1e-4)
-        assert_rel_error(self, soc1m[-1], 0.18625395, 1e-4)
+        assert_near_equal(soc0[-1], 0.63464982, 1e-4)
+        assert_near_equal(soc1[-1], 0.23794217, 1e-4)
+        assert_near_equal(soc1b[-1], 0.0281523, 1e-4)
+        assert_near_equal(soc1m[-1], 0.18625395, 1e-4)
 
     def test_single_phase_reverse_propagation_rk(self):
         prob = om.Problem()
@@ -495,7 +495,7 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         prob.run_model()
 
         soc0 = prob['phase0.states:state_of_charge']
-        assert_rel_error(self, soc0[-1], 1.0, 1e-6)
+        assert_near_equal(soc0[-1], 1.0, 1e-6)
 
     def test_connected_linkages_rk(self):
         prob = om.Problem()
@@ -592,10 +592,10 @@ class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
         soc1m = prob['traj.phase1_mfail.states:state_of_charge']
 
         # Final value for State of Chrage in each segment should be a good test.
-        assert_rel_error(self, soc0[-1], 0.63464982, 5e-5)
-        assert_rel_error(self, soc1[-1], 0.23794217, 5e-5)
-        assert_rel_error(self, soc1b[-1], 0.0281523, 5e-5)
-        assert_rel_error(self, soc1m[-1], 0.18625395, 5e-5)
+        assert_near_equal(soc0[-1], 0.63464982, 5e-5)
+        assert_near_equal(soc1[-1], 0.23794217, 5e-5)
+        assert_near_equal(soc1b[-1], 0.0281523, 5e-5)
+        assert_near_equal(soc1m[-1], 0.18625395, 5e-5)
 
 
 if __name__ == '__main__':  # pragma: no cover

@@ -3,7 +3,7 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.general_utils import set_pyoptsparse_opt
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.utils.lgl import lgl
@@ -120,14 +120,14 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
 
     def test_ex_aircraft_steady_flight_opt(self):
         p = ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False)
-        assert_rel_error(self, p.get_val('phase0.timeseries.states:range', units='NM')[-1],
-                         726.85, tolerance=1.0E-2)
+        assert_near_equal(p.get_val('phase0.timeseries.states:range', units='NM')[-1],
+                          726.85, tolerance=1.0E-2)
 
     def test_ex_aircraft_steady_flight_solve(self):
         p = ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=True,
                                       use_boundary_constraints=True)
-        assert_rel_error(self, p.get_val('phase0.timeseries.states:range', units='NM')[-1],
-                         726.85, tolerance=1.0E-2)
+        assert_near_equal(p.get_val('phase0.timeseries.states:range', units='NM')[-1],
+                          726.85, tolerance=1.0E-2)
 
 
 if __name__ == '__main__':  # pragma: no cover

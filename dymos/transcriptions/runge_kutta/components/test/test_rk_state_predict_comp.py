@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_state_predict_comp import \
     RungeKuttaStatePredictComp
@@ -76,7 +76,7 @@ class TestRKStatePredictComp(unittest.TestCase):
                              [4.665199898183346],
                              [5.308168919136127]])
 
-        assert_rel_error(self, p.get_val('c.predicted_states:y'), expected)
+        assert_near_equal(p.get_val('c.predicted_states:y'), expected)
 
         cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
@@ -136,7 +136,7 @@ class TestRKStatePredictComp(unittest.TestCase):
                              [3.323853492736816],
                              [4.020279407501221]])
 
-        assert_rel_error(self, p.get_val('c.predicted_states:y'), expected)
+        assert_near_equal(p.get_val('c.predicted_states:y'), expected)
 
         cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
@@ -185,7 +185,7 @@ class TestRKStatePredictComp(unittest.TestCase):
                              [2.026733398437500, 4.665199898183346],
                              [2.657246907552083, 5.308168919136127]])
 
-        assert_rel_error(self, p.get_val('c.predicted_states:y'), expected)
+        assert_near_equal(p.get_val('c.predicted_states:y'), expected)
 
         cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
@@ -228,19 +228,18 @@ class TestRKStatePredictComp(unittest.TestCase):
 
         p.model.list_outputs(print_arrays=True)
 
-        assert_rel_error(self,
-                         p.get_val('c.predicted_states:y'),
-                         [[[0.5, 1.425130208333333],
-                           [2.639602661132812, 4.006818970044454]],
+        assert_near_equal(p.get_val('c.predicted_states:y'),
+                          [[[0.5, 1.425130208333333],
+                            [2.639602661132812, 4.006818970044454]],
 
-                          [[0.875, 1.968912760416667],
-                           [3.299503326416016, 4.696023712555567]],
+                           [[0.875, 1.968912760416667],
+                            [3.299503326416016, 4.696023712555567]],
 
-                          [[0.953125, 2.0267333984375],
-                           [3.323853492736816, 4.665199898183346]],
+                           [[0.953125, 2.0267333984375],
+                            [3.323853492736816, 4.665199898183346]],
 
-                          [[1.4453125, 2.657246907552083],
-                           [4.020279407501221, 5.308168919136127]]])
+                           [[1.4453125, 2.657246907552083],
+                            [4.020279407501221, 5.308168919136127]]])
 
         np.set_printoptions(linewidth=1024)
         cpd = p.check_partials(method='cs', out_stream=None)

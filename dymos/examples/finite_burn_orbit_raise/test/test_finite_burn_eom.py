@@ -4,7 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 
-from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
@@ -71,9 +71,9 @@ class TestFiniteBurnEOM(unittest.TestCase):
 
     def test_outputs(self):
         p = self.p
-        assert_rel_error(self, p['r_dot'], p['vr'])
-        assert_rel_error(self, p['theta_dot'], p['vt'] / p['r'])
-        assert_rel_error(self, p['at_dot'], p['accel']**2 / p['c'])
+        assert_near_equal(p['r_dot'], p['vr'])
+        assert_near_equal(p['theta_dot'], p['vt'] / p['r'])
+        assert_near_equal(p['at_dot'], p['accel']**2 / p['c'])
 
     def test_partials(self):
         cpd = self.p.check_partials(compact_print=False)

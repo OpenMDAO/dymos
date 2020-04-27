@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_k_comp import RungeKuttaKComp
 
@@ -73,7 +73,7 @@ class TestRKKComp(unittest.TestCase):
                               [1.301349949091673],
                               [1.154084459568063]]])
 
-        assert_rel_error(self, p.get_val('c.k:y'), expected, tolerance=1.0E-9)
+        assert_near_equal(p.get_val('c.k:y'), expected, tolerance=1.0E-9)
 
         p.model.list_outputs(print_arrays=True)
 
@@ -122,7 +122,7 @@ class TestRKKComp(unittest.TestCase):
                               [1.232116699218750, 1.301349949091673],
                               [1.328623453776042, 1.154084459568063]]])
 
-        assert_rel_error(self, p.get_val('c.k:y'), expected, tolerance=1.0E-9)
+        assert_near_equal(p.get_val('c.k:y'), expected, tolerance=1.0E-9)
 
         cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
@@ -174,7 +174,7 @@ class TestRKKComp(unittest.TestCase):
                               [[1.09765625, 1.385139703750610],
                                [1.328623453776042, 1.154084459568063]]]])
 
-        assert_rel_error(self, p.get_val('c.k:y'), expected, tolerance=1.0E-9)
+        assert_near_equal(p.get_val('c.k:y'), expected, tolerance=1.0E-9)
 
         cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)

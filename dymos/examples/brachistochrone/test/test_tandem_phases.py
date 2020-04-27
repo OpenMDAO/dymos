@@ -8,7 +8,7 @@ import numpy as np
 import openmdao.api as om
 import dymos as dm
 
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 
 class BrachistochroneArclengthODE(om.ExplicitComponent):
@@ -185,7 +185,7 @@ class TestTandemPhases(unittest.TestCase):
         p.run_driver()
 
         expected = np.sqrt((10-0)**2 + (10 - 5)**2)
-        assert_rel_error(self, p['phase1.timeseries.states:S'][-1], expected, tolerance=1.0E-3)
+        assert_near_equal(p['phase1.timeseries.states:S'][-1], expected, tolerance=1.0E-3)
 
     def test_tandem_phases_radau(self):
         self._run_transcription('radau-ps')

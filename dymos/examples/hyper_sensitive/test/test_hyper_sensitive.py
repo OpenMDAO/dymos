@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import os
 import unittest
 from openmdao.api import Problem, Group, pyOptSparseDriver
-from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
@@ -90,20 +90,17 @@ class TestHyperSensitive(unittest.TestCase):
         dm.run_problem(p, refine=True)
         ui, uf, J = self.solution()
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.controls:u')[0],
-                         ui,
-                         tolerance=1e-6)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+                          ui,
+                          tolerance=1e-6)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.controls:u')[-1],
-                         uf,
-                         tolerance=1e-6)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+                          uf,
+                          tolerance=1e-6)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.states:xL')[-1],
-                         J,
-                         tolerance=1e-6)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+                          J,
+                          tolerance=1e-6)
 
     def test_hyper_sensitive_gauss_lobatto(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT')
@@ -112,17 +109,14 @@ class TestHyperSensitive(unittest.TestCase):
 
         ui, uf, J = self.solution()
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.controls:u')[0],
-                         ui,
-                         tolerance=1e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+                          ui,
+                          tolerance=1e-4)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.controls:u')[-1],
-                         uf,
-                         tolerance=1e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+                          uf,
+                          tolerance=1e-4)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.states:xL')[-1],
-                         J,
-                         tolerance=1e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+                          J,
+                          tolerance=1e-4)

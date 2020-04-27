@@ -1,7 +1,7 @@
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -68,30 +68,25 @@ class TestTimeseriesOutput(unittest.TestCase):
         control_input_idxs = gd.subset_node_indices['control_input']
         col_idxs = gd.subset_node_indices['col']
 
-        assert_rel_error(self,
-                         p.get_val('phase0.time'),
-                         p.get_val('phase0.timeseries.time')[:, 0])
+        assert_near_equal(p.get_val('phase0.time'),
+                          p.get_val('phase0.timeseries.time')[:, 0])
 
-        assert_rel_error(self,
-                         p.get_val('phase0.time_phase'),
-                         p.get_val('phase0.timeseries.time_phase')[:, 0])
+        assert_near_equal(p.get_val('phase0.time_phase'),
+                          p.get_val('phase0.timeseries.time_phase')[:, 0])
 
         for state in ('x', 'y', 'v'):
-            assert_rel_error(self,
-                             p.get_val('phase0.states:{0}'.format(state)),
-                             p.get_val('phase0.timeseries.states:'
-                                       '{0}'.format(state))[state_input_idxs])
+            assert_near_equal(p.get_val('phase0.states:{0}'.format(state)),
+                              p.get_val('phase0.timeseries.states:'
+                                        '{0}'.format(state))[state_input_idxs])
 
-            assert_rel_error(self,
-                             p.get_val('phase0.state_interp.state_col:{0}'.format(state)),
-                             p.get_val('phase0.timeseries.states:'
-                                       '{0}'.format(state))[col_idxs])
+            assert_near_equal(p.get_val('phase0.state_interp.state_col:{0}'.format(state)),
+                              p.get_val('phase0.timeseries.states:'
+                                        '{0}'.format(state))[col_idxs])
 
         for control in ('theta',):
-            assert_rel_error(self,
-                             p.get_val('phase0.controls:{0}'.format(control)),
-                             p.get_val('phase0.timeseries.controls:'
-                                       '{0}'.format(control))[control_input_idxs])
+            assert_near_equal(p.get_val('phase0.controls:{0}'.format(control)),
+                              p.get_val('phase0.timeseries.controls:'
+                                        '{0}'.format(control))[control_input_idxs])
 
         for dp in ('g',):
             for i in range(gd.subset_num_nodes['all']):
@@ -99,9 +94,8 @@ class TestTimeseriesOutput(unittest.TestCase):
                     with self.assertRaises(KeyError):
                         p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
                 else:
-                    assert_rel_error(self,
-                                     p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
-                                     p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))[i])
+                    assert_near_equal(p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
+                                      p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))[i])
 
         # call simulate to test SolveIVP transcription
         exp_out = phase.simulate()
@@ -173,25 +167,21 @@ class TestTimeseriesOutput(unittest.TestCase):
         state_input_idxs = gd.subset_node_indices['state_input']
         control_input_idxs = gd.subset_node_indices['control_input']
 
-        assert_rel_error(self,
-                         p.get_val('phase0.time'),
-                         p.get_val('phase0.timeseries.time')[:, 0])
+        assert_near_equal(p.get_val('phase0.time'),
+                          p.get_val('phase0.timeseries.time')[:, 0])
 
-        assert_rel_error(self,
-                         p.get_val('phase0.time_phase'),
-                         p.get_val('phase0.timeseries.time_phase')[:, 0])
+        assert_near_equal(p.get_val('phase0.time_phase'),
+                          p.get_val('phase0.timeseries.time_phase')[:, 0])
 
         for state in ('x', 'y', 'v'):
-            assert_rel_error(self,
-                             p.get_val('phase0.states:{0}'.format(state)),
-                             p.get_val('phase0.timeseries.states:'
-                                       '{0}'.format(state))[state_input_idxs])
+            assert_near_equal(p.get_val('phase0.states:{0}'.format(state)),
+                              p.get_val('phase0.timeseries.states:'
+                                        '{0}'.format(state))[state_input_idxs])
 
         for control in ('theta',):
-            assert_rel_error(self,
-                             p.get_val('phase0.controls:{0}'.format(control)),
-                             p.get_val('phase0.timeseries.controls:'
-                                       '{0}'.format(control))[control_input_idxs])
+            assert_near_equal(p.get_val('phase0.controls:{0}'.format(control)),
+                              p.get_val('phase0.timeseries.controls:'
+                                        '{0}'.format(control))[control_input_idxs])
 
         for dp in ('g',):
             for i in range(gd.subset_num_nodes['all']):
@@ -199,10 +189,9 @@ class TestTimeseriesOutput(unittest.TestCase):
                     with self.assertRaises(KeyError):
                         p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
                 else:
-                    assert_rel_error(self,
-                                     p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
-                                     p.get_val('phase0.timeseries.design_parameters:'
-                                               '{0}'.format(dp))[i])
+                    assert_near_equal(p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
+                                      p.get_val('phase0.timeseries.design_parameters:'
+                                                '{0}'.format(dp))[i])
 
         # call simulate to test SolveIVP transcription
         exp_out = phase.simulate()

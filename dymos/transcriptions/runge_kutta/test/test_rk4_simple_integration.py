@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE, _test_ode_solution
@@ -32,7 +32,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         p.run_model()
 
         expected = _test_ode_solution(p['phase0.ode.y'], p['phase0.ode.t'])
-        assert_rel_error(self, p['phase0.ode.y'], expected, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.ode.y'], expected, tolerance=1.0E-3)
 
     def test_simple_integration_forward_connected_initial(self):
 
@@ -61,7 +61,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         p.run_model()
 
         expected = _test_ode_solution(p['traj.phase0.ode.y'], p['traj.phase0.ode.t'])
-        assert_rel_error(self, p['traj.phase0.ode.y'], expected, tolerance=1.0E-3)
+        assert_near_equal(p['traj.phase0.ode.y'], expected, tolerance=1.0E-3)
 
     def test_simple_integration_forward_connected_initial_fixed_initial(self):
 
@@ -103,7 +103,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         p.run_model()
 
         expected = np.atleast_2d(_test_ode_solution(p['phase0.ode.y'], p['phase0.timeseries.time']))
-        assert_rel_error(self, p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
 
     def test_simple_integration_backward_connected_initial(self):
 
@@ -131,7 +131,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         p.run_model()
 
         expected = np.atleast_2d(_test_ode_solution(p['phase0.ode.y'], p['phase0.timeseries.time']))
-        assert_rel_error(self, p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.timeseries.states:y'], expected, tolerance=1.0E-3)
 
 
 if __name__ == '__main__':  # pragma: no cover
