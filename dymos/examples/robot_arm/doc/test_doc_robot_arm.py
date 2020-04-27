@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import os
 import unittest
 from openmdao.api import Problem, Group, pyOptSparseDriver
-from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.robot_arm.robot_arm_ode import RobotArmODE
@@ -67,7 +67,7 @@ class TestRobotArm(unittest.TestCase):
         dm.run_problem(p, refine=True)
 
         t = p.get_val('traj.phase.timeseries.time', tolerance=1e-6)
-        assert_rel_error(self, t[-1], 9.14138)
+        assert_near_equal(t[-1], 9.14138, tolerance=1e-3)
 
     def test_robot_arm_gl(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='SNOPT', numseg=100)
@@ -75,4 +75,4 @@ class TestRobotArm(unittest.TestCase):
 
         t = p.get_val('traj.phase.timeseries.time')
 
-        assert_rel_error(self, t[-1], 9.14138, tolerance=1e-6)
+        assert_near_equal(t[-1], 9.14138, tolerance=1e-3)

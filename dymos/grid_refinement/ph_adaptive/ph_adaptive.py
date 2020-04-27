@@ -200,7 +200,6 @@ class PHAdaptive:
             new_grid = GridData(numseg, gd.transcription, new_order, gd.segment_ends, gd.compressed)
             left_end_idxs = new_grid.subset_node_indices['segment_ends'][0::2]
             left_end_idxs = np.append(left_end_idxs, new_grid.subset_num_nodes['all'] - 1)
-            print(left_end_idxs.shape)
             L = interpolation_lagrange_matrix(gd, new_grid)
             I = integration_matrix(new_grid)
 
