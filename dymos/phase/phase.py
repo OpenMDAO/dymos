@@ -250,7 +250,7 @@ class Phase(om.Group):
         if rate_source is not _unspecified:
             self.state_options[name]['rate_source'] = rate_source
 
-        if not targets:  # handle None to explicitly do nothing
+        if targets is None:  # handle None to explicitly do nothing
             pass
         elif targets is _unspecified:  # [default] was the same as None
             warn_deprecation("The default behavior of 'targets=_unspecified' is changing. "
@@ -529,7 +529,7 @@ class Phase(om.Group):
         if desc is not _unspecified:
             self.control_options[name]['desc'] = desc
 
-        if not targets:  # handle None to explicitly do nothing
+        if targets is None:  # handle None to explicitly do nothing
             pass
         elif targets is _unspecified:  # [default] was the same as None
             warn_deprecation("The default behavior of 'targets=_unspecified' is changing. "
@@ -908,7 +908,7 @@ class Phase(om.Group):
         if desc is not _unspecified:
             self.design_parameter_options[name]['desc'] = desc
 
-        if not targets:  # handle None to explicitly do nothing
+        if targets is None:  # handle None to explicitly do nothing
             pass
         elif targets is _unspecified:  # [default] was the same as None
             warn_deprecation("The default behavior of 'targets=_unspecified' is changing. "
