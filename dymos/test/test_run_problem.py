@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import os
 import unittest
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
 import numpy as np
 
@@ -24,8 +24,18 @@ class TestRunProblem(unittest.TestCase):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
+        optimizer = 'IPOPT'
         p.driver.options['optimizer'] = optimizer
+
+        if optimizer == 'SNOPT':
+            p.driver.opt_settings['Major iterations limit'] = 100
+            p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
+            p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
+        elif optimizer == 'IPOPT':
+            p.driver.opt_settings['hessian_approximation'] = 'limited-memory'
+            # p.driver.opt_settings['nlp_scaling_method'] = 'user-scaling'
+            p.driver.opt_settings['print_level'] = 5
+            p.driver.opt_settings['linear_solver'] = 'mumps'
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
@@ -63,27 +73,34 @@ class TestRunProblem(unittest.TestCase):
         J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) * np.exp(-2 * val) -
                    (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.controls:u')[0],
-                         ui,
-                         tolerance=5e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+                          ui,
+                          tolerance=5e-4)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.controls:u')[-1],
-                         uf,
-                         tolerance=5e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+                          uf,
+                          tolerance=5e-4)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.states:xL')[-1],
-                         J,
-                         tolerance=5e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+                          J,
+                          tolerance=5e-4)
 
     def test_run_HS_problem_gl(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
+        optimizer = 'IPOPT'
         p.driver.options['optimizer'] = optimizer
+
+        if optimizer == 'SNOPT':
+            p.driver.opt_settings['Major iterations limit'] = 100
+            p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
+            p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
+        elif optimizer == 'IPOPT':
+            p.driver.opt_settings['hessian_approximation'] = 'limited-memory'
+            # p.driver.opt_settings['nlp_scaling_method'] = 'user-scaling'
+            p.driver.opt_settings['print_level'] = 5
+            p.driver.opt_settings['linear_solver'] = 'mumps'
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
@@ -121,20 +138,17 @@ class TestRunProblem(unittest.TestCase):
         J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) * np.exp(-2 * val) -
                    (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.controls:u')[0],
-                         ui,
-                         tolerance=1e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
+                          ui,
+                          tolerance=1e-2)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.controls:u')[-1],
-                         uf,
-                         tolerance=1e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
+                          uf,
+                          tolerance=1e-2)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.states:xL')[-1],
-                         J,
-                         tolerance=5e-4)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
+                          J,
+                          tolerance=5e-4)
 
     def test_run_brachistochrone_problem(self):
         p = om.Problem(model=om.Group())

@@ -6,7 +6,7 @@ import openmdao.api as om
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
@@ -335,7 +335,7 @@ class TestPhaseBase(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p['phase0.t_duration'], 10, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.t_duration'], 10, tolerance=1.0E-3)
 
     def test_objective_design_parameter_radau(self):
         p = om.Problem(model=om.Group())
@@ -389,7 +389,7 @@ class TestPhaseBase(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p['phase0.t_duration'], 10, tolerance=1.0E-3)
+        assert_near_equal(p['phase0.t_duration'], 10, tolerance=1.0E-3)
 
     def test_control_boundary_constraint_gl(self):
         p = om.Problem(model=om.Group())
@@ -445,7 +445,7 @@ class TestPhaseBase(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p.get_val('phase0.timeseries.controls:theta', units='deg')[-1], 90.0)
+        assert_near_equal(p.get_val('phase0.timeseries.controls:theta', units='deg')[-1], 90.0)
 
     def test_control_rate_boundary_constraint_gl(self):
         p = om.Problem(model=om.Group())
@@ -520,8 +520,8 @@ class TestPhaseBase(unittest.TestCase):
                  p.get_val('phase0.timeseries.control_rates:theta_rate2'), 'go')
         plt.show()
 
-        assert_rel_error(self, p.get_val('phase0.timeseries.control_rates:theta_rate')[-1], 0,
-                         tolerance=1.0E-6)
+        assert_near_equal(p.get_val('phase0.timeseries.control_rates:theta_rate')[-1], 0,
+                          tolerance=1.0E-6)
 
     def test_control_rate2_boundary_constraint_gl(self):
         p = om.Problem(model=om.Group())
@@ -593,8 +593,8 @@ class TestPhaseBase(unittest.TestCase):
                  p.get_val('phase0.timeseries.control_rates:theta_rate2'), 'go')
         plt.show()
 
-        assert_rel_error(self, p.get_val('phase0.timeseries.control_rates:theta_rate2')[-1], 0,
-                         tolerance=1.0E-6)
+        assert_near_equal(p.get_val('phase0.timeseries.control_rates:theta_rate2')[-1], 0,
+                          tolerance=1.0E-6)
 
     def test_design_parameter_boundary_constraint(self):
         p = om.Problem(model=om.Group())
@@ -656,12 +656,12 @@ class TestPhaseBase(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016,
-                         tolerance=1.0E-4)
-        assert_rel_error(self, p.get_val('phase0.timeseries.design_parameters:g')[0], 9.80665,
-                         tolerance=1.0E-6)
-        assert_rel_error(self, p.get_val('phase0.timeseries.design_parameters:g')[-1], 9.80665,
-                         tolerance=1.0E-6)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016,
+                          tolerance=1.0E-4)
+        assert_near_equal(p.get_val('phase0.timeseries.design_parameters:g')[0], 9.80665,
+                          tolerance=1.0E-6)
+        assert_near_equal(p.get_val('phase0.timeseries.design_parameters:g')[-1], 9.80665,
+                          tolerance=1.0E-6)
 
 
 if __name__ == '__main__':  # pragma: no cover

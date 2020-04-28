@@ -5,7 +5,7 @@ import unittest
 from parameterized import parameterized
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
@@ -63,6 +63,20 @@ class TestDoubleIntegratorExample(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    def _assert_results(self, p, traj=True, tol=1.0E-4):
+        if traj:
+            x = p.get_val('traj.phase0.timeseries.states:x')
+            v = p.get_val('traj.phase0.timeseries.states:v')
+        else:
+            x = p.get_val('phase0.timeseries.states:x')
+            v = p.get_val('phase0.timeseries.states:v')
+
+        assert_near_equal(x[0], 0.0, tolerance=tol)
+        assert_near_equal(x[-1], 0.25, tolerance=tol)
+
+        assert_near_equal(v[0], 0.0, tolerance=tol)
+        assert_near_equal(v[-1], 0.0, tolerance=tol)
+
     def test_ex_double_integrator_gl_compressed(self):
         p = double_integrator_direct_collocation('gauss-lobatto',
                                                  compressed=True)
@@ -70,11 +84,11 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         x = p.get_val('traj.phase0.timeseries.states:x')
         v = p.get_val('traj.phase0.timeseries.states:v')
 
-        assert_rel_error(self, x[0], 0.0, tolerance=1.0E-4)
-        assert_rel_error(self, x[-1], 0.25, tolerance=1.0E-4)
+        assert_near_equal(x[0], 0.0, tolerance=1.0E-4)
+        assert_near_equal(x[-1], 0.25, tolerance=1.0E-4)
 
-        assert_rel_error(self, v[0], 0.0, tolerance=1.0E-4)
-        assert_rel_error(self, v[-1], 0.0, tolerance=1.0E-4)
+        assert_near_equal(v[0], 0.0, tolerance=1.0E-4)
+        assert_near_equal(v[-1], 0.0, tolerance=1.0E-4)
 
     def test_ex_double_integrator_gl_uncompressed(self):
         p = double_integrator_direct_collocation('gauss-lobatto',
@@ -83,11 +97,11 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         x = p.get_val('traj.phase0.timeseries.states:x')
         v = p.get_val('traj.phase0.timeseries.states:v')
 
-        assert_rel_error(self, x[0], 0.0, tolerance=1.0E-4)
-        assert_rel_error(self, x[-1], 0.25, tolerance=1.0E-4)
+        assert_near_equal(x[0], 0.0, tolerance=1.0E-4)
+        assert_near_equal(x[-1], 0.25, tolerance=1.0E-4)
 
-        assert_rel_error(self, v[0], 0.0, tolerance=1.0E-4)
-        assert_rel_error(self, v[-1], 0.0, tolerance=1.0E-4)
+        assert_near_equal(v[0], 0.0, tolerance=1.0E-4)
+        assert_near_equal(v[-1], 0.0, tolerance=1.0E-4)
 
     def test_ex_double_integrator_radau_compressed(self):
         p = double_integrator_direct_collocation('radau-ps',
@@ -96,11 +110,11 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         x = p.get_val('traj.phase0.timeseries.states:x')
         v = p.get_val('traj.phase0.timeseries.states:v')
 
-        assert_rel_error(self, x[0], 0.0, tolerance=1.0E-4)
-        assert_rel_error(self, x[-1], 0.25, tolerance=1.0E-4)
+        assert_near_equal(x[0], 0.0, tolerance=1.0E-4)
+        assert_near_equal(x[-1], 0.25, tolerance=1.0E-4)
 
-        assert_rel_error(self, v[0], 0.0, tolerance=1.0E-4)
-        assert_rel_error(self, v[-1], 0.0, tolerance=1.0E-4)
+        assert_near_equal(v[0], 0.0, tolerance=1.0E-4)
+        assert_near_equal(v[-1], 0.0, tolerance=1.0E-4)
 
     def test_ex_double_integrator_radau_uncompressed(self):
         p = double_integrator_direct_collocation('radau-ps',
@@ -109,11 +123,11 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         x = p.get_val('traj.phase0.timeseries.states:x')
         v = p.get_val('traj.phase0.timeseries.states:v')
 
-        assert_rel_error(self, x[0], 0.0, tolerance=1.0E-4)
-        assert_rel_error(self, x[-1], 0.25, tolerance=1.0E-4)
+        assert_near_equal(x[0], 0.0, tolerance=1.0E-4)
+        assert_near_equal(x[-1], 0.25, tolerance=1.0E-4)
 
-        assert_rel_error(self, v[0], 0.0, tolerance=1.0E-4)
-        assert_rel_error(self, v[-1], 0.0, tolerance=1.0E-4)
+        assert_near_equal(v[0], 0.0, tolerance=1.0E-4)
+        assert_near_equal(v[-1], 0.0, tolerance=1.0E-4)
 
     def test_ex_double_integrator_input_times_uncompressed(self):
         """
@@ -159,6 +173,10 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         p['phase0.controls:u'] = phase.interpolate(ys=[1, -1], nodes='control_input')
 
         p.run_driver()
+
+        self._assert_results(p, traj=False)
+        exp_out = phase.simulate()
+        self._assert_results(exp_out, traj=False, tol=1.0E-2)
 
     def test_ex_double_integrator_input_times_compressed(self):
         """

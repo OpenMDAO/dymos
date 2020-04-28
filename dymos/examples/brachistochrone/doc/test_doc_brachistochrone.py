@@ -16,7 +16,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
     def test_brachistochrone_for_docs_gauss_lobatto(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.brachistochrone import BrachistochroneODE
@@ -90,7 +90,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         dm.run_problem(p)
 
         # Test the results
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = traj.simulate()
@@ -106,7 +106,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
     def test_brachistochrone_for_docs_radau(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.brachistochrone import BrachistochroneODE
@@ -181,8 +181,8 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         dm.run_problem(p)
 
         # Test the results
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
-                         tolerance=1.0E-3)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
+                          tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = traj.simulate()
@@ -198,7 +198,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
     def test_brachistochrone_for_docs_runge_kutta(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.brachistochrone import BrachistochroneODE
@@ -280,8 +280,8 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         dm.run_problem(p)
 
         # Test the results
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
-                         tolerance=1.0E-3)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
+                          tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = traj.simulate()
@@ -297,7 +297,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
     def test_brachistochrone_for_docs_runge_kutta_polynomial_controls(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.brachistochrone import BrachistochroneODE
@@ -380,8 +380,8 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         dm.run_problem(p)
 
         # Test the results
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
-                         tolerance=1.0E-3)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
+                          tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
         exp_out = traj.simulate()

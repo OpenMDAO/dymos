@@ -51,6 +51,9 @@ class SolveIVP(TranscriptionBase):
         grid_data = self.grid_data
         output_nodes_per_seg = self.options['output_nodes_per_seg']
 
+        time_options['input_initial'] = False  # True can break simulation
+        time_options['input_duration'] = False
+
         super(SolveIVP, self).setup_time(phase)
 
         if output_nodes_per_seg is None:

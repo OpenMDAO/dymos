@@ -2,7 +2,7 @@ import os
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
@@ -105,7 +105,7 @@ class TestAircraftCruise(unittest.TestCase):
         tas = p.get_val('phase0.timeseries.TAS', units='km/s')
         range = p.get_val('phase0.timeseries.states:range')
 
-        assert_rel_error(self, range, tas*time, tolerance=1.0E-4)
+        assert_near_equal(range, tas*time, tolerance=1.0E-4)
 
     def test_cruise_results_radau(self):
         p = om.Problem(model=om.Group())
@@ -199,7 +199,7 @@ class TestAircraftCruise(unittest.TestCase):
         tas = p.get_val('phase0.timeseries.TAS', units='km/s')
         range = p.get_val('phase0.timeseries.states:range')
 
-        assert_rel_error(self, range, tas*time, tolerance=1.0E-4)
+        assert_near_equal(range, tas*time, tolerance=1.0E-4)
 
 
 if __name__ == '__main__':  # pragma: no cover

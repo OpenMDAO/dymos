@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 from dymos.models.atmosphere.atmos_1976 import USatm1976Comp
 
@@ -47,14 +47,14 @@ class TestAtmosphere(unittest.TestCase):
         p.setup()
         p.run_model()
 
-        assert_rel_error(self, p.get_val('atmos.temp', units='K'),
-                         reference[:, 1], tolerance=1.0E-2)
-        assert_rel_error(self, p.get_val('atmos.pres', units='Pa'),
-                         reference[:, 2], tolerance=1.0E-2)
-        assert_rel_error(self, p.get_val('atmos.rho', units='kg/m**3'),
-                         reference[:, 3], tolerance=1.0E-2)
-        assert_rel_error(self, p.get_val('atmos.sos', units='m/s'),
-                         reference[:, 4], tolerance=1.0E-2)
+        assert_near_equal(p.get_val('atmos.temp', units='K'),
+                          reference[:, 1], tolerance=1.0E-2)
+        assert_near_equal(p.get_val('atmos.pres', units='Pa'),
+                          reference[:, 2], tolerance=1.0E-2)
+        assert_near_equal(p.get_val('atmos.rho', units='kg/m**3'),
+                          reference[:, 3], tolerance=1.0E-2)
+        assert_near_equal(p.get_val('atmos.sos', units='m/s'),
+                          reference[:, 4], tolerance=1.0E-2)
 
 
 if __name__ == '__main__':  # pragma: no cover

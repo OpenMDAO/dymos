@@ -16,7 +16,7 @@ class TestReentryForDocs(unittest.TestCase):
 
     def test_reentry(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
         from dymos.examples.shuttle_reentry.shuttle_ode import ShuttleODE
         from dymos.examples.plotting import plot_results
@@ -85,12 +85,12 @@ class TestReentryForDocs(unittest.TestCase):
         dm.run_problem(p)
 
         # Check the validity of the solution
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 2008.59,
-                         tolerance=1e-3)
-        assert_rel_error(self, p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
-                         34.1412, tolerance=1e-3)
-        # assert_rel_error(self, p.get_val('traj.phase0.timeseries.time')[-1], 2181.90371131, tolerance=1e-3)
-        # assert_rel_error(self, p.get_val('traj.phase0.timeseries.states:theta')[-1], .53440626, tolerance=1e-3)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 2008.59,
+                          tolerance=1e-3)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+                          34.1412, tolerance=1e-3)
+        # assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 2181.90371131, tolerance=1e-3)
+        # assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta')[-1], .53440626, tolerance=1e-3)
 
         # Run the simulation to check if the model is physically valid
         sim_out = traj.simulate()

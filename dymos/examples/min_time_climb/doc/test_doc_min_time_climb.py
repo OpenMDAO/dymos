@@ -12,7 +12,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         import matplotlib.pyplot as plt
 
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
 
         import dymos as dm
         from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
@@ -111,7 +111,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         #
         # Test the results
         #
-        assert_rel_error(self, p.get_val('traj.phase0.t_duration'), 321.0, tolerance=1.0E-1)
+        assert_near_equal(p.get_val('traj.phase0.t_duration'), 321.0, tolerance=1.0E-1)
 
         #
         # Get the explicitly simulated solution and plot the results

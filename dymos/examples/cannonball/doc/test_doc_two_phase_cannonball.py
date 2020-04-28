@@ -8,7 +8,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
     def test_two_phase_cannonball_for_docs(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
 
         import dymos as dm
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
@@ -139,8 +139,8 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         dm.run_problem(p)
 
-        assert_rel_error(self, p.get_val('traj.descent.states:r')[-1],
-                         3183.25, tolerance=1.0E-2)
+        assert_near_equal(p.get_val('traj.descent.states:r')[-1],
+                          3183.25, tolerance=1.0E-2)
 
         exp_out = traj.simulate()
 

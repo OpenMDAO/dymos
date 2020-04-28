@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 from dymos.examples.aircraft_steady_flight.propulsion.propulsion_group import PropulsionGroup
 
@@ -36,9 +36,8 @@ class TestPropulsionComp(unittest.TestCase):
 
     def test_results(self):
 
-        assert_rel_error(self,
-                         self.p['propulsion.tsfc'],
-                         2 * 8.951e-6 * 9.80665 * np.ones(self.n))
+        assert_near_equal(self.p['propulsion.tsfc'],
+                          2 * 8.951e-6 * 9.80665 * np.ones(self.n))
 
     def test_partials(self):
         cpd = self.p.check_partials(method='cs', out_stream=None)

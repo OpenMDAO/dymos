@@ -15,7 +15,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         import matplotlib.pyplot as plt
 
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         from openmdao.utils.general_utils import set_pyoptsparse_opt
 
         import dymos as dm
@@ -183,10 +183,9 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         p.run_driver()
 
-        assert_rel_error(self,
-                         p.get_val('traj.burn2.timeseries.states:deltav')[-1],
-                         0.3995,
-                         tolerance=2.0E-3)
+        assert_near_equal(p.get_val('traj.burn2.timeseries.states:deltav')[-1],
+                          0.3995,
+                          tolerance=2.0E-3)
 
         # Plot results
         exp_out = traj.simulate()

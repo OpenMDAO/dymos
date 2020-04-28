@@ -90,7 +90,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
     def test_brachistochrone_integrated_control_gauss_lobatto(self):
         import numpy as np
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         p = om.Problem(model=om.Group())
@@ -132,7 +132,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         sim_out = phase.simulate(times_per_seg=20)
 
@@ -156,16 +156,16 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         theta_interp = interp1d(time_sim[:, 0], theta_sim[:, 0])
         theta_dot_interp = interp1d(time_sim[:, 0], theta_dot_sim[:, 0])
 
-        assert_rel_error(self, x_interp(time_sol), x_sol, tolerance=1.0E-5)
-        assert_rel_error(self, y_interp(time_sol), y_sol, tolerance=1.0E-5)
-        assert_rel_error(self, v_interp(time_sol), v_sol, tolerance=1.0E-5)
-        assert_rel_error(self, theta_interp(time_sol), theta_sol, tolerance=1.0E-5)
-        assert_rel_error(self, theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-5)
+        assert_near_equal(x_interp(time_sol), x_sol, tolerance=1.0E-5)
+        assert_near_equal(y_interp(time_sol), y_sol, tolerance=1.0E-5)
+        assert_near_equal(v_interp(time_sol), v_sol, tolerance=1.0E-5)
+        assert_near_equal(theta_interp(time_sol), theta_sol, tolerance=1.0E-5)
+        assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-5)
 
     def test_brachistochrone_integrated_control_radau_ps(self):
         import numpy as np
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_rel_error
+        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         p = om.Problem(model=om.Group())
@@ -208,7 +208,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         p.run_driver()
 
         # Test the results
-        assert_rel_error(self, p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+        assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         sim_out = phase.simulate(times_per_seg=20)
 
@@ -232,8 +232,8 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         theta_interp = interp1d(time_sim[:, 0], theta_sim[:, 0])
         theta_dot_interp = interp1d(time_sim[:, 0], theta_dot_sim[:, 0])
 
-        assert_rel_error(self, x_interp(time_sol), x_sol, tolerance=1.0E-5)
-        assert_rel_error(self, y_interp(time_sol), y_sol, tolerance=1.0E-5)
-        assert_rel_error(self, v_interp(time_sol), v_sol, tolerance=1.0E-5)
-        assert_rel_error(self, theta_interp(time_sol), theta_sol, tolerance=1.0E-5)
-        assert_rel_error(self, theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-5)
+        assert_near_equal(x_interp(time_sol), x_sol, tolerance=1.0E-5)
+        assert_near_equal(y_interp(time_sol), y_sol, tolerance=1.0E-5)
+        assert_near_equal(v_interp(time_sol), v_sol, tolerance=1.0E-5)
+        assert_near_equal(theta_interp(time_sol), theta_sol, tolerance=1.0E-5)
+        assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-5)

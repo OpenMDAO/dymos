@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -156,7 +156,7 @@ class TestTrajectory(unittest.TestCase):
         burn1_accel = self.p.get_val('burn1.states:accel')
         burn2_accel = self.p.get_val('burn2.states:accel')
         accel_link_error = self.p.get_val('linkages.burn1|burn2_accel')
-        assert_rel_error(self, accel_link_error, burn2_accel[0]-burn1_accel[-1])
+        assert_near_equal(accel_link_error, burn2_accel[0]-burn1_accel[-1])
 
 
 class TestInvalidLinkages(unittest.TestCase):

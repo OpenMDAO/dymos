@@ -4,7 +4,7 @@ import numpy as np
 from numpy import array
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error
+from openmdao.utils.assert_utils import assert_near_equal
 
 from dymos.examples.aircraft_steady_flight.aero.aero_coef_comp import AeroCoefComp
 
@@ -178,5 +178,5 @@ class TestAeroCoefComp(unittest.TestCase):
 
         prob.run_model()
 
-        assert_rel_error(self, prob['aero.CL'], CL_test, tolerance=0.005)
-        assert_rel_error(self, prob['aero.CD'], CD_test, tolerance=0.005)
+        assert_near_equal(prob['aero.CL'], CL_test, tolerance=0.005)
+        assert_near_equal(prob['aero.CD'], CD_test, tolerance=0.005)

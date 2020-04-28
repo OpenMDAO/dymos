@@ -1,6 +1,6 @@
 import unittest
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.shuttle_reentry.shuttle_ode import ShuttleODE
@@ -87,56 +87,48 @@ class TestReentry(unittest.TestCase):
     def test_reentry_constrained_radau(self):
         p = self.make_problem(constrained=True, transcription=Radau, optimizer='SNOPT')
         p.run_driver()
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.time')[-1],
-                         expected_results['constrained']['time'],
-                         tolerance=1e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
+                          expected_results['constrained']['time'],
+                          tolerance=1e-2)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
-                         expected_results['constrained']['theta'],
-                         tolerance=1e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+                          expected_results['constrained']['theta'],
+                          tolerance=1e-2)
 
     def test_reentry_constrained_gauss_lobatto(self):
         p = self.make_problem(constrained=True, transcription=GaussLobatto, optimizer='SNOPT')
         p.run_driver()
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.time')[-1],
-                         expected_results['constrained']['time'],
-                         tolerance=1e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
+                          expected_results['constrained']['time'],
+                          tolerance=1e-2)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
-                         expected_results['constrained']['theta'],
-                         tolerance=1e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+                          expected_results['constrained']['theta'],
+                          tolerance=1e-2)
 
     def test_reentry_unconstrained_radau(self):
         p = self.make_problem(constrained=False, transcription=Radau, optimizer='SNOPT')
         p.run_driver()
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.time')[-1],
-                         expected_results['unconstrained']['time'],
-                         tolerance=1e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
+                          expected_results['unconstrained']['time'],
+                          tolerance=1e-2)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
-                         expected_results['unconstrained']['theta'],
-                         tolerance=1e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+                          expected_results['unconstrained']['theta'],
+                          tolerance=1e-2)
 
     @unittest.skipIf(True, 'Gauss-Lobatto interpolation results in negative velocity error '
                            'in heating component.')
     def test_reentry_unconstrained_gauss_lobatto(self):
         p = self.make_problem(constrained=False, transcription=GaussLobatto, optimizer='SLSQP')
         p.run_driver()
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.time')[-1],
-                         expected_results['unconstrained']['time'],
-                         tolerance=1e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
+                          expected_results['unconstrained']['time'],
+                          tolerance=1e-2)
 
-        assert_rel_error(self,
-                         p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
-                         expected_results['unconstrained']['theta'],
-                         tolerance=1e-2)
+        assert_near_equal(p.get_val('traj.phase0.timeseries.states:theta', units='deg')[-1],
+                          expected_results['unconstrained']['theta'],
+                          tolerance=1e-2)
 
 
 if __name__ == '___main__':

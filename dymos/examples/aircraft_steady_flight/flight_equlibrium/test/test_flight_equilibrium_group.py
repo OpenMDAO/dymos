@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_rel_error, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 from dymos.examples.aircraft_steady_flight.flight_equlibrium.steady_flight_equilibrium_group \
     import SteadyFlightEquilibriumGroup
@@ -62,8 +62,8 @@ class TestFlightEquilibriumGroup(unittest.TestCase):
         CL = self.p['aero.CL']
         CM = self.p['aero.CM']
 
-        assert_rel_error(self,  CL_eq, CL, tolerance=1.0E-12)
-        assert_rel_error(self,  CM, np.zeros_like(CM), tolerance=1.0E-12)
+        assert_near_equal(CL_eq, CL, tolerance=1.0E-12)
+        assert_near_equal(CM, np.zeros_like(CM), tolerance=1.0E-12)
 
     def test_partials(self):
         cpd = self.p.check_partials(out_stream=None, method='fd', step=1.0E-6)
