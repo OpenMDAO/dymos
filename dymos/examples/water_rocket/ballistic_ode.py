@@ -6,7 +6,7 @@ from dymos.models.eom import FlightPathEOM2D
 from .kinetic_energy_comp import KineticEnergyComp
 
 
-class CannonballODE(om.Group):
+class BallisticODE(om.Group):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
