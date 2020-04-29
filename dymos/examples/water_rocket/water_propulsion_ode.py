@@ -3,10 +3,10 @@ from dymos.examples.min_time_climb.aero.dynamic_pressure_comp import DynamicPres
 from dymos.examples.min_time_climb.aero.lift_drag_force_comp import LiftDragForceComp
 from dymos.models.atmosphere import USatm1976Comp
 from dymos.models.eom import FlightPathEOM2D
-from .kinetic_energy_comp import KineticEnergyComp
+from .water_engine_comp import WaterEngine
 
 
-class CannonballODE(om.Group):
+class WaterPropulsionODE(om.Group):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -14,8 +14,8 @@ class CannonballODE(om.Group):
     def setup(self):
         nn = self.options['num_nodes']
 
-        self.add_subsystem(name='kinetic_energy',
-                           subsys=KineticEnergyComp(num_nodes=nn))
+        self.add_subsystem(name='water_engine',
+                           subsys=WaterEngine(num_nodes=nn))
 
         self.add_subsystem(name='atmos',
                            subsys=USatm1976Comp(num_nodes=nn))
@@ -34,3 +34,12 @@ class CannonballODE(om.Group):
 
         self.connect('aero.f_drag', 'eom.D')
         self.connect('aero.f_lift', 'eom.L')
+        self.connect('water_engine.F', 'eom.T')
+
+
+if __name__=='__main__':
+    p = om.Problem()
+    p.model = WaterPropulsionODE(num_nodes=1)
+    p.setup()
+    p.check_config(checks=['unconnected_inputs'], out_file=None)
+    p.final_setup()
