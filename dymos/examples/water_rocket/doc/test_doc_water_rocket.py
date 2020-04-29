@@ -4,15 +4,16 @@ import matplotlib.pyplot as plt
 # plt.switch_backend('Agg')
 
 
-class TestTwoPhaseCannonballForDocs(unittest.TestCase):
+class TestWaterRocketForDocs(unittest.TestCase):
 
-    def test_two_phase_cannonball_for_docs(self):
+    def test_water_rocket_for_docs(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
 
         import dymos as dm
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
         from dymos.examples.cannonball.cannonball_phase import CannonballPhase
+        from dymos.examples.water_rocket.water_propulsion_ode import WaterPropulsionODE
 
         p = om.Problem(model=om.Group())
 
@@ -31,33 +32,64 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
+        # Propelled ascent
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
-        ascent = CannonballPhase(transcription=transcription)
+        propelled_ascent = CannonballPhase(ode_class=WaterPropulsionODE,
+                                           transcription=transcription)
 
-        ascent = traj.add_phase('ascent', ascent)
+        # Add states specific for the propelled ascent
+        propelled_ascent.add_state('p', units='N/m**2', rate_source='water_engine.pdot',
+                                   targets=['water_engine.p'])
+        propelled_ascent.add_state('V_w', units='m**3', rate_source='water_engine.Vdot',
+                                   targets=['water_engine.V_w', 'mass_adder.V_w'])
+
+        propelled_ascent = traj.add_phase('propelled_ascent', propelled_ascent)
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
-        ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100), duration_ref=100, units='s')
-        ascent.set_state_options('r', fix_initial=True, fix_final=False)
-        ascent.set_state_options('h', fix_initial=True, fix_final=False)
-        ascent.set_state_options('gam', fix_initial=False, fix_final=True)
-        ascent.set_state_options('v', fix_initial=False, fix_final=False)
+        # Final water volume is fixed (we will set it to zero so that phase ends when bottle empties)
+        propelled_ascent.set_time_options(fix_initial=True, duration_bounds=(1, 10), duration_ref=10, units='s')
+        propelled_ascent.set_state_options('r', fix_initial=True, fix_final=False)
+        propelled_ascent.set_state_options('h', fix_initial=True, fix_final=False)
+        propelled_ascent.set_state_options('gam', fix_initial=False, fix_final=True)
+        propelled_ascent.set_state_options('v', fix_initial=False, fix_final=False)
+        propelled_ascent.set_state_options('V_w', fix_initial=True, fix_final=True)
+        propelled_ascent.set_state_options('p', fix_initial=True, fix_final=False)
 
-        ascent.add_input_parameter('S', targets=['aero.S'], units='m**2')
-        ascent.add_input_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+        propelled_ascent.add_input_parameter('S', targets=['aero.S'], units='m**2')
+        propelled_ascent.add_input_parameter('m_empty', targets=['mass_adder.m_empty'], units='kg')
 
-        # Limit the muzzle energy
-        ascent.add_boundary_constraint('kinetic_energy.ke', loc='initial', units='J',
-                                       upper=400000, lower=0, ref=100000, shape=(1,))
 
-        # Second Phase (descent)
+        # Ballistic ascent
+        transcription = dm.Radau(num_segments=5, order=3, compressed=True)
+        ballistic_ascent = CannonballPhase(transcription=transcription)
+
+        ballistic_ascent = traj.add_phase('ballistic_ascent', ballistic_ascent)
+
+        # All initial states except flight path angle are free (they will be
+        # linked to the final stages of propelled_ascent).
+        # Final flight path angle is fixed (we will set it to zero so that the
+        # phase ends at apogee)
+        ballistic_ascent.set_time_options(fix_initial=False, duration_bounds=(1, 100), duration_ref=100, units='s')
+        ballistic_ascent.set_state_options('r', fix_initial=False, fix_final=False)
+        ballistic_ascent.set_state_options('h', fix_initial=False, fix_final=False)
+        ballistic_ascent.set_state_options('gam', fix_initial=False, fix_final=True)
+        ballistic_ascent.set_state_options('v', fix_initial=False, fix_final=False)
+
+        ballistic_ascent.add_input_parameter('S', targets=['aero.S'], units='m**2')
+        ballistic_ascent.add_input_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+
+        # Link Phases (link time and all state variables)
+        traj.link_phases(phases=['propelled_ascent', 'ballistic_ascent'], vars=['*'])
+
+
+        # Ballistic descent
         transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
         descent = CannonballPhase(transcription=transcription)
 
         traj.add_phase('descent', descent)
 
-        # All initial states and time are free (they will be linked to the final states of ascent.
+        # All initial states and time are free (they will be linked to the final states of ballistic_ascent).
         # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
         descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
                                  duration_ref=100, units='s')
@@ -78,9 +110,6 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         traj.add_design_parameter('CL',
                                   targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
                                   val=0.0, units=None, opt=False)
-        traj.add_design_parameter('T',
-                                  targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
-                                  val=0.0, units='N', opt=False)
         traj.add_design_parameter('alpha',
                                   targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
                                   val=0.0, units='deg', opt=False)
@@ -95,7 +124,7 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         traj.add_input_parameter('S', units='m**2', val=0.005)
 
         # Link Phases (link time and all state variables)
-        traj.link_phases(phases=['ascent', 'descent'], vars=['*'])
+        traj.link_phases(phases=['ballistic_ascent', 'descent'], vars=['*'])
 
         # Issue Connections
         p.model.connect('external_params.radius', 'size_comp.radius')
