@@ -28,7 +28,7 @@ class WaterEngine(om.Group):
 
         self.add_subsystem(name='pressure_rate',
                            subsys=_PressureRate(num_nodes=nn),
-                           promotes=['p','gam','V_b','V_w','Vdot','pdot'])
+                           promotes=['p','k','V_b','V_w','Vdot','pdot'])
 
         self.add_subsystem(name='water_thrust',
                            subsys=_WaterThrust(num_nodes=nn),
@@ -110,7 +110,7 @@ class _PressureRate(om.ExplicitComponent):
         nn = self.options['num_nodes']
 
         self.add_input(name='p', val=np.ones(nn), desc='air pressure', units='N/m**2')
-        self.add_input(name='gam', val=np.ones(nn), desc='polytropic coefficient for expansion', units=None)
+        self.add_input(name='k', val=np.ones(nn), desc='polytropic coefficient for expansion', units=None)
         self.add_input(name='V_b', val=np.ones(nn), desc='bottle volume', units='m**3')
         self.add_input(name='V_w', val=np.ones(nn), desc='water volume', units='m**3')
         self.add_input(name='Vdot', shape=(nn,), desc='water flow', units='m**3/s')
@@ -123,27 +123,27 @@ class _PressureRate(om.ExplicitComponent):
 
     def compute(self, inputs, outputs):
         p = inputs['p'] 
-        gam = inputs['gam']
+        k = inputs['k']
         V_b = inputs['V_b']
         V_w = inputs['V_w']
         Vdot = inputs['Vdot']
 
-        pdot = p*gam*Vdot/(V_b-V_w)
+        pdot = p*k*Vdot/(V_b-V_w)
 
         outputs['pdot'] = pdot
 
     def compute_partials(self, inputs, partials):
         p = inputs['p'] 
-        gam = inputs['gam']
+        k = inputs['k']
         V_b = inputs['V_b']
         V_w = inputs['V_w']
         Vdot = inputs['Vdot']
 
-        partials['pdot', 'p'] = gam*Vdot/(V_b-V_w)
-        partials['pdot', 'gam'] = p*Vdot/(V_b-V_w)
+        partials['pdot', 'p'] = k*Vdot/(V_b-V_w)
+        partials['pdot', 'k'] = p*Vdot/(V_b-V_w)
         partials['pdot', 'V_b'] = -p*Vdot/(V_b-V_w)**2
         partials['pdot', 'V_w'] = p*Vdot/(V_b-V_w)**2
-        partials['pdot', 'Vdot'] = p*gam/(V_b-V_w)
+        partials['pdot', 'Vdot'] = p*k/(V_b-V_w)
 
 
 class _WaterThrust(om.ExplicitComponent):
