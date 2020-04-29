@@ -73,13 +73,11 @@ class TranscriptionBase(object):
             externals.append('t_initial')
         else:
             indeps.append('t_initial')
-            # phase.connect('t_initial', 'time.t_initial')
 
         if time_options['input_duration']:
             externals.append('t_duration')
         else:
             indeps.append('t_duration')
-            # phase.connect('t_duration', 'time.t_duration')
 
         if indeps:
             indep = om.IndepVarComp()
@@ -132,6 +130,8 @@ class TranscriptionBase(object):
                                 subsys=control_group,
                                 promotes=['controls:*', 'control_values:*', 'control_rates:*'])
 
+    def configure_controls(self, phase):
+        if phase.control_options:
             phase.connect('dt_dstau', 'control_group.dt_dstau')
 
     def setup_polynomial_controls(self, phase):
@@ -144,6 +144,9 @@ class TranscriptionBase(object):
                                          time_units=phase.time_options['units'])
             phase.add_subsystem('polynomial_control_group', subsys=sys,
                                 promotes_inputs=['*'], promotes_outputs=['*'])
+
+    def configure_polynomial_controls(self, phase):
+        pass
 
     def setup_design_parameters(self, phase):
         """
@@ -179,6 +182,10 @@ class TranscriptionBase(object):
                                  shape=_shape,
                                  units=options['units'])
 
+    def configure_design_parameters(self, phase):
+        if phase.design_parameter_options:
+            for name, options in phase.design_parameter_options.items():
+                src_name = 'design_parameters:{0}'.format(name)
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
                     phase.connect(src_name, [t for t in tgts],
                                   src_indices=src_idxs, flat_src_indices=True)
@@ -194,6 +201,7 @@ class TranscriptionBase(object):
             phase.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
                                 promotes_outputs=['*'])
 
+    def configure_input_parameters(self, phase):
         for name in phase.input_parameter_options:
             src_name = 'input_parameters:{0}_out'.format(name)
 
@@ -308,6 +316,39 @@ class TranscriptionBase(object):
 
             bc_comp._add_constraint(con_name, **con_options)
 
+    def configure_boundary_constraints(self, loc, phase):
+        """
+        Adds BoundaryConstraintComp for initial and/or final boundary constraints if necessary
+        and issues appropriate connections.
+
+        Parameters
+        ----------
+        loc : str
+            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
+        phase
+            The phase object to which this transcription instance applies.
+
+        """
+        bc_dict = phase._initial_boundary_constraints \
+            if loc == 'initial' else phase._final_boundary_constraints
+
+        for var, options in bc_dict.items():
+            con_name = options['constraint_name']
+
+            src, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
+
+            shape = options['shape'] if shape is None else shape
+            if shape is None:
+                shape = (1,)
+
+            size = np.prod(shape)
+
+            # Build the correct src_indices regardless of shape
+            if loc == 'initial':
+                src_idxs = np.arange(size, dtype=int).reshape(shape)
+            else:
+                src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
+
             phase.connect(src,
                           '{0}_boundary_constraints.{0}_value_in:{1}'.format(loc, con_name),
                           src_indices=src_idxs,
@@ -353,6 +394,9 @@ class TranscriptionBase(object):
                                               scaler=options['scaler'],
                                               parallel_deriv_color=options['parallel_deriv_color'],
                                               vectorize_derivs=options['vectorize_derivs'])
+
+    def configure_objective(self, phase):
+        pass
 
     def _get_boundary_constraint_src(self, name, loc, phase):
         raise NotImplementedError('Transcription {0} does not implement method'

@@ -29,6 +29,8 @@ class GaussLobatto(PseudospectralBase):
     def setup_time(self, phase):
         super(GaussLobatto, self).setup_time(phase)
 
+    def configure_time(self, phase):
+
         if phase.time_options['targets']:
             tgts = phase.time_options['targets']
             phase.connect('time',
@@ -160,19 +162,27 @@ class GaussLobatto(PseudospectralBase):
     def setup_ode(self, phase):
         grid_data = self.grid_data
         ode_class = phase.options['ode_class']
-        num_input_nodes = self.grid_data.subset_num_nodes['state_input']
 
         kwargs = phase.options['ode_init_kwargs']
         rhs_disc = ode_class(num_nodes=grid_data.subset_num_nodes['state_disc'], **kwargs)
         rhs_col = ode_class(num_nodes=grid_data.subset_num_nodes['col'], **kwargs)
-
-        map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
 
         phase.add_subsystem('rhs_disc', rhs_disc)
 
         super(GaussLobatto, self).setup_ode(phase)
 
         phase.add_subsystem('rhs_col', rhs_col)
+
+        # Setup the interleave comp to interleave all states, any path constraints from the ODE,
+        # and any timeseries outputs from the ODE.
+        #
+        self.setup_interleave_comp(phase)
+
+    def configure_ode(self, phase):
+        super(GaussLobatto, self).configure_ode(phase)
+
+        num_input_nodes = self.grid_data.subset_num_nodes['state_input']
+        map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
 
         for name, options in phase.state_options.items():
             size = np.prod(options['shape'])
@@ -207,12 +217,6 @@ class GaussLobatto(PseudospectralBase):
             phase.connect(rate_path,
                           'interleave_comp.col_values:state_rates:{0}'.format(name),
                           src_indices=src_idxs)
-
-        #
-        # Setup the interleave comp to interleave all states, any path constraints from the ODE,
-        # and any timeseries outputs from the ODE.
-        #
-        self.setup_interleave_comp(phase)
 
     def setup_interleave_comp(self, phase):
         num_input_nodes = self.grid_data.subset_num_nodes['state_input']
@@ -306,6 +310,18 @@ class GaussLobatto(PseudospectralBase):
 
     def setup_defects(self, phase):
         super(GaussLobatto, self).setup_defects(phase)
+
+        grid_data = self.grid_data
+
+        if grid_data.num_segments > 1:
+            phase.add_subsystem('continuity_comp',
+                                GaussLobattoContinuityComp(grid_data=grid_data,
+                                                           state_options=phase.state_options,
+                                                           control_options=phase.control_options,
+                                                           time_units=phase.time_options['units']),
+                                promotes_inputs=['t_duration'])
+
+    def configure_defects(self, phase):
         grid_data = self.grid_data
 
         for name, options in phase.state_options.items():
@@ -316,14 +332,6 @@ class GaussLobatto(PseudospectralBase):
             phase.connect(rate_path,
                           'collocation_constraint.f_computed:{0}'.format(name),
                           src_indices=src_idxs)
-
-        if grid_data.num_segments > 1:
-            phase.add_subsystem('continuity_comp',
-                                GaussLobattoContinuityComp(grid_data=grid_data,
-                                                           state_options=phase.state_options,
-                                                           control_options=phase.control_options,
-                                                           time_units=phase.time_options['units']),
-                                promotes_inputs=['t_duration'])
 
     def setup_path_constraints(self, phase):
         path_comp = None
@@ -348,15 +356,11 @@ class GaussLobatto(PseudospectralBase):
                 options['shape'] = (1,)
                 options['units'] = time_units if con_units is None else con_units
                 options['linear'] = True
-                phase.connect(src_name='time',
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'time_phase':
                 options['shape'] = (1,)
                 options['units'] = time_units if con_units is None else con_units
                 options['linear'] = True
-                phase.connect(src_name='time_phase',
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'state':
                 state_shape = phase.state_options[var]['shape']
@@ -364,8 +368,6 @@ class GaussLobatto(PseudospectralBase):
                 options['shape'] = state_shape
                 options['units'] = state_units if con_units is None else con_units
                 options['linear'] = False
-                phase.connect(src_name='interleave_comp.all_values:states:{0}'.format(var),
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type in ('indep_control', 'input_control'):
                 control_shape = phase.control_options[var]['shape']
@@ -374,22 +376,12 @@ class GaussLobatto(PseudospectralBase):
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True
 
-                constraint_path = 'control_values:{0}'.format(var)
-
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
-
             elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
                 control_shape = phase.polynomial_control_options[var]['shape']
                 control_units = phase.polynomial_control_options[var]['units']
                 options['shape'] = control_shape
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = False
-
-                constraint_path = 'polynomial_control_values:{0}'.format(var)
-
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'control_rate':
                 control_name = var[:-5]
@@ -398,9 +390,6 @@ class GaussLobatto(PseudospectralBase):
                 options['shape'] = control_shape
                 options['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con_units is None else con_units
-                constraint_path = 'control_rates:{0}_rate'.format(control_name)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'control_rate2':
                 control_name = var[:-6]
@@ -409,9 +398,6 @@ class GaussLobatto(PseudospectralBase):
                 options['shape'] = control_shape
                 options['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con_units is None else con_units
-                constraint_path = 'control_rates:{0}_rate2'.format(control_name)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'polynomial_control_rate':
                 control_name = var[:-5]
@@ -420,9 +406,6 @@ class GaussLobatto(PseudospectralBase):
                 options['shape'] = control_shape
                 options['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con_units is None else con_units
-                constraint_path = 'polynomial_control_rates:{0}_rate'.format(control_name)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'polynomial_control_rate2':
                 control_name = var[:-6]
@@ -431,21 +414,77 @@ class GaussLobatto(PseudospectralBase):
                 options['shape'] = control_shape
                 options['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con_units is None else con_units
-                constraint_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             else:
                 # Failed to find variable, assume it is in the ODE
                 options['linear'] = False
                 if options['shape'] is None:
                     options['shape'] = (1,)
-                phase.connect(src_name='interleave_comp.all_values:{0}'.format(con_name),
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             kwargs = options.copy()
             kwargs.pop('constraint_name', None)
             path_comp._add_path_constraint(con_name, var_type, **kwargs)
+
+    def configure_path_constraints(self, phase):
+        for var, options in phase._path_constraints.items():
+            con_name = options['constraint_name']
+
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = phase.classify_var(var)
+
+            if var_type == 'time':
+                phase.connect(src_name='time',
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'time_phase':
+                phase.connect(src_name='time_phase',
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'state':
+                phase.connect(src_name='interleave_comp.all_values:states:{0}'.format(var),
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type in ('indep_control', 'input_control'):
+                constraint_path = 'control_values:{0}'.format(var)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
+                constraint_path = 'polynomial_control_values:{0}'.format(var)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'control_rate':
+                control_name = var[:-5]
+                constraint_path = 'control_rates:{0}_rate'.format(control_name)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'control_rate2':
+                control_name = var[:-6]
+                constraint_path = 'control_rates:{0}_rate2'.format(control_name)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'polynomial_control_rate':
+                control_name = var[:-5]
+                constraint_path = 'polynomial_control_rates:{0}_rate'.format(control_name)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'polynomial_control_rate2':
+                control_name = var[:-6]
+                constraint_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            else:
+                # Failed to find variable, assume it is in the ODE
+                phase.connect(src_name='interleave_comp.all_values:{0}'.format(con_name),
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
     def setup_timeseries_outputs(self, phase):
         gd = self.grid_data
@@ -466,27 +505,21 @@ class GaussLobatto(PseudospectralBase):
             timeseries_comp._add_timeseries_output('time',
                                                    var_class=phase.classify_var('time'),
                                                    units=time_units)
-            phase.connect(src_name='time', tgt_name='{0}.input_values:time'.format(name))
 
             timeseries_comp._add_timeseries_output('time_phase',
                                                    var_class=phase.classify_var('time_phase'),
                                                    units=time_units)
-            phase.connect(src_name='time_phase', tgt_name='{0}.input_values:time_phase'.format(name))
 
             for state_name, options in phase.state_options.items():
                 timeseries_comp._add_timeseries_output('states:{0}'.format(state_name),
                                                        var_class=phase.classify_var(state_name),
                                                        shape=options['shape'],
                                                        units=options['units'])
-                phase.connect(src_name='interleave_comp.all_values:states:{0}'.format(state_name),
-                              tgt_name='{0}.input_values:states:{1}'.format(name, state_name))
 
                 timeseries_comp._add_timeseries_output('state_rates:{0}'.format(state_name),
                                                        var_class=phase.classify_var(options['rate_source']),
                                                        shape=options['shape'],
                                                        units=get_rate_units(options['units'], time_units))
-                phase.connect(src_name='interleave_comp.all_values:state_rates:{0}'.format(state_name),
-                              tgt_name='{0}.input_values:state_rates:{1}'.format(name, state_name))
 
             for control_name, options in phase.control_options.items():
                 control_units = options['units']
@@ -496,8 +529,6 @@ class GaussLobatto(PseudospectralBase):
                                                        var_class=phase.classify_var(control_name),
                                                        shape=options['shape'],
                                                        units=control_units)
-                phase.connect(src_name='control_values:{0}'.format(control_name),
-                              tgt_name='{0}.input_values:controls:{1}'.format(name, control_name))
 
                 # # Control rates
                 timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(control_name),
@@ -506,8 +537,6 @@ class GaussLobatto(PseudospectralBase):
                                                        units=get_rate_units(control_units,
                                                                             time_units,
                                                                             deriv=1))
-                phase.connect(src_name='control_rates:{0}_rate'.format(control_name),
-                              tgt_name='{0}.input_values:control_rates:{1}_rate'.format(name, control_name))
 
                 # Control second derivatives
                 timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(control_name),
@@ -516,8 +545,6 @@ class GaussLobatto(PseudospectralBase):
                                                        units=get_rate_units(control_units,
                                                                             time_units,
                                                                             deriv=2))
-                phase.connect(src_name='control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='{0}.input_values:control_rates:{1}_rate2'.format(name, control_name))
 
             for control_name, options in phase.polynomial_control_options.items():
                 control_units = options['units']
@@ -527,9 +554,6 @@ class GaussLobatto(PseudospectralBase):
                                                        var_class=phase.classify_var(control_name),
                                                        shape=options['shape'],
                                                        units=control_units)
-                phase.connect(src_name='polynomial_control_values:{0}'.format(control_name),
-                              tgt_name='{0}.input_values:'
-                                       'polynomial_controls:{1}'.format(name, control_name))
 
                 # # Control rates
                 timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(control_name),
@@ -538,9 +562,6 @@ class GaussLobatto(PseudospectralBase):
                                                        units=get_rate_units(control_units,
                                                                             time_units,
                                                                             deriv=1))
-                phase.connect(src_name='polynomial_control_rates:{0}_rate'.format(control_name),
-                              tgt_name='{0}.input_values:'
-                                       'polynomial_control_rates:{1}_rate'.format(name, control_name))
 
                 # Control second derivatives
                 timeseries_comp._add_timeseries_output('polynomial_control_rates:'
@@ -550,9 +571,6 @@ class GaussLobatto(PseudospectralBase):
                                                        units=get_rate_units(control_units,
                                                                             time_units,
                                                                             deriv=2))
-                phase.connect(src_name='polynomial_control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='{0}.input_values:'
-                                       'polynomial_control_rates:{1}_rate2'.format(name, control_name))
 
             for param_name, options in phase.design_parameter_options.items():
                 if options['include_timeseries']:
@@ -562,6 +580,79 @@ class GaussLobatto(PseudospectralBase):
                                                            shape=options['shape'],
                                                            units=units)
 
+            for param_name, options in phase.input_parameter_options.items():
+                if options['include_timeseries']:
+                    units = options['units']
+                    timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
+                                                           var_class=phase.classify_var(param_name),
+                                                           shape=options['shape'],
+                                                           units=units)
+
+            for var, options in phase._timeseries[name]['outputs'].items():
+                output_name = options['output_name']
+
+                # Determine the path to the variable which we will be constraining
+                # This is more complicated for path constraints since, for instance,
+                # a single state variable has two sources which must be connected to
+                # the path component.
+                var_type = phase.classify_var(var)
+
+                # Ignore any variables that we've already added (states, times, controls, etc)
+                if var_type != 'ode':
+                    continue
+
+                # Assume scalar shape here, but check config will warn that it's inferred.
+                if options['shape'] is None:
+                    options['shape'] = (1,)
+
+                kwargs = options.copy()
+                kwargs.pop('output_name', None)
+                timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
+
+    def configure_timeseries_outputs(self, phase):
+        for name, options in phase._timeseries.items():
+            phase.connect(src_name='time', tgt_name='{0}.input_values:time'.format(name))
+
+            phase.connect(src_name='time_phase', tgt_name='{0}.input_values:time_phase'.format(name))
+
+            for state_name, options in phase.state_options.items():
+                phase.connect(src_name='interleave_comp.all_values:states:{0}'.format(state_name),
+                              tgt_name='{0}.input_values:states:{1}'.format(name, state_name))
+
+                phase.connect(src_name='interleave_comp.all_values:state_rates:{0}'.format(state_name),
+                              tgt_name='{0}.input_values:state_rates:{1}'.format(name, state_name))
+
+            for control_name, options in phase.control_options.items():
+                # Control values
+                phase.connect(src_name='control_values:{0}'.format(control_name),
+                              tgt_name='{0}.input_values:controls:{1}'.format(name, control_name))
+
+                # Control rates
+                phase.connect(src_name='control_rates:{0}_rate'.format(control_name),
+                              tgt_name='{0}.input_values:control_rates:{1}_rate'.format(name, control_name))
+
+                # Control second derivatives
+                phase.connect(src_name='control_rates:{0}_rate2'.format(control_name),
+                              tgt_name='{0}.input_values:control_rates:{1}_rate2'.format(name, control_name))
+
+            for control_name, options in phase.polynomial_control_options.items():
+                # Control values
+                phase.connect(src_name='polynomial_control_values:{0}'.format(control_name),
+                              tgt_name='{0}.input_values:'
+                                       'polynomial_controls:{1}'.format(name, control_name))
+
+                # Control rates
+                phase.connect(src_name='polynomial_control_rates:{0}_rate'.format(control_name),
+                              tgt_name='{0}.input_values:'
+                                       'polynomial_control_rates:{1}_rate'.format(name, control_name))
+
+                # Control second derivatives
+                phase.connect(src_name='polynomial_control_rates:{0}_rate2'.format(control_name),
+                              tgt_name='{0}.input_values:'
+                                       'polynomial_control_rates:{1}_rate2'.format(name, control_name))
+
+            for param_name, options in phase.design_parameter_options.items():
+                if options['include_timeseries']:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
@@ -572,10 +663,6 @@ class GaussLobatto(PseudospectralBase):
             for param_name, options in phase.input_parameter_options.items():
                 if options['include_timeseries']:
                     units = options['units']
-                    timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
-                                                           var_class=phase.classify_var(param_name),
-                                                           shape=options['shape'],
-                                                           units=units)
 
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
@@ -604,10 +691,6 @@ class GaussLobatto(PseudospectralBase):
                 # Failed to find variable, assume it is in the ODE
                 phase.connect(src_name='interleave_comp.all_values:{0}'.format(output_name),
                               tgt_name='{0}.input_values:{1}'.format(name, output_name))
-
-                kwargs = options.copy()
-                kwargs.pop('output_name', None)
-                timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
 
     def get_rate_source_path(self, state_name, nodes, phase):
         gd = self.grid_data
