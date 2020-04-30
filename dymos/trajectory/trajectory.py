@@ -251,13 +251,15 @@ class Trajectory(om.Group):
                     continue
 
                 for phase_name, phs in self._phases.items():
-
-                    if tgts[phase_name] is None:
-                        # Targets for this phase are explicitly None.
+                    if phase_name not in tgts or isinstance(tgts[phase_name], str):
+                        # If user omitted this phase from targets, we will try to connect
+                        # to an existing input parameter in the phase.
+                        # If the target for this phase is a string, assume the user specified the
+                        # name of an input parameter in the phase for this parameter.
                         # Skip addition of input parameter to this phase.
                         continue
-                    elif isinstance(tgts[phase_name], str):
-                        # User specified name of an input parameter in the phase for this parameter.
+                    elif tgts[phase_name] is None:
+                        # Targets for this phase are explicitly None.
                         # Skip addition of input parameter to this phase.
                         continue
                     elif isinstance(tgts[phase_name], Sequence):
@@ -308,12 +310,15 @@ class Trajectory(om.Group):
                     continue
 
                 for phase_name, phs in self._phases.items():
-                    if tgts[phase_name] is None:
-                        # Targets for this phase are explicitly None.
+                    if phase_name not in tgts or isinstance(tgts[phase_name], str):
+                        # If user omitted this phase from targets, we will try to connect
+                        # to an existing input parameter in the phase.
+                        # If the target for this phase is a string, assume the user specified the
+                        # name of an input parameter in the phase for this parameter.
                         # Skip addition of input parameter to this phase.
                         continue
-                    elif isinstance(tgts[phase_name], str):
-                        # User specified name of an input parameter in the phase for this parameter.
+                    elif tgts[phase_name] is None:
+                        # Targets for this phase are explicitly None.
                         # Skip addition of input parameter to this phase.
                         continue
                     elif isinstance(tgts[phase_name], Sequence):
