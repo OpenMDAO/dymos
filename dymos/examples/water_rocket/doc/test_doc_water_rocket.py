@@ -58,7 +58,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         propelled_ascent.add_input_parameter('S', targets=['aero.S'], units='m**2')
         propelled_ascent.add_input_parameter('m_empty', targets=['mass_adder.m_empty'], units='kg')
-
+        propelled_ascent.add_input_parameter('V_b', targets=['water_engine.V_b'], units='m**3')
 
         # Ballistic ascent
         transcription = dm.Radau(num_segments=5, order=3, compressed=True)
@@ -129,6 +129,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
                                  targets={'propelled_ascent': 'm_empty',
                                           'ballistic_ascent': 'mass',
                                           'descent': 'mass'})
+        traj.add_input_parameter('V_b', units='m**3', val=2e-3,
+                                 targets={'propelled_ascent': 'V_b'})
 
         # In this case, by omitting targets, we're connecting these parameters to parameters
         # with the same name in each phase.
@@ -166,8 +168,9 @@ class TestWaterRocketForDocs(unittest.TestCase):
                   propelled_ascent.interpolate(ys=[0, 100], nodes='state_input'))
         p.set_val('traj.propelled_ascent.states:h',
                   propelled_ascent.interpolate(ys=[0, 100], nodes='state_input'))
+        #set initial value for velocity as non-zero to avoid undefined EOM
         p.set_val('traj.propelled_ascent.states:v',
-                  propelled_ascent.interpolate(ys=[0, 100], nodes='state_input'))
+                  propelled_ascent.interpolate(ys=[1e-3, 100], nodes='state_input'))
         p.set_val('traj.propelled_ascent.states:gam',
                   propelled_ascent.interpolate(ys=[25, 0], nodes='state_input'),
                   units='deg')
