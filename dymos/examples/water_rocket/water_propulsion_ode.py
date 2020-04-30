@@ -5,6 +5,7 @@ from dymos.examples.min_time_climb.aero.dynamic_pressure_comp import DynamicPres
 from dymos.examples.min_time_climb.aero.lift_drag_force_comp import LiftDragForceComp
 from dymos.models.atmosphere import USatm1976Comp
 from dymos.models.eom import FlightPathEOM2D
+from .kinetic_energy_comp import KineticEnergyComp
 from .water_engine_comp import WaterEngine
 
 
@@ -15,6 +16,9 @@ class WaterPropulsionODE(om.Group):
 
     def setup(self):
         nn = self.options['num_nodes']
+
+        self.add_subsystem(name='kinetic_energy',
+                           subsys=KineticEnergyComp(num_nodes=nn))
 
         self.add_subsystem(name='water_engine',
                            subsys=WaterEngine(num_nodes=nn))
@@ -56,6 +60,9 @@ class _MassAdder(om.ExplicitComponent):
         self.add_input('rho_w', val=1e3*np.ones(nn), desc="water density", units='kg/m**3')
 
         self.add_output('m', val=np.zeros(nn), desc='total mass', units='kg')
+
+        ar = np.arange(nn)
+        self.declare_partials('*', '*', cols=ar, rows=ar)
 
     def compute(self, inputs, outputs):
         outputs['m'] = inputs['m_empty'] + inputs['rho_w']*inputs['V_w']

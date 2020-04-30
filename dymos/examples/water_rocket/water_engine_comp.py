@@ -36,7 +36,6 @@ class WaterEngine(om.Group):
 
         self.connect('water_exhaust_speed.v_out', 'water_flow_rate.v_out')
         self.connect('water_exhaust_speed.v_out', 'water_thrust.v_out')
-        self.connect('water_flow_rate.Vdot', 'pressure_rate.Vdot')
 
 
 class _WaterExhaustSpeed(om.ExplicitComponent):

@@ -105,19 +105,30 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_design_parameter('CD',
-                                  targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
+                                  targets={'propelled_ascent': ['aero.CD'],
+                                           'balistic_ascent': ['aero.CD'],
+                                           'descent': ['aero.CD']},
                                   val=0.5, units=None, opt=False)
         traj.add_design_parameter('CL',
-                                  targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
+                                  targets={'propelled_ascent': ['aero.CL'],
+                                           'ballistic_ascent': ['aero.CL'],
+                                           'descent': ['aero.CL']},
                                   val=0.0, units=None, opt=False)
+        traj.add_design_parameter('T',
+                                  targets={'ballistic_ascent': ['eom.T'], 'descent': ['eom.T']},
+                                  val=0.0, units='N', opt=False)
         traj.add_design_parameter('alpha',
-                                  targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
+                                  targets={'propelled_ascent': ['eom.alpha'],
+                                           'ballistic_ascent': ['eom.alpha'],
+                                           'descent': ['eom.alpha']},
                                   val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
         traj.add_input_parameter('m', units='kg', val=1.0,
-                                 targets={'ascent': 'mass', 'descent': 'mass'})
+                                 targets={'propelled_ascent': 'm_empty',
+                                          'ballistic_ascent': 'mass',
+                                          'descent': 'mass'})
 
         # In this case, by omitting targets, we're connecting these parameters to parameters
         # with the same name in each phase.
@@ -148,13 +159,30 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.set_val('traj.design_parameters:CL', 0.0)
         p.set_val('traj.design_parameters:T', 0.0)
 
-        p.set_val('traj.ascent.t_initial', 0.0)
-        p.set_val('traj.ascent.t_duration', 10.0)
+        p.set_val('traj.propelled_ascent.t_initial', 0.0)
+        p.set_val('traj.propelled_ascent.t_duration', 1.0)
 
-        p.set_val('traj.ascent.states:r', ascent.interpolate(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ascent.states:h', ascent.interpolate(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ascent.states:v', ascent.interpolate(ys=[200, 150], nodes='state_input'))
-        p.set_val('traj.ascent.states:gam', ascent.interpolate(ys=[25, 0], nodes='state_input'),
+        p.set_val('traj.propelled_ascent.states:r',
+                  propelled_ascent.interpolate(ys=[0, 100], nodes='state_input'))
+        p.set_val('traj.propelled_ascent.states:h',
+                  propelled_ascent.interpolate(ys=[0, 100], nodes='state_input'))
+        p.set_val('traj.propelled_ascent.states:v',
+                  propelled_ascent.interpolate(ys=[0, 100], nodes='state_input'))
+        p.set_val('traj.propelled_ascent.states:gam',
+                  propelled_ascent.interpolate(ys=[25, 0], nodes='state_input'),
+                  units='deg')
+
+        p.set_val('traj.ballistic_ascent.t_initial', 1.0)
+        p.set_val('traj.ballistic_ascent.t_duration', 9.0)
+
+        p.set_val('traj.ballistic_ascent.states:r',
+                  ballistic_ascent.interpolate(ys=[0, 100], nodes='state_input'))
+        p.set_val('traj.ballistic_ascent.states:h',
+                  ballistic_ascent.interpolate(ys=[0, 100], nodes='state_input'))
+        p.set_val('traj.ballistic_ascent.states:v',
+                  ballistic_ascent.interpolate(ys=[100, 50], nodes='state_input'))
+        p.set_val('traj.ballistic_ascent.states:gam',
+                  ballistic_ascent.interpolate(ys=[25, 0], nodes='state_input'),
                   units='deg')
 
         p.set_val('traj.descent.t_initial', 10.0)
