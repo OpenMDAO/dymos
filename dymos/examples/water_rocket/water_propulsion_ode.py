@@ -56,7 +56,7 @@ class _MassAdder(om.ExplicitComponent):
         nn = self.options['num_nodes']
 
         self.add_input('m_empty', val=np.zeros(nn), desc='empty mass', units='kg')
-        self.add_input('V_w', val=np.zeros(nn), desc='water volume', units='m**3')
+        self.add_input('V_w', val=1e-3*np.ones(nn), desc='water volume', units='m**3')
         self.add_input('rho_w', val=1e3*np.ones(nn), desc="water density", units='kg/m**3')
 
         self.add_output('m', val=np.zeros(nn), desc='total mass', units='kg')

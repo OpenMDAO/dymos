@@ -46,7 +46,7 @@ class _WaterExhaustSpeed(om.ExplicitComponent):
         nn = self.options['num_nodes']
 
         self.add_input(name='rho_w', val=np.ones(nn), desc='water density', units='kg/m**3')
-        self.add_input(name='p', val=np.ones(nn), desc='air pressure', units='N/m**2')
+        self.add_input(name='p', val=551581*np.ones(nn), desc='air pressure', units='N/m**2')#80 psi
 
         self.add_output(name='v_out', shape=(nn,), desc='water exhaust speed', units='m/s')
 
@@ -91,6 +91,7 @@ class _WaterFlowRate(om.ExplicitComponent):
         A_out = inputs['A_out']
         v_out = inputs['v_out']
 
+        print(-v_out*A_out)
         outputs['Vdot'] = -v_out*A_out
 
     def compute_partials(self, inputs, partials):
@@ -109,9 +110,9 @@ class _PressureRate(om.ExplicitComponent):
         nn = self.options['num_nodes']
 
         self.add_input(name='p', val=np.ones(nn), desc='air pressure', units='N/m**2')
-        self.add_input(name='k', val=np.ones(nn), desc='polytropic coefficient for expansion', units=None)
-        self.add_input(name='V_b', val=np.ones(nn), desc='bottle volume', units='m**3')
-        self.add_input(name='V_w', val=np.ones(nn), desc='water volume', units='m**3')
+        self.add_input(name='k', val=1.4*np.ones(nn), desc='polytropic coefficient for expansion', units=None)
+        self.add_input(name='V_b', val=2e-3*np.ones(nn), desc='bottle volume', units='m**3')
+        self.add_input(name='V_w', val=1e-3*np.ones(nn), desc='water volume', units='m**3')
         self.add_input(name='Vdot', shape=(nn,), desc='water flow', units='m**3/s')
 
         self.add_output(name='pdot', shape=(nn,), desc='pressure derivative', units='N/m**2/s')
@@ -127,7 +128,10 @@ class _PressureRate(om.ExplicitComponent):
         V_w = inputs['V_w']
         Vdot = inputs['Vdot']
 
+        #assert V_b>=V_w, f"There is more water ({V_w}) than fits in the bottle ({V_b})"
+
         pdot = p*k*Vdot/(V_b-V_w)
+        print('p',p,'pdot',pdot,'V_b',V_b,'V_w',V_w,'k',k)
 
         outputs['pdot'] = pdot
 

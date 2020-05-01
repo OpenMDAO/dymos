@@ -162,12 +162,12 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.set_val('traj.design_parameters:T', 0.0)
 
         p.set_val('traj.propelled_ascent.t_initial', 0.0)
-        p.set_val('traj.propelled_ascent.t_duration', 1.0)
+        p.set_val('traj.propelled_ascent.t_duration', 0.1)
 
         p.set_val('traj.propelled_ascent.states:r',
                   propelled_ascent.interpolate(ys=[0, 100], nodes='state_input'))
         p.set_val('traj.propelled_ascent.states:h',
-                  propelled_ascent.interpolate(ys=[0, 100], nodes='state_input'))
+                  propelled_ascent.interpolate(ys=[0, 10], nodes='state_input'))
         #set initial value for velocity as non-zero to avoid undefined EOM
         p.set_val('traj.propelled_ascent.states:v',
                   propelled_ascent.interpolate(ys=[1e-3, 100], nodes='state_input'))
@@ -175,8 +175,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
                   propelled_ascent.interpolate(ys=[25, 0], nodes='state_input'),
                   units='deg')
 
-        p.set_val('traj.ballistic_ascent.t_initial', 1.0)
-        p.set_val('traj.ballistic_ascent.t_duration', 9.0)
+        p.set_val('traj.ballistic_ascent.t_initial', 0.1)
+        p.set_val('traj.ballistic_ascent.t_duration', 9.9)
 
         p.set_val('traj.ballistic_ascent.states:r',
                   ballistic_ascent.interpolate(ys=[0, 100], nodes='state_input'))
