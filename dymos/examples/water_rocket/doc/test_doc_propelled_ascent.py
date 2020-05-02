@@ -53,7 +53,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         propelled_ascent.set_time_options(fix_initial=True, duration_bounds=(0, 0.5), duration_ref=0.1, units='s')
         propelled_ascent.set_state_options('r', fix_initial=True, fix_final=False)
         propelled_ascent.set_state_options('h', fix_initial=True, fix_final=False)
-        propelled_ascent.set_state_options('gam', fix_initial=False, fix_final=True)
+        propelled_ascent.set_state_options('gam', fix_initial=True, fix_final=True)
         propelled_ascent.set_state_options('v', fix_initial=True, fix_final=False)
         propelled_ascent.set_state_options('V_w', fix_initial=False, fix_final=True)
         propelled_ascent.set_state_options('p', fix_initial=True, fix_final=False)
@@ -77,7 +77,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
-        traj.add_input_parameter('m', units='kg', val=0.1,
+        traj.add_input_parameter('m', units='kg', val=0.01,
                                  targets={'propelled_ascent': 'm_empty'})
         traj.add_input_parameter('V_b', units='m**3', val=2e-3,
                                  targets={'propelled_ascent': 'V_b'})
@@ -85,7 +85,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         # In this case, by omitting targets, we're connecting these parameters to parameters
         # with the same name in each phase.
         traj.add_input_parameter('S', units='m**2', val=0.005)
-        traj.add_input_parameter('A_out', units='m**2', val=np.pi*13e-3**2/4.,
+        traj.add_design_parameter('A_out', units='m**2', val=np.pi*13e-3**2/4.,
                                  targets={'propelled_ascent': ['water_engine.A_out']})
 
         # Issue Connections
@@ -120,7 +120,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.set_val('traj.propelled_ascent.states:v',
                   propelled_ascent.interpolate(ys=[1e-3, 10], nodes='state_input'))
         p.set_val('traj.propelled_ascent.states:gam',
-                  propelled_ascent.interpolate(ys=[0, 0], nodes='state_input'),
+                  propelled_ascent.interpolate(ys=[90, 90], nodes='state_input'),
                   units='deg')
         p.set_val('traj.propelled_ascent.states:V_w',
                   propelled_ascent.interpolate(ys=[1e-3, 0], nodes='state_input'),
@@ -130,22 +130,40 @@ class TestWaterRocketForDocs(unittest.TestCase):
                   units='N/m**2')
 
         p.run_model()
-        p.driver.opt_settings['Major iterations limit'] = 1
         dm.run_problem(p)
         print(p.get_val('traj.propelled_ascent.timeseries.time'))
         exp_out = traj.simulate()
+
         plt.figure()
         plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
                  exp_out.get_val('traj.propelled_ascent.timeseries.states:p'))
+        plt.plot(p.get_val('traj.propelled_ascent.timeseries.time'),
+                 p.get_val('traj.propelled_ascent.timeseries.states:p'),'o')
         plt.title('p')
         plt.figure()
         plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
                  exp_out.get_val('traj.propelled_ascent.timeseries.states:V_w'))
+        plt.plot(p.get_val('traj.propelled_ascent.timeseries.time'),
+                 p.get_val('traj.propelled_ascent.timeseries.states:V_w'),'o')
         plt.title('V_w')
         plt.figure()
         plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
                  exp_out.get_val('traj.propelled_ascent.timeseries.states:v'))
+        plt.plot(p.get_val('traj.propelled_ascent.timeseries.time'),
+                 p.get_val('traj.propelled_ascent.timeseries.states:v'),'o')
         plt.title('v')
+        plt.figure()
+        plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
+                 exp_out.get_val('traj.propelled_ascent.timeseries.states:h'))
+        plt.plot(p.get_val('traj.propelled_ascent.timeseries.time'),
+                 p.get_val('traj.propelled_ascent.timeseries.states:h'),'o')
+        plt.title('h')
+        plt.figure()
+        plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
+                 exp_out.get_val('traj.propelled_ascent.timeseries.states:gam'))
+        plt.plot(p.get_val('traj.propelled_ascent.timeseries.time'),
+                 p.get_val('traj.propelled_ascent.timeseries.states:gam'),'o')
+        plt.title('gam')
         plt.show()
         exit(0)
 
