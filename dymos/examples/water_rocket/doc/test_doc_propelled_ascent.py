@@ -19,7 +19,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.ScipyOptimizeDriver()
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
@@ -54,8 +54,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
         propelled_ascent.set_state_options('r', fix_initial=True, fix_final=False)
         propelled_ascent.set_state_options('h', fix_initial=True, fix_final=False)
         propelled_ascent.set_state_options('gam', fix_initial=False, fix_final=True)
-        propelled_ascent.set_state_options('v', fix_initial=False, fix_final=False)
-        propelled_ascent.set_state_options('V_w', fix_initial=True, fix_final=True)
+        propelled_ascent.set_state_options('v', fix_initial=True, fix_final=False)
+        propelled_ascent.set_state_options('V_w', fix_initial=False, fix_final=True)
         propelled_ascent.set_state_options('p', fix_initial=True, fix_final=False)
 
         propelled_ascent.add_input_parameter('S', targets=['aero.S'], units='m**2')
@@ -77,7 +77,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
-        traj.add_input_parameter('m', units='kg', val=1.0,
+        traj.add_input_parameter('m', units='kg', val=0.1,
                                  targets={'propelled_ascent': 'm_empty'})
         traj.add_input_parameter('V_b', units='m**3', val=2e-3,
                                  targets={'propelled_ascent': 'V_b'})
@@ -92,7 +92,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.model.connect('external_params.radius', 'size_comp.radius')
         p.model.connect('external_params.dens', 'size_comp.dens')
 
-        p.model.connect('size_comp.mass', 'traj.input_parameters:m')
+        #p.model.connect('size_comp.mass', 'traj.input_parameters:m')
         p.model.connect('size_comp.S', 'traj.input_parameters:S')
 
         # Finish Problem Setup
@@ -126,22 +126,26 @@ class TestWaterRocketForDocs(unittest.TestCase):
                   propelled_ascent.interpolate(ys=[1e-3, 0], nodes='state_input'),
                   units='m**3')
         p.set_val('traj.propelled_ascent.states:p',
-                  propelled_ascent.interpolate(ys=[5.5e5, 0], nodes='state_input'),
+                  propelled_ascent.interpolate(ys=[5.5e5, 1e5], nodes='state_input'),
                   units='N/m**2')
 
-        #dm.run_problem(p)
         p.run_model()
+        p.driver.opt_settings['Major iterations limit'] = 1
+        dm.run_problem(p)
         print(p.get_val('traj.propelled_ascent.timeseries.time'))
         exp_out = traj.simulate()
         plt.figure()
         plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
                  exp_out.get_val('traj.propelled_ascent.timeseries.states:p'))
+        plt.title('p')
         plt.figure()
         plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
                  exp_out.get_val('traj.propelled_ascent.timeseries.states:V_w'))
+        plt.title('V_w')
         plt.figure()
         plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
                  exp_out.get_val('traj.propelled_ascent.timeseries.states:v'))
+        plt.title('v')
         plt.show()
         exit(0)
 

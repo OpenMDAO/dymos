@@ -130,8 +130,6 @@ class _PressureRate(om.ExplicitComponent):
         V_w = inputs['V_w']
         Vdot = inputs['Vdot']
 
-        assert np.all(V_b>=V_w), f"There is more water ({V_w}) than fits in the bottle ({V_b})"
-
         pdot = p*k*Vdot/(V_b-V_w)
         print('p',p,'pdot',pdot,'V_b',V_b,'V_w',V_w,'k',k)
 
