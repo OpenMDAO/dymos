@@ -60,7 +60,6 @@ class _WaterExhaustSpeed(om.ExplicitComponent):
         rho_w = inputs['rho_w']
 
         outputs['v_out'] = np.sqrt(2*p/rho_w)
-        #import pdb; pdb.set_trace()
 
     def compute_partials(self, inputs, partials):
         p = inputs['p'] 
@@ -92,9 +91,7 @@ class _WaterFlowRate(om.ExplicitComponent):
         A_out = inputs['A_out']
         v_out = inputs['v_out']
 
-        print(-v_out*A_out)
         outputs['Vdot'] = -v_out*A_out
-        #import pdb; pdb.set_trace()
 
     def compute_partials(self, inputs, partials):
         A_out = inputs['A_out']
@@ -131,10 +128,8 @@ class _PressureRate(om.ExplicitComponent):
         Vdot = inputs['Vdot']
 
         pdot = p*k*Vdot/(V_b-V_w)
-        print('p',p,'pdot',pdot,'V_b',V_b,'V_w',V_w,'k',k)
 
         outputs['pdot'] = pdot
-        #import pdb; pdb.set_trace()
 
     def compute_partials(self, inputs, partials):
         p = inputs['p'] 
