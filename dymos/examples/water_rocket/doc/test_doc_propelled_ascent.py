@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 class TestWaterRocketForDocs(unittest.TestCase):
 
     def test_water_rocket_for_docs(self):
+        import numpy as np
+
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
 
@@ -48,7 +50,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
         # Final water volume is fixed (we will set it to zero so that phase ends when bottle empties)
-        propelled_ascent.set_time_options(fix_initial=True, duration_bounds=(1, 10), duration_ref=10, units='s')
+        propelled_ascent.set_time_options(fix_initial=True, duration_bounds=(0, 0.5), duration_ref=0.1, units='s')
         propelled_ascent.set_state_options('r', fix_initial=True, fix_final=False)
         propelled_ascent.set_state_options('h', fix_initial=True, fix_final=False)
         propelled_ascent.set_state_options('gam', fix_initial=False, fix_final=True)
@@ -60,84 +62,31 @@ class TestWaterRocketForDocs(unittest.TestCase):
         propelled_ascent.add_input_parameter('m_empty', targets=['mass_adder.m_empty'], units='kg')
         propelled_ascent.add_input_parameter('V_b', targets=['water_engine.V_b'], units='m**3')
 
-        # Ballistic ascent
-        transcription = dm.Radau(num_segments=5, order=3, compressed=True)
-        ballistic_ascent = CannonballPhase(transcription=transcription)
-
-        ballistic_ascent = traj.add_phase('ballistic_ascent', ballistic_ascent)
-
-        # All initial states except flight path angle are free (they will be
-        # linked to the final stages of propelled_ascent).
-        # Final flight path angle is fixed (we will set it to zero so that the
-        # phase ends at apogee)
-        ballistic_ascent.set_time_options(fix_initial=False, duration_bounds=(1, 100), duration_ref=100, units='s')
-        ballistic_ascent.set_state_options('r', fix_initial=False, fix_final=False)
-        ballistic_ascent.set_state_options('h', fix_initial=False, fix_final=False)
-        ballistic_ascent.set_state_options('gam', fix_initial=False, fix_final=True)
-        ballistic_ascent.set_state_options('v', fix_initial=False, fix_final=False)
-
-        ballistic_ascent.add_input_parameter('S', targets=['aero.S'], units='m**2')
-        ballistic_ascent.add_input_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
-
-        # Link Phases (link time and all state variables)
-        traj.link_phases(phases=['propelled_ascent', 'ballistic_ascent'], vars=['*'])
-
-
-        # Ballistic descent
-        transcription = dm.GaussLobatto(num_segments=5, order=3, compressed=True)
-        descent = CannonballPhase(transcription=transcription)
-
-        traj.add_phase('descent', descent)
-
-        # All initial states and time are free (they will be linked to the final states of ballistic_ascent).
-        # Final altitude is fixed (we will set it to zero so that the phase ends at ground impact)
-        descent.set_time_options(initial_bounds=(.5, 100), duration_bounds=(.5, 100),
-                                 duration_ref=100, units='s')
-        descent.add_state('r', )
-        descent.add_state('h', fix_initial=False, fix_final=True)
-        descent.add_state('gam', fix_initial=False, fix_final=False)
-        descent.add_state('v', fix_initial=False, fix_final=False)
-
-        descent.add_input_parameter('S', targets=['aero.S'], units='m**2')
-        descent.add_input_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
-
-        descent.add_objective('r', loc='final', scaler=-1.0)
+        propelled_ascent.add_objective('h', loc='final', scaler=-1.0)
 
         # Add internally-managed design parameters to the trajectory.
         traj.add_design_parameter('CD',
-                                  targets={'propelled_ascent': ['aero.CD'],
-                                           'balistic_ascent': ['aero.CD'],
-                                           'descent': ['aero.CD']},
+                                  targets={'propelled_ascent': ['aero.CD']},
                                   val=0.5, units=None, opt=False)
         traj.add_design_parameter('CL',
-                                  targets={'propelled_ascent': ['aero.CL'],
-                                           'ballistic_ascent': ['aero.CL'],
-                                           'descent': ['aero.CL']},
+                                  targets={'propelled_ascent': ['aero.CL']},
                                   val=0.0, units=None, opt=False)
-        traj.add_design_parameter('T',
-                                  targets={'ballistic_ascent': ['eom.T'], 'descent': ['eom.T']},
-                                  val=0.0, units='N', opt=False)
         traj.add_design_parameter('alpha',
-                                  targets={'propelled_ascent': ['eom.alpha'],
-                                           'ballistic_ascent': ['eom.alpha'],
-                                           'descent': ['eom.alpha']},
+                                  targets={'propelled_ascent': ['eom.alpha']},
                                   val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
         traj.add_input_parameter('m', units='kg', val=1.0,
-                                 targets={'propelled_ascent': 'm_empty',
-                                          'ballistic_ascent': 'mass',
-                                          'descent': 'mass'})
+                                 targets={'propelled_ascent': 'm_empty'})
         traj.add_input_parameter('V_b', units='m**3', val=2e-3,
                                  targets={'propelled_ascent': 'V_b'})
 
         # In this case, by omitting targets, we're connecting these parameters to parameters
         # with the same name in each phase.
         traj.add_input_parameter('S', units='m**2', val=0.005)
-
-        # Link Phases (link time and all state variables)
-        traj.link_phases(phases=['ballistic_ascent', 'descent'], vars=['*'])
+        traj.add_input_parameter('A_out', units='m**2', val=np.pi*13e-3**2/4.,
+                                 targets={'propelled_ascent': ['water_engine.A_out']})
 
         # Issue Connections
         p.model.connect('external_params.radius', 'size_comp.radius')
@@ -149,7 +98,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
 
-        p.driver.add_recorder(om.SqliteRecorder('ex_two_phase_cannonball.db'))
+        p.driver.add_recorder(om.SqliteRecorder('ex_propelled_ascent.db'))
 
         p.setup()
 
@@ -159,50 +108,42 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         p.set_val('traj.design_parameters:CD', 0.5)
         p.set_val('traj.design_parameters:CL', 0.0)
-        p.set_val('traj.design_parameters:T', 0.0)
 
         p.set_val('traj.propelled_ascent.t_initial', 0.0)
-        p.set_val('traj.propelled_ascent.t_duration', 0.1)
+        p.set_val('traj.propelled_ascent.t_duration', 0.3)
 
         p.set_val('traj.propelled_ascent.states:r',
-                  propelled_ascent.interpolate(ys=[0, 100], nodes='state_input'))
+                  propelled_ascent.interpolate(ys=[0, 0], nodes='state_input'))
         p.set_val('traj.propelled_ascent.states:h',
                   propelled_ascent.interpolate(ys=[0, 10], nodes='state_input'))
         #set initial value for velocity as non-zero to avoid undefined EOM
         p.set_val('traj.propelled_ascent.states:v',
-                  propelled_ascent.interpolate(ys=[1e-3, 100], nodes='state_input'))
+                  propelled_ascent.interpolate(ys=[1e-3, 10], nodes='state_input'))
         p.set_val('traj.propelled_ascent.states:gam',
-                  propelled_ascent.interpolate(ys=[25, 0], nodes='state_input'),
+                  propelled_ascent.interpolate(ys=[0, 0], nodes='state_input'),
                   units='deg')
+        p.set_val('traj.propelled_ascent.states:V_w',
+                  propelled_ascent.interpolate(ys=[1e-3, 0], nodes='state_input'),
+                  units='m**3')
+        p.set_val('traj.propelled_ascent.states:p',
+                  propelled_ascent.interpolate(ys=[5.5e5, 0], nodes='state_input'),
+                  units='N/m**2')
 
-        p.set_val('traj.ballistic_ascent.t_initial', 0.1)
-        p.set_val('traj.ballistic_ascent.t_duration', 9.9)
-
-        p.set_val('traj.ballistic_ascent.states:r',
-                  ballistic_ascent.interpolate(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ballistic_ascent.states:h',
-                  ballistic_ascent.interpolate(ys=[0, 100], nodes='state_input'))
-        p.set_val('traj.ballistic_ascent.states:v',
-                  ballistic_ascent.interpolate(ys=[100, 50], nodes='state_input'))
-        p.set_val('traj.ballistic_ascent.states:gam',
-                  ballistic_ascent.interpolate(ys=[25, 0], nodes='state_input'),
-                  units='deg')
-
-        p.set_val('traj.descent.t_initial', 10.0)
-        p.set_val('traj.descent.t_duration', 10.0)
-
-        p.set_val('traj.descent.states:r', descent.interpolate(ys=[100, 200], nodes='state_input'))
-        p.set_val('traj.descent.states:h', descent.interpolate(ys=[100, 0], nodes='state_input'))
-        p.set_val('traj.descent.states:v', descent.interpolate(ys=[150, 200], nodes='state_input'))
-        p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45], nodes='state_input'),
-                  units='deg')
-
-        dm.run_problem(p)
-
-        assert_near_equal(p.get_val('traj.descent.states:r')[-1],
-                          3183.25, tolerance=1.0E-2)
-
+        #dm.run_problem(p)
+        p.run_model()
+        print(p.get_val('traj.propelled_ascent.timeseries.time'))
         exp_out = traj.simulate()
+        plt.figure()
+        plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
+                 exp_out.get_val('traj.propelled_ascent.timeseries.states:p'))
+        plt.figure()
+        plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
+                 exp_out.get_val('traj.propelled_ascent.timeseries.states:V_w'))
+        plt.figure()
+        plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
+                 exp_out.get_val('traj.propelled_ascent.timeseries.states:v'))
+        plt.show()
+        exit(0)
 
         print('optimal radius: {0:6.4f} m '.format(p.get_val('external_params.radius',
                                                              units='m')[0]))

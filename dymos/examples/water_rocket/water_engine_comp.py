@@ -45,8 +45,8 @@ class _WaterExhaustSpeed(om.ExplicitComponent):
     def setup(self):
         nn = self.options['num_nodes']
 
-        self.add_input(name='rho_w', val=np.ones(nn), desc='water density', units='kg/m**3')
-        self.add_input(name='p', val=551581*np.ones(nn), desc='air pressure', units='N/m**2')#80 psi
+        self.add_input(name='rho_w', val=1e3*np.ones(nn), desc='water density', units='kg/m**3')
+        self.add_input(name='p', val=5.5e5*np.ones(nn), desc='air pressure', units='N/m**2')#5.5bar = 80 psi
 
         self.add_output(name='v_out', shape=(nn,), desc='water exhaust speed', units='m/s')
 
@@ -60,6 +60,7 @@ class _WaterExhaustSpeed(om.ExplicitComponent):
         rho_w = inputs['rho_w']
 
         outputs['v_out'] = np.sqrt(2*p/rho_w)
+        #import pdb; pdb.set_trace()
 
     def compute_partials(self, inputs, partials):
         p = inputs['p'] 
@@ -93,6 +94,7 @@ class _WaterFlowRate(om.ExplicitComponent):
 
         print(-v_out*A_out)
         outputs['Vdot'] = -v_out*A_out
+        #import pdb; pdb.set_trace()
 
     def compute_partials(self, inputs, partials):
         A_out = inputs['A_out']
@@ -128,12 +130,13 @@ class _PressureRate(om.ExplicitComponent):
         V_w = inputs['V_w']
         Vdot = inputs['Vdot']
 
-        #assert V_b>=V_w, f"There is more water ({V_w}) than fits in the bottle ({V_b})"
+        assert np.all(V_b>=V_w), f"There is more water ({V_w}) than fits in the bottle ({V_b})"
 
         pdot = p*k*Vdot/(V_b-V_w)
         print('p',p,'pdot',pdot,'V_b',V_b,'V_w',V_w,'k',k)
 
         outputs['pdot'] = pdot
+        #import pdb; pdb.set_trace()
 
     def compute_partials(self, inputs, partials):
         p = inputs['p'] 
@@ -156,8 +159,8 @@ class _WaterThrust(om.ExplicitComponent):
     def setup(self):
         nn = self.options['num_nodes']
 
-        self.add_input(name='rho_w', val=np.ones(nn), desc='water density', units='kg/m**3')
-        self.add_input(name='A_out', val=np.ones(nn), desc='nozzle outlet area', units='m**2')
+        self.add_input(name='rho_w', val=1e3*np.ones(nn), desc='water density', units='kg/m**3')
+        self.add_input(name='A_out', val=np.pi*13e-3**2/4*np.ones(nn), desc='nozzle outlet area', units='m**2')
         self.add_input(name='v_out', val=np.zeros(nn), desc='water exhaust speed', units='m/s')
 
         self.add_output(name='F', shape=(nn,), desc='thrust', units='N')
