@@ -21,7 +21,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     traj = dm.Trajectory()
 
     traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU',
-                              targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
+                              targets={'burn1': ['c'], 'burn2': ['c']})
 
     # First Phase (burn)
 
@@ -63,6 +63,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
                     rate_source='deltav_dot', units='DU/TU')
 
     coast.add_design_parameter('u1', opt=False, val=0.0, units='deg', targets=['u1'])
+    coast.add_input_parameter('c', val=0.0, units='DU/TU', targets=['c'])
 
     # Third Phase (burn)
     burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=t[transcription])
@@ -285,7 +286,7 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
 
 # This test is separate because connected phases aren't directly parallelizable.
-@use_tempdirs
+# @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
     def test_ex_two_burn_orbit_raise_connected(self):
