@@ -255,6 +255,9 @@ class SegmentSimulationComp(om.ExplicitComponent):
                         rtol=self.options['rtol'],
                         t_eval=t_eval)
 
+        if not sol.success:
+            raise RuntimeError('solve_ipv failed', sol.message)
+
         # Extract the solution
         pos = 0
         for name, options in self.options['state_options'].items():
