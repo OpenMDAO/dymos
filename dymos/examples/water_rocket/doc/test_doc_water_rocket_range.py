@@ -158,7 +158,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
                   propelled_ascent.interpolate(ys=[0, 10], nodes='state_input'))
         #set initial value for velocity as non-zero to avoid undefined EOM
         p.set_val('traj.propelled_ascent.states:v',
-                  propelled_ascent.interpolate(ys=[10, 100], nodes='state_input'))
+                  propelled_ascent.interpolate(ys=[1e-3, 100], nodes='state_input'))
         p.set_val('traj.propelled_ascent.states:gam',
                   propelled_ascent.interpolate(ys=[80, 80], nodes='state_input'),
                   units='deg')
@@ -225,40 +225,49 @@ class TestWaterRocketForDocs(unittest.TestCase):
         plt.plot(p.get_val('traj.propelled_ascent.timeseries.time'),
                  p.get_val('traj.propelled_ascent.timeseries.states:gam'),'o')
         plt.title('gam')
-        plt.show()
 
         print('launch angle: {0:6.4f} '
               'deg '.format(p.get_val('traj.ballistic_ascent.timeseries.states:gam',  units='deg')[0, 0]))
+        print('empty mass: {0:6.4f} '
+              'kg '.format(p.get_val('traj.design_parameters:m_empty')[0,0]))
+        print('water volume: {0:6.4f} '
+                'L '.format(p.get_val('traj.propelled_ascent.timeseries.states:V_w')[0,0]*1e3))
         print('maximum range: {0:6.4f} '
               'm '.format(p.get_val('traj.descent.timeseries.states:r')[-1, 0]))
 
         fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
 
         time_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.time'),
+                    'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.time'),
                     'descent': p.get_val('traj.descent.timeseries.time')}
 
         time_exp = {'ballistic_ascent': exp_out.get_val('traj.ballistic_ascent.timeseries.time'),
+                    'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.time'),
                     'descent': exp_out.get_val('traj.descent.timeseries.time')}
 
         r_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.states:r'),
+                 'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.states:r'),
                  'descent': p.get_val('traj.descent.timeseries.states:r')}
 
         r_exp = {'ballistic_ascent': exp_out.get_val('traj.ballistic_ascent.timeseries.states:r'),
+                 'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.states:r'),
                  'descent': exp_out.get_val('traj.descent.timeseries.states:r')}
 
         h_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.states:h'),
+                 'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.states:h'),
                  'descent': p.get_val('traj.descent.timeseries.states:h')}
 
         h_exp = {'ballistic_ascent': exp_out.get_val('traj.ballistic_ascent.timeseries.states:h'),
+                 'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.states:h'),
                  'descent': exp_out.get_val('traj.descent.timeseries.states:h')}
 
-        axes.plot(r_imp['ballistic_ascent'], h_imp['ballistic_ascent'], 'bo')
+        axes.plot(r_imp['propelled_ascent'], h_imp['propelled_ascent'], 'ro')
+        axes.plot(r_imp['ballistic_ascent'], h_imp['ballistic_ascent'], 'mo')
+        axes.plot(r_imp['descent'], h_imp['descent'], 'bo')
 
-        axes.plot(r_imp['descent'], h_imp['descent'], 'ro')
-
-        axes.plot(r_exp['ballistic_ascent'], h_exp['ballistic_ascent'], 'b--')
-
-        axes.plot(r_exp['descent'], h_exp['descent'], 'r--')
+        axes.plot(r_exp['propelled_ascent'], h_exp['propelled_ascent'], 'r--')
+        axes.plot(r_exp['ballistic_ascent'], h_exp['ballistic_ascent'], 'm--')
+        axes.plot(r_exp['descent'], h_exp['descent'], 'b--')
 
         axes.set_xlabel('range (m)')
         axes.set_ylabel('altitude (m)')
@@ -267,37 +276,48 @@ class TestWaterRocketForDocs(unittest.TestCase):
         states = ['r', 'h', 'v', 'gam']
         for i, state in enumerate(states):
             x_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.states:{0}'.format(state)),
+                     'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.states:{0}'.format(state)),
                      'descent': p.get_val('traj.descent.timeseries.states:{0}'.format(state))}
 
             x_exp = {'ballistic_ascent': exp_out.get_val('traj.ballistic_ascent.timeseries.states:{0}'.format(state)),
-                     'descent': exp_out.get_val('traj.descent.timeseries.states:{0}'.format(state))}
+                     'descent': exp_out.get_val('traj.descent.timeseries.states:{0}'.format(state)),
+                     'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.states:{0}'.format(state))}
 
             axes[i].set_ylabel(state)
 
-            axes[i].plot(time_imp['ballistic_ascent'], x_imp['ballistic_ascent'], 'bo')
-            axes[i].plot(time_imp['descent'], x_imp['descent'], 'ro')
-            axes[i].plot(time_exp['ballistic_ascent'], x_exp['ballistic_ascent'], 'b--')
-            axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
+            axes[i].plot(time_imp['propelled_ascent'], x_imp['propelled_ascent'], 'ro')
+            axes[i].plot(time_imp['ballistic_ascent'], x_imp['ballistic_ascent'], 'mo')
+            axes[i].plot(time_imp['descent'], x_imp['descent'], 'bo')
+            axes[i].plot(time_exp['propelled_ascent'], x_exp['propelled_ascent'], 'r--')
+            axes[i].plot(time_exp['ballistic_ascent'], x_exp['ballistic_ascent'], 'm--')
+            axes[i].plot(time_exp['descent'], x_exp['descent'], 'b--')
 
         plt.show()
-        params = ['CL', 'CD', 'T', 'alpha', 'mass', 'S']
+        params = ['CL', 'CD', 'T', 'alpha', 'S']
         fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
         for i, param in enumerate(params):
             p_imp = {
                 'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.input_parameters:{0}'.format(param)),
+                'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.input_parameters:{0}'.format(param) if param !='T'
+                                            else 'traj.propelled_ascent.timeseries.{0}'.format(param)),
                 'descent': p.get_val('traj.descent.timeseries.input_parameters:{0}'.format(param))}
 
             p_exp = {'ballistic_ascent': exp_out.get_val('traj.ballistic_ascent.timeseries.'
                                                'input_parameters:{0}'.format(param)),
+                     'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.'
+                                                         'input_parameters:{0}'.format(param) if param != 'T'
+                                                         else 'traj.propelled_ascent.timeseries.{0}'.format(param)),
                      'descent': exp_out.get_val('traj.descent.timeseries.'
                                                 'input_parameters:{0}'.format(param))}
 
             axes[i].set_ylabel(param)
 
-            axes[i].plot(time_imp['ballistic_ascent'], p_imp['ballistic_ascent'], 'bo')
-            axes[i].plot(time_imp['descent'], p_imp['descent'], 'ro')
-            axes[i].plot(time_exp['ballistic_ascent'], p_exp['ballistic_ascent'], 'b--')
-            axes[i].plot(time_exp['descent'], p_exp['descent'], 'r--')
+            axes[i].plot(time_imp['propelled_ascent'], p_imp['propelled_ascent'], 'ro')
+            axes[i].plot(time_imp['ballistic_ascent'], p_imp['ballistic_ascent'], 'mo')
+            axes[i].plot(time_imp['descent'], p_imp['descent'], 'bo')
+            axes[i].plot(time_exp['propelled_ascent'], p_exp['propelled_ascent'], 'r--')
+            axes[i].plot(time_exp['ballistic_ascent'], p_exp['ballistic_ascent'], 'm--')
+            axes[i].plot(time_exp['descent'], p_exp['descent'], 'b--')
 
         plt.show()
 
