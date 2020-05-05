@@ -119,11 +119,12 @@ class TestWaterRocketForDocs(unittest.TestCase):
                                            'descent': ['eom.alpha']},
                                   val=0.0, units='deg', opt=False)
 
-        traj.add_design_parameter('m_empty', units='kg', val=0.1,
+        traj.add_design_parameter('m_empty', units='kg', val=0.05,
                                   targets={'propelled_ascent': 'm_empty',
                                            'ballistic_ascent': 'm_empty',
                                            'descent': 'mass'},
-                                  opt=False)
+                                  lower=0, upper=1, scaler=0.1,
+                                  opt=True)
         traj.add_design_parameter('V_b', units='m**3', val=2e-3,
                                  targets={'propelled_ascent': 'V_b'},
                                  opt=False)
