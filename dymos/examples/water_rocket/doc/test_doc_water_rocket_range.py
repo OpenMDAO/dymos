@@ -44,9 +44,9 @@ class TestWaterRocketForDocs(unittest.TestCase):
         propelled_ascent.set_time_options(fix_initial=True, duration_bounds=(0, 0.5), duration_ref=0.1, units='s')
         propelled_ascent.set_state_options('r', fix_initial=True, fix_final=False)
         propelled_ascent.set_state_options('h', fix_initial=True, fix_final=False)
-        propelled_ascent.set_state_options('gam', fix_initial=True, fix_final=False)
+        propelled_ascent.set_state_options('gam', fix_initial=False, fix_final=False)
         propelled_ascent.set_state_options('v', fix_initial=True, fix_final=False)
-        propelled_ascent.set_state_options('V_w', fix_initial=True, fix_final=True)
+        propelled_ascent.set_state_options('V_w', fix_initial=False, fix_final=True)
         propelled_ascent.set_state_options('p', fix_initial=True, fix_final=False)
 
         propelled_ascent.add_input_parameter('S', targets=['aero.S'], units='m**2')
@@ -144,7 +144,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.setup()
 
         # Set Initial Guesses
-        p.set_val('traj.design_parameters:CD', 0.0)
+        p.set_val('traj.design_parameters:CD', 0.5)
         p.set_val('traj.design_parameters:CL', 0.0)
         p.set_val('traj.design_parameters:T', 0.0)
 
@@ -162,7 +162,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
                   propelled_ascent.interpolate(ys=[80, 80], nodes='state_input'),
                   units='deg')
         p.set_val('traj.propelled_ascent.states:V_w',
-                  propelled_ascent.interpolate(ys=[1e-3, 0], nodes='state_input'),
+                  propelled_ascent.interpolate(ys=[0.8e-3, 0], nodes='state_input'),
                   units='m**3')
         p.set_val('traj.propelled_ascent.states:p',
                   propelled_ascent.interpolate(ys=[5.5e5, 1e5], nodes='state_input'),
