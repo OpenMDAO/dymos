@@ -99,6 +99,63 @@ def new_descent_phase():
 
     return descent
 
+def new_water_rocket_trajectory():
+    traj = dm.Trajectory()
+
+    # Add phases to trajectory
+    propelled_ascent = traj.add_phase('propelled_ascent', new_propelled_ascent_phase())
+    ballistic_ascent = traj.add_phase('ballistic_ascent', new_ballistic_ascent_phase())
+    descent = traj.add_phase('descent', new_descent_phase())
+
+    # Link phases
+    traj.link_phases(phases=['propelled_ascent', 'ballistic_ascent'], vars=['*'])
+    traj.link_phases(phases=['ballistic_ascent', 'descent'], vars=['*'])
+
+    # Set objective function
+    # NOTE: only one objective function must be commented out at any time
+    # Use this line to optimize for height
+    #ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
+    # Use this line to optimize for range
+    descent.add_objective('r', loc='final', scaler=-1.0)
+
+    # Add design parameters to the trajectory.
+    traj.add_design_parameter('CD',
+                              targets={'propelled_ascent': ['aero.CD'],
+                                       'ballistic_ascent': ['aero.CD'],
+                                       'descent': ['aero.CD']},
+                              val=0.5, units=None, opt=False)
+    traj.add_design_parameter('CL',
+                              targets={'propelled_ascent': ['aero.CL'],
+                                       'ballistic_ascent': ['aero.CL'],
+                                       'descent': ['aero.CL']},
+                              val=0.0, units=None, opt=False)
+    traj.add_design_parameter('T',
+                              targets={'ballistic_ascent': ['eom.T'],
+                                       'descent': ['eom.T']},
+                              val=0.0, units='N', opt=False)
+    traj.add_design_parameter('alpha',
+                              targets={'propelled_ascent': ['eom.alpha'],
+                                       'ballistic_ascent': ['eom.alpha'],
+                                       'descent': ['eom.alpha']},
+                              val=0.0, units='deg', opt=False)
+
+    traj.add_design_parameter('m_empty', units='kg', val=0.05,
+                              targets={'propelled_ascent': 'm_empty',
+                                       'ballistic_ascent': 'm_empty',
+                                       'descent': 'mass'},
+                              lower=0, upper=1, scaler=0.1,
+                              opt=True)
+    traj.add_design_parameter('V_b', units='m**3', val=2e-3,
+                             targets={'propelled_ascent': 'V_b'},
+                             opt=False)
+
+    traj.add_design_parameter('S', units='m**2', val=0.005, opt=False)
+    traj.add_design_parameter('A_out', units='m**2', val=np.pi*13e-3**2/4.,
+                             targets={'propelled_ascent': ['water_engine.A_out']},
+                             opt=False)
+
+    return traj, (propelled_ascent, ballistic_ascent, descent)
+
 
 class TestWaterRocketForDocs(unittest.TestCase):
 
@@ -110,59 +167,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.declare_coloring()
 
-        traj = p.model.add_subsystem('traj', dm.Trajectory())
-
-        # Add phases to trajectory
-        propelled_ascent = traj.add_phase('propelled_ascent', new_propelled_ascent_phase())
-        ballistic_ascent = traj.add_phase('ballistic_ascent', new_ballistic_ascent_phase())
-        descent = traj.add_phase('descent', new_descent_phase())
-
-        # Link phases
-        traj.link_phases(phases=['propelled_ascent', 'ballistic_ascent'], vars=['*'])
-        traj.link_phases(phases=['ballistic_ascent', 'descent'], vars=['*'])
-
-        # Set objective function
-        # NOTE: only one objective function must be commented out at any time
-        # Use this line to optimize for height
-        #ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
-        # Use this line to optimize for range
-        descent.add_objective('r', loc='final', scaler=-1.0)
-
-        # Add design parameters to the trajectory.
-        traj.add_design_parameter('CD',
-                                  targets={'propelled_ascent': ['aero.CD'],
-                                           'ballistic_ascent': ['aero.CD'],
-                                           'descent': ['aero.CD']},
-                                  val=0.5, units=None, opt=False)
-        traj.add_design_parameter('CL',
-                                  targets={'propelled_ascent': ['aero.CL'],
-                                           'ballistic_ascent': ['aero.CL'],
-                                           'descent': ['aero.CL']},
-                                  val=0.0, units=None, opt=False)
-        traj.add_design_parameter('T',
-                                  targets={'ballistic_ascent': ['eom.T'],
-                                           'descent': ['eom.T']},
-                                  val=0.0, units='N', opt=False)
-        traj.add_design_parameter('alpha',
-                                  targets={'propelled_ascent': ['eom.alpha'],
-                                           'ballistic_ascent': ['eom.alpha'],
-                                           'descent': ['eom.alpha']},
-                                  val=0.0, units='deg', opt=False)
-
-        traj.add_design_parameter('m_empty', units='kg', val=0.05,
-                                  targets={'propelled_ascent': 'm_empty',
-                                           'ballistic_ascent': 'm_empty',
-                                           'descent': 'mass'},
-                                  lower=0, upper=1, scaler=0.1,
-                                  opt=True)
-        traj.add_design_parameter('V_b', units='m**3', val=2e-3,
-                                 targets={'propelled_ascent': 'V_b'},
-                                 opt=False)
-
-        traj.add_design_parameter('S', units='m**2', val=0.005, opt=False)
-        traj.add_design_parameter('A_out', units='m**2', val=np.pi*13e-3**2/4.,
-                                 targets={'propelled_ascent': ['water_engine.A_out']},
-                                 opt=False)
+        traj, (propelled_ascent, ballistic_ascent, descent) = new_water_rocket_trajectory()
+        traj = p.model.add_subsystem('traj', traj)
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
