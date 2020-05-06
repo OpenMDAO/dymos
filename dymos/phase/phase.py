@@ -16,9 +16,7 @@ from .options import ControlOptionsDictionary, DesignParameterOptionsDictionary,
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
-
-
-_unspecified = object()
+from ..utils.misc import _unspecified
 
 
 class Phase(om.Group):
@@ -253,11 +251,11 @@ class Phase(om.Group):
         if targets is None:  # handle None to explicitly do nothing
             pass
         elif targets is _unspecified:  # [default] was the same as None
+            # TODO: remove deprecation when this is working as described
             warn_deprecation("The default behavior of 'targets=_unspecified' is changing. "
                              "It is currently equivalent to targets=None', but in the future it will try to "
                              "automatically connect to ODE inputs. Set targets=None to retain the old behavior.")
-            # optional target should be connected only if ODE input exists (checked in configure, or setup?)
-            self.state_options[name]['targets'] = ('unspecified:{0}'.format(name),)
+            pass  # optional target should be connected only if ODE input exists (checked in configure)
         elif targets is not _unspecified:  # and not None
             if isinstance(targets, str):
                 self.state_options[name]['targets'] = (targets,)
@@ -1571,10 +1569,10 @@ class Phase(om.Group):
         # check that unspecified options exist in ODE or delete them
         for k, v in self.state_options.items():
             t = v['targets']
-            if t is not None and t[0].startswith('unspecified:'):
-                print('handle ', self.state_options[k]['targets'])
+            if t is _unspecified:
+                print('handle ODE check for ', k)
                 if False:  # TODO: if ODE input exists (how to check?) replace with real target
-                    self.state_options[k]['targets'] = (t[0][len('unspecified:'):],)
+                    self.state_options[k]['targets'] = (k,)
                 else:
                     self.state_options[k]['targets'] = None  # else remove the target
 
