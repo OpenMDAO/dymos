@@ -241,6 +241,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
               'm '.format(p.get_val('traj.descent.timeseries.states:r')[-1, 0]))
         print('maximum height: {0:6.4f} '
               'm '.format(p.get_val('traj.ballistic_ascent.timeseries.states:h')[-1, 0]))
+        print('maximum velocity: {0:6.4f} '
+              'm/s '.format(p.get_val('traj.propelled_ascent.timeseries.states:v')[-1, 0]))
 
         fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
 
