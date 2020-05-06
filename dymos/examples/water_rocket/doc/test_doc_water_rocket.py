@@ -96,6 +96,11 @@ class TestWaterRocketForDocs(unittest.TestCase):
         descent.add_input_parameter('S', targets=['aero.S'], units='m**2')
         descent.add_input_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
 
+        # Set objective function
+        # NOTE: only one objective function must be commented out at any time
+        # Use this line to optimize for height
+        #ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
+        # Use this line to optimize for range
         descent.add_objective('r', loc='final', scaler=-1.0)
 
         # Add internally-managed design parameters to the trajectory.
