@@ -220,9 +220,24 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         p.run_model()
         dm.run_problem(p)
+        self.print_results(p)
         exp_out = traj.simulate()
 
         self.plot_trajectory(p, exp_out)
+
+    def print_results(self, p):
+        print('launch angle: {0:6.4f} '
+              'deg '.format(p.get_val('traj.ballistic_ascent.timeseries.states:gam',  units='deg')[0, 0]))
+        print('empty mass: {0:6.4f} '
+              'kg '.format(p.get_val('traj.design_parameters:m_empty')[0,0]))
+        print('water volume: {0:6.4f} '
+                'L '.format(p.get_val('traj.propelled_ascent.timeseries.states:V_w')[0,0]*1e3))
+        print('maximum range: {0:6.4f} '
+              'm '.format(p.get_val('traj.descent.timeseries.states:r')[-1, 0]))
+        print('maximum height: {0:6.4f} '
+              'm '.format(p.get_val('traj.ballistic_ascent.timeseries.states:h')[-1, 0]))
+        print('maximum velocity: {0:6.4f} '
+              'm/s '.format(p.get_val('traj.propelled_ascent.timeseries.states:v')[-1, 0]))
 
     def plot_trajectory(self, p, exp_out):
         plt.figure()
@@ -255,19 +270,6 @@ class TestWaterRocketForDocs(unittest.TestCase):
         plt.plot(p.get_val('traj.propelled_ascent.timeseries.time'),
                  p.get_val('traj.propelled_ascent.timeseries.states:gam'),'o')
         plt.title('gam')
-
-        print('launch angle: {0:6.4f} '
-              'deg '.format(p.get_val('traj.ballistic_ascent.timeseries.states:gam',  units='deg')[0, 0]))
-        print('empty mass: {0:6.4f} '
-              'kg '.format(p.get_val('traj.design_parameters:m_empty')[0,0]))
-        print('water volume: {0:6.4f} '
-                'L '.format(p.get_val('traj.propelled_ascent.timeseries.states:V_w')[0,0]*1e3))
-        print('maximum range: {0:6.4f} '
-              'm '.format(p.get_val('traj.descent.timeseries.states:r')[-1, 0]))
-        print('maximum height: {0:6.4f} '
-              'm '.format(p.get_val('traj.ballistic_ascent.timeseries.states:h')[-1, 0]))
-        print('maximum velocity: {0:6.4f} '
-              'm/s '.format(p.get_val('traj.propelled_ascent.timeseries.states:v')[-1, 0]))
 
         fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
 
@@ -326,7 +328,6 @@ class TestWaterRocketForDocs(unittest.TestCase):
             axes[i].plot(time_exp['ballistic_ascent'], x_exp['ballistic_ascent'], 'm--')
             axes[i].plot(time_exp['descent'], x_exp['descent'], 'b--')
 
-        plt.show()
         params = ['CL', 'CD', 'T', 'alpha', 'S']
         fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
         for i, param in enumerate(params):
