@@ -38,7 +38,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         propelled_ascent = traj.add_phase('propelled_ascent', propelled_ascent)
 
-        # All initial states except flight path angle are fixed
+        # All initial states except flight path angle and water volume are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
         # Final water volume is fixed (we will set it to zero so that phase ends when bottle empties)
         propelled_ascent.set_time_options(fix_initial=True, duration_bounds=(0, 0.5), duration_ref=0.1, units='s')
