@@ -151,9 +151,6 @@ class PseudospectralBase(TranscriptionBase):
                                      indices=desvar_indices)
 
     def configure_states(self, phase):
-        self.any_solved_segs = False
-        self.any_connected_opt_segs = False
-
         if self.any_solved_segs or self.any_connected_opt_segs:
             for name, options in phase.state_options.items():
                 if options['solve_segments']:
