@@ -16,9 +16,7 @@ from .options import ControlOptionsDictionary, DesignParameterOptionsDictionary,
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
-
-
-_unspecified = object()
+from ..utils.misc import _unspecified
 
 
 class Phase(om.Group):
@@ -253,9 +251,11 @@ class Phase(om.Group):
         if targets is None:  # handle None to explicitly do nothing
             pass
         elif targets is _unspecified:  # [default] was the same as None
+            # TODO: remove deprecation when this is working as described
             warn_deprecation("The default behavior of 'targets=_unspecified' is changing. "
                              "It is currently equivalent to targets=None', but in the future it will try to "
                              "automatically connect to ODE inputs. Set targets=None to retain the old behavior.")
+            pass  # optional target should be connected only if ODE input exists (checked in configure)
         elif targets is not _unspecified:  # and not None
             if isinstance(targets, str):
                 self.state_options[name]['targets'] = (targets,)
@@ -1534,10 +1534,8 @@ class Phase(om.Group):
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
-
         transcription.setup_time(self)
 
-        # The control interpolation comp to which we'll connect controls
         if self.control_options:
             transcription.setup_controls(self)
 
@@ -1560,10 +1558,53 @@ class Phase(om.Group):
         transcription.setup_path_constraints(self)
         transcription.setup_endpoint_conditions(self)
         transcription.setup_objective(self)
-
         transcription.setup_timeseries_outputs(self)
-
         transcription.setup_solvers(self)
+
+    def configure(self):
+        # can't check ODE inputs in setup, soon you will be able to check them for children in configure
+        # need to move connect calls in transcription.setup_controls below to configure so that they
+        # can be skipped for non-ODE unspecified targets
+
+        # check that unspecified options exist in ODE or delete them
+        for k, v in self.state_options.items():
+            t = v['targets']
+            if t is _unspecified:
+                print('handle ODE check for ', k)
+                if False:  # TODO: if ODE input exists (how to check?) replace with real target
+                    self.state_options[k]['targets'] = (k,)
+                else:
+                    self.state_options[k]['targets'] = None  # else remove the target
+
+        # Finalize the variables if it hasn't happened already.
+        # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
+        transcription = self.options['transcription']
+        transcription.configure_time(self)
+
+        # The control interpolation comp to which we'll connect controls
+        if self.control_options:
+            transcription.configure_controls(self)
+
+        if self.polynomial_control_options:
+            transcription.configure_polynomial_controls(self)
+
+        if self.design_parameter_options:
+            transcription.configure_design_parameters(self)
+
+        if self.input_parameter_options:
+            transcription.configure_input_parameters(self)
+
+        transcription.configure_states(self)
+        transcription.configure_ode(self)
+        transcription.configure_defects(self)
+
+        transcription.configure_boundary_constraints('initial', self)
+        transcription.configure_boundary_constraints('final', self)
+        transcription.configure_path_constraints(self)
+        transcription.configure_endpoint_conditions(self)
+        transcription.configure_objective(self)
+        transcription.configure_timeseries_outputs(self)
+        transcription.configure_solvers(self)
 
     def check_time_options(self):
         """

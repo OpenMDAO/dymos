@@ -61,6 +61,9 @@ class RungeKutta(TranscriptionBase):
         phase.nonlinear_solver.options['err_on_non_converge'] = True
         phase.nonlinear_solver.linesearch = om.BoundsEnforceLS()
 
+    def configure_solvers(self, phase):
+        pass
+
     def setup_time(self, phase):
         time_units = phase.time_options['units']
         num_seg = self.options['num_segments']
@@ -83,6 +86,9 @@ class RungeKutta(TranscriptionBase):
                             subsys=h_comp,
                             promotes_inputs=['t_duration'],
                             promotes_outputs=['h'])
+
+    def configure_time(self, phase):
+        grid_data = self.grid_data
 
         if phase.time_options['targets']:
             time_tgts = phase.time_options['targets']
@@ -114,11 +120,6 @@ class RungeKutta(TranscriptionBase):
                           ['ode.{0}'.format(t) for t in time_phase_tgts])
 
     def setup_ode(self, phase):
-
-        num_connected = len([s for s in phase.state_options
-                             if phase.state_options[s]['connected_initial']])
-        promoted_inputs = ['h'] if num_connected == 0 else ['h', 'initial_states:*']
-
         phase.add_subsystem('rk_solve_group',
                             RungeKuttaStateContinuityIterGroup(
                                 num_segments=self.options['num_segments'],
@@ -128,9 +129,7 @@ class RungeKutta(TranscriptionBase):
                                 ode_class=phase.options['ode_class'],
                                 ode_init_kwargs=phase.options['ode_init_kwargs'],
                                 k_solver_class=self.options['k_solver_class'],
-                                k_solver_options=self.options['k_solver_options']),
-                            promotes_inputs=promoted_inputs,
-                            promotes_outputs=['states:*', 'state_predict_comp.predicted_states:*'])
+                                k_solver_options=self.options['k_solver_options']))
 
         # Since the RK Solve group evaluates the ODE at *predicted* state values, we need
         # to instantiate a second ODE group that will call the ODE at the actual integrated
@@ -139,6 +138,14 @@ class RungeKutta(TranscriptionBase):
         phase.add_subsystem('ode',
                             phase.options['ode_class'](num_nodes=2*self.options['num_segments'],
                                                        **phase.options['ode_init_kwargs']))
+
+    def configure_ode(self, phase):
+        num_connected = len([s for s in phase.state_options
+                             if phase.state_options[s]['connected_initial']])
+
+        phase.promotes('rk_solve_group',
+                       inputs=['h'] if num_connected == 0 else ['h', 'initial_states:*'],
+                       outputs=['states:*', 'state_predict_comp.predicted_states:*'])
 
     def _get_rate_source_path(self, state_name, phase, nodes=None, **kwargs):
         try:
@@ -229,27 +236,6 @@ class RungeKutta(TranscriptionBase):
             shape = options['shape']
             size = np.prod(shape)
 
-            # Connect the states at the segment ends to the final ODE instance.
-            row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
-            row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
-            src_idxs = get_src_indices_by_row(row_idxs, shape)
-
-            if shape == (1,):
-                src_idxs = src_idxs.ravel()
-
-            if options['targets']:
-                phase.connect('states:{0}'.format(state_name),
-                              ['ode.{0}'.format(tgt) for tgt in options['targets']],
-                              src_indices=src_idxs, flat_src_indices=True)
-
-            # Connect the state rate source to the k comp
-            rate_path, src_idxs = self._get_rate_source_path(state_name, phase)
-
-            phase.connect(rate_path,
-                          'rk_solve_group.k_comp.f:{0}'.format(state_name),
-                          src_indices=src_idxs,
-                          flat_src_indices=True)
-
             if options['opt']:
                 # Set the desvar indices accordingly
                 desvar_indices = list(range(size))
@@ -297,8 +283,37 @@ class RungeKutta(TranscriptionBase):
                                          ref=coerce_desvar_option('ref'),
                                          indices=desvar_indices)
 
+    def configure_states(self, phase):
+        num_seg = self.options['num_segments']
+
+        for state_name, options in phase.state_options.items():
+            shape = options['shape']
+
+            # Connect the states at the segment ends to the final ODE instance.
+            row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
+            row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
+            src_idxs = get_src_indices_by_row(row_idxs, shape)
+
+            if shape == (1,):
+                src_idxs = src_idxs.ravel()
+
+            if options['targets']:
+                phase.connect('states:{0}'.format(state_name),
+                              ['ode.{0}'.format(tgt) for tgt in options['targets']],
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            # Connect the state rate source to the k comp
+            rate_path, src_idxs = self._get_rate_source_path(state_name, phase)
+
+            phase.connect(rate_path,
+                          'rk_solve_group.k_comp.f:{0}'.format(state_name),
+                          src_indices=src_idxs,
+                          flat_src_indices=True)
+
     def setup_controls(self, phase):
         super(RungeKutta, self).setup_controls(phase)
+
+    def configure_controls(self, phase):
         grid_data = self.grid_data
 
         for name, options in phase.control_options.items():
@@ -349,6 +364,8 @@ class RungeKutta(TranscriptionBase):
 
     def setup_polynomial_controls(self, phase):
         super(RungeKutta, self).setup_polynomial_controls(phase)
+
+    def configure_polynomial_controls(self, phase):
         grid_data = self.grid_data
 
         for name, options in phase.polynomial_control_options.items():
@@ -418,6 +435,12 @@ class RungeKutta(TranscriptionBase):
                                                                 time_units=time_units),
                                 promotes_inputs=['t_duration'])
 
+    def configure_defects(self, phase):
+        grid_data = self.grid_data
+        num_seg = grid_data.num_segments
+
+        # Add the continuity constraint component if necessary
+        if num_seg > 1 and phase.control_options:
             for name, options in phase.control_options.items():
                 # The sub-indices of control_disc indices that are segment ends
                 segment_end_idxs = grid_data.subset_node_indices['segment_ends']
@@ -436,7 +459,6 @@ class RungeKutta(TranscriptionBase):
                               src_indices=src_idxs, flat_src_indices=True)
 
     def setup_endpoint_conditions(self, phase):
-
         jump_comp = phase.add_subsystem('indep_jumps', subsys=om.IndepVarComp(),
                                         promotes_outputs=['*'])
 
@@ -460,14 +482,7 @@ class RungeKutta(TranscriptionBase):
 
         phase.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
 
-        phase.connect('time', 'initial_conditions.initial_value:time')
-        phase.connect('time', 'final_conditions.final_value:time')
-        phase.connect('initial_jump:time', 'initial_conditions.initial_jump:time')
-        phase.connect('final_jump:time', 'final_conditions.final_jump:time')
-
         for state_name, options in phase.state_options.items():
-            size = np.prod(options['shape'])
-            ar = np.arange(size)
 
             jump_comp.add_output('initial_jump:{0}'.format(state_name),
                                  val=np.zeros(options['shape']),
@@ -480,6 +495,32 @@ class RungeKutta(TranscriptionBase):
                                  units=options['units'],
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(state_name))
+
+        for control_name, options in phase.control_options.items():
+            size = np.prod(options['shape'])
+            ar = np.arange(size)
+
+            jump_comp.add_output('initial_jump:{0}'.format(control_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'start of the phase'.format(control_name))
+
+            jump_comp.add_output('final_jump:{0}'.format(control_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'end of the phase'.format(control_name))
+
+    def configure_endpoint_conditions(self, phase):
+        phase.connect('time', 'initial_conditions.initial_value:time')
+        phase.connect('time', 'final_conditions.final_value:time')
+        phase.connect('initial_jump:time', 'initial_conditions.initial_jump:time')
+        phase.connect('final_jump:time', 'final_conditions.final_jump:time')
+
+        for state_name, options in phase.state_options.items():
+            size = np.prod(options['shape'])
+            ar = np.arange(size)
 
             phase.connect('states:{0}'.format(state_name),
                           'initial_conditions.initial_value:{0}'.format(state_name))
@@ -498,18 +539,6 @@ class RungeKutta(TranscriptionBase):
         for control_name, options in phase.control_options.items():
             size = np.prod(options['shape'])
             ar = np.arange(size)
-
-            jump_comp.add_output('initial_jump:{0}'.format(control_name),
-                                 val=np.zeros(options['shape']),
-                                 units=options['units'],
-                                 desc='discontinuity in {0} at the '
-                                      'start of the phase'.format(control_name))
-
-            jump_comp.add_output('final_jump:{0}'.format(control_name),
-                                 val=np.zeros(options['shape']),
-                                 units=options['units'],
-                                 desc='discontinuity in {0} at the '
-                                      'end of the phase'.format(control_name))
 
             phase.connect('control_values:{0}'.format(control_name),
                           'initial_conditions.initial_value:{0}'.format(control_name))
@@ -533,7 +562,6 @@ class RungeKutta(TranscriptionBase):
         path_comp = None
         gd = self.grid_data
         time_units = phase.time_options['units']
-        num_seg = gd.num_segments
 
         if phase._path_constraints:
             path_comp = PathConstraintComp(num_nodes=gd.subset_num_nodes['segment_ends'])
@@ -553,28 +581,18 @@ class RungeKutta(TranscriptionBase):
                 options['shape'] = (1,)
                 options['units'] = time_units if con_units is None else con_units
                 options['linear'] = True
-                phase.connect(src_name='time',
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                              src_indices=self.grid_data.subset_node_indices['segment_ends'])
+
             elif var_type == 'time_phase':
                 options['shape'] = (1,)
                 options['units'] = time_units if con_units is None else con_units
                 options['linear'] = True
-                phase.connect(src_name='time_phase',
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                              src_indices=self.grid_data.subset_node_indices['segment_ends'])
+
             elif var_type == 'state':
                 state_shape = phase.state_options[var]['shape']
                 state_units = phase.state_options[var]['units']
                 options['shape'] = state_shape
                 options['units'] = state_units if con_units is None else con_units
                 options['linear'] = False
-                row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
-                row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
-                src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
-                phase.connect('states:{0}'.format(var),
-                              'path_constraints.all_values:{0}'.format(var),
-                              src_indices=src_idxs, flat_src_indices=True)
 
             elif var_type in ('indep_control', 'input_control'):
                 control_shape = phase.control_options[var]['shape']
@@ -583,32 +601,12 @@ class RungeKutta(TranscriptionBase):
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = True if var_type == 'indep_control' else False
 
-                src_rows = self.grid_data.subset_node_indices['segment_ends']
-                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
-
-                src = 'control_values:{0}'.format(var)
-
-                tgt = 'path_constraints.all_values:{0}'.format(con_name)
-
-                phase.connect(src_name=src, tgt_name=tgt,
-                              src_indices=src_idxs, flat_src_indices=True)
-
             elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
                 control_shape = phase.polynomial_control_options[var]['shape']
                 control_units = phase.polynomial_control_options[var]['units']
                 options['shape'] = control_shape
                 options['units'] = control_units if con_units is None else con_units
                 options['linear'] = False
-
-                src_rows = self.grid_data.subset_node_indices['segment_ends']
-                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
-
-                src = 'polynomial_control_values:{0}'.format(var)
-
-                tgt = 'path_constraints.all_values:{0}'.format(con_name)
-
-                phase.connect(src_name=src, tgt_name=tgt,
-                              src_indices=src_idxs, flat_src_indices=True)
 
             elif var_type in ('control_rate', 'control_rate2'):
                 if var.endswith('_rate'):
@@ -628,16 +626,6 @@ class RungeKutta(TranscriptionBase):
 
                 options['linear'] = False
 
-                src_rows = self.grid_data.subset_node_indices['segment_ends']
-                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
-
-                src = 'control_rates:{0}'.format(var)
-
-                tgt = 'path_constraints.all_values:{0}'.format(con_name)
-
-                phase.connect(src_name=src, tgt_name=tgt,
-                              src_indices=src_idxs, flat_src_indices=True)
-
             elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
                 if var.endswith('_rate'):
                     control_name = var[:-5]
@@ -656,16 +644,6 @@ class RungeKutta(TranscriptionBase):
 
                 options['linear'] = False
 
-                src_rows = self.grid_data.subset_node_indices['segment_ends']
-                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
-
-                src = 'polynomial_control_rates:{0}'.format(var)
-
-                tgt = 'path_constraints.all_values:{0}'.format(con_name)
-
-                phase.connect(src_name=src, tgt_name=tgt,
-                              src_indices=src_idxs, flat_src_indices=True)
-
             else:
                 # Failed to find variable, assume it is in the ODE
                 options['linear'] = False
@@ -673,6 +651,84 @@ class RungeKutta(TranscriptionBase):
                 if options['shape'] is None:
                     options['shape'] = (1,)
 
+            kwargs = options.copy()
+            kwargs.pop('constraint_name', None)
+            path_comp._add_path_constraint(con_name, var_type, **kwargs)
+
+    def configure_path_constraints(self, phase):
+        gd = self.grid_data
+        num_seg = gd.num_segments
+
+        for var, options in phase._path_constraints.items():
+            con_name = options['constraint_name']
+
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = phase.classify_var(var)
+
+            if var_type == 'time':
+                phase.connect(src_name='time',
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                              src_indices=self.grid_data.subset_node_indices['segment_ends'])
+
+            elif var_type == 'time_phase':
+                phase.connect(src_name='time_phase',
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                              src_indices=self.grid_data.subset_node_indices['segment_ends'])
+
+            elif var_type == 'state':
+                row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
+                row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
+                src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
+
+                phase.connect('states:{0}'.format(var),
+                              'path_constraints.all_values:{0}'.format(var),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            elif var_type in ('indep_control', 'input_control'):
+                src_rows = self.grid_data.subset_node_indices['segment_ends']
+                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
+
+                src = 'control_values:{0}'.format(var)
+                tgt = 'path_constraints.all_values:{0}'.format(con_name)
+
+                phase.connect(src_name=src, tgt_name=tgt,
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
+                src_rows = self.grid_data.subset_node_indices['segment_ends']
+                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
+
+                src = 'polynomial_control_values:{0}'.format(var)
+                tgt = 'path_constraints.all_values:{0}'.format(con_name)
+
+                phase.connect(src_name=src, tgt_name=tgt,
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            elif var_type in ('control_rate', 'control_rate2'):
+                src_rows = self.grid_data.subset_node_indices['segment_ends']
+                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
+
+                src = 'control_rates:{0}'.format(var)
+                tgt = 'path_constraints.all_values:{0}'.format(con_name)
+
+                phase.connect(src_name=src, tgt_name=tgt,
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
+                src_rows = self.grid_data.subset_node_indices['segment_ends']
+                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
+
+                src = 'polynomial_control_rates:{0}'.format(var)
+                tgt = 'path_constraints.all_values:{0}'.format(con_name)
+
+                phase.connect(src_name=src, tgt_name=tgt,
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            else:
+                # Failed to find variable, assume it is in the ODE
                 src_rows = np.arange(num_seg * 2, dtype=int)
                 src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
 
@@ -682,14 +738,8 @@ class RungeKutta(TranscriptionBase):
                 phase.connect(src_name=src, tgt_name=tgt,
                               src_indices=src_idxs, flat_src_indices=True)
 
-            kwargs = options.copy()
-            kwargs.pop('constraint_name', None)
-            path_comp._add_path_constraint(con_name, var_type, **kwargs)
-
     def setup_timeseries_outputs(self, phase):
-
         gd = self.grid_data
-        num_seg = gd.num_segments
         time_units = phase.time_options['units']
 
         for name, options in phase._timeseries.items():
@@ -703,31 +753,20 @@ class RungeKutta(TranscriptionBase):
                                                              output_grid_data=ogd,
                                                              output_subset=options['subset'])
             phase.add_subsystem(name, subsys=timeseries_comp)
-            src_idxs = get_src_indices_by_row(gd.subset_node_indices['segment_ends'], (1,))
 
             timeseries_comp._add_timeseries_output('time',
                                                    var_class=phase.classify_var('time'),
                                                    units=time_units)
-            phase.connect(src_name='time', tgt_name='{0}.input_values:time'.format(name),
-                          src_indices=src_idxs, flat_src_indices=True)
 
             timeseries_comp._add_timeseries_output('time_phase',
                                                    var_class=phase.classify_var('time_phase'),
                                                    units=time_units)
-            phase.connect(src_name='time_phase', tgt_name='{0}.input_values:time_phase'.format(name),
-                          src_indices=src_idxs, flat_src_indices=True)
 
             for state_name, options in phase.state_options.items():
                 timeseries_comp._add_timeseries_output('states:{0}'.format(state_name),
                                                        var_class=phase.classify_var(state_name),
                                                        shape=options['shape'],
                                                        units=options['units'])
-                row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
-                row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
-                src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
-                phase.connect(src_name='states:{0}'.format(state_name),
-                              tgt_name='{0}.input_values:states:{1}'.format(name, state_name),
-                              src_indices=src_idxs, flat_src_indices=True)
 
             for control_name, options in phase.control_options.items():
                 control_units = options['units']
@@ -735,22 +774,14 @@ class RungeKutta(TranscriptionBase):
                                                        var_class=phase.classify_var(control_name),
                                                        shape=options['shape'],
                                                        units=control_units)
-                src_rows = gd.subset_node_indices['segment_ends']
-                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
-                phase.connect(src_name='control_values:{0}'.format(control_name),
-                              tgt_name='{0}.input_values:controls:{1}'.format(name, control_name),
-                              src_indices=src_idxs, flat_src_indices=True)
 
-                # # Control rates
+                # Control rates
                 timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(control_name),
                                                        var_class=phase.classify_var(control_name),
                                                        shape=options['shape'],
                                                        units=get_rate_units(control_units,
                                                                             time_units,
                                                                             deriv=1))
-                phase.connect(src_name='control_rates:{0}_rate'.format(control_name),
-                              tgt_name='{0}.input_values:control_rates:{1}_rate'.format(name, control_name),
-                              src_indices=src_idxs, flat_src_indices=True)
 
                 # Control second derivatives
                 timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(control_name),
@@ -759,9 +790,6 @@ class RungeKutta(TranscriptionBase):
                                                        units=get_rate_units(control_units,
                                                                             time_units,
                                                                             deriv=2))
-                phase.connect(src_name='control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='{0}.input_values:control_rates:{1}_rate2'.format(name, control_name),
-                              src_indices=src_idxs, flat_src_indices=True)
 
             for control_name, options in phase.polynomial_control_options.items():
                 control_units = options['units']
@@ -769,23 +797,14 @@ class RungeKutta(TranscriptionBase):
                                                        var_class=phase.classify_var(control_name),
                                                        shape=options['shape'],
                                                        units=control_units)
-                src_rows = gd.subset_node_indices['segment_ends']
-                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
-                phase.connect(src_name='polynomial_control_values:{0}'.format(control_name),
-                              tgt_name='{0}.input_values:polynomial_controls:{1}'.format(name, control_name),
-                              src_indices=src_idxs, flat_src_indices=True)
 
-                # # Control rates
+                # Control rates
                 timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(control_name),
                                                        var_class=phase.classify_var(control_name),
                                                        shape=options['shape'],
                                                        units=get_rate_units(control_units,
                                                                             time_units,
                                                                             deriv=1))
-                phase.connect(src_name='polynomial_control_rates:{0}_rate'.format(control_name),
-                              tgt_name='{0}.input_values:polynomial_control_rates'
-                                       ':{1}_rate'.format(name, control_name),
-                              src_indices=src_idxs, flat_src_indices=True)
 
                 # Control second derivatives
                 timeseries_comp._add_timeseries_output('polynomial_control_rates:'
@@ -795,10 +814,6 @@ class RungeKutta(TranscriptionBase):
                                                        units=get_rate_units(control_units,
                                                                             time_units,
                                                                             deriv=2))
-                phase.connect(src_name='polynomial_control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='{0}.input_values:polynomial_control_rates'
-                                       ':{1}_rate2'.format(name, control_name),
-                              src_indices=src_idxs, flat_src_indices=True)
 
             for param_name, options in phase.design_parameter_options.items():
                 if options['include_timeseries']:
@@ -808,6 +823,93 @@ class RungeKutta(TranscriptionBase):
                                                            shape=options['shape'],
                                                            units=units)
 
+            for param_name, options in phase.input_parameter_options.items():
+                if options['include_timeseries']:
+                    units = options['units']
+                    timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
+                                                           var_class=phase.classify_var(param_name),
+                                                           units=units)
+
+            for var, options in phase._timeseries[name]['outputs'].items():
+                output_name = options['output_name']
+
+                # Determine the path to the variable which we will be constraining
+                # This is more complicated for path constraints since, for instance,
+                # a single state variable has two sources which must be connected to
+                # the path component.
+                var_type = phase.classify_var(var)
+
+                # Ignore any variables that we've already added (states, times, controls, etc)
+                if var_type != 'ode':
+                    continue
+
+                # Assume scalar shape if None, but check config will warn that it's inferred.
+                if options['shape'] is None:
+                    options['shape'] = (1,)
+
+                kwargs = options.copy()
+                kwargs.pop('output_name', None)
+                timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
+
+    def configure_timeseries_outputs(self, phase):
+        gd = self.grid_data
+        num_seg = gd.num_segments
+
+        for name, options in phase._timeseries.items():
+            src_idxs = get_src_indices_by_row(gd.subset_node_indices['segment_ends'], (1,))
+
+            phase.connect(src_name='time', tgt_name='{0}.input_values:time'.format(name),
+                          src_indices=src_idxs, flat_src_indices=True)
+
+            phase.connect(src_name='time_phase', tgt_name='{0}.input_values:time_phase'.format(name),
+                          src_indices=src_idxs, flat_src_indices=True)
+
+            for state_name, options in phase.state_options.items():
+                row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
+                row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
+                src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
+                phase.connect(src_name='states:{0}'.format(state_name),
+                              tgt_name='{0}.input_values:states:{1}'.format(name, state_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            for control_name, options in phase.control_options.items():
+                src_rows = gd.subset_node_indices['segment_ends']
+                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
+                phase.connect(src_name='control_values:{0}'.format(control_name),
+                              tgt_name='{0}.input_values:controls:{1}'.format(name, control_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+                # Control rates
+                phase.connect(src_name='control_rates:{0}_rate'.format(control_name),
+                              tgt_name='{0}.input_values:control_rates:{1}_rate'.format(name, control_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+                # Control second derivatives
+                phase.connect(src_name='control_rates:{0}_rate2'.format(control_name),
+                              tgt_name='{0}.input_values:control_rates:{1}_rate2'.format(name, control_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            for control_name, options in phase.polynomial_control_options.items():
+                src_rows = gd.subset_node_indices['segment_ends']
+                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
+                phase.connect(src_name='polynomial_control_values:{0}'.format(control_name),
+                              tgt_name='{0}.input_values:polynomial_controls:{1}'.format(name, control_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+                # Control rates
+                phase.connect(src_name='polynomial_control_rates:{0}_rate'.format(control_name),
+                              tgt_name='{0}.input_values:polynomial_control_rates'
+                                       ':{1}_rate'.format(name, control_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+                # Control second derivatives
+                phase.connect(src_name='polynomial_control_rates:{0}_rate2'.format(control_name),
+                              tgt_name='{0}.input_values:polynomial_control_rates'
+                                       ':{1}_rate2'.format(name, control_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            for param_name, options in phase.design_parameter_options.items():
+                if options['include_timeseries']:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
@@ -817,11 +919,6 @@ class RungeKutta(TranscriptionBase):
 
             for param_name, options in phase.input_parameter_options.items():
                 if options['include_timeseries']:
-                    units = options['units']
-                    timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
-                                                           var_class=phase.classify_var(param_name),
-                                                           units=units)
-
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
@@ -849,10 +946,6 @@ class RungeKutta(TranscriptionBase):
                 # Failed to find variable, assume it is in the RHS
                 phase.connect(src_name='ode.{0}'.format(var),
                               tgt_name='{0}.input_values:{1}'.format(name, output_name))
-
-                kwargs = options.copy()
-                kwargs.pop('output_name', None)
-                timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
 
     def get_parameter_connections(self, name, phase):
         """

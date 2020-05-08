@@ -2,6 +2,8 @@ import sys
 
 import numpy as np
 
+_unspecified = object()
+
 
 def get_rate_units(units, time_units, deriv=1):
     """
