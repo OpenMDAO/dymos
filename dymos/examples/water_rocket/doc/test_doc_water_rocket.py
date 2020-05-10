@@ -173,7 +173,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
 
-        p.driver.add_recorder(om.SqliteRecorder('ex_water_rocket.db'))
+        #p.driver.add_recorder(om.SqliteRecorder('ex_water_rocket.db'))
 
         p.setup()
 
