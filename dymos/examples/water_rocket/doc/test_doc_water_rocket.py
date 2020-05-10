@@ -15,7 +15,7 @@ from dymos.examples.water_rocket.water_propulsion_ode import WaterPropulsionODE
 
 
 def new_propelled_ascent_phase():
-    transcription = dm.Radau(num_segments=5, order=3, compressed=True)
+    transcription = dm.GaussLobatto(num_segments=3, order=15, compressed=False)
     propelled_ascent = CannonballPhase(ode_class=WaterPropulsionODE,
                                        transcription=transcription)
 
@@ -191,7 +191,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
                   propelled_ascent.interpolate(ys=[0, 10], nodes='state_input'))
         #set initial value for velocity as non-zero to avoid undefined EOM
         p.set_val('traj.propelled_ascent.states:v',
-                  propelled_ascent.interpolate(ys=[1e-3, 100], nodes='state_input'))
+                  propelled_ascent.interpolate(ys=[0.1, 100], nodes='state_input'))
         p.set_val('traj.propelled_ascent.states:gam',
                   propelled_ascent.interpolate(ys=[80, 80], nodes='state_input'),
                   units='deg')
