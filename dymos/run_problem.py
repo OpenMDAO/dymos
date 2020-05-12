@@ -33,10 +33,10 @@ def modify_problem(problem, restart=None, reset_grid=False):
         pass  # OK if old database is not present to be deleted
 
     print('adding recorder at:', save_db)
-    problem.driver.add_recorder(om.SqliteRecorder(save_db))
-    problem.driver.recording_options['includes'] = ['*']
-    problem.driver.recording_options['record_inputs'] = True
-    # problem.record_iteration('final')    # TODO: not working to save only last iteration?
+    problem.add_recorder(om.SqliteRecorder(save_db))
+    problem.recording_options['includes'] = ['*']
+    problem.recording_options['record_inputs'] = True
+    problem.record('final')
 
     # if opts.get('reset_grid'):  # TODO: implement this option
     #     pass
