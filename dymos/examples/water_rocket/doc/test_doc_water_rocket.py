@@ -123,7 +123,7 @@ def new_water_rocket_trajectory():
                               targets={'propelled_ascent': ['aero.CD'],
                                        'ballistic_ascent': ['aero.CD'],
                                        'descent': ['aero.CD']},
-                              val=0.5, units=None, opt=False)
+                              val=0.3450, units=None, opt=False)
     traj.add_design_parameter('CL',
                               targets={'propelled_ascent': ['aero.CL'],
                                        'ballistic_ascent': ['aero.CL'],
@@ -143,16 +143,18 @@ def new_water_rocket_trajectory():
                               targets={'propelled_ascent': 'm_empty',
                                        'ballistic_ascent': 'm_empty',
                                        'descent': 'mass'},
-                              lower=0, upper=1, scaler=0.1,
+                              lower=0, upper=1, ref=0.1,
                               opt=True)
     traj.add_design_parameter('V_b', units='m**3', val=2e-3,
                              targets={'propelled_ascent': 'V_b'},
                              opt=False)
 
-    traj.add_design_parameter('S', units='m**2', val=0.005, opt=False)
-    traj.add_design_parameter('A_out', units='m**2', val=np.pi*13e-3**2/4.,
+    traj.add_design_parameter('S', units='m**2', val=np.pi*106e-3**2/4, opt=False)
+    traj.add_design_parameter('A_out', units='m**2', val=np.pi*22e-3**2/4.,
                              targets={'propelled_ascent': ['water_engine.A_out']},
                              opt=False)
+    traj.add_design_parameter('k', units=None, val=1.2, opt=False,
+            targets={'propelled_ascent': ['water_engine.k']})
 
     return traj, (propelled_ascent, ballistic_ascent, descent)
 
@@ -178,10 +180,6 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.setup()
 
         # Set Initial Guesses
-        p.set_val('traj.design_parameters:CD', 0.5)
-        p.set_val('traj.design_parameters:CL', 0.0)
-        p.set_val('traj.design_parameters:T', 0.0)
-
         p.set_val('traj.propelled_ascent.t_initial', 0.0)
         p.set_val('traj.propelled_ascent.t_duration', 0.3)
 
