@@ -36,7 +36,6 @@ def modify_problem(problem, restart=None, reset_grid=False):
     problem.add_recorder(om.SqliteRecorder(save_db))
     problem.recording_options['includes'] = ['*']
     problem.recording_options['record_inputs'] = True
-    problem.record('final')
 
     # if opts.get('reset_grid'):  # TODO: implement this option
     #     pass
@@ -44,27 +43,31 @@ def modify_problem(problem, restart=None, reset_grid=False):
     if restart is not None:  # restore variables from database file specified by 'restart'
         print('Restarting run_problem using the %s database.' % restart)
         cr = om.CaseReader(restart)
-        cases = cr.list_cases()
-        if len(cases) < 1:
-            print('WARNING: the requested %s database file does not have any cases to load.' % restart)
+
+        # find the proper case
+        try:
+            case = cr.get_case('final')
+        except RuntimeError:
+            cases = cr.list_cases()
+            if len(cases) < 1:
+                print('WARNING: the requested %s database file does not have any cases to load.' % restart)
+                return
+            case = cr.get_case(cases[-1])  # use last case, ideally it should be the only one
+
+        check_simulation = cr.problem_metadata['driver']['name'] == 'Driver'
+        if check_simulation:
+            prev_soln = {'inputs':  case.list_inputs(out_stream=None,  units=True, prom_name=True),
+                         'outputs': case.list_outputs(out_stream=None, units=True, prom_name=True)}
+
+            load_case(problem, prev_soln)
         else:
-            case = cr.get_case(cases[-1])  # TODO: use last case, ideally it should be the only one, but there are many
+            # Initialize the system with values from the case.
+            # We unnecessarily call setup again just to make sure we obliterate the previous solution
+            # First reset the connections at the top level model until fixed in OpenMDAO
+            problem.setup()
 
-            # identify database as a simulation output and not a solution recording, based on the content
-            check_simulation = cr.problem_metadata['driver']['name'] == 'Driver'
-            if check_simulation:
-                prev_soln = {'inputs':  case.list_inputs(out_stream=None,  units=True, prom_name=True),
-                             'outputs': case.list_outputs(out_stream=None, units=True, prom_name=True)}
-
-                load_case(problem, prev_soln)
-            else:
-                # Initialize the system with values from the case.
-                # We unnecessarily call setup again just to make sure we obliterate the previous solution
-                # First reset the connections at the top level model until fixed in OpenMDAO
-                problem.setup()
-
-                # Load the values from the previous solution
-                load_case(problem, case)
+            # Load the values from the previous solution
+            load_case(problem, case)
 
 
 def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=True, simulate=False, no_iterate=False):
@@ -97,6 +100,8 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
         problem.run_driver()
     else:
         problem.run_model()
+
+    problem.record('final')  # save case for potential restart
 
     if refine and refine_iteration_limit > 0 and run_driver:
         out_file = 'grid_refinement.out'
