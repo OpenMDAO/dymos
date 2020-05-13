@@ -15,7 +15,7 @@ from dymos.examples.water_rocket.water_propulsion_ode import WaterPropulsionODE
 
 
 def new_propelled_ascent_phase():
-    transcription = dm.GaussLobatto(num_segments=3, order=15, compressed=False)
+    transcription = dm.GaussLobatto(num_segments=5, order=9, compressed=False)
     propelled_ascent = CannonballPhase(ode_class=WaterPropulsionODE,
                                        transcription=transcription)
 
@@ -35,11 +35,11 @@ def new_propelled_ascent_phase():
     propelled_ascent.set_state_options(
         'h', fix_initial=True, fix_final=False)
     propelled_ascent.set_state_options(
-        'gam', fix_initial=False, fix_final=False)
+        'gam', fix_initial=False, fix_final=False, lower=0, upper=89, units='deg')
     propelled_ascent.set_state_options(
         'v', fix_initial=True, fix_final=False)
     propelled_ascent.set_state_options(
-        'V_w', fix_initial=False, fix_final=True)
+        'V_w', fix_initial=True, fix_final=True)
     propelled_ascent.set_state_options(
         'p', fix_initial=True, fix_final=False)
 
@@ -69,7 +69,7 @@ def new_ballistic_ascent_phase():
     ballistic_ascent.set_state_options(
         'h', fix_initial=False, fix_final=False)
     ballistic_ascent.set_state_options(
-        'gam', fix_initial=False, fix_final=True)
+        'gam', fix_initial=False, fix_final=True, upper=89, units='deg')
     ballistic_ascent.set_state_options(
         'v', fix_initial=False, fix_final=False)
 
@@ -114,9 +114,9 @@ def new_water_rocket_trajectory():
     # Set objective function
     # NOTE: only one objective function must be commented out at any time
     # Use this line to optimize for height
-    #ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
+    ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
     # Use this line to optimize for range
-    descent.add_objective('r', loc='final', scaler=-1.0)
+    #descent.add_objective('r', loc='final', scaler=-1.0)
 
     # Add design parameters to the trajectory.
     traj.add_design_parameter('CD',
@@ -144,7 +144,7 @@ def new_water_rocket_trajectory():
                                        'ballistic_ascent': 'm_empty',
                                        'descent': 'mass'},
                               lower=0, upper=1, ref=0.1,
-                              opt=True)
+                              opt=False)
     traj.add_design_parameter('V_b', units='m**3', val=2e-3,
                              targets={'propelled_ascent': 'V_b'},
                              opt=False)
@@ -222,9 +222,23 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45], nodes='state_input'),
                   units='deg')
 
-        p.run_model()
-        dm.run_problem(p)
-        self.print_results(p)
+        m_empty_vals = np.linspace(0.05,0.3,100)
+        V_w_vals = np.linspace(0.5e-3, 1.5e-3, 100)
+        results = []
+        for V_w in V_w_vals:
+            p.set_val('traj.propelled_ascent.states:V_w', propelled_ascent.interpolate( ys=[V_w, 0], nodes='state_input'), units='m**3')
+
+            for m_empty in m_empty_vals:
+                p.set_val('traj.design_parameters:m_empty', m_empty)
+                p.run_driver()
+                results.append((V_w, m_empty, p.get_val('traj.ballistic_ascent.timeseries.states:h')[-1, 0]))
+                self.print_results(p)
+            m_empty_vals=list(reversed(m_empty_vals))
+
+        import pandas as pd
+        results_df = pd.DataFrame(data=results, columns=['V_w', 'm_empty', 'h_max'])
+        results_df.to_csv('results.csv')
+
         exp_out = traj.simulate()
 
         self.plot_trajectory(p, exp_out)
