@@ -14,11 +14,9 @@ from dymos.examples.cannonball.cannonball_phase import CannonballPhase
 from dymos.examples.water_rocket.water_propulsion_ode import WaterPropulsionODE
 
 
-#transcription = dm.GaussLobatto(num_segments=1, order=45, compressed=False)
-#transcription = dm.GaussLobatto(num_segments=1, order=27, compressed=False)
-transcription = dm.GaussLobatto(num_segments=5, order=9, compressed=False)
-#transcription = dm.GaussLobatto(num_segments=9, order=5, compressed=False)
-#transcription = dm.GaussLobatto(num_segments=15, order=3, compressed=False)
+transcription = dm.GaussLobatto(num_segments=1, order=21, compressed=False)
+#transcription = dm.GaussLobatto(num_segments=3, order=7, compressed=False)
+#transcription = dm.GaussLobatto(num_segments=7, order=3, compressed=False)
 def new_propelled_ascent_phase():
     propelled_ascent = CannonballPhase(ode_class=WaterPropulsionODE,
                                        transcription=transcription)
