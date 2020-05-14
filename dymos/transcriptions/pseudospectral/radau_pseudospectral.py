@@ -461,7 +461,6 @@ class Radau(PseudospectralBase):
 
     def configure_timeseries_outputs(self, phase):
         gd = self.grid_data
-        time_units = phase.time_options['units']
 
         for name, options in phase._timeseries.items():
             phase.connect(src_name='time', tgt_name='{0}.input_values:time'.format(name))
@@ -481,7 +480,6 @@ class Radau(PseudospectralBase):
                               src_indices=src_idxs, flat_src_indices=True)
 
             for control_name, options in phase.control_options.items():
-                control_units = options['units']
                 src_rows = gd.subset_node_indices['all']
                 src_idxs = get_src_indices_by_row(src_rows, options['shape'])
                 phase.connect(src_name='control_values:{0}'.format(control_name),
@@ -497,7 +495,6 @@ class Radau(PseudospectralBase):
                               tgt_name='{0}.input_values:control_rates:{1}_rate2'.format(name, control_name))
 
             for control_name, options in phase.polynomial_control_options.items():
-                control_units = options['units']
                 src_rows = gd.subset_node_indices['all']
                 src_idxs = get_src_indices_by_row(src_rows, options['shape'])
                 phase.connect(src_name='polynomial_control_values:{0}'.format(control_name),

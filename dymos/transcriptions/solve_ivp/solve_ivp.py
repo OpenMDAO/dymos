@@ -364,6 +364,11 @@ class SolveIVP(TranscriptionBase):
                                                    shape=options['shape'],
                                                    units=options['units'])
 
+            timeseries_comp._add_timeseries_output('state_rates:{0}'.format(name),
+                                                   var_class=phase.classify_var(options['rate_source']),
+                                                   shape=options['shape'],
+                                                   units=get_rate_units(options['units'], time_units, deriv=1))
+
         for name, options in phase.control_options.items():
             control_units = options['units']
             timeseries_comp._add_timeseries_output('controls:{0}'.format(name),
@@ -371,7 +376,7 @@ class SolveIVP(TranscriptionBase):
                                                    shape=options['shape'],
                                                    units=control_units)
 
-            # # Control rates
+            # Control rates
             timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(name),
                                                    var_class=phase.classify_var(name),
                                                    shape=options['shape'],
@@ -447,12 +452,7 @@ class SolveIVP(TranscriptionBase):
     def configure_timeseries_outputs(self, phase):
         gd = self.grid_data
         num_seg = gd.num_segments
-        time_units = phase.time_options['units']
         output_nodes_per_seg = self.options['output_nodes_per_seg']
-
-        timeseries_comp = \
-            SolveIVPTimeseriesOutputComp(input_grid_data=gd,
-                                         output_nodes_per_seg=self.options['output_nodes_per_seg'])
 
         phase.connect(src_name='time', tgt_name='timeseries.all_values:time')
 
@@ -461,6 +461,9 @@ class SolveIVP(TranscriptionBase):
         for name, options in phase.state_options.items():
             phase.connect(src_name='state_mux_comp.states:{0}'.format(name),
                           tgt_name='timeseries.all_values:states:{0}'.format(name))
+
+            phase.connect(src_name=self.get_rate_source_path(name, phase),
+                          tgt_name='timeseries.all_values:state_rates:{0}'.format(name))
 
         for name, options in phase.control_options.items():
             phase.connect(src_name='control_values:{0}'.format(name),
@@ -582,3 +585,37 @@ class SolveIVP(TranscriptionBase):
 
     def _get_boundary_constraint_src(self, var, loc):
         pass
+
+    def get_rate_source_path(self, state_var, phase):
+        var = phase.state_options[state_var]['rate_source']
+
+        if var == 'time':
+            rate_path = 'time'
+        elif var == 'time_phase':
+            rate_path = 'time_phase'
+        elif phase.state_options is not None and var in phase.state_options:
+            rate_path = 'state_mux_comp.states:{0}'.format(var)
+        elif phase.control_options is not None and var in phase.control_options:
+            rate_path = 'control_values:{0}'.format(var)
+        elif phase.polynomial_control_options is not None and var in phase.polynomial_control_options:
+            rate_path = 'polynomial_controls:{0}'.format(var)
+        elif phase.design_parameter_options is not None and var in phase.design_parameter_options:
+            rate_path = 'design_parameters:{0}'.format(var)
+        elif phase.input_parameter_options is not None and var in phase.input_parameter_options:
+            rate_path = 'input_parameters:{0}'.format(var)
+        elif var.endswith('_rate') and phase.control_options is not None and \
+                var[:-5] in phase.control_options:
+            rate_path = 'control_rates:{0}'.format(var)
+        elif var.endswith('_rate2') and phase.control_options is not None and \
+                var[:-6] in phase.control_options:
+            rate_path = 'control_rates:{0}'.format(var)
+        elif var.endswith('_rate') and phase.polynomial_control_options is not None and \
+                var[:-5] in phase.polynomial_control_options:
+            rate_path = 'polynomial_control_rates:{0}'.format(var)
+        elif var.endswith('_rate2') and phase.polynomial_control_options is not None and \
+                var[:-6] in phase.polynomial_control_options:
+            rate_path = 'polynomial_control_rates:{0}'.format(var)
+        else:
+            rate_path = 'ode.{0}'.format(var)
+
+        return rate_path
