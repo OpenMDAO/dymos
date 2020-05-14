@@ -313,6 +313,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         axes.set_xlabel('range (m)')
         axes.set_ylabel('altitude (m)')
+        axes.axis('equal')
 
         fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 6))
         states = ['r', 'h', 'v', 'gam']
