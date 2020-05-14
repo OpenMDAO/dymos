@@ -246,37 +246,6 @@ class TestWaterRocketForDocs(unittest.TestCase):
               'm/s '.format(p.get_val('traj.propelled_ascent.timeseries.states:v')[-1, 0]))
 
     def plot_trajectory(self, p, exp_out):
-        plt.figure()
-        plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
-                 exp_out.get_val('traj.propelled_ascent.timeseries.states:p'))
-        plt.plot(p.get_val('traj.propelled_ascent.timeseries.time'),
-                 p.get_val('traj.propelled_ascent.timeseries.states:p'),'o')
-        plt.title('p')
-        plt.figure()
-        plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
-                 exp_out.get_val('traj.propelled_ascent.timeseries.states:V_w'))
-        plt.plot(p.get_val('traj.propelled_ascent.timeseries.time'),
-                 p.get_val('traj.propelled_ascent.timeseries.states:V_w'),'o')
-        plt.title('V_w')
-        plt.figure()
-        plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
-                 exp_out.get_val('traj.propelled_ascent.timeseries.states:v'))
-        plt.plot(p.get_val('traj.propelled_ascent.timeseries.time'),
-                 p.get_val('traj.propelled_ascent.timeseries.states:v'),'o')
-        plt.title('v')
-        plt.figure()
-        plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
-                 exp_out.get_val('traj.propelled_ascent.timeseries.states:h'))
-        plt.plot(p.get_val('traj.propelled_ascent.timeseries.time'),
-                 p.get_val('traj.propelled_ascent.timeseries.states:h'),'o')
-        plt.title('h')
-        plt.figure()
-        plt.plot(exp_out.get_val('traj.propelled_ascent.timeseries.time'),
-                 exp_out.get_val('traj.propelled_ascent.timeseries.states:gam'))
-        plt.plot(p.get_val('traj.propelled_ascent.timeseries.time'),
-                 p.get_val('traj.propelled_ascent.timeseries.states:gam'),'o')
-        plt.title('gam')
-
         fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
 
         time_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.time'),
