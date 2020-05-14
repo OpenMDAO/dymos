@@ -43,7 +43,7 @@ def new_propelled_ascent_phase():
     propelled_ascent.set_state_options(
         'v', fix_initial=True, fix_final=False)
     propelled_ascent.set_state_options(
-        'V_w', fix_initial=True, fix_final=True)
+        'V_w', fix_initial=False, fix_final=True)
     propelled_ascent.set_state_options(
         'p', fix_initial=True, fix_final=False)
 
@@ -141,12 +141,12 @@ def new_water_rocket_trajectory():
                                        'descent': ['eom.alpha']},
                               val=0.0, units='deg', opt=False)
 
-    traj.add_design_parameter('m_empty', units='kg', val=0.05,
+    traj.add_design_parameter('m_empty', units='kg', val=0.15,
                               targets={'propelled_ascent': 'm_empty',
                                        'ballistic_ascent': 'm_empty',
                                        'descent': 'mass'},
                               lower=0, upper=1, ref=0.1,
-                              opt=False)
+                              opt=True)
     traj.add_design_parameter('V_b', units='m**3', val=2e-3,
                              targets={'propelled_ascent': 'V_b'},
                              opt=False)
@@ -196,7 +196,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
                   propelled_ascent.interpolate(ys=[80, 80], nodes='state_input'),
                   units='deg')
         p.set_val('traj.propelled_ascent.states:V_w',
-                  propelled_ascent.interpolate(ys=[0.8e-3, 0], nodes='state_input'),
+                  propelled_ascent.interpolate(ys=[1e-3, 0], nodes='state_input'),
                   units='m**3')
         p.set_val('traj.propelled_ascent.states:p',
                   propelled_ascent.interpolate(ys=[5.5e5, 1e5], nodes='state_input'),
@@ -224,22 +224,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45], nodes='state_input'),
                   units='deg')
 
-        m_empty_vals = np.linspace(0.05,0.3,100)
-        V_w_vals = np.linspace(0.5e-3, 1.5e-3, 100)
-        results = []
-        for V_w in V_w_vals:
-            p.set_val('traj.propelled_ascent.states:V_w', propelled_ascent.interpolate( ys=[V_w, 0], nodes='state_input'), units='m**3')
-
-            for m_empty in m_empty_vals:
-                p.set_val('traj.design_parameters:m_empty', m_empty)
-                p.run_driver()
-                results.append((V_w, m_empty, p.get_val('traj.ballistic_ascent.timeseries.states:h')[-1, 0]))
-                self.print_results(p)
-            m_empty_vals=list(reversed(m_empty_vals))
-
-        import pandas as pd
-        results_df = pd.DataFrame(data=results, columns=['V_w', 'm_empty', 'h_max'])
-        results_df.to_csv('results.csv')
+        p.run_driver()
+        self.print_results(p)
 
         exp_out = traj.simulate()
 
