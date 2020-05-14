@@ -93,7 +93,7 @@ def new_descent_phase():
                              duration_ref=10, units='s')
     descent.add_state('r', )
     descent.add_state('h', fix_initial=False, fix_final=True)
-    descent.add_state('gam', fix_initial=False, fix_final=False)
+    descent.add_state('gam', fix_initial=False, fix_final=False, units='deg')
     descent.add_state('v', fix_initial=False, fix_final=False)
 
     descent.add_input_parameter('S', targets=['aero.S'], units='m**2')
