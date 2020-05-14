@@ -14,8 +14,12 @@ from dymos.examples.cannonball.cannonball_phase import CannonballPhase
 from dymos.examples.water_rocket.water_propulsion_ode import WaterPropulsionODE
 
 
+#transcription = dm.GaussLobatto(num_segments=1, order=45, compressed=False)
+#transcription = dm.GaussLobatto(num_segments=1, order=27, compressed=False)
+transcription = dm.GaussLobatto(num_segments=5, order=9, compressed=False)
+#transcription = dm.GaussLobatto(num_segments=9, order=5, compressed=False)
+#transcription = dm.GaussLobatto(num_segments=15, order=3, compressed=False)
 def new_propelled_ascent_phase():
-    transcription = dm.GaussLobatto(num_segments=5, order=9, compressed=False)
     propelled_ascent = CannonballPhase(ode_class=WaterPropulsionODE,
                                        transcription=transcription)
 
@@ -56,7 +60,6 @@ def new_propelled_ascent_phase():
 
 
 def new_ballistic_ascent_phase():
-    transcription = dm.Radau(num_segments=5, order=3, compressed=False)
     ballistic_ascent = CannonballPhase(transcription=transcription)
 
     # All initial states are free (they will be  linked to the final stages of propelled_ascent).
@@ -82,7 +85,6 @@ def new_ballistic_ascent_phase():
 
 
 def new_descent_phase():
-    transcription = dm.Radau(num_segments=5, order=3, compressed=True)
     descent = CannonballPhase(transcription=transcription)
 
     # All initial states and time are free (they will be linked to the final states of ballistic_ascent).
