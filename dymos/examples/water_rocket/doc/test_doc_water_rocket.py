@@ -115,9 +115,9 @@ def new_water_rocket_trajectory():
     # Set objective function
     # NOTE: only one objective function must be commented out at any time
     # Use this line to optimize for height
-    ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
+    #ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
     # Use this line to optimize for range
-    #descent.add_objective('r', loc='final', scaler=-1.0)
+    descent.add_objective('r', loc='final', scaler=-1.0)
 
     # Add design parameters to the trajectory.
     traj.add_design_parameter('CD',
