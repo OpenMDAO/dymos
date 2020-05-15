@@ -1,5 +1,6 @@
 import unittest
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 # plt.switch_backend('Agg')
 
@@ -225,17 +226,19 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.run_driver()
         self.print_results(p)
 
-        exp_out = traj.simulate(times_per_seg=100)
+        exp_out = traj.simulate(times_per_seg=200)
 
         self.plot_trajectory(p, exp_out)
 
     def print_results(self, p):
         print('launch angle: {0:6.4f} '
-              'deg '.format(p.get_val('traj.ballistic_ascent.timeseries.states:gam',  units='deg')[0, 0]))
+              'deg '.format(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[0, 0]))
+        print('Flight angle at end of propulsion: {0:6.4f} '
+              'deg '.format(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[-1, 0]))
         print('empty mass: {0:6.4f} '
               'kg '.format(p.get_val('traj.design_parameters:m_empty')[0,0]))
         print('water volume: {0:6.4f} '
-                'L '.format(p.get_val('traj.propelled_ascent.timeseries.states:V_w')[0,0]*1e3))
+                'L '.format(p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L')[0,0]))
         print('maximum range: {0:6.4f} '
               'm '.format(p.get_val('traj.descent.timeseries.states:r')[-1, 0]))
         print('maximum height: {0:6.4f} '
@@ -303,7 +306,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
             axes[i].plot(time_exp['descent'], x_exp['descent'][state], 'b-', label='Descent')
 
             if state == 'gam':
-                axes[i].set_yticks(np.arange(-90,91,45))
+                axes[i].yaxis.set_major_locator(mpl.ticker.MaxNLocator(nbins='auto', steps=[1, 1.5, 3, 4.5, 6, 9, 10]))
 
         axes[i].set_xlabel('t (s)')
         axes[0].legend()
@@ -339,7 +342,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         #Plot propelled ascent states
 
-        fig, ax = plt.subplots(3, 1, sharex=True, figsize=(4,4))
+        fig, ax = plt.subplots(5, 1, sharex=True, figsize=(4,6))
         t_imp = p.get_val('traj.propelled_ascent.time', 's')
         t_exp = exp_out.get_val('traj.propelled_ascent.time', 's')
 
@@ -358,7 +361,17 @@ class TestWaterRocketForDocs(unittest.TestCase):
         ax[2].set_ylabel('T (N)')
         ax[2].set_ylim(bottom=0)
 
-        ax[2].set_xlabel('t (s)')
+        ax[3].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.states:v', 'm/s'), 'ro', markerfacecolor='None')
+        ax[3].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.states:v', 'm/s'), 'r-')
+        ax[3].set_ylabel('v (m/s)')
+        ax[3].set_ylim(bottom=0)
+ 
+        ax[4].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.states:gam', 'deg'), 'ro', markerfacecolor='None')
+        ax[4].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.states:gam', 'deg'), 'r-')
+        ax[4].set_ylabel('$\gamma$ (deg)')
+        ax[4].yaxis.set_major_locator(mpl.ticker.MaxNLocator(nbins='auto', steps=[1, 1.5, 3, 4.5, 6, 9, 10]))
+
+        ax[-1].set_xlabel('t (s)')
 
         fig.tight_layout()
         fig.savefig('propelled_ascent.pdf', dpi=600)
