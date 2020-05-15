@@ -115,9 +115,9 @@ def new_water_rocket_trajectory():
     # Set objective function
     # NOTE: only one objective function must be commented out at any time
     # Use this line to optimize for height
-    #ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
+    ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
     # Use this line to optimize for range
-    descent.add_objective('r', loc='final', scaler=-1.0)
+    #descent.add_objective('r', loc='final', scaler=-1.0)
 
     # Add design parameters to the trajectory.
     traj.add_design_parameter('CD',
@@ -168,8 +168,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         p.driver = om.ScipyOptimizeDriver()
         p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['maxiter'] = 200
-        p.driver.options['tol'] = 1e-8
+        p.driver.options['maxiter'] = 1000
+        p.driver.options['tol'] = 5e-5
         #p.driver.options['debug_print'] = ['nl_cons']
         p.driver.declare_coloring()
 
@@ -198,7 +198,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
                   propelled_ascent.interpolate(ys=[80, 80], nodes='state_input'),
                   units='deg')
         p.set_val('traj.propelled_ascent.states:V_w',
-                  propelled_ascent.interpolate(ys=[1e-3, 0], nodes='state_input'),
+                  propelled_ascent.interpolate(ys=[0.9e-3, 0], nodes='state_input'),
                   units='m**3')
         p.set_val('traj.propelled_ascent.states:p',
                   propelled_ascent.interpolate(ys=[6.5, 3.5], nodes='state_input'),
@@ -250,7 +250,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
               'm/s '.format(p.get_val('traj.propelled_ascent.timeseries.states:v')[-1, 0]))
 
     def plot_trajectory(self, p, exp_out):
-        fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(3, 8))
+        fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(6, 8))
 
         time_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.time'),
                     'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.time'),
@@ -310,6 +310,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
             if state == 'gam':
                 axes[i].yaxis.set_major_locator(mpl.ticker.MaxNLocator(nbins='auto', steps=[1, 1.5, 3, 4.5, 6, 9, 10]))
+                axes[i].set_yticks(np.arange(-90,91,45))
 
         axes[i].set_xlabel('t (s)')
         axes[0].legend()
@@ -345,7 +346,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         #Plot propelled ascent states
 
-        fig, ax = plt.subplots(5, 1, sharex=True, figsize=(4,6))
+        fig, ax = plt.subplots(5, 1, sharex=True, figsize=(4,8))
         t_imp = p.get_val('traj.propelled_ascent.time', 's')
         t_exp = exp_out.get_val('traj.propelled_ascent.time', 's')
 
