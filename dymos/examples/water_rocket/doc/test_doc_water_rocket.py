@@ -23,9 +23,9 @@ def new_propelled_ascent_phase():
                                        transcription=transcription)
 
     # Add states specific for the propelled ascent
-    propelled_ascent.add_state('p', units='N/m**2', rate_source='water_engine.pdot',
+    propelled_ascent.add_state('p', units='bar', rate_source='water_engine.pdot',
                                targets=['water_engine.p'])
-    propelled_ascent.add_state('V_w', units='m**3', rate_source='water_engine.Vdot',
+    propelled_ascent.add_state('V_w', units='m**3', ref=1e-3, rate_source='water_engine.Vdot',
                                targets=['water_engine.V_w', 'mass_adder.V_w'])
 
     # All initial states except flight path angle and water volume are fixed
@@ -168,6 +168,9 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         p.driver = om.ScipyOptimizeDriver()
         p.driver.options['optimizer'] = 'SLSQP'
+        p.driver.options['maxiter'] = 200
+        p.driver.options['tol'] = 1e-8
+        #p.driver.options['debug_print'] = ['nl_cons']
         p.driver.declare_coloring()
 
         traj, (propelled_ascent, ballistic_ascent, descent) = new_water_rocket_trajectory()
@@ -198,8 +201,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
                   propelled_ascent.interpolate(ys=[1e-3, 0], nodes='state_input'),
                   units='m**3')
         p.set_val('traj.propelled_ascent.states:p',
-                  propelled_ascent.interpolate(ys=[5.5e5, 1e5], nodes='state_input'),
-                  units='N/m**2')
+                  propelled_ascent.interpolate(ys=[6.5, 3.5], nodes='state_input'),
+                  units='bar')
 
         p.set_val('traj.ballistic_ascent.t_initial', 0.3)
         p.set_val('traj.ballistic_ascent.t_duration', 5)

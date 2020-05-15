@@ -17,6 +17,9 @@ class WaterPropulsionODE(om.Group):
     def setup(self):
         nn = self.options['num_nodes']
 
+        self.add_subsystem(name='atmos',
+                           subsys=USatm1976Comp(num_nodes=nn))
+
         self.add_subsystem(name='kinetic_energy',
                            subsys=KineticEnergyComp(num_nodes=nn))
 
@@ -25,9 +28,6 @@ class WaterPropulsionODE(om.Group):
 
         self.add_subsystem(name='mass_adder',
                            subsys=_MassAdder(num_nodes=nn))
-
-        self.add_subsystem(name='atmos',
-                           subsys=USatm1976Comp(num_nodes=nn))
 
         self.add_subsystem(name='dynamic_pressure',
                            subsys=DynamicPressureComp(num_nodes=nn))
@@ -39,6 +39,7 @@ class WaterPropulsionODE(om.Group):
                            subsys=FlightPathEOM2D(num_nodes=nn))
 
         self.connect('atmos.rho', 'dynamic_pressure.rho')
+        self.connect('atmos.pres', 'water_engine.p_a')
         self.connect('dynamic_pressure.q', 'aero.q')
 
         self.connect('aero.f_drag', 'eom.D')

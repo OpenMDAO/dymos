@@ -20,7 +20,7 @@ class WaterEngine(om.Group):
 
         self.add_subsystem(name='water_exhaust_speed',
                            subsys=_WaterExhaustSpeed(num_nodes=nn),
-                           promotes=['p', 'rho_w'])
+                           promotes=['p', 'p_a', 'rho_w'])
 
         self.add_subsystem(name='water_flow_rate',
                            subsys=_WaterFlowRate(num_nodes=nn),
@@ -46,29 +46,32 @@ class _WaterExhaustSpeed(om.ExplicitComponent):
         nn = self.options['num_nodes']
 
         self.add_input(name='rho_w', val=1e3*np.ones(nn), desc='water density', units='kg/m**3')
-        self.add_input(name='p', val=5.5e5*np.ones(nn), desc='air pressure', units='N/m**2')#5.5bar = 80 psi
+        self.add_input(name='p', val=6.5e5*np.ones(nn), desc='air pressure', units='N/m**2')#5.5bar = 80 psi
+        self.add_input(name='p_a', val=1.01e5*np.ones(nn), desc='air pressure', units='N/m**2')
 
         self.add_output(name='v_out', shape=(nn,), desc='water exhaust speed', units='m/s')
 
         ar = np.arange(nn)
 
-        self.declare_partials(of='v_out', wrt='rho_w', rows=ar, cols=ar)
-        self.declare_partials(of='v_out', wrt='p', rows=ar, cols=ar)
+        self.declare_partials(of='*', wrt='*', rows=ar, cols=ar)
 
     def compute(self, inputs, outputs):
         p = inputs['p'] 
+        p_a = inputs['p_a'] 
         rho_w = inputs['rho_w']
 
-        outputs['v_out'] = np.sqrt(2*p/rho_w)
+        outputs['v_out'] = np.sqrt(2*(p-p_a)/rho_w)
 
     def compute_partials(self, inputs, partials):
-        p = inputs['p'] 
+        p = inputs['p']
+        p_a = inputs['p_a'] 
         rho_w = inputs['rho_w']
 
-        v_out = np.sqrt(2*p/rho_w)
+        v_out = np.sqrt(2*(p-p_a)/rho_w)
 
         partials['v_out','p'] = 1/v_out/rho_w
-        partials['v_out', 'rho_w'] = dv_outdrho_w = 1/v_out*(-p/rho_w**2)
+        partials['v_out','p_a'] = -1/v_out/rho_w
+        partials['v_out', 'rho_w'] = dv_outdrho_w = 1/v_out*(-(p-p_a)/rho_w**2)
 
 class _WaterFlowRate(om.ExplicitComponent):
     """ Computer water flow rate"""
