@@ -22,11 +22,11 @@ class SteadyFlightEquilibriumGroup(om.Group):
         self.add_subsystem('thrust_eq_comp',
                            subsys=ThrustEquilibriumComp(num_nodes=nn),
                            promotes_inputs=['q', 'S', 'gam', 'alpha', 'W_total'],
-                           promotes_outputs=['CT'])
+                           promotes_outputs=['thrust'])
 
         self.add_subsystem('lift_eq_comp',
                            subsys=LiftEquilibriumComp(num_nodes=nn),
-                           promotes_inputs=['q', 'S', 'gam', 'alpha', 'W_total', 'CT'],
+                           promotes_inputs=['q', 'S', 'gam', 'alpha', 'W_total', 'thrust'],
                            promotes_outputs=['CL_eq'])
 
         bal = self.add_subsystem(name='alpha_eta_balance',
@@ -49,8 +49,8 @@ class SteadyFlightEquilibriumGroup(om.Group):
 
         self.linear_solver = om.DirectSolver()
         self.nonlinear_solver = om.NewtonSolver()
-        self.nonlinear_solver.options['atol'] = 1e-14
-        self.nonlinear_solver.options['rtol'] = 1e-14
+        self.nonlinear_solver.options['atol'] = 1e-9
+        self.nonlinear_solver.options['rtol'] = 1e-9
         self.nonlinear_solver.options['solve_subsystems'] = True
         self.nonlinear_solver.options['err_on_non_converge'] = True
         self.nonlinear_solver.options['max_sub_solves'] = 10

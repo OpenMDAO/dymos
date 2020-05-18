@@ -328,30 +328,23 @@ Of course, in reality the vehicle will accelerate, but the flight profile being 
 is so benign that assuming steady flight at discrete points (nodes) in the trajectory is
 not terribly inaccurate.
 
-The thrust coefficient necessary for steady flight is computed by balancing the drag equation
+The thrust necessary for steady flight is computed by balancing the drag equation
 
 .. math ::
-    C_T = W_{total} * \frac{\sin{\gamma}}{\cos{\alpha} * q \cdot S} + \frac{C_D}{\cos{\alpha}}
+    T = W_{total} * \frac{\sin{\gamma}}{\cos{\alpha}} + \frac{C_D \cdot q \cdot S}{\cos{\alpha}}
 
 The lift coefficient required for steady flight is found by balancing lift and weight:
 
 .. math ::
-    \tilde{C_L} = W_{total} * \frac{\cos{\gamma}}{q \cdot S} - C_T * \sin{\alpha}
-
-Using coefficients in the balance equations is better scaled from a numerical standpoint.
+    \tilde{C_L} = W_{total} * \frac{\cos{\gamma}}{q \cdot S} - \frac{T * \sin{\alpha}}{q \cdot S}
 
 Propulsion
 ==========
 
-Having determined the coefficient of thrust, the propulsion group converts that to an
-actual thrust value. This is, in turn, used to compute the rate of fuel burn.  In addition,
-by normalizing thrust at any point by the maximum possible thrust, we obtain the throttle
-parameter :math:`\tau`.  The propulsion group uses a number of components to perform these
-calculations.  First, thrust is computed from the thrust coefficient, dynamic pressure,
-and reference area:
-
-.. math ::
-    T &= C_T \cdot q \cdot S
+Having determined the thrust, the propulsion group then computes the rate of fuel burn.
+In addition, by normalizing thrust at any point by the maximum possible thrust, we obtain the
+throttle parameter :math:`\tau`.  The propulsion group uses a number of components to perform these
+calculations.  
 
 Maximum thrust is computed by multiplying sea-level thrust by the ratio of pressure to
 sea-level atmospheric pressure.

@@ -25,18 +25,18 @@ class ThrustEquilibriumComp(om.ExplicitComponent):
         self.add_input(name='q', shape=(n,), desc='dynamic pressure', units='Pa')
         self.add_input(name='S', shape=(n,), desc='reference area', units='m**2')
 
-        self.add_output(name='CT', shape=(n,),
-                        desc='thrust coefficient required for steady, level flight',
-                        units=None)
+        self.add_output(name='thrust', shape=(n,),
+                        desc='thrust required for steady flight',
+                        units='N')
 
         ar = np.arange(n)
 
-        self.declare_partials(of='CT', wrt='CD', rows=ar, cols=ar)
-        self.declare_partials(of='CT', wrt='W_total', rows=ar, cols=ar)
-        self.declare_partials(of='CT', wrt='alpha', rows=ar, cols=ar)
-        self.declare_partials(of='CT', wrt='gam', rows=ar, cols=ar)
-        self.declare_partials(of='CT', wrt='q', rows=ar, cols=ar)
-        self.declare_partials(of='CT', wrt='S', rows=ar, cols=ar)
+        self.declare_partials(of='thrust', wrt='CD', rows=ar, cols=ar)
+        self.declare_partials(of='thrust', wrt='W_total', rows=ar, cols=ar)
+        self.declare_partials(of='thrust', wrt='alpha', rows=ar, cols=ar)
+        self.declare_partials(of='thrust', wrt='gam', rows=ar, cols=ar)
+        self.declare_partials(of='thrust', wrt='q', rows=ar, cols=ar)
+        self.declare_partials(of='thrust', wrt='S', rows=ar, cols=ar)
 
     def compute(self, inputs, outputs):
         CD = inputs['CD']
@@ -51,7 +51,7 @@ class ThrustEquilibriumComp(om.ExplicitComponent):
 
         qS = q * S
 
-        outputs['CT'] = W_total * sgam / (ca * qS) + CD / ca
+        outputs['thrust'] = W_total * sgam / ca + CD * qS / ca
 
     def compute_partials(self, inputs, partials):
         CD = inputs['CD']
@@ -70,17 +70,18 @@ class ThrustEquilibriumComp(om.ExplicitComponent):
         dqS_dq = S
         dqS_dS = q
 
-        dCT_dsgam = W_total / (ca * qS)
+        dT_dsgam = W_total / ca
+
         dsgam_dgam = cgam
 
-        dCT_dca = -W_total * sgam / (ca**2 * qS) - CD / ca**2
+        dT_dca = -W_total * sgam / ca**2 - CD * qS / ca**2
         dca_dalpha = -sa
 
-        dCT_dqS = -W_total * sgam / (ca * qS**2)
+        dT_dqS = CD / ca
 
-        partials['CT', 'CD'] = 1.0 / ca
-        partials['CT', 'W_total'] = sgam / (ca * qS)
-        partials['CT', 'alpha'] = dCT_dca * dca_dalpha
-        partials['CT', 'gam'] = dCT_dsgam * dsgam_dgam
-        partials['CT', 'q'] = dCT_dqS * dqS_dq
-        partials['CT', 'S'] = dCT_dqS * dqS_dS
+        partials['thrust', 'CD'] = qS / ca
+        partials['thrust', 'W_total'] = sgam / ca
+        partials['thrust', 'alpha'] = dT_dca * dca_dalpha
+        partials['thrust', 'gam'] = dT_dsgam * dsgam_dgam
+        partials['thrust', 'q'] = dT_dqS * dqS_dq
+        partials['thrust', 'S'] = dT_dqS * dqS_dS

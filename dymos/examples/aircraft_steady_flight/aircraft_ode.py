@@ -45,14 +45,14 @@ class AircraftODE(om.Group):
         self.add_subsystem(name='q_comp',
                            subsys=DynamicPressureComp(num_nodes=nn))
 
-        self.connect('q_comp.q', ('aero.q', 'flight_equilibrium.q', 'propulsion.q'))
+        self.connect('q_comp.q', ('aero.q', 'flight_equilibrium.q'))
 
         self.add_subsystem(name='flight_equilibrium',
                            subsys=SteadyFlightEquilibriumGroup(num_nodes=nn),
                            promotes_inputs=['aero.*'],
                            promotes_outputs=['aero.*'])
 
-        self.connect('flight_equilibrium.CT', 'propulsion.CT')
+        self.connect('flight_equilibrium.thrust', 'propulsion.thrust')
 
         self.add_subsystem(name='propulsion', subsys=PropulsionGroup(num_nodes=nn))
 

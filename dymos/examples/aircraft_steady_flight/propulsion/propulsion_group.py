@@ -1,6 +1,5 @@
 import openmdao.api as om
 
-from .thrust_comp import ThrustComp
 from .max_thrust_comp import MaxThrustComp
 from .throttle_comp import ThrottleComp
 from .tsfc_comp import SFCComp
@@ -25,11 +24,6 @@ class PropulsionGroup(om.Group):
 
         assumptions.add_output('max_thrust_sl', val=1.02E6, units='N',
                                desc='maximum thrust at sea-level')
-
-        self.add_subsystem(name='thrust_comp',
-                           subsys=ThrustComp(num_nodes=n),
-                           promotes_inputs=['CT', 'q', 'S'],
-                           promotes_outputs=['thrust'])
 
         self.add_subsystem(name='max_thrust_comp',
                            subsys=MaxThrustComp(num_nodes=n),

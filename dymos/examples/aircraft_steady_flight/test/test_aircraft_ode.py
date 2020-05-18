@@ -43,7 +43,7 @@ class TestAircraftODEGroup(unittest.TestCase):
         cls.p.model.connect('alt', ['ode.atmos.h', 'ode.propulsion.alt', 'ode.aero.alt'])
         cls.p.model.connect('mach', ['ode.tas_comp.mach', 'ode.aero.mach'])
         cls.p.model.connect('climb_rate', ['ode.gam_comp.climb_rate'])
-        cls.p.model.connect('S', ('ode.aero.S', 'ode.flight_equilibrium.S', 'ode.propulsion.S'))
+        cls.p.model.connect('S', ('ode.aero.S', 'ode.flight_equilibrium.S'))
 
         cls.p.model.linear_solver = om.DirectSolver()
 

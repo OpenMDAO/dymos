@@ -18,7 +18,7 @@ class LiftEquilibriumComp(om.ExplicitComponent):
         n = self.options['num_nodes']
 
         # Parameter inputs
-        self.add_input(name='CT', shape=(n,), desc='thrust coefficient', units=None)
+        self.add_input(name='thrust', shape=(n,), desc='thrust coefficient', units='N')
         self.add_input(name='W_total', shape=(n,), desc='total aircraft weight', units='N')
         self.add_input(name='alpha', shape=(n,), desc='angle of attack', units='rad')
         self.add_input(name='gam', shape=(n,), desc='flight path angle', units='rad')
@@ -31,7 +31,7 @@ class LiftEquilibriumComp(om.ExplicitComponent):
 
         ar = np.arange(n)
 
-        self.declare_partials(of='CL_eq', wrt='CT', rows=ar, cols=ar)
+        self.declare_partials(of='CL_eq', wrt='thrust', rows=ar, cols=ar)
         self.declare_partials(of='CL_eq', wrt='W_total', rows=ar, cols=ar)
         self.declare_partials(of='CL_eq', wrt='alpha', rows=ar, cols=ar)
         self.declare_partials(of='CL_eq', wrt='gam', rows=ar, cols=ar)
@@ -39,7 +39,7 @@ class LiftEquilibriumComp(om.ExplicitComponent):
         self.declare_partials(of='CL_eq', wrt='S', rows=ar, cols=ar)
 
     def compute(self, inputs, outputs):
-        CT = inputs['CT']
+        thrust = inputs['thrust']
         W_total = inputs['W_total']
         alpha = inputs['alpha']
         gam = inputs['gam']
@@ -51,10 +51,10 @@ class LiftEquilibriumComp(om.ExplicitComponent):
 
         qS = q * S
 
-        outputs['CL_eq'] = W_total * cgam / qS - CT * sa
+        outputs['CL_eq'] = W_total * cgam / qS - thrust * sa / qS
 
     def compute_partials(self, inputs, partials):
-        CT = inputs['CT']
+        thrust = inputs['thrust']
         W_total = inputs['W_total']
         alpha = inputs['alpha']
         gam = inputs['gam']
@@ -68,9 +68,9 @@ class LiftEquilibriumComp(om.ExplicitComponent):
 
         qS = q * S
 
-        partials['CL_eq', 'CT'] = -sa
+        partials['CL_eq', 'thrust'] = -sa / qS
         partials['CL_eq', 'W_total'] = cgam / qS
-        partials['CL_eq', 'alpha'] = -CT * ca
+        partials['CL_eq', 'alpha'] = -thrust / qS * ca
         partials['CL_eq', 'gam'] = -W_total * sgam / qS
-        partials['CL_eq', 'q'] = -W_total * cgam / (q**2 * S)
-        partials['CL_eq', 'S'] = -W_total * cgam / (q * S**2)
+        partials['CL_eq', 'q'] = -W_total * cgam / (q**2 * S) + thrust * sa / (q**2 * S)
+        partials['CL_eq', 'S'] = -W_total * cgam / (q * S**2) + thrust * sa / (q * S**2)
