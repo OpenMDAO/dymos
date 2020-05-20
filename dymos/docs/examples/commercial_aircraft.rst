@@ -344,7 +344,7 @@ Propulsion
 Having determined the thrust, the propulsion group then computes the rate of fuel burn.
 In addition, by normalizing thrust at any point by the maximum possible thrust, we obtain the
 throttle parameter :math:`\tau`.  The propulsion group uses a number of components to perform these
-calculations.  
+calculations.
 
 Maximum thrust is computed by multiplying sea-level thrust by the ratio of pressure to
 sea-level atmospheric pressure.
