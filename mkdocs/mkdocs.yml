@@ -3,8 +3,9 @@ site_name: Dymos
 theme:
   name: material
   palette:
-    primary: "blue gray"
-    accent: "blue gray"
+    scheme: "default"
+    primary: "blue grey"
+    accent: "blue"
 
 plugins:
   - search
