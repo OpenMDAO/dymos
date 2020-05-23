@@ -1,0 +1,30 @@
+site_name: Dymos
+
+theme:
+  name: material
+  palette:
+    primary: "blue gray"
+    accent: "blue gray"
+
+plugins:
+  - search
+  - bibtex:
+      bib_file: "references.bib"
+      cite_style: "pandoc"
+  - macros
+
+markdown_extensions:
+  - admonition
+  - footnotes
+  - pymdownx.arithmatex
+  - pymdownx.tabbed
+  - codehilite:
+      linenums: true
+
+nav:
+    - 'index.md'
+    - 'introduction/brachistochrone.md'
+    - 'introduction/transcriptions.md'
+
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML
