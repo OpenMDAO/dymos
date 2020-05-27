@@ -2,7 +2,7 @@ import os
 import unittest
 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
@@ -94,8 +94,6 @@ class TestBrachistochrone(unittest.TestCase):
         #
         phase.add_objective('time', loc='final', scaler=10)
 
-        p.model.linear_solver = om.DirectSolver()
-
         #
         # Setup the Problem
         #
@@ -103,14 +101,23 @@ class TestBrachistochrone(unittest.TestCase):
 
         #
         # Set the initial values
+        # The initial time is fixed, and we set that fixed value here.
+        # The optimizer is allowed to modify t_duration, but an initial guess is provided here.
         #
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = 2.0
+        p.set_val('traj.phase0.t_initial', 0.0)
+        p.set_val('traj.phase0.t_duration', 2.0)
 
-        p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
-        p['traj.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
-        p['traj.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['traj.phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
+        # Guesses for states are provided at all state_input nodes.
+        # We use the phase.interpolate method to linearly interpolate values onto the state input nodes.
+        # Since fix_initial=True for all states and fix_final=True for x and y, the initial or final
+        # values of the interpolation provided here will not be changed by the optimizer.
+        p.set_val('traj.phase0.states:x', phase.interpolate(ys=[0, 10], nodes='state_input'))
+        p.set_val('traj.phase0.states:y', phase.interpolate(ys=[10, 5], nodes='state_input'))
+        p.set_val('traj.phase0.states:v', phase.interpolate(ys=[0, 9.9], nodes='state_input'))
+
+        # Guesses for controls are provided at all control_input node.
+        # Here phase.interpolate is used to linearly interpolate values onto the control input nodes.
+        p.set_val('traj.phase0.controls:theta', phase.interpolate(ys=[5, 100.5], nodes='control_input'))
 
         #
         # Solve for the optimal trajectory
@@ -123,6 +130,8 @@ class TestBrachistochrone(unittest.TestCase):
 
         # Generate the explicitly simulated trajectory
         exp_out = traj.simulate()
+
+        om.n2(exp_out)
 
         plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
                        'x (m)', 'y (m)'),

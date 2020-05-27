@@ -1,7 +1,7 @@
 # Tutorial: Solving the brachistochrone optimal control problem with Dymos
 
-The cannonball example is a good introduction to simple trajectory optimization, but the cannonball has no means of control once airborne.
-In this next example, $\partial$ymos is used to solve the brachistochrone problem.
+The brachistochrone is one of the most well-known optimal control problems.
+It was originally posed as a challenge by Johann Bernoulli.
 
 !!! note "The brachistochrone problem"
     _Given two points A and B in a vertical plane, find the path AMB
@@ -13,10 +13,7 @@ In this next example, $\partial$ymos is used to solve the brachistochrone proble
 We seek to find the optimal shape of a wire between two points (A and B) such that a bead sliding
 without friction along the wire moves from point A to point B in minimum time.
 
-<!--..  image:: figures/brachistochrone_fbd.png-->
-<!--   :scale: 100 %-->
-<!--   :alt: The free-body-diagram of the brachistochrone problem.-->
-<!--   :align: center-->
+{{ embed_plot_from_script('scripts/brachistochrone_fbd.py') }}
 
 ## State variables
 
@@ -40,7 +37,7 @@ From the free-body diagram above, the evolution of the state variables is given 
 
 This system has a single control variable.
 
-- **$\theta$**: The angle between the nadir vector and the tangent to the curve at the current instant in time.
+- **$\theta$**: The angle between the gravity vector and the tangent to the curve at the current instant in time.
 
 ## The initial and final conditions
 
@@ -112,9 +109,9 @@ indent_level=0)
 
 The following script fully defines the brachistochrone problem with Dymos and solves it.  In this section we'll walk through each step.
 
-=== "brachistochrone.py"  
+=== "brachistochrone.py"
 {{ inline_source('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone',
-include_def=False,  
-include_docstring=False,  
-indent_level=0)  
+include_def=False,
+include_docstring=False,
+indent_level=0)
 }}

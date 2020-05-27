@@ -1,4 +1,4 @@
-<img src="dymos_logo.png" alt="Dymos" style="width:200px;"/>
+<img src="dymos_logo.png" alt="Dymos" style="width:250px;"/>
 
 # Multidisciplinary Optimal Control Library
 
@@ -27,13 +27,13 @@ While normally this would significantly impair performance, Dymos can optimize s
 
 The cutting-edge development version of Dymos may be installed with
 
-~~~
+~~~bash
 python -m pip install git+https://github.com/OpenMDAO/dymos.git
 ~~~
 
-To specify a release, add it after an @ at the end of the URL:
+To specify a release, add it after an @ at the end of the URL.
 
-~~~
+~~~bash
 python -m pip install git+https://github.com/OpenMDAO/dymos.git@0.15.0
 ~~~
 
@@ -45,7 +45,7 @@ In terminal, clone the repository using git.
 
 Go into the Dymos directory and use the command pip install -e . to install dymos.
 
-~~~
+~~~bash
 git clone https://github.com/OpenMDAO/dymos.git ./dymos.git
 python -m pip install -e dymos.git
 ~~~
