@@ -15,10 +15,7 @@ from dymos.examples.cannonball.cannonball_phase import CannonballPhase
 from dymos.examples.water_rocket.water_propulsion_ode import WaterPropulsionODE
 
 
-transcription = dm.GaussLobatto(num_segments=1, order=21, compressed=False)
-#transcription = dm.GaussLobatto(num_segments=3, order=7, compressed=False)
-#transcription = dm.GaussLobatto(num_segments=7, order=3, compressed=False)
-def new_propelled_ascent_phase():
+def new_propelled_ascent_phase(transcription):
     propelled_ascent = CannonballPhase(ode_class=WaterPropulsionODE,
                                        transcription=transcription)
 
@@ -58,7 +55,7 @@ def new_propelled_ascent_phase():
     return propelled_ascent
 
 
-def new_ballistic_ascent_phase():
+def new_ballistic_ascent_phase(transcription):
     ballistic_ascent = CannonballPhase(transcription=transcription)
 
     # All initial states are free (they will be  linked to the final stages of propelled_ascent).
@@ -83,7 +80,7 @@ def new_ballistic_ascent_phase():
     return ballistic_ascent
 
 
-def new_descent_phase():
+def new_descent_phase(transcription):
     descent = CannonballPhase(transcription=transcription)
 
     # All initial states and time are free (they will be linked to the final states of ballistic_ascent).
@@ -101,12 +98,13 @@ def new_descent_phase():
     return descent
 
 def new_water_rocket_trajectory():
+    transcription = dm.GaussLobatto(num_segments=1, order=21, compressed=False)
     traj = dm.Trajectory()
 
     # Add phases to trajectory
-    propelled_ascent = traj.add_phase('propelled_ascent', new_propelled_ascent_phase())
-    ballistic_ascent = traj.add_phase('ballistic_ascent', new_ballistic_ascent_phase())
-    descent = traj.add_phase('descent', new_descent_phase())
+    propelled_ascent = traj.add_phase('propelled_ascent', new_propelled_ascent_phase(transcription))
+    ballistic_ascent = traj.add_phase('ballistic_ascent', new_ballistic_ascent_phase(transcription))
+    descent = traj.add_phase('descent', new_descent_phase(transcription))
 
     # Link phases
     traj.link_phases(phases=['propelled_ascent', 'ballistic_ascent'], vars=['*'])
