@@ -239,6 +239,8 @@ class TestWaterRocketForDocs(unittest.TestCase):
         exp_out = traj.simulate(times_per_seg=200)
 
         plot_trajectory(p, exp_out)
+        plot_propelled_ascent(p, exp_out)
+        plt.show()
 
 
 def plot_trajectory(p, exp_out):
@@ -311,6 +313,7 @@ def plot_trajectory(p, exp_out):
     fig.savefig('states.pdf', dpi=600)
 
 
+def plot_propelled_ascent(p, exp_out):
     fig, ax = plt.subplots(5, 1, sharex=True, figsize=(4,8))
     t_imp = p.get_val('traj.propelled_ascent.time', 's')
     t_exp = exp_out.get_val('traj.propelled_ascent.time', 's')
@@ -344,8 +347,6 @@ def plot_trajectory(p, exp_out):
 
     fig.tight_layout()
     fig.savefig('propelled_ascent.pdf', dpi=600)
-
-    plt.show()
 
 
 def print_results(water_rocket_problem):
