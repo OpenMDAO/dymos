@@ -168,19 +168,17 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
+        traj, phases = new_water_rocket_trajectory(objective='height')
+        traj = p.model.add_subsystem('traj', traj)
+
         p.driver = om.ScipyOptimizeDriver()
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.options['maxiter'] = 1000
         p.driver.options['tol'] = 5e-5
-        #p.driver.options['debug_print'] = ['nl_cons']
         p.driver.declare_coloring()
-
-        traj, (propelled_ascent, ballistic_ascent, descent) = new_water_rocket_trajectory(objective='height')
-        traj = p.model.add_subsystem('traj', traj)
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
-
         #p.driver.add_recorder(om.SqliteRecorder('ex_water_rocket.db'))
 
         p.setup()
