@@ -51,7 +51,7 @@ def interpolation_lagrange_matrices(old_grid, new_grid):
         D_blocks.append(D_block)
 
     L = block_diag(*L_blocks)
-    D = block_diag(*D_block)
+    D = block_diag(*D_blocks)
 
     return L, D
 
@@ -140,7 +140,7 @@ def merge_segments(old_seg_ends, seg_merge):
     for q in range(1, seg_merge.size):
         if seg_merge[q]:
             continue
-        new_seg_ends.append[old_seg_ends[q]]
+        new_seg_ends.append(old_seg_ends[q])
     new_seg_ends.append(1)
     new_seg_ends = np.asarray(new_seg_ends)
     return new_seg_ends
@@ -306,6 +306,7 @@ class HPAdaptive:
             tx = phase.options['transcription']
             gd = tx.grid_data
             self.gd[phase_path] = gd
+            self.x_dd[phase_path] = {}
 
             num_scalar_states = 0
             for state_name, options in phase.state_options.items():
@@ -340,19 +341,25 @@ class HPAdaptive:
 
             inc_seg_order_idxs = np.where(need_refine)
             P = np.zeros(numseg)
-            P[inc_seg_order_idxs] = 3
-
-            new_order = seg_order + P
+            if gd.transcription == 'radau-ps':
+                P[inc_seg_order_idxs] = 3
+            elif gd.transcription == 'gauss-lobatto':
+                P[inc_seg_order_idxs] = 2
+            new_order = (seg_order + P).astype(int)
 
             h = 0.5 * (seg_ends[1:] - seg_ends[:-1])
+            check_comb_indx = np.where(np.logical_and(np.logical_and(np.invert(need_refine[:-1]),
+                                                                     np.invert(need_refine[1:])),
+                                                      new_order[:-1] == new_order[1:]))
+
+            reduce_order_indx = np.setdiff1d(np.where(np.invert(need_refine)), check_comb_indx)
 
             # reduce segment order where error is much below the tolerance
-            for k in np.where(np.invert(need_refine)):
+            for k in np.nditer(reduce_order_indx):
                 new_order[k] = seg_order[k]
-                a = np.zeros((seg_order[k], seg_order[k]))
-                if gd.transcription == 'radau':
-                    s, _ = lgr(seg_order[k], include_endpoint=True)
-                elif gd.transcription == 'gauss-lobatto':
+                a = np.zeros((seg_order[k] + 1, seg_order[k] + 1))
+                s, _ = lgr(seg_order[k], include_endpoint=True)
+                if gd.transcription == 'gauss-lobatto':
                     s, _ = lgl(seg_order[k], include_endpoint=True)
                 for j in range(0, seg_order[k]):
                     roots = s[s != s[j]]
@@ -363,20 +370,16 @@ class HPAdaptive:
                     beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                     b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
-                    for i in range(seg_order - 1, 0, -1):
+                    for i in range(seg_order[k] - 1, 1, -1):
                         if b[i] / beta > phase.refine_options['tolerance'] and i - 1 < new_order[k]:
                             new_order[k] = i - 1
 
             # combine unnecessary segments
-            check_comb_indx = np.where(np.logical_and(np.logical_and(np.invert(need_refine[:-1], need_refine[1:])),
-                                                      new_order[:-1] == new_order[1:]))
-
-            for k in check_comb_indx:
-                a = np.zeros((new_order[k], new_order[k]))
+            for k in np.nditer(check_comb_indx):
+                a = np.zeros((new_order[k] + 1, new_order[k] + 1))
                 h_ = np.maximum(h[k], h[k + 1])
-                if gd.transcription == 'radau':
-                    s, _ = lgr(new_order[k], include_endpoint=True)
-                elif gd.transcription == 'gauss-lobatto':
+                s, _ = lgr(new_order[k].astype(int), include_endpoint=True)
+                if gd.transcription == 'gauss-lobatto':
                     s, _ = lgl(new_order[k], include_endpoint=True)
                 for j in range(0, new_order[k]):
                     roots = s[s != s[j]]
@@ -388,15 +391,16 @@ class HPAdaptive:
                 for state_name, options in phase.state_options.items():
                     beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                     c = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
-                    b = np.dot(c, np.array([(h_ / h[k]) ** l for l in range(new_order[k])]))
-                    b_hat = np.dot(c, np.array([(h_ / h[k + 1]) ** l for l in range(new_order[k])]))
-                    err_val = np.dot(np.absolute(b - b_hat), np.array([2 ** l for l in range(new_order[k])])) / beta
+                    b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in range(new_order[k] + 1)]))
+                    b_hat = np.multiply(c.ravel(), np.array([(h_ / h[k + 1]) ** l for l in range(new_order[k] + 1)]))
+                    err_val = np.dot(np.absolute(b - b_hat).ravel(),
+                                     np.array([2 ** l for l in range(new_order[k] + 1)])) / beta
 
                     if err_val > phase.refine_options['tolerance'] and merge_seg[k + 1]:
                         merge_seg[k + 1] = False
 
             new_segment_ends = merge_segments(gd.segment_ends, merge_seg)
-            new_num_segments = new_segment_ends.shape
+            new_num_segments = new_segment_ends.shape[0] - 1
             new_order = np.delete(new_order, np.where(merge_seg), axis=None)
 
             refine_results[phase_path]['new_order'] = new_order
@@ -500,9 +504,14 @@ class HPAdaptive:
             H = np.ones(numseg, dtype=int)
             q = np.zeros(numseg)
 
-            raise_order_idxs = np.where(new_order <= phase.refine_options['max_order'])
             split_seg_idxs = np.concatenate([np.where(new_order > phase.refine_options['max_order']),
                                              non_smooth_idxs])
+
+            check_comb_indx = np.where(np.logical_and(np.logical_and(np.invert(need_refine[:-1]),
+                                                                     np.invert(need_refine[1:])),
+                                                      new_order[:-1] == new_order[1:]))
+
+            reduce_order_indx = np.setdiff1d(np.where(np.invert(need_refine)), check_comb_indx)
 
             new_order[split_seg_idxs] = seg_order[split_seg_idxs]
 
@@ -513,12 +522,11 @@ class HPAdaptive:
                                                        ) / np.log(seg_order[split_seg_idxs])))
 
             # reduce segment order where error is much below the tolerance
-            for k in np.where(np.invert(need_refine)):
+            for k in np.nditer(reduce_order_indx):
                 new_order[k] = seg_order[k]
-                a = np.zeros((seg_order[k], seg_order[k]))
-                if gd.transcription == 'radau':
-                    s, _ = lgr(seg_order[k], include_endpoint=True)
-                elif gd.transcription == 'gauss-lobatto':
+                a = np.zeros((seg_order[k] + 1, seg_order[k] + 1))
+                s, _ = lgr(seg_order[k], include_endpoint=True)
+                if gd.transcription == 'gauss-lobatto':
                     s, _ = lgl(seg_order[k], include_endpoint=True)
                 for j in range(0, seg_order[k]):
                     roots = s[s != s[j]]
@@ -529,21 +537,17 @@ class HPAdaptive:
                     beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                     b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
-                    for i in range(seg_order - 1, 0, -1):
+                    for i in range(seg_order[k] - 1, 1, -1):
                         if b[i] / beta > phase.refine_options['tolerance'] and i - 1 < new_order[k]:
                             new_order[k] = i - 1
 
             # combine unnecessary segments
             merge_seg = np.zeros(numseg, dtype=bool)
-            check_comb_indx = np.where(np.logical_and(np.logical_and(np.invert(need_refine[:-1], need_refine[1:])),
-                                                      new_order[:-1] == new_order[1:]))
-
-            for k in check_comb_indx:
-                a = np.zeros((new_order[k], new_order[k]))
+            for k in np.nditer(check_comb_indx):
+                a = np.zeros((new_order[k] + 1, new_order[k] + 1))
                 h_ = np.maximum(h[k], h[k + 1])
-                if gd.transcription == 'radau':
-                    s, _ = lgr(new_order[k], include_endpoint=True)
-                elif gd.transcription == 'gauss-lobatto':
+                s, _ = lgr(new_order[k].astype(int), include_endpoint=True)
+                if gd.transcription == 'gauss-lobatto':
                     s, _ = lgl(new_order[k], include_endpoint=True)
                 for j in range(0, new_order[k]):
                     roots = s[s != s[j]]
@@ -555,9 +559,10 @@ class HPAdaptive:
                 for state_name, options in phase.state_options.items():
                     beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                     c = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
-                    b = np.dot(c, np.array([(h_ / h[k]) ** l for l in range(new_order[k])]))
-                    b_hat = np.dot(c, np.array([(h_ / h[k + 1]) ** l for l in range(new_order[k])]))
-                    err_val = np.dot(np.absolute(b - b_hat), np.array([2 ** l for l in range(new_order[k])])) / beta
+                    b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in range(new_order[k] + 1)]))
+                    b_hat = np.multiply(c.ravel(), np.array([(h_ / h[k + 1]) ** l for l in range(new_order[k] + 1)]))
+                    err_val = np.dot(np.absolute(b - b_hat).ravel(),
+                                     np.array([2 ** l for l in range(new_order[k] + 1)])) / beta
 
                     if err_val > phase.refine_options['tolerance'] and merge_seg[k + 1]:
                         merge_seg[k + 1] = False

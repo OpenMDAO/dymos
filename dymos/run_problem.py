@@ -145,11 +145,10 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
         elif refine_method == 'hp':
             ref = HPAdaptive(phases)
             with open(out_file, 'w+') as f:
-                for i in range(refine_iteration_limit):
+                refine_results = ref.check_error()
+                ref.refine_first_iter(refine_results)
+                for i in range(1, refine_iteration_limit):
                     ref.iteration_number = i
-                    refine_results = ref.check_error()
-
-                    ref.refine(refine_results)
 
                     for stream in f, sys.stdout:
                         ref.write_iteration(stream, i, phases, refine_results)
@@ -173,6 +172,11 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
                     load_case(problem, prev_soln)
 
                     problem.run_driver()
+
+                    refine_results = ref.check_error()
+
+                    ref.refine(refine_results)
+
                 for stream in [f, sys.stdout]:
                     if i == refine_iteration_limit - 1:
                         print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
