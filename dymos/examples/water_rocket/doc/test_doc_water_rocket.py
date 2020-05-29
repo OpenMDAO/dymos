@@ -161,6 +161,55 @@ def new_water_rocket_trajectory(objective):
                   'ballistic_ascent': ballistic_ascent,
                   'descent': descent}
 
+def set_sane_initial_guesses(problem, phases):
+    p = problem
+    # Set Initial Guesses
+    p.set_val('traj.propelled_ascent.t_initial', 0.0)
+    p.set_val('traj.propelled_ascent.t_duration', 0.3)
+
+    p.set_val('traj.propelled_ascent.states:r',
+              phases['propelled_ascent'].interpolate(ys=[0, 3], nodes='state_input'))
+    p.set_val('traj.propelled_ascent.states:h',
+              phases['propelled_ascent'].interpolate(ys=[0, 10], nodes='state_input'))
+    #set initial value for velocity as non-zero to avoid undefined EOM
+    p.set_val('traj.propelled_ascent.states:v',
+              phases['propelled_ascent'].interpolate(ys=[0.1, 100], nodes='state_input'))
+    p.set_val('traj.propelled_ascent.states:gam',
+              phases['propelled_ascent'].interpolate(ys=[80, 80], nodes='state_input'),
+              units='deg')
+    p.set_val('traj.propelled_ascent.states:V_w',
+              phases['propelled_ascent'].interpolate(ys=[0.9e-3, 0], nodes='state_input'),
+              units='m**3')
+    p.set_val('traj.propelled_ascent.states:p',
+              phases['propelled_ascent'].interpolate(ys=[6.5, 3.5], nodes='state_input'),
+              units='bar')
+
+    p.set_val('traj.ballistic_ascent.t_initial', 0.3)
+    p.set_val('traj.ballistic_ascent.t_duration', 5)
+
+    p.set_val('traj.ballistic_ascent.states:r',
+              phases['ballistic_ascent'].interpolate(ys=[0, 10], nodes='state_input'))
+    p.set_val('traj.ballistic_ascent.states:h',
+              phases['ballistic_ascent'].interpolate(ys=[10, 100], nodes='state_input'))
+    p.set_val('traj.ballistic_ascent.states:v',
+              phases['ballistic_ascent'].interpolate(ys=[60, 20], nodes='state_input'))
+    p.set_val('traj.ballistic_ascent.states:gam',
+              phases['ballistic_ascent'].interpolate(ys=[80, 0], nodes='state_input'),
+              units='deg')
+
+    p.set_val('traj.descent.t_initial', 10.0)
+    p.set_val('traj.descent.t_duration', 10.0)
+
+    p.set_val('traj.descent.states:r',
+            phases['descent'].interpolate(ys=[10, 20], nodes='state_input'))
+    p.set_val('traj.descent.states:h',
+            phases['descent'].interpolate(ys=[10, 0], nodes='state_input'))
+    p.set_val('traj.descent.states:v',
+            phases['descent'].interpolate(ys=[20, 60], nodes='state_input'))
+    p.set_val('traj.descent.states:gam',
+            phases['descent'].interpolate(ys=[0, -45], nodes='state_input'),
+              units='deg')
+
 
 class TestWaterRocketForDocs(unittest.TestCase):
 
@@ -182,53 +231,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         #p.driver.add_recorder(om.SqliteRecorder('ex_water_rocket.db'))
 
         p.setup()
-
-        # Set Initial Guesses
-        p.set_val('traj.propelled_ascent.t_initial', 0.0)
-        p.set_val('traj.propelled_ascent.t_duration', 0.3)
-
-        p.set_val('traj.propelled_ascent.states:r',
-                  phases['propelled_ascent'].interpolate(ys=[0, 3], nodes='state_input'))
-        p.set_val('traj.propelled_ascent.states:h',
-                  phases['propelled_ascent'].interpolate(ys=[0, 10], nodes='state_input'))
-        #set initial value for velocity as non-zero to avoid undefined EOM
-        p.set_val('traj.propelled_ascent.states:v',
-                  phases['propelled_ascent'].interpolate(ys=[0.1, 100], nodes='state_input'))
-        p.set_val('traj.propelled_ascent.states:gam',
-                  phases['propelled_ascent'].interpolate(ys=[80, 80], nodes='state_input'),
-                  units='deg')
-        p.set_val('traj.propelled_ascent.states:V_w',
-                  phases['propelled_ascent'].interpolate(ys=[0.9e-3, 0], nodes='state_input'),
-                  units='m**3')
-        p.set_val('traj.propelled_ascent.states:p',
-                  phases['propelled_ascent'].interpolate(ys=[6.5, 3.5], nodes='state_input'),
-                  units='bar')
-
-        p.set_val('traj.ballistic_ascent.t_initial', 0.3)
-        p.set_val('traj.ballistic_ascent.t_duration', 5)
-
-        p.set_val('traj.ballistic_ascent.states:r',
-                  phases['ballistic_ascent'].interpolate(ys=[0, 10], nodes='state_input'))
-        p.set_val('traj.ballistic_ascent.states:h',
-                  phases['ballistic_ascent'].interpolate(ys=[10, 100], nodes='state_input'))
-        p.set_val('traj.ballistic_ascent.states:v',
-                  phases['ballistic_ascent'].interpolate(ys=[60, 20], nodes='state_input'))
-        p.set_val('traj.ballistic_ascent.states:gam',
-                  phases['ballistic_ascent'].interpolate(ys=[80, 0], nodes='state_input'),
-                  units='deg')
-
-        p.set_val('traj.descent.t_initial', 10.0)
-        p.set_val('traj.descent.t_duration', 10.0)
-
-        p.set_val('traj.descent.states:r',
-                phases['descent'].interpolate(ys=[10, 20], nodes='state_input'))
-        p.set_val('traj.descent.states:h',
-                phases['descent'].interpolate(ys=[10, 0], nodes='state_input'))
-        p.set_val('traj.descent.states:v',
-                phases['descent'].interpolate(ys=[20, 60], nodes='state_input'))
-        p.set_val('traj.descent.states:gam',
-                phases['descent'].interpolate(ys=[0, -45], nodes='state_input'),
-                  units='deg')
+        set_sane_initial_guesses(p, phases)
 
         p.run_driver()
         self.print_results(p)
