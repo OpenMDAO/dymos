@@ -61,7 +61,7 @@ def new_ballistic_ascent_phase(transcription):
     # All initial states are free (they will be  linked to the final stages of propelled_ascent).
     # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
     ballistic_ascent.set_time_options(
-        fix_initial=False, initial_bounds=(0, 1), duration_bounds=(0, 10), 
+        fix_initial=False, initial_bounds=(0, 1), duration_bounds=(0, 10),
         duration_ref=1, units='s')
     ballistic_ascent.set_state_options(
         'r', fix_initial=False, fix_final=False)
@@ -298,7 +298,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         states = ['r', 'h', 'v', 'gam']
         units =  ['m', 'm', 'm/s', 'deg']
         phases = ['propelled_ascent', 'ballistic_ascent', 'descent']
-        
+
         x_imp = {phase: {state: p.get_val(f"traj.{phase}.timeseries.states:{state}", unit) for state, unit in zip(states,units)} for phase in phases}
         x_exp = {phase: {state: exp_out.get_val(f"traj.{phase}.timeseries.states:{state}", unit) for state, unit in zip(states,units)} for phase in phases}
 
@@ -321,7 +321,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         fig.tight_layout()
         fig.savefig('states.pdf', dpi=600)
-        
+
         params = ['CL', 'CD', 'T', 'alpha', 'S']
         fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
         for i, param in enumerate(params):
@@ -373,7 +373,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         ax[3].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.states:v', 'm/s'), 'r-')
         ax[3].set_ylabel('v (m/s)')
         ax[3].set_ylim(bottom=0)
- 
+
         ax[4].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.states:gam', 'deg'), 'ro', markerfacecolor='None')
         ax[4].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.states:gam', 'deg'), 'r-')
         ax[4].set_ylabel('$\gamma$ (deg)')
