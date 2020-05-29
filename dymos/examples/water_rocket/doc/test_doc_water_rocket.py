@@ -157,7 +157,9 @@ def new_water_rocket_trajectory(objective):
     traj.add_design_parameter('k', units=None, val=1.2, opt=False,
             targets={'propelled_ascent': ['water_engine.k']})
 
-    return traj, (propelled_ascent, ballistic_ascent, descent)
+    return traj, {'propelled_ascent': propelled_ascent,
+                  'ballistic_ascent': ballistic_ascent,
+                  'descent': descent}
 
 
 class TestWaterRocketForDocs(unittest.TestCase):
@@ -188,42 +190,46 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.set_val('traj.propelled_ascent.t_duration', 0.3)
 
         p.set_val('traj.propelled_ascent.states:r',
-                  propelled_ascent.interpolate(ys=[0, 3], nodes='state_input'))
+                  phases['propelled_ascent'].interpolate(ys=[0, 3], nodes='state_input'))
         p.set_val('traj.propelled_ascent.states:h',
-                  propelled_ascent.interpolate(ys=[0, 10], nodes='state_input'))
+                  phases['propelled_ascent'].interpolate(ys=[0, 10], nodes='state_input'))
         #set initial value for velocity as non-zero to avoid undefined EOM
         p.set_val('traj.propelled_ascent.states:v',
-                  propelled_ascent.interpolate(ys=[0.1, 100], nodes='state_input'))
+                  phases['propelled_ascent'].interpolate(ys=[0.1, 100], nodes='state_input'))
         p.set_val('traj.propelled_ascent.states:gam',
-                  propelled_ascent.interpolate(ys=[80, 80], nodes='state_input'),
+                  phases['propelled_ascent'].interpolate(ys=[80, 80], nodes='state_input'),
                   units='deg')
         p.set_val('traj.propelled_ascent.states:V_w',
-                  propelled_ascent.interpolate(ys=[0.9e-3, 0], nodes='state_input'),
+                  phases['propelled_ascent'].interpolate(ys=[0.9e-3, 0], nodes='state_input'),
                   units='m**3')
         p.set_val('traj.propelled_ascent.states:p',
-                  propelled_ascent.interpolate(ys=[6.5, 3.5], nodes='state_input'),
+                  phases['propelled_ascent'].interpolate(ys=[6.5, 3.5], nodes='state_input'),
                   units='bar')
 
         p.set_val('traj.ballistic_ascent.t_initial', 0.3)
         p.set_val('traj.ballistic_ascent.t_duration', 5)
 
         p.set_val('traj.ballistic_ascent.states:r',
-                  ballistic_ascent.interpolate(ys=[0, 10], nodes='state_input'))
+                  phases['ballistic_ascent'].interpolate(ys=[0, 10], nodes='state_input'))
         p.set_val('traj.ballistic_ascent.states:h',
-                  ballistic_ascent.interpolate(ys=[10, 100], nodes='state_input'))
+                  phases['ballistic_ascent'].interpolate(ys=[10, 100], nodes='state_input'))
         p.set_val('traj.ballistic_ascent.states:v',
-                  ballistic_ascent.interpolate(ys=[60, 20], nodes='state_input'))
+                  phases['ballistic_ascent'].interpolate(ys=[60, 20], nodes='state_input'))
         p.set_val('traj.ballistic_ascent.states:gam',
-                  ballistic_ascent.interpolate(ys=[80, 0], nodes='state_input'),
+                  phases['ballistic_ascent'].interpolate(ys=[80, 0], nodes='state_input'),
                   units='deg')
 
         p.set_val('traj.descent.t_initial', 10.0)
         p.set_val('traj.descent.t_duration', 10.0)
 
-        p.set_val('traj.descent.states:r', descent.interpolate(ys=[10, 20], nodes='state_input'))
-        p.set_val('traj.descent.states:h', descent.interpolate(ys=[10, 0], nodes='state_input'))
-        p.set_val('traj.descent.states:v', descent.interpolate(ys=[20, 60], nodes='state_input'))
-        p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45], nodes='state_input'),
+        p.set_val('traj.descent.states:r',
+                phases['descent'].interpolate(ys=[10, 20], nodes='state_input'))
+        p.set_val('traj.descent.states:h',
+                phases['descent'].interpolate(ys=[10, 0], nodes='state_input'))
+        p.set_val('traj.descent.states:v',
+                phases['descent'].interpolate(ys=[20, 60], nodes='state_input'))
+        p.set_val('traj.descent.states:gam',
+                phases['descent'].interpolate(ys=[0, -45], nodes='state_input'),
                   units='deg')
 
         p.run_driver()
