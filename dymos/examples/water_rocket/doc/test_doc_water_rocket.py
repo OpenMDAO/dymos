@@ -310,33 +310,6 @@ def plot_trajectory(p, exp_out):
     fig.tight_layout()
     fig.savefig('states.pdf', dpi=600)
 
-    params = ['CL', 'CD', 'T', 'alpha', 'S']
-    fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
-    for i, param in enumerate(params):
-        p_imp = {
-            'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.input_parameters:{0}'.format(param)),
-            'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.input_parameters:{0}'.format(param) if param !='T'
-                                        else 'traj.propelled_ascent.timeseries.{0}'.format(param)),
-            'descent': p.get_val('traj.descent.timeseries.input_parameters:{0}'.format(param))}
-
-        p_exp = {'ballistic_ascent': exp_out.get_val('traj.ballistic_ascent.timeseries.'
-                                           'input_parameters:{0}'.format(param)),
-                 'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.'
-                                                     'input_parameters:{0}'.format(param) if param != 'T'
-                                                     else 'traj.propelled_ascent.timeseries.{0}'.format(param)),
-                 'descent': exp_out.get_val('traj.descent.timeseries.'
-                                            'input_parameters:{0}'.format(param))}
-
-        axes[i].set_ylabel(param)
-
-        axes[i].plot(time_imp['propelled_ascent'], p_imp['propelled_ascent'], 'ro')
-        axes[i].plot(time_imp['ballistic_ascent'], p_imp['ballistic_ascent'], 'mo')
-        axes[i].plot(time_imp['descent'], p_imp['descent'], 'bo')
-        axes[i].plot(time_exp['propelled_ascent'], p_exp['propelled_ascent'], 'r--')
-        axes[i].plot(time_exp['ballistic_ascent'], p_exp['ballistic_ascent'], 'm--')
-        axes[i].plot(time_exp['descent'], p_exp['descent'], 'b--')
-
-    #Plot propelled ascent states
 
     fig, ax = plt.subplots(5, 1, sharex=True, figsize=(4,8))
     t_imp = p.get_val('traj.propelled_ascent.time', 's')
