@@ -97,7 +97,8 @@ def new_descent_phase(transcription):
 
     return descent
 
-def new_water_rocket_trajectory():
+
+def new_water_rocket_trajectory(objective):
     transcription = dm.GaussLobatto(num_segments=1, order=21, compressed=False)
     traj = dm.Trajectory()
 
@@ -111,11 +112,12 @@ def new_water_rocket_trajectory():
     traj.link_phases(phases=['ballistic_ascent', 'descent'], vars=['*'])
 
     # Set objective function
-    # NOTE: only one objective function must be commented out at any time
-    # Use this line to optimize for height
-    ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
-    # Use this line to optimize for range
-    #descent.add_objective('r', loc='final', scaler=-1.0)
+    if objective=='height':
+        ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
+    elif objective=='range':
+        descent.add_objective('r', loc='final', scaler=-1.0)
+    else:
+        raise ValueError(f"objective='{objective}' is not defined. Try using 'height' or 'range'")
 
     # Add design parameters to the trajectory.
     traj.add_design_parameter('CD',
@@ -171,7 +173,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         #p.driver.options['debug_print'] = ['nl_cons']
         p.driver.declare_coloring()
 
-        traj, (propelled_ascent, ballistic_ascent, descent) = new_water_rocket_trajectory()
+        traj, (propelled_ascent, ballistic_ascent, descent) = new_water_rocket_trajectory(objective='height')
         traj = p.model.add_subsystem('traj', traj)
 
         # Finish Problem Setup
