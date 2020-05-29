@@ -282,7 +282,6 @@ def plot_trajectory(p, exp_out):
     axes.set_ylabel('h (m)')
     axes.set_aspect('equal', 'box')
     fig.tight_layout()
-    fig.savefig('path.pdf', bbox_inches = 'tight')
 
     fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(4, 8), sharex=True)
     states = ['r', 'h', 'v', 'gam']
@@ -310,7 +309,6 @@ def plot_trajectory(p, exp_out):
     axes[0].legend()
 
     fig.tight_layout()
-    fig.savefig('states.pdf', dpi=600)
 
 
 def plot_propelled_ascent(p, exp_out):
@@ -346,7 +344,6 @@ def plot_propelled_ascent(p, exp_out):
     ax[-1].set_xlabel('t (s)')
 
     fig.tight_layout()
-    fig.savefig('propelled_ascent.pdf', dpi=600)
 
 
 def print_results(water_rocket_problem):
