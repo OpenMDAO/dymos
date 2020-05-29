@@ -5,7 +5,7 @@ from dymos.examples.min_time_climb.aero.dynamic_pressure_comp import DynamicPres
 from dymos.examples.min_time_climb.aero.lift_drag_force_comp import LiftDragForceComp
 from dymos.models.atmosphere import USatm1976Comp
 from dymos.models.eom import FlightPathEOM2D
-from .kinetic_energy_comp import KineticEnergyComp
+from dymos.examples.cannonball.kinetic_energy_comp import KineticEnergyComp
 from .water_engine_comp import WaterEngine
 
 
