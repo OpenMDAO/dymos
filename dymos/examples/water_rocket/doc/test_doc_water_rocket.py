@@ -234,27 +234,12 @@ class TestWaterRocketForDocs(unittest.TestCase):
         set_sane_initial_guesses(p, phases)
 
         p.run_driver()
-        self.print_results(p)
+        print_results(p)
 
         exp_out = traj.simulate(times_per_seg=200)
 
         self.plot_trajectory(p, exp_out)
 
-    def print_results(self, p):
-        print('launch angle: {0:6.4f} '
-              'deg '.format(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[0, 0]))
-        print('Flight angle at end of propulsion: {0:6.4f} '
-              'deg '.format(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[-1, 0]))
-        print('empty mass: {0:6.4f} '
-              'kg '.format(p.get_val('traj.design_parameters:m_empty')[0,0]))
-        print('water volume: {0:6.4f} '
-                'L '.format(p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L')[0,0]))
-        print('maximum range: {0:6.4f} '
-              'm '.format(p.get_val('traj.descent.timeseries.states:r')[-1, 0]))
-        print('maximum height: {0:6.4f} '
-              'm '.format(p.get_val('traj.ballistic_ascent.timeseries.states:h')[-1, 0]))
-        print('maximum velocity: {0:6.4f} '
-              'm/s '.format(p.get_val('traj.propelled_ascent.timeseries.states:v')[-1, 0]))
 
     def plot_trajectory(self, p, exp_out):
         fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(6, 8))
@@ -388,6 +373,24 @@ class TestWaterRocketForDocs(unittest.TestCase):
         fig.savefig('propelled_ascent.pdf', dpi=600)
 
         plt.show()
+
+
+def print_results(water_rocket_problem):
+    p = water_rocket_problem
+    print('launch angle: {0:6.4f} '
+          'deg '.format(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[0, 0]))
+    print('Flight angle at end of propulsion: {0:6.4f} '
+          'deg '.format(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[-1, 0]))
+    print('empty mass: {0:6.4f} '
+          'kg '.format(p.get_val('traj.design_parameters:m_empty')[0,0]))
+    print('water volume: {0:6.4f} '
+            'L '.format(p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L')[0,0]))
+    print('maximum range: {0:6.4f} '
+          'm '.format(p.get_val('traj.descent.timeseries.states:r')[-1, 0]))
+    print('maximum height: {0:6.4f} '
+          'm '.format(p.get_val('traj.ballistic_ascent.timeseries.states:h')[-1, 0]))
+    print('maximum velocity: {0:6.4f} '
+          'm/s '.format(p.get_val('traj.propelled_ascent.timeseries.states:v')[-1, 0]))
 
 
 if __name__ == '__main__':  # pragma: no cover
