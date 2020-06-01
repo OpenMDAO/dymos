@@ -13,7 +13,11 @@ It was originally posed as a challenge by Johann Bernoulli.
 We seek to find the optimal shape of a wire between two points (A and B) such that a bead sliding
 without friction along the wire moves from point A to point B in minimum time.
 
-{{ embed_plot_from_script('scripts/brachistochrone_fbd.py') }}
+{{ embed_plot_from_script('scripts/brachistochrone_fbd.py',
+alt_text='Brachistochrone free body diagram',
+width=400,
+height=300
+) }}
 
 ## State variables
 
@@ -115,3 +119,8 @@ include_def=False,
 include_docstring=False,
 indent_level=0)
 }}
+
+{{ embed_test_output('dymos.examples.finite_burn_orbit_raise.doc.test_doc_finite_burn_orbit_raise.TestDocFiniteBurnOrbitRaise.test_doc_finite_burn_orbit_raise') }}
+
+{{ embed_test_plot('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone',
+alt_text='The solution to the Brachistochrone problem') }}

@@ -1,10 +1,13 @@
+import base64
 import importlib
 import inspect
+import io
 import re
 import shutil
 import tempfile
 import textwrap
 from pathlib import Path
+import unittest
 
 
 def define_env(env):
@@ -32,22 +35,25 @@ def define_env(env):
         return f'{indent}```python\n{source}\n{indent}```'
 
     @env.macro
-    def inline_plot(source, figname='figure'):
+    def inline_plot(source, alt_text='', width=640, height=480):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')
-        filename = str(Path(tempfile.gettempdir()).joinpath(f'{figname}.png'))
+
         d = dict(locals(), **globals())
-        print(source)
+
         exec(source, d, d)
-        plt.savefig(filename)
-        return f'```{filename}```'
+
+        buf = io.BytesIO()
+        plt.tight_layout()
+        plt.savefig(buf, format='png')
+        data = base64.b64encode(buf.getbuffer()).decode('ascii')
+        return f'<img alt="{alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>'
 
     @env.macro
-    def embed_plot_from_script(script_path, figname='figure'):
+    def embed_plot_from_script(script_path, alt_text='', width=640, height=480):
         import matplotlib.pyplot as plt
 
         plt.switch_backend('Agg')
-        filename = str(Path(tempfile.gettempdir()).joinpath(f'{figname}.png'))
         d = dict(locals(), **globals())
 
         dir_path = get_parent_dir(env)
@@ -55,15 +61,39 @@ def define_env(env):
 
         exec(open(path_to_script).read(), d, d)
 
-        output_path = dir_path.joinpath(f'figures/{figname}.png')
-        plt.savefig(str(output_path))
-        return f'![Screenshot](figures/{figname}.png)'
+        buf = io.BytesIO()
+        plt.tight_layout()
+        plt.savefig(buf, format='png')
+        data = base64.b64encode(buf.getbuffer()).decode('ascii')
+        return f'<img alt="{alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>'
+
+    @env.macro
+    def embed_test_output(reference):
+        test_case, test_method = reference.split('.')[-2:]
+        testcase_obj = get_object_from_reference('.'.join(reference.split('.')[:-1]))
+        test_dir = Path(inspect.getfile(testcase_obj)).parent
+        output_file = test_dir.joinpath('_output').joinpath(f'{test_case}.{test_method}.out')
+        with open(output_file) as f:
+            text = f.read()
+        return f'```\n{text}\n```'
+
+    @env.macro
+    def embed_test_plot(reference, index=1, alt_text='', width=640, height=480):
+        test_case, test_method = reference.split('.')[-2:]
+        testcase_obj = get_object_from_reference('.'.join(reference.split('.')[:-1]))
+        test_dir = Path(inspect.getfile(testcase_obj)).parent
+        plot_file = test_dir.joinpath('_output').joinpath(f'{test_case}.{test_method}_{index}.png')
+
+        with open(plot_file, 'rb') as f:
+            buf = io.BytesIO(f.read())
+
+        data = base64.b64encode(buf.getbuffer()).decode("ascii")
+        return f'<img alt="{alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>'
 
     @env.macro
     def doc_env():
         "Document the environment"
         return {name:getattr(env, name) for name in dir(env) if not name.startswith('_')}
-
 
 def get_object_from_reference(reference):
     split = reference.split('.')
@@ -80,16 +110,14 @@ def get_object_from_reference(reference):
             module = getattr(module, entry)
     return module
 
-def get_parent_dir(env):
-    project_path = Path(env.project_dir)
-    page_path = Path(env.variables.page.url)
 
-    full_path = project_path.joinpath('docs').joinpath(page_path)
+def get_parent_dir(env):
+    page_path = Path(env.variables.page.url)
+    full_path = Path(env.conf['docs_dir']).joinpath(page_path)
     dir_path = full_path.parents[0]
     return dir_path
 
 
 if __name__ == '__main__':
-    figname = 'figure'
-    filename = str(Path(tempfile.gettempdir()).joinpath(f'{figname}.png'))
-    print(filename)
+    # embed_test_output('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone')
+    embed_test_output('dymos.examples.finite_burn_orbit_raise.doc.test_doc_finite_burn_orbit_raise.TestDocFiniteBurnOrbitRaise.test_doc_finite_burn_orbit_raise')

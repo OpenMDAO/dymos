@@ -2,9 +2,11 @@ import os
 import unittest
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
+
+from dymos.utils.doc_utils import save_for_docs
 
 
 class TestBrachistochrone(unittest.TestCase):
@@ -42,11 +44,12 @@ class TestBrachistochrone(unittest.TestCase):
         cpd = p.check_partials(method='cs', compact_print=True)
         assert_check_partials(cpd)
 
+    @save_for_docs
     def test_brachistochrone(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
-        from dymos.examples.plotting import plot_results
+        import matplotlib.pyplot as plt
         from brachistochrone_ode import BrachistochroneODE
 
         #
@@ -131,14 +134,28 @@ class TestBrachistochrone(unittest.TestCase):
         # Generate the explicitly simulated trajectory
         exp_out = traj.simulate()
 
-        om.n2(exp_out)
+        # Extract the timeseries from the implicit solution and the explicit simulation
+        x = p.get_val('traj.phase0.timeseries.states:x')
+        y = p.get_val('traj.phase0.timeseries.states:y')
+        t = p.get_val('traj.phase0.timeseries.time')
+        theta = p.get_val('traj.phase0.timeseries.controls:theta')
 
-        plot_results([('traj.phase0.timeseries.states:x', 'traj.phase0.timeseries.states:y',
-                       'x (m)', 'y (m)'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.controls:theta',
-                       'time (s)', 'theta (deg)')],
-                     title='Brachistochrone Solution\nRadau Pseudospectral Method',
-                     p_sol=p, p_sim=exp_out)
+        x_exp = exp_out.get_val('traj.phase0.timeseries.states:x')
+        y_exp = exp_out.get_val('traj.phase0.timeseries.states:y')
+        t_exp = exp_out.get_val('traj.phase0.timeseries.time')
+        theta_exp = exp_out.get_val('traj.phase0.timeseries.controls:theta')
+
+        fig, axes = plt.subplots(nrows=2, ncols=1)
+
+        axes[0].plot(x, y, 'o')
+        axes[0].plot(x_exp, y_exp, '-')
+        axes[0].set_xlabel('x (m)')
+        axes[0].set_ylabel('y (m)')
+
+        axes[1].plot(t, theta, 'o')
+        axes[1].plot(t_exp, theta_exp, '-')
+        axes[1].set_xlabel('time (s)')
+        axes[1].set_ylabel(r'$\theta$ (deg)')
 
         plt.show()
 

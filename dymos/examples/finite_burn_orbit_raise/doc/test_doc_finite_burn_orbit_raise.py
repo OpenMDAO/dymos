@@ -7,14 +7,18 @@ plt.style.use('ggplot')
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
+from dymos.utils.doc_utils import save_for_docs
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
 
-class TestFiniteBurnOrbitRaise(unittest.TestCase):
+@use_tempdirs
+class TestDocFiniteBurnOrbitRaise(unittest.TestCase):
 
-    def test_finite_burn_orbit_raise(self):
+    @save_for_docs
+    def test_doc_finite_burn_orbit_raise(self):
 
         p = om.Problem(model=om.Group())
 
@@ -254,6 +258,11 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
             ax_xy.plot(x_sol[phs], y_sol[phs], 'o', mfc='C1', mec='C1', ms=3, label='implicit')
 
         plt.show()
+
+        # END
+        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
+            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+                              tolerance=2.0E-3)
 
 
 if __name__ == '__main__':  # pragma: no cover
