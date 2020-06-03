@@ -1,4 +1,4 @@
-# Tutorial: Solving the brachistochrone optimal control problem with Dymos
+# The Brachistochrone
 
 The brachistochrone is one of the most well-known optimal control problems.
 It was originally posed as a challenge by Johann Bernoulli.

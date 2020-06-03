@@ -1,3 +1,5 @@
+# Transcriptions
+
 Dymos supports multiple ways of solving optimal control problems.
 While the goal of optimal control is typically to find a continuous control that minimizes the objective, Dymos utilizes some well-known _transcriptions_ which convert the problem of finding a continuous control function into a discrete nonlinear programming (NLP) problem.
 The transcriptions used by Dymos transcribe the problem into a discrete problem using OpenMDAO, which in turn uses a third-party optimizer to solve the NLP.

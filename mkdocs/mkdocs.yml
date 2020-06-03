@@ -21,15 +21,20 @@ markdown_extensions:
   - pymdownx.tabbed
   - codehilite:
       linenums: true
-  - attr_list
 
 nav:
     - 'index.md'
     - 'Getting Started':
-      - 'getting_started/collocation.md'
-      - 'getting_started/brachistochrone.md'
-      - 'getting_started/transcriptions.md'
-    - 'test_page.md'
+        - 'getting_started/collocation.md'
+        - 'getting_started/transcriptions.md'
+    - 'Examples and Tutorials':
+        - 'examples/examples.md'
+        - 'examples/brachistochrone/brachistochrone.md'
+        - 'examples/run_problem/run_problem.md'
+    - 'Dymos API Reference':
+        - 'api/api.md'
+    - 'Contributing':
+        - 'contributing/contributing.md'
 
 extra_javascript:
   - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML

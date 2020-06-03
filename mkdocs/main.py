@@ -4,13 +4,21 @@ import inspect
 import io
 import re
 import shutil
+import sys
 import tempfile
 import textwrap
 from pathlib import Path
 import unittest
 
+from numpydoc.docscrape import NumpyDocString, FunctionDoc, ClassDoc
+
 
 def define_env(env):
+
+    @env.macro
+    def api_doc(reference, members=True):
+        obj = get_object_from_reference(reference)
+
     @env.macro
     def inline_source(reference, include_def=True, include_docstring=True, indent_level=0):
         obj = get_object_from_reference(reference)
@@ -95,6 +103,29 @@ def define_env(env):
         "Document the environment"
         return {name:getattr(env, name) for name in dir(env) if not name.startswith('_')}
 
+    @env.macro
+    def api_doc(reference, members=True):
+
+        module = '.'.join(reference.split('.')[:-1])
+        item = reference.split('.')[-1]
+
+        obj = getattr(get_object_from_reference(module), item)
+
+        from numpydoc.docscrape import FunctionDoc, NumpyDocString, ClassDoc
+
+        ss = io.StringIO()
+
+        if inspect.isfunction(obj):
+            _function_doc_markdown(obj, reference, outstream=ss)
+            return ss.getvalue()
+        elif inspect.isclass(obj):
+            _class_doc_markdown(obj, reference, outstream=ss)
+
+        # for key in doc.keys():
+        #     print(key)
+
+        return obj
+
 def get_object_from_reference(reference):
     split = reference.split('.')
     right = []
@@ -118,6 +149,138 @@ def get_parent_dir(env):
     return dir_path
 
 
+def _function_doc_markdown(func, reference, outstream=sys.stdout):
+    """
+    Generate markdown documentation for the given function object.
+
+    Parameters
+    ----------
+    func : function
+        The function object to be documented.
+    reference : str
+        The dotted path to the function in the API.
+
+    Returns
+    -------
+    str
+        The markdown representation of the function documentation.
+    """
+    from numpydoc.docscrape import FunctionDoc
+
+    indent = '    '
+
+    doc = FunctionDoc(func)
+
+    print(f'!!! abstract "{reference}"\n', file=outstream)
+
+    if doc['Summary']:
+        print(indent + ' '.join(doc['Summary']), file=outstream)
+
+    if doc['Extended Summary']:
+        print(indent + ' '.join(doc['Extended Summary'] + '\n'), file=outstream)
+
+    print('', file=outstream)
+    print(f"{indent}**{doc['Signature']}**\n", file=outstream)
+
+    print(f'{indent}**Arguments:**\n', file=outstream)
+
+    for p in doc['Parameters']:
+        print(f'{indent}**{p.name}**: {" ".join(p.desc)}', file=outstream)
+        print('', file=outstream)
+
+    if doc['Raises']:
+        print('{indent}**Raises:**\n', file=outstream)
+
+        for p in doc['Raises']:
+            print(f'{indent}**{p.name}**: {" ".join(p.desc)}', file=outstream)
+            print('', file=outstream)
+
+    for key in doc.keys():
+        print(key, file=outstream)
+
+def _class_doc_markdown(cls, reference, methods=None, outstream=sys.stdout):
+    """
+
+    Parameters
+    ----------
+    cls
+    reference
+    methods
+    outstream
+
+    Returns
+    -------
+
+    """
+    from numpydoc.docscrape import ClassDoc, NumpyDocString
+
+    indent = '    '
+
+    doc = ClassDoc(cls)
+
+    print(f'!!! abstract "{reference}"\n', file=outstream)
+
+    if doc['Summary']:
+        print(indent + ' '.join(doc['Summary']), file=outstream)
+
+    if doc['Extended Summary']:
+        print(indent + ' '.join(doc['Extended Summary'] + '\n'), file=outstream)
+
+    print('', file=outstream)
+    print(f"{indent}**{doc['Signature']}**\n", file=outstream)
+
+    print(f'{indent}**Methods:**\n', file=outstream)
+
+    for p in doc['Methods']:
+        if p.name in methods:
+            print(p)
+
+    for key in doc.keys():
+        print(key, file=outstream)
+
+def _api_doc(reference, members=True):
+
+    module = '.'.join(reference.split('.')[:-1])
+    item = reference.split('.')[-1]
+
+    obj = getattr(get_object_from_reference(module), item)
+
+    from numpydoc.docscrape import FunctionDoc, NumpyDocString, ClassDoc
+
+
+    if inspect.isfunction(obj):
+        return _function_doc_markdown(obj, reference)
+    elif inspect.isclass(obj):
+        return _class_doc_markdown(obj, members)
+
+    # for key in doc.keys():
+    #     print(key)
+
+    return obj
+
+
 if __name__ == '__main__':
-    # embed_test_output('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone')
-    embed_test_output('dymos.examples.finite_burn_orbit_raise.doc.test_doc_finite_burn_orbit_raise.TestDocFiniteBurnOrbitRaise.test_doc_finite_burn_orbit_raise')
+    reference = 'dymos.run_problem'
+    module = '.'.join(reference.split('.')[:-1])
+    item = reference.split('.')[-1]
+
+    obj = getattr(get_object_from_reference(module), item)
+
+    _function_doc_markdown(obj, reference)
+
+    reference = 'dymos.Trajectory'
+    module = '.'.join(reference.split('.')[:-1])
+    item = reference.split('.')[-1]
+
+    obj = getattr(get_object_from_reference(module), item)
+
+    _class_doc_markdown(obj, reference, methods=['add_phase', 'link_phases'])
+
+    obj2 = getattr(get_object_from_reference('dymos.Trajectory'), 'add_phase')
+
+    print(obj2)
+
+
+
+    # print(module.run_problem)
+

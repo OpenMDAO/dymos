@@ -20,10 +20,6 @@ SNOPT_summary.out
 # OS X
 .DS_Store
 
-# Sphinx build directory
-# docs/build/
-# docs/*.png
-
 # nosetests coverage
 .coverage
 
@@ -68,3 +64,9 @@ fort.6
 
 # openmdao
 **/visualization
+**/coloring_files
+**/.coverage*
+
+# dymos specific
+**/_output
+mkdocs/site
