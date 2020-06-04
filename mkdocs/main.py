@@ -104,7 +104,7 @@ def define_env(env):
         return {name:getattr(env, name) for name in dir(env) if not name.startswith('_')}
 
     @env.macro
-    def api_doc(reference, members=True):
+    def api_doc(reference, members=None):
 
         module = '.'.join(reference.split('.')[:-1])
         item = reference.split('.')[-1]
@@ -117,14 +117,13 @@ def define_env(env):
 
         if inspect.isfunction(obj):
             _function_doc_markdown(obj, reference, outstream=ss)
-            return ss.getvalue()
         elif inspect.isclass(obj):
-            _class_doc_markdown(obj, reference, outstream=ss)
+            _class_doc_markdown(obj, reference, members=members, outstream=ss)
+
+        return ss.getvalue()
 
         # for key in doc.keys():
         #     print(key)
-
-        return obj
 
 def get_object_from_reference(reference):
     split = reference.split('.')
@@ -149,7 +148,7 @@ def get_parent_dir(env):
     return dir_path
 
 
-def _function_doc_markdown(func, reference, outstream=sys.stdout):
+def _function_doc_markdown(func, reference, outstream=sys.stdout, indent='', method=False):
     """
     Generate markdown documentation for the given function object.
 
@@ -167,20 +166,27 @@ def _function_doc_markdown(func, reference, outstream=sys.stdout):
     """
     from numpydoc.docscrape import FunctionDoc
 
-    indent = '    '
-
     doc = FunctionDoc(func)
 
-    print(f'!!! abstract "{reference}"\n', file=outstream)
+    # # print(f'{indent}!!! abstract "{reference}"\n', file=outstream)
+    # print(f'{indent}=== "{reference}"\n', file=outstream)
+
+    if not method:
+        print(f'{indent}!!! abstract "{reference}"\n', file=outstream)
+    else:
+        print(f'{indent}!!! abstract ""\n', file=outstream)
+    indent = indent + '    '
+
+    print(f"{indent}**{doc['Signature']}**\n", file=outstream)
+    print('', file=outstream)
 
     if doc['Summary']:
         print(indent + ' '.join(doc['Summary']), file=outstream)
 
     if doc['Extended Summary']:
-        print(indent + ' '.join(doc['Extended Summary'] + '\n'), file=outstream)
+        print(indent + ' '.join(doc['Extended Summary']) + '\n', file=outstream)
 
     print('', file=outstream)
-    print(f"{indent}**{doc['Signature']}**\n", file=outstream)
 
     print(f'{indent}**Arguments:**\n', file=outstream)
 
@@ -195,17 +201,17 @@ def _function_doc_markdown(func, reference, outstream=sys.stdout):
             print(f'{indent}**{p.name}**: {" ".join(p.desc)}', file=outstream)
             print('', file=outstream)
 
-    for key in doc.keys():
-        print(key, file=outstream)
+    # for key in doc.keys():
+    #     print(key, file=outstream)
 
-def _class_doc_markdown(cls, reference, methods=None, outstream=sys.stdout):
+def _class_doc_markdown(cls, reference, members=None, outstream=sys.stdout, indent=''):
     """
 
     Parameters
     ----------
     cls
     reference
-    methods
+    members
     outstream
 
     Returns
@@ -214,11 +220,11 @@ def _class_doc_markdown(cls, reference, methods=None, outstream=sys.stdout):
     """
     from numpydoc.docscrape import ClassDoc, NumpyDocString
 
-    indent = '    '
-
     doc = ClassDoc(cls)
 
-    print(f'!!! abstract "{reference}"\n', file=outstream)
+    print(f'{indent}### class {reference}\n', file=outstream)
+
+    indent = indent + ''
 
     if doc['Summary']:
         print(indent + ' '.join(doc['Summary']), file=outstream)
@@ -229,11 +235,13 @@ def _class_doc_markdown(cls, reference, methods=None, outstream=sys.stdout):
     print('', file=outstream)
     print(f"{indent}**{doc['Signature']}**\n", file=outstream)
 
-    print(f'{indent}**Methods:**\n', file=outstream)
+    print(f'{indent}**Public API Methods:**\n', file=outstream)
 
     for p in doc['Methods']:
-        if p.name in methods:
-            print(p)
+        if p.name in members:
+            ref = '.'.join((reference, p.name))
+            print(f'{indent}=== "{p.name}"\n', file=outstream)
+            _function_doc_markdown(getattr(cls, p.name), ref, outstream=outstream, indent=indent + "    ", method=True)
 
     for key in doc.keys():
         print(key, file=outstream)
@@ -260,21 +268,21 @@ def _api_doc(reference, members=True):
 
 
 if __name__ == '__main__':
-    reference = 'dymos.run_problem'
-    module = '.'.join(reference.split('.')[:-1])
-    item = reference.split('.')[-1]
-
-    obj = getattr(get_object_from_reference(module), item)
-
-    _function_doc_markdown(obj, reference)
-
+    # reference = 'dymos.run_problem'
+    # module = '.'.join(reference.split('.')[:-1])
+    # item = reference.split('.')[-1]
+    #
+    # obj = getattr(get_object_from_reference(module), item)
+    #
+    # _function_doc_markdown(obj, reference)
+    #
     reference = 'dymos.Trajectory'
     module = '.'.join(reference.split('.')[:-1])
     item = reference.split('.')[-1]
 
     obj = getattr(get_object_from_reference(module), item)
 
-    _class_doc_markdown(obj, reference, methods=['add_phase', 'link_phases'])
+    _class_doc_markdown(obj, reference, members=['add_phase', 'link_phases'])
 
     obj2 = getattr(get_object_from_reference('dymos.Trajectory'), 'add_phase')
 
