@@ -53,7 +53,7 @@ class TestCommandLine(unittest.TestCase):
 
         self.assertTrue(os.path.exists('dymos_solution.db'))
         cr = om.CaseReader('dymos_solution.db')
-        self.assertTrue(len(cr.list_cases()) == 0)  # no case recorded
+        self.assertTrue(len(cr.list_cases()) == 1)
 
     def test_ex_brachistochrone_iteration(self):
         print('test_ex_brachistochrone_iteration')
@@ -82,12 +82,9 @@ class TestCommandLine(unittest.TestCase):
         with patch.object(sys, 'argv', self.base_args + ['--no_solve']):
             command_line.dymos_cmd()
 
-        # Until the problem recorder is fixed, the driver recorder shouldn't be
-        # invoked by this test, and thus we won't get a dymos_solution.db file
-
         self.assertTrue(os.path.exists('dymos_solution.db'))
         cr = om.CaseReader('dymos_solution.db')
-        self.assertTrue(len(cr.list_cases()) == 0)  # no case recorded
+        self.assertTrue(len(cr.list_cases()) == 1)
 
     def test_ex_brachistochrone_simulate(self):
         print('test_ex_brachistochrone_simulate')
