@@ -113,14 +113,4 @@ indent_level=0)
 
 The following script fully defines the brachistochrone problem with Dymos and solves it.  In this section we'll walk through each step.
 
-=== "brachistochrone.py"
-{{ inline_source('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone',
-include_def=False,
-include_docstring=False,
-indent_level=0)
-}}
-
-{{ embed_test_output('dymos.examples.finite_burn_orbit_raise.doc.test_doc_finite_burn_orbit_raise.TestDocFiniteBurnOrbitRaise.test_doc_finite_burn_orbit_raise') }}
-
-{{ embed_test_plot('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone',
-alt_text='The solution to the Brachistochrone problem') }}
+{{ embed_test('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone') }}

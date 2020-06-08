@@ -23,6 +23,8 @@ def define_env(env):
     def inline_source(reference, include_def=True, include_docstring=True, indent_level=0):
         obj = get_object_from_reference(reference)
 
+        obj = inspect.unwrap(obj)
+
         source = ''.join(inspect.getsourcelines(obj)[0])
 
         re_declaration = re.compile(r'^(.+?):', flags=(re.DOTALL | re.MULTILINE))
@@ -99,6 +101,46 @@ def define_env(env):
         return f'<img alt="{alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>'
 
     @env.macro
+    def embed_test(reference, script_name='script', plot_alt_text='', plots=(1,), plot_size=(640, 480)):
+
+        # First tab for the source
+        src = textwrap.indent(_get_test_source(reference), '    ')
+        ss = io.StringIO()
+        print(f'=== "{script_name}"', file=ss)
+        print('    ```python3', file=ss)
+        print(src, file=ss)
+        print('    ```', file=ss)
+
+        # Second tab for the output
+        test_case, test_method = reference.split('.')[-2:]
+        testcase_obj = get_object_from_reference('.'.join(reference.split('.')[:-1]))
+        test_dir = Path(inspect.getfile(testcase_obj)).parent
+        output_file = test_dir.joinpath('_output').joinpath(f'{test_case}.{test_method}.out')
+        with open(output_file) as f:
+            text = f.read()
+
+        print(f'=== "output"', file=ss)
+        print('    ```', file=ss)
+        print(textwrap.indent(text, '    '), file=ss)
+        print('    ```', file=ss)
+
+        # Third tab for the plot
+        index = plots[0]
+        plot_file = test_dir.joinpath('_output').joinpath(f'{test_case}.{test_method}_{index}.png')
+
+        with open(plot_file, 'rb') as f:
+            buf = io.BytesIO(f.read())
+
+        data = base64.b64encode(buf.getbuffer()).decode("ascii")
+        width, height = plot_size
+        print(f'=== "plot"\n', file=ss)
+        print(f'    <img alt="{plot_alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>', file=ss)
+
+        return ss.getvalue()
+
+
+
+    @env.macro
     def doc_env():
         "Document the environment"
         return {name:getattr(env, name) for name in dir(env) if not name.startswith('_')}
@@ -146,6 +188,30 @@ def get_parent_dir(env):
     full_path = Path(env.conf['docs_dir']).joinpath(page_path)
     dir_path = full_path.parents[0]
     return dir_path
+
+
+def _get_test_source(reference):
+    obj = get_object_from_reference(reference)._method
+
+    func_name = reference.split('.')[-1]
+
+    source = ''.join(inspect.getsourcelines(obj)[0])
+
+    re_declaration = re.compile(rf'(def {func_name}\(.+?\):)', flags=(re.DOTALL | re.MULTILINE))
+
+    match_dec = re_declaration.search(source)
+
+    start = match_dec.span()[1]
+
+    # Strip off decorators and the test method declaration
+    source = source[start:]
+
+    source = textwrap.dedent(source)
+    source = source.strip()
+
+    # source = textwrap.indent(source)
+
+    return source
 
 
 def _function_doc_markdown(func, reference, outstream=sys.stdout, indent='', method=False):
@@ -218,7 +284,7 @@ def _class_doc_markdown(cls, reference, members=None, outstream=sys.stdout, inde
     -------
 
     """
-    from numpydoc.docscrape import ClassDoc, NumpyDocString
+    from numpydoc.docscrape import ClassDoc
 
     doc = ClassDoc(cls)
 
@@ -230,7 +296,7 @@ def _class_doc_markdown(cls, reference, members=None, outstream=sys.stdout, inde
         print(indent + ' '.join(doc['Summary']), file=outstream)
 
     if doc['Extended Summary']:
-        print(indent + ' '.join(doc['Extended Summary'] + '\n'), file=outstream)
+        print(indent + ' '.join(doc['Extended Summary']) + '\n', file=outstream)
 
     print('', file=outstream)
     print(f"{indent}**{doc['Signature']}**\n", file=outstream)
@@ -238,7 +304,7 @@ def _class_doc_markdown(cls, reference, members=None, outstream=sys.stdout, inde
     print(f'{indent}**Public API Methods:**\n', file=outstream)
 
     for p in doc['Methods']:
-        if p.name in members:
+        if members is not None and p.name in members:
             ref = '.'.join((reference, p.name))
             print(f'{indent}=== "{p.name}"\n', file=outstream)
             _function_doc_markdown(getattr(cls, p.name), ref, outstream=outstream, indent=indent + "    ", method=True)
@@ -268,6 +334,19 @@ def _api_doc(reference, members=True):
 
 
 if __name__ == '__main__':
+    s = _get_test_source('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone')
+
+    obj = get_object_from_reference('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone')
+
+    print(s)
+
+    # while hasattr(obj, '__wrapped__'):
+    #     obj = obj.__wrapped__
+    #
+    # print(inspect.getsource(obj))
+
+    # print(s)
+
     # reference = 'dymos.run_problem'
     # module = '.'.join(reference.split('.')[:-1])
     # item = reference.split('.')[-1]
@@ -276,17 +355,19 @@ if __name__ == '__main__':
     #
     # _function_doc_markdown(obj, reference)
     #
-    reference = 'dymos.Trajectory'
-    module = '.'.join(reference.split('.')[:-1])
-    item = reference.split('.')[-1]
 
-    obj = getattr(get_object_from_reference(module), item)
 
-    _class_doc_markdown(obj, reference, members=['add_phase', 'link_phases'])
-
-    obj2 = getattr(get_object_from_reference('dymos.Trajectory'), 'add_phase')
-
-    print(obj2)
+    # reference = 'dymos.Trajectory'
+    # module = '.'.join(reference.split('.')[:-1])
+    # item = reference.split('.')[-1]
+    #
+    # obj = getattr(get_object_from_reference(module), item)
+    #
+    # _class_doc_markdown(obj, reference, members=['add_phase', 'link_phases'])
+    #
+    # obj2 = getattr(get_object_from_reference('dymos.Trajectory'), 'add_phase')
+    #
+    # print(obj2)
 
 
 

@@ -99,6 +99,8 @@ def save_for_docs(method, transparent=False):
 
         sys.stdout = stdout_save
         plt.switch_backend(backend_save)
+
+    wrapped._method = method
     return wrapped
 
 

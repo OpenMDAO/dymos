@@ -1,3 +1,9 @@
+# required packages from pip
+# - mkdocs-material
+# - pymdown-extensions
+# - mkdocs-macros-plugin
+
+
 site_name: Dymos
 
 theme:
@@ -19,6 +25,7 @@ markdown_extensions:
   - footnotes
   - pymdownx.arithmatex
   - pymdownx.tabbed
+  - pymdownx.superfences
   - codehilite:
       linenums: true
 
@@ -30,11 +37,15 @@ nav:
     - 'Examples and Tutorials':
         - 'examples/examples.md'
         - 'examples/brachistochrone/brachistochrone.md'
-        - 'examples/run_problem/run_problem.md'
     - 'Dymos API Reference':
-        - 'api/api.md'
+        - 'api/run_problem.md'
+        - 'api/phase_api.md'
+        - 'api/trajectory_api.md'
+        - 'api/transcriptions_api.md'
     - 'Contributing':
         - 'contributing/contributing.md'
 
 extra_javascript:
   - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML
+
+use_directory_urls: false
