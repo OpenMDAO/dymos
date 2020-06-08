@@ -7,11 +7,13 @@ plt.style.use('ggplot')
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
 
+@use_tempdirs
 class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
     def test_finite_burn_orbit_raise(self):
