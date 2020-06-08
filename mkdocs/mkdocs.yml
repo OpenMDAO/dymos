@@ -1,7 +1,9 @@
 # required packages from pip
+# - mkdocs
 # - mkdocs-material
 # - pymdown-extensions
 # - mkdocs-macros-plugin
+# - mkdocs-bibtex
 
 
 site_name: Dymos
