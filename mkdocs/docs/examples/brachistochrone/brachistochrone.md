@@ -1,5 +1,13 @@
 # The Brachistochrone
 
+!!! info "Things you'll learn through this example"
+    - How to define a basic Dymos ODE system.
+    - How to test the partials of your ODE system.
+    - Adding a Trajectory object with a single Phase to an OpenMDAO Problem.
+    - Imposing boundary conditions on states with simple bounds via `fix_initial` and `fix_final`.
+    - Using the Phase.interpolate` method to set a linear guess for state and control values across the Phase.
+    - Checking the validity of the result through explicit simulation via the `Trajectory.simulate` method.
+
 The brachistochrone is one of the most well-known optimal control problems.
 It was originally posed as a challenge by Johann Bernoulli.
 

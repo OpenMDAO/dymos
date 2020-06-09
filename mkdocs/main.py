@@ -3,14 +3,15 @@ import importlib
 import inspect
 import io
 import re
-import shutil
 import sys
-import tempfile
 import textwrap
 from pathlib import Path
-import unittest
 
-from numpydoc.docscrape import NumpyDocString, FunctionDoc, ClassDoc
+try:
+    from numpydoc.docscrape import FunctionDoc, ClassDoc
+except ImportError as e:
+    print('Please install the numpydoc package to build the documentation for Dymos')
+    raise e
 
 
 def define_env(env):
@@ -153,8 +154,6 @@ def define_env(env):
 
         obj = getattr(get_object_from_reference(module), item)
 
-        from numpydoc.docscrape import FunctionDoc, NumpyDocString, ClassDoc
-
         ss = io.StringIO()
 
         if inspect.isfunction(obj):
@@ -230,8 +229,6 @@ def _function_doc_markdown(func, reference, outstream=sys.stdout, indent='', met
     str
         The markdown representation of the function documentation.
     """
-    from numpydoc.docscrape import FunctionDoc
-
     doc = FunctionDoc(func)
 
     # # print(f'{indent}!!! abstract "{reference}"\n', file=outstream)
@@ -284,8 +281,6 @@ def _class_doc_markdown(cls, reference, members=None, outstream=sys.stdout, inde
     -------
 
     """
-    from numpydoc.docscrape import ClassDoc
-
     doc = ClassDoc(cls)
 
     print(f'{indent}### class {reference}\n', file=outstream)
@@ -319,9 +314,6 @@ def _api_doc(reference, members=True):
 
     obj = getattr(get_object_from_reference(module), item)
 
-    from numpydoc.docscrape import FunctionDoc, NumpyDocString, ClassDoc
-
-
     if inspect.isfunction(obj):
         return _function_doc_markdown(obj, reference)
     elif inspect.isclass(obj):
@@ -334,16 +326,11 @@ def _api_doc(reference, members=True):
 
 
 if __name__ == '__main__':
-    s = _get_test_source('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone')
+    obj = get_object_from_reference('dymos.examples.brachistochrone.doc.brachistochrone_ode')
 
-    obj = get_object_from_reference('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone')
+    print(obj)
 
-    print(s)
-
-    # while hasattr(obj, '__wrapped__'):
-    #     obj = obj.__wrapped__
-    #
-    # print(inspect.getsource(obj))
+    print(inspect.getsource(obj))
 
     # print(s)
 
