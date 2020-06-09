@@ -57,3 +57,4 @@ Some elements of this code will be explained later, but we'll hit the highlights
 Method `simulate` exists on both Trajectory and Phase objects.
 
 
+

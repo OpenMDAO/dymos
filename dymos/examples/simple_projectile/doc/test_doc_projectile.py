@@ -1,10 +1,10 @@
 import unittest
-from dymos.utils.doc_utils import save_for_docs
+from dymos.utils.doc_utils import save_for_docs, decorator
 
 
 class TestDocProjectile(unittest.TestCase):
 
-    @save_for_docs
+    @decorator
     def test_ivp(self):
         import openmdao.api as om
         import dymos as dm
