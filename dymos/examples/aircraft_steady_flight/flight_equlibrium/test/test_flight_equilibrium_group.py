@@ -62,9 +62,9 @@ class TestFlightEquilibriumGroup(unittest.TestCase):
         CL = self.p['aero.CL']
         CM = self.p['aero.CM']
 
-        assert_near_equal(CL_eq, CL, tolerance=1.0E-12)
-        assert_near_equal(CM, np.zeros_like(CM), tolerance=1.0E-12)
+        assert_near_equal(CL_eq, CL, tolerance=1.0E-10)
+        assert_near_equal(CM, np.zeros_like(CM), tolerance=5.0E-10)
 
     def test_partials(self):
-        cpd = self.p.check_partials(out_stream=None, method='fd', step=1.0E-6)
-        assert_check_partials(cpd, atol=5.0E-3, rtol=2.0)
+        cpd = self.p.check_partials(method='fd', step=1.0E-6)
+        assert_check_partials(cpd, atol=1.0, rtol=1.0E-4)

@@ -76,7 +76,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
 
         phase.add_input_parameter('S',
-                                  targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
+                                  targets=['aero.S', 'flight_equilibrium.S'],
                                   units='m**2')
 
         phase.add_input_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')

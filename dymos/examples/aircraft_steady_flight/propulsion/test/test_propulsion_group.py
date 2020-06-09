@@ -21,14 +21,10 @@ class TestPropulsionComp(unittest.TestCase):
 
         ivc.add_output('pres', val=101325.0*np.ones(cls.n), units='Pa', desc='atmospheric_pressure')
 
-        ivc.add_output('CT', val=np.linspace(0, 1.0E4, cls.n), units=None,
-                       desc='coefficient of thrust')
-
         cls.p.model.add_subsystem('propulsion', PropulsionGroup(num_nodes=cls.n))
 
         cls.p.model.connect('alt', 'propulsion.alt')
         cls.p.model.connect('pres', 'propulsion.pres')
-        cls.p.model.connect('CT', 'propulsion.CT')
 
         cls.p.setup(force_alloc_complex=True)
 
