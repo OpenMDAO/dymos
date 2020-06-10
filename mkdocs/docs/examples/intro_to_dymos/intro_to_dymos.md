@@ -1,4 +1,4 @@
-# An Introduction to Modeling Dynamic Systems with Dymos
+# Modeling Dynamic Systems with Dymos
 
 !!! info "Things you'll learn through this example"
     - How to define a basic Dymos ODE system.
@@ -52,9 +52,39 @@ Some elements of this code will be explained later, but we'll hit the highlights
 
 {{ embed_test('dymos.examples.simple_projectile.doc.test_doc_projectile.TestDocProjectile.test_ivp') }}
 
-## What `simulate` does
+## What happened?
+
+This script consists of the following general steps:
+
+1. After importing relevant packages, an OpenMDAO Problem is instantiated
+2. A Dymos Trajectory object is instantiated, and a single Phase named `'phase0'` is added to it.
+   1. That Phase takes the ODE _class_ as one of its arguments.  It will instantiate instances of it as needed.
+   2. The transcription determines how the implicit integration and optimization are performed.  It's necessary but not particularly relevant in this example.
+3. The states to be integrated are added to the phase.
+   1. Each state needs a rate source - an ODE-relative path of the output which provides the time derivative of the state variable.
+   2. Those states which are inputs to the ODE need to provide their targets in the ODE (again, with an ODE-relative path).
+4. The problem is setup (this prepares the model for execution in OpenMDAO)
+5. Default values are assigned to the states and time.
+   1. Variables `t_initial` and `t_duration` (the initial time and duration of the Phase) are scalars.
+   2. State variables are vectors whose values are provided throughout the Phase.  Here they're all being filled with a single value (0.0 for the position components, 100.0 for the velocity components)
+6. `Problem.run_model` is called.  This executes the Problem's `model` one time.  This is a necessary step before using the `Trajectory.simulate` method.
+7.  The trajectory is simulated and the results returned as an OpenMDAO Problem instance called `sim_out`.
+8.  The states are plotted using values obtained from the _timeseries_.  Phases contain `_timeseries_` data that provides contiguous values regardless of the transcription used.
 
 Method `simulate` exists on both Trajectory and Phase objects.
+It uses the [scipy.integrate.solve_ivp](https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html) function to propagate the states defined in each phase of the trajectory from their initial values at the initial time to some final value at `time = t_initial + t_duration`.
 
+In Dymos, the `simulate` method is useful for testing the functionality of an ODE (making sure it behaves as expected) and for checking the validity of answers after optimization.
+However, it cannot solve boundary value problems.
+For instance, we may be interested in determining how long it takes this projectile to impact the ground given its initial conditions.
+In the next step, we'll use the implicit techniques in Dymos to solve that problem.
+
+## Why is the solution different from the simulation results?
+
+The plots above display both the solution from the implicit transcription (blue dots) and the results of the simulation (orange line).
+Here they do not match because we only performed a single execution of the model.
+**The purpose of a model execution in Dymos is to calculate the objective and constraints for the optimizer.**
+These constraints include the collocation _defect_ constraints, which (when driven to zero) indicate that the current polynomial representation of the state-time history matches the physically correct trajectory.
+In this case, no iteration was performed, and thus the solution is not physically valid.
 
 

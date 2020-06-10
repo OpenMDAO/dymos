@@ -21,7 +21,7 @@ def define_env(env):
         obj = get_object_from_reference(reference)
 
     @env.macro
-    def inline_source(reference, include_def=True, include_docstring=True, indent_level=0):
+    def inline_source(reference, include_def=True, include_docstring=True, indent_level=0, show_line_numbers=True, highlight_lines=None):
         obj = get_object_from_reference(reference)
 
         obj = inspect.unwrap(obj)
@@ -39,11 +39,20 @@ def define_env(env):
         source = textwrap.dedent(source)
         source = source.strip()
 
-        source = textwrap.indent(source, indent_level * '    ')
-
         indent = indent_level * '    '
 
-        return f'{indent}```python\n{source}\n{indent}```'
+        source = textwrap.indent(source, indent)
+
+        line_numbers = ' linenums="1"' if show_line_numbers else ''
+
+        if highlight_lines is not None:
+            hl_lines = ' hl_lines="' + ' '.join([str(i) for i in highlight_lines]) + '"'
+        else:
+            hl_lines = ''
+
+        result = f'```python{line_numbers}{hl_lines}\n{source}\n{indent}```'
+
+        return textwrap.indent(result, indent)
 
     @env.macro
     def inline_plot(source, alt_text='', width=640, height=480):
