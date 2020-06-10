@@ -112,12 +112,12 @@ Typically, $\Delta \bar{y}$ are referred to as the _defect_ constraints.
 
 ## Solution procedure
 
-The solution procedure for the iterative curve fitting problem is an iterative process:
+The solution procedure for the curve fitting problem is an iterative process:
 
 1. Guess values for $\bar{y}$.
 2. Assess the constraints.
 3. If the constraints are satisfied, the process is complete
-4. If the constraints are not satisfied, use a find the derivative of the constraints w.r.t. $\bar{y}$ and use a gradient-based approach to propose a new value for $\bar{y}$.
+4. If the constraints are not satisfied, find the derivative of the constraints w.r.t. $\bar{y}$ and use a gradient-based approach to propose a new value for $\bar{y}$.
 
 Steps 1-4 represent a gradient-based approach to implicitly fitting the data points.
 
@@ -129,8 +129,8 @@ What do we do for shapes with higher orders?
 There are two options.
 We use a higher order polynomial (for instance, specifying $y$ at 5 points and constraing defects at 4 points).
 
-Alternatively, we can use multiple polynomial _segments_ across the interval.  
-For instance, with three quadratic segments the differentiation matrix has the form.
+Alternatively, we can use multiple polynomial _segments_ across the interval.
+For instance, with three quadratic segments the differentiation matrix has the form. **TODO**
 
 The number and order of segments used to represent the fitting interval is known as the _grid_.
 It can be difficult to know what a sufficient grid is _a priori_.
