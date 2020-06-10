@@ -40,6 +40,7 @@ nav:
         - 'examples/examples.md'
         - 'examples/intro_to_dymos/intro_to_dymos.md'
         - 'examples/brachistochrone/brachistochrone.md'
+        - 'examples/vanderpol/vanderpol.md'
     - 'Dymos API Reference':
         - 'api/run_problem.md'
         - 'api/phase_api.md'
