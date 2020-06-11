@@ -39,8 +39,8 @@ nav:
     - 'Examples and Tutorials':
         - 'examples/examples.md'
         - 'Intro to Dymos':
-            - 'examples/intro_to_dymos/intro_to_dymos.md'
-            - 'examples/intro_to_dymos/intro_to_dymos_2.md'
+            - 'examples/intro_to_dymos/intro_ivp.md'
+            - 'examples/intro_to_dymos/intro_segments.md'
         - 'examples/brachistochrone/brachistochrone.md'
     - 'Dymos API Reference':
         - 'api/run_problem.md'

@@ -54,7 +54,7 @@ class StateIndependentsComp(om.ImplicitComponent):
                 if not options['fix_initial'] and not options['fix_final'] and \
                    not options['connected_initial']:
                     raise ValueError('Must have either fix_initial" and "fix_final" turned on '
-                                     'with solver base collocation')
+                                     'when using solve_segments.')
 
                 if options['fix_initial'] or options['connected_initial']:
                     self.state_idx_map[state_name]['solver'] = self.solver_node_idx[1:]
