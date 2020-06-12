@@ -1,6 +1,6 @@
 # The Van der Pol Oscillator
 
-In dynamics, the Van Der Pol oscillator[1] is a non-conservative oscillator with non-linear damping.
+In dynamics, the Van Der Pol oscillator[@wikivanderpol] is a non-conservative oscillator with non-linear damping.
 It evolves in time according to the second-order differential equation:
 
 \begin{align}
@@ -157,4 +157,5 @@ and does not require supplying a good guess for the number segments.
 {{ embed_test('dymos.examples.vanderpol.doc.test_doc_vanderpol.TestVanderpolForDocs.test_vanderpol_for_docs_optimize_refine') }}
 
 ## References
-[1] Van Der Pol oscillator description from [Wikipedia](https://en.wikipedia.org/wiki/Van_der_Pol_oscillator)
+
+\bibliography
