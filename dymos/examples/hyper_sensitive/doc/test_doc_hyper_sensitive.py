@@ -3,6 +3,7 @@ from __future__ import print_function, division, absolute_import
 import os
 import unittest
 import numpy as np
+from dymos.utils.doc_utils import save_for_docs
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -26,13 +27,13 @@ def solution():
 
 
 class TestHyperSensitive(unittest.TestCase):
-
     @classmethod
     def tearDownClass(cls):
         for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @save_for_docs
     def test_hyper_sensitive_for_docs(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
