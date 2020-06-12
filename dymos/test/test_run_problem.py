@@ -24,7 +24,7 @@ class TestRunProblem(unittest.TestCase):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
-        optimizer = 'IPOPT'
+        optimizer = 'SNOPT'
         p.driver.options['optimizer'] = optimizer
 
         if optimizer == 'SNOPT':
@@ -35,6 +35,7 @@ class TestRunProblem(unittest.TestCase):
             p.driver.opt_settings['hessian_approximation'] = 'limited-memory'
             # p.driver.opt_settings['nlp_scaling_method'] = 'user-scaling'
             p.driver.opt_settings['print_level'] = 5
+            p.driver.opt_settings['max_iter'] = 200
             p.driver.opt_settings['linear_solver'] = 'mumps'
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
@@ -61,7 +62,7 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.t_duration', tf)
         p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
                                                                nodes='control_input'))
-        dm.run_problem(p, True)
+        dm.run_problem(p, True, refine_method='hp')
 
         sqrt_two = np.sqrt(2)
         val = sqrt_two * tf

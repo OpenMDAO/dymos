@@ -4,6 +4,7 @@ from ...phase.phase import Phase
 from ...utils.lagrange import lagrange_matrices
 from ...utils.lgr import lgr
 from ...utils.lgl import lgl
+from ...utils.interpolate import LagrangeBarycentricInterpolant
 
 from scipy.linalg import block_diag
 
@@ -247,7 +248,7 @@ class HPAdaptive:
             int_matrix = integration_matrix(new_grid)
 
             # Call the ODE at all nodes of the new grid
-            x_hat, x_prime, _ = self.eval_ode(phase, new_grid, L, int_matrix)
+            x_hat, x_prime, _, _, _ = self.eval_ode(phase, new_grid, L, int_matrix)
             E = {}
             e = {}
             err_over_states = {}
@@ -325,10 +326,11 @@ class HPAdaptive:
                 continue
 
             left_end_idxs = gd.subset_node_indices['segment_ends'][0::2]
+            left_end_idxs = np.append(left_end_idxs, gd.subset_num_nodes['all'] - 1)
 
             L, D = interpolation_lagrange_matrices(gd, gd)
             int_matrix = integration_matrix(gd)
-            x, _, x_d = self.eval_ode(phase, gd, L, int_matrix)
+            x, _, x_d, _, _ = self.eval_ode(phase, gd, L, int_matrix)
 
             for state_name, options in phase.state_options.items():
                 self.x_dd[phase_path][state_name] = D @ x_d[state_name]
@@ -361,7 +363,7 @@ class HPAdaptive:
                 s, _ = lgr(seg_order[k], include_endpoint=True)
                 if gd.transcription == 'gauss-lobatto':
                     s, _ = lgl(seg_order[k], include_endpoint=True)
-                for j in range(0, seg_order[k]):
+                for j in range(0, seg_order[k] + 1):
                     roots = s[s != s[j]]
                     Q = np.poly(roots)
                     a[:, j] = Q / np.polyval(Q, s[j])
@@ -381,7 +383,7 @@ class HPAdaptive:
                 s, _ = lgr(new_order[k].astype(int), include_endpoint=True)
                 if gd.transcription == 'gauss-lobatto':
                     s, _ = lgl(new_order[k], include_endpoint=True)
-                for j in range(0, new_order[k]):
+                for j in range(0, new_order[k] + 1):
                     roots = s[s != s[j]]
                     Q = np.poly(roots)
                     a[:, j] = Q / np.polyval(Q, s[j])
@@ -431,8 +433,8 @@ class HPAdaptive:
                     refined : dict
                         A dictionary of phase paths : phases which were refined.
 
-                """
-
+        """
+        x_dd = {}
         for phase_path, phase_refinement_results in refine_results.items():
             phase = self.phases[phase_path]
             tx = phase.options['transcription']
@@ -456,45 +458,43 @@ class HPAdaptive:
                 continue
 
             left_end_idxs = gd.subset_node_indices['segment_ends'][0::2]
-            refine_seg_idxs = np.where(need_refine)
+            left_end_idxs = np.append(left_end_idxs, gd.subset_num_nodes['all'] - 1)
+            print(seg_order)
+            print(left_end_idxs)
+            refine_seg_idxs = np.where(need_refine)[0]
 
             # compute curvature
             L, D = interpolation_lagrange_matrices(gd, gd)
             int_matrix = integration_matrix(gd)
-            x, _, x_d = self.eval_ode(phase, gd, L, int_matrix)
-            x_dd = {}
+            x, _, x_d, t_initial, t_duration = self.eval_ode(phase, gd, L, int_matrix)
+            x_dd[phase_path] = {}
             P = {}
             P_hat = {}
             R = np.zeros(numseg)
 
-            L_M, D_M = interpolation_lagrange_matrices(self.gd[phase_path], gd)
-
             for state_name, options in phase.state_options.items():
+                interp = LagrangeBarycentricInterpolant(self.gd[phase_path].node_ptau, options['shape'])
+                interp.setup(x0=t_initial, xf=t_initial+t_duration, f_j=self.x_dd[phase_path][state_name])
                 x_dd[phase_path][state_name] = D @ x_d[state_name]
-                self.x_dd[phase_path][state_name] = L_M @ self.x_dd[phase_path][state_name]
                 P[state_name] = np.zeros(numseg)
                 P_hat[state_name] = np.zeros(numseg)
-                for k in refine_seg_idxs:
+                for k in np.nditer(refine_seg_idxs):
                     P[state_name][k] = np.max(
                         np.absolute(x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))
+                    xdd_max_time = gd.node_ptau[np.argmax(
+                        np.absolute(x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))]
+                    P_hat[state_name][k] = interp.eval(xdd_max_time)
                     P_hat[state_name][k] = np.max(
                         np.absolute(self.x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))
                     if P[state_name][k] / P_hat[state_name][k] > R[k]:
                         R[k] = P[state_name][k] / P_hat[state_name][k]
 
-            non_smooth_idxs = np.where(R > phase.refine_options['smoothness_factor'])
-            smooth_need_refine_idxs = np.setdiff1d(need_refine, non_smooth_idxs)
-
-            h = 0.5 * (seg_ends[1:] - seg_ends[:-1])
-            h_prev = 0.5 * (self.gd.segment_ends[1:] - self.gd.segment_ends[:-1])
-            q[refine_seg_idxs] = np.log((self.error[phase_path][refine_seg_idxs] /
-                                         self.previous_error[phase_path][refine_seg_idxs]) /
-                                        (seg_order[refine_seg_idxs] / self.gd.transcription_order) ** 2.5) / np.log(
-                (h[refine_seg_idxs] / h_prev[refine_seg_idxs]) / (
-                        seg_order[refine_seg_idxs] / self.gd.transcription_order))
+            non_smooth_idxs = np.where(R > phase.refine_options['smoothness_factor'])[0]
+            smooth_need_refine_idxs = np.setdiff1d(refine_seg_idxs, non_smooth_idxs)
 
             P = np.ones(numseg)
-            P[smooth_need_refine_idxs] = (self.error[phase_path][split_seg_idxs] / phase.refine_options['tolerance'])
+
+            P[smooth_need_refine_idxs] = (self.error[phase_path][smooth_need_refine_idxs] / phase.refine_options['tolerance'])
 
             new_order = np.ceil(gd.transcription_order * P).astype(int)
             if gd.transcription == 'gauss-lobatto':
@@ -503,8 +503,17 @@ class HPAdaptive:
 
             H = np.ones(numseg, dtype=int)
             q = np.zeros(numseg)
+            h = 0.5 * (seg_ends[1:] - seg_ends[:-1])
+            h_prev = 0.5 * (self.gd[phase_path].segment_ends[1:] - self.gd[phase_path].segment_ends[:-1])
+            q[refine_seg_idxs] = np.log((self.error[phase_path][refine_seg_idxs] /
+                                         self.previous_error[phase_path][refine_seg_idxs]) /
+                                        (seg_order[refine_seg_idxs] / self.gd[phase_path].transcription_order[
+                                            refine_seg_idxs]) ** 2.5
+                                        ) / np.log((h[refine_seg_idxs] / h_prev[refine_seg_idxs])
+                                                   / (seg_order[refine_seg_idxs] /
+                                                      self.gd[phase_path].transcription_order[refine_seg_idxs]))
 
-            split_seg_idxs = np.concatenate([np.where(new_order > phase.refine_options['max_order']),
+            split_seg_idxs = np.concatenate([np.where(new_order > phase.refine_options['max_order'])[0],
                                              non_smooth_idxs])
 
             check_comb_indx = np.where(np.logical_and(np.logical_and(np.invert(need_refine[:-1]),
@@ -515,11 +524,10 @@ class HPAdaptive:
 
             new_order[split_seg_idxs] = seg_order[split_seg_idxs]
 
-            H[split_seg_idxs] = np.max(
+            H[split_seg_idxs] = np.minimum(
                 np.ceil((self.error[phase_path][split_seg_idxs] / phase.refine_options['tolerance']
-                         ) ** (1 / q)), np.ceil(np.log(self.error[phase_path][split_seg_idxs] /
-                                                       phase.refine_options['tolerance']
-                                                       ) / np.log(seg_order[split_seg_idxs])))
+                         ) ** (1 / q[split_seg_idxs])), np.ceil(np.log(self.error[phase_path][split_seg_idxs]/
+                                                       phase.refine_options['tolerance'])/np.log(seg_order[split_seg_idxs])))
 
             # reduce segment order where error is much below the tolerance
             for k in np.nditer(reduce_order_indx):
@@ -528,12 +536,14 @@ class HPAdaptive:
                 s, _ = lgr(seg_order[k], include_endpoint=True)
                 if gd.transcription == 'gauss-lobatto':
                     s, _ = lgl(seg_order[k], include_endpoint=True)
-                for j in range(0, seg_order[k]):
+                for j in range(0, seg_order[k] + 1):
                     roots = s[s != s[j]]
                     Q = np.poly(roots)
                     a[:, j] = Q / np.polyval(Q, s[j])
-
+                print(a)
+                print(seg_order[k])
                 for state_name, options in phase.state_options.items():
+                    print(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                     beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                     b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
@@ -549,7 +559,7 @@ class HPAdaptive:
                 s, _ = lgr(new_order[k].astype(int), include_endpoint=True)
                 if gd.transcription == 'gauss-lobatto':
                     s, _ = lgl(new_order[k], include_endpoint=True)
-                for j in range(0, new_order[k]):
+                for j in range(0, new_order[k] + 1):
                     roots = s[s != s[j]]
                     Q = np.poly(roots)
                     a[:, j] = Q / np.polyval(Q, s[j])
@@ -581,9 +591,8 @@ class HPAdaptive:
             tx.options['num_segments'] = new_num_segments
             tx.options['segment_ends'] = new_segment_ends
             tx.init_grid()
-
-            self.x_dd = x_dd
-            self.gd = gd
+            self.x_dd[phase_path] = x_dd[phase_path]
+            self.gd[phase_path] = gd
 
     def eval_ode(self, phase, grid, L, I):
         """
@@ -731,7 +740,7 @@ class HPAdaptive:
                 x_hat[state_name][left_end_idxs_repeated, ...] \
                 + oodt_dstau * np.dot(I, f_hat[state_name][not_left_end_idxs, ...])
 
-        return x_hat, x_prime, f_hat
+        return x_hat, x_prime, f_hat, t_initial, t_duration
 
     def write_iteration(self, f, iter_number, phases, refine_results):
         """
