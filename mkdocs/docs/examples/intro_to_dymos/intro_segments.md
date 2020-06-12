@@ -9,7 +9,7 @@
 
 In the previous section we showed a converged trajectory that didn't really match the state propagation found using Scipy's variable step `solve_ivp` method.
 
-[IMAGE]
+{{ embed_test_plot('dymos.examples.oscillator.doc.test_doc_oscillator.TestDocOscillator.test_ivp_driver') }}
 
 Why does this happen?
 The implicit collocation techniques used by Dymos (the Radau Pseudospectral Method and Legendre-Gauss-Lobatto collocation) work by discretizing a continuous function (the state time-history) into a series of discrete points.
@@ -35,10 +35,9 @@ Increasing the number of segments and increasing the segment orders both increas
 Theres a balance to be found between using enough discretization points to get an accurate solution, and slowing down the analysis due to having an overabundance of points.
 In general, using a high number of low-order segments is preferable to using fewer high-order segments because it makes the constraint jacobian more sparse.
 
-In addition to the number and order of the segments, the user can also provide the transcription the argument `segment_ends`.  
+In addition to the number and order of the segments, the user can also provide the transcription the argument `segment_ends`.
 If `None`, the segments are equally distributed in time throughout the phase.
 Otherwise, `semgent_ends` should be a monotonically increasing sequence of length `num_segments + 1`.
-
 
 Each element in the sequence provides the location of a segment boundary in the phase.
 The items in `segment_ends` are normalized by Dymos, so feel free to provide them in whatever scale makes sense.
