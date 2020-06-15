@@ -45,6 +45,7 @@ nav:
         - 'examples/vanderpol/vanderpol.md'
         - 'examples/hypersensitive/hypersensitive.md'
         - 'examples/double_integrator/double_integrator.md'
+        - 'examples/finite_burn_orbit_raise/finite_burn_orbit_raise.md'
     - 'Dymos API Reference':
         - 'api/run_problem.md'
         - 'api/phase_api.md'
