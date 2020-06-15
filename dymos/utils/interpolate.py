@@ -168,18 +168,26 @@ class LagrangeBarycentricInterpolant(object):
         """
         if not self._is_setup:
             raise RuntimeError('LagrangeBarycentricInterpolant has not been setup')
-        tau = self.x_to_tau(x)
 
-        g = tau - self.tau_i
-        l = np.ones_like(g)
+        x_arr = np.atleast_1d(x)
 
-        for i in range(self.num_nodes):
-            for j in range(self.num_nodes):
-                if j == i:
-                    continue
-                l[i] *= g[j]
+        tau = self.x_to_tau(x_arr)
 
-        result = np.reshape(np.dot(l, self.wbfj_flat), newshape=self.wbfj.shape[1:])
+        # The difference between every requested interpolation point and every node value
+        g = np.subtract.outer(tau, self.tau_i)
+
+        # Build l by forming a matrix of g values, setting the diagonal to 1, and taking the rowwise product
+        L = np.repeat(g, self.num_nodes, axis=0)
+        r_diag = np.arange(len(x_arr) * self.num_nodes, dtype=int)
+        c_diag = np.tile(np.arange(self.num_nodes, dtype=int), len(x_arr))
+        L[r_diag, c_diag] = 1.0
+        l = np.atleast_2d(np.prod(L, axis=1))
+
+        # Reshape l to be compatible with wbfj_flat
+        l = np.reshape(l, (len(x_arr), self.num_nodes))
+
+        # Calculate the interpolated result
+        result = np.reshape(np.dot(l, self.wbfj_flat), newshape=len(x_arr))
 
         return result
 
@@ -204,7 +212,8 @@ class LagrangeBarycentricInterpolant(object):
             return 0.0
 
         n = self.num_nodes
-        tau = self.x_to_tau(x)
+        x_arr = np.atleast_1d(x)
+        tau = self.x_to_tau(x_arr)
         g = tau - self.tau_i
         lprime = np.zeros(n)
 
@@ -220,7 +229,7 @@ class LagrangeBarycentricInterpolant(object):
                         prod *= g[k]
                     lprime[i] += prod
             # df_dtau = np.dot(lprime, self.wbfj)
-            df_dtau = np.reshape(np.dot(lprime, self.wbfj_flat), newshape=self.wbfj.shape[1:])
+            df_dtau = np.reshape(np.dot(lprime, self.wbfj_flat), newshape=len(x_arr))
             return df_dtau / self.dx_dtau
         elif der == 2:
             for i in range(n):
