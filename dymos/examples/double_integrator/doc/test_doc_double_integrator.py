@@ -1,5 +1,6 @@
 import os
 import unittest
+from dymos.utils.doc_utils import save_for_docs
 
 import matplotlib
 matplotlib.use('Agg')
@@ -15,6 +16,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @save_for_docs
     def test_double_integrator_for_docs(self):
         import matplotlib.pyplot as plt
         import openmdao.api as om
