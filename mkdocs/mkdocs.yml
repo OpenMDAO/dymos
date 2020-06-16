@@ -50,6 +50,7 @@ nav:
         - 'examples/multi_phase_cannonball/multi_phase_cannonball.md'
         - 'examples/multibranch_trajectory/multibranch_trajectory.md'
         - 'examples/reentry/reentry.md'
+        - 'examples/ssto_earth/ssto_earth.md'
     - 'Dymos API Reference':
         - 'api/run_problem.md'
         - 'api/phase_api.md'

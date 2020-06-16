@@ -1,4 +1,5 @@
 import unittest
+from dymos.utils.doc_utils import save_for_docs
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
@@ -6,7 +7,7 @@ plt.style.use('ggplot')
 
 
 class TestDocSSTOEarth(unittest.TestCase):
-
+    @save_for_docs
     def test_doc_ssto_earth(self):
         import matplotlib.pyplot as plt
         import openmdao.api as om
