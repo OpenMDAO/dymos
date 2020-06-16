@@ -51,6 +51,7 @@ nav:
         - 'examples/multibranch_trajectory/multibranch_trajectory.md'
         - 'examples/reentry/reentry.md'
         - 'examples/ssto_earth/ssto_earth.md'
+        - 'examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent.md'
     - 'Dymos API Reference':
         - 'api/run_problem.md'
         - 'api/phase_api.md'
