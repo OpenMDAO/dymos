@@ -328,10 +328,12 @@ class HPAdaptive:
             left_end_idxs = gd.subset_node_indices['segment_ends'][0::2]
             left_end_idxs = np.append(left_end_idxs, gd.subset_num_nodes['all'] - 1)
 
+            # obtain state and state rate histories from timeseries output
             L, D = interpolation_lagrange_matrices(gd, gd)
             int_matrix = integration_matrix(gd)
             x, _, x_d, _, _ = self.eval_ode(phase, gd, L, int_matrix)
 
+            # create and store second derivative information using differentiation matrix
             for state_name, options in phase.state_options.items():
                 self.x_dd[phase_path][state_name] = D @ x_d[state_name]
 
@@ -341,23 +343,31 @@ class HPAdaptive:
 
             merge_seg = np.zeros(numseg, dtype=bool)
 
+            # In the first iteration no segments are split. All segments not meeting error requirements have their order
+            # increased
             inc_seg_order_idxs = np.where(need_refine)
             P = np.zeros(numseg)
             if gd.transcription == 'radau-ps':
                 P[inc_seg_order_idxs] = 3
             elif gd.transcription == 'gauss-lobatto':
-                P[inc_seg_order_idxs] = 2
+                P[inc_seg_order_idxs] = 2  # GL transcription does not allow even segment orders
             new_order = (seg_order + P).astype(int)
 
             h = 0.5 * (seg_ends[1:] - seg_ends[:-1])
+
+            # Segments which should be checked for combining
+            # Only segments where adjacent segments are also below error tolerance may be combined
+            # Segments must be same order
             check_comb_indx = np.where(np.logical_and(np.logical_and(np.invert(need_refine[:-1]),
                                                                      np.invert(need_refine[1:])),
                                                       new_order[:-1] == new_order[1:]))
 
+            # segments under error tolerance but may not be combined have their order reduced
             reduce_order_indx = np.setdiff1d(np.where(np.invert(need_refine)), check_comb_indx)
 
             # reduce segment order where error is much below the tolerance
             for k in np.nditer(reduce_order_indx):
+                print(k)
                 new_order[k] = seg_order[k]
                 a = np.zeros((seg_order[k] + 1, seg_order[k] + 1))
                 s, _ = lgr(seg_order[k], include_endpoint=True)
@@ -365,6 +375,8 @@ class HPAdaptive:
                     s, _ = lgl(seg_order[k], include_endpoint=True)
                 for j in range(0, seg_order[k] + 1):
                     roots = s[s != s[j]]
+                    print(s)
+                    print(s[s!=s[j]])
                     Q = np.poly(roots)
                     a[:, j] = Q / np.polyval(Q, s[j])
 
@@ -458,9 +470,7 @@ class HPAdaptive:
                 continue
 
             left_end_idxs = gd.subset_node_indices['segment_ends'][0::2]
-            left_end_idxs = np.append(left_end_idxs, gd.subset_num_nodes['all'] - 1)
-            print(seg_order)
-            print(left_end_idxs)
+            left_end_idxs = np.append(left_end_idxs, gd.subset_num_nodes['all'])
             refine_seg_idxs = np.where(need_refine)[0]
 
             # compute curvature
@@ -474,7 +484,7 @@ class HPAdaptive:
 
             for state_name, options in phase.state_options.items():
                 interp = LagrangeBarycentricInterpolant(self.gd[phase_path].node_ptau, options['shape'])
-                interp.setup(x0=t_initial, xf=t_initial+t_duration, f_j=self.x_dd[phase_path][state_name])
+                interp.setup(x0=t_initial, xf=t_initial + t_duration, f_j=self.x_dd[phase_path][state_name])
                 x_dd[phase_path][state_name] = D @ x_d[state_name]
                 P[state_name] = np.zeros(numseg)
                 P_hat[state_name] = np.zeros(numseg)
@@ -494,7 +504,8 @@ class HPAdaptive:
 
             P = np.ones(numseg)
 
-            P[smooth_need_refine_idxs] = (self.error[phase_path][smooth_need_refine_idxs] / phase.refine_options['tolerance'])
+            P[smooth_need_refine_idxs] = (
+                    self.error[phase_path][smooth_need_refine_idxs] / phase.refine_options['tolerance'])
 
             new_order = np.ceil(gd.transcription_order * P).astype(int)
             if gd.transcription == 'gauss-lobatto':
@@ -505,77 +516,81 @@ class HPAdaptive:
             q = np.zeros(numseg)
             h = 0.5 * (seg_ends[1:] - seg_ends[:-1])
             h_prev = 0.5 * (self.gd[phase_path].segment_ends[1:] - self.gd[phase_path].segment_ends[:-1])
-            q[refine_seg_idxs] = np.log((self.error[phase_path][refine_seg_idxs] /
-                                         self.previous_error[phase_path][refine_seg_idxs]) /
-                                        (seg_order[refine_seg_idxs] / self.gd[phase_path].transcription_order[
-                                            refine_seg_idxs]) ** 2.5
-                                        ) / np.log((h[refine_seg_idxs] / h_prev[refine_seg_idxs])
-                                                   / (seg_order[refine_seg_idxs] /
-                                                      self.gd[phase_path].transcription_order[refine_seg_idxs]))
 
             split_seg_idxs = np.concatenate([np.where(new_order > phase.refine_options['max_order'])[0],
                                              non_smooth_idxs])
 
             check_comb_indx = np.where(np.logical_and(np.logical_and(np.invert(need_refine[:-1]),
                                                                      np.invert(need_refine[1:])),
-                                                      new_order[:-1] == new_order[1:]))
+                                                      new_order[:-1] == new_order[1:]))[0]
 
             reduce_order_indx = np.setdiff1d(np.where(np.invert(need_refine)), check_comb_indx)
 
             new_order[split_seg_idxs] = seg_order[split_seg_idxs]
 
+            q[split_seg_idxs] = np.log((self.error[phase_path][split_seg_idxs] /
+                                        self.previous_error[phase_path][split_seg_idxs]) /
+                                       (seg_order[split_seg_idxs] / self.gd[phase_path].transcription_order[
+                                           split_seg_idxs]) ** 2.5
+                                       ) / np.log((h[split_seg_idxs] / h_prev[split_seg_idxs])
+                                                  / (seg_order[split_seg_idxs] /
+                                                     self.gd[phase_path].transcription_order[split_seg_idxs]))
+
             H[split_seg_idxs] = np.minimum(
                 np.ceil((self.error[phase_path][split_seg_idxs] / phase.refine_options['tolerance']
-                         ) ** (1 / q[split_seg_idxs])), np.ceil(np.log(self.error[phase_path][split_seg_idxs]/
-                                                       phase.refine_options['tolerance'])/np.log(seg_order[split_seg_idxs])))
+                         ) ** (1 / q[split_seg_idxs])), np.ceil(np.log(self.error[phase_path][split_seg_idxs] /
+                                                                       phase.refine_options['tolerance']) / np.log(
+                    seg_order[split_seg_idxs])))
 
             # reduce segment order where error is much below the tolerance
-            for k in np.nditer(reduce_order_indx):
-                new_order[k] = seg_order[k]
-                a = np.zeros((seg_order[k] + 1, seg_order[k] + 1))
-                s, _ = lgr(seg_order[k], include_endpoint=True)
-                if gd.transcription == 'gauss-lobatto':
-                    s, _ = lgl(seg_order[k], include_endpoint=True)
-                for j in range(0, seg_order[k] + 1):
-                    roots = s[s != s[j]]
-                    Q = np.poly(roots)
-                    a[:, j] = Q / np.polyval(Q, s[j])
-                print(a)
-                print(seg_order[k])
-                for state_name, options in phase.state_options.items():
-                    print(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
-                    beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
-                    b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
+            if len(list(reduce_order_indx)) != 0:
+                for k in np.nditer(reduce_order_indx):
+                    if seg_order[k] == 1:
+                        continue
+                    new_order[k] = seg_order[k]
+                    a = np.zeros((seg_order[k] + 1, seg_order[k] + 1))
+                    s, _ = lgr(seg_order[k], include_endpoint=True)
+                    if gd.transcription == 'gauss-lobatto':
+                        s, _ = lgl(seg_order[k], include_endpoint=True)
+                    for j in range(0, seg_order[k] + 1):
+                        roots = s[s != s[j]]
+                        Q = np.poly(roots)
+                        a[:, j] = Q / np.polyval(Q, s[j])
+                    for state_name, options in phase.state_options.items():
+                        beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
+                        b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
-                    for i in range(seg_order[k] - 1, 1, -1):
-                        if b[i] / beta > phase.refine_options['tolerance'] and i - 1 < new_order[k]:
-                            new_order[k] = i - 1
+                        for i in range(seg_order[k] - 1, 1, -1):
+                            if b[i] / beta > phase.refine_options['tolerance'] and i - 1 < new_order[k]:
+                                new_order[k] = i - 1
 
             # combine unnecessary segments
             merge_seg = np.zeros(numseg, dtype=bool)
-            for k in np.nditer(check_comb_indx):
-                a = np.zeros((new_order[k] + 1, new_order[k] + 1))
-                h_ = np.maximum(h[k], h[k + 1])
-                s, _ = lgr(new_order[k].astype(int), include_endpoint=True)
-                if gd.transcription == 'gauss-lobatto':
-                    s, _ = lgl(new_order[k], include_endpoint=True)
-                for j in range(0, new_order[k] + 1):
-                    roots = s[s != s[j]]
-                    Q = np.poly(roots)
-                    a[:, j] = Q / np.polyval(Q, s[j])
+            if len(list(check_comb_indx)) != 0:
+                for k in np.nditer(check_comb_indx):
+                    a = np.zeros((new_order[k] + 1, new_order[k] + 1))
+                    h_ = np.maximum(h[k], h[k + 1])
+                    s, _ = lgr(new_order[k].astype(int), include_endpoint=True)
+                    if gd.transcription == 'gauss-lobatto':
+                        s, _ = lgl(new_order[k], include_endpoint=True)
+                    for j in range(0, new_order[k] + 1):
+                        roots = s[s != s[j]]
+                        Q = np.poly(roots)
+                        a[:, j] = Q / np.polyval(Q, s[j])
 
-                merge_seg[k + 1] = True
+                    merge_seg[k + 1] = True
 
-                for state_name, options in phase.state_options.items():
-                    beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
-                    c = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
-                    b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in range(new_order[k] + 1)]))
-                    b_hat = np.multiply(c.ravel(), np.array([(h_ / h[k + 1]) ** l for l in range(new_order[k] + 1)]))
-                    err_val = np.dot(np.absolute(b - b_hat).ravel(),
-                                     np.array([2 ** l for l in range(new_order[k] + 1)])) / beta
+                    for state_name, options in phase.state_options.items():
+                        beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
+                        c = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
+                        b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in range(new_order[k] + 1)]))
+                        b_hat = np.multiply(c.ravel(),
+                                            np.array([(h_ / h[k + 1]) ** l for l in range(new_order[k] + 1)]))
+                        err_val = np.dot(np.absolute(b - b_hat).ravel(),
+                                         np.array([2 ** l for l in range(new_order[k] + 1)])) / beta
 
-                    if err_val > phase.refine_options['tolerance'] and merge_seg[k + 1]:
-                        merge_seg[k + 1] = False
+                        if err_val > phase.refine_options['tolerance'] and merge_seg[k + 1]:
+                            merge_seg[k + 1] = False
 
             H[np.where(merge_seg)] = 0
 

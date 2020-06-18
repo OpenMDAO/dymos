@@ -70,8 +70,8 @@ class TestRobotArm(unittest.TestCase):
             cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
 
     def test_robot_arm_radau(self):
-        p = self.make_problem(transcription=Radau, optimizer='IPOPT', numseg=50)
-        dm.run_problem(p, refine=True)
+        p = self.make_problem(transcription=Radau, optimizer='IPOPT', numseg=9)
+        dm.run_problem(p, refine=True, refine_method='hp')
 
         show_plots = False
 
