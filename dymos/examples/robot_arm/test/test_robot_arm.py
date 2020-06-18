@@ -51,6 +51,8 @@ class TestRobotArm(unittest.TestCase):
 
         phase.add_objective('time', scaler=1.0)
 
+        phase.set_refine_options(refine=True, tol=1e-6, smoothness_factor=1.2)
+
         p.setup(check=True, force_alloc_complex=False, mode='auto')
         p.set_val('traj.phase.t_initial', 0)
         p.set_val('traj.phase.t_duration', 10)

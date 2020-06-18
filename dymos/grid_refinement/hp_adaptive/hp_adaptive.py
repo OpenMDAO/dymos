@@ -326,7 +326,7 @@ class HPAdaptive:
                 continue
 
             left_end_idxs = gd.subset_node_indices['segment_ends'][0::2]
-            left_end_idxs = np.append(left_end_idxs, gd.subset_num_nodes['all'] - 1)
+            left_end_idxs = np.append(left_end_idxs, gd.subset_num_nodes['all'])
 
             # obtain state and state rate histories from timeseries output
             L, D = interpolation_lagrange_matrices(gd, gd)
@@ -360,58 +360,57 @@ class HPAdaptive:
             # Segments must be same order
             check_comb_indx = np.where(np.logical_and(np.logical_and(np.invert(need_refine[:-1]),
                                                                      np.invert(need_refine[1:])),
-                                                      new_order[:-1] == new_order[1:]))
+                                                      new_order[:-1] == new_order[1:]))[0]
 
             # segments under error tolerance but may not be combined have their order reduced
             reduce_order_indx = np.setdiff1d(np.where(np.invert(need_refine)), check_comb_indx)
 
             # reduce segment order where error is much below the tolerance
-            for k in np.nditer(reduce_order_indx):
-                print(k)
-                new_order[k] = seg_order[k]
-                a = np.zeros((seg_order[k] + 1, seg_order[k] + 1))
-                s, _ = lgr(seg_order[k], include_endpoint=True)
-                if gd.transcription == 'gauss-lobatto':
-                    s, _ = lgl(seg_order[k], include_endpoint=True)
-                for j in range(0, seg_order[k] + 1):
-                    roots = s[s != s[j]]
-                    print(s)
-                    print(s[s!=s[j]])
-                    Q = np.poly(roots)
-                    a[:, j] = Q / np.polyval(Q, s[j])
+            if reduce_order_indx.size > 0:
+                for k in np.nditer(reduce_order_indx):
+                    new_order[k] = seg_order[k]
+                    a = np.zeros((seg_order[k] + 1, seg_order[k] + 1))
+                    s, _ = lgr(seg_order[k], include_endpoint=True)
+                    if gd.transcription == 'gauss-lobatto':
+                        s, _ = lgl(seg_order[k], include_endpoint=True)
+                    for j in range(0, seg_order[k] + 1):
+                        roots = s[s != s[j]]
+                        Q = np.poly(roots)
+                        a[:, j] = Q / np.polyval(Q, s[j])
 
-                for state_name, options in phase.state_options.items():
-                    beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
-                    b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
+                    for state_name, options in phase.state_options.items():
+                        beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
+                        b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
-                    for i in range(seg_order[k] - 1, 1, -1):
-                        if b[i] / beta > phase.refine_options['tolerance'] and i - 1 < new_order[k]:
-                            new_order[k] = i - 1
+                        for i in range(seg_order[k] - 1, 1, -1):
+                            if b[i] / beta > phase.refine_options['tolerance'] and i - 1 < new_order[k]:
+                                new_order[k] = i - 1
 
             # combine unnecessary segments
-            for k in np.nditer(check_comb_indx):
-                a = np.zeros((new_order[k] + 1, new_order[k] + 1))
-                h_ = np.maximum(h[k], h[k + 1])
-                s, _ = lgr(new_order[k].astype(int), include_endpoint=True)
-                if gd.transcription == 'gauss-lobatto':
-                    s, _ = lgl(new_order[k], include_endpoint=True)
-                for j in range(0, new_order[k] + 1):
-                    roots = s[s != s[j]]
-                    Q = np.poly(roots)
-                    a[:, j] = Q / np.polyval(Q, s[j])
+            if check_comb_indx.size > 0:
+                for k in np.nditer(check_comb_indx):
+                    a = np.zeros((new_order[k] + 1, new_order[k] + 1))
+                    h_ = np.maximum(h[k], h[k + 1])
+                    s, _ = lgr(new_order[k].astype(int), include_endpoint=True)
+                    if gd.transcription == 'gauss-lobatto':
+                        s, _ = lgl(new_order[k], include_endpoint=True)
+                    for j in range(0, new_order[k] + 1):
+                        roots = s[s != s[j]]
+                        Q = np.poly(roots)
+                        a[:, j] = Q / np.polyval(Q, s[j])
 
-                merge_seg[k + 1] = True
+                    merge_seg[k + 1] = True
 
-                for state_name, options in phase.state_options.items():
-                    beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
-                    c = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
-                    b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in range(new_order[k] + 1)]))
-                    b_hat = np.multiply(c.ravel(), np.array([(h_ / h[k + 1]) ** l for l in range(new_order[k] + 1)]))
-                    err_val = np.dot(np.absolute(b - b_hat).ravel(),
-                                     np.array([2 ** l for l in range(new_order[k] + 1)])) / beta
+                    for state_name, options in phase.state_options.items():
+                        beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
+                        c = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
+                        b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in range(new_order[k] + 1)]))
+                        b_hat = np.multiply(c.ravel(), np.array([(h_ / h[k + 1]) ** l for l in range(new_order[k] + 1)]))
+                        err_val = np.dot(np.absolute(b - b_hat).ravel(),
+                                         np.array([2 ** l for l in range(new_order[k] + 1)])) / beta
 
-                    if err_val > phase.refine_options['tolerance'] and merge_seg[k + 1]:
-                        merge_seg[k + 1] = False
+                        if err_val > phase.refine_options['tolerance'] and merge_seg[k + 1]:
+                            merge_seg[k + 1] = False
 
             new_segment_ends = merge_segments(gd.segment_ends, merge_seg)
             new_num_segments = new_segment_ends.shape[0] - 1
@@ -494,8 +493,6 @@ class HPAdaptive:
                     xdd_max_time = gd.node_ptau[np.argmax(
                         np.absolute(x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))]
                     P_hat[state_name][k] = interp.eval(xdd_max_time)
-                    P_hat[state_name][k] = np.max(
-                        np.absolute(self.x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))
                     if P[state_name][k] / P_hat[state_name][k] > R[k]:
                         R[k] = P[state_name][k] / P_hat[state_name][k]
 
