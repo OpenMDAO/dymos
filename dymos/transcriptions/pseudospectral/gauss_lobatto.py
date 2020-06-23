@@ -203,20 +203,22 @@ class GaussLobatto(PseudospectralBase):
                               ['rhs_col.{0}'.format(tgt) for tgt in options['targets']])
 
             rate_path, src_idxs = self.get_rate_source_path(name, nodes='state_disc', phase=phase)
+            disc_src_idxs = None if src_idxs is None else get_src_indices_by_row(src_idxs, options['shape'])
 
             phase.connect(rate_path,
                           'state_interp.staterate_disc:{0}'.format(name),
-                          src_indices=src_idxs)
+                          src_indices=disc_src_idxs, flat_src_indices=True)
 
             phase.connect(rate_path,
                           'interleave_comp.disc_values:state_rates:{0}'.format(name),
-                          src_indices=src_idxs)
+                          src_indices=disc_src_idxs, flat_src_indices=True)
 
             rate_path, src_idxs = self.get_rate_source_path(name, nodes='col', phase=phase)
+            col_src_idxs = None if src_idxs is None else get_src_indices_by_row(src_idxs, options['shape'])
 
             phase.connect(rate_path,
                           'interleave_comp.col_values:state_rates:{0}'.format(name),
-                          src_indices=src_idxs)
+                          src_indices=col_src_idxs, flat_src_indices=True)
 
     def setup_interleave_comp(self, phase):
         num_input_nodes = self.grid_data.subset_num_nodes['state_input']
