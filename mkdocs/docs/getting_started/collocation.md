@@ -12,8 +12,8 @@ While Dymos supports shooting methods, its focus is on implicit collocation tech
 
 First, a few assumptions about the dynamic system:
 
-1. Over portions of the trajectory, the state is continuous (there are no instantaneous changes in the states)
-2. Over portions of the trajectory, the state is continuous in its first derivative w.r.t. time. (there are no instantaneous changes in the state rates)
+1.  Over portions of the trajectory, the state is continuous (there are no instantaneous changes in the states)
+2.  Over portions of the trajectory, the state is continuous in its first derivative w.r.t. time. (there are no instantaneous changes in the state rates)
 
 If those two conditions are met, then it's reasonable fit a polynomial to a plot of the state value over time.
 Given the initial or final value of a state, and values of its rate at some number of points across the trajectory, then a polynomial can be fit whose initial or final value matches, and whose rates match the sampled rates.
@@ -29,7 +29,7 @@ This makes scaling the problem easier, and gives the implicit variables more int
 As an example, lets assume we are trying to fit a polynomial to some unknown shape over an iterval.
 In this case the known variables are the value of the polynomial at the left endpoint ($y_0$), and the value of the independent variable at the left and right endpoints of the interval to be fitted ($x_0$, $x_1$)
 
-Lets assume the following problem:  Fit a curve of some shape where only the value ($y$) of the curve is known at the left endpoint ($y_0$), but the slope of the curve ($\dot{y}$) may be computed anywhere.  
+Lets assume the following problem:  Fit a curve of some shape where only the value ($y$) of the curve is known at the left endpoint ($y_0$), but the slope of the curve ($\dot{y}$) may be computed anywhere.
 Find the final value along the curve $(y_f)$ at the end of the polynomials interval.
 
 Now we make a key assumption:  The shape can be accurately fit with a quadratic polynomial.
@@ -114,10 +114,10 @@ Typically, $\Delta \bar{y}$ are referred to as the _defect_ constraints.
 
 The solution procedure for the curve fitting problem is an iterative process:
 
-1. Guess values for $\bar{y}$.
-2. Assess the constraints.
-3. If the constraints are satisfied, the process is complete
-4. If the constraints are not satisfied, find the derivative of the constraints w.r.t. $\bar{y}$ and use a gradient-based approach to propose a new value for $\bar{y}$.
+1.  Guess values for $\bar{y}$.
+2.  Assess the constraints.
+3.  If the constraints are satisfied, the process is complete
+4.  If the constraints are not satisfied, find the derivative of the constraints w.r.t. $\bar{y}$ and use a gradient-based approach to propose a new value for $\bar{y}$.
 
 Steps 1-4 represent a gradient-based approach to implicitly fitting the data points.
 

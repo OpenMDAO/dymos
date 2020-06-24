@@ -15,13 +15,13 @@ While normally this would significantly impair performance, Dymos can optimize s
 
 ## Key Features
 
-- Employ Gauss-Lobatto collocation[@herman1996direct] or the Radau Pseudospectral method[@garg2011direct] to find optimal control for a dynamic system.
-- Find the optimal design of a system that can satisfy a variety of different trajectories.
-- Embed nonlinear solvers within the system dynamics.
-  - Transform typical state variables into control variables (differential inclusion [@Seywald1994]).
-- Use nonlinear solvers to satisfy the collocation constraints.
-  - Single and multiple shooting within the same interface.
-- Leverage multiprocessing capabilities to improve performance
+-   Employ Gauss-Lobatto collocation[@herman1996direct] or the Radau Pseudospectral method[@garg2011direct] to find optimal control for a dynamic system.
+-   Find the optimal design of a system that can satisfy a variety of different trajectories.
+-   Embed nonlinear solvers within the system dynamics.
+-   Transform typical state variables into control variables (differential inclusion [@Seywald1994]).
+-   Use nonlinear solvers to satisfy the collocation constraints.
+-   Single and multiple shooting within the same interface.
+-   Leverage multiprocessing capabilities to improve performance
 
 ## Installation
 
