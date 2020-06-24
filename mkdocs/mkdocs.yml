@@ -60,6 +60,8 @@ nav:
         - 'api/phase_api.md'
         - 'api/trajectory_api.md'
         - 'api/transcriptions_api.md'
+    - 'Dymos Command Line':
+        - 'command_line/command_line.md'
     - 'Contributing':
         - 'contributing/contributing.md'
 
