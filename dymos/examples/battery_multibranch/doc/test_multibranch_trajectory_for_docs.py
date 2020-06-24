@@ -2,13 +2,14 @@
 Integration test for a battery+motor example that demonstrates phase branching in trajectories.
 """
 import unittest
+from dymos.utils.doc_utils import save_for_docs
 
 import matplotlib
 matplotlib.use('Agg')
 
 
 class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
-
+    @save_for_docs
     def test_basic(self):
         import matplotlib.pyplot as plt
 

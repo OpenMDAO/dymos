@@ -1,6 +1,7 @@
 import os
 import unittest
 import matplotlib.pyplot as plt
+from dymos.utils.doc_utils import save_for_docs
 
 plt.switch_backend('Agg')
 plt.style.use('ggplot')
@@ -14,6 +15,7 @@ class TestReentryForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @save_for_docs
     def test_reentry(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

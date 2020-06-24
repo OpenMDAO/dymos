@@ -1,5 +1,6 @@
 import os
 import unittest
+from dymos.utils.doc_utils import save_for_docs
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
@@ -14,6 +15,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @save_for_docs
     def test_steady_aircraft_for_docs(self):
         import matplotlib.pyplot as plt
 

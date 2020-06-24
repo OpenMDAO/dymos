@@ -1,11 +1,12 @@
 import unittest
+from dymos.utils.doc_utils import save_for_docs
 
 import matplotlib.pyplot as plt
 # plt.switch_backend('Agg')
 
 
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
-
+    @save_for_docs
     def test_two_phase_cannonball_for_docs(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
