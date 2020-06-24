@@ -285,14 +285,6 @@ class ControlGroup(om.Group):
                     ub = np.zeros_like(desvar_indices, dtype=float)
                     ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
                         coerce_desvar_option('upper')
-                    #
-                    # if options['initial_bounds'] is not None:
-                    #     lb[0] = options['initial_bounds'][0]
-                    #     ub[0] = options['initial_bounds'][-1]
-                    #
-                    # if options['final_bounds'] is not None:
-                    #     lb[-1] = options['final_bounds'][0]
-                    #     ub[-1] = options['final_bounds'][-1]
 
                     self.add_design_var(name='controls:{0}'.format(name),
                                         lower=lb,
@@ -302,34 +294,6 @@ class ControlGroup(om.Group):
                                         ref0=coerce_desvar_option('ref0'),
                                         ref=coerce_desvar_option('ref'),
                                         indices=desvar_indices)
-
-                #
-                # if len(desvar_indices) > 0:
-                #     coerce_desvar = CoerceDesvar(gd.subset_num_nodes['control_input'],
-                #                                  desvar_indices, options)
-                #
-                #     # s = (num_input_nodes,) + options['shape']
-                #     # print(s)
-                #
-                #     # lb = options['lower'] * np.ones((num_input_nodes,) + options['shape'])
-                #     # ub = options['upper'] * np.ones((num_input_nodes,) + options['shape'])
-                #
-                #     lb = -INF_BOUND if coerce_desvar('lower') is None else coerce_desvar('lower')
-                #     ub = INF_BOUND if coerce_desvar('upper') is None else coerce_desvar('upper')
-                #
-                #     print(lb)
-                #     print(ub)
-                #
-                #     print(desvar_indices)
-
-                    # self.add_design_var(name='controls:{0}'.format(name),
-                    #                     lower=lb.ravel(),
-                    #                     upper=ub.ravel(),
-                    #                     scaler=coerce_desvar('scaler'),
-                    #                     adder=coerce_desvar('adder'),
-                    #                     ref0=coerce_desvar('ref0'),
-                    #                     ref=coerce_desvar('ref'),
-                    #                     indices=desvar_indices)
 
                 ivc.add_output(name='controls:{0}'.format(name),
                                val=options['val'],
