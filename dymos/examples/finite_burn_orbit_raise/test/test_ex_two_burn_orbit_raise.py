@@ -286,7 +286,7 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
 
 # This test is separate because connected phases aren't directly parallelizable.
-# @use_tempdirs
+@use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
     def test_ex_two_burn_orbit_raise_connected(self):
