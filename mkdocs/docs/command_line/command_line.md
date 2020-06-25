@@ -1,9 +1,9 @@
 # Dymos Command Line Interface
 
-Dymos has several comand line options that can make it easier to repeatedly run
+Dymos has several comand line argumants that can make it easier to repeatedly run
 a script with different options.
 
-You can see all the possible Dymos command line option by running `dymos --help`:
+You can see all the possible Dymos command line options by running `dymos --help`:
 
 ```
 dymos --help
@@ -34,7 +34,7 @@ optional arguments:
 ```
 
 The only non-optional argument to a `dymos` command line invocation is the name of a script that
-creates an instance of a Dymos Problem, for example:
+creates an instance of a Dymos Problem. For example:
 
 === "brachistochrone_for_command_line.py"
 {{ inline_source('dymos.utils.test.brachistochrone_for_command_line',
@@ -53,7 +53,7 @@ equivalent to calling the _problem.run_driver_ function. For example:
 
 ```dymos dymos/utils/test/brachistochrone_for_command_line.py```
 
-Dymos will run the optimizer to solve the problem returned by the script and show the results.
+Dymos will run the optimizer to solve the problem created by the script and show the results.
 
 ## Loading an existing trajectory as an initial guess
 
@@ -93,12 +93,13 @@ equivalent to calling _problem.run_model_ in addition to or instead of _problem.
 There are two command line options related to grid refinement.
 
 The `-l` or `--refine_limit` command line option is used to set the number of passes through the grid refinement
-algorithm. It defaults to zero, which does no grid refinement. For example:
+algorithm. It defaults to zero, which does no grid refinement. Setting it to a positive integer will enable grid
+refinement. For example:
 
 ```dymos -l 10 dymos/utils/test/brachistochrone_for_command_line.py```
 
 The `-r` or `--reset_grid` command line option (_not currently implemented_) resets the grid to the specifications
-givening in the problem definition, ignoring any grid that would have be loaded from a restart data base. It is called
+given in the problem definition, ignoring any grid that would have been loaded from a restart database. It is called
 like this:
 
 ```dymos -r -t dymos_solution.db dymos/utils/test/brachistochrone_for_command_line.py```
