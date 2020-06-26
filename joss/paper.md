@@ -38,11 +38,13 @@ the high-order Gauss-Lobatto transcription developed by Herman and Conway [@Herm
 and the Radau pseudospectral method [@Garg2009].  These techniques are implemented
 in a way that is nearly transparent to the user so that these different
 techniques can be employed with only minor changes to the user's code - typically a single line.
+Dymos typically uses pyoptsparse [@Perez2012a] to solve the transcribed optimization problem, which
+can serve as an interface to powerful sparse-aware optimizers such as SNOPT [@GilMS05] and IPOPT [@wachter2006].
 
 OpenMDAO, the framework on which Dymos is built, can efficiently handle
 the inclusion of iterative nonlinear solvers within the user's dynamics model,
 as is the case in many problems which involve differential algebraic equations (DAEs).
-This enables efficient use of the method differential inclusions [@Seywald1994].
+This enables efficient use of differential inclusions [@Seywald1994].
 The method of differential inclusions allows the user to parameterize the trajectory
 of a system in non-traditional ways and have an embedded nonlinear solver enforce
 the system dynamics.  This gives users more freedom to pose dynamics in
@@ -55,7 +57,9 @@ solver.  In the latter case, the direct collocation techniques are transformed i
 single or multipe shooting methods, which may provide better performance in some scenarios.
 Because shooting methods often pose far fewer constraints for the optimizer than design variables,
 we can leverage OpenMDAO's support for adjoint (reverse) differentiation to realize the benefits
-of shooting methods without a substantial performance penalty.
+of shooting methods without a substantial performance penalty.  Switching from a traditional
+optimizer-driven direct collocation approach to a single or multiple shooting approach requires
+minimal changes to a user's input file.
 
 By coupling OpenMDAO's unique approach to efficient computation of derivatives to
 standard optimal control techniques, Dymos, enables users to solve optimal control
