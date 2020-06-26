@@ -14,10 +14,12 @@ authors:
     affiliation: 1
   - name: Kaushik Ponnapalli
     affiliation: 2
+  - name: Ted Wright
+    affiliation: 1
 affiliations:
-  - name: NASA Glenn Research Center.  21000 Brookpark Rd, Cleveland, OH 44135.
+  - name: NASA Glenn Research Center
     index: 1
-  - name: Vantage Partners LLC. 3000 Aerospace Parkway, Brook Park, OH 44142.
+  - name: HX5 LLC
     index: 2
 date: 26 June 2020
 bibliography: paper.bib
