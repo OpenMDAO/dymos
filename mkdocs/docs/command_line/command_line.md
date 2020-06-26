@@ -1,6 +1,6 @@
 # Dymos Command Line Interface
 
-Dymos has several comand line argumants that can make it easier to repeatedly run
+Dymos has several command line argumants that can make it easier to repeatedly run
 a script with different options.
 
 You can see all the possible Dymos command line options by running `dymos --help`:
@@ -48,7 +48,7 @@ so the script that creates a problem for command line execution should call that
 
 ## Solving for the optimal trajectory
 
-The default behavior for calling a script with the dymos comand line is to solve the optimal control problem,
+The default behavior for calling a script with the dymos command line is to solve the optimal control problem,
 equivalent to calling the _problem.run_driver_ function. For example:
 
 ```dymos dymos/utils/test/brachistochrone_for_command_line.py```
