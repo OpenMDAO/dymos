@@ -67,10 +67,10 @@ By coupling OpenMDAO's unique approach to efficient computation of derivatives t
 standard optimal control techniques, Dymos, enables users to solve optimal control
 problems which involve potentially expensive iterative techniques in the dynamics.
 Dymos has been used to demonstrate the coupling of flight dynamics and subsystem
-thermal constraints in electrical aircraft applications [@Falck2017a, @Hariton2020a].
+thermal constraints in electrical aircraft applications [@Falck2017a; @Hariton2020a].
 NASA's X-57 "Maxwell" is using Dymos for mission planning to maximize
 data collection while abiding the limits of battery storage capacity and
-subsystem temperatures [@Schnulo2018a, @Schnulo2019a].  Other authors have
+subsystem temperatures [@Schnulo2018a; @Schnulo2019a].  Other authors have
 used Dymos to perform studies of aircraft acoustics [@Ingraham2020a] and
 the the design of supersonic aircraft with thermal fuel management systems [@Jasa2018a].
 
