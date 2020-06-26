@@ -60,6 +60,8 @@ nav:
         - 'api/phase_api.md'
         - 'api/trajectory_api.md'
         - 'api/transcriptions_api.md'
+    - 'Command Line Interface':
+        - 'command_line/command_line.md'
     - 'Contributing':
         - 'contributing/contributing.md'
 
