@@ -63,8 +63,8 @@ of shooting methods without a substantial performance penalty.  Switching from a
 optimizer-driven direct collocation approach to a single or multiple shooting approach requires
 minimal changes to a user's input file.
 
-By coupling OpenMDAO's unique approach to efficient computation of derivatives to
-standard optimal control techniques, Dymos, enables users to solve optimal control
+By coupling OpenMDAO's unique approach to efficient computation of derivatives to  
+optimal control techniques, Dymos enables users to solve optimal control
 problems which involve potentially expensive iterative techniques in the dynamics.
 Dymos has been used to demonstrate the coupling of flight dynamics and subsystem
 thermal constraints in electrical aircraft applications [@Falck2017a; @Hariton2020a].
