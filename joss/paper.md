@@ -57,13 +57,13 @@ can serve as an interface to powerful sparse-aware optimizers such as SNOPT [@Gi
 
 OpenMDAO, the framework on which dymos is built, can efficiently handle
 the inclusion of iterative nonlinear solvers within a computational model.
-In the context of optimal control, implicit calculations are frequently encountered.
-Many dynamical systems are defined by a set of differential algebraic equations.
-This is also similar to the method of differential inclusions [@Seywald1994].
+In the context of optimal control, implicit calculations are frequently encountered in
+the system dynamics (defined as ordinary differential equations or differential algebraic equations).
+This capability also allows dymos users to efficiently apply the method of differential inclusions [@Seywald1994].
 Differential inclusions allows the user to parameterize the trajectory
 of a system in non-traditional ways and have an embedded nonlinear solver enforce
 the system dynamics.  This gives users more freedom to pose dynamics in
-more natural ways with less implications on performance.  The analytical differentiation
+more natural ways with fewer negative impacts on performance.  The analytical differentiation
 techniques employed by dymos make such methods computationally feasible.
 
 This greater freedom to utilize nonilinear solvers within the context of optimization
