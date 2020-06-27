@@ -35,8 +35,20 @@ may include expensive, implicit calculations.  By leveraging the OpenMDAO softwa
 package's approach to calculating derivatives for gradient-based optimization,
 dymos can provide significant improvements in performance.
 
-Dymos leverages two common "transcriptions" for direct collocation in its approach to optimal control:
-the high-order Gauss-Lobatto transcription developed by Herman and Conway [@Herman1996]
+Dymos offers capabilities typical of optimal control software, and some
+that are not. With dymos, the trajectory is not necessarily central
+to the optimization.  A significant portion of the model
+may be focused on optimizaiton of some other parameter in the design of
+a vehicle system or component, with a trajectory added to enforce some
+constraint upon the design.  Trajectories are subdivided into "phases,"
+and within each phase boundary or path constraints may be applied to
+any output of the system dynamics.  In addition to typical collocated
+dynamic control variables, dymos offers the ability to use variable
+order polynomial controls that are useful in forcing a lower-order control
+solution upon a phase of the trajectory.
+
+Dymos leverages two common "transcriptions" for direct collocation in
+its approach to optimal control: the high-order Gauss-Lobatto transcription [@Herman1996]
 and the Radau pseudospectral method [@Garg2009].  These techniques are implemented
 in a way that is nearly transparent to the user so that these different
 techniques can be employed with only minor changes to the user's code - typically a single line.
@@ -44,7 +56,7 @@ Dymos typically uses pyoptsparse [@Perez2012a] to solve the transcribed optimiza
 can serve as an interface to powerful sparse-aware optimizers such as SNOPT [@GilMS05] and IPOPT [@wachter2006].
 
 OpenMDAO, the framework on which dymos is built, can efficiently handle
-the inclusion of iterative nonlinear solvers within a computational model.  
+the inclusion of iterative nonlinear solvers within a computational model.
 In the context of optimal control, implicit calculations are frequently encountered.
 Many dynamical systems are defined by a set of differential algebraic equations.
 This is also similar to the method of differential inclusions [@Seywald1994].
@@ -65,7 +77,7 @@ of shooting methods without a substantial performance penalty.  Switching from a
 optimizer-driven direct collocation approach to a single or multiple shooting approach requires
 minimal changes to a user's input file.
 
-By coupling OpenMDAO's unique approach to efficient computation of derivatives to  
+By coupling OpenMDAO's unique approach to efficient computation of derivatives to
 optimal control techniques, dymos enables users to solve optimal control
 problems which involve potentially expensive iterative techniques in the dynamics.
 Dymos has been used to demonstrate the coupling of flight dynamics and subsystem
