@@ -70,7 +70,7 @@ Another use case for nonlinear solvers is to enable the inclusion of implicit no
 The implicit analysis could arise due to the need for some high fidelity physics model (e.g. a vortex latice method for aerodynamic performance prediction) or from the formulation of a differential inclusion approach. 
 Again, in these cases the nonlinear solver would normally present numerical and computational challenges for an optimizer but the use of analytic derivatives mitigates this issue. 
 
-# Selected applications of dymos
+## Selected applications of dymos
 
 Dymos has been used to demonstrate the coupling of flight dynamics and subsystem thermal constraints in electrical aircraft applications [@Falck2017a; @Hariton2020a].
 NASA's X-57 "Maxwell" is using dymos for mission planning to maximize data collection while abiding the limits of battery storage capacity and subsystem temperatures [@Schnulo2018a; @Schnulo2019a].
