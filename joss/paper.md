@@ -39,7 +39,7 @@ To achieve this, dymos makes extensive use of OpenMDAO's built in analytic deriv
 Dymos can be used stand-alone, or as a building block in a larger model where a significant portion of the optimization focused some non-controls aspect, with a trajectory added to enforce some constraint upon the design.
 In some contexts, you may hear this kind of problem referred to as co-design, controls-co-design, or multidisciplinary design optimization.
 
-## The dymos perspective on optimal-control
+## The dymos perspective on optimal control
 
 In dymos, trajectories are subdivided into "phases," and within each phase boundary or path constraints may be applied to any output of the system dynamics.
 In addition to typical collocated dynamic control variables, dymos offers the ability to use variable order polynomial controls that are useful in forcing a lower-order control solution upon a phase of the trajectory.
@@ -67,7 +67,7 @@ If a solver-based collocation approach is used in combination with finite-differ
 Dymos works around this problem by leveraging OpenMDAO's support for adjoint (reverse) differentiation to realize the benefits of shooting methods without a substantial performance penalty.
 
 Another use case for nonlinear solvers is to enable the inclusion of implicit nonlinear analyses inside the ODE itself.
-The implicit analysis could arise due to the need for some high fidelity physics model (e.g. a vortex latice method for aerodynamic performance prediction) or from the formulation of a differential inclusion approach. 
+The implicit analysis could arise due to the need for some high fidelity physics model (e.g. a vortex lattice method for aerodynamic performance prediction) or from the formulation of a differential inclusion approach.
 Again, in these cases the nonlinear solver would normally present numerical and computational challenges for an optimizer but the use of analytic derivatives mitigates this issue. 
 
 ## Selected applications of dymos
