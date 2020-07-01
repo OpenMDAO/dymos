@@ -6,6 +6,7 @@ tags:
   - optimal control
   - trajectory optimization
   - multidisciplinary optimization
+  - NASA
 authors:
   - name: Rob Falck
     orcid: 0000-0001-9864-4928
@@ -28,13 +29,13 @@ bibliography: paper.bib
 # Summary
 
 Dymos is an library for solving optimal-control type optimization problems. 
-It contains capabilities typical of optimal control software and can handle a wide range of typical optimal-control problems.
+It contains capabilities typical of optimal control software and can handle a wide range of typical optimal control problems.
 It's software design (built on top of NASA's OpenMDAO Framework [@Gray2019a] also allows users to tackle problems where the trajectory is not necessarily central to the optimization and where the system dynamics may include expensive, implicit calculations.
 Implicit calculations may be present due to some calculation in the ODE, or more generally because the ODE is posed as a set of differential algebraic equations or differential inclusions [@Seywald1994].
 
 Support for implicit calculations gives users more freedom to pose dynamics in more natural ways, but typically causes numerical and computational cost challenges in an optimization context, especially when finite-differences are used to compute derivatives for the optimizer.
 Dymos employs analytic derivatives to overcome these challenges, and makes such methods computationally feasible.
-To achieve this, dymos makes extensive use of OpenMDAO's built in analytic derivative features, its non-linear solver library, and its support for  gradient-based optimization. 
+To achieve this, dymos makes extensive use of OpenMDAO's built in analytic derivative features, its non-linear solver library, and its support for gradient-based optimization.
 
 Dymos can be used stand-alone, or as a building block in a larger model where a significant portion of the optimization is focused some non-controls aspect, with a trajectory added to enforce some constraint upon the design.
 In some contexts, you may hear this kind of problem referred to as co-design, controls-co-design, or multidisciplinary design optimization.
@@ -52,8 +53,8 @@ ODE's are implemented as standard OpenMDAO systems which are passed to phases at
 
 Dymos does not ship with its own built in optimizer. 
 It relies on whatever optimizers you have available in your OpenMDAO installation. 
-OpenMDAO ships with the standard SciPy optimization library, and an additional wrapper for the pyoptsparse [@Perez2012a] library which has more powerful optimizer options such as SNOPT [@GilMS05] and IPOPT [@wachter2006].
-For simple problems, the basics optimizers in SciPy's SLSQP will work fine.
+OpenMDAO ships with an interface to the optimizers in SciPy [@2020SciPy-NMeth], and an additional wrapper for the pyoptsparse [@Perez2012a] library which has more powerful optimizer options such as SNOPT [@GilMS05] and IPOPT [@wachter2006].
+For simple problems, Scipy's SLSQP optimizer generally works fine.
 On more challenging optimal-control problems, higher quality optimizers are important for getting good performance.
 
 ## The value of using nonlinear solvers and analytic derivatives in optimal control
@@ -76,6 +77,6 @@ Other authors have used dymos to perform studies of aircraft acoustics [@Ingraha
 
 # Acknowledgements
 
-Dymos was developed with funding from NASA's Transformative Tools and Technologies ($T^3$) Project.
+Dymos was developed with funding from NASA's Transformational Tools and Technologies ($T^3$) Project.
 
 # References
