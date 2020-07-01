@@ -31,7 +31,8 @@ class TestDocOscillator(unittest.TestCase):
         phase.add_state('x', rate_source='v', targets=['x'], units='m')
         phase.add_state('v', rate_source='v_dot', targets=['v'], units='m/s')
 
-        # The spring constant, damping coefficient, and mass are inputs to the system that are constant throughout the phase.
+        # The spring constant, damping coefficient, and mass are inputs to the system
+        # that are constant throughout the phase.
         phase.add_input_parameter('k', units='N/m', targets=['k'])
         phase.add_input_parameter('c', units='N*s/m', targets=['c'])
         phase.add_input_parameter('m', units='kg', targets=['m'])
@@ -95,7 +96,8 @@ class TestDocOscillator(unittest.TestCase):
         phase.add_state('x', fix_initial=True, rate_source='v', targets=['x'], units='m')
         phase.add_state('v', fix_initial=True, rate_source='v_dot', targets=['v'], units='m/s')
 
-        # The spring constant, damping coefficient, and mass are inputs to the system that are constant throughout the phase.
+        # The spring constant, damping coefficient, and mass are inputs to the system that are
+        # constant throughout the phase.
         phase.add_input_parameter('k', units='N/m', targets=['k'])
         phase.add_input_parameter('c', units='N*s/m', targets=['c'])
         phase.add_input_parameter('m', units='kg', targets=['m'])
@@ -166,12 +168,14 @@ class TestDocOscillator(unittest.TestCase):
         phase.add_state('x', fix_initial=True, rate_source='v', targets=['x'], units='m')
         phase.add_state('v', fix_initial=True, rate_source='v_dot', targets=['v'], units='m/s')
 
-        # The spring constant, damping coefficient, and mass are inputs to the system that are constant throughout the phase.
+        # The spring constant, damping coefficient, and mass are inputs to the system that are
+        # constant throughout the phase.
         phase.add_input_parameter('k', units='N/m', targets=['k'])
         phase.add_input_parameter('c', units='N*s/m', targets=['c'])
         phase.add_input_parameter('m', units='kg', targets=['m'])
 
-        # Since we're using an optimization driver, an objective is required.  We'll minimize the final time in this case.
+        # Since we're using an optimization driver, an objective is required.  We'll minimize
+        # the final time in this case.
         phase.add_objective('time', loc='final')
 
         # Setup the OpenMDAO problem
@@ -240,12 +244,14 @@ class TestDocOscillator(unittest.TestCase):
         phase.add_state('x', fix_initial=True, rate_source='v', targets=['x'], units='m')
         phase.add_state('v', fix_initial=True, rate_source='v_dot', targets=['v'], units='m/s')
 
-        # The spring constant, damping coefficient, and mass are inputs to the system that are constant throughout the phase.
+        # The spring constant, damping coefficient, and mass are inputs to the system that
+        # are constant throughout the phase.
         phase.add_input_parameter('k', units='N/m', targets=['k'])
         phase.add_input_parameter('c', units='N*s/m', targets=['c'])
         phase.add_input_parameter('m', units='kg', targets=['m'])
 
-        # Since we're using an optimization driver, an objective is required.  We'll minimize the final time in this case.
+        # Since we're using an optimization driver, an objective is required.  We'll minimize
+        # the final time in this case.
         phase.add_objective('time', loc='final')
 
         # Setup the OpenMDAO problem
@@ -314,12 +320,14 @@ class TestDocOscillator(unittest.TestCase):
         phase.add_state('x', fix_initial=True, rate_source='v', targets=['x'], units='m')
         phase.add_state('v', fix_initial=True, rate_source='v_dot', targets=['v'], units='m/s')
 
-        # The spring constant, damping coefficient, and mass are inputs to the system that are constant throughout the phase.
+        # The spring constant, damping coefficient, and mass are inputs to the system that are
+        # constant throughout the phase.
         phase.add_input_parameter('k', units='N/m', targets=['k'])
         phase.add_input_parameter('c', units='N*s/m', targets=['c'])
         phase.add_input_parameter('m', units='kg', targets=['m'])
 
-        # Since we're using an optimization driver, an objective is required.  We'll minimize the final time in this case.
+        # Since we're using an optimization driver, an objective is required.  We'll minimize
+        # the final time in this case.
         phase.add_objective('time', loc='final')
 
         # Setup the OpenMDAO problem
@@ -388,12 +396,14 @@ class TestDocOscillator(unittest.TestCase):
         phase.add_state('x', fix_initial=True, rate_source='v', targets=['x'], units='m')
         phase.add_state('v', fix_initial=True, rate_source='v_dot', targets=['v'], units='m/s')
 
-        # The spring constant, damping coefficient, and mass are inputs to the system that are constant throughout the phase.
+        # The spring constant, damping coefficient, and mass are inputs to the system that are
+        # constant throughout the phase.
         phase.add_input_parameter('k', units='N/m', targets=['k'])
         phase.add_input_parameter('c', units='N*s/m', targets=['c'])
         phase.add_input_parameter('m', units='kg', targets=['m'])
 
-        # Since we're using an optimization driver, an objective is required.  We'll minimize the final time in this case.
+        # Since we're using an optimization driver, an objective is required.  We'll minimize
+        # the final time in this case.
         phase.add_objective('time', loc='final')
 
         # Setup the OpenMDAO problem

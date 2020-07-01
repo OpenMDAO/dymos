@@ -1,6 +1,6 @@
 # The Van der Pol Oscillator
 
-In dynamics, the Van Der Pol oscillator[1] is a non-conservative oscillator with non-linear damping.
+In dynamics, the Van Der Pol oscillator[@wikivanderpol] is a non-conservative oscillator with non-linear damping.
 It evolves in time according to the second-order differential equation:
 
 \begin{align}
@@ -24,9 +24,9 @@ and the oscillation's rate of change are driven to zero.
 
 There are three _state_ variables are used to define the configuration of the system at any given instant in time.
 
-- $x_1$: The primary output of the oscillator.
-- $x_0$: The rate of change of the primary output.
-- $J$: The objective function to be minimized.
+-   $x_1$: The primary output of the oscillator.
+-   $x_0$: The rate of change of the primary output.
+-   $J$: The objective function to be minimized.
 
 The objective function is included as a state variable so that Dymos will do the integration.
 
@@ -46,7 +46,7 @@ The evolution of the state variables is given by the following ordinary differen
 
 This system has a single control variable:
 
-- $u$: The control input.
+-   $u$: The control input.
 
 The control variable has a constraint: $-0.75 \leq u \leq 1.0$
 
@@ -75,13 +75,13 @@ The following _ExplicitComponent_ computes the state rates for the Van der Pol p
 
 More detail on the workings of an _ExplicitComponent_ can be found in the OpenMDAO documentation.  In summary:
 
-- **initialize**:  Called at setup, and used to define options for the component.  **ALL** Dymos ODE components
-  should have the property `num_nodes`, which defines the number of points at which the outputs are simultaneously computed.
-- **setup**: Used to add inputs and outputs to the component, and declare which outputs (and indices of outputs)
-  are dependent on each of the inputs.
-- **compute**: Used to compute the outputs, given the inputs.
-- **compute_partials**: Used to compute the derivatives of the outputs with respect to each of the inputs analytically.
-  This method may be omitted if finite difference or complex-step approximations are used, though analytic is recommended.
+-   **initialize**:  Called at setup, and used to define options for the component.  **ALL** Dymos ODE components
+    should have the property `num_nodes`, which defines the number of points at which the outputs are simultaneously computed.
+-   **setup**: Used to add inputs and outputs to the component, and declare which outputs (and indices of outputs)
+    are dependent on each of the inputs.
+-   **compute**: Used to compute the outputs, given the inputs.
+-   **compute_partials**: Used to compute the derivatives of the outputs with respect to each of the inputs analytically.
+    This method may be omitted if finite difference or complex-step approximations are used, though analytic is recommended.
 
 !!! note "Things to note about the Van der Pol ODE system"
     - Only the _vanderpol_ode_ class below is important for defining the basic problem. The other classes are
@@ -157,4 +157,5 @@ and does not require supplying a good guess for the number segments.
 {{ embed_test('dymos.examples.vanderpol.doc.test_doc_vanderpol.TestVanderpolForDocs.test_vanderpol_for_docs_optimize_refine') }}
 
 ## References
-[1] Van Der Pol oscillator description from [Wikipedia](https://en.wikipedia.org/wiki/Van_der_Pol_oscillator)
+
+\bibliography

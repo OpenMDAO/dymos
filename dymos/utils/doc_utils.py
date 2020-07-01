@@ -27,7 +27,7 @@ class tee:
     def __init__(self, *files):
         self._files = files
 
-    def __del__(self) :
+    def __del__(self):
         for f in self._files:
             if f != sys.stdout and f != sys.stderr:
                 f.close()
@@ -45,9 +45,10 @@ class tee:
         for f in self._files:
             f.write(text)
 
-    def flush(self) :
+    def flush(self):
         for f in self._files:
             f.flush()
+
 
 def save_for_docs(method, transparent=False):
     """
@@ -102,5 +103,3 @@ def save_for_docs(method, transparent=False):
 
     wrapped._method = method
     return wrapped
-
-

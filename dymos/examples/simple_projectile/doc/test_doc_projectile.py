@@ -87,8 +87,8 @@ class TestDocProjectile(unittest.TestCase):
         phase = dm.Phase(ode_class=ProjectileODE, transcription=dm.Radau(num_segments=10, solve_segments=True))
         traj.add_phase('phase0', phase)
 
-        # Tell Dymos that the time duration of the Phase should not be fixed (its a design variable for the optimization).
-        # The duration of a phase may be negative but it should never be zero.
+        # Tell Dymos that the time duration of the Phase should not be fixed (its a design variable for
+        # the optimization). The duration of a phase may be negative but it should never be zero.
         phase.set_time_options(fix_initial=True, duration_bounds=(5, 50))
 
         # Tell Dymos the states to be propagated using the given ODE.
@@ -99,7 +99,8 @@ class TestDocProjectile(unittest.TestCase):
 
         phase.add_boundary_constraint('vy', loc='final', upper=0.0)
 
-        # Since we're using an optimization driver, an objective is required.  We'll minimize the final time in this case.
+        # Since we're using an optimization driver, an objective is required.
+        # We'll minimize the final time in this case.
         phase.add_objective('time', loc='final')
 
         # Setup the OpenMDAO problem
@@ -159,8 +160,8 @@ class TestDocProjectile(unittest.TestCase):
         phase = dm.Phase(ode_class=ProjectileODE, transcription=dm.Radau(num_segments=10))
         traj.add_phase('phase0', phase)
 
-        # Tell Dymos that the time duration of the Phase should not be fixed (its a design variable for the optimization).
-        # The duration of a phase may be negative but it should never be zero.
+        # Tell Dymos that the time duration of the Phase should not be fixed (its a design variable
+        # for the optimization). The duration of a phase may be negative but it should never be zero.
         phase.set_time_options(fix_initial=True, duration_bounds=(5, 50))
 
         # Tell Dymos the states to be propagated using the given ODE.
@@ -169,7 +170,8 @@ class TestDocProjectile(unittest.TestCase):
         phase.add_state('vx', fix_initial=True, targets=['vx'], rate_source='vx_dot', units='m/s')
         phase.add_state('vy', fix_initial=True, targets=['vy'], rate_source='vy_dot', units='m/s')
 
-        # Since we're using an optimization driver, an objective is required.  We'll minimize the final time in this case.
+        # Since we're using an optimization driver, an objective is required.
+        # We'll minimize the final time in this case.
         phase.add_objective('time', loc='final')
 
         # Setup the OpenMDAO problem

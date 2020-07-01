@@ -1,6 +1,7 @@
 import openmdao.api as om
 import numpy as np
 
+
 class BrysonDenhamODE(om.ExplicitComponent):
     """
     The double integrator is a special case where the state rates are all set to other states
@@ -33,4 +34,3 @@ class BrysonDenhamODE(om.ExplicitComponent):
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         partials['usq', 'u'] = 2 * inputs['u']
-

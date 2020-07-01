@@ -41,13 +41,27 @@ nav:
         - 'Intro to Dymos':
             - 'examples/intro_to_dymos/intro_ivp.md'
             - 'examples/intro_to_dymos/intro_segments.md'
-        - 'examples/brachistochrone/brachistochrone.md'
-        - 'examples/vanderpol/vanderpol.md'
+        - 'Example Problems':
+            - 'examples/brachistochrone/brachistochrone.md'
+            - 'examples/vanderpol/vanderpol.md'
+            - 'examples/commercial_aircraft/commercial_aircraft.md'
+            - 'examples/double_integrator/double_integrator.md'
+            - 'examples/hypersensitive/hypersensitive.md'
+            - 'examples/finite_burn_orbit_raise/finite_burn_orbit_raise.md'
+            - 'examples/min_time_climb/min_time_climb.md'
+            - 'examples/multi_phase_cannonball/multi_phase_cannonball.md'
+            - 'examples/multibranch_trajectory/multibranch_trajectory.md'
+            - 'examples/reentry/reentry.md'
+            - 'examples/ssto_earth/ssto_earth.md'
+            - 'examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent.md'
+            - 'examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.md'
     - 'Dymos API Reference':
         - 'api/run_problem.md'
         - 'api/phase_api.md'
         - 'api/trajectory_api.md'
         - 'api/transcriptions_api.md'
+    - 'Command Line Interface':
+        - 'command_line/command_line.md'
     - 'Contributing':
         - 'contributing/contributing.md'
 
