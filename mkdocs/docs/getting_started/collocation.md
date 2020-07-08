@@ -1,6 +1,6 @@
 # What is collocation?
 
-Dymos is based on an implicit integration technique, collocation.
+Dymos is focused on direct optimization methods based on an implicit integration technique, collocation.
 
 The _state_ of a dynamic system defines its configuration at a point in time.
 Common state variables for dynamic systems are position, velocity, and mass.

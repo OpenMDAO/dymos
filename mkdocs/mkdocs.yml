@@ -32,7 +32,7 @@ markdown_extensions:
       linenums: true
 
 nav:
-    - 'index.md'
+    - 'Home': 'index.md'
     - 'Getting Started':
         - 'getting_started/collocation.md'
         - 'getting_started/transcriptions.md'

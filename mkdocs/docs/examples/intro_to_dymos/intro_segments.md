@@ -17,7 +17,7 @@ It does this by breaking the time domain of each phase into multiple polynomial 
 On each segment, each state is treated as a continuous polynomial of some given order.
 In Dymos, segments must have an order of **at least 3**.  That is also the default order for segments.
 
-# How does the number and order of segments affect the solution?
+## How does the number and order of segments affect the solution?
 
 Obviously, a single third-order polynomial won't be able to fit highly oscillator behavior.
 In this case, our guess of using four segments (equally spaced) in the phase wasn't quite sufficient.
