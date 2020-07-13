@@ -176,6 +176,7 @@ def define_env(env):
         #     print(key)
 
 def get_object_from_reference(reference):
+    # print('getting object by reference:', reference)
     split = reference.split('.')
     right = []
     module = None

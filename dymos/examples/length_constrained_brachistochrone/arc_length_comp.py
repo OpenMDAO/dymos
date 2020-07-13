@@ -21,7 +21,6 @@ class ArcLengthComp(ExplicitComponent):
         self.add_output('S', val=1.0, units='m', desc='arclength of wire')
 
         self.declare_partials(of='S', wrt='*', method='cs')
-        self.count = 0
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
 
@@ -30,18 +29,12 @@ class ArcLengthComp(ExplicitComponent):
 
         dy_dx = -1.0 / np.tan(theta)
         dx = np.diff(x)
-
         f = np.sqrt(1 + dy_dx**2)
 
         # trapezoidal rule
         fxm1 = f[:-1]
         fx = f[1:]
-
         outputs['S'] = 0.5 * np.dot(fxm1 + fx, dx)
-
-        # import time
-        # time.sleep(0.05)
-        self.count += 1
 
 
 if __name__ == '__main__':
@@ -65,4 +58,3 @@ if __name__ == '__main__':
     p['arc_length_comp.theta'][:] = np.radians(90.0)
     p.run_model()
     np.testing.assert_almost_equal(p['arc_length_comp.S'], 10)
-

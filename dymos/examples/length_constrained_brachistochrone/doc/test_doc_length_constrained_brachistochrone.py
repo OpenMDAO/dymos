@@ -7,7 +7,6 @@ import matplotlib
 matplotlib.use('Agg')
 
 
-
 SHOW_PLOTS = True
 
 

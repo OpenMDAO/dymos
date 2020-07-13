@@ -92,6 +92,11 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         phase.add_objective('range', loc='final', ref=-1.0e-4)
 
+        phase.add_timeseries_output('aero.CL', units=None, shape=(1,))
+        phase.add_timeseries_output('aero.CD', units=None, shape=(1,))
+        phase.add_timeseries_output('aero.L', units=None, shape=(1,))
+        phase.add_timeseries_output('aero.D', units=None, shape=(1,))
+
         p.setup()
 
         p['traj.phase0.t_initial'] = 0.0
@@ -116,7 +121,11 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         plot_results([('traj.phase0.timeseries.states:range', 'traj.phase0.timeseries.states:alt',
                        'range (NM)', 'altitude (kft)'),
                       ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.states:mass_fuel',
-                       'time (s)', 'fuel mass (lbm)')],
+                       'time (s)', 'fuel mass (lbm)'),
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.CL',
+                       'time (s)', 'lift coefficient (None)'),
+                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.CD',
+                       'time (s)', 'drag coefficient (None)')],
                      title='Commercial Aircraft Optimization',
                      p_sol=p, p_sim=exp_out)
 

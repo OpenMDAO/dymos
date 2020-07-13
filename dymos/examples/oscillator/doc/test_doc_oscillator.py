@@ -13,7 +13,7 @@ class TestDocOscillator(unittest.TestCase):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')  # disable plotting to the screen
 
-        from oscillator_ode import OscillatorODE
+        from dymos.examples.oscillator.doc.oscillator_ode import OscillatorODE
 
         # Instantiate an OpenMDAO Problem instance.
         prob = om.Problem()
@@ -79,7 +79,7 @@ class TestDocOscillator(unittest.TestCase):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')  # disable plotting to the screen
 
-        from oscillator_ode import OscillatorODE
+        from dymos.examples.oscillator.doc.oscillator_ode import OscillatorODE
 
         # Instantiate an OpenMDAO Problem instance.
         prob = om.Problem()
@@ -145,7 +145,7 @@ class TestDocOscillator(unittest.TestCase):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')  # disable plotting to the screen
 
-        from oscillator_ode import OscillatorODE
+        from dymos.examples.oscillator.doc.oscillator_ode import OscillatorODE
 
         # Instantiate an OpenMDAO Problem instance.
         prob = om.Problem()
@@ -221,7 +221,7 @@ class TestDocOscillator(unittest.TestCase):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')  # disable plotting to the screen
 
-        from oscillator_ode import OscillatorODE
+        from dymos.examples.oscillator.doc.oscillator_ode import OscillatorODE
 
         # Instantiate an OpenMDAO Problem instance.
         prob = om.Problem()
@@ -297,7 +297,7 @@ class TestDocOscillator(unittest.TestCase):
         import matplotlib.pyplot as plt
         plt.switch_backend('Agg')  # disable plotting to the screen
 
-        from oscillator_ode import OscillatorODE
+        from dymos.examples.oscillator.doc.oscillator_ode import OscillatorODE
 
         # Instantiate an OpenMDAO Problem instance.
         prob = om.Problem()
@@ -373,7 +373,7 @@ class TestDocOscillator(unittest.TestCase):
         import matplotlib.pyplot as plt
         # plt.switch_backend('Agg')  # disable plotting to the screen
 
-        from oscillator_ode import OscillatorODE
+        from dymos.examples.oscillator.doc.oscillator_ode import OscillatorODE
 
         # Instantiate an OpenMDAO Problem instance.
         prob = om.Problem()
