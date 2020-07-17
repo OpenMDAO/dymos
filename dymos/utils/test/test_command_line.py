@@ -11,7 +11,6 @@ import openmdao.api as om
 
 @use_tempdirs
 class TestCommandLine(unittest.TestCase):
-
     def setUp(self):
         self.test_dir = os.path.dirname(os.path.abspath(__file__))
         self.base_args = ['dymos_testing', os.path.join(self.test_dir, 'brachistochrone_for_command_line.py')]
@@ -27,13 +26,7 @@ class TestCommandLine(unittest.TestCase):
 
         # Assert the results are what we expect.
         cr = om.CaseReader('dymos_solution.db')
-
-        # Make sure there are cases
-        num_cases = len(cr.list_cases())
-        self.assertTrue(num_cases > 0)
-
-        # If there are cases, get the last one
-        case = cr.get_case(-1)
+        case = cr.get_case('final')
 
         # Make sure the driver converged
         self.assertTrue(case.success)
@@ -60,7 +53,7 @@ class TestCommandLine(unittest.TestCase):
 
         self.assertTrue(os.path.exists('dymos_solution.db'))
         cr = om.CaseReader('dymos_solution.db')
-        self.assertTrue(len(cr.list_cases()) == 0)  # no case recorded
+        self.assertTrue(len(cr.list_cases()) == 1)
 
     def test_ex_brachistochrone_iteration(self):
         print('test_ex_brachistochrone_iteration')
@@ -89,12 +82,9 @@ class TestCommandLine(unittest.TestCase):
         with patch.object(sys, 'argv', self.base_args + ['--no_solve']):
             command_line.dymos_cmd()
 
-        # Until the problem recorder is fixed, the driver recorder shouldn't be
-        # invoked by this test, and thus we won't get a dymos_solution.db file
-
         self.assertTrue(os.path.exists('dymos_solution.db'))
         cr = om.CaseReader('dymos_solution.db')
-        self.assertTrue(len(cr.list_cases()) == 0)  # no case recorded
+        self.assertTrue(len(cr.list_cases()) == 1)
 
     def test_ex_brachistochrone_simulate(self):
         print('test_ex_brachistochrone_simulate')

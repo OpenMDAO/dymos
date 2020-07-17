@@ -27,6 +27,8 @@ class Radau(PseudospectralBase):
     def setup_time(self, phase):
         super(Radau, self).setup_time(phase)
 
+    def configure_time(self, phase):
+
         if phase.time_options['targets']:
             phase.connect('time',
                           ['rhs_all.{0}'.format(t) for t in phase.time_options['targets']],
@@ -71,8 +73,10 @@ class Radau(PseudospectralBase):
     def setup_polynomial_controls(self, phase):
         super(Radau, self).setup_polynomial_controls(phase)
 
-        for name, options in phase.polynomial_control_options.items():
+    def configure_polynomial_controls(self, phase):
+        super(Radau, self).configure_polynomial_controls(phase)
 
+        for name, options in phase.polynomial_control_options.items():
             if phase.polynomial_control_options[name]['targets']:
                 targets = phase.polynomial_control_options[name]['targets']
 
@@ -94,14 +98,18 @@ class Radau(PseudospectralBase):
 
         ODEClass = phase.options['ode_class']
         grid_data = self.grid_data
-        num_input_nodes = grid_data.subset_num_nodes['state_input']
-
-        map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
 
         kwargs = phase.options['ode_init_kwargs']
         phase.add_subsystem('rhs_all',
                             subsys=ODEClass(num_nodes=grid_data.subset_num_nodes['all'],
                                             **kwargs))
+
+    def configure_ode(self, phase):
+        super(Radau, self).configure_ode(phase)
+
+        grid_data = self.grid_data
+        num_input_nodes = grid_data.subset_num_nodes['state_input']
+        map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
 
         for name, options in phase.state_options.items():
             size = np.prod(options['shape'])
@@ -122,8 +130,17 @@ class Radau(PseudospectralBase):
 
     def setup_defects(self, phase):
         super(Radau, self).setup_defects(phase)
-        grid_data = self.grid_data
 
+        grid_data = self.grid_data
+        if grid_data.num_segments > 1:
+            phase.add_subsystem('continuity_comp',
+                                RadauPSContinuityComp(grid_data=grid_data,
+                                                      state_options=phase.state_options,
+                                                      control_options=phase.control_options,
+                                                      time_units=phase.time_options['units']),
+                                promotes_inputs=['t_duration'])
+
+    def configure_defects(self, phase):
         for name, options in phase.state_options.items():
             phase.connect('state_interp.staterate_col:{0}'.format(name),
                           'collocation_constraint.f_approx:{0}'.format(name))
@@ -133,14 +150,6 @@ class Radau(PseudospectralBase):
             phase.connect(rate_src,
                           'collocation_constraint.f_computed:{0}'.format(name),
                           src_indices=src_idxs, flat_src_indices=True)
-
-        if grid_data.num_segments > 1:
-            phase.add_subsystem('continuity_comp',
-                                RadauPSContinuityComp(grid_data=grid_data,
-                                                      state_options=phase.state_options,
-                                                      control_options=phase.control_options,
-                                                      time_units=phase.time_options['units']),
-                                promotes_inputs=['t_duration'])
 
     def setup_path_constraints(self, phase):
         """
@@ -170,15 +179,11 @@ class Radau(PseudospectralBase):
                 constraint_kwargs['shape'] = (1,)
                 constraint_kwargs['units'] = time_units if con_units is None else con_units
                 constraint_kwargs['linear'] = True
-                phase.connect(src_name='time',
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'time_phase':
                 constraint_kwargs['shape'] = (1,)
                 constraint_kwargs['units'] = time_units if con_units is None else con_units
                 constraint_kwargs['linear'] = True
-                phase.connect(src_name='time_phase',
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'state':
                 state_shape = phase.state_options[var]['shape']
@@ -186,10 +191,6 @@ class Radau(PseudospectralBase):
                 constraint_kwargs['shape'] = state_shape
                 constraint_kwargs['units'] = state_units if con_units is None else con_units
                 constraint_kwargs['linear'] = False
-                src_idxs = get_src_indices_by_row(gd.input_maps['state_input_to_disc'], state_shape)
-                phase.connect(src_name='states:{0}'.format(var),
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                              src_indices=src_idxs, flat_src_indices=True)
 
             elif var_type == 'indep_control':
                 control_shape = phase.control_options[var]['shape']
@@ -198,10 +199,6 @@ class Radau(PseudospectralBase):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = control_units if con_units is None else con_units
                 constraint_kwargs['linear'] = True
-                constraint_path = 'control_values:{0}'.format(var)
-
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'input_control':
                 control_shape = phase.control_options[var]['shape']
@@ -210,10 +207,6 @@ class Radau(PseudospectralBase):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = control_units if con_units is None else con_units
                 constraint_kwargs['linear'] = True
-                constraint_path = 'control_values:{0}'.format(var)
-
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'indep_polynomial_control':
                 control_shape = phase.polynomial_control_options[var]['shape']
@@ -221,10 +214,6 @@ class Radau(PseudospectralBase):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = control_units if con_units is None else con_units
                 constraint_kwargs['linear'] = False
-                constraint_path = 'polynomial_control_values:{0}'.format(var)
-
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'input_polynomial_control':
                 control_shape = phase.polynomial_control_options[var]['shape']
@@ -232,10 +221,6 @@ class Radau(PseudospectralBase):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = control_units if con_units is None else con_units
                 constraint_kwargs['linear'] = False
-                constraint_path = 'polynomial_control_values:{0}'.format(var)
-
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'control_rate':
                 control_name = var[:-5]
@@ -244,9 +229,6 @@ class Radau(PseudospectralBase):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con_units is None else con_units
-                constraint_path = 'control_rates:{0}_rate'.format(control_name)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'control_rate2':
                 control_name = var[:-6]
@@ -255,9 +237,6 @@ class Radau(PseudospectralBase):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con_units is None else con_units
-                constraint_path = 'control_rates:{0}_rate2'.format(control_name)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'polynomial_control_rate':
                 control_name = var[:-5]
@@ -266,9 +245,6 @@ class Radau(PseudospectralBase):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con_units is None else con_units
-                constraint_path = 'polynomial_control_rates:{0}_rate'.format(control_name)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             elif var_type == 'polynomial_control_rate2':
                 control_name = var[:-6]
@@ -277,9 +253,6 @@ class Radau(PseudospectralBase):
                 constraint_kwargs['shape'] = control_shape
                 constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con_units is None else con_units
-                constraint_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
             else:
                 # Failed to find variable, assume it is in the ODE
@@ -289,17 +262,90 @@ class Radau(PseudospectralBase):
                     options['shape'] = (1,)
                     constraint_kwargs['shape'] = (1,)
 
-                phase.connect(src_name='rhs_all.{0}'.format(var),
+            path_comp._add_path_constraint(con_name, var_type, **constraint_kwargs)
+
+    def configure_path_constraints(self, phase):
+        gd = self.grid_data
+
+        for var, options in phase._path_constraints.items():
+            constraint_kwargs = options.copy()
+            con_name = constraint_kwargs.pop('constraint_name')
+
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = phase.classify_var(var)
+
+            if var_type == 'time':
+                phase.connect(src_name='time',
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
-            path_comp._add_path_constraint(con_name, var_type, **constraint_kwargs)
+            elif var_type == 'time_phase':
+                phase.connect(src_name='time_phase',
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'state':
+                state_shape = phase.state_options[var]['shape']
+                src_idxs = get_src_indices_by_row(gd.input_maps['state_input_to_disc'], state_shape)
+                phase.connect(src_name='states:{0}'.format(var),
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            elif var_type == 'indep_control':
+                constraint_path = 'control_values:{0}'.format(var)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'input_control':
+                constraint_path = 'control_values:{0}'.format(var)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'indep_polynomial_control':
+                constraint_path = 'polynomial_control_values:{0}'.format(var)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'input_polynomial_control':
+                constraint_path = 'polynomial_control_values:{0}'.format(var)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'control_rate':
+                control_name = var[:-5]
+                constraint_path = 'control_rates:{0}_rate'.format(control_name)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'control_rate2':
+                control_name = var[:-6]
+                constraint_path = 'control_rates:{0}_rate2'.format(control_name)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'polynomial_control_rate':
+                control_name = var[:-5]
+                constraint_path = 'polynomial_control_rates:{0}_rate'.format(control_name)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            elif var_type == 'polynomial_control_rate2':
+                control_name = var[:-6]
+                constraint_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
+                phase.connect(src_name=constraint_path,
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+            else:
+                # Failed to find variable, assume it is in the ODE
+                phase.connect(src_name='rhs_all.{0}'.format(var),
+                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
 
     def setup_timeseries_outputs(self, phase):
         gd = self.grid_data
         time_units = phase.time_options['units']
 
         for name, options in phase._timeseries.items():
-
             if options['transcription'] is None:
                 ogd = None
             else:
@@ -313,32 +359,21 @@ class Radau(PseudospectralBase):
             timeseries_comp._add_timeseries_output('time',
                                                    var_class=phase.classify_var('time'),
                                                    units=time_units)
-            phase.connect(src_name='time', tgt_name='{0}.input_values:time'.format(name))
 
             timeseries_comp._add_timeseries_output('time_phase',
                                                    var_class=phase.classify_var('time_phase'),
                                                    units=time_units)
-            phase.connect(src_name='time_phase', tgt_name='{0}.input_values:time_phase'.format(name))
 
             for state_name, options in phase.state_options.items():
                 timeseries_comp._add_timeseries_output('states:{0}'.format(state_name),
                                                        var_class=phase.classify_var(state_name),
                                                        shape=options['shape'],
                                                        units=options['units'])
-                src_rows = gd.input_maps['state_input_to_disc']
-                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
-                phase.connect(src_name='states:{0}'.format(state_name),
-                              tgt_name='{0}.input_values:states:{1}'.format(name, state_name),
-                              src_indices=src_idxs, flat_src_indices=True)
 
-                rate_src, src_idxs = self.get_rate_source_path(state_name, 'all', phase)
                 timeseries_comp._add_timeseries_output('state_rates:{0}'.format(state_name),
                                                        var_class=phase.classify_var(options['rate_source']),
                                                        shape=options['shape'],
                                                        units=get_rate_units(options['units'], time_units))
-                phase.connect(src_name=rate_src,
-                              tgt_name='{0}.input_values:state_rates:{1}'.format(name, state_name),
-                              src_indices=src_idxs, flat_src_indices=True)
 
             for control_name, options in phase.control_options.items():
                 control_units = options['units']
@@ -346,21 +381,14 @@ class Radau(PseudospectralBase):
                                                        var_class=phase.classify_var(control_name),
                                                        shape=options['shape'],
                                                        units=control_units)
-                src_rows = gd.subset_node_indices['all']
-                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
-                phase.connect(src_name='control_values:{0}'.format(control_name),
-                              tgt_name='{0}.input_values:controls:{1}'.format(name, control_name),
-                              src_indices=src_idxs, flat_src_indices=True)
 
-                # # Control rates
+                # Control rates
                 timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(control_name),
                                                        var_class=phase.classify_var(control_name),
                                                        shape=options['shape'],
                                                        units=get_rate_units(control_units,
                                                                             time_units,
                                                                             deriv=1))
-                phase.connect(src_name='control_rates:{0}_rate'.format(control_name),
-                              tgt_name='{0}.input_values:control_rates:{1}_rate'.format(name, control_name))
 
                 # Control second derivatives
                 timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(control_name),
@@ -369,8 +397,6 @@ class Radau(PseudospectralBase):
                                                        units=get_rate_units(control_units,
                                                                             time_units,
                                                                             deriv=2))
-                phase.connect(src_name='control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='{0}.input_values:control_rates:{1}_rate2'.format(name, control_name))
 
             for control_name, options in phase.polynomial_control_options.items():
                 control_units = options['units']
@@ -378,23 +404,14 @@ class Radau(PseudospectralBase):
                                                        var_class=phase.classify_var(control_name),
                                                        shape=options['shape'],
                                                        units=control_units)
-                src_rows = gd.subset_node_indices['all']
-                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
-                phase.connect(src_name='polynomial_control_values:{0}'.format(control_name),
-                              tgt_name='{0}.input_values:'
-                                       'polynomial_controls:{1}'.format(name, control_name),
-                              src_indices=src_idxs, flat_src_indices=True)
 
-                # # Control rates
+                # Control rates
                 timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(control_name),
                                                        var_class=phase.classify_var(control_name),
                                                        shape=options['shape'],
                                                        units=get_rate_units(control_units,
                                                                             time_units,
                                                                             deriv=1))
-                phase.connect(src_name='polynomial_control_rates:{0}_rate'.format(control_name),
-                              tgt_name='{0}.input_values:polynomial_control_rates:'
-                                       '{1}_rate'.format(name, control_name))
 
                 # Control second derivatives
                 timeseries_comp._add_timeseries_output('polynomial_control_rates:'
@@ -404,9 +421,6 @@ class Radau(PseudospectralBase):
                                                        units=get_rate_units(control_units,
                                                                             time_units,
                                                                             deriv=2))
-                phase.connect(src_name='polynomial_control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='{0}.input_values:polynomial_control_rates:'
-                                       '{1}_rate2'.format(name, control_name))
 
             for param_name, options in phase.design_parameter_options.items():
                 if options['include_timeseries']:
@@ -416,6 +430,90 @@ class Radau(PseudospectralBase):
                                                            shape=options['shape'],
                                                            units=units)
 
+            for param_name, options in phase.input_parameter_options.items():
+                if options['include_timeseries']:
+                    units = options['units']
+                    timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
+                                                           var_class=phase.classify_var(param_name),
+                                                           shape=options['shape'],
+                                                           units=units)
+
+            for var, options in phase._timeseries[name]['outputs'].items():
+                output_name = options['output_name']
+
+                # Determine the path to the variable which we will be constraining
+                # This is more complicated for path constraints since, for instance,
+                # a single state variable has two sources which must be connected to
+                # the path component.
+                var_type = phase.classify_var(var)
+
+                # Ignore any variables that we've already added (states, times, controls, etc)
+                if var_type != 'ode':
+                    continue
+
+                # Assume scalar shape here if None, but check config will warn that it's inferred.
+                if options['shape'] is None:
+                    options['shape'] = (1,)
+
+                kwargs = options.copy()
+                kwargs.pop('output_name', None)
+                timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
+
+    def configure_timeseries_outputs(self, phase):
+        gd = self.grid_data
+
+        for name, options in phase._timeseries.items():
+            phase.connect(src_name='time', tgt_name='{0}.input_values:time'.format(name))
+
+            phase.connect(src_name='time_phase', tgt_name='{0}.input_values:time_phase'.format(name))
+
+            for state_name, options in phase.state_options.items():
+                src_rows = gd.input_maps['state_input_to_disc']
+                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
+                phase.connect(src_name='states:{0}'.format(state_name),
+                              tgt_name='{0}.input_values:states:{1}'.format(name, state_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+                rate_src, src_idxs = self.get_rate_source_path(state_name, 'all', phase)
+                phase.connect(src_name=rate_src,
+                              tgt_name='{0}.input_values:state_rates:{1}'.format(name, state_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+            for control_name, options in phase.control_options.items():
+                src_rows = gd.subset_node_indices['all']
+                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
+                phase.connect(src_name='control_values:{0}'.format(control_name),
+                              tgt_name='{0}.input_values:controls:{1}'.format(name, control_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+                # Control rates
+                phase.connect(src_name='control_rates:{0}_rate'.format(control_name),
+                              tgt_name='{0}.input_values:control_rates:{1}_rate'.format(name, control_name))
+
+                # Control second derivatives
+                phase.connect(src_name='control_rates:{0}_rate2'.format(control_name),
+                              tgt_name='{0}.input_values:control_rates:{1}_rate2'.format(name, control_name))
+
+            for control_name, options in phase.polynomial_control_options.items():
+                src_rows = gd.subset_node_indices['all']
+                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
+                phase.connect(src_name='polynomial_control_values:{0}'.format(control_name),
+                              tgt_name='{0}.input_values:'
+                                       'polynomial_controls:{1}'.format(name, control_name),
+                              src_indices=src_idxs, flat_src_indices=True)
+
+                # Control rates
+                phase.connect(src_name='polynomial_control_rates:{0}_rate'.format(control_name),
+                              tgt_name='{0}.input_values:polynomial_control_rates:'
+                                       '{1}_rate'.format(name, control_name))
+
+                # Control second derivatives
+                phase.connect(src_name='polynomial_control_rates:{0}_rate2'.format(control_name),
+                              tgt_name='{0}.input_values:polynomial_control_rates:'
+                                       '{1}_rate2'.format(name, control_name))
+
+            for param_name, options in phase.design_parameter_options.items():
+                if options['include_timeseries']:
                     src_idxs_raw = np.zeros(gd.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
@@ -425,12 +523,6 @@ class Radau(PseudospectralBase):
 
             for param_name, options in phase.input_parameter_options.items():
                 if options['include_timeseries']:
-                    units = options['units']
-                    timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
-                                                           var_class=phase.classify_var(param_name),
-                                                           shape=options['shape'],
-                                                           units=units)
-
                     src_idxs_raw = np.zeros(gd.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
@@ -458,10 +550,6 @@ class Radau(PseudospectralBase):
                 # Failed to find variable, assume it is in the ODE
                 phase.connect(src_name='rhs_all.{0}'.format(var),
                               tgt_name='{0}.input_values:{1}'.format(name, output_name))
-
-                kwargs = options.copy()
-                kwargs.pop('output_name', None)
-                timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
 
     def get_rate_source_path(self, state_name, nodes, phase):
         gd = self.grid_data

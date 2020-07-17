@@ -53,12 +53,6 @@ class PseudospectralBase(TranscriptionBase):
         if self.any_solved_segs or self.any_connected_opt_segs:
             indep = StateIndependentsComp(grid_data=grid_data,
                                           state_options=phase.state_options)
-
-            for name, options in phase.state_options.items():
-                if options['solve_segments']:
-                    phase.connect('collocation_constraint.defects:{0}'.format(name),
-                                  'indep_states.defects:{0}'.format(name))
-
         else:
             indep = om.IndepVarComp()
 
@@ -156,18 +150,28 @@ class PseudospectralBase(TranscriptionBase):
                                      ref=coerce_desvar_option('ref'),
                                      indices=desvar_indices)
 
+    def configure_states(self, phase):
+        if self.any_solved_segs or self.any_connected_opt_segs:
+            for name, options in phase.state_options.items():
+                if options['solve_segments']:
+                    phase.connect('collocation_constraint.defects:{0}'.format(name),
+                                  'indep_states.defects:{0}'.format(name))
+
     def setup_ode(self, phase):
         grid_data = self.grid_data
         transcription = grid_data.transcription
         time_units = phase.time_options['units']
-        map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
-        num_input_nodes = grid_data.subset_num_nodes['state_input']
 
         phase.add_subsystem('state_interp',
                             subsys=StateInterpComp(grid_data=grid_data,
                                                    state_options=phase.state_options,
                                                    time_units=time_units,
                                                    transcription=transcription))
+
+    def configure_ode(self, phase):
+        grid_data = self.grid_data
+        map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
+        num_input_nodes = grid_data.subset_num_nodes['state_input']
 
         phase.connect('dt_dstau', 'state_interp.dt_dstau',
                       src_indices=grid_data.subset_node_indices['col'])
@@ -260,6 +264,33 @@ class PseudospectralBase(TranscriptionBase):
 
         phase.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
 
+        for state_name, options in phase.state_options.items():
+            jump_comp.add_output('initial_jump:{0}'.format(state_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'start of the phase'.format(state_name))
+
+            jump_comp.add_output('final_jump:{0}'.format(state_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'end of the phase'.format(state_name))
+
+        for control_name, options in phase.control_options.items():
+            jump_comp.add_output('initial_jump:{0}'.format(control_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'start of the phase'.format(control_name))
+
+            jump_comp.add_output('final_jump:{0}'.format(control_name),
+                                 val=np.zeros(options['shape']),
+                                 units=options['units'],
+                                 desc='discontinuity in {0} at the '
+                                      'end of the phase'.format(control_name))
+
+    def configure_endpoint_conditions(self, phase):
         phase.connect('time', 'initial_conditions.initial_value:time')
         phase.connect('time', 'final_conditions.final_value:time')
 
@@ -272,18 +303,6 @@ class PseudospectralBase(TranscriptionBase):
         for state_name, options in phase.state_options.items():
             size = np.prod(options['shape'])
             ar = np.arange(size)
-
-            jump_comp.add_output('initial_jump:{0}'.format(state_name),
-                                 val=np.zeros(options['shape']),
-                                 units=options['units'],
-                                 desc='discontinuity in {0} at the '
-                                      'start of the phase'.format(state_name))
-
-            jump_comp.add_output('final_jump:{0}'.format(state_name),
-                                 val=np.zeros(options['shape']),
-                                 units=options['units'],
-                                 desc='discontinuity in {0} at the '
-                                      'end of the phase'.format(state_name))
 
             phase.connect('states:{0}'.format(state_name),
                           'initial_conditions.initial_value:{0}'.format(state_name))
@@ -301,18 +320,6 @@ class PseudospectralBase(TranscriptionBase):
         for control_name, options in phase.control_options.items():
             size = np.prod(options['shape'])
             ar = np.arange(size)
-
-            jump_comp.add_output('initial_jump:{0}'.format(control_name),
-                                 val=np.zeros(options['shape']),
-                                 units=options['units'],
-                                 desc='discontinuity in {0} at the '
-                                      'start of the phase'.format(control_name))
-
-            jump_comp.add_output('final_jump:{0}'.format(control_name),
-                                 val=np.zeros(options['shape']),
-                                 units=options['units'],
-                                 desc='discontinuity in {0} at the '
-                                      'end of the phase'.format(control_name))
 
             phase.connect('control_values:{0}'.format(control_name),
                           'initial_conditions.initial_value:{0}'.format(control_name))
@@ -336,6 +343,9 @@ class PseudospectralBase(TranscriptionBase):
             newton.options['iprint'] = -1
             newton.linesearch = om.BoundsEnforceLS()
             phase.linear_solver = om.DirectSolver()
+
+    def configure_solvers(self, phase):
+        pass
 
     def _get_boundary_constraint_src(self, var, loc, phase):
         # Determine the path to the variable which we will be constraining

@@ -12,7 +12,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 
 
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
-              connected=False):
+              connected=False, param_mode='design_sequence'):
 
     t = {'gauss-lobatto': dm.GaussLobatto(num_segments=5, order=transcription_order, compressed=compressed),
          'radau': dm.Radau(num_segments=20, order=transcription_order, compressed=compressed),
@@ -20,8 +20,22 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 
     traj = dm.Trajectory()
 
-    traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU',
-                              targets={'burn1': ['c'], 'burn2': ['c']})
+    if param_mode == 'design_sequence':
+        traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU',
+                                  targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
+    elif param_mode == 'design_sequence_missing_phase':
+        traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU',
+                                  targets={'burn1': ['c'], 'burn2': ['c']})
+    elif param_mode == 'input_sequence':
+        traj.add_input_parameter('c', val=1.5, units='DU/TU',
+                                 targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
+    elif param_mode == 'input_sequence_missing_phase':
+        traj.add_input_parameter('c', val=1.5, units='DU/TU',
+                                 targets={'burn1': ['c'], 'burn2': ['c']})
+    elif param_mode == 'input_no_targets':
+        traj.add_input_parameter('c', val=1.5, units='DU/TU')
+    elif param_mode == 'design_no_targets':
+        traj.add_design_parameter('c', val=1.5, units='DU/TU', opt=False)
 
     # First Phase (burn)
 
@@ -41,7 +55,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     burn1.add_state('accel', fix_initial=True, fix_final=False,
                     rate_source='at_dot', targets=['accel'], units='DU/TU**2')
     burn1.add_state('deltav', fix_initial=True, fix_final=False,
-                    rate_source='deltav_dot', units='DU/TU')
+                    rate_source='deltav_dot', targets=None, units='DU/TU')
     burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=0.01,
                       rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
                       lower=-30, upper=30, targets=['u1'])
@@ -60,10 +74,9 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     coast.add_state('accel', fix_initial=True, fix_final=True,
                     rate_source='at_dot', targets=['accel'], units='DU/TU**2')
     coast.add_state('deltav', fix_initial=False, fix_final=False,
-                    rate_source='deltav_dot', units='DU/TU')
+                    rate_source='deltav_dot', units='DU/TU', targets=None)
 
     coast.add_design_parameter('u1', opt=False, val=0.0, units='deg', targets=['u1'])
-    coast.add_input_parameter('c', val=0.0, units='DU/TU', targets=['c'])
 
     # Third Phase (burn)
     burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=t[transcription])
@@ -85,7 +98,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         burn2.add_state('accel', fix_initial=False, fix_final=False, defect_scaler=1.0,
                         rate_source='at_dot', targets=['accel'], units='DU/TU**2')
         burn2.add_state('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0,
-                        rate_source='deltav_dot', units='DU/TU')
+                        rate_source='deltav_dot', units='DU/TU', targets=None)
 
         burn2.add_objective('deltav', loc='initial', scaler=100.0)
 
@@ -107,12 +120,19 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         burn2.add_state('accel', fix_initial=False, fix_final=False, defect_scaler=1.0,
                         rate_source='at_dot', targets=['accel'], units='DU/TU**2')
         burn2.add_state('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0,
-                        rate_source='deltav_dot', units='DU/TU')
+                        rate_source='deltav_dot', units='DU/TU', targets=None)
 
         burn2.add_objective('deltav', loc='final', scaler=100.0)
 
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
                           scaler=0.01, lower=-180, upper=180, targets=['u1'])
+
+    if 'sequence_missing_phase' in param_mode:
+        coast.add_input_parameter('c', val=0.0, units='DU/TU', targets=['c'])
+    elif 'no_targets' in param_mode:
+        burn1.add_input_parameter('c', val=0.0, units='DU/TU', targets=['c'])
+        coast.add_input_parameter('c', val=0.0, units='DU/TU', targets=['c'])
+        burn2.add_input_parameter('c', val=0.0, units='DU/TU', targets=['c'])
 
     burn1.add_timeseries_output('pos_x', units='DU')
     coast.add_timeseries_output('pos_x', units='DU')
@@ -149,7 +169,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 
 def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP', r_target=3.0,
                                  transcription_order=3, compressed=False,
-                                 show_output=True, connected=False):
+                                 show_output=True, connected=False, param_mode='design_sequence'):
 
     p = om.Problem(model=om.Group())
 
@@ -171,7 +191,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         # p.driver.opt_settings['derivative_test'] = 'first-order'
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
-                     compressed=compressed, connected=connected)
+                     compressed=compressed, connected=connected, param_mode=param_mode)
     p.model.add_subsystem('traj', subsys=traj)
 
     # Finish Problem Setup
@@ -184,7 +204,10 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     p.setup(check=True)
 
     # Set Initial Guesses
-    p.set_val('traj.design_parameters:c', value=1.5, units='DU/TU')
+    if 'design' in param_mode:
+        p.set_val('traj.design_parameters:c', value=1.5, units='DU/TU')
+    else:
+        p.set_val('traj.input_parameters:c', value=1.5, units='DU/TU')
 
     burn1 = p.model.traj.phases.burn1
     burn2 = p.model.traj.phases.burn2
@@ -270,41 +293,104 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
 
 @use_tempdirs
-class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
+class TestTrajectoryParameters(unittest.TestCase):
 
-    def test_ex_two_burn_orbit_raise(self):
-        # _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
+    def test_design_param_explicit_connections_to_sequence(self):
+        """
+        Test that, when setting up a trajectory design parameter, we can explicitly provide a sequence
+        in each phase as targets and a corresponding input parameter for the phase will
+        automatically be added.
+        """
         optimizer = 'IPOPT'
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer=optimizer,
-                                         show_output=False)
+                                         show_output=False, param_mode='design_sequence')
 
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
             assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
 
+    def test_design_param_explicit_connections_to_sequence_missing_phase(self):
+        """
+        Test that, when setting up a trajectory design parameter with a phase omitted from input,
+        that we attempt to connect to an existing input variable in that phase of the same name.
+        """
 
-# This test is separate because connected phases aren't directly parallelizable.
-@use_tempdirs
-class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
-
-    def test_ex_two_burn_orbit_raise_connected(self):
-        # _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
         optimizer = 'IPOPT'
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer=optimizer,
-                                         show_output=False, connected=True)
+                                         show_output=False,
+                                         param_mode='design_sequence_missing_phase')
 
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
-                              tolerance=4.0E-3)
+            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+                              tolerance=2.0E-3)
 
+    def test_input_param_explicit_connections_to_sequence(self):
+        """
+        Test that, when setting up a trajectory design parameter, we can explicitly provide a sequence
+        in each phase as targets and a corresponding input parameter for the phase will
+        automatically be added.
+        """
+        optimizer = 'IPOPT'
 
-class TestExampleTwoBurnOrbitRaiseMPI(TestExampleTwoBurnOrbitRaise):
-    N_PROCS = 3
+        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                         compressed=False, optimizer=optimizer,
+                                         show_output=False, param_mode='input_sequence')
 
+        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
+            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+                              tolerance=2.0E-3)
 
-if __name__ == '__main__':  # pragma: no cover
-    unittest.main()
+    def test_input_param_explicit_connections_to_sequence_missing_phase(self):
+        """
+        Test that, when setting up a trajectory design parameter with a phase omitted from input,
+        that we attempt to connect to an existing input variable in that phase of the same name.
+        """
+
+        optimizer = 'IPOPT'
+
+        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                         compressed=False, optimizer=optimizer,
+                                         show_output=False,
+                                         param_mode='input_sequence_missing_phase')
+
+        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
+            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+                              tolerance=2.0E-3)
+
+    def test_design_param_no_targets(self):
+        """
+        Test that, when setting up a trajectory design parameter with a phase omitted from input,
+        that we attempt to connect to an existing input variable in that phase of the same name.
+        """
+
+        optimizer = 'IPOPT'
+
+        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                         compressed=False, optimizer=optimizer,
+                                         show_output=False,
+                                         param_mode='design_no_targets')
+
+        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
+            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+                              tolerance=2.0E-3)
+
+    def test_input_param_no_targets(self):
+        """
+        Test that, when setting up a trajectory design parameter with a phase omitted from input,
+        that we attempt to connect to an existing input variable in that phase of the same name.
+        """
+
+        optimizer = 'IPOPT'
+
+        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                         compressed=False, optimizer=optimizer,
+                                         show_output=False,
+                                         param_mode='input_no_targets')
+
+        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
+            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+                              tolerance=2.0E-3)

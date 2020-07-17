@@ -1,4 +1,5 @@
 import unittest
+from scipy.interpolate import interp1d
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
@@ -200,6 +201,18 @@ class TestTimeseriesOutput(unittest.TestCase):
                 exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
         else:  # no error accessing timseries.design_parameter
             exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+
+        # Test that the state rates are output in both the radau and solveivp timeseries outputs
+        t_sol = p.get_val('phase0.timeseries.time')
+        t_sim = exp_out.get_val('phase0.timeseries.time')
+
+        for state_name in ('x', 'y', 'v'):
+            rate_sol = p.get_val(f'phase0.timeseries.state_rates:{state_name}')
+            rate_sim = exp_out.get_val(f'phase0.timeseries.state_rates:{state_name}')
+
+            rate_t_sim = interp1d(t_sim.ravel(), rate_sim.ravel())
+
+            assert_near_equal(rate_t_sim(t_sol), rate_sol, tolerance=1.0E-3)
 
     def test_timeseries_radau_smaller_timeseries(self):
         self.test_timeseries_radau(test_smaller_timeseries=True)
