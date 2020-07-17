@@ -9,6 +9,7 @@ from ...utils.interpolate import LagrangeBarycentricInterpolant
 from scipy.linalg import block_diag
 
 import numpy as np
+import copy
 
 import openmdao.api as om
 import dymos as dm
@@ -174,6 +175,7 @@ class HPAdaptive:
         self.previous_error = {}
         self.gd = {}
         self.x_dd = {}
+        self.parent_seg_map = {}
 
     def check_error(self):
         """
@@ -188,7 +190,7 @@ class HPAdaptive:
         refine_results = {}
 
         if self.iteration_number > 0:
-            self.previous_error = self.error
+            self.previous_error = copy.deepcopy(self.error)
 
         for phase_path, phase in self.phases.items():
             refine_results[phase_path] = {}
@@ -416,6 +418,16 @@ class HPAdaptive:
             new_num_segments = new_segment_ends.shape[0] - 1
             new_order = np.delete(new_order, np.where(merge_seg), axis=None)
 
+            self.parent_seg_map[phase_path] = np.zeros(new_num_segments, dtype=int)
+            for i in range(1, new_num_segments):
+                for j in range(1, numseg):
+                    if new_segment_ends[i] == gd.segment_ends[j]:
+                        self.parent_seg_map[phase_path][i] = int(j)
+                        break
+                    elif gd.segment_ends[j - 1] < new_segment_ends[i] < gd.segment_ends[j]:
+                        self.parent_seg_map[phase_path][i] = int(j - 1)
+                        break
+
             refine_results[phase_path]['new_order'] = new_order
             refine_results[phase_path]['new_num_segments'] = new_num_segments
             refine_results[phase_path]['new_segment_ends'] = new_segment_ends
@@ -524,14 +536,15 @@ class HPAdaptive:
             reduce_order_indx = np.setdiff1d(np.where(np.invert(need_refine)), check_comb_indx)
 
             new_order[split_seg_idxs] = seg_order[split_seg_idxs]
+            split_parent_seg_idxs = self.parent_seg_map[phase_path][split_seg_idxs]
 
             q[split_seg_idxs] = np.log((self.error[phase_path][split_seg_idxs] /
-                                        self.previous_error[phase_path][split_seg_idxs]) /
+                                        self.previous_error[phase_path][split_parent_seg_idxs]) /
                                        (seg_order[split_seg_idxs] / self.gd[phase_path].transcription_order[
-                                           split_seg_idxs]) ** 2.5
-                                       ) / np.log((h[split_seg_idxs] / h_prev[split_seg_idxs])
-                                                  / (seg_order[split_seg_idxs] /
-                                                     self.gd[phase_path].transcription_order[split_seg_idxs]))
+                                           split_parent_seg_idxs]) ** 2.5
+                                       ) / np.log((h[split_seg_idxs] / h_prev[split_parent_seg_idxs]) /
+                                                  (seg_order[split_seg_idxs] / self.gd[phase_path].transcription_order[
+                                                         split_parent_seg_idxs]))
 
             H[split_seg_idxs] = np.minimum(
                 np.ceil((self.error[phase_path][split_seg_idxs] / phase.refine_options['tolerance']
@@ -595,6 +608,16 @@ class HPAdaptive:
             new_num_segments = int(np.sum(H))
             new_segment_ends = split_segments(gd.segment_ends, H)
 
+            self.parent_seg_map[phase_path] = np.zeros(new_num_segments, dtype=int)
+            for i in range(1, new_num_segments):
+                for j in range(1, numseg):
+                    if new_segment_ends[i] == gd.segment_ends[j]:
+                        self.parent_seg_map[phase_path][i] = int(j)
+                        break
+                    elif gd.segment_ends[j - 1] < new_segment_ends[i] < gd.segment_ends[j]:
+                        self.parent_seg_map[phase_path][i] = int(j - 1)
+                        break
+
             refine_results[phase_path]['new_order'] = new_order
             refine_results[phase_path]['new_num_segments'] = new_num_segments
             refine_results[phase_path]['new_segment_ends'] = new_segment_ends
@@ -603,8 +626,8 @@ class HPAdaptive:
             tx.options['num_segments'] = new_num_segments
             tx.options['segment_ends'] = new_segment_ends
             tx.init_grid()
-            self.x_dd[phase_path] = x_dd[phase_path]
-            self.gd[phase_path] = gd
+            self.x_dd[phase_path] = copy.deepcopy(x_dd[phase_path])
+            self.gd[phase_path] = copy.deepcopy(gd)
 
     def eval_ode(self, phase, grid, L, I):
         """
@@ -817,3 +840,18 @@ class HPAdaptive:
             is_refined = True if np.any(refine_data['need_refinement']) and refine_options['refine'] else False
             print(f'        Refined: {is_refined}', file=f)
             print(file=f)
+
+        def create_parent_map(old_seg_ends, new_seg_ends, old_numseg, new_numseg):
+            # Don't check first segment since parent segment will always be first segment of previous iteration
+            for i in range(1, new_numseg):
+                for j in range(1, old_numseg):
+                    if new_seg_ends[i] == old_seg_ends[j]:
+                        self.parent_seg_map[phase_path][i] = j
+                        break
+                    elif old_seg_ends[j-1] < new_seg_ends[i] < old_seg_ends[j]:
+                        self.parent_seg_map[phase_path][i] = j-1
+                        break
+            print(self.parent_seg_map[phase_path])
+            exit(0)
+
+
