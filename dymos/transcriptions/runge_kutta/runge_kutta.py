@@ -658,6 +658,8 @@ class RungeKutta(TranscriptionBase):
     def configure_path_constraints(self, phase):
         gd = self.grid_data
         num_seg = gd.num_segments
+        num_seg_ends = self.grid_data.subset_num_nodes['segment_ends']
+        seg_end_idxs = self.grid_data.subset_node_indices['segment_ends']
 
         for var, options in phase._path_constraints.items():
             con_name = options['constraint_name']
@@ -671,12 +673,12 @@ class RungeKutta(TranscriptionBase):
             if var_type == 'time':
                 phase.connect(src_name='time',
                               tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                              src_indices=self.grid_data.subset_node_indices['segment_ends'])
+                              src_indices=np.reshape(seg_end_idxs, newshape=(num_seg_ends, 1)))
 
             elif var_type == 'time_phase':
                 phase.connect(src_name='time_phase',
                               tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                              src_indices=self.grid_data.subset_node_indices['segment_ends'])
+                              src_indices=np.reshape(seg_end_idxs, newshape=(num_seg_ends, 1)))
 
             elif var_type == 'state':
                 row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
@@ -698,8 +700,7 @@ class RungeKutta(TranscriptionBase):
                               src_indices=src_idxs, flat_src_indices=True)
 
             elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
-                src_rows = self.grid_data.subset_node_indices['segment_ends']
-                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
+                src_idxs = get_src_indices_by_row(seg_end_idxs, shape=options['shape'])
 
                 src = 'polynomial_control_values:{0}'.format(var)
                 tgt = 'path_constraints.all_values:{0}'.format(con_name)
@@ -708,8 +709,7 @@ class RungeKutta(TranscriptionBase):
                               src_indices=src_idxs, flat_src_indices=True)
 
             elif var_type in ('control_rate', 'control_rate2'):
-                src_rows = self.grid_data.subset_node_indices['segment_ends']
-                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
+                src_idxs = get_src_indices_by_row(seg_end_idxs, shape=options['shape'])
 
                 src = 'control_rates:{0}'.format(var)
                 tgt = 'path_constraints.all_values:{0}'.format(con_name)
@@ -718,8 +718,7 @@ class RungeKutta(TranscriptionBase):
                               src_indices=src_idxs, flat_src_indices=True)
 
             elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
-                src_rows = self.grid_data.subset_node_indices['segment_ends']
-                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
+                src_idxs = get_src_indices_by_row(seg_end_idxs, shape=options['shape'])
 
                 src = 'polynomial_control_rates:{0}'.format(var)
                 tgt = 'path_constraints.all_values:{0}'.format(con_name)

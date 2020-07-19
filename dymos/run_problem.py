@@ -146,6 +146,6 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
             print(50 * '=')
 
     if simulate:
-        for subsys, local in problem.model._all_subsystem_iter():
+        for subsys in problem.model._subsystems_allprocs:
             if isinstance(subsys, Trajectory):
                 subsys.simulate(record_file='dymos_simulation.db')

@@ -77,7 +77,9 @@ class TestContinuityComp(unittest.TestCase):
 
         self.p.model.add_subsystem('cnty_comp', subsys=cnty_comp)
         # The sub-indices of state_disc indices that are segment ends
-        segment_end_idxs = gd.subset_node_indices['segment_ends']
+        num_seg_ends = gd.subset_num_nodes['segment_ends']
+        segment_end_idxs = np.reshape(gd.subset_node_indices['segment_ends'],
+                                      newshape=(num_seg_ends, 1))
 
         if compressed != 'compressed':
             self.p.model.connect('x', 'cnty_comp.states:x', src_indices=segment_end_idxs)
