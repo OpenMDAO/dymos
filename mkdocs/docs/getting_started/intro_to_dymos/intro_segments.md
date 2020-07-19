@@ -29,7 +29,7 @@ Alternatively, we could stick with 4 segments but give each a higher order (7 in
 
 {{ embed_test('dymos.examples.oscillator.doc.test_doc_oscillator.TestDocOscillator.test_ivp_driver_4_segs_7_order') }}
 
-In both these cases, we obtained a better match of the Dynamics using either more segments or higher-order segments.
+In both these cases, we obtained a better match of the dynamics using either more segments or higher-order segments.
 This gives the state interpolating polynomials enough freedom to more accurately match the true behavior of the system.
 Increasing the number of segments and increasing the segment orders both increase the number of discrete points, and thus slow down the solution a bit.
 Theres a balance to be found between using enough discretization points to get an accurate solution, and slowing down the analysis due to having an overabundance of points.
