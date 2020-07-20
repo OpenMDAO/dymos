@@ -158,8 +158,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                   value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
         p.set_val('traj.coast.states:accel',
                   value=coast.interpolate(ys=[0, 0], nodes='state_input'))
-        # p.set_val('traj.coast.controls:u1',
-        #           value=coast.interpolate(ys=[0, 0], nodes='control_input'))
 
         p.set_val('traj.burn2.t_initial', value=5.25)
         p.set_val('traj.burn2.t_duration', value=1.75)
