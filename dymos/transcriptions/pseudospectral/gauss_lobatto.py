@@ -242,10 +242,6 @@ class GaussLobatto(PseudospectralBase):
                                       (num_input_nodes, size), order='C')
             src_idxs = src_idxs_mat[map_input_indices_to_disc, :]
 
-            if size == 1:
-                """ Flat state variable is passed as 1D data."""
-                src_idxs = src_idxs.ravel()
-
             phase.connect('states:{0}'.format(state_name),
                           'interleave_comp.disc_values:states:{0}'.format(state_name),
                           src_indices=src_idxs, flat_src_indices=True)
