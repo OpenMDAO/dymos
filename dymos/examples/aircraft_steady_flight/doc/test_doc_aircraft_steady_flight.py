@@ -94,8 +94,6 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         phase.add_timeseries_output('aero.CL', units=None, shape=(1,))
         phase.add_timeseries_output('aero.CD', units=None, shape=(1,))
-        phase.add_timeseries_output('aero.L', units=None, shape=(1,))
-        phase.add_timeseries_output('aero.D', units=None, shape=(1,))
 
         p.setup()
 

@@ -1,3 +1,5 @@
+from collections import Iterable
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -251,29 +253,46 @@ class ControlGroup(om.Group):
             promotes_outputs=['*'])
 
         for name, options in control_options.items():
+            size = np.prod(options['shape'])
             if options['opt']:
                 num_input_nodes = gd.subset_num_nodes['control_input']
+                desvar_indices = list(range(size * num_input_nodes))
 
-                desvar_indices = list(range(gd.subset_num_nodes['control_input']))
                 if options['fix_initial']:
-                    desvar_indices.pop(0)
+                    if isinstance(options['fix_initial'], Iterable):
+                        idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
+                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                            del desvar_indices[idx_to_fix]
+                    else:
+                        del desvar_indices[:size]
+
                 if options['fix_final']:
-                    desvar_indices.pop()
+                    if isinstance(options['fix_final'], Iterable):
+                        idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
+                        for idx_to_fix in reversed(sorted(idxs_to_fix)):
+                            del desvar_indices[-size + idx_to_fix]
+                    else:
+                        del desvar_indices[-size:]
 
                 if len(desvar_indices) > 0:
-                    coerce_desvar = CoerceDesvar(gd.subset_num_nodes['control_disc'],
-                                                 desvar_indices, options)
+                    coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices,
+                                                        options)
 
-                    lb = -INF_BOUND if coerce_desvar('lower') is None else coerce_desvar('lower')
-                    ub = INF_BOUND if coerce_desvar('upper') is None else coerce_desvar('upper')
+                    lb = np.zeros_like(desvar_indices, dtype=float)
+                    lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                        coerce_desvar_option('lower')
+
+                    ub = np.zeros_like(desvar_indices, dtype=float)
+                    ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                        coerce_desvar_option('upper')
 
                     self.add_design_var(name='controls:{0}'.format(name),
                                         lower=lb,
                                         upper=ub,
-                                        scaler=coerce_desvar('scaler'),
-                                        adder=coerce_desvar('adder'),
-                                        ref0=coerce_desvar('ref0'),
-                                        ref=coerce_desvar('ref'),
+                                        scaler=coerce_desvar_option('scaler'),
+                                        adder=coerce_desvar_option('adder'),
+                                        ref0=coerce_desvar_option('ref0'),
+                                        ref=coerce_desvar_option('ref'),
                                         indices=desvar_indices)
 
                 ivc.add_output(name='controls:{0}'.format(name),

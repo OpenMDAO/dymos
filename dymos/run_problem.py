@@ -129,10 +129,6 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
                 prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
                              'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 
-                # TODO: Until this is fixed in OpenMDAO 3.0.1
-                if isinstance(problem.driver, om.pyOptSparseDriver):
-                    problem.driver._res_jacs = {}
-
                 problem.setup()
 
                 load_case(problem, prev_soln)
@@ -146,6 +142,6 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
             print(50 * '=')
 
     if simulate:
-        for subsys in problem.model._subsystems_allprocs:
+        for subsys in problem.model.system_iter(include_self=True, recurse=True):
             if isinstance(subsys, Trajectory):
                 subsys.simulate(record_file='dymos_simulation.db')

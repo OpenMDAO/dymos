@@ -202,21 +202,21 @@ class GaussLobatto(PseudospectralBase):
                 phase.connect('state_interp.state_col:{0}'.format(name),
                               ['rhs_col.{0}'.format(tgt) for tgt in options['targets']])
 
-            rate_path, src_idxs = self.get_rate_source_path(name, nodes='state_disc', phase=phase)
+            rate_path, disc_src_idxs = self.get_rate_source_path(name, nodes='state_disc', phase=phase)
 
             phase.connect(rate_path,
                           'state_interp.staterate_disc:{0}'.format(name),
-                          src_indices=src_idxs)
+                          src_indices=disc_src_idxs, flat_src_indices=True)
 
             phase.connect(rate_path,
                           'interleave_comp.disc_values:state_rates:{0}'.format(name),
-                          src_indices=src_idxs)
+                          src_indices=disc_src_idxs, flat_src_indices=True)
 
-            rate_path, src_idxs = self.get_rate_source_path(name, nodes='col', phase=phase)
+            rate_path, col_src_idxs = self.get_rate_source_path(name, nodes='col', phase=phase)
 
             phase.connect(rate_path,
                           'interleave_comp.col_values:state_rates:{0}'.format(name),
-                          src_indices=src_idxs)
+                          src_indices=col_src_idxs, flat_src_indices=True)
 
     def setup_interleave_comp(self, phase):
         num_input_nodes = self.grid_data.subset_num_nodes['state_input']
@@ -241,10 +241,6 @@ class GaussLobatto(PseudospectralBase):
             src_idxs_mat = np.reshape(np.arange(size * num_input_nodes, dtype=int),
                                       (num_input_nodes, size), order='C')
             src_idxs = src_idxs_mat[map_input_indices_to_disc, :]
-
-            if size == 1:
-                """ Flat state variable is passed as 1D data."""
-                src_idxs = src_idxs.ravel()
 
             phase.connect('states:{0}'.format(state_name),
                           'interleave_comp.disc_values:states:{0}'.format(state_name),
@@ -322,16 +318,13 @@ class GaussLobatto(PseudospectralBase):
                                 promotes_inputs=['t_duration'])
 
     def configure_defects(self, phase):
-        grid_data = self.grid_data
-
         for name, options in phase.state_options.items():
             phase.connect('state_interp.staterate_col:{0}'.format(name),
                           'collocation_constraint.f_approx:{0}'.format(name))
-
             rate_path, src_idxs = self.get_rate_source_path(name, nodes='col', phase=phase)
             phase.connect(rate_path,
                           'collocation_constraint.f_computed:{0}'.format(name),
-                          src_indices=src_idxs)
+                          src_indices=src_idxs, flat_src_indices=True)
 
     def setup_path_constraints(self, phase):
         path_comp = None
@@ -699,69 +692,71 @@ class GaussLobatto(PseudospectralBase):
         except RuntimeError:
             raise ValueError('state \'{0}\' in phase \'{1}\' was not given a '
                              'rate_source'.format(state_name, phase.name))
+        shape = phase.state_options[state_name]['shape']
         var_type = phase.classify_var(var)
 
         # Determine the path to the variable
         if var_type == 'time':
             rate_path = 'time'
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'time_phase':
             rate_path = 'time_phase'
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'state':
             if nodes == 'col':
                 rate_path = 'state_interp.state_col:{0}'.format(var)
-                src_idxs = None
+                node_idxs = np.arange(gd.subset_num_nodes[nodes], dtype=int)
             elif nodes == 'state_disc':
                 rate_path = 'states:{0}'.format(var)
-                src_idxs = make_subset_map(gd.subset_node_indices['state_input'],
-                                           gd.subset_node_indices[nodes])
+                node_idxs = make_subset_map(gd.subset_node_indices['state_input'],
+                                            gd.subset_node_indices[nodes])
         elif var_type == 'indep_control':
             rate_path = 'control_values:{0}'.format(var)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'input_control':
             rate_path = 'control_values:{0}'.format(var)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'control_rate':
             control_name = var[:-5]
             rate_path = 'control_rates:{0}_rate'.format(control_name)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'control_rate2':
             control_name = var[:-6]
             rate_path = 'control_rates:{0}_rate2'.format(control_name)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'indep_polynomial_control':
             rate_path = 'polynomial_control_values:{0}'.format(var)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'input_polynomial_control':
             rate_path = 'polynomial_control_values:{0}'.format(var)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'polynomial_control_rate':
             control_name = var[:-5]
             rate_path = 'polynomial_control_rates:{0}_rate'.format(control_name)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
             rate_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
-            src_idxs = gd.subset_node_indices[nodes]
+            node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'design_parameter':
             rate_path = 'design_parameters:{0}'.format(var)
-            src_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+            node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
         elif var_type == 'input_parameter':
             rate_path = 'input_parameters:{0}_out'.format(var)
-            src_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
+            node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
         # Failed to find variable, it must be an ODE output
         else:
             # Failed to find variable, assume it is in the RHS
             if nodes == 'col':
                 rate_path = 'rhs_col.{0}'.format(var)
-                src_idxs = None
+                node_idxs = np.arange(gd.subset_num_nodes[nodes], dtype=int)
             elif nodes == 'state_disc':
                 rate_path = 'rhs_disc.{0}'.format(var)
-                src_idxs = None
+                node_idxs = np.arange(gd.subset_num_nodes[nodes], dtype=int)
             else:
                 raise ValueError('Unabled to find rate path for variable {0} at '
                                  'node subset {1}'.format(var, nodes))
+        src_idxs = get_src_indices_by_row(node_idxs, shape=shape)
 
         return rate_path, src_idxs
 
