@@ -49,7 +49,7 @@ indent_level=0)
     - In this case, the ODE is a function of both states, but this isn't always the case.  If the dynamics aren't functions of some states, those states aren't needed as inputs.
     - This ODE only computes the rate of change of velocity.  Since the rate of change of displacement can directly be obtained from another state variable, it doesn't need to be computed by the ODE.
       This would also be true if the state's rate was a control, design parameter, or input parameter value.
-    - It's possible that we might want to use parameters `c`, `k`, and `m` as design variables at some point, so they're also inclu;ded as inputs here.
+    - It's possible that we might want to use parameters `c`, `k`, and `m` as design variables at some point, so they're also included as inputs here.
       Alternatively, if we had no interest in ever treating them as design variables, we could add their values as options to the ODE system in the `initialize` method.
 
 ## Hello World: Propagating the dynamics
