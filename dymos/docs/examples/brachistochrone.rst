@@ -68,7 +68,7 @@ The following code solves the Brachistochrone problem using Dymos.  Using Gauss-
 is just a matter of picking the ``GaussLobatto`` transcription from the Dymos namespace.
 
 .. embed-code::
-    dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochroneForDocs.test_brachistochrone_for_docs_gauss_lobatto
+    dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone_for_docs_gauss_lobatto
     :layout: code, output, plot
 
 3. Building and running the problem using high-order Radau Pseudospectral transcription
@@ -78,7 +78,7 @@ Solving the problem using the Radau pseudospectral method is just a matter of ch
 ``Radau`` transcription from the Dymos namespace.
 
 .. embed-code::
-    dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochroneForDocs.test_brachistochrone_for_docs_radau
+    dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone_for_docs_radau
     :layout: code, output, plot
 
 4. Building and running the problem using high-order Runge-Kutta shooting transcription
@@ -90,7 +90,7 @@ design variables and therefore we need to enforce their final values with nonlin
 constraints.
 
 .. embed-code::
-    dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochroneForDocs.test_brachistochrone_for_docs_runge_kutta
+    dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone_for_docs_runge_kutta
     :layout: code, output, plot
 
 5. Using a phase-wide polynomial to control the brachistochrone
@@ -107,5 +107,5 @@ interpolate between those two values.  We can achieve this by adding a :math:`\t
     :noindex:
 
 .. embed-code::
-    dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochroneForDocs.test_brachistochrone_for_docs_runge_kutta_polynomial_controls
+    dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochrone.test_brachistochrone_for_docs_runge_kutta_polynomial_controls
     :layout: code, output, plot
