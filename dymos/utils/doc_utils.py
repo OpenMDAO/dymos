@@ -67,7 +67,7 @@ def save_for_docs(method, transparent=False):
     """
     if os.environ.get('CI', 'false') == 'true':
         return method
-    
+
     def wrapped(self):
         import os
         import sys
