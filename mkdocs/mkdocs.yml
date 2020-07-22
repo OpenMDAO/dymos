@@ -37,6 +37,7 @@ nav:
     - 'Home': 'index.md'
     - 'Getting Started':
         - 'getting_started/collocation.md'
+        - 'getting_started/optimal_control.md'
         - 'getting_started/intro_to_dymos/intro_segments.md'
     - 'Examples and Tutorials':
         - 'examples/examples.md'
