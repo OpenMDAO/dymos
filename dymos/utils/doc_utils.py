@@ -2,7 +2,6 @@ import inspect
 import os
 import pathlib
 import sys
-import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -85,6 +84,7 @@ def save_for_docs(method, transparent=False):
 
         with open(output_path, 'w') as f:
             sys.stdout = tee(sys.stdout, f)
+            sys.stderr = tee(sys.stdout, f)
             method(self)
 
         for i in plt.get_fignums():
@@ -99,6 +99,7 @@ def save_for_docs(method, transparent=False):
                         transparent=transparent)
 
         sys.stdout = stdout_save
+        sys.stderr = stderr_save
         plt.switch_backend(backend_save)
 
     wrapped._method = method
