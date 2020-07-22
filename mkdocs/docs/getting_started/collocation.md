@@ -90,7 +90,7 @@ To obtain these, we evaluate our ODE at the state discretization nodes.
     \dot{v}_{yf} &= -9.80665
 \end{align}
 
-[IMAGE OF INITIAL TRAJECTORY]
+![Screenshot](scripts/lgl_animation_1.png)
 
 But how do we know that our assumed trajectory is correct?
 In LGL collocation, we check the interpolated slope of the polynomial at a 3rd point (the collocation node) and compare it to an evaluation of the ODE at the same point.
@@ -106,6 +106,8 @@ In this case, the state values at our single collocation node are:
     v_{ym} &= -25
 \end{align}
 
+![Screenshot](scripts/lgl_animation_2.png)
+
 The polynomial slopes at the collocation node are:
 
 \begin{align}
@@ -120,130 +122,67 @@ Now, having the state and time values at the collocation nodes, we can again eva
     \dot{v}_{ym} &= -9.80665
 \end{align}
 
+![Screenshot](scripts/lgl_animation_3.png)
+
 In this case the known variables are the value of the polynomial at the left endpoint ($y_0$), and the value of the independent variable at the left and right endpoints of the interval to be fitted ($x_0$, $x_1$)
 In this case, there are no _control_ inputs to the ODE.
 However, if there were, the value of the control would also need to be provided at the collocation node.
 Thus, in high-order Gauss-Lobatto collocation, the _control input nodes_ include both the state discretization nodes and the collocation nodes.
 
-<!--Lets assume the following problem:  Fit a curve of some shape where only the value ($y$) of the curve is known at the left endpoint ($y_0$), but the slope of the curve ($\dot{y}$) may be computed anywhere.-->
-<!--Find the final value along the curve $(y_f)$ at the end of the polynomials interval.-->
+The free variables in the problem ($t_{duration}$ and $vy_f$) can be iterated until the difference between the interpolated state rates and the ODE-computed state rates is zero.
 
-<!--Now we make a key assumption:  The shape can be accurately fit with a quadratic polynomial.-->
-<!--In practice, we can expand this out to extremely high orders, but for now it keeps the example reasonably simple.-->
-<!--A quadratic polynomial is defined by three points, hence our implicit method will involve guessing values of the polynomial at three points in the interval.-->
-<!--For simplicity, let's define them at the endpoints and midpoint of the interval.-->
-<!--THus we have the following variables and constraints:-->
+![Screenshot](scripts/lgl_solution_5.png)
 
+## Finding the trajectory using the Radau Pseudospectral Method
 
-<!--| Variables  | Description     | Constraints    | Description            |-->
-<!--|------------|-----------------|----------------|------------------------|-->
-<!--| $x_0$      | initial $x$     | $x_0 = 0$      | initial $x$ is known   |-->
-<!--| $x_f$      | final $x$       | $x_f = 1$      | final $x$ is known     |-->
-<!--| $y_0$      | initial value   | $y_0 = 3$      | initial value given    |-->
-<!--| $y_m$      | midpoint value  | ?              |                        |-->
-<!--| $y_f$      | final value     | ?              |                        |-->
+Again, there are two states, and two corresponding 3rd-order polynomials representing the time history.
+As with the Gauss-Lobatto method, a third-order polynomial requires four pieces of information to define it.
+In the case of the Radau Pseudospectral Method, we'll use four state values, guessed at the Radau nodes in dimensionless time in addition to the right endpoint of the interval (the _state discretization nodes_).
 
-<!--In this case, five independent variables are matched to only three equations of constraint.-->
-<!--In order to have a well-posed problem with a single solution, two more constraints are needed.-->
+A linear interpolation of the endpoint values will serve as the initial guess in this instance.
+The three Radau nodes that don't include the right endpoing will serve as the _collocation nodes_ in this case.
+Since these are a subset of the state discretization nodes, no interpolation of values is necessary...all of the state values have been provided.
 
-<!--Recall, a function is available that returns the slope (derivative) of the polynomial:-->
+![Screenshot](scripts/lgr_animation_0.png)
 
-<!--\begin{align}-->
-<!--    \frac{dy}{dx} = f(x, y) \\-->
-<!--\end{align}-->
+The derivative of the interpolating polynomial is computed using a differentiation matrix and the state discretization values.
 
-<!--If $y_m$ and $y_f$ can be found such that the slope of the polynomial ($y\prime$) matches the computed derivative ($\frac{dy}{dx}$), then our polynomial should match the intended shape.-->
+![Screenshot](scripts/lgr_animation_2.png)
 
-<!--\begin{align}-->
-<!--    \Delta y_m &= y\prime_m - f(x_m, y_m) \\-->
-<!--    \Delta y_f &= y\prime_f - f(x_f, y_f) \\-->
-<!--\end{align}-->
+Now the ODE can be evaluated to calculate the state rates, and the results compared to the interpolated slopes.
 
-<!--## Lagrange Polynomial Interpolation-->
+![Screenshot](scripts/lgr_animation_3.png)
 
-<!--The lagrange interpolating polynomial across the interval for three given values is:-->
+Again, the free variables are iterated until the defects are zero and any boundary conditions are met.
 
-<!--\begin{align}-->
-<!--  L(x) &= \sum_{i=0}^{k} y_i \prod_{j=0\\j \ne i}^{k} \frac{x-x_j}{x_i - x_j} \\-->
-<!--  L(x) &= y_0 \frac{x - x_m}{x_0 - x_m} \frac{x - x_f}{x_0 - x_f} +-->
-<!--          y_m \frac{x - x_0}{x_m - x_0} \frac{x - x_f}{x_m - x_f} +-->
-<!--          y_f \frac{x - x_0}{x_f - x_0} \frac{x - x_m}{x_f - x_m}-->
-<!--\end{align}-->
+![Screenshot](scripts/lgr_solution_5.png)
 
-<!--But in this case, the values of $x$ at which we're interpolating the data are known:-->
+## Multiple Segments
 
-<!--\begin{align}-->
-<!--  L(x_0) &= y_0 \frac{x_0 - x_m}{x_0 - x_m} \frac{x_0 - x_f}{x_0 - x_f} +-->
-<!--            y_m \frac{x_0 - x_0}{x_m - x_0} \frac{x_0 - x_f}{x_m - x_f} +-->
-<!--            y_f \frac{x_0 - x_0}{x_f - x_0} \frac{x_0 - x_m}{x_f - x_m} \\-->
-<!--  L(x_f) &= y_0 \frac{x_f - x_m}{x_0 - x_m} \frac{x_f - x_f}{x_0 - x_f} +-->
-<!--            y_m \frac{x_f - x_0}{x_m - x_0} \frac{x_f - x_f}{x_m - x_f} +-->
-<!--            y_f \frac{x_f - x_0}{x_f - x_0} \frac{x_f - x_m}{x_f - x_m} \\-->
-<!--\end{align}-->
+The simple examples above use one single 3rd-order polynomial to represent the time history of the states.
+With more complex states, a single 3rd-order polynomial would not be capable of replicating the time history.
+In practice, we can more polynomial segments _and_ higher-order polynomials to better match the dynamics.
 
-<!--The interpolated values at the endpoints are just a matrix-vector product.-->
-<!--And the interpolation matrix can be computed and saved if the location of the interpolation points ($x_j$) are fixed.-->
-<!--In this case, since the values are being interpolated at the same points at which values are given, the interpolation matrix is an identity matrix.-->
+In the case of adding more segments, one can choose whether the segment boundaries are shared by the segments, or independent.
+If they are shared, fewer design variables are necessary, but it may be more difficult for the optimizer to search for a solution.
+This is called "compressed" transcription.
+On the other hand, we can doubly-specify state values at segment boundaries as design variables, thus increasing the size of the problem.
+In this "uncompressed" formulation, continuity constraints are imposed at the segment bounds to ensure that there are no discontinuities in the state time-history at segment bounds.
 
-<!--\begin{align}-->
-<!--   \begin{bmatrix} y_0 \\ y_f \end{bmatrix} &= \left[ L \right] \begin{bmatrix} y_0 \\ y_f \end{bmatrix} \\-->
-<!--   \left[ L \right] &= \left[ I \right]-->
-<!--\end{align}-->
+## LGL vs LGR Collocation
 
-<!--## Differentiating the interpolating polynomial-->
+Gauss-Lobatto collocation results in smaller NLP sizes for the optimizer since fewer states are treated as design variables.
+The cost of this reduction is the interpolation step in the Gauss-Lobatto algorithm.
+While the Radau Pseudospectral method requires one evaluation of the ODE to assess the defects, the Gauss-Lobatto method requires two.
+In addition, the interpolation step used by the Gauss-Lobatto method can result in interpolated state values falling well outside the user's expected range if the initial guess is not sufficiently accurate.
+This can cause convergence issues if there are nonlinear solvers within the ODE that rely on a reasonable guess to achieve convergence.
 
-<!--If the interpolating polynomials are differentiated w.r.t. $x$, we can obtain a differentiation matrix that provides the _derivative_ of $y$ at the requested points:-->
+## Satisfying Defects with a Nonlinear Solver
 
-<!--\begin{align}-->
-<!--   \begin{bmatrix} y\prime_0 \\ y\prime_f \end{bmatrix} &= \left[ D \right] \begin{bmatrix} y_0 \\ y_f \end{bmatrix} \\-->
-<!--\end{align}-->
-
-<!--Now the final two constraints in the polynomial fitting can be expressed as the vector-valued function:-->
-
-<!--\begin{align}-->
-<!--    \Delta \bar{y} &= y\prime_m(\bar{y}) - f(\bar{x}, \bar{y}) \\-->
-<!--\end{align}-->
-
-<!--Typically, $\Delta \bar{y}$ are referred to as the _defect_ constraints.-->
-
-<!--## Solution procedure-->
-
-<!--The solution procedure for the curve fitting problem is an iterative process:-->
-
-<!--1.  Guess values for $\bar{y}$.-->
-<!--2.  Assess the constraints.-->
-<!--3.  If the constraints are satisfied, the process is complete-->
-<!--4.  If the constraints are not satisfied, find the derivative of the constraints w.r.t. $\bar{y}$ and use a gradient-based approach to propose a new value for $\bar{y}$.-->
-
-<!--Steps 1-4 represent a gradient-based approach to implicitly fitting the data points.-->
-
-<!--## What can go wrong?-->
-
-<!--In the above example, we assumed that the shape could be fit to a quadratic equation.-->
-<!--What do we do for shapes with higher orders?-->
-
-<!--There are two options.-->
-<!--We use a higher order polynomial (for instance, specifying $y$ at 5 points and constraing defects at 4 points).-->
-
-<!--Alternatively, we can use multiple polynomial _segments_ across the interval.-->
-<!--For instance, with three quadratic segments the differentiation matrix has the form. **TODO**-->
-
-<!--The number and order of segments used to represent the fitting interval is known as the _grid_.-->
-<!--It can be difficult to know what a sufficient grid is _a priori_.-->
-<!--Fortunately, implicit collocation tools like Dymos typically provide automated grid refinement that will attempt to assess the fitting error and suggest a new grid until a suitable accuracy is achieved.-->
-
-<!--## Exploiting sparsity-->
-
-<!--One advantage of the multi-segment approach is that the interpolation and differentiation matrices are now _sparse_.-->
-<!--That is, the values and derivatives in any segment are only dependent on the variables which affect that segment.-->
-
-<!--\begin{align}-->
-<!--\left[ D \right] &=-->
-<!--\begin{bmatrix}-->
-<!--  \left[ D_0 \right] & \left[ 0 \right] & \left[ 0 \right] \\-->
-<!--  \left[ 0 \right] & \left[ D_1 \right] & \left[ 0 \right] \\-->
-<!--  \left[ 0 \right] & \left[ 0 \right] & \left[ D_2 \right]-->
-<!--\end{bmatrix}-->
-<!--\end{align}-->
-
-<!--Some nonlinear solvers and optimizers can capitalize upon this sparsity to solve the problem much more efficiently.-->
+Typically, collocation problems are solved by posing the defects as constraints to an optimizer.
+In Dymos, another option exists.
+One can use an embedded Newton-solver satisfy the defect and continuity constraints.
+This mode, which we call `solve_segments`, gives the Newton-Solver control over all but the first or final state value in the phase.
+The optimizer only controls the initial or final value, and the solver is responsible for converging the trajectory time history.
+This results in a shooting method, but one that is mathematically consistent with the collocation methods.
+This `solve_segments` capability is useful if a user simply wants to propagate a dynamic system and not optimize it.

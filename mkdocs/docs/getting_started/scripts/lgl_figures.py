@@ -127,11 +127,17 @@ for i, case_name in enumerate(cr.list_cases()):
     axes[0].plot(time[state_disc_idxs], y_disc, 'o', ms=8)
     axes[1].plot(time[state_disc_idxs], vy_disc, 'o', ms=8)
 
+    if i == 0:
+        plt.savefig('lgl_animation_0.png')
+
     ydot = case.get_val('traj.phase0.timeseries.state_rates:y')
     vydot = case.get_val('traj.phase0.timeseries.state_rates:vy')
 
     plot_tangent(time[state_disc_idxs], y[state_disc_idxs], ydot[state_disc_idxs], axes[0], color='b', scale=.25)
     plot_tangent(time[state_disc_idxs], vy[state_disc_idxs], vydot[state_disc_idxs], axes[1], color='b', scale=.25)
+
+    if i == 0:
+        plt.savefig('lgl_animation_1.png')
 
     # Plot the interpolating polynomials
     t_dense = np.linspace(time[0], time[-1], 100)
@@ -160,9 +166,15 @@ for i, case_name in enumerate(cr.list_cases()):
     plot_tangent(time[col_idxs], y[col_idxs], yprime_col, axes[0], color='b', scale=.25)
     plot_tangent(time[col_idxs], vy[col_idxs], vyprime_col, axes[1], color='b', scale=.25)
 
+    if i == 0:
+        plt.savefig('lgl_animation_2.png')
+
     # Plot the collocation node ODE state rates
     plot_tangent(time[col_idxs], y[col_idxs], ydot[col_idxs], axes[0], color='r', scale=.25)
     plot_tangent(time[col_idxs], vy[col_idxs], vydot[col_idxs], axes[1], color='r', scale=.25)
 
-    plt.savefig(f'lgl_animation_{i}.png')
+    if i == 0:
+        plt.savefig('lgl_animation_3.png')
+
+    plt.savefig(f'lgl_solution_{i}.png')
 
