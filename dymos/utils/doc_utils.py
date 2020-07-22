@@ -2,8 +2,6 @@ import inspect
 import os
 import pathlib
 import sys
-import matplotlib
-import matplotlib.pyplot as plt
 
 
 class tee:
@@ -67,7 +65,15 @@ def save_for_docs(method, transparent=False):
     - Saves all matplotlib figures created during the test to '{classname}.{testname}_{i}.png'
     - Restores the backend, stdout, and stderr.
     """
+    if os.environ.get('CI', 'false') == 'true':
+        return method
+    
     def wrapped(self):
+        import os
+        import sys
+        import matplotlib
+        import matplotlib.pyplot as plt
+
         stdout_save = sys.stdout
         stderr_save = sys.stderr
         classname = self.__class__.__name__
