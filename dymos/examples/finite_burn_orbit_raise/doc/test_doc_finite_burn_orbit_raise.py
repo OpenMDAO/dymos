@@ -6,6 +6,7 @@ plt.style.use('ggplot')
 
 from dymos.utils.doc_utils import save_for_docs
 
+
 class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
     @save_for_docs
