@@ -1,0 +1,78 @@
+# required packages from pip
+# - mkdocs
+# - mkdocs-material
+# - pymdown-extensions
+# - mkdocs-macros-plugin
+# - mkdocs-bibtex
+
+
+site_name: Dymos
+
+theme:
+  name: material
+  palette:
+    scheme: "default"
+    primary: "blue grey"
+    accent: "blue"
+
+plugins:
+  - search
+  - bibtex:
+      bib_file: "references.bib"
+      cite_style: "pandoc"
+  - macros
+
+markdown_extensions:
+  - admonition
+  - footnotes
+  - pymdownx.arithmatex
+  - pymdownx.tabbed
+  - pymdownx.superfences
+  - codehilite:
+      linenums: true
+  - toc:
+      permalink: True
+
+nav:
+    - 'Home': 'index.md'
+    - 'Getting Started':
+        - 'getting_started/collocation.md'
+        - 'getting_started/optimal_control.md'
+        - 'getting_started/intro_to_dymos/intro_segments.md'
+    - 'Examples and Tutorials':
+        - 'examples/examples.md'
+        - 'Example Problems':
+            - 'examples/brachistochrone/brachistochrone.md'
+            - 'examples/vanderpol/vanderpol.md'
+            - 'examples/commercial_aircraft/commercial_aircraft.md'
+            - 'examples/double_integrator/double_integrator.md'
+            - 'examples/hypersensitive/hypersensitive.md'
+            - 'examples/finite_burn_orbit_raise/finite_burn_orbit_raise.md'
+            - 'examples/length_constrained_brachistochrone/length_constrained_brachistochrone.md'
+            - 'examples/min_time_climb/min_time_climb.md'
+            - 'examples/multi_phase_cannonball/multi_phase_cannonball.md'
+            - 'examples/multibranch_trajectory/multibranch_trajectory.md'
+            - 'examples/reentry/reentry.md'
+            - 'examples/ssto_earth/ssto_earth.md'
+            - 'examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent.md'
+            - 'examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.md'
+    - 'Frequently Asked Questions':
+        - 'faq/add_ode_output_to_timeseries.md'
+        - 'faq/connect_scalar_parameters_to_ode.md'
+        - 'faq/upstream_analysis.md'
+        - 'faq/downstream_analysis.md'
+        - 'faq/tandem_phases.md'
+    - 'Dymos API Reference':
+        - 'api/run_problem.md'
+        - 'api/phase_api.md'
+        - 'api/trajectory_api.md'
+        - 'api/transcriptions_api.md'
+    - 'Command Line Interface':
+        - 'command_line/command_line.md'
+    - 'Contributing':
+        - 'contributing/contributing.md'
+
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML
+
+use_directory_urls: false

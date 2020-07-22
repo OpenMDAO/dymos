@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 plt.style.use('ggplot')
 
+from dymos.utils.doc_utils import save_for_docs
+
 
 class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
@@ -14,6 +16,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @save_for_docs
     def test_steady_aircraft_for_docs(self):
         import matplotlib.pyplot as plt
 

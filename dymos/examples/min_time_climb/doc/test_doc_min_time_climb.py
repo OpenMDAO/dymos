@@ -5,9 +5,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
+from dymos.utils.doc_utils import save_for_docs
+
 
 class TestMinTimeClimbForDocs(unittest.TestCase):
 
+    @save_for_docs
     def test_min_time_climb_for_docs_gauss_lobatto(self):
         import matplotlib.pyplot as plt
 

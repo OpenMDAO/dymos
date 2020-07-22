@@ -5,6 +5,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
+from dymos.utils.doc_utils import save_for_docs
+
 
 class TestVanderpolForDocs(unittest.TestCase):
     def tearDown(self):
@@ -12,6 +14,7 @@ class TestVanderpolForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @save_for_docs
     def test_vanderpol_for_docs_simulation(self):
         from dymos.examples.plotting import plot_results
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
@@ -48,6 +51,7 @@ class TestVanderpolForDocs(unittest.TestCase):
 
         plt.show()
 
+    @save_for_docs
     def test_vanderpol_for_docs_optimize(self):
         import dymos as dm
         from dymos.examples.plotting import plot_results
@@ -86,6 +90,7 @@ class TestVanderpolForDocs(unittest.TestCase):
 
         plt.show()
 
+    @save_for_docs
     def test_vanderpol_for_docs_optimize_refine(self):
         import dymos as dm
         from dymos.examples.plotting import plot_results
