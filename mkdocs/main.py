@@ -388,9 +388,6 @@ def _function_doc_markdown(func, reference, outstream=sys.stdout, indent='', met
     """
     doc = FunctionDoc(func)
 
-    # # print(f'{indent}!!! abstract "{reference}"\n', file=outstream)
-    # print(f'{indent}=== "{reference}"\n', file=outstream)
-
     if not method:
         print(f'{indent}!!! abstract "{reference}"\n', file=outstream)
     else:
