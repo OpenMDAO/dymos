@@ -58,6 +58,12 @@ nav:
             - 'examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.md'
     - 'Feature Reference':
         - 'features/timeseries.md'
+        - 'Phases':
+            - 'features/phases/phases.md'
+            - 'features/phases/segments.md'
+            - 'features/phases/variables.md'
+            - 'features/phases/constraints.md'
+            - 'features/phases/objective.md'
     - 'Frequently Asked Questions':
         - 'faq/add_ode_output_to_timeseries.md'
         - 'faq/connect_scalar_parameters_to_ode.md'

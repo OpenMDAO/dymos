@@ -148,7 +148,22 @@ def define_env(env):
 
         return ss.getvalue()
 
+    @env.macro
+    def embed_options(reference, max_width=100):
+        from openmdao.api import OptionsDictionary
+        options_dict = get_object_from_reference(reference)
 
+        if isinstance(options_dict, OptionsDictionary):
+            # instance of an OptionsDictionary given
+            print('od instance')
+            od = options_dict
+        elif issubclass(options_dict, OptionsDictionary):
+            print('od class')
+            od = options_dict()
+        else:
+            return f'Invalid OptionsDictionary: {reference}'
+
+        return _options_dict_to_markdown(od)
 
     @env.macro
     def doc_env():
@@ -337,13 +352,54 @@ def _api_doc(reference, members=True):
 
     return obj
 
+def _options_dict_to_markdown(od):
+    """
+    Generate reStructuredText view of the options table.
+
+    Returns
+    -------
+    list of str
+        A rendition of the options as an rST table.
+    """
+    lines = od.__rst__()
+
+    # Now the lines are in rst format, convert to markdown
+    # First change = to - and space to | in the header rows
+    for i in range(len(lines)):
+        if set(lines[i]) == {'=', ' '}:
+            lines[i] = lines[i].replace('=', '-')
+            lines[i] = '|'.join(lines[i].split())
+            lines[i] = '|' + lines[i] + '|'
+        else:
+            lines[i] = '|' + lines[i]
+            lines[i] = lines[i][:-1] + '|'
+
+    # Now find the location of | in the first row, and make sure | are in that location in each row.
+    locs = [m.start() for m in re.finditer(r'[|]', lines[0])]
+
+    for i in range(len(lines)):
+        lstline = list(lines[i])
+        for loc in locs:
+            lstline[loc] = '|'
+        lines[i] = ''.join(lstline)
+
+    md = '\n'.join(lines[1:-1])
+    print(md)
+
+    return md
+
 
 if __name__ == '__main__':
-    obj = get_object_from_reference('dymos.examples.brachistochrone.doc.brachistochrone_ode')
+    obj = get_object_from_reference('dymos.phase.options.TimeOptionsDictionary')
 
-    print(obj)
+    od = obj()
 
-    print(inspect.getsource(obj))
+    print(od)
+
+    md = _options_dict_to_markdown(od)
+
+    for line in md:
+        print(line)
 
     # print(s)
 
