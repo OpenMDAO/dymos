@@ -17,11 +17,31 @@ except ImportError as e:
 def define_env(env):
 
     @env.macro
-    def api_doc(reference, members=True):
-        obj = get_object_from_reference(reference)
-
-    @env.macro
     def inline_source(reference, include_def=True, include_docstring=True, indent_level=0, show_line_numbers=True, highlight_lines=None):
+        """
+        Macro to embed the source code of the given reference into mkdocs.
+
+        Parameters
+        ----------
+        reference : str
+            The dotted path to the object whose source is to be displayed.
+        include_def : bool
+            If True, include the definition of the class, function, or method.
+        include_docstring
+            If True, include the docstring of the class, function, or method.
+        indent_level : int
+            The baseline indentation for the source.
+        show_line_numbers : bool
+            If True, display the line numbers of the source code.
+        highlight_lines : sequence or None
+            If provided, line numbers to be highlighted in the displayed source.
+
+        Returns
+        -------
+        str
+            Markdown-formatted source-code for the given reference.
+
+        """
         obj = get_object_from_reference(reference)
 
         obj = inspect.unwrap(obj)
@@ -55,22 +75,30 @@ def define_env(env):
         return textwrap.indent(result, indent)
 
     @env.macro
-    def inline_plot(source, alt_text='', width=640, height=480):
-        import matplotlib.pyplot as plt
-        plt.switch_backend('Agg')
-
-        d = dict(locals(), **globals())
-
-        exec(source, d, d)
-
-        buf = io.BytesIO()
-        plt.tight_layout()
-        plt.savefig(buf, format='png')
-        data = base64.b64encode(buf.getbuffer()).decode('ascii')
-        return f'<img alt="{alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>'
-
-    @env.macro
     def embed_plot_from_script(script_path, alt_text='', width=640, height=480):
+        """
+        Macro to embed a plot figure obtained by executing a script at the given path.
+
+        Currently this only saves the last plot produced by the script.
+
+        Parameters
+        ----------
+        script_path : str
+            Path to the plot-generating script.
+        alt_text : str
+            Alternative text for the plots, for 508 compliance.
+        width : int
+            Width of the embedded plot, in pixels.
+        height : int
+            Height of the embedded plot, in pixels.
+
+        Returns
+        -------
+        str
+            An html image tag with the encoded plot data, used to directly include the given plot
+            in mkdocs.
+
+        """
         import matplotlib.pyplot as plt
 
         plt.switch_backend('Agg')
@@ -89,6 +117,24 @@ def define_env(env):
 
     @env.macro
     def embed_test_output(reference):
+        """
+        Macro to embed a unittest.TestCase method in mkdocs.
+
+        Return a markdown-formatted output from a test given by reference.
+
+        The embedded test **must be decorated with the dymos.utils.doc_utils.save_for_docs** decorator!
+
+        Parameters
+        ----------
+        reference : str
+            The path to the embedded test method.
+
+        Returns
+        -------
+        str
+            Markdown-formatted output of the given test method.
+
+        """
         test_case, test_method = reference.split('.')[-2:]
         testcase_obj = get_object_from_reference('.'.join(reference.split('.')[:-1]))
         test_dir = Path(inspect.getfile(testcase_obj)).parent
@@ -99,6 +145,34 @@ def define_env(env):
 
     @env.macro
     def embed_test_plot(reference, index=1, alt_text='', width=640, height=480):
+        """
+        Macro to embed a unittest.TestCase method plot in mkdocs.
+
+        The test method is embedded as a set of tabs.
+        The embedded test **must be decorated with the dymos.utils.doc_utils.save_for_docs** decorator!
+
+        The first tab contains the test source.
+        The second tab contains the test standard output.
+        The remaining tabs display any matplotlib plots generated in the test, which are selected using the plots argument.
+
+        Parameters
+        ----------
+        reference : str
+            The path to the embedded test method.
+        index : int
+            The index of the plot to be embedded.
+        alt_text : str
+            Alternative text for the plots, for 508 compliance.
+        width : int
+            Width of the embedded plot, in pixels.
+        height : int
+            Height of the embedded plot, in pixels.
+
+        Returns
+        -------
+        str
+            The markdown source that provides the embedded plot file, encoded directly as html
+        """
         test_case, test_method = reference.split('.')[-2:]
         testcase_obj = get_object_from_reference('.'.join(reference.split('.')[:-1]))
         test_dir = Path(inspect.getfile(testcase_obj)).parent
@@ -112,6 +186,35 @@ def define_env(env):
 
     @env.macro
     def embed_test(reference, script_name='script', plot_alt_text='', plots=(1,), plot_size=(640, 480)):
+        """
+        Macro to embed a unittest.TestCase method source, output, and plots in mkdocs.
+
+        The test method is embedded as a set of tabs.
+        The embedded test **must be decorated with the dymos.utils.doc_utils.save_for_docs** decorator!
+
+        The first tab contains the test source.
+        The second tab contains the test standard output.
+        The remaining tabs display any matplotlib plots generated in the test, which are selected using the plots argument.
+
+        Parameters
+        ----------
+        reference : str
+            The path to the embedded test method.
+        script_name : str
+            A heading for the test being run.
+        plot_alt_text : str
+            Alternative text for the plots, for 508 compliance.
+        plots : tuple of ints
+            The plots being requested (indexed at 1).
+        plot_size
+            The size of the plot figures being embedded in the markdown.
+
+        Returns
+        -------
+        str
+            The markdown source that provides a set of tabs for the test source, the test
+            output, and the requested plots produced by the test.
+        """
 
         # First tab for the source
         src = textwrap.indent(_get_test_source(reference), '    ')
@@ -149,16 +252,27 @@ def define_env(env):
         return ss.getvalue()
 
     @env.macro
-    def embed_options(reference, max_width=100):
+    def embed_options(reference):
+        """
+        Macro to embed an OpenMDAO OptionsDictionary in mkdocs.
+
+        Parameters
+        ----------
+        reference : str
+            The dotted path to the options dictionary class or instance being documented.
+
+        Returns
+        -------
+        str
+            A markdown-formatted table for the entries in the options dictionary.
+
+        """
         from openmdao.api import OptionsDictionary
         options_dict = get_object_from_reference(reference)
 
         if isinstance(options_dict, OptionsDictionary):
-            # instance of an OptionsDictionary given
-            print('od instance')
             od = options_dict
         elif issubclass(options_dict, OptionsDictionary):
-            print('od class')
             od = options_dict()
         else:
             return f'Invalid OptionsDictionary: {reference}'
@@ -172,6 +286,23 @@ def define_env(env):
 
     @env.macro
     def api_doc(reference, members=None):
+        """
+        Embed API documentation of the given function, class, or method.
+
+        Parameters
+        ----------
+        reference : str
+            The path to the API function, class, or method being documented.
+        members : sequence or None
+            If reference is a class, the members of the class to be documented.
+            Each will be displayed on a separate tab of the output.
+
+        Returns
+        -------
+        str
+            The markdown representation of the API documentation.
+
+        """
 
         module = '.'.join(reference.split('.')[:-1])
         item = reference.split('.')[-1]
@@ -236,8 +367,6 @@ def _get_test_source(reference):
     source = textwrap.dedent(source)
     source = source.strip()
 
-    # source = textwrap.indent(source)
-
     return source
 
 
@@ -292,8 +421,6 @@ def _function_doc_markdown(func, reference, outstream=sys.stdout, indent='', met
             print(f'{indent}**{p.name}**: {" ".join(p.desc)}', file=outstream)
             print('', file=outstream)
 
-    # for key in doc.keys():
-    #     print(key, file=outstream)
 
 def _class_doc_markdown(cls, reference, members=None, outstream=sys.stdout, indent=''):
     """
@@ -335,31 +462,15 @@ def _class_doc_markdown(cls, reference, members=None, outstream=sys.stdout, inde
     for key in doc.keys():
         print(key, file=outstream)
 
-def _api_doc(reference, members=True):
-
-    module = '.'.join(reference.split('.')[:-1])
-    item = reference.split('.')[-1]
-
-    obj = getattr(get_object_from_reference(module), item)
-
-    if inspect.isfunction(obj):
-        return _function_doc_markdown(obj, reference)
-    elif inspect.isclass(obj):
-        return _class_doc_markdown(obj, members)
-
-    # for key in doc.keys():
-    #     print(key)
-
-    return obj
 
 def _options_dict_to_markdown(od):
     """
-    Generate reStructuredText view of the options table.
+    Generate a markdown-formatted table to document the options dictionary.
 
     Returns
     -------
-    list of str
-        A rendition of the options as an rST table.
+    str
+        A markdown table representation of the options dictionay.
     """
     lines = od.__rst__()
 
@@ -384,48 +495,5 @@ def _options_dict_to_markdown(od):
         lines[i] = ''.join(lstline)
 
     md = '\n'.join(lines[1:-1])
-    print(md)
 
     return md
-
-
-if __name__ == '__main__':
-    obj = get_object_from_reference('dymos.phase.options.TimeOptionsDictionary')
-
-    od = obj()
-
-    print(od)
-
-    md = _options_dict_to_markdown(od)
-
-    for line in md:
-        print(line)
-
-    # print(s)
-
-    # reference = 'dymos.run_problem'
-    # module = '.'.join(reference.split('.')[:-1])
-    # item = reference.split('.')[-1]
-    #
-    # obj = getattr(get_object_from_reference(module), item)
-    #
-    # _function_doc_markdown(obj, reference)
-    #
-
-
-    # reference = 'dymos.Trajectory'
-    # module = '.'.join(reference.split('.')[:-1])
-    # item = reference.split('.')[-1]
-    #
-    # obj = getattr(get_object_from_reference(module), item)
-    #
-    # _class_doc_markdown(obj, reference, members=['add_phase', 'link_phases'])
-    #
-    # obj2 = getattr(get_object_from_reference('dymos.Trajectory'), 'add_phase')
-    #
-    # print(obj2)
-
-
-
-    # print(module.run_problem)
-
