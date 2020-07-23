@@ -5,9 +5,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
+from dymos.utils.doc_utils import save_for_docs
+
 
 class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
 
+    @save_for_docs
     def test_doc_ssto_linear_tangent_guidance(self):
         import numpy as np
         import matplotlib.pyplot as plt

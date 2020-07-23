@@ -6,9 +6,12 @@ import unittest
 import matplotlib
 matplotlib.use('Agg')
 
+from dymos.utils.doc_utils import save_for_docs
+
 
 class TestBatteryBranchingPhasesForDocs(unittest.TestCase):
 
+    @save_for_docs
     def test_basic(self):
         import matplotlib.pyplot as plt
 

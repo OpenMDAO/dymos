@@ -775,7 +775,7 @@ class Trajectory(om.Group):
             sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
             sim_prob.model.add_recorder(rec)
 
-        sim_prob.setup(check=True)
+        sim_prob.setup()
 
         traj_op_dict = dict([(name, opts) for (name, opts) in self.list_outputs(units=True,
                                                                                 out_stream=None)])

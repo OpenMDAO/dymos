@@ -48,5 +48,5 @@ then connected and the entire problem run. The result is that the position and v
 are solved on a relatively coarse grid while the arclength of the wire is solved on a much denser grid.
 
 .. embed-code::
-    dymos.examples.brachistochrone.doc.test_doc_brachistochrone_tandem_phases.TestDocTandemPhases.test_tandem_phases_for_docs
+    dymos.examples.brachistochrone.doc.test_doc_brachistochrone_tandem_phases.TestBrachistochroneTandemPhases.test_brachistochrone_tandem_phases
     :layout: code, plot

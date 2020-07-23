@@ -6,6 +6,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
+from dymos.utils.doc_utils import save_for_docs
+
 
 class TestDoubleIntegratorForDocs(unittest.TestCase):
 
@@ -15,6 +17,7 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @save_for_docs
     def test_double_integrator_for_docs(self):
         import matplotlib.pyplot as plt
         import openmdao.api as om

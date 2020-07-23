@@ -1,20 +1,23 @@
 import unittest
 
-import numpy as np
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 plt.style.use('ggplot')
 
-import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal
-
-import dymos as dm
-from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
+from dymos.utils.doc_utils import save_for_docs
 
 
 class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
+    @save_for_docs
     def test_finite_burn_orbit_raise(self):
+        import numpy as np
+        import matplotlib.pyplot as plt
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_near_equal
+
+        import dymos as dm
+        from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
         p = om.Problem(model=om.Group())
 

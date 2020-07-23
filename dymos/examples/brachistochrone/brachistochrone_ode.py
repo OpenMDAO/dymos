@@ -29,14 +29,18 @@ class BrachistochroneODE(om.ExplicitComponent):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
+        self.options.declare('static_gravity', types=(bool,), default=False,
+                             desc='If True, treat gravity as a static (scalar) input, rather than '
+                                  'having different values at each node.')
 
     def setup(self):
         nn = self.options['num_nodes']
+        g_default_val = 9.80665 if self.options['static_gravity'] else 9.80665 * np.ones(nn)
 
         # Inputs
         self.add_input('v', val=np.zeros(nn), desc='velocity', units='m/s')
 
-        self.add_input('g', val=9.80665 * np.ones(nn), desc='grav. acceleration', units='m/s/s')
+        self.add_input('g', val=g_default_val, desc='grav. acceleration', units='m/s/s')
 
         self.add_input('theta', val=np.ones(nn), desc='angle of wire', units='rad')
 
@@ -51,8 +55,6 @@ class BrachistochroneODE(om.ExplicitComponent):
 
         # Setup partials
         arange = np.arange(self.options['num_nodes'])
-
-        self.declare_partials(of='vdot', wrt='g', rows=arange, cols=arange)
         self.declare_partials(of='vdot', wrt='theta', rows=arange, cols=arange)
 
         self.declare_partials(of='xdot', wrt='v', rows=arange, cols=arange)
@@ -63,6 +65,12 @@ class BrachistochroneODE(om.ExplicitComponent):
 
         self.declare_partials(of='check', wrt='v', rows=arange, cols=arange)
         self.declare_partials(of='check', wrt='theta', rows=arange, cols=arange)
+
+        if self.options['static_gravity']:
+            c = np.zeros(self.options['num_nodes'])
+            self.declare_partials(of='vdot', wrt='g', rows=arange, cols=c)
+        else:
+            self.declare_partials(of='vdot', wrt='g', rows=arange, cols=arange)
 
     def compute(self, inputs, outputs):
         theta = inputs['theta']
@@ -76,21 +84,21 @@ class BrachistochroneODE(om.ExplicitComponent):
         outputs['ydot'] = -v * cos_theta
         outputs['check'] = v / sin_theta
 
-    def compute_partials(self, inputs, jacobian):
+    def compute_partials(self, inputs, partials):
         theta = inputs['theta']
         cos_theta = np.cos(theta)
         sin_theta = np.sin(theta)
         g = inputs['g']
         v = inputs['v']
 
-        jacobian['vdot', 'g'] = cos_theta
-        jacobian['vdot', 'theta'] = -g * sin_theta
+        partials['vdot', 'g'] = cos_theta
+        partials['vdot', 'theta'] = -g * sin_theta
 
-        jacobian['xdot', 'v'] = sin_theta
-        jacobian['xdot', 'theta'] = v * cos_theta
+        partials['xdot', 'v'] = sin_theta
+        partials['xdot', 'theta'] = v * cos_theta
 
-        jacobian['ydot', 'v'] = -cos_theta
-        jacobian['ydot', 'theta'] = v * sin_theta
+        partials['ydot', 'v'] = -cos_theta
+        partials['ydot', 'theta'] = v * sin_theta
 
-        jacobian['check', 'v'] = 1 / sin_theta
-        jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
+        partials['check', 'v'] = 1 / sin_theta
+        partials['check', 'theta'] = -v * cos_theta / sin_theta ** 2

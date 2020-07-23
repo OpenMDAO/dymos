@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 matplotlib.use('Agg')
 plt.style.use('ggplot')
 
+from dymos.utils.doc_utils import save_for_docs
+
+
 tf = np.float128(10)
 
 
@@ -33,6 +36,7 @@ class TestHyperSensitive(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @save_for_docs
     def test_hyper_sensitive_for_docs(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
