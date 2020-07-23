@@ -169,6 +169,8 @@ def define_env(env):
             _function_doc_markdown(obj, reference, outstream=ss)
         elif inspect.isclass(obj):
             _class_doc_markdown(obj, reference, members=members, outstream=ss)
+        elif inspect.ismethod(obj):
+            _function_doc_markdown(obj, reference, outstream=ss)
 
         return ss.getvalue()
 

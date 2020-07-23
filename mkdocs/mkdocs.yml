@@ -56,6 +56,8 @@ nav:
             - 'examples/ssto_earth/ssto_earth.md'
             - 'examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent.md'
             - 'examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.md'
+    - 'Feature Reference':
+        - 'features/timeseries.md'
     - 'Frequently Asked Questions':
         - 'faq/add_ode_output_to_timeseries.md'
         - 'faq/connect_scalar_parameters_to_ode.md'
