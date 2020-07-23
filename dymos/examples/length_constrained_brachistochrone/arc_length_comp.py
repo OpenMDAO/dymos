@@ -35,26 +35,3 @@ class ArcLengthComp(ExplicitComponent):
         fxm1 = f[:-1]
         fx = f[1:]
         outputs['S'] = 0.5 * np.dot(fxm1 + fx, dx)
-
-
-if __name__ == '__main__':
-    from openmdao.api import Problem, Group
-
-    n = 11
-    p = Problem(model=Group())
-
-    p.model.add_subsystem('arc_length_comp', subsys=ArcLengthComp(num_nodes=n))
-
-    p.setup()
-    p.run_model()
-
-    p['arc_length_comp.x'] = np.linspace(0, 10, n)
-    p['arc_length_comp.theta'][:] = np.radians(45.0)
-
-    p.run_model()
-
-    np.testing.assert_almost_equal(p['arc_length_comp.S'], 10*np.sqrt(2))
-
-    p['arc_length_comp.theta'][:] = np.radians(90.0)
-    p.run_model()
-    np.testing.assert_almost_equal(p['arc_length_comp.S'], 10)
