@@ -252,7 +252,7 @@ def define_env(env):
         return ss.getvalue()
 
     @env.macro
-    def embed_options(reference):
+    def embed_options(reference, title=''):
         """
         Macro to embed an OpenMDAO OptionsDictionary in mkdocs.
 
@@ -260,6 +260,8 @@ def define_env(env):
         ----------
         reference : str
             The dotted path to the options dictionary class or instance being documented.
+        title : str
+            The title provided above the options table.
 
         Returns
         -------
@@ -277,7 +279,7 @@ def define_env(env):
         else:
             return f'Invalid OptionsDictionary: {reference}'
 
-        return _options_dict_to_markdown(od)
+        return f'{title}\n{_options_dict_to_markdown(od)}'
 
     @env.macro
     def doc_env():

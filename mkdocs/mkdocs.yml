@@ -64,6 +64,7 @@ nav:
             - 'features/phases/variables.md'
             - 'features/phases/constraints.md'
             - 'features/phases/objective.md'
+            - 'features/phases/timeseries.md'
     - 'Frequently Asked Questions':
         - 'faq/add_ode_output_to_timeseries.md'
         - 'faq/connect_scalar_parameters_to_ode.md'

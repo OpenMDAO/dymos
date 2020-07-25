@@ -10,7 +10,7 @@ w.r.t. time.
 
 Users can specify various options relating to time with the `set_time_options` method of Phase.
 
-In Dymos, time is characterized by two variables:
+In Dymos, the phase time is controlled by two inputs:
 
 - `t_initial` - The initial time of the phase
 - `t_duration` - The duration of the phase
@@ -29,7 +29,7 @@ Dymos computes the following time values, which can be used inside the ODE:
 - `t_initial` - The initial time of the current phase (this value is the same at all nodes within the phase).
 - `t_duration` - The phase time duration of the current phase (this value is the same at all nodes within the phase).
 
-{{ embed_options('dymos.phase.options.TimeOptionsDictionary') }}
+{{ embed_options('dymos.phase.options.TimeOptionsDictionary', '###Options for Time Variables') }}
 
 ## States
 
@@ -48,7 +48,7 @@ transcription order is 3.**
 Users can specify bounds, scaling, and units of the state variables with the
 phase method `add_state`.  The following options are valid:
 
-{{ embed_options('dymos.phase.options.StateOptionsDictionary') }}
+{{ embed_options('dymos.phase.options.StateOptionsDictionary', '###Options for State Variables') }}
 
 The Radau Pseudospectral and Gauss Lobatto phases types in Dymos use differential defects to
 approximate the evolution of the state variables with respect to time.  In addition to scaling
@@ -73,7 +73,7 @@ The value of these controls are often determined by an optimizer.
     transcription order (i.e. a dynamic control in a phase with `transcription_order=3` will
     be represented by a second-order polynomial.
 
-{{ embed_options('dymos.phase.options.ControlOptionsDictionary') }}
+{{ embed_options('dymos.phase.options.ControlOptionsDictionary', '###Options for Control Variables') }}
 
 ## Polynomial Controls
 
@@ -82,7 +82,7 @@ For instance, one might want the control to be linearly or quadratically varying
 In Dymos, this role is filled by the PolynomialControl.
 Polynomial controls are specified at some limited number of points throughout a _phase_, and then have their values interpolated to each node in each segment.
 
-{{ embed_options('dymos.phase.options.PolynomialControlOptionsDictionary') }}
+{{ embed_options('dymos.phase.options.PolynomialControlOptionsDictionary', '###Options for Polynomial Control Variables') }}
 
 ## Parameters
 
@@ -90,7 +90,7 @@ Some inputs impact the system but have one set value throughout the trajectory.
 We refer to these non-time-varying inputs as *design parameters*, since they typically involve parameters which define a system.
 Parameters could include things like the wingspan of a vehicle or the mass of a heatsink.
 
-{{ embed_options('dymos.phase.options.DesignParameterOptionsDictionary') }}
+{{ embed_options('dymos.phase.options.DesignParameterOptionsDictionary', '###Options for Parameters') }}
 
 Parameters and controls can have their values determined by the optimizer, or they can be passed in from an external source.
 
