@@ -38,8 +38,10 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         exp_out = traj.simulate(times_per_seg=200)
 
-        plot_trajectory(p, exp_out)
         plot_propelled_ascent(p, exp_out)
+        plot_states(p, exp_out)
+        plot_trajectory(p, exp_out)
+
         plt.show()
 
     def test_water_rocket_range_for_docs(self):
@@ -66,8 +68,10 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         exp_out = traj.simulate(times_per_seg=200)
 
-        plot_trajectory(p, exp_out)
         plot_propelled_ascent(p, exp_out)
+        plot_states(p, exp_out)
+        plot_trajectory(p, exp_out)
+
         plt.show()
 
 
@@ -109,12 +113,25 @@ def plot_trajectory(p, exp_out):
     axes.set_xlabel('r (m)')
     axes.set_ylabel('h (m)')
     axes.set_aspect('equal', 'box')
+
     fig.tight_layout()
 
+
+def plot_states(p, exp_out):
     fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(4, 8), sharex=True)
+
     states = ['r', 'h', 'v', 'gam']
     units =  ['m', 'm', 'm/s', 'deg']
     phases = ['propelled_ascent', 'ballistic_ascent', 'descent']
+
+
+    time_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.time'),
+                'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.time'),
+                'descent': p.get_val('traj.descent.timeseries.time')}
+
+    time_exp = {'ballistic_ascent': exp_out.get_val('traj.ballistic_ascent.timeseries.time'),
+                'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.time'),
+                'descent': exp_out.get_val('traj.descent.timeseries.time')}
 
     x_imp = {phase: {state: p.get_val(f"traj.{phase}.timeseries.states:{state}", unit) for state, unit in zip(states,units)} for phase in phases}
     x_exp = {phase: {state: exp_out.get_val(f"traj.{phase}.timeseries.states:{state}", unit) for state, unit in zip(states,units)} for phase in phases}
