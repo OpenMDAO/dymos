@@ -1,4 +1,5 @@
 import unittest
+from collections import namedtuple
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -34,7 +35,10 @@ class TestWaterRocketForDocs(unittest.TestCase):
         set_sane_initial_guesses(p, phases)
 
         p.run_driver()
-        print_results(p)
+
+        summary = summarize_results(p)
+        for key, entry in summary.items():
+            print(f'{key}: {entry.value:6.4f} {entry.unit}')
 
         exp_out = traj.simulate(times_per_seg=200)
 
@@ -43,6 +47,16 @@ class TestWaterRocketForDocs(unittest.TestCase):
         plot_trajectory(p, exp_out)
 
         plt.show()
+
+        # Check results (tolerance is relative unless value is zero)
+        assert_near_equal(summary['Launch angle'].value, 90, .02)
+        assert_near_equal(summary['Flight angle at end of propulsion'].value, 90, .02)
+        assert_near_equal(summary['Empty mass'].value, 0.142878, 1e-3)
+        assert_near_equal(summary['Water volume'].value, 0.870367, 1e-3)
+        assert_near_equal(summary['Maximum range'].value, 0, 5)
+        assert_near_equal(summary['Maximum height'].value, 54.603214, 1e-3)
+        assert_near_equal(summary['Maximum velocity'].value, 47.259089, 1e-3)
+
 
     def test_water_rocket_range_for_docs(self):
         p = om.Problem(model=om.Group())
@@ -64,7 +78,10 @@ class TestWaterRocketForDocs(unittest.TestCase):
         set_sane_initial_guesses(p, phases)
 
         p.run_driver()
-        print_results(p)
+
+        summary = summarize_results(p)
+        for key, entry in summary.items():
+            print(f'{key}: {entry.value:6.4f} {entry.unit}')
 
         exp_out = traj.simulate(times_per_seg=200)
 
@@ -73,6 +90,15 @@ class TestWaterRocketForDocs(unittest.TestCase):
         plot_trajectory(p, exp_out)
 
         plt.show()
+
+        # Check results (tolerance is relative unless value is zero)
+        assert_near_equal(summary['Launch angle'].value, 38.340175, 1e-3)
+        assert_near_equal(summary['Flight angle at end of propulsion'].value, 45.029174, 1e-3)
+        assert_near_equal(summary['Empty mass'].value, 0.186135, 1e-3)
+        assert_near_equal(summary['Water volume'].value, 0.904498, 1e-3)
+        assert_near_equal(summary['Maximum range'].value, 86.412652, 1e-3)
+        assert_near_equal(summary['Maximum height'].value, 23.51093, 1e-3)
+        assert_near_equal(summary['Maximum velocity'].value, 42.413171, 1e-3)
 
 
 def plot_trajectory(p, exp_out):
@@ -191,23 +217,21 @@ def plot_propelled_ascent(p, exp_out):
     fig.tight_layout()
 
 
-def print_results(water_rocket_problem):
+def summarize_results(water_rocket_problem):
     p = water_rocket_problem
-    print('launch angle: {0:6.4f} '
-          'deg '.format(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[0, 0]))
-    print('Flight angle at end of propulsion: {0:6.4f} '
-          'deg '.format(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[-1, 0]))
-    print('empty mass: {0:6.4f} '
-          'kg '.format(p.get_val('traj.design_parameters:m_empty')[0,0]))
-    print('water volume: {0:6.4f} '
-            'L '.format(p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L')[0,0]))
-    print('maximum range: {0:6.4f} '
-          'm '.format(p.get_val('traj.descent.timeseries.states:r')[-1, 0]))
-    print('maximum height: {0:6.4f} '
-          'm '.format(p.get_val('traj.ballistic_ascent.timeseries.states:h')[-1, 0]))
-    print('maximum velocity: {0:6.4f} '
-          'm/s '.format(p.get_val('traj.propelled_ascent.timeseries.states:v')[-1, 0]))
+    Entry = namedtuple('Entry', 'value unit')
+    summary = {
+            'Launch angle': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[-1, 0], 'deg'),
+            'Flight angle at end of propulsion': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[0, 0], 'deg'),
+            'Empty mass': Entry(p.get_val('traj.design_parameters:m_empty', units='kg')[0,0], 'kg'),
+            'Water volume': Entry(p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L')[0,0], 'L'),
+            'Maximum range': Entry(p.get_val('traj.descent.timeseries.states:r', units='m')[-1, 0], 'm'),
+            'Maximum height': Entry(p.get_val('traj.ballistic_ascent.timeseries.states:h', units='m')[-1, 0], 'm'),
+            'Maximum velocity': Entry(p.get_val('traj.propelled_ascent.timeseries.states:v', units='m/s')[-1, 0], 'm/s'),
+            }
+
+    return summary
 
 
 if __name__ == '__main__':  # pragma: no cover
-    TestWaterRocketForDocs().test_water_rocket_for_docs()
+    unittest.main()
