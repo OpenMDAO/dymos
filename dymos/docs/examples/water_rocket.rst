@@ -8,8 +8,9 @@ Author: Bernardo Bahia Monteiro <bbahia@umich.edu>
 
 In this example, we will optimize a water rocket for range and height at the
 apogee, using design variables that are easily modifiable just before launch:
-the empty mass, the initial water volume and the launch angle.  This example
-builds on :ref:`multi-phase-cannonball`.
+the empty mass, the initial water volume and the launch angle.  
+This example builds on :ref:`multi-phase-cannonball` and 
+is adapted from :cite:`bbahia_2020`.
 
 Nomenclature
 ------------
