@@ -9,8 +9,8 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 
-from dymos.examples.water_rocket.phases import new_water_rocket_trajectory, \
-                                               set_sane_initial_guesses
+from dymos.examples.water_rocket.phases import (new_water_rocket_trajectory,
+                                                set_sane_initial_guesses)
 
 
 class TestWaterRocketForDocs(unittest.TestCase):
@@ -29,7 +29,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
-        #p.driver.add_recorder(om.SqliteRecorder('ex_water_rocket.db'))
+        # p.driver.add_recorder(om.SqliteRecorder('ex_water_rocket.db'))
 
         p.setup()
         set_sane_initial_guesses(p, phases)
@@ -57,7 +57,6 @@ class TestWaterRocketForDocs(unittest.TestCase):
         assert_near_equal(summary['Maximum height'].value, 54.603214, 1e-3)
         assert_near_equal(summary['Maximum velocity'].value, 47.259089, 1e-3)
 
-
     def test_water_rocket_range_for_docs(self):
         p = om.Problem(model=om.Group())
 
@@ -72,7 +71,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
-        #p.driver.add_recorder(om.SqliteRecorder('ex_water_rocket.db'))
+        # p.driver.add_recorder(om.SqliteRecorder('ex_water_rocket.db'))
 
         p.setup()
         set_sane_initial_guesses(p, phases)
@@ -147,9 +146,8 @@ def plot_states(p, exp_out):
     fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(4, 8), sharex=True)
 
     states = ['r', 'h', 'v', 'gam']
-    units =  ['m', 'm', 'm/s', 'deg']
+    units = ['m', 'm', 'm/s', 'deg']
     phases = ['propelled_ascent', 'ballistic_ascent', 'descent']
-
 
     time_imp = {'ballistic_ascent': p.get_val('traj.ballistic_ascent.timeseries.time'),
                 'propelled_ascent': p.get_val('traj.propelled_ascent.timeseries.time'),
@@ -159,8 +157,17 @@ def plot_states(p, exp_out):
                 'propelled_ascent': exp_out.get_val('traj.propelled_ascent.timeseries.time'),
                 'descent': exp_out.get_val('traj.descent.timeseries.time')}
 
-    x_imp = {phase: {state: p.get_val(f"traj.{phase}.timeseries.states:{state}", unit) for state, unit in zip(states,units)} for phase in phases}
-    x_exp = {phase: {state: exp_out.get_val(f"traj.{phase}.timeseries.states:{state}", unit) for state, unit in zip(states,units)} for phase in phases}
+    x_imp = {phase: {state: p.get_val(f"traj.{phase}.timeseries.states:{state}", unit)
+                     for state, unit in zip(states, units)
+                     }
+             for phase in phases
+             }
+
+    x_exp = {phase: {state: exp_out.get_val(f"traj.{phase}.timeseries.states:{state}", unit)
+                     for state, unit in zip(states, units)
+                     }
+             for phase in phases
+             }
 
     for i, (state, unit) in enumerate(zip(states, units)):
         axes[i].set_ylabel(f"{state} ({unit})" if state != 'gam' else f'$\gamma$ ({unit})')
@@ -174,7 +181,7 @@ def plot_states(p, exp_out):
 
         if state == 'gam':
             axes[i].yaxis.set_major_locator(mpl.ticker.MaxNLocator(nbins='auto', steps=[1, 1.5, 3, 4.5, 6, 9, 10]))
-            axes[i].set_yticks(np.arange(-90,91,45))
+            axes[i].set_yticks(np.arange(-90, 91, 45))
 
     axes[i].set_xlabel('t (s)')
     axes[0].legend()
@@ -183,7 +190,7 @@ def plot_states(p, exp_out):
 
 
 def plot_propelled_ascent(p, exp_out):
-    fig, ax = plt.subplots(5, 1, sharex=True, figsize=(4,8))
+    fig, ax = plt.subplots(5, 1, sharex=True, figsize=(4, 8))
     t_imp = p.get_val('traj.propelled_ascent.time', 's')
     t_exp = exp_out.get_val('traj.propelled_ascent.time', 's')
 
@@ -221,14 +228,15 @@ def summarize_results(water_rocket_problem):
     p = water_rocket_problem
     Entry = namedtuple('Entry', 'value unit')
     summary = {
-            'Launch angle': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[-1, 0], 'deg'),
-            'Flight angle at end of propulsion': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[0, 0], 'deg'),
-            'Empty mass': Entry(p.get_val('traj.design_parameters:m_empty', units='kg')[0,0], 'kg'),
-            'Water volume': Entry(p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L')[0,0], 'L'),
-            'Maximum range': Entry(p.get_val('traj.descent.timeseries.states:r', units='m')[-1, 0], 'm'),
-            'Maximum height': Entry(p.get_val('traj.ballistic_ascent.timeseries.states:h', units='m')[-1, 0], 'm'),
-            'Maximum velocity': Entry(p.get_val('traj.propelled_ascent.timeseries.states:v', units='m/s')[-1, 0], 'm/s'),
-            }
+        'Launch angle': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[-1, 0], 'deg'),
+        'Flight angle at end of propulsion': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',
+                                                   units='deg')[0, 0], 'deg'),
+        'Empty mass': Entry(p.get_val('traj.design_parameters:m_empty', units='kg')[0, 0], 'kg'),
+        'Water volume': Entry(p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L')[0, 0], 'L'),
+        'Maximum range': Entry(p.get_val('traj.descent.timeseries.states:r', units='m')[-1, 0], 'm'),
+        'Maximum height': Entry(p.get_val('traj.ballistic_ascent.timeseries.states:h', units='m')[-1, 0], 'm'),
+        'Maximum velocity': Entry(p.get_val('traj.propelled_ascent.timeseries.states:v', units='m/s')[-1, 0], 'm/s'),
+    }
 
     return summary
 

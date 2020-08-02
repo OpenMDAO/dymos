@@ -103,9 +103,9 @@ def new_water_rocket_trajectory(objective):
     traj.link_phases(phases=['ballistic_ascent', 'descent'], vars=['*'])
 
     # Set objective function
-    if objective=='height':
+    if objective == 'height':
         ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
-    elif objective=='range':
+    elif objective == 'range':
         descent.add_objective('r', loc='final', scaler=-1.0)
     else:
         raise ValueError(f"objective='{objective}' is not defined. Try using 'height' or 'range'")
@@ -138,19 +138,20 @@ def new_water_rocket_trajectory(objective):
                               lower=0, upper=1, ref=0.1,
                               opt=True)
     traj.add_design_parameter('V_b', units='m**3', val=2e-3,
-                             targets={'propelled_ascent': 'V_b'},
-                             opt=False)
+                              targets={'propelled_ascent': 'V_b'},
+                              opt=False)
 
     traj.add_design_parameter('S', units='m**2', val=np.pi*106e-3**2/4, opt=False)
     traj.add_design_parameter('A_out', units='m**2', val=np.pi*22e-3**2/4.,
-                             targets={'propelled_ascent': ['water_engine.A_out']},
-                             opt=False)
+                              targets={'propelled_ascent': ['water_engine.A_out']},
+                              opt=False)
     traj.add_design_parameter('k', units=None, val=1.2, opt=False,
-            targets={'propelled_ascent': ['water_engine.k']})
+                              targets={'propelled_ascent': ['water_engine.k']})
 
     return traj, {'propelled_ascent': propelled_ascent,
                   'ballistic_ascent': ballistic_ascent,
                   'descent': descent}
+
 
 def set_sane_initial_guesses(problem, phases):
     p = problem
@@ -162,7 +163,7 @@ def set_sane_initial_guesses(problem, phases):
               phases['propelled_ascent'].interpolate(ys=[0, 3], nodes='state_input'))
     p.set_val('traj.propelled_ascent.states:h',
               phases['propelled_ascent'].interpolate(ys=[0, 10], nodes='state_input'))
-    #set initial value for velocity as non-zero to avoid undefined EOM
+    # Set initial value for velocity as non-zero to avoid undefined EOM
     p.set_val('traj.propelled_ascent.states:v',
               phases['propelled_ascent'].interpolate(ys=[0.1, 100], nodes='state_input'))
     p.set_val('traj.propelled_ascent.states:gam',
@@ -192,13 +193,11 @@ def set_sane_initial_guesses(problem, phases):
     p.set_val('traj.descent.t_duration', 10.0)
 
     p.set_val('traj.descent.states:r',
-            phases['descent'].interpolate(ys=[10, 20], nodes='state_input'))
+              phases['descent'].interpolate(ys=[10, 20], nodes='state_input'))
     p.set_val('traj.descent.states:h',
-            phases['descent'].interpolate(ys=[10, 0], nodes='state_input'))
+              phases['descent'].interpolate(ys=[10, 0], nodes='state_input'))
     p.set_val('traj.descent.states:v',
-            phases['descent'].interpolate(ys=[20, 60], nodes='state_input'))
+              phases['descent'].interpolate(ys=[20, 60], nodes='state_input'))
     p.set_val('traj.descent.states:gam',
-            phases['descent'].interpolate(ys=[0, -45], nodes='state_input'),
+              phases['descent'].interpolate(ys=[0, -45], nodes='state_input'),
               units='deg')
-
-
