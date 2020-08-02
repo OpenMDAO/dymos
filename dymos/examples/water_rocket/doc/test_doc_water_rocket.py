@@ -14,11 +14,38 @@ from dymos.examples.water_rocket.phases import new_water_rocket_trajectory, \
 
 class TestWaterRocketForDocs(unittest.TestCase):
 
-    def test_water_rocket_for_docs(self):
-
+    def test_water_rocket_height_for_docs(self):
         p = om.Problem(model=om.Group())
 
         traj, phases = new_water_rocket_trajectory(objective='height')
+        traj = p.model.add_subsystem('traj', traj)
+
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver.options['maxiter'] = 1000
+        p.driver.options['tol'] = 5e-5
+        p.driver.declare_coloring()
+
+        # Finish Problem Setup
+        p.model.linear_solver = om.DirectSolver()
+        #p.driver.add_recorder(om.SqliteRecorder('ex_water_rocket.db'))
+
+        p.setup()
+        set_sane_initial_guesses(p, phases)
+
+        p.run_driver()
+        print_results(p)
+
+        exp_out = traj.simulate(times_per_seg=200)
+
+        plot_trajectory(p, exp_out)
+        plot_propelled_ascent(p, exp_out)
+        plt.show()
+
+    def test_water_rocket_range_for_docs(self):
+        p = om.Problem(model=om.Group())
+
+        traj, phases = new_water_rocket_trajectory(objective='range')
         traj = p.model.add_subsystem('traj', traj)
 
         p.driver = om.ScipyOptimizeDriver()
