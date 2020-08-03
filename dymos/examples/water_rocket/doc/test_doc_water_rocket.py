@@ -42,9 +42,10 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         exp_out = traj.simulate(times_per_seg=200)
 
+        # NOTE: only the last figure is shown in the generated docs
         plot_propelled_ascent(p, exp_out)
-        plot_states(p, exp_out)
         plot_trajectory(p, exp_out)
+        plot_states(p, exp_out)
 
         plt.show()
 
@@ -84,9 +85,10 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         exp_out = traj.simulate(times_per_seg=200)
 
+        # NOTE: only the last figure is shown in the generated docs
         plot_propelled_ascent(p, exp_out)
-        plot_states(p, exp_out)
         plot_trajectory(p, exp_out)
+        plot_states(p, exp_out)
 
         plt.show()
 
