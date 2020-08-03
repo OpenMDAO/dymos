@@ -11,6 +11,8 @@ For the pseudospectral transcriptions, timeseries outputs are provided at all no
 For the RungeKutta transcription, timeseries outputs are provided at the segment endpoints.
 By default, the timeseries output will include the following variables for every problem.
 
+### Paths to timeseries outputs in Dymos
+
 |Path                                                          | Description                                         |
 |--------------------------------------------------------------|-----------------------------------------------------|
 |``<phase path>.timeseries.time``                              |Current time value                                   |
