@@ -1,3 +1,5 @@
+.. _multi-phase-cannonball:
+
 ======================
 Multi-Phase Cannonball
 ======================
