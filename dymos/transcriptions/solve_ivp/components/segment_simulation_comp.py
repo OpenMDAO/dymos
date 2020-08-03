@@ -256,7 +256,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
                         t_eval=t_eval)
 
         if not sol.success:
-            raise RuntimeError('solve_ipv failed', sol.message)
+            raise om.AnalysisError('solve_ivp failed', sol.message)
 
         # Extract the solution
         pos = 0
