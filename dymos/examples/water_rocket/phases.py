@@ -24,7 +24,7 @@ def new_propelled_ascent_phase(transcription):
     propelled_ascent.set_state_options(
         'r', fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0)
     propelled_ascent.set_state_options(
-        'h', fix_initial=True, fix_final=False, ref=100.0, defect_ref=100)
+        'h', fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0)
     propelled_ascent.set_state_options(
         'gam', fix_initial=False, fix_final=False, lower=0, upper=89.0, ref=90, units='deg')
     propelled_ascent.set_state_options(
@@ -90,13 +90,15 @@ def new_descent_phase(transcription):
 
 
 def new_water_rocket_trajectory(objective):
-    transcription = dm.Radau(num_segments=20, order=3, compressed=True)
+    tx_prop = dm.Radau(num_segments=50, order=3, compressed=True)
+    tx_bal = dm.Radau(num_segments=10, order=3, compressed=True)
+    tx_desc = dm.Radau(num_segments=10, order=3, compressed=True)
     traj = dm.Trajectory()
 
     # Add phases to trajectory
-    propelled_ascent = traj.add_phase('propelled_ascent', new_propelled_ascent_phase(transcription))
-    ballistic_ascent = traj.add_phase('ballistic_ascent', new_ballistic_ascent_phase(transcription))
-    descent = traj.add_phase('descent', new_descent_phase(transcription))
+    propelled_ascent = traj.add_phase('propelled_ascent', new_propelled_ascent_phase(tx_prop))
+    ballistic_ascent = traj.add_phase('ballistic_ascent', new_ballistic_ascent_phase(tx_bal))
+    descent = traj.add_phase('descent', new_descent_phase(tx_desc))
 
     # Link phases
     traj.link_phases(phases=['propelled_ascent', 'ballistic_ascent'], vars=['*'])
@@ -104,9 +106,9 @@ def new_water_rocket_trajectory(objective):
 
     # Set objective function
     if objective == 'height':
-        ballistic_ascent.add_objective('h', loc='final', ref=-100.0)
+        ballistic_ascent.add_objective('h', loc='final', ref=-1.0)
     elif objective == 'range':
-        descent.add_objective('r', loc='final', scaler=-100.0)
+        descent.add_objective('r', loc='final', scaler=-1.0)
     else:
         raise ValueError(f"objective='{objective}' is not defined. Try using 'height' or 'range'")
 

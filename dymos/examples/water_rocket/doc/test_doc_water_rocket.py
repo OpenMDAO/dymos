@@ -17,7 +17,7 @@ from dymos.utils.doc_utils import save_for_docs
 
 class TestWaterRocketForDocs(unittest.TestCase):
 
-    # @save_for_docs
+    @save_for_docs
     def test_water_rocket_height_for_docs(self):
         p = om.Problem(model=om.Group())
 
@@ -28,7 +28,6 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
         p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['max_iter'] = 1000
-        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.declare_coloring()
 
         # Finish Problem Setup
@@ -61,7 +60,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         assert_near_equal(summary['Maximum height'].value, 54.603214, 1e-3)
         assert_near_equal(summary['Maximum velocity'].value, 47.259089, 1e-3)
 
-    # @save_for_docs
+    @save_for_docs
     def test_water_rocket_range_for_docs(self):
         p = om.Problem(model=om.Group())
 
