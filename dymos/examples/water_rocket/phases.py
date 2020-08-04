@@ -13,26 +13,26 @@ def new_propelled_ascent_phase(transcription):
     # Add states specific for the propelled ascent
     propelled_ascent.add_state('p', units='bar', rate_source='water_engine.pdot',
                                targets=['water_engine.p'])
-    propelled_ascent.add_state('V_w', units='m**3', ref=1e-3, rate_source='water_engine.Vdot',
+    propelled_ascent.add_state('V_w', units='L', ref=1.0, rate_source='water_engine.Vdot',
                                targets=['water_engine.V_w', 'mass_adder.V_w'])
 
     # All initial states except flight path angle and water volume are fixed
     # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
     # Final water volume is fixed (we will set it to zero so that phase ends when bottle empties)
     propelled_ascent.set_time_options(
-        fix_initial=True, duration_bounds=(0, 0.5), duration_ref=0.1, units='s')
+        fix_initial=True, duration_bounds=(0.001, 0.5), duration_ref=0.1, units='s')
     propelled_ascent.set_state_options(
-        'r', fix_initial=True, fix_final=False)
+        'r', fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0)
     propelled_ascent.set_state_options(
-        'h', fix_initial=True, fix_final=False)
+        'h', fix_initial=True, fix_final=False, ref=100.0, defect_ref=100)
     propelled_ascent.set_state_options(
-        'gam', fix_initial=False, fix_final=False, lower=0, upper=89, units='deg')
+        'gam', fix_initial=False, fix_final=False, lower=0, upper=89.0, ref=90, units='deg')
     propelled_ascent.set_state_options(
-        'v', fix_initial=True, fix_final=False)
+        'v', fix_initial=True, fix_final=False, ref=100, defect_ref=100)
     propelled_ascent.set_state_options(
-        'V_w', fix_initial=False, fix_final=True)
+        'V_w', fix_initial=False, fix_final=True, ref=10, defect_ref=10)
     propelled_ascent.set_state_options(
-        'p', fix_initial=True, fix_final=False)
+        'p', fix_initial=True, fix_final=False, lower=1.02)
 
     propelled_ascent.add_input_parameter(
         'S', targets=['aero.S'], units='m**2')
@@ -52,7 +52,7 @@ def new_ballistic_ascent_phase(transcription):
     # All initial states are free (they will be  linked to the final stages of propelled_ascent).
     # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
     ballistic_ascent.set_time_options(
-        fix_initial=False, initial_bounds=(0, 1), duration_bounds=(0, 10),
+        fix_initial=False, initial_bounds=(0.001, 1), duration_bounds=(0.001, 10),
         duration_ref=1, units='s')
     ballistic_ascent.set_state_options(
         'r', fix_initial=False, fix_final=False)
@@ -90,7 +90,7 @@ def new_descent_phase(transcription):
 
 
 def new_water_rocket_trajectory(objective):
-    transcription = dm.GaussLobatto(num_segments=1, order=21, compressed=False)
+    transcription = dm.Radau(num_segments=20, order=3, compressed=True)
     traj = dm.Trajectory()
 
     # Add phases to trajectory
@@ -104,9 +104,9 @@ def new_water_rocket_trajectory(objective):
 
     # Set objective function
     if objective == 'height':
-        ballistic_ascent.add_objective('h', loc='final', scaler=-1.0)
+        ballistic_ascent.add_objective('h', loc='final', ref=-100.0)
     elif objective == 'range':
-        descent.add_objective('r', loc='final', scaler=-1.0)
+        descent.add_objective('r', loc='final', scaler=-100.0)
     else:
         raise ValueError(f"objective='{objective}' is not defined. Try using 'height' or 'range'")
 
@@ -170,8 +170,8 @@ def set_sane_initial_guesses(problem, phases):
               phases['propelled_ascent'].interpolate(ys=[80, 80], nodes='state_input'),
               units='deg')
     p.set_val('traj.propelled_ascent.states:V_w',
-              phases['propelled_ascent'].interpolate(ys=[0.9e-3, 0], nodes='state_input'),
-              units='m**3')
+              phases['propelled_ascent'].interpolate(ys=[9, 0], nodes='state_input'),
+              units='L')
     p.set_val('traj.propelled_ascent.states:p',
               phases['propelled_ascent'].interpolate(ys=[6.5, 3.5], nodes='state_input'),
               units='bar')

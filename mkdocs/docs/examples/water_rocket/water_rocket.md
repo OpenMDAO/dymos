@@ -1,18 +1,16 @@
 # Water Rocket
 
-Author: Bernardo Bahia Monteiro <bbahia@umich.edu> [@bbahia_2020]
+Author: Bernardo Bahia Monteiro <bbahia@umich.edu>
 
-In this example, we will optimize a water rocket for range and height at the
-apogee, using design variables that are easily modifiable just before launch:
-the empty mass, the initial water volume and the launch angle.
-This example builds on [multi-phase cannonball](../multi_phase_cannonball/multi_phase_cannonball.md).
+In this example, we will optimize a water rocket for range and height at the apogee, using design variables that are easily modifiable just before launch: the empty mass, the initial water volume and the launch angle.
+This example builds on [multi-phase cannonball](../multi_phase_cannonball/multi_phase_cannonball.md) ane is adapted from _Optimization of a Water Rocket in OpenMDAO/Dymos_ [@bbahia_2020].
 
 ## Nomenclature
 
 | Symbol               | definition                             |
 |----------------------|----------------------------------------|
-| -$v_\text{out}$      | water exit speed at the nozzle         |
-| -$A_\text{out}$      | nozzle area                            |
+| $v_\text{out}$       | water exit speed at the nozzle         |
+| $A_\text{out}$       | nozzle area                            |
 | $V_w$                | water volume in the rocket             |
 | $p$                  | pressure in the rocket                 |
 | $p_a$                | ambient pressure                       |
@@ -29,16 +27,10 @@ This example builds on [multi-phase cannonball](../multi_phase_cannonball/multi_
 
 ## Problem Formulation
 
-A natural objective function for a water rocket is the maximum height achieved
-by the rocket during flight, or the horizontal distance it travels, i.e. its
-range. The design of a water rocket is somewhat constrained by the soda bottle
-used as its engine. This means that the volume available for water and air
-is fixed, the initial launch pressure is limited by the bottle's strength
-(since the pressure is directly related to the energy available for the rocket,
-it is easy to see that it should be as high as possible) and the nozzle throat
-area is also fixed. Given these manufacturing constraints, the design variables
-we are left with are the empty mass (it can be easily changed through adding
-ballast), the water volume at the launch, and the launch angle.
+A natural objective function for a water rocket is the maximum height achieved by the rocket during flight, or the horizontal distance it travels, i.e. its range.
+The design of a water rocket is somewhat constrained by the soda bottle used as its engine.
+This means that the volume available for water and air is fixed, the initial launch pressure is limited by the bottle's strength (since the pressure is directly related to the energy available for the rocket, it is easy to see that it should be as high as possible) and the nozzle throat area is also fixed.
+Given these manufacturing constraints, the design variables we are left with are the empty mass (it can be easily changed through adding ballast), the water volume at the launch, and the launch angle.
 With this considerations in mind, a natural formulation for the water rocket problem is
 
 \begin{align}
@@ -54,22 +46,13 @@ With this considerations in mind, a natural formulation for the water rocket pro
 
 ##  Model
 
-The water rocket model is divided into three basic components: a *water engine*,
-responsible for modelling the fluid dynamics inside the rocket and returning
-its thrust;  the *aerodynamics*, responsible for calculating the atmospheric drag
-of the rocket; and the *equations of motion*, responsible for propagating the
-rocket's trajectory in time, using Newton's laws and the forces provided by the
-other two components.
+The water rocket model is divided into three basic components: a *water engine*, responsible for modelling the fluid dynamics inside the rocket and returning its thrust;  the *aerodynamics*, responsible for calculating the atmospheric drag of the rocket; and the *equations of motion*, responsible for propagating the rocket's trajectory in time, using Newton's laws and the forces provided by the other two components.
 
-In order to integrate these three basic components, some additional interfacing
-components are necessary: an atmospheric model to provide values of ambient
-pressure for the water engine and air density to the calculation of the dynamic
-pressure for the aerodynamic model, and a component that calculates the
-instantaneous mass of the rocket by summing the water mass with the rocket's
-empty mass.  The high level layout of this model is shown in below.
+In order to integrate these three basic components, some additional interfacing components are necessary: an atmospheric model to provide values of ambient pressure for the water engine and air density to the calculation of the dynamic pressure for the aerodynamic model, and a component that calculates the instantaneous mass of the rocket by summing the water mass with the rocket's empty mass.
+The high level layout of this model is shown in below.
 
 <figure>
-  <img src="water_rocket_overview.svg"/>
+  <img src="figures/water_rocket_overview.svg"/>
   <figcaption>N2 diagram for the water rocket model</figcaption>
 </figure>
 
@@ -97,10 +80,10 @@ assumptions:
 2. The area inside the bottle is much smaller than the nozzle area
 3. The inertial forces do not affect the fluid dynamics inside the bottle
 
-This simplified modelling can be found in Prusa [@Prusa2000].  
-A more rigorous formulation, which drops all these simplifying assumptions can be found in [@Wheeler2002], [@Gommes2010], and [@BarrioPerotti2010].
+This simplified modelling can be found in Prusa[@Prusa2000].
+A more rigorous formulation, which drops all these simplifying assumptions can be found in Wheeler[@Wheeler2002], Gommes[@Gommes2010], and Barria-Perotti[@BarrioPerotti2010].
 
-The first assumption leads to an underestimation of the rocket performance, since the air left in the bottle after it is out of water is known to generate appreciable thrust [@Thorncroft2009].
+The first assumption leads to an underestimation of the rocket performance, since the air left in the bottle after it is out of water is known to generate appreciable thrust[@Thorncroft2009].
 This simplified model, however, produces physically meaningful results.
 
 There are two states in this dynamical model, the water volume in the rocket $V_w$ and the gauge pressure inside the rocket $p$.
@@ -115,7 +98,7 @@ The constitutive equations and the N2 diagram showing the model organization are
 | water_thrust           | $T = (\rho_w v_\text{out})(v_\text{out}A_\text{out})$       |
 
 <figure>
-  <img src="water_rocket_waterengine.svg"/>
+  <img src="figures/water_rocket_waterengine.svg"/>
   <figcaption>N2 diagram for the water engine group</figcaption>
 </figure>
 
@@ -176,26 +159,20 @@ include_docstring=True,
 indent_level=1)
 }}
 
-##  Phases
+## Phases
 
-The flight of the water rocket is split in three distinct phases:
-propelled ascent, ballistic ascent and ballistic descent.
-If the simplification of no thrust without water were lifted,
-there would be an extra "air propelled ascent" phase between
-the propelled ascent and ballistic ascent phases.
+The flight of the water rocket is split in three distinct phases: propelled ascent, ballistic ascent and ballistic descent.
+If the simplification of no thrust without water were lifted, there would be an extra "air propelled ascent" phase between the propelled ascent and ballistic ascent phases.
 
-**Propelled ascent:** is the flight phase where the rocket still has water
-inside, and hence it is producing thrust. The thrust is given by the water
-engine model, and fed into the flight dynamic equations. It starts at launch
-and finishes when the water is depleted, i.e. $V_w=0$.
+**Propelled ascent:** is the flight phase where the rocket still has water inside, and hence it is producing thrust.
+The thrust is given by the water engine model, and fed into the flight dynamic equations.
+It starts at launch and finishes when the water is depleted, i.e. $V_w=0$.
 
-**Ballistic ascent:** is the flight phase where the rocket is ascending
-($\gamma>0$) but produces no thrust. This phase begins at the end of the
-propelled ascent phase and ends at the apogee, defined by $\gamma=0$.
+**Ballistic ascent:** is the flight phase where the rocket is ascending ($\gamma>0$) but produces no thrust.
+This phase begins at the end of thepropelled ascent phase and ends at the apogee, defined by $\gamma=0$.
 
-**Descent:** is the phase where the rocket is descending without thrust. It
-begins at the end of the ballistic ascent phase and ends with ground impact,
-i.e. $h=0$.
+**Descent:** is the phase where the rocket is descending without thrust.
+It begins at the end of the ballistic ascent phase and ends with ground impact, i.e. $h=0$.
 
 === "Propelled Ascent"
 
@@ -228,34 +205,27 @@ The values used are shown in the following table.
 
 Values for parameters in the water rocket model
 
-|   Parameter        | Value                | Unit         | Reference                                      |
-|--------------------|----------------------|--------------|------------------------------------------------|
-| $C_D$              | 0.3450               | -            | :cite:BarrioPerotti2009                        |
-| $S$                | $\pi 106^2/4$        | $mm^2$       | :cite:BarrioPerotti2009                        |
-| $k$                | 1.2                  | -            | :cite:Thorncroft2009,Fischer2020,Romanelli2013 |
-| $A_\text{out}$     | $\pi22^2/4$          | $mm^2$       | :cite:aircommand_nozzle                        |
-| $V_b$              | 2                    | L            |                                                |
-| $\rho_w$           | 1000                 | $kg/m^3$     |                                                |
-| $p_0$              | 6.5                  | bar          |                                                |
-| $v_0$              | 0.1                  | $m/s$        |                                                |
-| $h_0$              | 0                    | $m$          |                                                |
-| $r_0$              | 0                    | $m$          |                                                |
+|   Parameter        | Value                | Unit         | Reference                                           |
+|--------------------|----------------------|--------------|-----------------------------------------------------|
+| $C_D$              | 0.3450               | -            | [@BarrioPerotti2009]                                |
+| $S$                | $\pi 106^2/4$        | $mm^2$       | [@BarrioPerotti2009]                                |
+| $k$                | 1.2                  | -            | [@Thorncroft2009] [@Fischer2020] [@Romanelli2013]   |
+| $A_\text{out}$     | $\pi22^2/4$          | $mm^2$       | [@aircommand_nozzle]                                |
+| $V_b$              | 2                    | L            |                                                     |
+| $\rho_w$           | 1000                 | $kg/m^3$     |                                                     |
+| $p_0$              | 6.5                  | bar          |                                                     |
+| $v_0$              | 0.1                  | $m/s$        |                                                     |
+| $h_0$              | 0                    | $m$          |                                                     |
+| $r_0$              | 0                    | $m$          |                                                     |
 
-Values for the bottle volume $V_b$, its cross-sectional area $S$
-and the nozzle area $A_\text{out}$ are determined by the soda bottle that
-makes the rocket primary structure, and thus are not easily modifiable by the
-designer.  The polytropic coefficient $k$ is a function of the moist air
-characteristics inside the rocket.  The initial speed $v_0$ must be set
-to a value higher than zero, otherwise the flight dynamic equations become
-singular.  This issue arises from the angular dynamics of the rocket not being
-modelled.  The drag coefficient $C_D$ is sensitive to the aerodynamic
-design, but can be optimized by a single discipline analysis.  The initial
-pressure $p_0$ should be maximized in order to obtain the maximum range
-or height for the rocket.  It is limited by the structural properties of the
-bottle, which are modifiable by the designer, since the bottle needs to be
-available commercially.  Finally, the starting point of the rocket is set to
-the origin.
-
+Values for the bottle volume $V_b$, its cross-sectional area $S$ and the nozzle area $A_\text{out}$ are determined by the soda bottle that makes the rocket primary structure, and thus are not easily modifiable by the designer.
+The polytropic coefficient $k$ is a function of the moist air characteristics inside the rocket.
+The initial speed $v_0$ must be set to a value higher than zero, otherwise the flight dynamic equations become singular.
+This issue arises from the angular dynamics of the rocket not being modelled.
+The drag coefficient $C_D$ is sensitive to the aerodynamic design, but can be optimized by a single discipline analysis.
+The initial pressure $p_0$ should be maximized in order to obtain the maximum range or height for the rocket.
+It is limited by the structural properties of the bottle, which are modifiable by the designer, since the bottle needs to be available commercially.
+Finally, the starting point of the rocket is set to the origin.
 
 ## Putting it all together
 
@@ -270,35 +240,51 @@ indent_level=0)
 }}
 
 
-Optimizing for height
----------------------
-.. embed-code::
-    dymos.examples.water_rocket.doc.test_doc_water_rocket.TestWaterRocketForDocs.test_water_rocket_height_for_docs
-    :layout: code, output, plot
+## Optimizing for height
+
+{{ embed_test('dymos.examples.water_rocket.doc.test_doc_water_rocket.TestWaterRocketForDocs.test_water_rocket_height_for_docs',  
+script_name='script', plot_alt_text='', plots=(1, 2, 3), plot_size=(640, 480)) }}
+
+## Optimizing for range
+
+{{ embed_test('dymos.examples.water_rocket.doc.test_doc_water_rocket.TestWaterRocketForDocs.test_water_rocket_range_for_docs',  
+script_name='script', plot_alt_text='', plots=(1, 2, 3), plot_size=(640, 480)) }}
 
 
-Optimizing for range
---------------------
-.. embed-code::
-    dymos.examples.water_rocket.doc.test_doc_water_rocket.TestWaterRocketForDocs.test_water_rocket_range_for_docs
-    :layout: code, output, plot
+##  Accessing the results
 
+=== "summarize_results"
 
-Accessing the results
----------------------
-.. literalinclude:: ../../examples/water_rocket/doc/test_doc_water_rocket.py
-    :pyobject: summarize_results
+{{ inline_source('dymos.examples.water_rocket.doc.test_doc_water_rocket.summarize_results',
+include_def=True,
+include_docstring=True,
+indent_level=1)
+}}
 
-.. literalinclude:: ../../examples/water_rocket/doc/test_doc_water_rocket.py
-    :pyobject: plot_propelled_ascent
+=== "plot_propelled_ascent"
 
-.. literalinclude:: ../../examples/water_rocket/doc/test_doc_water_rocket.py
-    :pyobject: plot_states
+{{ inline_source('dymos.examples.water_rocket.doc.test_doc_water_rocket.plot_propelled_ascent',
+include_def=True,
+include_docstring=True,
+indent_level=1)
+}}
 
-.. literalinclude:: ../../examples/water_rocket/doc/test_doc_water_rocket.py
-    :pyobject: plot_trajectory
+=== "plot_states"
 
+{{ inline_source('dymos.examples.water_rocket.doc.test_doc_water_rocket.plot_states',
+include_def=True,
+include_docstring=True,
+indent_level=1)
+}}
 
-References
-------------
+=== "plot_trajectory"
+
+{{ inline_source('dymos.examples.water_rocket.doc.test_doc_water_rocket.plot_trajectory',
+include_def=True,
+include_docstring=True,
+indent_level=1)
+}}
+
+## References
+
 \bibliography

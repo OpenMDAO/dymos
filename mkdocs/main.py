@@ -2,6 +2,7 @@ import base64
 import importlib
 import inspect
 import io
+import os
 import re
 import sys
 import textwrap
@@ -69,9 +70,7 @@ def define_env(env):
             hl_lines = ''
 
         result = f'```python{line_numbers}{hl_lines}\n{source}\n```'
-        if 'ascent_phase' in reference.lower():
-            print(reference)
-            print(textwrap.indent(result, indent))
+
         return textwrap.indent(result, indent)
 
     @env.macro
@@ -237,17 +236,20 @@ def define_env(env):
         print(textwrap.indent(text, '    '), file=ss)
         print('    ```', file=ss)
 
-        # Third tab for the plot
-        index = plots[0]
-        plot_file = test_dir.joinpath('_output').joinpath(f'{test_case}.{test_method}_{index}.png')
+        # Remaining tabs are for plots
 
-        with open(plot_file, 'rb') as f:
-            buf = io.BytesIO(f.read())
+        for index in range(1, 100):
+            plot_file = test_dir.joinpath('_output').joinpath(f'{test_case}.{test_method}_{index}.png')
+            if not os.path.exists(plot_file):
+                break
 
-        data = base64.b64encode(buf.getbuffer()).decode("ascii")
-        width, height = plot_size
-        print(f'=== "plot"\n', file=ss)
-        print(f'    <img alt="{plot_alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>', file=ss)
+            with open(plot_file, 'rb') as f:
+                buf = io.BytesIO(f.read())
+
+            data = base64.b64encode(buf.getbuffer()).decode("ascii")
+            width, height = plot_size
+            print(f'=== "plot {index}"\n', file=ss)
+            print(f'    <img alt="{plot_alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>\n', file=ss)
 
         return ss.getvalue()
 

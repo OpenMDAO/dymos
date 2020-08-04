@@ -3,33 +3,36 @@ from collections import namedtuple
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-# plt.switch_backend('Agg')
 
 import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.general_utils import set_pyoptsparse_opt
 
 from dymos.examples.water_rocket.phases import (new_water_rocket_trajectory,
                                                 set_sane_initial_guesses)
 
+from dymos.utils.doc_utils import save_for_docs
+
 
 class TestWaterRocketForDocs(unittest.TestCase):
 
+    # @save_for_docs
     def test_water_rocket_height_for_docs(self):
         p = om.Problem(model=om.Group())
 
         traj, phases = new_water_rocket_trajectory(objective='height')
         traj = p.model.add_subsystem('traj', traj)
 
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['maxiter'] = 1000
-        p.driver.options['tol'] = 5e-5
+        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=False)
+        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
+        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['max_iter'] = 1000
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.declare_coloring()
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
-        # p.driver.add_recorder(om.SqliteRecorder('ex_water_rocket.db'))
 
         p.setup()
         set_sane_initial_guesses(p, phases)
@@ -50,25 +53,27 @@ class TestWaterRocketForDocs(unittest.TestCase):
         plt.show()
 
         # Check results (tolerance is relative unless value is zero)
-        assert_near_equal(summary['Launch angle'].value, 90, .02)
-        assert_near_equal(summary['Flight angle at end of propulsion'].value, 90, .02)
+        assert_near_equal(summary['Launch angle'].value, 89, .02)
+        assert_near_equal(summary['Flight angle at end of propulsion'].value, 89, .02)
         assert_near_equal(summary['Empty mass'].value, 0.142878, 1e-3)
         assert_near_equal(summary['Water volume'].value, 0.870367, 1e-3)
         assert_near_equal(summary['Maximum range'].value, 0, 5)
         assert_near_equal(summary['Maximum height'].value, 54.603214, 1e-3)
         assert_near_equal(summary['Maximum velocity'].value, 47.259089, 1e-3)
 
+    # @save_for_docs
     def test_water_rocket_range_for_docs(self):
         p = om.Problem(model=om.Group())
 
         traj, phases = new_water_rocket_trajectory(objective='range')
         traj = p.model.add_subsystem('traj', traj)
 
-        p.driver = om.ScipyOptimizeDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
-        p.driver.options['maxiter'] = 1000
-        p.driver.options['tol'] = 5e-5
-        p.driver.declare_coloring()
+        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=False)
+        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
+        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['max_iter'] = 1000
+        p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
+        p.driver.declare_coloring(tol=1.0E-12)
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
@@ -93,13 +98,13 @@ class TestWaterRocketForDocs(unittest.TestCase):
         plt.show()
 
         # Check results (tolerance is relative unless value is zero)
-        assert_near_equal(summary['Launch angle'].value, 38.340175, 1e-3)
-        assert_near_equal(summary['Flight angle at end of propulsion'].value, 45.029174, 1e-3)
-        assert_near_equal(summary['Empty mass'].value, 0.186135, 1e-3)
-        assert_near_equal(summary['Water volume'].value, 0.904498, 1e-3)
-        assert_near_equal(summary['Maximum range'].value, 86.412652, 1e-3)
-        assert_near_equal(summary['Maximum height'].value, 23.51093, 1e-3)
-        assert_near_equal(summary['Maximum velocity'].value, 42.413171, 1e-3)
+        assert_near_equal(summary['Launch angle'].value, 46, 0.02)
+        assert_near_equal(summary['Flight angle at end of propulsion'].value, 38, 0.02)
+        assert_near_equal(summary['Empty mass'].value, 0.189, 1e-2)
+        assert_near_equal(summary['Water volume'].value, 1.026, 1e-2)
+        assert_near_equal(summary['Maximum range'].value, 85.11, 1e-2)
+        assert_near_equal(summary['Maximum height'].value, 23.08, 1e-2)
+        assert_near_equal(summary['Maximum velocity'].value, 41.31, 1e-2)
 
 
 def plot_trajectory(p, exp_out):
@@ -230,9 +235,9 @@ def summarize_results(water_rocket_problem):
     p = water_rocket_problem
     Entry = namedtuple('Entry', 'value unit')
     summary = {
-        'Launch angle': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[-1, 0], 'deg'),
+        'Launch angle': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[0, 0], 'deg'),
         'Flight angle at end of propulsion': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',
-                                                   units='deg')[0, 0], 'deg'),
+                                                   units='deg')[-1, 0], 'deg'),
         'Empty mass': Entry(p.get_val('traj.design_parameters:m_empty', units='kg')[0, 0], 'kg'),
         'Water volume': Entry(p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L')[0, 0], 'L'),
         'Maximum range': Entry(p.get_val('traj.descent.timeseries.states:r', units='m')[-1, 0], 'm'),
