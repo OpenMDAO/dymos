@@ -30,14 +30,14 @@ bibliography: paper.bib
 
 Dymos is an library for solving optimal-control type optimization problems. 
 It contains capabilities typical of optimal control software and can handle a wide range of typical optimal control problems.
-It's software design (built on top of NASA's OpenMDAO Framework [@Gray2019a] also allows users to tackle problems where the trajectory is not necessarily central to the optimization and where the system dynamics may include expensive, implicit calculations.
+Its software design (built on top of NASA's OpenMDAO Framework [@Gray2019a] also allows users to tackle problems where the trajectory is not necessarily central to the optimization and where the system dynamics may include expensive, implicit calculations.
 Implicit calculations may be present due to some calculation in the ODE, or more generally because the ODE is posed as a set of differential algebraic equations or differential inclusions [@Seywald1994].
 
 Support for implicit calculations gives users more freedom to pose dynamics in more natural ways, but typically causes numerical and computational cost challenges in an optimization context, especially when finite-differences are used to compute derivatives for the optimizer.
-Dymos employs analytic derivatives to overcome these challenges, and makes such methods computationally feasible.
+Dymos employs analytic derivatives to overcome these challenges and makes such methods computationally feasible.
 To achieve this, dymos makes extensive use of OpenMDAO's built in analytic derivative features, its non-linear solver library, and its support for gradient-based optimization.
 
-Dymos can be used stand-alone, or as a building block in a larger model where a significant portion of the optimization is focused some non-controls aspect, with a trajectory added to enforce some constraint upon the design.
+Dymos can be used stand-alone, or as a building block in a larger model where a significant portion of the optimization is focused on some non-controls aspect with a trajectory added to enforce some constraint upon the design.
 In some contexts, you may hear this kind of problem referred to as co-design, controls-co-design, or multidisciplinary design optimization.
 
 ## The dymos perspective on optimal control
@@ -48,7 +48,7 @@ In addition to typical collocated dynamic control variables, dymos offers the ab
 Dymos is primarily focused on an implicit pseudospectral approach to optimal-control. 
 It leverages two common direct collocation transcriptions: the high-order Gauss-Lobatto transcription [@Herman1996] and the Radau pseudospectral method [@Garg2009].
 Dymos also provides explicit forms of both of these transcriptions, which provides a single or multiple-shooting approach.
-All of these transcriptions are implemented in a way that is independent of the ODE implementation, nearly transparent to the user, and requiring very minor code changes - typically a single line in the run-script.
+All of these transcriptions are implemented in a way that is independent of the ODE implementation, nearly transparent to the user, and requires very minor code changes - typically a single line in the run-script.
 ODE's are implemented as standard OpenMDAO systems which are passed to phases at instantiation time with some additional annotations to identify the states, state-rates, and control inputs.
 
 Dymos does not ship with its own built in optimizer. 
@@ -67,7 +67,7 @@ Dymos works around this problem by leveraging OpenMDAO's support for adjoint (re
 
 Another use case for nonlinear solvers is to enable the inclusion of implicit nonlinear analyses inside the ODE itself.
 The implicit analysis could arise due to the need for some high fidelity physics model (e.g. a vortex lattice method for aerodynamic performance prediction) or from the formulation of a differential inclusion approach.
-Again, in these cases the nonlinear solver would normally present numerical and computational challenges for an optimizer but the use of analytic derivatives mitigates this issue. 
+Again, in these cases the nonlinear solver would normally present numerical and computational challenges for an optimizer, but the use of analytic derivatives mitigates this issue.
 
 ## Selected applications of dymos
 
