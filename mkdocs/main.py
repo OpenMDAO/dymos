@@ -61,8 +61,6 @@ def define_env(env):
 
         indent = indent_level * '    '
 
-        source = textwrap.indent(source, indent)
-
         line_numbers = ' linenums="1"' if show_line_numbers else ''
 
         if highlight_lines is not None:
@@ -70,8 +68,10 @@ def define_env(env):
         else:
             hl_lines = ''
 
-        result = f'```python{line_numbers}{hl_lines}\n{source}\n{indent}```'
-
+        result = f'```python{line_numbers}{hl_lines}\n{source}\n```'
+        if 'ascent_phase' in reference.lower():
+            print(reference)
+            print(textwrap.indent(result, indent))
         return textwrap.indent(result, indent)
 
     @env.macro

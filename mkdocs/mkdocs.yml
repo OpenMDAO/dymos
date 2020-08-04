@@ -56,6 +56,7 @@ nav:
             - 'examples/ssto_earth/ssto_earth.md'
             - 'examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent.md'
             - 'examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.md'
+            - 'examples/water_rocket/water_rocket.md'
     - 'Feature Reference':
         - 'Phases':
             - 'features/phases/phases.md'
