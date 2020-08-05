@@ -14,6 +14,7 @@ Dymos by Example
   finite_burn_orbit_raise
   min_time_climb
   multi_phase_cannonball
+  water_rocket
   multibranch_trajectory
   reentry
   ssto_earth
