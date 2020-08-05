@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 
 setup(name='dymos',
-    version='0.15.0',
+    version='0.15.1-dev',
     description='Open-Source Optimization of Dynamic Multidisciplinary Systems',
     url='https://github.com/OpenMDAO/dymos',
     classifiers=[
