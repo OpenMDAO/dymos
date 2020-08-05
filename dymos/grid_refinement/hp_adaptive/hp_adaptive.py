@@ -360,15 +360,26 @@ class HPAdaptive:
             # Segments which should be checked for combining
             # Only segments where adjacent segments are also below error tolerance may be combined
             # Segments must be same order
-            check_comb_indx = np.where(np.logical_and(np.logical_and(np.invert(need_refine[:-1]),
+            check_comb_indx = np.where(np.logical_and(np.logical_and(np.logical_and(np.invert(need_refine[:-1]),
                                                                      np.invert(need_refine[1:])),
-                                                      new_order[:-1] == new_order[1:]))[0]
+                                                      new_order[:-1] == new_order[1:]),
+                                                      new_order[:-1] == phase.refine_options['min_order']))[0]
 
             # segments under error tolerance but may not be combined have their order reduced
             reduce_order_indx = np.setdiff1d(np.where(np.invert(need_refine)), check_comb_indx)
 
             # reduce segment order where error is much below the tolerance
             if reduce_order_indx.size > 0:
+                # compute normalization factor beta
+                beta = {}
+                for state_name, options in phase.state_options.items():
+                    beta[state_name] = 0
+                    for k in np.nditer(reduce_order_indx):
+                        beta_seg = np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
+                        if beta_seg > beta[state_name]:
+                            beta[state_name] = beta_seg
+                    beta[state_name] += 1
+
                 for k in np.nditer(reduce_order_indx):
                     new_order[k] = seg_order[k]
                     a = np.zeros((seg_order[k] + 1, seg_order[k] + 1))
@@ -381,12 +392,13 @@ class HPAdaptive:
                         a[:, j] = Q / np.polyval(Q, s[j])
 
                     for state_name, options in phase.state_options.items():
-                        beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                         b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
-                        for i in range(seg_order[k] - 1, 1, -1):
-                            if b[i] / beta > phase.refine_options['tolerance'] and i - 1 < new_order[k]:
+                        for i in range(seg_order[k] - 1, phase.refine_options['min_order'], -1):
+                            if b[i] / beta[state_name] > phase.refine_options['tolerance'] and i - 1 < new_order[k]:
                                 new_order[k] = i - 1
+
+                    # exit(0)
 
             # combine unnecessary segments
             if check_comb_indx.size > 0:
@@ -529,9 +541,10 @@ class HPAdaptive:
             split_seg_idxs = np.concatenate([np.where(new_order > phase.refine_options['max_order'])[0],
                                              non_smooth_idxs])
 
-            check_comb_indx = np.where(np.logical_and(np.logical_and(np.invert(need_refine[:-1]),
-                                                                     np.invert(need_refine[1:])),
-                                                      new_order[:-1] == new_order[1:]))[0]
+            check_comb_indx = np.where(np.logical_and(np.logical_and(np.logical_and(np.invert(need_refine[:-1]),
+                                                                                    np.invert(need_refine[1:])),
+                                                                     new_order[:-1] == new_order[1:]),
+                                                      new_order[:-1] == phase.refine_options['min_order']))[0]
 
             reduce_order_indx = np.setdiff1d(np.where(np.invert(need_refine)), check_comb_indx)
 
@@ -553,10 +566,18 @@ class HPAdaptive:
                     seg_order[split_seg_idxs])))
 
             # reduce segment order where error is much below the tolerance
-            if len(list(reduce_order_indx)) != 0:
+            if reduce_order_indx.size > 0:
+                # compute normalization factor beta
+                beta = {}
+                for state_name, options in phase.state_options.items():
+                    beta[state_name] = 0
+                    for k in np.nditer(reduce_order_indx):
+                        beta_seg = np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
+                        if beta_seg > beta[state_name]:
+                            beta[state_name] = beta_seg
+                    beta[state_name] += 1
+
                 for k in np.nditer(reduce_order_indx):
-                    if seg_order[k] == 1:
-                        continue
                     new_order[k] = seg_order[k]
                     a = np.zeros((seg_order[k] + 1, seg_order[k] + 1))
                     s, _ = lgr(seg_order[k], include_endpoint=True)
@@ -566,17 +587,17 @@ class HPAdaptive:
                         roots = s[s != s[j]]
                         Q = np.poly(roots)
                         a[:, j] = Q / np.polyval(Q, s[j])
+
                     for state_name, options in phase.state_options.items():
-                        beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                         b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
-                        for i in range(seg_order[k] - 1, 1, -1):
-                            if b[i] / beta > phase.refine_options['tolerance'] and i - 1 < new_order[k]:
+                        for i in range(seg_order[k] - 1, phase.refine_options['min_order'], -1):
+                            if b[i] / beta[state_name] > phase.refine_options['tolerance'] and i - 1 < new_order[k]:
                                 new_order[k] = i - 1
 
             # combine unnecessary segments
             merge_seg = np.zeros(numseg, dtype=bool)
-            if len(list(check_comb_indx)) != 0:
+            if check_comb_indx.size > 0:
                 for k in np.nditer(check_comb_indx):
                     a = np.zeros((new_order[k] + 1, new_order[k] + 1))
                     h_ = np.maximum(h[k], h[k + 1])
@@ -840,18 +861,3 @@ class HPAdaptive:
             is_refined = True if np.any(refine_data['need_refinement']) and refine_options['refine'] else False
             print(f'        Refined: {is_refined}', file=f)
             print(file=f)
-
-        def create_parent_map(old_seg_ends, new_seg_ends, old_numseg, new_numseg):
-            # Don't check first segment since parent segment will always be first segment of previous iteration
-            for i in range(1, new_numseg):
-                for j in range(1, old_numseg):
-                    if new_seg_ends[i] == old_seg_ends[j]:
-                        self.parent_seg_map[phase_path][i] = j
-                        break
-                    elif old_seg_ends[j-1] < new_seg_ends[i] < old_seg_ends[j]:
-                        self.parent_seg_map[phase_path][i] = j-1
-                        break
-            print(self.parent_seg_map[phase_path])
-            exit(0)
-
-
