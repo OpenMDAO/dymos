@@ -374,8 +374,8 @@ class HPAdaptive:
                 beta = {}
                 for state_name, options in phase.state_options.items():
                     beta[state_name] = 0
-                    for k in np.nditer(reduce_order_indx):
-                        beta_seg = np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
+                    for k in range(0, numseg):
+                        beta_seg = np.max(np.abs(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))
                         if beta_seg > beta[state_name]:
                             beta[state_name] = beta_seg
                     beta[state_name] += 1
@@ -394,8 +394,8 @@ class HPAdaptive:
                     for state_name, options in phase.state_options.items():
                         b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
-                        for i in range(seg_order[k] - 1, phase.refine_options['min_order'], -1):
-                            if b[i] / beta[state_name] > phase.refine_options['tolerance'] and i - 1 < new_order[k]:
+                        for i in range(seg_order[k], phase.refine_options['min_order'], -1):
+                            if np.abs(b[i]) / beta[state_name] < phase.refine_options['tolerance'] and i - 1 < new_order[k]:
                                 new_order[k] = i - 1
 
                     # exit(0)
@@ -571,8 +571,8 @@ class HPAdaptive:
                 beta = {}
                 for state_name, options in phase.state_options.items():
                     beta[state_name] = 0
-                    for k in np.nditer(reduce_order_indx):
-                        beta_seg = np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
+                    for k in range(0, numseg):
+                        beta_seg = np.max(np.abs(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))
                         if beta_seg > beta[state_name]:
                             beta[state_name] = beta_seg
                     beta[state_name] += 1
@@ -591,8 +591,8 @@ class HPAdaptive:
                     for state_name, options in phase.state_options.items():
                         b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
-                        for i in range(seg_order[k] - 1, phase.refine_options['min_order'], -1):
-                            if b[i] / beta[state_name] > phase.refine_options['tolerance'] and i - 1 < new_order[k]:
+                        for i in range(seg_order[k], phase.refine_options['min_order'], -1):
+                            if np.abs(b[i]) / beta[state_name] < phase.refine_options['tolerance'] and i - 1 < new_order[k]:
                                 new_order[k] = i - 1
 
             # combine unnecessary segments
