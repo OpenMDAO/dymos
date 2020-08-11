@@ -1807,20 +1807,23 @@ class Phase(om.Group):
 
         return sim_phase
 
-    def initialize_values_from_phase(self, prob, from_phase):
+    def initialize_values_from_phase(self, prob, from_phase, phase_path=''):
         """
         Initializes values in the Phase using the phase from which it was created.
 
         Parameters
         ----------
         prob : Problem
-            The problem instance under used to set values in this phase instance.
+            The problem instance to set values taken from the from_phase instance.
         from_phase : Phase
             The Phase instance from which the values in this phase are being initialized.
+        phase_path : str
+            The pathname of the system in prob that contains the phases.
         """
         phs = from_phase
 
         op_dict = dict([(name, options) for (name, options) in phs.list_outputs(units=True,
+                                                                                list_autoivcs=True,
                                                                                 out_stream=None)])
         ip_dict = dict([(name, options) for (name, options) in phs.list_inputs(units=True,
                                                                                out_stream=None)])
@@ -1863,9 +1866,20 @@ class Phase(om.Group):
                 prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
 
         # Assign design parameter values
+        meta = phs._problem_meta
+        prom2abs = meta['prom2abs']
+        conns = meta['connections']
+        pname = '{0}design_parameters:{1}'
         for name in phs.design_parameter_options:
-            op = op_dict['{0}design_params.design_parameters:{1}'.format(phs_path, name)]
-            prob['{0}design_parameters:{1}'.format(self_path, name)][...] = op['value']
+            prom_phs_path = pname.format(phs_path.replace('.phases.', '.'), name)
+            abs_in = prom2abs['input'][prom_phs_path][0]
+            src = conns[abs_in]
+            val = phs._abs_get_val(src, False, None, 'nonlinear', 'output', False, from_root=True)
+            if phase_path:
+                prob_path = '{0}.{1}.design_parameters:{2}'.format(phase_path, self.name, name)
+            else:
+                prob_path = '{0}.design_parameters:{1}'.format(self.name, name)
+            prob[prob_path][...] = val
 
         # Assign input parameter values
         for name in phs.input_parameter_options:

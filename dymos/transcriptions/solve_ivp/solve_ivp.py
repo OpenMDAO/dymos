@@ -287,13 +287,6 @@ class SolveIVP(TranscriptionBase):
                     targets = [targets]
                 phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
 
-    def setup_design_parameters(self, phase):
-        super(SolveIVP, self).setup_design_parameters(phase)
-        num_seg = self.grid_data.num_segments
-        for name, options in phase.design_parameter_options.items():
-            phase.connect('design_parameters:{0}'.format(name),
-                          ['segment_{0}.design_parameters:{1}'.format(iseg, name) for iseg in range(num_seg)])
-
     def setup_input_parameters(self, phase):
         super(SolveIVP, self).setup_input_parameters(phase)
         num_seg = self.grid_data.num_segments
@@ -416,6 +409,7 @@ class SolveIVP(TranscriptionBase):
                                                                         time_units,
                                                                         deriv=2))
 
+        num_seg = self.grid_data.num_segments
         for name, options in phase.design_parameter_options.items():
             if options['include_timeseries']:
                 units = options['units']
@@ -423,6 +417,11 @@ class SolveIVP(TranscriptionBase):
                                                        var_class=phase.classify_var(name),
                                                        shape=options['shape'],
                                                        units=units)
+
+            for iseg in range(num_seg):
+                target_name = 'segment_{0}.design_parameters:{1}'.format(iseg, name)
+                prom_name = 'design_parameters:{0}'.format(name)
+                phase.promotes('segments', inputs=[(target_name, prom_name)])
 
         for name, options in phase.input_parameter_options.items():
             if options['include_timeseries']:
@@ -499,9 +498,10 @@ class SolveIVP(TranscriptionBase):
                     src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-                phase.connect(src_name='design_parameters:{0}'.format(name),
-                              tgt_name='timeseries.all_values:design_parameters:{0}'.format(name),
-                              src_indices=src_idxs, flat_src_indices=True)
+                prom_name = 'design_parameters:{0}'.format(name)
+                tgt_name = 'all_values:design_parameters:{0}'.format(name)
+                phase.promotes('timeseries', inputs=[(tgt_name, prom_name)],
+                               src_indices=src_idxs, flat_src_indices=True)
 
         for name, options in phase.input_parameter_options.items():
             if options['include_timeseries']:
