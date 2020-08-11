@@ -4,7 +4,9 @@ import openmdao.api as om
 import dymos as dm
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
+from openmdao.utils.assert_utils import assert_near_equal
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+
 
 class TestPhaseParameterPromotion(unittest.TestCase):
 
@@ -74,6 +76,8 @@ class TestPhaseParameterPromotion(unittest.TestCase):
         p['traj.input_parameters:g'] = 9.80665
 
         p.run_driver()
+
+        assert_near_equal(p['traj.t_duration'], 1.8016, tolerance=1.0E-4)
 
 
 if __name__ == '__main__':
