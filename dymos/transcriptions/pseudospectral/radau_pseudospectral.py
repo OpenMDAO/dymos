@@ -511,9 +511,14 @@ class Radau(PseudospectralBase):
                     prom_name = 'design_parameters:{0}'.format(param_name)
                     tgt_name = 'input_values:design_parameters:{0}'.format(param_name)
 
-                    # Get the design var's real units.
                     rhs = phase._get_subsystem('rhs_all')
-                    abs_param = rhs._var_allprocs_prom2abs_list['input'][param_name]
+                    if options['targets']:
+                        prom_param = options['targets'][0]
+                    else:
+                        prom_param = param_name
+
+                    # Get the design var's real units.
+                    abs_param = rhs._var_allprocs_prom2abs_list['input'][prom_param]
                     units = rhs._var_abs2meta[abs_param[0]]['units']
 
                     # Add output.

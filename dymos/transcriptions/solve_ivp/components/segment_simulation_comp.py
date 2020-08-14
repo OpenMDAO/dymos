@@ -186,8 +186,6 @@ class SegmentSimulationComp(om.ExplicitComponent):
                                units=units,
                                desc='values of design parameter {0}.'.format(name))
 
-
-
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         idx = self.options['index']
         gd = self.options['grid_data']

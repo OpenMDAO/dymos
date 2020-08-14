@@ -478,15 +478,20 @@ class SolveIVP(TranscriptionBase):
 
         param_units = {}
         for name, options in phase.design_parameter_options.items():
+            prom_name = 'design_parameters:{0}'.format(name)
+
+            rhs = phase._get_subsystem('ode')
+            if options['targets']:
+                prom_param = options['targets'][0]
+            else:
+                prom_param = name
+
+            # Get the design var's real units.
+            abs_param = rhs._var_allprocs_prom2abs_list['input'][prom_param]
+            units = rhs._var_abs2meta[abs_param[0]]['units']
+            param_units[name] = units
+
             if options['include_timeseries']:
-                prom_name = 'design_parameters:{0}'.format(name)
-
-                # Get the design var's real units.
-                rhs = phase._get_subsystem('ode')
-                abs_param = rhs._var_allprocs_prom2abs_list['input'][name]
-                units = rhs._var_abs2meta[abs_param[0]]['units']
-                param_units[name] = units
-
                 timeseries_comp = phase._get_subsystem('timeseries')
                 timeseries_comp._add_output_configure(prom_name,
                                                       desc='',
