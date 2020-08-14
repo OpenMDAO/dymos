@@ -2,6 +2,7 @@ import base64
 import importlib
 import inspect
 import io
+import os
 import re
 import sys
 import textwrap
@@ -61,8 +62,6 @@ def define_env(env):
 
         indent = indent_level * '    '
 
-        source = textwrap.indent(source, indent)
-
         line_numbers = ' linenums="1"' if show_line_numbers else ''
 
         if highlight_lines is not None:
@@ -70,7 +69,7 @@ def define_env(env):
         else:
             hl_lines = ''
 
-        result = f'```python{line_numbers}{hl_lines}\n{source}\n{indent}```'
+        result = f'```python{line_numbers}{hl_lines}\n{source}\n```'
 
         return textwrap.indent(result, indent)
 
@@ -237,22 +236,25 @@ def define_env(env):
         print(textwrap.indent(text, '    '), file=ss)
         print('    ```', file=ss)
 
-        # Third tab for the plot
-        index = plots[0]
-        plot_file = test_dir.joinpath('_output').joinpath(f'{test_case}.{test_method}_{index}.png')
+        # Remaining tabs are for plots
 
-        with open(plot_file, 'rb') as f:
-            buf = io.BytesIO(f.read())
+        for index in range(1, 100):
+            plot_file = test_dir.joinpath('_output').joinpath(f'{test_case}.{test_method}_{index}.png')
+            if not os.path.exists(plot_file):
+                break
 
-        data = base64.b64encode(buf.getbuffer()).decode("ascii")
-        width, height = plot_size
-        print(f'=== "plot"\n', file=ss)
-        print(f'    <img alt="{plot_alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>', file=ss)
+            with open(plot_file, 'rb') as f:
+                buf = io.BytesIO(f.read())
+
+            data = base64.b64encode(buf.getbuffer()).decode("ascii")
+            width, height = plot_size
+            print(f'=== "plot {index}"\n', file=ss)
+            print(f'    <img alt="{plot_alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>\n', file=ss)
 
         return ss.getvalue()
 
     @env.macro
-    def embed_options(reference):
+    def embed_options(reference, title=''):
         """
         Macro to embed an OpenMDAO OptionsDictionary in mkdocs.
 
@@ -260,6 +262,8 @@ def define_env(env):
         ----------
         reference : str
             The dotted path to the options dictionary class or instance being documented.
+        title : str
+            The title provided above the options table.
 
         Returns
         -------
@@ -277,7 +281,7 @@ def define_env(env):
         else:
             return f'Invalid OptionsDictionary: {reference}'
 
-        return _options_dict_to_markdown(od)
+        return f'{title}\n{_options_dict_to_markdown(od)}'
 
     @env.macro
     def doc_env():

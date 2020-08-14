@@ -27,7 +27,10 @@ class tee:
     def __del__(self):
         for f in self._files:
             if f != sys.stdout and f != sys.stderr:
-                f.close()
+                try:
+                    f.close()
+                except:
+                    pass
 
     def getvalue(self):
         """
