@@ -780,16 +780,15 @@ class Trajectory(om.Group):
 
         # Assign trajectory design parameter values
         for name, options in self.design_parameter_options.items():
-            op = traj_op_dict['{0}.design_params.design_parameters:{1}'.format(self.pathname, name)]
+            op = traj_op_dict[f'design_params.design_parameters:{name}']
             var_name = '{0}.design_parameters:{1}'.format(self.name, name)
             sim_prob[var_name] = op['value'][0, ...]
 
         # Assign trajectory input parameter values
         for name, options in self.input_parameter_options.items():
-                op = traj_op_dict['{0}.input_params.input_parameters:{1}_out'.format(self.pathname,
-                                                                                     name)]
-                var_name = '{0}.input_parameters:{1}'.format(self.name, name)
-                sim_prob[var_name] = op['value'][0, ...]
+            op = traj_op_dict[f'input_params.input_parameters:{name}_out']
+            var_name = '{0}.input_parameters:{1}'.format(self.name, name)
+            sim_prob[var_name] = op['value'][0, ...]
 
         for phase_name, phs in sim_traj._phases.items():
             phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],

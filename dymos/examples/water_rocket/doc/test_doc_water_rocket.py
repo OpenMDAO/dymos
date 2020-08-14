@@ -24,11 +24,11 @@ class TestWaterRocketForDocs(unittest.TestCase):
         traj, phases = new_water_rocket_trajectory(objective='height')
         traj = p.model.add_subsystem('traj', traj)
 
-        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=False)
-        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        p.driver.opt_settings['print_level'] = 5
-        p.driver.opt_settings['max_iter'] = 1000
-        p.driver.declare_coloring()
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver.options['maxiter'] = 1000
+        p.driver.options['tol'] = 5e-5
+        p.driver.declare_coloring(tol=1.0E-12)
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
