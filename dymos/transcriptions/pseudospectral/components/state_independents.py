@@ -53,7 +53,7 @@ class StateIndependentsComp(om.ImplicitComponent):
 
                 if not options['fix_initial'] and not options['fix_final'] and \
                    not options['connected_initial']:
-                    raise ValueError('Must have either fix_initial" and "fix_final" turned on '
+                    raise ValueError('Must have either "fix_initial" or "fix_final" turned on '
                                      'with solver base collocation')
 
                 if options['fix_initial'] or options['connected_initial']:
