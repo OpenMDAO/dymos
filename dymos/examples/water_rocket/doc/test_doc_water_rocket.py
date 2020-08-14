@@ -25,7 +25,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
         p.driver.options['optimizer'] = 'SLSQP'
         p.driver.options['maxiter'] = 1000
         p.driver.options['tol'] = 5e-5
-        p.driver.declare_coloring()
+        p.driver.declare_coloring(tol=1.0E-12)
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
