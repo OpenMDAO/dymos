@@ -409,20 +409,6 @@ class SolveIVP(TranscriptionBase):
                                                                         time_units,
                                                                         deriv=2))
 
-        num_seg = self.grid_data.num_segments
-        for name, options in phase.design_parameter_options.items():
-            if options['include_timeseries']:
-                units = options['units']
-                timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(name),
-                                                       var_class=phase.classify_var(name),
-                                                       shape=options['shape'],
-                                                       units=units)
-
-            for iseg in range(num_seg):
-                target_name = 'segment_{0}.design_parameters:{1}'.format(iseg, name)
-                prom_name = 'design_parameters:{0}'.format(name)
-                phase.promotes('segments', inputs=[(target_name, prom_name)])
-
         for name, options in phase.input_parameter_options.items():
             if options['include_timeseries']:
                 units = options['units']
@@ -490,18 +476,42 @@ class SolveIVP(TranscriptionBase):
                           tgt_name='timeseries.all_values:polynomial_control_rates'
                                    ':{0}_rate2'.format(name))
 
+        param_units = {}
         for name, options in phase.design_parameter_options.items():
             if options['include_timeseries']:
+                prom_name = 'design_parameters:{0}'.format(name)
+
+                # Get the design var's real units.
+                rhs = phase._get_subsystem('ode')
+                abs_param = rhs._var_allprocs_prom2abs_list['input'][name]
+                units = rhs._var_abs2meta[abs_param[0]]['units']
+                param_units[name] = units
+
+                timeseries_comp = phase._get_subsystem('timeseries')
+                timeseries_comp._add_output_configure(prom_name,
+                                                      desc='',
+                                                      shape=options['shape'],
+                                                      units=units)
+
+                for iseg in range(num_seg):
+                    target_name = 'segment_{0}.design_parameters:{1}'.format(iseg, name)
+                    phase.promotes('segments', inputs=[(target_name, prom_name)])
+
                 if output_nodes_per_seg is None:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                 else:
                     src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-                prom_name = 'design_parameters:{0}'.format(name)
                 tgt_name = 'all_values:design_parameters:{0}'.format(name)
                 phase.promotes('timeseries', inputs=[(tgt_name, prom_name)],
                                src_indices=src_idxs, flat_src_indices=True)
+
+        # We also need to take care of the segments.
+        segs = phase._get_subsystem('segments')
+        for i in range(num_seg):
+            seg_comp = segs._get_subsystem('segment_{0}'.format(i))
+            seg_comp.add_design_parameters(param_units)
 
         for name, options in phase.input_parameter_options.items():
             if options['include_timeseries']:

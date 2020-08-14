@@ -1836,33 +1836,33 @@ class Phase(om.Group):
             self_path = self.pathname.split('.')[0] + '.' + self.name + '.'
 
         # Set the integration times
-        op = op_dict['{0}timeseries.time'.format(phs_path)]
+        op = op_dict['timeseries.time']
         prob.set_val('{0}t_initial'.format(self_path), op['value'][0, ...])
         prob.set_val('{0}t_duration'.format(self_path), op['value'][-1, ...] - op['value'][0, ...])
 
         # Assign initial state values
         for name in phs.state_options:
-            op = op_dict['{0}timeseries.states:{1}'.format(phs_path, name)]
+            op = op_dict['timeseries.states:{0}'.format(name)]
             prob['{0}initial_states:{1}'.format(self_path, name)][...] = op['value'][0, ...]
 
         # Assign control values
         for name, options in phs.control_options.items():
             if options['opt']:
-                op = op_dict['{0}control_group.indep_controls.controls:{1}'.format(phs_path, name)]
+                op = op_dict['control_group.indep_controls.controls:{0}'.format(name)]
                 prob['{0}controls:{1}'.format(self_path, name)][...] = op['value']
             else:
-                ip = ip_dict['{0}control_group.control_interp_comp.controls:{1}'.format(phs_path, name)]
+                ip = ip_dict['control_group.control_interp_comp.controls:{0}'.format(name)]
                 prob['{0}controls:{1}'.format(self_path, name)][...] = ip['value']
 
         # Assign polynomial control values
         for name, options in phs.polynomial_control_options.items():
             if options['opt']:
-                op = op_dict['{0}polynomial_control_group.indep_polynomial_controls.'
-                             'polynomial_controls:{1}'.format(phs_path, name)]
+                op = op_dict['polynomial_control_group.indep_polynomial_controls.'
+                             'polynomial_controls:{0}'.format(name)]
                 prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = op['value']
             else:
-                ip = ip_dict['{0}polynomial_control_group.interp_comp.'
-                             'polynomial_controls:{1}'.format(phs_path, name)]
+                ip = ip_dict['polynomial_control_group.interp_comp.'
+                             'polynomial_controls:{0}'.format(name)]
                 prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
 
         # Assign design parameter values
@@ -1883,7 +1883,7 @@ class Phase(om.Group):
 
         # Assign input parameter values
         for name in phs.input_parameter_options:
-            op = op_dict['{0}input_params.input_parameters:{1}_out'.format(phs_path, name)]
+            op = op_dict['input_params.input_parameters:{0}_out'.format(name)]
             prob['{0}input_parameters:{1}'.format(self_path, name)][...] = op['value']
 
     def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9,

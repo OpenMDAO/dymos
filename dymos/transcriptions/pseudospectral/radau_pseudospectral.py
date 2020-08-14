@@ -422,13 +422,7 @@ class Radau(PseudospectralBase):
                                                                             time_units,
                                                                             deriv=2))
 
-            for param_name, options in phase.design_parameter_options.items():
-                if options['include_timeseries']:
-                    units = options['units']
-                    timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(param_name),
-                                                           var_class=phase.classify_var(param_name),
-                                                           shape=options['shape'],
-                                                           units=units)
+            # Design parameters are delayed until configure so that we can query the units.
 
             for param_name, options in phase.input_parameter_options.items():
                 if options['include_timeseries']:
@@ -514,11 +508,24 @@ class Radau(PseudospectralBase):
 
             for param_name, options in phase.design_parameter_options.items():
                 if options['include_timeseries']:
+                    prom_name = 'design_parameters:{0}'.format(param_name)
+                    tgt_name = 'input_values:design_parameters:{0}'.format(param_name)
+
+                    # Get the design var's real units.
+                    rhs = phase._get_subsystem('rhs_all')
+                    abs_param = rhs._var_allprocs_prom2abs_list['input'][param_name]
+                    units = rhs._var_abs2meta[abs_param[0]]['units']
+
+                    # Add output.
+                    timeseries_comp = phase._get_subsystem(name)
+                    timeseries_comp._add_output_configure(prom_name,
+                                                          desc='',
+                                                          shape=options['shape'],
+                                                          units=units)
+
                     src_idxs_raw = np.zeros(gd.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-                    prom_name = 'design_parameters:{0}'.format(param_name)
-                    tgt_name = 'input_values:design_parameters:{0}'.format(param_name)
                     phase.promotes(name, inputs=[(tgt_name, prom_name)],
                                    src_indices=src_idxs, flat_src_indices=True)
 
