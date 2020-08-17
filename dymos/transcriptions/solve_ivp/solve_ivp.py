@@ -5,7 +5,7 @@ from ..transcription_base import TranscriptionBase
 from .components import SegmentSimulationComp, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
 from ..common import TimeComp
-from ...utils.misc import get_rate_units
+from ...utils.misc import get_rate_units, _unspecified
 from ...utils.indexing import get_src_indices_by_row
 
 
@@ -129,6 +129,7 @@ class SolveIVP(TranscriptionBase):
 
     def configure_states(self, phase):
         num_seg = self.grid_data.num_segments
+        ode_inputs = phase.ode.list_inputs(out_stream=None, units=True, shape=True, values=False)
 
         for state_name, options in phase.state_options.items():
             # Connect the initial state to the first segment
@@ -141,7 +142,17 @@ class SolveIVP(TranscriptionBase):
             phase.connect('segment_0.states:{0}'.format(state_name),
                           'state_mux_comp.segment_0_states:{0}'.format(state_name))
 
-            if options['targets']:
+            if options['targets'] is _unspecified:
+                if state_name in ode_inputs:
+                    targets = [state_name]
+                else:
+                    targets = []
+            elif options['targets']:
+                targets = options['targets']
+            else:
+                targets = []
+
+            if targets:
                 phase.connect('state_mux_comp.states:{0}'.format(state_name),
                               ['ode.{0}'.format(t) for t in options['targets']])
 

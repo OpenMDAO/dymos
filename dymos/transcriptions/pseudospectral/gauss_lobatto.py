@@ -4,7 +4,7 @@ from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
 from ..common import PathConstraintComp, PseudospectralTimeseriesOutputComp, \
     GaussLobattoContinuityComp
-from ...utils.misc import get_rate_units
+from ...utils.misc import get_rate_units, get_state_targets
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
 
@@ -195,12 +195,14 @@ class GaussLobatto(PseudospectralBase):
                 """ Flat state variable is passed as 1D data."""
                 src_idxs = src_idxs.ravel()
 
-            if options['targets']:
+            targets = get_state_targets(ode=phase.rhs_disc, state_name=name, state_options=options)
+
+            if targets:
                 phase.connect('states:{0}'.format(name),
-                              ['rhs_disc.{0}'.format(tgt) for tgt in options['targets']],
+                              ['rhs_disc.{0}'.format(tgt) for tgt in targets],
                               src_indices=src_idxs, flat_src_indices=True)
                 phase.connect('state_interp.state_col:{0}'.format(name),
-                              ['rhs_col.{0}'.format(tgt) for tgt in options['targets']])
+                              ['rhs_col.{0}'.format(tgt) for tgt in targets])
 
             rate_path, disc_src_idxs = self.get_rate_source_path(name, nodes='state_disc', phase=phase)
 
