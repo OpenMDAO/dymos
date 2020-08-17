@@ -40,12 +40,12 @@ class FlightPathEOM2D(om.ExplicitComponent):
 
         self.add_input(name='L',
                        val=np.zeros(nn),
-                       desc='drag',
+                       desc='lift force',
                        units='N')
 
         self.add_input(name='D',
                        val=np.zeros(nn),
-                       desc='drag',
+                       desc='drag force',
                        units='N')
 
         self.add_input(name='gam',
