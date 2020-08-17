@@ -1833,44 +1833,44 @@ class Phase(om.Group):
             self_path = self.pathname.split('.')[0] + '.' + self.name + '.'
 
         # Set the integration times
-        op = op_dict['{0}timeseries.time'.format(phs_path)]
-        prob.set_val('{0}t_initial'.format(self_path), op['value'][0, ...])
-        prob.set_val('{0}t_duration'.format(self_path), op['value'][-1, ...] - op['value'][0, ...])
+        op = op_dict['timeseries.time']
+        prob.set_val(f'{self_path}t_initial', op['value'][0, ...])
+        prob.set_val(f'{self_path}t_duration', op['value'][-1, ...] - op['value'][0, ...])
 
         # Assign initial state values
         for name in phs.state_options:
-            op = op_dict['{0}timeseries.states:{1}'.format(phs_path, name)]
-            prob['{0}initial_states:{1}'.format(self_path, name)][...] = op['value'][0, ...]
+            op = op_dict[f'timeseries.states:{name}']
+            prob[f'{self_path}initial_states:{name}'][...] = op['value'][0, ...]
 
         # Assign control values
         for name, options in phs.control_options.items():
             if options['opt']:
-                op = op_dict['{0}control_group.indep_controls.controls:{1}'.format(phs_path, name)]
-                prob['{0}controls:{1}'.format(self_path, name)][...] = op['value']
+                op = op_dict[f'control_group.indep_controls.controls:{name}']
+                prob[f'{self_path}controls:{name}'][...] = op['value']
             else:
-                ip = ip_dict['{0}control_group.control_interp_comp.controls:{1}'.format(phs_path, name)]
+                ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
                 prob['{0}controls:{1}'.format(self_path, name)][...] = ip['value']
 
         # Assign polynomial control values
         for name, options in phs.polynomial_control_options.items():
             if options['opt']:
-                op = op_dict['{0}polynomial_control_group.indep_polynomial_controls.'
-                             'polynomial_controls:{1}'.format(phs_path, name)]
-                prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = op['value']
+                op = op_dict[f'polynomial_control_group.indep_polynomial_controls.'
+                             f'polynomial_controls:{name}']
+                prob[f'{self_path}polynomial_controls:{name}'][...] = op['value']
             else:
-                ip = ip_dict['{0}polynomial_control_group.interp_comp.'
-                             'polynomial_controls:{1}'.format(phs_path, name)]
+                ip = ip_dict[f'{phs_path}polynomial_control_group.interp_comp.'
+                             f'polynomial_controls:{name}']
                 prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
 
         # Assign design parameter values
         for name in phs.design_parameter_options:
-            op = op_dict['{0}design_params.design_parameters:{1}'.format(phs_path, name)]
-            prob['{0}design_parameters:{1}'.format(self_path, name)][...] = op['value']
+            op = op_dict[f'design_params.design_parameters:{name}']
+            prob[f'{self_path}design_parameters:{name}'][...] = op['value']
 
         # Assign input parameter values
         for name in phs.input_parameter_options:
-            op = op_dict['{0}input_params.input_parameters:{1}_out'.format(phs_path, name)]
-            prob['{0}input_parameters:{1}'.format(self_path, name)][...] = op['value']
+            op = op_dict[f'input_params.input_parameters:{name}_out']
+            prob[f'{self_path}input_parameters:{name}'][...] = op['value']
 
     def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9,
                  record_file=None):
