@@ -491,16 +491,16 @@ class SolveIVP(TranscriptionBase):
             units = rhs._var_abs2meta[abs_param[0]]['units']
             param_units[name] = units
 
+            for iseg in range(num_seg):
+                target_name = 'segment_{0}.design_parameters:{1}'.format(iseg, name)
+                phase.promotes('segments', inputs=[(target_name, prom_name)])
+
             if options['include_timeseries']:
                 timeseries_comp = phase._get_subsystem('timeseries')
                 timeseries_comp._add_output_configure(prom_name,
                                                       desc='',
                                                       shape=options['shape'],
                                                       units=units)
-
-                for iseg in range(num_seg):
-                    target_name = 'segment_{0}.design_parameters:{1}'.format(iseg, name)
-                    phase.promotes('segments', inputs=[(target_name, prom_name)])
 
                 if output_nodes_per_seg is None:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
