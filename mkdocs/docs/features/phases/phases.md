@@ -50,3 +50,5 @@ general form of the optimal control problem.
 [Constraints](constraints.md)
 
 [Objective](objective.md)
+
+[Timeseries Outputs](timeseries.md)

@@ -4,6 +4,8 @@ Now that we've shown how to add degrees of freedom to a system with variables in
 time, states, and controls, we need to look at how to constrain the system.  In optimal control,
 constraints typically come in two flavors:  boundary constraints and path constraints.
 
+As OpenMDAO components, outputs of Dymos Phases can be constrained using OpenMDAO's `add_constraint` method, but Dymos Phases provide their own methods to make defining these constraints somewhat simpler.
+
 ##  Boundary Constraints
 
 Boundary constraints are constraints on a variable value at the start or end of a phase.  There
@@ -13,12 +15,12 @@ Lets consider that we want to solve for the elevation angle that results in the 
 range flown by a cannonball.  In this situation we have some set of initial conditions that are
 fixed.
 
-.. math:
-
-    t_0 = 0 s
-    x_0 = 0 m
-    y_0 = 0 m
-    v_0 = 100 m/s
+\begin{align}
+    t_0 &= 0 \, \mathrm{s} \\
+    x_0 &= 0 \, \mathrm{m} \\
+    y_0 &= 0 \, \mathrm{m} \\
+    v_0 &= 100 \, \frac{\mathrm{m}}{\mathrm{s}}
+\end{align}
 
 The first, most obvious way to constrain fixed values is to remove them from the optimization problem altogether.
 
@@ -76,10 +78,11 @@ If given as a scalar, it will be applied to all values in the state or control.
 
 !!! note
     Bounds on states in Gauss-Lobatto Phases are **not** equivalent to path constraints.
-    The values of states in Gauss-Lobatto phases are provided at only the state-transcription nodes and then interpolated to the collocation nodes.  
+    The values of states in Gauss-Lobatto phases are provided at only the state-transcription nodes and then interpolated to the collocation nodes.
     Therefore, the bounds will have no impact on these interpolated values which therefore may not satisfy the bounds, as one might expect.
 
 Phases also support the `add_path_constraint` method, which imposes path constraints as constraints in the NLP problem.
-As with `add_bound_constraint`, the `add_path_constraint` method is the only option for path constraining an output of the ODE.  
+As with `add_bound_constraint`, the `add_path_constraint` method is the only option for path constraining an output of the ODE.
+
 The downside of path constraints is that they add a considerable number of constraints to the NLP problem and thus may negatively impact performance, although this is generally minor for many problems.
 
