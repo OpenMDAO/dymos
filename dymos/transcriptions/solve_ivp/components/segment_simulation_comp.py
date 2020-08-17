@@ -136,39 +136,34 @@ class SegmentSimulationComp(om.ExplicitComponent):
         self.initial_state_vec = np.zeros(self.state_vec_size)
 
         # Setup the control interpolants
-        if self.options['control_options']:
-            for name, options in self.options['control_options'].items():
-                self.add_input(name='controls:{0}'.format(name),
-                               val=np.ones(((ncdsps,) + options['shape'])),
-                               units=options['units'],
-                               desc='Values of control {0} at control discretization '
-                                    'nodes within the segment.'.format(name))
-                interp = LagrangeBarycentricInterpolant(control_disc_seg_stau, options['shape'])
-                self.options['ode_integration_interface'].control_interpolants[name] = interp
+        for name, options in self.options['control_options'].items():
+            self.add_input(name='controls:{0}'.format(name),
+                           val=np.ones(((ncdsps,) + options['shape'])),
+                           units=options['units'],
+                           desc='Values of control {0} at control discretization '
+                                'nodes within the segment.'.format(name))
+            interp = LagrangeBarycentricInterpolant(control_disc_seg_stau, options['shape'])
+            self.options['ode_integration_interface'].set_interpolant(name, interp)
 
-        if self.options['polynomial_control_options']:
-            for name, options in self.options['polynomial_control_options'].items():
-                poly_control_disc_ptau, _ = lgl(options['order'] + 1)
-                self.add_input(name='polynomial_controls:{0}'.format(name),
-                               val=np.ones(((options['order'] + 1,) + options['shape'])),
-                               units=options['units'],
-                               desc='Values of polynomial control {0} at control discretization '
-                                    'nodes within the phase.'.format(name))
-                interp = LagrangeBarycentricInterpolant(poly_control_disc_ptau, options['shape'])
-                self.options['ode_integration_interface'].polynomial_control_interpolants[name] = \
-                    interp
+        for name, options in self.options['polynomial_control_options'].items():
+            poly_control_disc_ptau, _ = lgl(options['order'] + 1)
+            self.add_input(name='polynomial_controls:{0}'.format(name),
+                           val=np.ones(((options['order'] + 1,) + options['shape'])),
+                           units=options['units'],
+                           desc='Values of polynomial control {0} at control discretization '
+                                'nodes within the phase.'.format(name))
+            interp = LagrangeBarycentricInterpolant(poly_control_disc_ptau, options['shape'])
+            self.options['ode_integration_interface'].set_interpolant(name, interp)
 
-        if self.options['design_parameter_options']:
-            for name, options in self.options['design_parameter_options'].items():
-                self.add_input(name='design_parameters:{0}'.format(name), val=np.ones(options['shape']),
-                               units=options['units'],
-                               desc='values of design parameter {0}.'.format(name))
+        for name, options in self.options['design_parameter_options'].items():
+            self.add_input(name='design_parameters:{0}'.format(name), val=np.ones(options['shape']),
+                           units=options['units'],
+                           desc='values of design parameter {0}.'.format(name))
 
-        if self.options['input_parameter_options']:
-            for name, options in self.options['input_parameter_options'].items():
-                self.add_input(name='input_parameters:{0}'.format(name), val=np.ones(options['shape']),
-                               units=options['units'],
-                               desc='values of input parameter {0}'.format(name))
+        for name, options in self.options['input_parameter_options'].items():
+            self.add_input(name='input_parameters:{0}'.format(name), val=np.ones(options['shape']),
+                           units=options['units'],
+                           desc='values of input parameter {0}'.format(name))
 
         self.options['ode_integration_interface'].prob.setup(check=False)
 
