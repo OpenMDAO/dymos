@@ -912,9 +912,10 @@ class RungeKutta(TranscriptionBase):
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-                    phase.connect(src_name='design_parameters:{0}'.format(param_name),
-                                  tgt_name='{0}.input_values:design_parameters:{1}'.format(name, param_name),
-                                  src_indices=src_idxs, flat_src_indices=True)
+                    prom_name = 'design_parameters:{0}'.format(param_name)
+                    tgt_name = 'input_values:design_parameters:{0}'.format(param_name)
+                    phase.promotes(name, inputs=[(tgt_name, prom_name)],
+                                   src_indices=src_idxs, flat_src_indices=True)
 
             for param_name, options in phase.input_parameter_options.items():
                 if options['include_timeseries']:

@@ -95,7 +95,7 @@ class TestTimeseriesOutput(unittest.TestCase):
                     with self.assertRaises(KeyError):
                         p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
                 else:
-                    assert_near_equal(p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
+                    assert_near_equal(p.get_val('phase0.design_parameters:{0}'.format(dp))[0],
                                       p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))[i])
 
         # call simulate to test SolveIVP transcription
@@ -190,7 +190,7 @@ class TestTimeseriesOutput(unittest.TestCase):
                     with self.assertRaises(KeyError):
                         p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
                 else:
-                    assert_near_equal(p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
+                    assert_near_equal(p.get_val('phase0.design_parameters:{0}'.format(dp))[0],
                                       p.get_val('phase0.timeseries.design_parameters:'
                                                 '{0}'.format(dp))[i])
 
