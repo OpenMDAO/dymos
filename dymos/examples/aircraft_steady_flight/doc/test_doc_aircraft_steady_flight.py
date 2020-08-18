@@ -114,7 +114,6 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
                           726.85, tolerance=1.0E-2)
 
         exp_out = traj.simulate()
-        om.n2(exp_out)
 
         plot_results([('traj.phase0.timeseries.states:range', 'traj.phase0.timeseries.states:alt',
                        'range (NM)', 'altitude (kft)'),
