@@ -11,7 +11,7 @@ from openmdao.core.system import System
 from openmdao.utils.general_utils import warn_deprecation
 import dymos as dm
 
-from .options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
+from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary
 
@@ -56,7 +56,7 @@ class Phase(om.Group):
         self.state_options = {}
         self.control_options = {}
         self.polynomial_control_options = {}
-        self.design_parameter_options = {}
+        self.parameter_options = {}
         self.input_parameter_options = {}
         self.refine_options = GridRefinementOptionsDictionary()
 
@@ -76,7 +76,7 @@ class Phase(om.Group):
             self.state_options = from_phase.state_options.copy()
             self.control_options = from_phase.control_options.copy()
             self.polynomial_control_options = from_phase.polynomial_control_options.copy()
-            self.design_parameter_options = from_phase.design_parameter_options.copy()
+            self.parameter_options = from_phase.parameter_options.copy()
             self.input_parameter_options = from_phase.input_parameter_options.copy()
 
             self.refine_options.update(from_phase.refine_options)
@@ -305,7 +305,7 @@ class Phase(om.Group):
         """
         Checks that the parameter of the given name is valid.
 
-        First name is checked against all existing states, controls, input parameters, and design
+        First name is checked against all existing states, controls, input parameters, and
         parameters.  If it has already been assigned to one of those, ValueError is raised.
         Finally, if *dynamic* is True, the control is not a dynamic parameter in the ODE,
         ValueError is raised.
@@ -329,8 +329,8 @@ class Phase(om.Group):
             raise ValueError('{0} has already been added as a state.'.format(name))
         elif name in self.control_options:
             raise ValueError('{0} has already been added as a control.'.format(name))
-        elif name in self.design_parameter_options:
-            raise ValueError('{0} has already been added as a design parameter.'.format(name))
+        elif name in self.parameter_options:
+            raise ValueError('{0} has already been added as a parameter.'.format(name))
         elif name in self.input_parameter_options:
             raise ValueError('{0} has already been added as an input parameter.'.format(name))
         elif name in self.polynomial_control_options:
@@ -793,120 +793,120 @@ class Phase(om.Group):
         if ref is not _unspecified:
             self.polynomial_control_options[name]['ref'] = ref
 
-    def add_design_parameter(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
-                             desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
-                             adder=_unspecified, ref0=_unspecified, ref=_unspecified, targets=_unspecified,
-                             shape=_unspecified, dynamic=_unspecified, include_timeseries=_unspecified):
+    def add_parameter(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
+                      desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
+                      adder=_unspecified, ref0=_unspecified, ref=_unspecified, targets=_unspecified,
+                      shape=_unspecified, dynamic=_unspecified, include_timeseries=_unspecified):
         """
-        Add a design parameter (static control variable) to the phase.
+        Add a parameter (static control variable) to the phase.
 
         Parameters
         ----------
         name : str
-            Name of the design parameter.
+            Name of the parameter.
         val : float or ndarray
-            Default value of the design parameter at all nodes.
+            Default value of the parameter at all nodes.
         units : str or None or 0
-            Units in which the design parameter is defined.  If 0, use the units declared
+            Units in which the parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         opt : bool
-            If True (default) the value(s) of this design parameter will be design variables in
+            If True (default) the value(s) of this parameter will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the this design parameter will still be owned by an IndepVarComp in the phase,
+            If False, the this parameter will still be owned by an IndepVarComp in the phase,
             but it will not be a design variable in the optimization.
         desc : str
-            A description of the design parameter.
+            A description of the parameter.
         lower : float or ndarray
-            The lower bound of the design parameter value.
+            The lower bound of the parameter value.
         upper : float or ndarray
-            The upper bound of the design parameter value.
+            The upper bound of the parameter value.
         scaler : float or ndarray
-            The scaler of the design parameter value for the optimizer.
+            The scaler of the parameter value for the optimizer.
         adder : float or ndarray
-            The adder of the design parameter value for the optimizer.
+            The adder of the parameter value for the optimizer.
         ref0 : float or ndarray
-            The zero-reference value of the design parameter for the optimizer.
+            The zero-reference value of the parameter for the optimizer.
         ref : float or ndarray
-            The unit-reference value of the design parameter for the optimizer.
+            The unit-reference value of the parameter for the optimizer.
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
             In the future, if left _unspecified (the default), the phase parameter will try to connect to an ODE input
             of the same name. Currently _unspecified is the same as None, but a deprecation warning is issued.
             Set targets to None to prevent this (the old default behavior).
         shape : Sequence of int
-            The shape of the design parameter.
+            The shape of the parameter.
         dynamic : bool
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
             of nodes) else False.
         include_timeseries : bool
-            True if the static design parameters should be included in output timeseries, else False.
+            True if the static parameters should be included in output timeseries, else False.
         """
         self.check_parameter(name)
 
-        if name not in self.design_parameter_options:
-            self.design_parameter_options[name] = DesignParameterOptionsDictionary()
-            self.design_parameter_options[name]['name'] = name
+        if name not in self.parameter_options:
+            self.parameter_options[name] = ParameterOptionsDictionary()
+            self.parameter_options[name]['name'] = name
 
-        self.set_design_parameter_options(name, val, units, opt, desc, lower, upper,
-                                          scaler, adder, ref0, ref, targets, shape, dynamic, include_timeseries)
+        self.set_parameter_options(name, val, units, opt, desc, lower, upper,
+                                   scaler, adder, ref0, ref, targets, shape, dynamic, include_timeseries)
 
-    def set_design_parameter_options(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
-                                     desc=_unspecified, lower=_unspecified, upper=_unspecified,
-                                     scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
-                                     ref=_unspecified, targets=_unspecified, shape=_unspecified,
-                                     dynamic=_unspecified, include_timeseries=_unspecified):
+    def set_parameter_options(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
+                              desc=_unspecified, lower=_unspecified, upper=_unspecified,
+                              scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
+                              ref=_unspecified, targets=_unspecified, shape=_unspecified,
+                              dynamic=_unspecified, include_timeseries=_unspecified):
         """
-        Set options for an existing design parameter (static control variable) in the phase.
+        Set options for an existing parameter (static control variable) in the phase.
 
         Parameters
         ----------
         name : str
-            Name of the design parameter.
+            Name of the parameter.
         val : float or ndarray
-            Default value of the design parameter at all nodes.
+            Default value of the parameter at all nodes.
         units : str or None or 0
-            Units in which the design parameter is defined.  If 0, use the units declared
+            Units in which the parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         opt : bool
-            If True (default) the value(s) of this design parameter will be design variables in
+            If True (default) the value(s) of this parameter will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the this design parameter will still be owned by an IndepVarComp in the phase,
+            If False, the this parameter will still be owned by an IndepVarComp in the phase,
             but it will not be a design variable in the optimization.
         desc : str
-            A description of the design parameter.
+            A description of the parameter.
         lower : float or ndarray
-            The lower bound of the design parameter value.
+            The lower bound of the parameter value.
         upper : float or ndarray
-            The upper bound of the design parameter value.
+            The upper bound of the parameter value.
         scaler : float or ndarray
-            The scaler of the design parameter value for the optimizer.
+            The scaler of the parameter value for the optimizer.
         adder : float or ndarray
-            The adder of the design parameter value for the optimizer.
+            The adder of the parameter value for the optimizer.
         ref0 : float or ndarray
-            The zero-reference value of the design parameter for the optimizer.
+            The zero-reference value of the parameter for the optimizer.
         ref : float or ndarray
-            The unit-reference value of the design parameter for the optimizer.
+            The unit-reference value of the parameter for the optimizer.
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
             In the future, if left _unspecified (the default), the phase parameter will try to connect to an ODE input
             of the same name. Currently _unspecified is the same as None, but a deprecation warning is issued.
             Set targets to None to prevent this (the old default behavior).
         shape : Sequence of int
-            The shape of the design parameter.
+            The shape of the parameter.
         dynamic : bool
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
             of nodes) else False.
         include_timeseries : bool
-            True if the static design parameters should be included in output timeseries, else False.
+            True if the static parameters should be included in output timeseries, else False.
         """
         if units is not _unspecified:
-            self.design_parameter_options[name]['units'] = units
+            self.parameter_options[name]['units'] = units
 
         if opt is not _unspecified:
-            self.design_parameter_options[name]['opt'] = opt
+            self.parameter_options[name]['opt'] = opt
 
         if desc is not _unspecified:
-            self.design_parameter_options[name]['desc'] = desc
+            self.parameter_options[name]['desc'] = desc
 
         if targets is None:  # handle None to explicitly do nothing
             pass
@@ -916,39 +916,94 @@ class Phase(om.Group):
                              "automatically connect to ODE inputs. Set targets=None to retain the old behavior.")
         elif targets is not _unspecified:
             if isinstance(targets, str):
-                self.design_parameter_options[name]['targets'] = (targets,)
+                self.parameter_options[name]['targets'] = (targets,)
             else:
-                self.design_parameter_options[name]['targets'] = targets
+                self.parameter_options[name]['targets'] = targets
 
         if val is not _unspecified:
-            self.design_parameter_options[name]['val'] = val
+            self.parameter_options[name]['val'] = val
 
         if shape is not _unspecified:
-            self.design_parameter_options[name]['shape'] = shape
+            self.parameter_options[name]['shape'] = shape
 
         if dynamic is not _unspecified:
-            self.design_parameter_options[name]['dynamic'] = dynamic
+            self.parameter_options[name]['dynamic'] = dynamic
 
         if lower is not _unspecified:
-            self.design_parameter_options[name]['lower'] = lower
+            self.parameter_options[name]['lower'] = lower
 
         if upper is not _unspecified:
-            self.design_parameter_options[name]['upper'] = upper
+            self.parameter_options[name]['upper'] = upper
 
         if scaler is not _unspecified:
-            self.design_parameter_options[name]['scaler'] = scaler
+            self.parameter_options[name]['scaler'] = scaler
 
         if adder is not _unspecified:
-            self.design_parameter_options[name]['adder'] = adder
+            self.parameter_options[name]['adder'] = adder
 
         if ref0 is not _unspecified:
-            self.design_parameter_options[name]['ref0'] = ref0
+            self.parameter_options[name]['ref0'] = ref0
 
         if ref is not _unspecified:
-            self.design_parameter_options[name]['ref'] = ref
+            self.parameter_options[name]['ref'] = ref
 
         if include_timeseries is not _unspecified:
-            self.design_parameter_options[name]['include_timeseries'] = include_timeseries
+            self.parameter_options[name]['include_timeseries'] = include_timeseries
+
+    def add_design_parameter(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
+                             desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
+                             adder=_unspecified, ref0=_unspecified, ref=_unspecified, targets=_unspecified,
+                             shape=_unspecified, dynamic=_unspecified, include_timeseries=_unspecified):
+        """
+        Add a design parameter (static control variable) to the phase.
+
+        This method is deprecated. Use add_parameter instead.
+
+        Parameters
+        ----------
+        name : str
+            Name of the design parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        opt : bool
+            If True (default) the value(s) of this design parameter will be design variables in
+            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
+            If False, the this design parameter will still be owned by an IndepVarComp in the phase,
+            but it will not be a design variable in the optimization.
+        desc : str
+            A description of the design parameter.
+        lower : float or ndarray
+            The lower bound of the design parameter value.
+        upper : float or ndarray
+            The upper bound of the design parameter value.
+        scaler : float or ndarray
+            The scaler of the design parameter value for the optimizer.
+        adder : float or ndarray
+            The adder of the design parameter value for the optimizer.
+        ref0 : float or ndarray
+            The zero-reference value of the design parameter for the optimizer.
+        ref : float or ndarray
+            The unit-reference value of the design parameter for the optimizer.
+        targets : Sequence of str or None
+            Targets in the ODE to which this parameter is connected.
+            In the future, if left _unspecified (the default), the phase parameter will try to connect to an ODE input
+            of the same name. Currently _unspecified is the same as None, but a deprecation warning is issued.
+            Set targets to None to prevent this (the old default behavior).
+        shape : Sequence of int
+            The shape of the design parameter.
+        dynamic : bool
+            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
+            of nodes) else False.
+        include_timeseries : bool
+            True if the static design parameters should be included in output timeseries, else False.
+        """
+        self.add_parameter(name, val=val, units=units, opt=opt, desc=desc, lower=lower,
+                           upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
+                           targets=targets, shape=shape, dynamic=dynamic,
+                           include_timeseries=include_timeseries)
 
     def add_input_parameter(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
                             desc=_unspecified, shape=_unspecified, dynamic=_unspecified,
@@ -956,14 +1011,16 @@ class Phase(om.Group):
         """
         Add an input parameter to the phase.
 
+        This method is deprecated. Use add_parameter instead.
+
         Parameters
         ----------
         name : str
             Name of the ODE parameter to be controlled via this input parameter.
         val : float or ndarray
-            Default value of the design parameter at all nodes.
+            Default value of the input parameter at all nodes.
         units : str or None or 0
-            Units in which the design parameter is defined.  If 0, use the units declared
+            Units in which the input parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
@@ -1025,9 +1082,9 @@ class Phase(om.Group):
         name : str
             Name of the ODE parameter to be controlled via this input parameter.
         val : float or ndarray
-            Default value of the design parameter at all nodes.
+            Default value of the input parameter at all nodes.
         units : str or None or 0
-            Units in which the design parameter is defined.  If 0, use the units declared
+            Units in which the input parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
@@ -1095,7 +1152,7 @@ class Phase(om.Group):
             the variables units.
         shape : tuple, list, ndarray, or None
             The shape of the variable being boundary-constrained.  This can be inferred
-            automatically for time, states, controls, and input/design parameters, but is required
+            automatically for time, states, controls, and parameters, but is required
             if the constrained variable is an output of the ODE system.
         indices : tuple, list, ndarray, or None
             The indices of the output variable to be boundary constrained.  Indices assumes C-order
@@ -1167,7 +1224,7 @@ class Phase(om.Group):
             the variables units.
         shape : tuple, list, ndarray, or None
             The shape of the variable being boundary-constrained.  This can be inferred
-            automatically for time, states, controls, and input/design parameters, but is required
+            automatically for time, states, controls, and parameters, but is required
             if the constrained variable is an output of the ODE system.
         indices : tuple, list, ndarray, or None
             The indices of the output variable to be path constrained.  Indices assumes C-order
@@ -1476,7 +1533,7 @@ class Phase(om.Group):
             The classification of the given variable, which is one of
             'time', 'state', 'input_control', 'indep_control', 'control_rate',
             'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
-            'polynomial_control_rate', 'polynomial_control_rate2', 'design_parameter',
+            'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             'input_parameter', or 'ode'.
 
         """
@@ -1496,8 +1553,8 @@ class Phase(om.Group):
                 return 'indep_polynomial_control'
             else:
                 return 'input_polynomial_control'
-        elif var in self.design_parameter_options:
-            return 'design_parameter'
+        elif var in self.parameter_options:
+            return 'parameter'
         elif var in self.input_parameter_options:
             return 'input_parameter'
         elif var.endswith('_rate') and var[:-5] in self.control_options:
@@ -1542,8 +1599,8 @@ class Phase(om.Group):
         if self.polynomial_control_options:
             transcription.setup_polynomial_controls(self)
 
-        if self.design_parameter_options:
-            transcription.setup_design_parameters(self)
+        if self.parameter_options:
+            transcription.setup_parameters(self)
 
         if self.input_parameter_options:
             transcription.setup_input_parameters(self)
@@ -1588,8 +1645,8 @@ class Phase(om.Group):
         if self.polynomial_control_options:
             transcription.configure_polynomial_controls(self)
 
-        if self.design_parameter_options:
-            transcription.configure_design_parameters(self)
+        if self.parameter_options:
+            transcription.configure_parameters(self)
 
         if self.input_parameter_options:
             transcription.configure_input_parameters(self)
@@ -1677,9 +1734,9 @@ class Phase(om.Group):
                 self.control_options[name]['rate_continuity'] = False
                 self.control_options[name]['rate2_continuity'] = False
 
-    def _check_design_parameter_options(self):
+    def _check_parameter_options(self):
         """
-        Check that design parameter options are valid and issue warnings if invalid
+        Check that parameter options are valid and issue warnings if invalid
         options are provided.
 
         Warnings
@@ -1687,14 +1744,14 @@ class Phase(om.Group):
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """
-        for name, options in self.design_parameter_options.items():
+        for name, options in self.parameter_options.items():
             if not options['opt']:
                 invalid_options = []
                 for opt in 'lower', 'upper', 'scaler', 'adder', 'ref', 'ref0':
                     if options[opt] is not None:
                         invalid_options.append(opt)
                 if invalid_options:
-                    warnings.warn('Invalid options for non-optimal design_parameter \'{0}\' in '
+                    warnings.warn('Invalid options for non-optimal parameter \'{0}\' in '
                                   'phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
                                   RuntimeWarning)
 
@@ -1865,12 +1922,12 @@ class Phase(om.Group):
                              f'polynomial_controls:{name}']
                 prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
 
-        # Assign design parameter values
+        # Assign parameter values
         meta = phs._problem_meta
         prom2abs = meta['prom2abs']
         conns = meta['connections']
-        pname = '{0}design_parameters:{1}'
-        for name in phs.design_parameter_options:
+        pname = '{0}parameters:{1}'
+        for name in phs.parameter_options:
             prom_phs_path = pname.format(phs_path.replace('.phases.', '.'), name)
             abs_in = prom2abs['input'][prom_phs_path][0]
             src = conns[abs_in]
@@ -1879,9 +1936,9 @@ class Phase(om.Group):
             # auto_ivc source.
             val = phs._abs_get_val(src, False, None, 'nonlinear', 'output', False, from_root=True)
             if phase_path:
-                prob_path = '{0}.{1}.design_parameters:{2}'.format(phase_path, self.name, name)
+                prob_path = '{0}.{1}.parameters:{2}'.format(phase_path, self.name, name)
             else:
-                prob_path = '{0}.design_parameters:{1}'.format(self.name, name)
+                prob_path = '{0}.parameters:{1}'.format(self.name, name)
             prob[prob_path][...] = val
 
         # Assign input parameter values

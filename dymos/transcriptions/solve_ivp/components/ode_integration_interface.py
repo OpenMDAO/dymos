@@ -28,15 +28,15 @@ class ODEIntegrationInterface(object):
         The state options for the phase being simulated.
     control_options : dict of {str: ControlOptionsDictionary}
         The control options for the phase being simulated.
-    design_parameter_options : dict of {str: DesignParameterOptionsDictionary}
-        The design parameter options for the phase being simulated.
+    parameter_options : dict of {str: ParameterOptionsDictionary}
+        The parameter options for the phase being simulated.
     input_parameter_options : dict of {str: InputParameterOptionsDictionary}
         The input parameter options for the phase being simulated.
     ode_init_kwargs : dict
         Keyword argument dictionary passed to the ODE at initialization.
     """
     def __init__(self, ode_class, time_options, state_options, control_options,
-                 polynomial_control_options, design_parameter_options, input_parameter_options,
+                 polynomial_control_options, parameter_options, input_parameter_options,
                  ode_init_kwargs=None):
 
         # Get the state vector.  This isn't necessarily ordered
@@ -45,7 +45,7 @@ class ODEIntegrationInterface(object):
         self.time_options = time_options
         self.control_options = control_options
         self.polynomial_control_options = polynomial_control_options
-        self.design_parameter_options = design_parameter_options
+        self.parameter_options = parameter_options
         self.input_parameter_options = input_parameter_options
         self.control_interpolants = {}
         self.polynomial_control_interpolants = {}
@@ -153,16 +153,16 @@ class ODEIntegrationInterface(object):
                     model.connect('polynomial_control_rates:{0}_rate2'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in rate2_tgts])
 
-        if self.design_parameter_options:
-            for name, options in self.design_parameter_options.items():
-                ivc.add_output('design_parameters:{0}'.format(name),
+        if self.parameter_options:
+            for name, options in self.parameter_options.items():
+                ivc.add_output('parameters:{0}'.format(name),
                                shape=options['shape'],
                                units=options['units'])
                 if options['targets'] is not None:
                     tgts = options['targets']
                     if isinstance(tgts, str):
                         tgts = [tgts]
-                    model.connect('design_parameters:{0}'.format(name),
+                    model.connect('parameters:{0}'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in tgts])
 
         if self.input_parameter_options:
@@ -202,8 +202,8 @@ class ODEIntegrationInterface(object):
             rate_path = 'controls:{0}'.format(var)
         elif self.polynomial_control_options is not None and var in self.polynomial_control_options:
             rate_path = 'polynomial_controls:{0}'.format(var)
-        elif self.design_parameter_options is not None and var in self.design_parameter_options:
-            rate_path = 'design_parameters:{0}'.format(var)
+        elif self.parameter_options is not None and var in self.parameter_options:
+            rate_path = 'parameters:{0}'.format(var)
         elif self.input_parameter_options is not None and var in self.input_parameter_options:
             rate_path = 'input_parameters:{0}'.format(var)
         elif var.endswith('_rate') and self.control_options is not None and \

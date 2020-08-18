@@ -54,8 +54,8 @@ class SegmentSimulationComp(om.ExplicitComponent):
                              desc='Dictionary of polynomial control names/options for the segments '
                                   'parent Phase.')
 
-        self.options.declare('design_parameter_options', default=None, types=dict, allow_none=True,
-                             desc='Dictionary of design parameter names/options for the segments '
+        self.options.declare('parameter_options', default=None, types=dict, allow_none=True,
+                             desc='Dictionary of parameter names/options for the segments '
                                   'parent Phase.')
 
         self.options.declare('input_parameter_options', default=None, types=dict, allow_none=True,
@@ -103,7 +103,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
                 state_options=self.options['state_options'],
                 control_options=self.options['control_options'],
                 polynomial_control_options=self.options['polynomial_control_options'],
-                design_parameter_options=self.options['design_parameter_options'],
+                parameter_options=self.options['parameter_options'],
                 input_parameter_options=self.options['input_parameter_options'],
                 ode_init_kwargs=self.options['ode_init_kwargs'])
 
@@ -168,23 +168,23 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         self.declare_partials(of='*', wrt='*', method='fd')
 
-    def add_design_parameters(self, units_dict):
+    def add_parameters(self, units_dict):
         """
-        Add design parameters with given units.
+        Add parameters with given units.
 
-        The units of the design parameters are not known until after the rhs component has been setup.
+        The units of the parameters are not known until after the rhs component has been setup.
 
         Parameters
         ----------
         units_dict : dict
             Dictionary containing the actual design variable units for each parameter.
         """
-        if self.options['design_parameter_options']:
-            for name, options in self.options['design_parameter_options'].items():
+        if self.options['parameter_options']:
+            for name, options in self.options['parameter_options'].items():
                 units = units_dict[name]
-                self.add_input(name='design_parameters:{0}'.format(name), val=np.ones(options['shape']),
+                self.add_input(name='parameters:{0}'.format(name), val=np.ones(options['shape']),
                                units=units,
-                               desc='values of design parameter {0}.'.format(name))
+                               desc='values of parameter {0}.'.format(name))
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         idx = self.options['index']
@@ -229,11 +229,11 @@ class SegmentSimulationComp(om.ExplicitComponent):
                            value=inputs['t_duration'],
                            units=self.options['time_options']['units'])
 
-        # Set the values of the phase design parameters
-        if self.options['design_parameter_options']:
-            for param_name, options in self.options['design_parameter_options'].items():
-                val = inputs['design_parameters:{0}'.format(param_name)]
-                iface_prob.set_val('design_parameters:{0}'.format(param_name),
+        # Set the values of the phase parameters
+        if self.options['parameter_options']:
+            for param_name, options in self.options['parameter_options'].items():
+                val = inputs['parameters:{0}'.format(param_name)]
+                iface_prob.set_val('parameters:{0}'.format(param_name),
                                    value=val,
                                    units=options['units'])
 

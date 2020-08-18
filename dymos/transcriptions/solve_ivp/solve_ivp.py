@@ -180,7 +180,7 @@ class SolveIVP(TranscriptionBase):
                 state_options=phase.state_options,
                 control_options=phase.control_options,
                 polynomial_control_options=phase.polynomial_control_options,
-                design_parameter_options=phase.design_parameter_options,
+                parameter_options=phase.parameter_options,
                 input_parameter_options=phase.input_parameter_options,
                 output_nodes_per_seg=self.options['output_nodes_per_seg'])
 
@@ -477,21 +477,21 @@ class SolveIVP(TranscriptionBase):
                                    ':{0}_rate2'.format(name))
 
         param_units = {}
-        for name, options in phase.design_parameter_options.items():
-            prom_name = 'design_parameters:{0}'.format(name)
+        for name, options in phase.parameter_options.items():
+            prom_name = 'parameters:{0}'.format(name)
 
             if options['targets']:
                 prom_param = options['targets'][0]
             else:
                 prom_param = name
 
-            # Get the design var's real units.
+            # Get the param's real units.
             abs_param = phase.ode._var_allprocs_prom2abs_list['input'][prom_param]
             units = phase.ode._var_abs2meta[abs_param[0]]['units']
             param_units[name] = units
 
             for iseg in range(num_seg):
-                target_name = 'segment_{0}.design_parameters:{1}'.format(iseg, name)
+                target_name = 'segment_{0}.parameters:{1}'.format(iseg, name)
                 phase.promotes('segments', inputs=[(target_name, prom_name)])
 
             if options['include_timeseries']:
@@ -506,7 +506,7 @@ class SolveIVP(TranscriptionBase):
                     src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
                 src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-                tgt_name = 'all_values:design_parameters:{0}'.format(name)
+                tgt_name = 'all_values:parameters:{0}'.format(name)
                 phase.promotes('timeseries', inputs=[(tgt_name, prom_name)],
                                src_indices=src_idxs, flat_src_indices=True)
 
@@ -514,7 +514,7 @@ class SolveIVP(TranscriptionBase):
         segs = phase._get_subsystem('segments')
         for i in range(num_seg):
             seg_comp = segs._get_subsystem('segment_{0}'.format(i))
-            seg_comp.add_design_parameters(param_units)
+            seg_comp.add_parameters(param_units)
 
         for name, options in phase.input_parameter_options.items():
             if options['include_timeseries']:
@@ -570,7 +570,7 @@ class SolveIVP(TranscriptionBase):
         num_final_ode_nodes = self.grid_data.subset_num_nodes['all'] \
             if output_nodes_per_seg is None else num_seg * output_nodes_per_seg
 
-        parameter_options = phase.design_parameter_options.copy()
+        parameter_options = phase.parameter_options.copy()
         parameter_options.update(phase.input_parameter_options)
         parameter_options.update(phase.control_options)
 
@@ -612,8 +612,8 @@ class SolveIVP(TranscriptionBase):
             rate_path = 'control_values:{0}'.format(var)
         elif phase.polynomial_control_options is not None and var in phase.polynomial_control_options:
             rate_path = 'polynomial_controls:{0}'.format(var)
-        elif phase.design_parameter_options is not None and var in phase.design_parameter_options:
-            rate_path = 'design_parameters:{0}'.format(var)
+        elif phase.parameter_options is not None and var in phase.parameter_options:
+            rate_path = 'parameters:{0}'.format(var)
         elif phase.input_parameter_options is not None and var in phase.input_parameter_options:
             rate_path = 'input_parameters:{0}'.format(var)
         elif var.endswith('_rate') and phase.control_options is not None and \

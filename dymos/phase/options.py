@@ -209,22 +209,22 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
                           'to the default value of True.')
 
 
-class DesignParameterOptionsDictionary(om.OptionsDictionary):
+class ParameterOptionsDictionary(om.OptionsDictionary):
     """
-    An OptionsDictionary specific to design parameters.
+    An OptionsDictionary specific to parameters.
     """
 
     def __init__(self, read_only=False):
-        super(DesignParameterOptionsDictionary, self).__init__(read_only)
+        super(ParameterOptionsDictionary, self).__init__(read_only)
 
         self.declare(name='name', types=str,
-                     desc='The name of ODE system parameter to be set via design parameter.')
+                     desc='The name of ODE system parameter to be set via parameter.')
 
         self.declare(name='units', types=str, default=None,
-                     allow_none=True, desc='The units in which the design parameter is defined.')
+                     allow_none=True, desc='The units in which the parameter is defined.')
 
         self.declare(name='desc', types=str, default='',
-                     desc='The description of the design parameter.')
+                     desc='The description of the parameter.')
 
         self.declare(name='opt', default=True, types=bool,
                      desc='If True, the control value will be a design variable '
@@ -235,49 +235,49 @@ class DesignParameterOptionsDictionary(om.OptionsDictionary):
                      desc='True if this parameter can be used as a dynamic control, else False')
 
         self.declare(name='targets', types=Iterable, default=[],
-                     desc='Used to store target information for the design parameter.')
+                     desc='Used to store target information for the parameter.')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
-                     desc='The default value of the design parameter in the phase.')
+                     desc='The default value of the parameter in the phase.')
 
         self.declare(name='shape', types=Iterable, default=(1,),
-                     desc='The shape of the design parameter.')
+                     desc='The shape of the parameter.')
 
         self.declare(name='lower', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The lower bound of the design parameter. This '
+                     desc='The lower bound of the parameter. This '
                           'option is invalid if opt=False.')
 
         self.declare(name='upper', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The upper bound of the design parameter. This '
+                     desc='The upper bound of the parameter. This '
                           'option is invalid if opt=False.')
 
         self.declare(name='scaler', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The scaler of the design parameter. This '
+                     desc='The scaler of the parameter. This '
                           'option is invalid if opt=False.')
 
         self.declare(name='adder', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The adder of the design parameter. This'
+                     desc='The adder of the parameter. This'
                           'option is invalid if opt=False.')
 
         self.declare(name='ref0', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The zero-reference value of the design parameter. This '
+                     desc='The zero-reference value of the parameter. This '
                           'option is invalid if opt=False.')
 
         self.declare(name='ref', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The unit-reference value of the design parameter. This '
+                     desc='The unit-reference value of the parameter. This '
                           'option is invalid if opt=False.')
 
         self.declare(name='include_timeseries', types=bool, default=True,
-                     desc='True if the static design parameters should be included in output timeseries, else False')
+                     desc='True if the static parameters should be included in output timeseries, else False')
 
 
-class TrajDesignParameterOptionsDictionary(DesignParameterOptionsDictionary):
+class TrajDesignParameterOptionsDictionary(ParameterOptionsDictionary):
     """
     An OptionsDictionary specific to trajectory design parameters.
     """
