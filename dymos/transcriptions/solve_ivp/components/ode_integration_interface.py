@@ -8,9 +8,7 @@ import openmdao.api as om
 class ODEIntegrationInterface(object):
     """
     Given a system class, create a callable object with the same signature as that required
-    by scipy.integrate.ode
-
-    f(t, x, *args)
+    by scipy.integrate.ode.
 
     Internally, this is accomplished by constructing an OpenMDAO problem using the ODE with
     a single node.  The interface populates the values of the time, states, and controls,
