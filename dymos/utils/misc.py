@@ -72,7 +72,7 @@ def get_state_targets(ode, state_name, state_options):
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
-    ode_inputs = ode.get_io_metadata(iotypes=('input',), metadata_keys=('units', 'shape'))
+    ode_inputs = [opts['prom_name'] for (k, opts) in ode.get_io_metadata(iotypes=('input',)).items()]
 
     if state_options['targets'] is _unspecified:
         if state_name in ode_inputs:

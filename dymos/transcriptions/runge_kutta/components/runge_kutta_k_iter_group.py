@@ -69,7 +69,7 @@ class RungeKuttaKIterGroup(om.Group):
 
         for state_name, options in self.options['state_options'].items():
             targets = get_state_targets(ode=self.ode, state_name=state_name, state_options=options)
-            
+
             # Connect the state predicted (assumed) value to its targets in the ode
             if targets:
                 self.connect('state_predict_comp.predicted_states:{0}'.format(state_name),

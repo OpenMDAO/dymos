@@ -135,6 +135,8 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         self.initial_state_vec = np.zeros(self.state_vec_size)
 
+        self.options['ode_integration_interface'].prob.setup(check=False)
+
         # Setup the control interpolants
         for name, options in self.options['control_options'].items():
             self.add_input(name='controls:{0}'.format(name),
@@ -165,8 +167,6 @@ class SegmentSimulationComp(om.ExplicitComponent):
                            units=options['units'],
                            desc='values of input parameter {0}'.format(name))
 
-        self.options['ode_integration_interface'].prob.setup(check=False)
-
         self.declare_partials(of='*', wrt='*', method='fd')
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
@@ -189,7 +189,10 @@ class SegmentSimulationComp(om.ExplicitComponent):
             tf_seg = inputs['time'][-1]
             for name, options in self.options['control_options'].items():
                 ctrl_vals = inputs['controls:{0}'.format(name)]
-                iface_prob.model.options['control_interpolants'][name].setup(x0=t0_seg, xf=tf_seg, f_j=ctrl_vals)
+                self.options['ode_integration_interface'].setup_interpolant(name,
+                                                                            x0=t0_seg,
+                                                                            xf=tf_seg,
+                                                                            f_j=ctrl_vals)
 
         # Setup the polynomial control interpolants
         if self.options['polynomial_control_options']:
@@ -197,7 +200,10 @@ class SegmentSimulationComp(om.ExplicitComponent):
             tf_phase = inputs['t_initial'] + inputs['t_duration']
             for name, options in self.options['polynomial_control_options'].items():
                 ctrl_vals = inputs['polynomial_controls:{0}'.format(name)]
-                iface_prob.model.options['polynomial_control_interpolants'][name].setup(x0=t0_phase, xf=tf_phase, f_j=ctrl_vals)
+                self.options['ode_integration_interface'].setup_interpolant(name,
+                                                                            x0=t0_phase,
+                                                                            xf=tf_phase,
+                                                                            f_j=ctrl_vals)
 
         # Set the values of t_initial and t_duration
         iface_prob.set_val('t_initial',

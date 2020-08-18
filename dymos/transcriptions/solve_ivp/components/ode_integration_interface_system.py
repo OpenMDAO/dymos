@@ -18,15 +18,15 @@ class ODEIntegrationInterfaceSystem(om.Group):
         self.options.declare('control_options', default=None, types=dict, allow_none=True,
                              desc='Dictionary of control names/options for the segments parent Phase.')
 
-        self.options.declare('control_interpolants', default={}, types=dict,
-                             desc='Dictionary of control names/interpolants.')
+        # self.options.declare('control_interpolants', default={}, types=dict,
+        #                      desc='Dictionary of control names/interpolants.')
 
         self.options.declare('polynomial_control_options', default=None, types=dict, allow_none=True,
                              desc='Dictionary of polynomial control names/options for the segments '
                                   'parent Phase.')
 
-        self.options.declare('polynomial_control_interpolants', default={}, types=dict,
-                             desc='Dictionary of polynomial control names/interpolants.')
+        # self.options.declare('polynomial_control_interpolants', default={}, types=dict,
+        #                      desc='Dictionary of polynomial control names/interpolants.')
 
         self.options.declare('design_parameter_options', default=None, types=dict, allow_none=True,
                              desc='Dictionary of design parameter names/options for the segments '
@@ -41,7 +41,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
-
 
     def setup(self):
         # The time IVC
@@ -68,8 +67,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
                 ODEIntControlInterpolationComp(time_units=time_units,
                                                control_options=self.options['control_options'],
                                                polynomial_control_options=self.options['polynomial_control_options'])
-            # self._interp_comp.control_interpolants = self.control_interpolants
-            # self._interp_comp.polynomial_control_interpolants = self.polynomial_control_interpolants
 
             self.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])
             self.connect('time', ['indep_controls.time'])
@@ -100,12 +97,12 @@ class ODEIntegrationInterfaceSystem(om.Group):
                     if isinstance(rate_tgts, str):
                         rate_tgts = [rate_tgts]
                     self.connect('polynomial_control_rates:{0}_rate'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in rate_tgts])
+                                 ['ode.{0}'.format(tgt) for tgt in rate_tgts])
                 if options['rate2_targets']:
                     if isinstance(rate2_tgts, str):
                         rate2_tgts = [rate2_tgts]
                     self.connect('polynomial_control_rates:{0}_rate2'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in rate2_tgts])
+                                 ['ode.{0}'.format(tgt) for tgt in rate2_tgts])
 
         for name, options in self.options['design_parameter_options'].items():
             ivc.add_output('design_parameters:{0}'.format(name),
@@ -116,7 +113,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
                 if isinstance(tgts, str):
                     tgts = [tgts]
                 self.connect('design_parameters:{0}'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in tgts])
+                             ['ode.{0}'.format(tgt) for tgt in tgts])
 
         for name, options in self.options['input_parameter_options'].items():
             ivc.add_output('input_parameters:{0}'.format(name),
@@ -127,7 +124,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
                 if isinstance(tgts, str):
                     tgts = [tgts]
                 self.connect('input_parameters:{0}'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in tgts])
+                             ['ode.{0}'.format(tgt) for tgt in tgts])
 
         # The ODE System
         if self.options['ode_class'] is not None:
@@ -138,7 +135,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
         self.add_subsystem('state_rate_collector',
                            StateRateCollectorComp(state_options=self.options['state_options'],
                                                   time_units=time_options['units']))
-
 
     def configure(self):
 
@@ -156,7 +152,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
             if targets:
                 self.connect(f'states:{name}', [f'ode.{tgt}' for tgt in targets])
-
 
     def _get_rate_source_path(self, state_var):
         var = self.options['state_options'][state_var]['rate_source']
@@ -191,3 +186,42 @@ class ODEIntegrationInterfaceSystem(om.Group):
             rate_path = 'polynomial_control_rates:{0}'.format(var)
 
         return rate_path
+
+    def set_interpolant(self, name, interp):
+        """
+        Set the control and/or polynomial control interpolants in the underlying system.
+        Parameters
+        ----------
+        name : str
+            The name of the control or polynomial control whose interpolant is being set.
+        interp
+            The LagrangeBarycentricInterpolant for the given control or polynomial control.
+        """
+        if name in self.options['control_options']:
+            self._interp_comp.options['control_interpolants'][name] = interp
+        elif name in self.prob.model.options['polynomial_control_options']:
+            self._interp_comp.options['polynomial_control_interpolants'][name] = interp
+        else:
+            raise KeyError(f'Unable to set control interpolant of unknown control: {name}')
+
+    def setup_interpolant(self, name, x0, xf, f_j):
+        """
+        Setup the values to be interpolated in an existing interpolant.
+
+        Parameters
+        ----------
+        name : str
+            The name of the control or polynomial control.
+        x0 : float
+            The initial time (or independent variable) of the segment (for controls) or phase (for polynomial controls).
+        xf : float
+            The final time (or independent variable) of the segment (for controls) or phase (for polynomial controls).
+        f_j : float
+            The value of the control at the nodes in the segment or phase.
+        """
+        if name in self.options['control_options']:
+            self._interp_comp.options['control_interpolants'][name].setup(x0, xf, f_j)
+        elif name in self.options['polynomial_control_options']:
+            self._interp_comp.options['polynomial_control_interpolants'][name].setup(x0, xf, f_j)
+        else:
+            raise KeyError(f'Unable to setup control interpolant of unknown control: {name}')
