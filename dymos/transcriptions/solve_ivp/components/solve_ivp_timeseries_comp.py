@@ -17,24 +17,48 @@ class SolveIVPTimeseriesOutputComp(TimeseriesOutputCompBase):
         """
         grid_data = self.options['input_grid_data']
         if self.options['output_nodes_per_seg'] is None:
-            num_nodes = grid_data.num_nodes
+            self.num_nodes = grid_data.num_nodes
         else:
-            num_nodes = grid_data.num_segments * self.options['output_nodes_per_seg']
+            self.num_nodes = grid_data.num_segments * self.options['output_nodes_per_seg']
 
         for (name, kwargs) in self._timeseries_outputs:
+            units = kwargs['units']
+            desc = kwargs['units']
+            shape = kwargs['shape']
+            self._add_output_configure(name, units, shape, desc)
 
-            input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-            input_name = 'all_values:{0}'.format(name)
-            self.add_input(input_name,
-                           shape=(num_nodes,) + kwargs['shape'],
-                           **input_kwargs)
+    def _add_output_configure(self, name, units, shape, desc):
+        """
+        Add a single timeseries output.
 
-            output_name = name
-            output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-            output_kwargs['shape'] = (num_nodes,) + kwargs['shape']
-            self.add_output(output_name, **output_kwargs)
+        Can be called by parent groups in configure.
 
-            self._vars.append((input_name, output_name, kwargs['shape']))
+        Parameters
+        ----------
+        name : str
+            name of the variable in this component's namespace.
+        shape : int or tuple or list or None
+            Shape of this variable, only required if val is not an array.
+            Default is None.
+        units : str or None
+            Units in which the output variables will be provided to the component during execution.
+            Default is None, which means it has no units.
+        desc : str
+            description of the timeseries output variable.
+        """
+        num_nodes = self.num_nodes
+
+        input_name = 'all_values:{0}'.format(name)
+        self.add_input(input_name,
+                       shape=(num_nodes,) + shape,
+                       units=units, desc=desc)
+
+        output_name = name
+        self.add_output(output_name,
+                        shape=(num_nodes,) + shape,
+                        units=units, desc=desc)
+
+        self._vars.append((input_name, output_name, shape))
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for (input_name, output_name, _) in self._vars:

@@ -765,10 +765,8 @@ class Trajectory(om.Group):
 
         sim_prob = om.Problem(model=om.Group())
 
-        if self.name:
-            sim_prob.model.add_subsystem(self.name, sim_traj)
-        else:
-            sim_prob.model.add_subsystem('sim_traj', sim_traj)
+        traj_name = self.name if self.name else 'sim_traj'
+        sim_prob.model.add_subsystem(traj_name, sim_traj)
 
         if record_file is not None:
             rec = om.SqliteRecorder(record_file)
@@ -793,7 +791,8 @@ class Trajectory(om.Group):
             sim_prob[var_name] = op['value'][0, ...]
 
         for phase_name, phs in sim_traj._phases.items():
-            phs.initialize_values_from_phase(sim_prob, self._phases[phase_name])
+            phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],
+                                             phase_path=traj_name)
 
         print('\nSimulating trajectory {0}'.format(self.pathname))
         sim_prob.run_model()

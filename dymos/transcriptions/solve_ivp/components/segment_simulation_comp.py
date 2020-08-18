@@ -159,12 +159,6 @@ class SegmentSimulationComp(om.ExplicitComponent):
                 interp = LagrangeBarycentricInterpolant(poly_control_disc_ptau, options['shape'])
                 self.options['ode_integration_interface'].set_interpolant(name, interp)
 
-        if self.options['design_parameter_options']:
-            for name, options in self.options['design_parameter_options'].items():
-                self.add_input(name='design_parameters:{0}'.format(name), val=np.ones(options['shape']),
-                               units=options['units'],
-                               desc='values of design parameter {0}.'.format(name))
-
         if self.options['input_parameter_options']:
             for name, options in self.options['input_parameter_options'].items():
                 self.add_input(name='input_parameters:{0}'.format(name), val=np.ones(options['shape']),
@@ -172,6 +166,24 @@ class SegmentSimulationComp(om.ExplicitComponent):
                                desc='values of input parameter {0}'.format(name))
 
         self.declare_partials(of='*', wrt='*', method='fd')
+
+    def add_design_parameters(self, units_dict):
+        """
+        Add design parameters with given units.
+
+        The units of the design parameters are not known until after the rhs component has been setup.
+
+        Parameters
+        ----------
+        units_dict : dict
+            Dictionary containing the actual design variable units for each parameter.
+        """
+        if self.options['design_parameter_options']:
+            for name, options in self.options['design_parameter_options'].items():
+                units = units_dict[name]
+                self.add_input(name='design_parameters:{0}'.format(name), val=np.ones(options['shape']),
+                               units=units,
+                               desc='values of design parameter {0}.'.format(name))
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         idx = self.options['index']

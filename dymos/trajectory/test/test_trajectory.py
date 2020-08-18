@@ -350,3 +350,7 @@ class TestInvalidLinkages(unittest.TestCase):
 
         self.assertEqual(str(e.exception), 'Invalid linkage.  Phase \'foo\' does not exist in '
                                            'trajectory \'traj\'.')
+
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()
