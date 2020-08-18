@@ -480,15 +480,14 @@ class SolveIVP(TranscriptionBase):
         for name, options in phase.design_parameter_options.items():
             prom_name = 'design_parameters:{0}'.format(name)
 
-            rhs = phase._get_subsystem('ode')
             if options['targets']:
                 prom_param = options['targets'][0]
             else:
                 prom_param = name
 
             # Get the design var's real units.
-            abs_param = rhs._var_allprocs_prom2abs_list['input'][prom_param]
-            units = rhs._var_abs2meta[abs_param[0]]['units']
+            abs_param = phase.ode._var_allprocs_prom2abs_list['input'][prom_param]
+            units = phase.ode._var_abs2meta[abs_param[0]]['units']
             param_units[name] = units
 
             for iseg in range(num_seg):
@@ -496,11 +495,10 @@ class SolveIVP(TranscriptionBase):
                 phase.promotes('segments', inputs=[(target_name, prom_name)])
 
             if options['include_timeseries']:
-                timeseries_comp = phase._get_subsystem('timeseries')
-                timeseries_comp._add_output_configure(prom_name,
-                                                      desc='',
-                                                      shape=options['shape'],
-                                                      units=units)
+                phase.timeseries._add_output_configure(prom_name,
+                                                       desc='',
+                                                       shape=options['shape'],
+                                                       units=units)
 
                 if output_nodes_per_seg is None:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
