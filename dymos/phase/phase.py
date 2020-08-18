@@ -1875,7 +1875,8 @@ class Phase(om.Group):
             abs_in = prom2abs['input'][prom_phs_path][0]
             src = conns[abs_in]
 
-            # We use this private function to grab the correctly sized variable from the source.
+            # We use this private function to grab the correctly sized variable from the
+            # auto_ivc source.
             val = phs._abs_get_val(src, False, None, 'nonlinear', 'output', False, from_root=True)
             if phase_path:
                 prob_path = '{0}.{1}.design_parameters:{2}'.format(phase_path, self.name, name)
