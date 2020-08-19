@@ -190,8 +190,8 @@ class ODEIntegrationInterfaceSystem(om.Group):
         return rate_path
 
     def set_interpolant(self, name, interp):
-        """
-        Set the control and/or polynomial control interpolants in the underlying system.
+        """ Set the control and/or polynomial control interpolants in the underlying system.
+
         Parameters
         ----------
         name : str

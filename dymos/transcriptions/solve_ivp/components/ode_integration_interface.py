@@ -146,8 +146,8 @@ class ODEIntegrationInterface(object):
         return self._state_rate_vec
 
     def set_interpolant(self, name, interp):
-        """
-        Set the control and/or polynomial control interpolants in the underlying system.
+        """ Set the control and/or polynomial control interpolants in the underlying system.
+
         Parameters
         ----------
         name : str
