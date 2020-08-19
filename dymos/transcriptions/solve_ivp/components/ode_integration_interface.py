@@ -152,7 +152,7 @@ class ODEIntegrationInterface(object):
         ----------
         name : str
             The name of the control or polynomial control whose interpolant is being set.
-        interp
+        interp : LagrangeBarycentricInterpolant
             The LagrangeBarycentricInterpolant for the given control or polynomial control.
         """
         self.prob.model.set_interpolant(name, interp)

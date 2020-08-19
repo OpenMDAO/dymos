@@ -196,7 +196,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
         ----------
         name : str
             The name of the control or polynomial control whose interpolant is being set.
-        interp
+        interp : LagrangeBarycentricInterpolant
             The LagrangeBarycentricInterpolant for the given control or polynomial control.
         """
         if name in self.options['control_options']:
