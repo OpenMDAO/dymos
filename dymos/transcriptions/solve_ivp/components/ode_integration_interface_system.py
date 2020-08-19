@@ -207,8 +207,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
             raise KeyError(f'Unable to set control interpolant of unknown control: {name}')
 
     def setup_interpolant(self, name, x0, xf, f_j):
-        """
-        Setup the values to be interpolated in an existing interpolant.
+        """ Setup the values to be interpolated in an existing interpolant.
 
         Parameters
         ----------
