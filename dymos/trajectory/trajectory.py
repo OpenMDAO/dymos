@@ -381,9 +381,6 @@ class Trajectory(om.Group):
                     elif var in p1.parameter_options:
                         units_map[var] = p1.parameter_options[var]['units']
                         shape_map[var] = p1.parameter_options[var]['shape']
-                    elif var in p1.input_parameter_options:
-                        units_map[var] = p1.input_parameter_options[var]['units']
-                        shape_map[var] = p1.input_parameter_options[var]['shape']
                     elif var == 'time':
                         units_map[var] = p1.time_options['units']
                         shape_map[var] = (1,)
@@ -490,9 +487,6 @@ class Trajectory(om.Group):
             p1_parameters = set([key for key in p1.parameter_options])
             p2_parameters = set([key for key in p2.parameter_options])
 
-            p1_input_parameters = set([key for key in p1.input_parameter_options])
-            p2_input_parameters = set([key for key in p2.input_parameter_options])
-
             # Dict of vars that expands '*' to include time and states
             _vars = {}
             for var in sorted(vars.keys()):
@@ -540,8 +534,6 @@ class Trajectory(om.Group):
                     source1 = '{0}{1}'.format(var, loc1)
                 elif var in p1_parameters:
                     source1 = 'parameters:{0}'.format(var)
-                elif var in p1_input_parameters:
-                    source1 = 'input_parameters:{0}'.format(var)
                 else:
                     raise ValueError('Cannot find linkage variable \'{0}\' in '
                                      'phase \'{1}\'.  Only states, time, controls, or parameters '
@@ -555,8 +547,6 @@ class Trajectory(om.Group):
                     source2 = '{0}{1}'.format(var, loc2)
                 elif var in p2_parameters:
                     source2 = 'parameters:{0}'.format(var)
-                elif var in p2_input_parameters:
-                    source2 = 'input_parameters:{0}'.format(var)
                 else:
                     raise ValueError('Cannot find linkage variable \'{0}\' in '
                                      'phase \'{1}\'.  Only states, time, controls, or parameters '
@@ -737,7 +727,6 @@ class Trajectory(om.Group):
             sim_traj.add_phase(name, sim_phs)
 
         sim_traj.parameter_options.update(self.parameter_options)
-        sim_traj.input_parameter_options.update(self.input_parameter_options)
 
         sim_prob = om.Problem(model=om.Group())
 
@@ -758,12 +747,6 @@ class Trajectory(om.Group):
         for name, options in self.parameter_options.items():
             op = traj_op_dict[f'params.parameters:{name}']
             var_name = '{0}.parameters:{1}'.format(self.name, name)
-            sim_prob[var_name] = op['value'][0, ...]
-
-        # Assign trajectory input parameter values
-        for name, options in self.input_parameter_options.items():
-            op = traj_op_dict[f'input_params.input_parameters:{name}_out']
-            var_name = '{0}.input_parameters:{1}'.format(self.name, name)
             sim_prob[var_name] = op['value'][0, ...]
 
         for phase_name, phs in sim_traj._phases.items():

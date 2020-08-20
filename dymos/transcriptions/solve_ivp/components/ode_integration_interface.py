@@ -30,14 +30,11 @@ class ODEIntegrationInterface(object):
         The control options for the phase being simulated.
     parameter_options : dict of {str: ParameterOptionsDictionary}
         The parameter options for the phase being simulated.
-    input_parameter_options : dict of {str: InputParameterOptionsDictionary}
-        The input parameter options for the phase being simulated.
     ode_init_kwargs : dict
         Keyword argument dictionary passed to the ODE at initialization.
     """
     def __init__(self, ode_class, time_options, state_options, control_options,
-                 polynomial_control_options, parameter_options, input_parameter_options,
-                 ode_init_kwargs=None):
+                 polynomial_control_options, parameter_options, ode_init_kwargs=None):
 
         # Get the state vector.  This isn't necessarily ordered
         # so just pick the default ordering and go with it.
@@ -46,7 +43,6 @@ class ODEIntegrationInterface(object):
         self.control_options = control_options
         self.polynomial_control_options = polynomial_control_options
         self.parameter_options = parameter_options
-        self.input_parameter_options = input_parameter_options
         self.control_interpolants = {}
         self.polynomial_control_interpolants = {}
 
@@ -165,18 +161,6 @@ class ODEIntegrationInterface(object):
                     model.connect('parameters:{0}'.format(name),
                                   ['ode.{0}'.format(tgt) for tgt in tgts])
 
-        if self.input_parameter_options:
-            for name, options in self.input_parameter_options.items():
-                ivc.add_output('input_parameters:{0}'.format(name),
-                               shape=options['shape'],
-                               units=options['units'])
-                if options['targets'] is not None:
-                    tgts = options['targets']
-                    if isinstance(tgts, str):
-                        tgts = [tgts]
-                    model.connect('input_parameters:{0}'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in tgts])
-
         # The ODE System
         if ode_class is not None:
             model.add_subsystem('ode', subsys=ode_class(num_nodes=1, **ode_init_kwargs))
@@ -204,8 +188,6 @@ class ODEIntegrationInterface(object):
             rate_path = 'polynomial_controls:{0}'.format(var)
         elif self.parameter_options is not None and var in self.parameter_options:
             rate_path = 'parameters:{0}'.format(var)
-        elif self.input_parameter_options is not None and var in self.input_parameter_options:
-            rate_path = 'input_parameters:{0}'.format(var)
         elif var.endswith('_rate') and self.control_options is not None and \
                 var[:-5] in self.control_options:
             rate_path = 'control_rates:{0}'.format(var)

@@ -125,19 +125,6 @@ class TestPhaseBase(unittest.TestCase):
         expected = 'theta has already been added as a control.'
         self.assertEqual(str(e.exception), expected)
 
-    def test_add_existing_input_parameter_as_parameter(self):
-
-        p = dm.Phase(ode_class=_A,
-                     transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
-
-        p.add_input_parameter('theta')
-
-        with self.assertRaises(ValueError) as e:
-            p.add_parameter('theta')
-
-        expected = 'theta has already been added as an input parameter.'
-        self.assertEqual(str(e.exception), expected)
-
     def test_invalid_options_nonoptimal_param(self):
         p = om.Problem(model=om.Group())
 
@@ -186,44 +173,6 @@ class TestPhaseBase(unittest.TestCase):
                    'lower, upper, scaler, adder, ref, ref0'
 
         self.assertIn(expected, [str(ww.message) for ww in w])
-
-    def test_add_existing_parameter_as_input_parameter(self):
-        p = dm.Phase(ode_class=_A,
-                     transcription=dm.GaussLobatto(num_segments=14, order=3, compressed=True))
-
-        p.add_parameter('theta')
-
-        with self.assertRaises(ValueError) as e:
-            p.add_input_parameter('theta')
-
-        expected = 'theta has already been added as a parameter.'
-        self.assertEqual(str(e.exception), expected)
-
-    def test_add_existing_control_as_input_parameter(self):
-
-        p = dm.Phase(ode_class=_A,
-                     transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
-
-        p.add_control('theta')
-
-        with self.assertRaises(ValueError) as e:
-            p.add_input_parameter('theta')
-
-        expected = 'theta has already been added as a control.'
-        self.assertEqual(str(e.exception), expected)
-
-    def test_add_existing_input_parameter_as_input_parameter(self):
-
-        p = dm.Phase(ode_class=_A,
-                     transcription=dm.GaussLobatto(num_segments=8, order=3, compressed=True))
-
-        p.add_input_parameter('theta')
-
-        with self.assertRaises(ValueError) as e:
-            p.add_input_parameter('theta')
-
-        expected = 'theta has already been added as an input parameter.'
-        self.assertEqual(str(e.exception), expected)
 
     def test_invalid_options_nonoptimal_control(self):
         p = om.Problem(model=om.Group())

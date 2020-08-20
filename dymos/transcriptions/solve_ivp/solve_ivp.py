@@ -181,7 +181,6 @@ class SolveIVP(TranscriptionBase):
                 control_options=phase.control_options,
                 polynomial_control_options=phase.polynomial_control_options,
                 parameter_options=phase.parameter_options,
-                input_parameter_options=phase.input_parameter_options,
                 output_nodes_per_seg=self.options['output_nodes_per_seg'])
 
             segments_group.add_subsystem('segment_{0}'.format(i), subsys=seg_i_comp)
@@ -286,13 +285,6 @@ class SolveIVP(TranscriptionBase):
                 if isinstance(targets, str):
                     targets = [targets]
                 phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
-
-    def setup_input_parameters(self, phase):
-        super(SolveIVP, self).setup_input_parameters(phase)
-        num_seg = self.grid_data.num_segments
-        for name, options in phase.input_parameter_options.items():
-            phase.connect('input_parameters:{0}_out'.format(name),
-                          ['segment_{0}.input_parameters:{1}'.format(iseg, name) for iseg in range(num_seg)])
 
     def setup_defects(self, phase):
         """
@@ -409,14 +401,6 @@ class SolveIVP(TranscriptionBase):
                                                                         time_units,
                                                                         deriv=2))
 
-        for name, options in phase.input_parameter_options.items():
-            if options['include_timeseries']:
-                units = options['units']
-                timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(name),
-                                                       var_class=phase.classify_var(name),
-                                                       shape=options['shape'],
-                                                       units=units)
-
         for var, options in phase._timeseries['timeseries']['outputs'].items():
             output_name = options['output_name']
 
@@ -516,19 +500,6 @@ class SolveIVP(TranscriptionBase):
             seg_comp = segs._get_subsystem('segment_{0}'.format(i))
             seg_comp.add_parameters(param_units)
 
-        for name, options in phase.input_parameter_options.items():
-            if options['include_timeseries']:
-                if output_nodes_per_seg is None:
-                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                else:
-                    src_idxs_raw = np.zeros(num_seg * output_nodes_per_seg, dtype=int)
-
-                src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-
-                phase.connect(src_name='input_parameters:{0}_out'.format(name),
-                              tgt_name='timeseries.all_values:input_parameters:{0}'.format(name),
-                              src_indices=src_idxs, flat_src_indices=True)
-
         for var, options in phase._timeseries['timeseries']['outputs'].items():
             output_name = options['output_name']
 
@@ -571,7 +542,6 @@ class SolveIVP(TranscriptionBase):
             if output_nodes_per_seg is None else num_seg * output_nodes_per_seg
 
         parameter_options = phase.parameter_options.copy()
-        parameter_options.update(phase.input_parameter_options)
         parameter_options.update(phase.control_options)
 
         if name in parameter_options:
@@ -614,8 +584,6 @@ class SolveIVP(TranscriptionBase):
             rate_path = 'polynomial_controls:{0}'.format(var)
         elif phase.parameter_options is not None and var in phase.parameter_options:
             rate_path = 'parameters:{0}'.format(var)
-        elif phase.input_parameter_options is not None and var in phase.input_parameter_options:
-            rate_path = 'input_parameters:{0}'.format(var)
         elif var.endswith('_rate') and phase.control_options is not None and \
                 var[:-5] in phase.control_options:
             rate_path = 'control_rates:{0}'.format(var)

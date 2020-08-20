@@ -405,15 +405,6 @@ class PHAdaptive:
                                 [f'ode.{tgt}' for tgt in options['targets']],
                                 src_indices=np.zeros(grid.num_nodes, dtype=int))
 
-        for dp_name, options in phase.input_parameter_options.items():
-            input_name = f'input_params.input_parameters:{dp_name}'
-            dp_val = values_dict[input_name][0, ...]
-            ivc.add_output(f'input_parameters:{dp_name}', val=dp_val, units=options['units'])
-            if options['targets'] is not None:
-                p.model.connect(f'input_parameters:{dp_name}',
-                                [f'ode.{tgt}' for tgt in options['targets']],
-                                src_indices=np.zeros(grid.num_nodes, dtype=int))
-
         p.setup()
 
         ti_prom_name = f'time.t_initial'

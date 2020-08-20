@@ -793,7 +793,7 @@ class Phase(om.Group):
         if ref is not _unspecified:
             self.polynomial_control_options[name]['ref'] = ref
 
-    def add_parameter(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
+    def add_parameter(self, name, val=_unspecified, units=_unspecified, opt=False,
                       desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
                       adder=_unspecified, ref0=_unspecified, ref=_unspecified, targets=_unspecified,
                       shape=_unspecified, dynamic=_unspecified, include_timeseries=_unspecified):
@@ -810,9 +810,9 @@ class Phase(om.Group):
             Units in which the parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         opt : bool
-            If True (default) the value(s) of this parameter will be design variables in
+            If True, the value(s) of this parameter will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the this parameter will still be owned by an IndepVarComp in the phase,
+            If False (default), the this parameter will still be owned by an IndepVarComp in the phase,
             but it will not be a design variable in the optimization.
         desc : str
             A description of the parameter.
@@ -850,7 +850,7 @@ class Phase(om.Group):
         self.set_parameter_options(name, val, units, opt, desc, lower, upper,
                                    scaler, adder, ref0, ref, targets, shape, dynamic, include_timeseries)
 
-    def set_parameter_options(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
+    def set_parameter_options(self, name, val=_unspecified, units=_unspecified, opt=False,
                               desc=_unspecified, lower=_unspecified, upper=_unspecified,
                               scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
                               ref=_unspecified, targets=_unspecified, shape=_unspecified,
@@ -868,9 +868,9 @@ class Phase(om.Group):
             Units in which the parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         opt : bool
-            If True (default) the value(s) of this parameter will be design variables in
+            If True the value(s) of this parameter will be design variables in
             the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
-            If False, the this parameter will still be owned by an IndepVarComp in the phase,
+            If False (default), the this parameter will still be owned by an IndepVarComp in the phase,
             but it will not be a design variable in the optimization.
         desc : str
             A description of the parameter.
@@ -902,8 +902,7 @@ class Phase(om.Group):
         if units is not _unspecified:
             self.parameter_options[name]['units'] = units
 
-        if opt is not _unspecified:
-            self.parameter_options[name]['opt'] = opt
+        self.parameter_options[name]['opt'] = opt
 
         if desc is not _unspecified:
             self.parameter_options[name]['desc'] = desc
