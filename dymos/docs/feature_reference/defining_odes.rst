@@ -4,7 +4,7 @@ Defining ODEs
 
 Optimal control problems contain ordinary differential equations (ODE) or
 differential algebraic equations (DAE) that dictate the evolution of the state of the system.
-Typically this evolution occurs in time, and the ODE represents equations of motion (EOM).  
+Typically this evolution occurs in time, and the ODE represents equations of motion (EOM).
 The equations of motion can define a variety of systems, not just mechanical ones.
 In other fields they are sometimes referred to as *process equations*.
 
@@ -93,13 +93,13 @@ Phase.  The available options are as follows:
 Design Parameters
 ^^^^^^^^^^^^^^^^^
 
-Inputs to the ODE which can be design parameters are added via the `add_design_parameter` method of
+Inputs to the ODE which can be design parameters are added via the `add_parameter` method of
 Phase.  The available options are as follows:
 
 .. embed-options::
     dymos.phase.options
     _ForDocs
-    design_parameter_options
+    parameter_options
 
 Input Parameters
 ^^^^^^^^^^^^^^^^
@@ -124,7 +124,7 @@ For example, bounds on times, states, and controls will be problem-dependent.
 Other options, such as the `rate_source` of state variables or the target of time, states, or controllable parameters are a function of the ODE itself.
 Therefore it can sometimes be convenient to associate those properties with the ODE class itself.
 To allow this, Dymos provides decorators for ODEs which assign *default* values of these properties at the ODE level.
-These values can be overridden using the `set_time_options`, `add_state`, `add_control`, `add_design_parameter` or `add_input_parameter` methods on Phase.
+These values can be overridden using the `set_time_options`, `add_state`, `add_control`, `add_parameter` or `add_input_parameter` methods on Phase.
 
 .. note::
 

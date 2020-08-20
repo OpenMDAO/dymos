@@ -57,7 +57,7 @@ class TestLengthConstrainedBrachistochrone(unittest.TestCase):
         phase.add_control('theta', targets=['theta'], units='deg', lower=0.01, upper=179.9,
                           continuity=True, rate_continuity=True)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=1)
@@ -83,7 +83,7 @@ class TestLengthConstrainedBrachistochrone(unittest.TestCase):
         p.set_val('traj.phase0.states:y', phase.interpolate(ys=[10, 5], nodes='state_input'))
         p.set_val('traj.phase0.states:v', phase.interpolate(ys=[0, 9.9], nodes='state_input'))
         p.set_val('traj.phase0.controls:theta', phase.interpolate(ys=[5, 100], nodes='control_input'))
-        p.set_val('traj.phase0.design_parameters:g', 9.80665)
+        p.set_val('traj.phase0.parameters:g', 9.80665)
 
         p.run_driver()
 

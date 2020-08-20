@@ -117,7 +117,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9, targets=['theta'])
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
+        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)

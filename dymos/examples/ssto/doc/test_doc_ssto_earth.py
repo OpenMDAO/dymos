@@ -54,7 +54,7 @@ class TestDocSSTOEarth(unittest.TestCase):
                         rate_source='eom.mdot', targets=['eom.m'], units='kg')
 
         phase.add_control('theta', units='rad', lower=-1.57, upper=1.57, targets=['eom.theta'])
-        phase.add_design_parameter('thrust', units='N', opt=False, val=2100000.0, targets=['eom.thrust'])
+        phase.add_parameter('thrust', units='N', opt=False, val=2100000.0, targets=['eom.thrust'])
 
         #
         # Set the options for our constraints and objective

@@ -205,9 +205,9 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
         # provided by an IndepVarComp in the phase, but with opt=False their values are not
         # design variables in the optimization problem.
         #
-        phase.add_design_parameter('thrust', units='N', opt=False, val=3.0 * 50000.0 * 1.61544,
-                                   targets=['eom.thrust'])
-        phase.add_design_parameter('Isp', units='s', opt=False, val=1.0E6, targets=['eom.Isp'])
+        phase.add_parameter('thrust', units='N', opt=False, val=3.0 * 50000.0 * 1.61544,
+                            targets=['eom.thrust'])
+        phase.add_parameter('Isp', units='s', opt=False, val=1.0E6, targets=['eom.Isp'])
 
         #
         # Set the boundary constraints.  These are all states which could also be handled

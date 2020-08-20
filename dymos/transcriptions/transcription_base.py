@@ -150,8 +150,7 @@ class TranscriptionBase(object):
 
     def setup_parameters(self, phase):
         """
-        Adds an IndepVarComp if necessary and issues appropriate connections based
-        on transcription.
+        Sets input defaults for parameters and optionally adds design variables.
         """
         phase._check_parameter_options()
 

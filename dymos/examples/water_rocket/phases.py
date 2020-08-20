@@ -113,42 +113,42 @@ def new_water_rocket_trajectory(objective):
         raise ValueError(f"objective='{objective}' is not defined. Try using 'height' or 'range'")
 
     # Add design parameters to the trajectory.
-    traj.add_design_parameter('CD',
-                              targets={'propelled_ascent': ['aero.CD'],
-                                       'ballistic_ascent': ['aero.CD'],
-                                       'descent': ['aero.CD']},
-                              val=0.3450, units=None, opt=False)
-    traj.add_design_parameter('CL',
-                              targets={'propelled_ascent': ['aero.CL'],
-                                       'ballistic_ascent': ['aero.CL'],
-                                       'descent': ['aero.CL']},
-                              val=0.0, units=None, opt=False)
-    traj.add_design_parameter('T',
-                              targets={'ballistic_ascent': ['eom.T'],
-                                       'descent': ['eom.T']},
-                              val=0.0, units='N', opt=False)
-    traj.add_design_parameter('alpha',
-                              targets={'propelled_ascent': ['eom.alpha'],
-                                       'ballistic_ascent': ['eom.alpha'],
-                                       'descent': ['eom.alpha']},
-                              val=0.0, units='deg', opt=False)
+    traj.add_parameter('CD',
+                       targets={'propelled_ascent': ['aero.CD'],
+                                'ballistic_ascent': ['aero.CD'],
+                                'descent': ['aero.CD']},
+                       val=0.3450, units=None, opt=False)
+    traj.add_parameter('CL',
+                       targets={'propelled_ascent': ['aero.CL'],
+                                'ballistic_ascent': ['aero.CL'],
+                                'descent': ['aero.CL']},
+                       val=0.0, units=None, opt=False)
+    traj.add_parameter('T',
+                       targets={'ballistic_ascent': ['eom.T'],
+                                'descent': ['eom.T']},
+                       val=0.0, units='N', opt=False)
+    traj.add_parameter('alpha',
+                       targets={'propelled_ascent': ['eom.alpha'],
+                                'ballistic_ascent': ['eom.alpha'],
+                                'descent': ['eom.alpha']},
+                       val=0.0, units='deg', opt=False)
 
-    traj.add_design_parameter('m_empty', units='kg', val=0.15,
-                              targets={'propelled_ascent': 'm_empty',
-                                       'ballistic_ascent': 'm_empty',
-                                       'descent': 'mass'},
-                              lower=0, upper=1, ref=0.1,
-                              opt=True)
-    traj.add_design_parameter('V_b', units='m**3', val=2e-3,
-                              targets={'propelled_ascent': 'V_b'},
-                              opt=False)
+    traj.add_parameter('m_empty', units='kg', val=0.15,
+                       targets={'propelled_ascent': 'm_empty',
+                                'ballistic_ascent': 'm_empty',
+                                'descent': 'mass'},
+                       lower=0, upper=1, ref=0.1,
+                       opt=True)
+    traj.add_parameter('V_b', units='m**3', val=2e-3,
+                       targets={'propelled_ascent': 'V_b'},
+                       opt=False)
 
-    traj.add_design_parameter('S', units='m**2', val=np.pi*106e-3**2/4, opt=False)
-    traj.add_design_parameter('A_out', units='m**2', val=np.pi*22e-3**2/4.,
-                              targets={'propelled_ascent': ['water_engine.A_out']},
-                              opt=False)
-    traj.add_design_parameter('k', units=None, val=1.2, opt=False,
-                              targets={'propelled_ascent': ['water_engine.k']})
+    traj.add_parameter('S', units='m**2', val=np.pi*106e-3**2/4, opt=False)
+    traj.add_parameter('A_out', units='m**2', val=np.pi*22e-3**2/4.,
+                       targets={'propelled_ascent': ['water_engine.A_out']},
+                       opt=False)
+    traj.add_parameter('k', units=None, val=1.2, opt=False,
+                       targets={'propelled_ascent': ['water_engine.k']})
 
     return traj, {'propelled_ascent': propelled_ascent,
                   'ballistic_ascent': ballistic_ascent,

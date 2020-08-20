@@ -75,18 +75,18 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         descent.add_objective('r', loc='final', scaler=-1.0)
 
         # Add internally-managed design parameters to the trajectory.
-        traj.add_design_parameter('CD',
-                                  targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
-                                  val=0.5, units=None, opt=False)
-        traj.add_design_parameter('CL',
-                                  targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
-                                  val=0.0, units=None, opt=False)
-        traj.add_design_parameter('T',
-                                  targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
-                                  val=0.0, units='N', opt=False)
-        traj.add_design_parameter('alpha',
-                                  targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
-                                  val=0.0, units='deg', opt=False)
+        traj.add_parameter('CD',
+                           targets={'ascent': ['aero.CD'], 'descent': ['aero.CD']},
+                           val=0.5, units=None, opt=False)
+        traj.add_parameter('CL',
+                           targets={'ascent': ['aero.CL'], 'descent': ['aero.CL']},
+                           val=0.0, units=None, opt=False)
+        traj.add_parameter('T',
+                           targets={'ascent': ['eom.T'], 'descent': ['eom.T']},
+                           val=0.0, units='N', opt=False)
+        traj.add_parameter('alpha',
+                           targets={'ascent': ['eom.alpha'], 'descent': ['eom.alpha']},
+                           val=0.0, units='deg', opt=False)
 
         # Add externally-provided design parameters to the trajectory.
         # In this case, we connect 'm' to pre-existing input parameters named 'mass' in each phase.
@@ -118,9 +118,9 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.set_val('external_params.radius', 0.05, units='m')
         p.set_val('external_params.dens', 7.87, units='g/cm**3')
 
-        p.set_val('traj.design_parameters:CD', 0.5)
-        p.set_val('traj.design_parameters:CL', 0.0)
-        p.set_val('traj.design_parameters:T', 0.0)
+        p.set_val('traj.parameters:CD', 0.5)
+        p.set_val('traj.parameters:CL', 0.0)
+        p.set_val('traj.parameters:T', 0.0)
 
         p.set_val('traj.ascent.t_initial', 0.0)
         p.set_val('traj.ascent.t_duration', 10.0)

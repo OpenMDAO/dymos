@@ -12,7 +12,7 @@ from openmdao.utils.general_utils import warn_deprecation
 import dymos as dm
 
 from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
-    InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary, \
+    StateOptionsDictionary, TimeOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
@@ -925,6 +925,13 @@ class Phase(om.Group):
 
         if shape is not _unspecified:
             self.parameter_options[name]['shape'] = shape
+        elif val is not _unspecified:
+            if isinstance(val, float):
+                self.parameter_options[name]['shape'] = (1,)
+            else:
+                self.parameter_options[name]['shape'] = np.asarray(val).shape
+        else:
+            self.parameter_options[name]['shape'] = (1,)
 
         if dynamic is not _unspecified:
             self.parameter_options[name]['dynamic'] = dynamic
@@ -1000,10 +1007,70 @@ class Phase(om.Group):
         include_timeseries : bool
             True if the static design parameters should be included in output timeseries, else False.
         """
+        msg = "DesignParameters and InputParameters are being replaced by Parameters in  " + \
+            "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
+            "deprecation warning."
+        warn_deprecation(msg)
         self.add_parameter(name, val=val, units=units, opt=opt, desc=desc, lower=lower,
                            upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
                            targets=targets, shape=shape, dynamic=dynamic,
                            include_timeseries=include_timeseries)
+
+    def set_design_parameter_options(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
+                                     desc=_unspecified, lower=_unspecified, upper=_unspecified,
+                                     scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
+                                     ref=_unspecified, targets=_unspecified, shape=_unspecified,
+                                     dynamic=_unspecified, include_timeseries=_unspecified):
+        """
+        Set options for an existing design parameter (static control variable) in the phase.
+
+        Parameters
+        ----------
+        name : str
+            Name of the design parameter.
+        val : float or ndarray
+            Default value of the design parameter at all nodes.
+        units : str or None or 0
+            Units in which the design parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        opt : bool
+            If True (default) the value(s) of this design parameter will be design variables in
+            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
+            If False, the this design parameter will still be owned by an IndepVarComp in the phase,
+            but it will not be a design variable in the optimization.
+        desc : str
+            A description of the design parameter.
+        lower : float or ndarray
+            The lower bound of the design parameter value.
+        upper : float or ndarray
+            The upper bound of the design parameter value.
+        scaler : float or ndarray
+            The scaler of the design parameter value for the optimizer.
+        adder : float or ndarray
+            The adder of the design parameter value for the optimizer.
+        ref0 : float or ndarray
+            The zero-reference value of the design parameter for the optimizer.
+        ref : float or ndarray
+            The unit-reference value of the design parameter for the optimizer.
+        targets : Sequence of str or None
+            Targets in the ODE to which this parameter is connected.
+            In the future, if left _unspecified (the default), the phase parameter will try to connect to an ODE input
+            of the same name. Currently _unspecified is the same as None, but a deprecation warning is issued.
+            Set targets to None to prevent this (the old default behavior).
+        shape : Sequence of int
+            The shape of the design parameter.
+        dynamic : bool
+            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
+            of nodes) else False.
+        include_timeseries : bool
+            True if the static design parameters should be included in output timeseries, else False.
+        """
+        msg = "DesignParameters and InputParameters are being replaced by Parameters in  " + \
+            "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
+            "deprecation warning."
+        warn_deprecation(msg)
+        self.set_parameter_options(name, val, units, opt, desc, lower, upper,
+                                   scaler, adder, ref0, ref, targets, shape, dynamic, include_timeseries)
 
     def add_input_parameter(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
                             desc=_unspecified, shape=_unspecified, dynamic=_unspecified,
@@ -1034,42 +1101,12 @@ class Phase(om.Group):
         include_timeseries : bool
             True if the static input parameters should be included in output timeseries, else False.
         """
-        self.check_parameter(name)
-
-        if name not in self.input_parameter_options:
-            self.input_parameter_options[name] = InputParameterOptionsDictionary()
-            self.input_parameter_options[name]['name'] = name
-
-        if units is not _unspecified:
-            self.input_parameter_options[name]['units'] = units
-
-        if val is not _unspecified:
-            self.input_parameter_options[name]['val'] = val
-
-        if desc is not _unspecified:
-            self.input_parameter_options[name]['desc'] = desc
-
-        if targets is not _unspecified:
-            if isinstance(targets, str):
-                self.input_parameter_options[name]['targets'] = (targets,)
-            else:
-                self.input_parameter_options[name]['targets'] = targets
-
-        if shape is not _unspecified:
-            self.input_parameter_options[name]['shape'] = shape
-        elif val is not _unspecified:
-            if isinstance(val, float):
-                self.input_parameter_options[name]['shape'] = (1,)
-            else:
-                self.input_parameter_options[name]['shape'] = np.asarray(val).shape
-        else:
-            self.input_parameter_options[name]['shape'] = (1,)
-
-        if dynamic is not _unspecified:
-            self.input_parameter_options[name]['dynamic'] = dynamic
-
-        if include_timeseries is not _unspecified:
-            self.input_parameter_options[name]['include_timeseries'] = include_timeseries
+        msg = "DesignParameters and InputParameters are being replaced by Parameters in  " + \
+            "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
+            "deprecation warning."
+        warn_deprecation(msg)
+        self.add_parameter(name, val=val, units=units, desc=desc, targets=targets, shape=shape,
+                           dynamic=dynamic, include_timeseries=include_timeseries)
 
     def set_input_parameter_options(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
                                     desc=_unspecified, shape=_unspecified, dynamic=_unspecified,
@@ -1098,36 +1135,12 @@ class Phase(om.Group):
         include_timeseries : bool
             True if the static input parameters should be included in output timeseries, else False.
         """
-        if units is not _unspecified:
-            self.input_parameter_options[name]['units'] = units
-
-        if val is not _unspecified:
-            self.input_parameter_options[name]['val'] = val
-
-        if desc is not _unspecified:
-            self.input_parameter_options[name]['desc'] = desc
-
-        if targets is not _unspecified:
-            if isinstance(targets, str):
-                self.input_parameter_options[name]['targets'] = (targets,)
-            else:
-                self.input_parameter_options[name]['targets'] = targets
-
-        if shape is not _unspecified:
-            self.input_parameter_options[name]['shape'] = shape
-        elif val is not _unspecified:
-            if isinstance(val, float):
-                self.input_parameter_options[name]['shape'] = (1,)
-            else:
-                self.input_parameter_options[name]['shape'] = np.asarray(val).shape
-        else:
-            self.input_parameter_options[name]['shape'] = (1,)
-
-        if dynamic is not _unspecified:
-            self.input_parameter_options[name]['dynamic'] = dynamic
-
-        if include_timeseries is not _unspecified:
-            self.input_parameter_options[name]['include_timeseries'] = include_timeseries
+        msg = "DesignParameters and InputParameters are being replaced by Parameters in  " + \
+            "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
+            "deprecation warning."
+        warn_deprecation(msg)
+        self.set_parameter_options(name, val, units, targets, desc, shape, dynamic,
+                                   include_timeseries)
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,

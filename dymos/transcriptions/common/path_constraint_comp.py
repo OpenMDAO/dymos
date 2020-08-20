@@ -26,7 +26,7 @@ class PathConstraintComp(om.ExplicitComponent):
             name of the variable in this component's namespace.
         var_class : str
             The 'class' of the variable as given by phase.classify_var.  One of 'time', 'state',
-            'indep_control', 'input_control', 'design_parameter', 'input_parameter',
+            'indep_control', 'input_control', 'parameter', 'input_parameter',
             'control_rate', 'control_rate2', or 'ode'.
         shape : int or tuple or list or None
             Shape of this variable, only required if val is not an array.
@@ -73,7 +73,7 @@ class PathConstraintComp(om.ExplicitComponent):
         src_all = var_class in ['time', 'time_phase', 'indep_control', 'input_control',
                                 'control_rate', 'control_rate2', 'indep_polynomial_control',
                                 'input_polynomial_control', 'polynomial_control_rate',
-                                'polynomial_control_rate2', 'design_parameter', 'input_parameter']
+                                'polynomial_control_rate2', 'parameter', 'input_parameter']
 
         lower = -INF_BOUND if upper is not None and lower is None else lower
         upper = INF_BOUND if lower is not None and upper is None else upper
