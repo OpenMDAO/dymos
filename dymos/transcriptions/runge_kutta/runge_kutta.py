@@ -7,7 +7,7 @@ from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGro
     RungeKuttaTimeseriesOutputComp, RungeKuttaControlContinuityComp
 from ..common import TimeComp, EndpointConditionsComp, PathConstraintComp
 from ...utils.rk_methods import rk_methods
-from ...utils.misc import CoerceDesvar, get_rate_units
+from ...utils.misc import CoerceDesvar, get_rate_units, get_state_targets
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
@@ -297,9 +297,11 @@ class RungeKutta(TranscriptionBase):
             if shape == (1,):
                 src_idxs = src_idxs.ravel()
 
-            if options['targets']:
+            targets = get_state_targets(ode=phase.ode, state_name=state_name, state_options=options)
+
+            if targets:
                 phase.connect('states:{0}'.format(state_name),
-                              ['ode.{0}'.format(tgt) for tgt in options['targets']],
+                              ['ode.{0}'.format(tgt) for tgt in targets],
                               src_indices=src_idxs, flat_src_indices=True)
 
             # Connect the state rate source to the k comp

@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import openmdao.api as om
@@ -17,7 +17,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    p.driver.declare_coloring()
+    p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':
         t = dm.GaussLobatto(num_segments=num_segments,
@@ -46,8 +46,10 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
                     units=BrachistochroneODE.states['y']['units'],
                     fix_initial=True, fix_final=False, solve_segments=solve_segments)
+
+    # Note that by omitting the targets here Dymos will automatically attempt to connect
+    # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
     phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                    targets=BrachistochroneODE.states['v']['targets'],
                     units=BrachistochroneODE.states['v']['units'],
                     fix_initial=True, fix_final=False, solve_segments=solve_segments)
 

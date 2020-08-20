@@ -135,6 +135,8 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         self.initial_state_vec = np.zeros(self.state_vec_size)
 
+        self.options['ode_integration_interface'].prob.setup(check=False)
+
         # Setup the control interpolants
         if self.options['control_options']:
             for name, options in self.options['control_options'].items():
@@ -144,7 +146,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
                                desc='Values of control {0} at control discretization '
                                     'nodes within the segment.'.format(name))
                 interp = LagrangeBarycentricInterpolant(control_disc_seg_stau, options['shape'])
-                self.options['ode_integration_interface'].control_interpolants[name] = interp
+                self.options['ode_integration_interface'].set_interpolant(name, interp)
 
         if self.options['polynomial_control_options']:
             for name, options in self.options['polynomial_control_options'].items():
@@ -155,16 +157,13 @@ class SegmentSimulationComp(om.ExplicitComponent):
                                desc='Values of polynomial control {0} at control discretization '
                                     'nodes within the phase.'.format(name))
                 interp = LagrangeBarycentricInterpolant(poly_control_disc_ptau, options['shape'])
-                self.options['ode_integration_interface'].polynomial_control_interpolants[name] = \
-                    interp
+                self.options['ode_integration_interface'].set_interpolant(name, interp)
 
         if self.options['input_parameter_options']:
             for name, options in self.options['input_parameter_options'].items():
                 self.add_input(name='input_parameters:{0}'.format(name), val=np.ones(options['shape']),
                                units=options['units'],
                                desc='values of input parameter {0}'.format(name))
-
-        self.options['ode_integration_interface'].prob.setup(check=False)
 
         self.declare_partials(of='*', wrt='*', method='fd')
 
@@ -206,9 +205,10 @@ class SegmentSimulationComp(om.ExplicitComponent):
             tf_seg = inputs['time'][-1]
             for name, options in self.options['control_options'].items():
                 ctrl_vals = inputs['controls:{0}'.format(name)]
-                self.options['ode_integration_interface'].control_interpolants[name].setup(x0=t0_seg,
-                                                                                           xf=tf_seg,
-                                                                                           f_j=ctrl_vals)
+                self.options['ode_integration_interface'].setup_interpolant(name,
+                                                                            x0=t0_seg,
+                                                                            xf=tf_seg,
+                                                                            f_j=ctrl_vals)
 
         # Setup the polynomial control interpolants
         if self.options['polynomial_control_options']:
@@ -216,9 +216,10 @@ class SegmentSimulationComp(om.ExplicitComponent):
             tf_phase = inputs['t_initial'] + inputs['t_duration']
             for name, options in self.options['polynomial_control_options'].items():
                 ctrl_vals = inputs['polynomial_controls:{0}'.format(name)]
-                self.options['ode_integration_interface'].polynomial_control_interpolants[name].setup(x0=t0_phase,
-                                                                                                      xf=tf_phase,
-                                                                                                      f_j=ctrl_vals)
+                self.options['ode_integration_interface'].setup_interpolant(name,
+                                                                            x0=t0_phase,
+                                                                            xf=tf_phase,
+                                                                            f_j=ctrl_vals)
 
         # Set the values of t_initial and t_duration
         iface_prob.set_val('t_initial',

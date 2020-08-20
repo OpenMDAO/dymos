@@ -2,9 +2,9 @@ import os
 import unittest
 
 import matplotlib.pyplot as plt
-plt.switch_backend('Agg')
 plt.style.use('ggplot')
 
+from openmdao.utils.general_utils import set_pyoptsparse_opt
 from dymos.utils.doc_utils import save_for_docs
 
 
@@ -51,7 +51,7 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
 
-        phase.set_time_options(initial_bounds=(0, 0),
+        phase.set_time_options(fix_initial=True,
                                duration_bounds=(300, 10000),
                                duration_ref=5600)
 
@@ -62,13 +62,11 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         phase.add_state('mass_fuel', units='lbm',
                         rate_source='propulsion.dXdt:mass_fuel',
-                        targets=['mass_comp.mass_fuel'],
                         fix_initial=True, fix_final=True,
                         upper=1.5E5, lower=0.0, ref=1e2, defect_ref=1e2)
 
         phase.add_state('alt', units='kft',
                         rate_source='climb_rate',
-                        targets=['atmos.h', 'aero.alt', 'propulsion.alt'],
                         fix_initial=True, fix_final=True,
                         lower=0.0, upper=60, ref=1e-3, defect_ref=1e-3)
 

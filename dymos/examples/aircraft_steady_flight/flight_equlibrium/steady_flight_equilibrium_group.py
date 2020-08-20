@@ -17,7 +17,8 @@ class SteadyFlightEquilibriumGroup(om.Group):
         nn = self.options['num_nodes']
 
         self.add_subsystem('aero',
-                           subsys=AerodynamicsGroup(num_nodes=nn))
+                           subsys=AerodynamicsGroup(num_nodes=nn),
+                           promotes_inputs=['alt'])
 
         self.add_subsystem('thrust_eq_comp',
                            subsys=ThrustEquilibriumComp(num_nodes=nn),

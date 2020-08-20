@@ -144,8 +144,6 @@ class TestPhaseTimeTargets(unittest.TestCase):
         p = self._make_problem('gauss-lobatto', num_seg)
 
         # Solve for the optimal trajectory
-        # p.run_model()
-        # om.n2(p.model)
         p.run_driver()
 
         gd = p.model.phase0.options['transcription'].grid_data

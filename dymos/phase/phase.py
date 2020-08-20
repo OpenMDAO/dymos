@@ -250,11 +250,7 @@ class Phase(om.Group):
 
         if targets is None:  # handle None to explicitly do nothing
             pass
-        elif targets is _unspecified:  # [default] was the same as None
-            # TODO: remove deprecation when this is working as described
-            warn_deprecation("The default behavior of 'targets=_unspecified' is changing. "
-                             "It is currently equivalent to targets=None', but in the future it will try to "
-                             "automatically connect to ODE inputs. Set targets=None to retain the old behavior.")
+        elif targets is _unspecified:
             pass  # optional target should be connected only if ODE input exists (checked in configure)
         elif targets is not _unspecified:  # and not None
             if isinstance(targets, str):
@@ -1562,20 +1558,6 @@ class Phase(om.Group):
         transcription.setup_solvers(self)
 
     def configure(self):
-        # can't check ODE inputs in setup, soon you will be able to check them for children in configure
-        # need to move connect calls in transcription.setup_controls below to configure so that they
-        # can be skipped for non-ODE unspecified targets
-
-        # check that unspecified options exist in ODE or delete them
-        for k, v in self.state_options.items():
-            t = v['targets']
-            if t is _unspecified:
-                print('handle ODE check for ', k)
-                if False:  # TODO: if ODE input exists (how to check?) replace with real target
-                    self.state_options[k]['targets'] = (k,)
-                else:
-                    self.state_options[k]['targets'] = None  # else remove the target
-
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']

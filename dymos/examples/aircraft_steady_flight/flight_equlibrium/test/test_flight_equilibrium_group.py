@@ -43,11 +43,7 @@ class TestFlightEquilibriumGroup(unittest.TestCase):
                                   promotes_inputs=['aero.*'],
                                   promotes_outputs=['aero.*'])
 
-        cls.p.model.connect('alt', ('aero.alt'))
-        # cls.p.model.connect('TAS', 'aero.TAS')
-        # cls.p.model.connect('TAS_rate', 'flight_equilibrium.TAS_rate')
         cls.p.model.connect('gam', 'flight_equilibrium.gam')
-        # cls.p.model.connect('gam_rate', 'flight_equilibrium.gam_rate')
         cls.p.model.connect('S', ('aero.S', 'flight_equilibrium.S'))
         cls.p.model.connect('mach', 'aero.mach')
         cls.p.model.connect('W_total', 'flight_equilibrium.W_total')
