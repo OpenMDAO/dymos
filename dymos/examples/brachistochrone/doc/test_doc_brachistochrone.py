@@ -91,8 +91,8 @@ class TestBrachistochroneForDocs(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_input_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', val=9.80665)
+        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                            units='m/s**2', val=9.80665)
         #
         # Minimize time at the end of the phase
         #
@@ -182,8 +182,8 @@ class TestBrachistochroneForDocs(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_input_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', val=9.80665)
+        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                            units='m/s**2', val=9.80665)
 
         #
         # Minimize time at the end of the phase
@@ -275,8 +275,8 @@ class TestBrachistochroneForDocs(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_input_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', val=9.80665)
+        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                            units='m/s**2', val=9.80665)
 
         #
         # Final state values are not optimization variables, so we must enforce final values
@@ -376,8 +376,8 @@ class TestBrachistochroneForDocs(unittest.TestCase):
                                      targets=BrachistochroneODE.parameters['theta']['targets'],
                                      units='deg', lower=0.01, upper=179.9)
 
-        phase.add_input_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', val=9.80665)
+        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                            units='m/s**2', val=9.80665)
 
         #
         # Final state values are not optimization variables, so we must enforce final values
@@ -481,8 +481,8 @@ class TestBrachistochroneForDocs(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_input_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', val=9.80665)
+        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                            units='m/s**2', val=9.80665)
 
         #
         # Minimize time at the end of the phase
@@ -580,8 +580,8 @@ class TestBrachistochroneForDocs(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_input_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', val=9.80665)
+        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                            units='m/s**2', val=9.80665)
 
         #
         # Replace state terminal bounds with nonlinear constraints

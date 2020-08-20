@@ -34,11 +34,11 @@ def new_propelled_ascent_phase(transcription):
     propelled_ascent.set_state_options(
         'p', fix_initial=True, fix_final=False, lower=1.02)
 
-    propelled_ascent.add_input_parameter(
+    propelled_ascent.add_parameter(
         'S', targets=['aero.S'], units='m**2')
-    propelled_ascent.add_input_parameter(
+    propelled_ascent.add_parameter(
         'm_empty', targets=['mass_adder.m_empty'], units='kg')
-    propelled_ascent.add_input_parameter(
+    propelled_ascent.add_parameter(
         'V_b', targets=['water_engine.V_b'], units='m**3')
 
     propelled_ascent.add_timeseries_output('water_engine.F', 'T', units='N')
@@ -63,9 +63,9 @@ def new_ballistic_ascent_phase(transcription):
     ballistic_ascent.set_state_options(
         'v', fix_initial=False, fix_final=False)
 
-    ballistic_ascent.add_input_parameter(
+    ballistic_ascent.add_parameter(
         'S', targets=['aero.S'], units='m**2')
-    ballistic_ascent.add_input_parameter(
+    ballistic_ascent.add_parameter(
         'm_empty', targets=['eom.m'], units='kg')
 
     return ballistic_ascent
@@ -83,8 +83,8 @@ def new_descent_phase(transcription):
     descent.add_state('gam', fix_initial=False, fix_final=False, units='deg')
     descent.add_state('v', fix_initial=False, fix_final=False)
 
-    descent.add_input_parameter('S', targets=['aero.S'], units='m**2')
-    descent.add_input_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
+    descent.add_parameter('S', targets=['aero.S'], units='m**2')
+    descent.add_parameter('mass', targets=['eom.m', 'kinetic_energy.m'], units='kg')
 
     return descent
 

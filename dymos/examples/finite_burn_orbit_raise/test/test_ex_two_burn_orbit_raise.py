@@ -63,7 +63,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
                     rate_source='deltav_dot', units='DU/TU')
 
     coast.add_parameter('u1', opt=False, val=0.0, units='deg', targets=['u1'])
-    coast.add_input_parameter('c', val=0.0, units='DU/TU', targets=['c'])
+    coast.add_parameter('c', val=0.0, units='DU/TU', targets=['c'])
 
     # Third Phase (burn)
     burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=t[transcription])

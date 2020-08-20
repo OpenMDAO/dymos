@@ -48,7 +48,7 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
             name of the variable in this component's namespace.
         var_class : str
             The 'class' of the variable as given by phase.classify_var.  One of 'time', 'state',
-            'indep_control', 'input_control', 'parameter', 'input_parameter',
+            'indep_control', 'input_control', 'parameter',
             'control_rate', 'control_rate2', or 'ode'.
         shape : int or tuple or list or None
             Shape of this variable, only required if val is not an array.
@@ -64,7 +64,7 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
         src_all = var_class in ['time', 'time_phase', 'indep_control', 'input_control',
                                 'control_rate', 'control_rate2', 'indep_polynomial_control',
                                 'input_polynomial_control', 'polynomial_control_rate',
-                                'polynomial_control_rate2', 'parameter', 'input_parameter']
+                                'polynomial_control_rate2', 'parameter']
         kwargs = {'shape': shape, 'units': units, 'desc': desc, 'src_all': src_all,
                   'distributed': distributed}
         self._timeseries_outputs.append((name, kwargs))

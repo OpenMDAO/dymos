@@ -57,7 +57,6 @@ class Phase(om.Group):
         self.control_options = {}
         self.polynomial_control_options = {}
         self.parameter_options = {}
-        self.input_parameter_options = {}
         self.refine_options = GridRefinementOptionsDictionary()
 
         # Dictionaries of variable options that are set by the user via the API
@@ -77,7 +76,6 @@ class Phase(om.Group):
             self.control_options = from_phase.control_options.copy()
             self.polynomial_control_options = from_phase.polynomial_control_options.copy()
             self.parameter_options = from_phase.parameter_options.copy()
-            self.input_parameter_options = from_phase.input_parameter_options.copy()
 
             self.refine_options.update(from_phase.refine_options)
 
@@ -331,8 +329,6 @@ class Phase(om.Group):
             raise ValueError('{0} has already been added as a control.'.format(name))
         elif name in self.parameter_options:
             raise ValueError('{0} has already been added as a parameter.'.format(name))
-        elif name in self.input_parameter_options:
-            raise ValueError('{0} has already been added as an input parameter.'.format(name))
         elif name in self.polynomial_control_options:
             raise ValueError('{0} has already been added as a polynomial control.'.format(name))
 
@@ -1546,7 +1542,7 @@ class Phase(om.Group):
             'time', 'state', 'input_control', 'indep_control', 'control_rate',
             'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
-            'input_parameter', or 'ode'.
+            or 'ode'.
 
         """
         if var == 'time':
@@ -1567,8 +1563,6 @@ class Phase(om.Group):
                 return 'input_polynomial_control'
         elif var in self.parameter_options:
             return 'parameter'
-        elif var in self.input_parameter_options:
-            return 'input_parameter'
         elif var.endswith('_rate') and var[:-5] in self.control_options:
             return 'control_rate'
         elif var.endswith('_rate2') and var[:-6] in self.control_options:
@@ -1614,9 +1608,6 @@ class Phase(om.Group):
         if self.parameter_options:
             transcription.setup_parameters(self)
 
-        if self.input_parameter_options:
-            transcription.setup_input_parameters(self)
-
         transcription.setup_states(self)
         self._check_ode()
         transcription.setup_ode(self)
@@ -1659,9 +1650,6 @@ class Phase(om.Group):
 
         if self.parameter_options:
             transcription.configure_parameters(self)
-
-        if self.input_parameter_options:
-            transcription.configure_input_parameters(self)
 
         transcription.configure_states(self)
         transcription.configure_ode(self)
@@ -1952,11 +1940,6 @@ class Phase(om.Group):
             else:
                 prob_path = '{0}.parameters:{1}'.format(self.name, name)
             prob[prob_path][...] = val
-
-        # Assign input parameter values
-        for name in phs.input_parameter_options:
-            op = op_dict[f'input_params.input_parameters:{name}_out']
-            prob[f'{self_path}input_parameters:{name}'][...] = op['value']
 
     def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9,
                  record_file=None):

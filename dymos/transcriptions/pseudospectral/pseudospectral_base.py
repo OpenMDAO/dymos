@@ -405,13 +405,6 @@ class PseudospectralBase(TranscriptionBase):
             units = control_units
             linear = True
             constraint_path = 'parameters:{0}'.format(var)
-        elif var_type == 'input_parameter':
-            control_shape = phase.input_parameter_options[var]['shape']
-            control_units = phase.input_parameter_options[var]['units']
-            shape = control_shape
-            units = control_units
-            linear = False
-            constraint_path = 'input_parameters:{0}_out'.format(var)
         elif var_type in ('control_rate', 'control_rate2'):
             control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
             control_shape = phase.control_options[control_var]['shape']

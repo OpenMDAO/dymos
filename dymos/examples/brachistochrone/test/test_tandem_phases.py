@@ -124,10 +124,10 @@ class TestTandemPhases(unittest.TestCase):
                          targets=BrachistochroneODE.states['v']['targets'],
                          units=BrachistochroneODE.states['v']['units'])
 
-        phase0.add_input_parameter('g',
-                                   targets=BrachistochroneODE.parameters['g']['targets'],
-                                   units=BrachistochroneODE.parameters['g']['units'],
-                                   val=9.80665)
+        phase0.add_parameter('g',
+                             targets=BrachistochroneODE.parameters['g']['targets'],
+                             units=BrachistochroneODE.parameters['g']['units'],
+                             val=9.80665)
 
         phase0.add_control('theta', units='deg',
                            targets=BrachistochroneODE.parameters['theta']['targets'],
@@ -178,7 +178,7 @@ class TestTandemPhases(unittest.TestCase):
         p['phase0.states:y'] = phase0.interpolate(ys=[10, 5], nodes='state_input')
         p['phase0.states:v'] = phase0.interpolate(ys=[0, 9.9], nodes='state_input')
         p['phase0.controls:theta'] = phase0.interpolate(ys=[5, 100], nodes='control_input')
-        p['phase0.input_parameters:g'] = 9.80665
+        p['phase0.parameters:g'] = 9.80665
 
         p['phase1.states:S'] = 0.0
 

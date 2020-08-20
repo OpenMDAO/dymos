@@ -210,12 +210,6 @@ class RungeKutta(TranscriptionBase):
             src_idxs = np.zeros(num_segments * num_stages * size, dtype=int).reshape((num_segments,
                                                                                       num_stages,
                                                                                       state_size))
-        elif var_type == 'input_parameter':
-            rate_path = 'input_parameters:{0}_out'.format(var)
-            size = np.prod(phase.input_parameter_options[var]['shape'])
-            src_idxs = np.zeros(num_segments * num_stages * size, dtype=int).reshape((num_segments,
-                                                                                      num_stages,
-                                                                                      state_size))
         else:
             # Failed to find variable, assume it is in the ODE
             rate_path = 'rk_solve_group.ode.{0}'.format(var)
@@ -822,13 +816,6 @@ class RungeKutta(TranscriptionBase):
                                                            shape=options['shape'],
                                                            units=units)
 
-            for param_name, options in phase.input_parameter_options.items():
-                if options['include_timeseries']:
-                    units = options['units']
-                    timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
-                                                           var_class=phase.classify_var(param_name),
-                                                           units=units)
-
             for var, options in phase._timeseries[name]['outputs'].items():
                 output_name = options['output_name']
 
@@ -917,15 +904,6 @@ class RungeKutta(TranscriptionBase):
                     phase.promotes(name, inputs=[(tgt_name, prom_name)],
                                    src_indices=src_idxs, flat_src_indices=True)
 
-            for param_name, options in phase.input_parameter_options.items():
-                if options['include_timeseries']:
-                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-
-                    phase.connect(src_name='input_parameters:{0}_out'.format(param_name),
-                                  tgt_name='{0}.input_values:input_parameters:{1}'.format(name, param_name),
-                                  src_indices=src_idxs, flat_src_indices=True)
-
             for var, options in phase._timeseries[name]['outputs'].items():
                 output_name = options['output_name']
 
@@ -972,7 +950,6 @@ class RungeKutta(TranscriptionBase):
         num_final_ode_nodes = 2 * num_seg
 
         parameter_options = phase.parameter_options.copy()
-        parameter_options.update(phase.input_parameter_options)
         parameter_options.update(phase.control_options)
 
         if name in parameter_options:
@@ -1068,13 +1045,6 @@ class RungeKutta(TranscriptionBase):
             units = control_units
             linear = True
             constraint_path = 'parameters:{0}'.format(var)
-        elif var_type == 'input_parameter':
-            control_shape = phase.input_parameter_options[var]['shape']
-            control_units = phase.input_parameter_options[var]['units']
-            shape = control_shape
-            units = control_units
-            linear = False
-            constraint_path = 'input_parameters:{0}_out'.format(var)
         elif var_type in ('control_rate', 'control_rate2'):
             control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
             control_shape = phase.control_options[control_var]['shape']
