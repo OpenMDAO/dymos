@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 
 setup(name='dymos',
-    version='0.15.1-dev',
+    version='0.16.0-dev',
     description='Open-Source Optimization of Dynamic Multidisciplinary Systems',
     url='https://github.com/OpenMDAO/dymos',
     classifiers=[
@@ -22,7 +22,7 @@ setup(name='dymos',
     license='Apache License',
     packages=find_packages(),
     install_requires=[
-        'openmdao>=2.99',
+        'openmdao>=3.2.1',
         'numpy>=1.14.1',
         'scipy>=1.0.0',
         'pep8',
