@@ -1,4 +1,4 @@
-__version__ = '0.15.0'
+__version__ = '0.15.1'
 
 from .phase import Phase
 from .transcriptions import GaussLobatto, Radau, RungeKutta
