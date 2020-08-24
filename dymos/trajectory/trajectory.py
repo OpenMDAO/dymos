@@ -63,7 +63,7 @@ class Trajectory(om.Group):
         self._phase_add_kwargs[name] = kwargs
         return phase
 
-    def add_parameter(self, name, units, val=_unspecified, desc=_unspecified, opt=_unspecified,
+    def add_parameter(self, name, units, val=_unspecified, desc=_unspecified, opt=False,
                       targets=_unspecified, custom_targets=_unspecified,
                       lower=_unspecified, upper=_unspecified, scaler=_unspecified,
                       adder=_unspecified, ref0=_unspecified, ref=_unspecified,
@@ -93,11 +93,8 @@ class Trajectory(om.Group):
             Units in which the parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         opt : bool
-            If True (default) the value(s) of this parameter will be design variables in
-            the optimization problem, in the path
-            'traj_name.params.parameters:name'.  If False, the this
-            parameter will still be owned by an IndepVarComp in the phase, but it will not be a
-            design variable in the optimization.
+            If True the value(s) of this parameter will be design variables in
+            the optimization problem. The default is False.
         lower : float or ndarray
             The lower bound of the parameter value.
         upper : float or ndarray
@@ -232,11 +229,8 @@ class Trajectory(om.Group):
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         opt : bool
-            If True (default) the value(s) of this design parameter will be design variables in
-            the optimization problem, in the path
-            'traj_name.params.parameters:name'.  If False, the this design
-            parameter will still be owned by an IndepVarComp in the phase, but it will not be a
-            design variable in the optimization.
+            If True (default) the value(s) of this parameter will be design variables in
+            the optimization problem.
         lower : float or ndarray
             The lower bound of the design parameter value.
         upper : float or ndarray
@@ -741,14 +735,31 @@ class Trajectory(om.Group):
                                                                                 out_stream=None)])
 
         # Assign trajectory design parameter values
-        for name, options in self.parameter_options.items():
-            op = traj_op_dict[f'params.parameters:{name}']
-            var_name = '{0}.parameters:{1}'.format(self.name, name)
-            sim_prob[var_name] = op['value'][0, ...]
+        #for name, options in self.parameter_options.items():
+            #op = traj_op_dict[f'parameters:{name}']
+            #var_name = '{0}.parameters:{1}'.format(self.name, name)
+            #sim_prob[var_name] = op['value'][0, ...]
+        # Assign trajectory parameter values
+        meta = self._problem_meta
+        prom2abs = meta['prom2abs']
+        conns = meta['connections']
+        pname = 'traj.parameters:{0}'
+        param_names = [key for key in self.parameter_options.keys()]
+        for name in param_names:
+            prom_path = f'traj.parameters:{name}'
+            abs_in = prom2abs['input'][prom_path][0]
+            src = conns[abs_in]
+
+            # We use this private function to grab the correctly sized variable from the
+            # auto_ivc source.
+            val = self._abs_get_val(src, False, None, 'nonlinear', 'output', False, from_root=True)
+            prob_path = f'traj.parameters:{name}'
+            sim_prob[prob_path][...] = val
 
         for phase_name, phs in sim_traj._phases.items():
             phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],
-                                             phase_path=traj_name)
+                                             phase_path=traj_name,
+                                             skip_params=param_names)
 
         print('\nSimulating trajectory {0}'.format(self.pathname))
         sim_prob.run_model()

@@ -1864,7 +1864,7 @@ class Phase(om.Group):
 
         return sim_phase
 
-    def initialize_values_from_phase(self, prob, from_phase, phase_path=''):
+    def initialize_values_from_phase(self, prob, from_phase, phase_path='', skip_params=None):
         """
         Initializes values in the Phase using the phase from which it was created.
 
@@ -1876,6 +1876,9 @@ class Phase(om.Group):
             The Phase instance from which the values in this phase are being initialized.
         phase_path : str
             The pathname of the system in prob that contains the phases.
+        skip_params : None or list.
+            Parameter names that will be skipped because they have already been initialized at the
+            trajetory level.
         """
         phs = from_phase
 
@@ -1928,6 +1931,10 @@ class Phase(om.Group):
         conns = meta['connections']
         pname = '{0}parameters:{1}'
         for name in phs.parameter_options:
+
+            if skip_params and name in skip_params:
+                continue
+
             prom_phs_path = pname.format(phs_path.replace('.phases.', '.'), name)
             abs_in = prom2abs['input'][prom_phs_path][0]
             src = conns[abs_in]
