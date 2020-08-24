@@ -317,7 +317,6 @@ class TestTrajectoryParameters(unittest.TestCase):
             assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
 
-
     def test_param_no_targets(self):
         """
         Test that, when setting up a trajectory parameter with a phase omitted from input,

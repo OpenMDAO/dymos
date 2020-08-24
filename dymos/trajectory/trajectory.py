@@ -288,8 +288,8 @@ class Trajectory(om.Group):
                 shaped_val = np.broadcast_to(val, _shape)
 
                 self.set_input_defaults(name=src_name,
-                                         val=shaped_val,
-                                         units=options['units'])
+                                        val=shaped_val,
+                                        units=options['units'])
 
                 tgts = options['targets']
 
@@ -426,7 +426,7 @@ class Trajectory(om.Group):
         parameter_options = self.parameter_options
 
         for name, options in parameter_options.items():
-            prom_name = 'parameters:{0}'.format(name)
+            prom_name = f'parameters:{name}'
 
             for phase_name, phs in self._phases.items():
                 targets = options['targets']
@@ -436,7 +436,6 @@ class Trajectory(om.Group):
                     # it exists.
                     if name in phs.parameter_options:
                         tgt = f'{phase_name}.parameters:{name}'
-                        prom_tgt = f'parameters:{name}'
                     else:
                         continue
                 elif targets[phase_name] is None:
@@ -446,18 +445,16 @@ class Trajectory(om.Group):
                         targets[phase_name] in phs.parameter_options:
                     # Connect to an input parameter with a different name in this phase
                     tgt = '{0}.parameters:{1}'.format(phase_name, targets[phase_name])
-                    prom_tgt = 'parameters:{1}'.format(targets[phase_name])
                 elif isinstance(targets[phase_name], Sequence) and \
                         name in phs.parameter_options:
                     # User gave a list of ODE targets which were passed to the creation of a
                     # new input parameter in setup, just connect to that new input parameter
                     tgt = f'{phase_name}.parameters:{name}'
-                    prom_tgt = f'parameters:{name}'
                 else:
                     raise ValueError('Unhandled {0} parameter target in '
                                      'phase {1}'.format(mode, phase_name))
 
-                self.promotes('phases', inputs=[(tgt, prom_tgt)])
+                self.promotes('phases', inputs=[(tgt, prom_name)])
 
     def _configure_linkages(self):
 
