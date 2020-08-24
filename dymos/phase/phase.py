@@ -1876,7 +1876,7 @@ class Phase(om.Group):
             The Phase instance from which the values in this phase are being initialized.
         phase_path : str
             The pathname of the system in prob that contains the phases.
-        skip_params : None or list.
+        skip_params : None or set.
             Parameter names that will be skipped because they have already been initialized at the
             trajetory level.
         """

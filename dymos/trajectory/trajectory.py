@@ -751,9 +751,18 @@ class Trajectory(om.Group):
             sim_prob[prob_path][...] = val
 
         for phase_name, phs in sim_traj._phases.items():
+            skip_params = set(param_names)
+            for name in param_names:
+                targets = self.parameter_options[name]['targets']
+                if targets and phase_name in targets:
+                    targets_phase = targets[phase_name]
+                    if isinstance(targets_phase, str):
+                        targets_phase = [targets_phase]
+                    skip_params = skip_params.union(targets_phase)
+
             phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],
                                              phase_path=traj_name,
-                                             skip_params=param_names)
+                                             skip_params=skip_params)
 
         print('\nSimulating trajectory {0}'.format(self.pathname))
         sim_prob.run_model()

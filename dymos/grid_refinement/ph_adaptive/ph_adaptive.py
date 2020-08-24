@@ -395,16 +395,6 @@ class PHAdaptive:
             if options['targets'] is not None:
                 p.model.connect(f'controls:{control_name}', [f'ode.{tgt}' for tgt in options['targets']])
 
-        for dp_name, options in phase.parameter_options.items():
-            prom_name = f'parameters:{dp_name}'
-            abs_name = prom_to_abs_map[prom_name][0]
-            dp_val = values_dict[prom_name][0, ...]
-            ivc.add_output(f'parameters:{dp_name}', val=dp_val, units=options['units'])
-            if options['targets'] is not None:
-                p.model.connect(f'parameters:{dp_name}',
-                                [f'ode.{tgt}' for tgt in options['targets']],
-                                src_indices=np.zeros(grid.num_nodes, dtype=int))
-
         p.setup()
 
         ti_prom_name = f'time.t_initial'

@@ -237,7 +237,7 @@ def summarize_results(water_rocket_problem):
         'Launch angle': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[0, 0], 'deg'),
         'Flight angle at end of propulsion': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',
                                                    units='deg')[-1, 0], 'deg'),
-        'Empty mass': Entry(p.get_val('traj.parameters:m_empty', units='kg')[0, 0], 'kg'),
+        'Empty mass': Entry(p.get_val('traj.parameters:m_empty', units='kg')[0], 'kg'),
         'Water volume': Entry(p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L')[0, 0], 'L'),
         'Maximum range': Entry(p.get_val('traj.descent.timeseries.states:r', units='m')[-1, 0], 'm'),
         'Maximum height': Entry(p.get_val('traj.ballistic_ascent.timeseries.states:h', units='m')[-1, 0], 'm'),
