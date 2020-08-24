@@ -208,7 +208,7 @@ def plot_propelled_ascent(p, exp_out):
     ax[1].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L'), 'ro', markerfacecolor='None')
     ax[1].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L'), 'r-')
     ax[1].set_ylabel('$V_w$ (L)')
-    ax[1].set_ylim(0, p.get_val('traj.parameters:V_b', 'L'))
+    ax[1].set_ylim(0, p.get_val('traj.parameters:V_b', 'L')[0])
 
     ax[2].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.T', 'N'), 'ro', markerfacecolor='None')
     ax[2].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.T', 'N'), 'r-')
