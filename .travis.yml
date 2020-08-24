@@ -137,6 +137,7 @@ script:
 - testflo -n 1 $dymos_path --pre_announce --coverage --coverpkg dymos;
 - testflo -b -n 1 benchmark --pre_announce
 - if [ "$UPLOAD_DOCS" ]; then
+    cd mkdocs;
     mkdocs build;
   fi
 
