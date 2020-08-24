@@ -142,4 +142,5 @@ script:
   fi
 
 after_success:
+- cd ..;
 - coveralls -v;

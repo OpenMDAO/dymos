@@ -11,7 +11,6 @@ differential equations (the ODE) which governs their behavior.
 
 Consider a simple damped harmonic oscillator.
 
-
 ![Damped harmonic oscillator free-body diagram](figures/spring_mass_damper.png)
 
 
