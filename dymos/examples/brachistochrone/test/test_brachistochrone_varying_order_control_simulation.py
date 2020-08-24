@@ -129,7 +129,7 @@ class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', val=9.80665)
+                            units='m/s**2', val=9.80665)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)

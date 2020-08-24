@@ -61,7 +61,7 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', val=9.80665)
+                            units='m/s**2', val=9.80665)
 
         phase.add_timeseries('timeseries2',
                              transcription=dm.Radau(num_segments=num_segments * 5,

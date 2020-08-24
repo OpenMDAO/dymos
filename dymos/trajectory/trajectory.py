@@ -734,16 +734,10 @@ class Trajectory(om.Group):
         traj_op_dict = dict([(name, opts) for (name, opts) in self.list_outputs(units=True,
                                                                                 out_stream=None)])
 
-        # Assign trajectory design parameter values
-        #for name, options in self.parameter_options.items():
-            #op = traj_op_dict[f'parameters:{name}']
-            #var_name = '{0}.parameters:{1}'.format(self.name, name)
-            #sim_prob[var_name] = op['value'][0, ...]
         # Assign trajectory parameter values
         meta = self._problem_meta
         prom2abs = meta['prom2abs']
         conns = meta['connections']
-        pname = 'traj.parameters:{0}'
         param_names = [key for key in self.parameter_options.keys()]
         for name in param_names:
             prom_path = f'traj.parameters:{name}'
