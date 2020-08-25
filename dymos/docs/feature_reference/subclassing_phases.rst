@@ -22,7 +22,7 @@ to invoke `super(DerivedPhase, self).initialize()` at the beginning of your subc
 
 If you want to override any options for time, states, controls, or parameters you can use the
 `set_time_options`, `set_state_options`, `set_control_options`, `set_polynomial_control_options`,
-`set_input_parameter_options`, or `set_parameter_options` to change any of the settings
+or `set_parameter_options` to change any of the settings
 whose defaults were set in the phase definition.
 
 

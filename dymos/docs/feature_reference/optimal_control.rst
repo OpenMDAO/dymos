@@ -19,9 +19,9 @@ In order to impact the behavior of such systems we need *controls*.  Controls ma
 to vary with time, such as the angle-of-attack of an aircraft during flight.  We refer to these
 as *dynamic* controls :math:`\left(\bar{u}\right)`.  Other controllable parameters might be fixed
 with time, such as the wingspan of an aircraft.  We refer to these
-as *design parameters* :math:`\left(\bar{d}\right)`, although in the literature they may also be
+as *parameters* :math:`\left(\bar{d}\right)`, although in the literature they may also be
 referred to as static controls.  The endpoints in time, state values, control values, and
-design parameter values define the independent variables for our optimization problem.
+parameter values define the independent variables for our optimization problem.
 In Dymos, we discretize these variables in time to convert a continuous-time optimal control
 problem into a nonlinear programming (NLP) problem.
 
