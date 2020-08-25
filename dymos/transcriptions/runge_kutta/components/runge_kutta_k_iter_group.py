@@ -1,6 +1,7 @@
 import openmdao.api as om
 
 from ....utils.rk_methods import rk_methods
+from ....utils.misc import get_state_targets
 
 from .runge_kutta_state_predict_comp import RungeKuttaStatePredictComp
 from .runge_kutta_k_comp import RungeKuttaKComp
@@ -64,11 +65,15 @@ class RungeKuttaKIterGroup(om.Group):
                                                   time_units=self.options['time_units']),
                            promotes_inputs=['h'])
 
+    def configure(self):
+
         for state_name, options in self.options['state_options'].items():
+            targets = get_state_targets(ode=self.ode, state_name=state_name, state_options=options)
+
             # Connect the state predicted (assumed) value to its targets in the ode
-            if options['targets']:
+            if targets:
                 self.connect('state_predict_comp.predicted_states:{0}'.format(state_name),
-                             ['ode.{0}'.format(tgt) for tgt in options['targets']])
+                             ['ode.{0}'.format(tgt) for tgt in targets])
 
             # Connect the k value associated with the state to the state predict comp
             self.connect('k_comp.k:{0}'.format(state_name),

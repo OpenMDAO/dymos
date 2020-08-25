@@ -1,17 +1,14 @@
 from collections import OrderedDict
 
 import numpy as np
-from .odeint_control_interpolation_comp import ODEIntControlInterpolationComp
-from .state_rate_collector_comp import StateRateCollectorComp
+from .ode_integration_interface_system import ODEIntegrationInterfaceSystem
 import openmdao.api as om
 
 
 class ODEIntegrationInterface(object):
     """
     Given a system class, create a callable object with the same signature as that required
-    by scipy.integrate.ode::
-
-        f(t, x, *args)
+    by scipy.integrate.ode.
 
     Internally, this is accomplished by constructing an OpenMDAO problem using the ODE with
     a single node.  The interface populates the values of the time, states, and controls,
@@ -63,115 +60,13 @@ class ODEIntegrationInterface(object):
         #
         # Build odeint problem interface
         #
-        self.prob = om.Problem(model=om.Group())
-        model = self.prob.model
-
-        # The time IVC
-        ivc = om.IndepVarComp()
-        time_units = self.time_options['units']
-        ivc.add_output('time', val=0.0, units=time_units)
-        ivc.add_output('time_phase', val=-88.0, units=time_units)
-        ivc.add_output('t_initial', val=-99.0, units=time_units)
-        ivc.add_output('t_duration', val=-111.0, units=time_units)
-
-        model.add_subsystem('time_input', ivc, promotes_outputs=['*'])
-
-        model.connect('time', ['ode.{0}'.format(tgt) for tgt in
-                               self.time_options['targets']])
-
-        model.connect('time_phase', ['ode.{0}'.format(tgt) for tgt in
-                                     self.time_options['time_phase_targets']])
-
-        model.connect('t_initial',
-                      ['ode.{0}'.format(tgt) for tgt in
-                       self.time_options['t_initial_targets']])
-
-        model.connect('t_duration',
-                      ['ode.{0}'.format(tgt) for tgt in
-                       self.time_options['t_duration_targets']])
-
-        # The States Comp
-        for name, options in self.state_options.items():
-            ivc.add_output('states:{0}'.format(name),
-                           shape=(1, np.prod(options['shape'])),
-                           units=options['units'])
-
-            rate_src = self._get_rate_source_path(name)
-
-            model.connect(rate_src,
-                          'state_rate_collector.state_rates_in:{0}_rate'.format(name))
-
-            if options['targets'] is not None:
-                model.connect('states:{0}'.format(name),
-                              ['ode.{0}'.format(tgt) for tgt in options['targets']])
-
-        if self.control_options or self.polynomial_control_options:
-            self._interp_comp = \
-                ODEIntControlInterpolationComp(time_units=time_units,
-                                               control_options=self.control_options,
-                                               polynomial_control_options=self.polynomial_control_options)
-            self._interp_comp.control_interpolants = self.control_interpolants
-            self._interp_comp.polynomial_control_interpolants = self.polynomial_control_interpolants
-
-            model.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])
-            model.connect('time', ['indep_controls.time'])
-
-        if self.control_options:
-            for name, options in self.control_options.items():
-                if options['targets']:
-                    model.connect('controls:{0}'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in options['targets']])
-                if options['rate_targets']:
-                    model.connect('control_rates:{0}_rate'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in options['rate_targets']])
-                if options['rate2_targets']:
-                    model.connect('control_rates:{0}_rate2'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in options['rate2_targets']])
-
-        if self.polynomial_control_options:
-            for name, options in self.polynomial_control_options.items():
-                tgts = options['targets']
-                rate_tgts = options['rate_targets']
-                rate2_tgts = options['rate2_targets']
-                if options['targets']:
-                    if isinstance(tgts, str):
-                        tgts = [tgts]
-                    model.connect('polynomial_controls:{0}'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in tgts])
-                if options['rate_targets']:
-                    if isinstance(rate_tgts, str):
-                        rate_tgts = [rate_tgts]
-                    model.connect('polynomial_control_rates:{0}_rate'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in rate_tgts])
-                if options['rate2_targets']:
-                    if isinstance(rate2_tgts, str):
-                        rate2_tgts = [rate2_tgts]
-                    model.connect('polynomial_control_rates:{0}_rate2'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in rate2_tgts])
-
-        if self.parameter_options:
-            for name, options in self.parameter_options.items():
-                ivc.add_output('parameters:{0}'.format(name),
-                               shape=options['shape'],
-                               units=options['units'])
-                if options['targets'] is not None:
-                    tgts = options['targets']
-                    if isinstance(tgts, str):
-                        tgts = [tgts]
-                    model.connect('parameters:{0}'.format(name),
-                                  ['ode.{0}'.format(tgt) for tgt in tgts])
-
-        # The ODE System
-        if ode_class is not None:
-            model.add_subsystem('ode', subsys=ode_class(num_nodes=1, **ode_init_kwargs))
-
-        # The state rate collector comp
-        self.prob.model.add_subsystem('state_rate_collector',
-                                      StateRateCollectorComp(state_options=self.state_options,
-                                                             time_units=time_options['units']))
-
-        # Flag that is set to true if has_controls is called
-        self._has_dynamic_controls = False
+        self.prob = om.Problem(model=ODEIntegrationInterfaceSystem(ode_class=ode_class,
+                                                                   time_options=time_options,
+                                                                   state_options=state_options,
+                                                                   control_options=control_options,
+                                                                   polynomial_control_options=polynomial_control_options,
+                                                                   parameter_options=parameter_options,
+                                                                   ode_init_kwargs=ode_init_kwargs))
 
     def _get_rate_source_path(self, state_var):
         var = self.state_options[state_var]['rate_source']
@@ -242,6 +137,39 @@ class ODEIntegrationInterface(object):
                 np.ravel(self.prob['state_rate_collector.'
                                    'state_rates:{0}_rate'.format(state_name)])
         return self._state_rate_vec
+
+    def set_interpolant(self, name, interp):
+        """ Set the control and/or polynomial control interpolants in the underlying system.
+
+        Parameters
+        ----------
+        name : str
+            The name of the control or polynomial control whose interpolant is being set.
+        interp : LagrangeBarycentricInterpolant
+            The LagrangeBarycentricInterpolant for the given control or polynomial control.
+        """
+        self.prob.model.set_interpolant(name, interp)
+
+    def setup_interpolant(self, name, x0, xf, f_j):
+        """ Setup the values to be interpolated in an existing interpolant.
+
+        Parameters
+        ----------
+        name : str
+            The name of the control or polynomial control.
+        x0 : float
+            The initial time (or independent variable) of the segment (for controls) or phase (for polynomial controls).
+        xf : float
+            The final time (or independent variable) of the segment (for controls) or phase (for polynomial controls).
+        f_j : float
+            The value of the control at the nodes in the segment or phase.
+        """
+        if name in self.prob.model.options['control_options']:
+            self.prob.model.setup_interpolant(name, x0, xf, f_j)
+        elif name in self.prob.model.options['polynomial_control_options']:
+            self.prob.model.setup_interpolant(name, x0, xf, f_j)
+        else:
+            raise KeyError(f'Unable to set control interpolant of unknown control: {name}')
 
     def __call__(self, t, x):
         """

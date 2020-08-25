@@ -54,19 +54,19 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
 
         phase.add_state('h', fix_initial=True, lower=0, upper=20000.0,
                         ref=1.0E2, defect_ref=1.0E2, units='m',
-                        rate_source='flight_dynamics.h_dot', targets=['h'])
+                        rate_source='flight_dynamics.h_dot')
 
         phase.add_state('v', fix_initial=True, lower=10.0,
                         ref=1.0E2, defect_ref=1.0E2, units='m/s',
-                        rate_source='flight_dynamics.v_dot', targets=['v'])
+                        rate_source='flight_dynamics.v_dot')
 
         phase.add_state('gam', fix_initial=True, lower=-1.5, upper=1.5,
                         ref=1.0, defect_ref=1.0, units='rad',
-                        rate_source='flight_dynamics.gam_dot', targets=['gam'])
+                        rate_source='flight_dynamics.gam_dot')
 
         phase.add_state('m', fix_initial=True, lower=10.0, upper=1.0E5,
                         ref=1.0E3, defect_ref=1.0E3, units='kg',
-                        rate_source='prop.m_dot', targets=['m'])
+                        rate_source='prop.m_dot')
 
         phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
                           rate_continuity=True, rate_continuity_scaler=100.0,

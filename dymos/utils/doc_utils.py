@@ -68,9 +68,6 @@ def save_for_docs(method, transparent=False):
     - Saves all matplotlib figures created during the test to '{classname}.{testname}_{i}.png'
     - Restores the backend, stdout, and stderr.
     """
-    if os.environ.get('CI', 'false') == 'true':
-        return method
-
     def wrapped(self):
         import os
         import sys

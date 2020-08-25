@@ -3,6 +3,7 @@ from numbers import Number
 import numpy as np
 
 import openmdao.api as om
+from ..utils.misc import _unspecified
 
 
 class ControlOptionsDictionary(om.OptionsDictionary):
@@ -353,7 +354,7 @@ class StateOptionsDictionary(om.OptionsDictionary):
         self.declare(name='rate_source', types=str,
                      desc='ODE-path to the derivative of the state variable')
 
-        self.declare(name='targets', types=Iterable, allow_none=True, default=None,
+        self.declare(name='targets', allow_none=True, default=_unspecified,
                      desc='Targets in the ODE to which the state is connected')
 
         self.declare(name='lower', types=(Iterable, Number), default=None,

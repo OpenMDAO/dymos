@@ -195,12 +195,11 @@ phase.set_time_options(fix_initial=True, duration_bounds=(0.5, 10.0), units='s')
 # Initial values of positions and velocity are all fixed.
 # The final value of position are fixed, but the final velocity is a free variable.
 # The equations of motion are not functions of position, so 'x' and 'y' have no targets.
-# The rate source points to the output in the ODE which provides the time derivative of the
-# given state.
+# The target of 'v' will be automatically found by Dymos since `v` is an input at the top-level of the ODE.
+# The rate source points to the output in the ODE which provides the time derivative of the given state.
 phase.add_state('x', fix_initial=True, fix_final=True, units='m', rate_source='xdot')
 phase.add_state('y', fix_initial=True, fix_final=True, units='m', rate_source='ydot')
-phase.add_state('v', fix_initial=True, fix_final=False, units='m/s',
-                rate_source='vdot', targets=['v'])
+phase.add_state('v', fix_initial=True, fix_final=False, units='m/s', rate_source='vdot')
 
 # Define theta as a control.
 phase.add_control(name='theta', units='rad', lower=0, upper=np.pi, targets=['theta'])

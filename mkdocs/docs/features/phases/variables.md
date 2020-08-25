@@ -45,8 +45,9 @@ which each state (and each dynamic control) is modeled as a polynomial.  The ord
 polynomial is specified using the *transcription_order* method.  **In Dymos, the minimum state
 transcription order is 3.**
 
-Users can specify bounds, scaling, and units of the state variables with the
-phase method `add_state`.  The following options are valid:
+Users can specify bounds, scaling, and units of the state variables with the phase method `add_state`.
+Settings on a previously-added state variable may be changed using the `set_state_options` method.
+The following options are valid:
 
 {{ embed_options('dymos.phase.options.StateOptionsDictionary', '###Options for State Variables') }}
 
@@ -57,6 +58,21 @@ the collocation algorithms.  This is accomplished with the `defect_scaler` or `d
 As the name implies, `defect_scaler` is multiplied by the defect value to provide the defect
 constraint value to the optimizer.  Alternatively, the user can specify `defect_ref`.  If provided,
 `defect_ref` overrides `defect_scaler` and is the value of the defect seen as `1` by the optimizer.
+
+If the ODE is explicitly depending on a state's value (for example, the brachistochrone ODE is a function of the bead's speed), then the user specifies those inputs in the ODE to which the state is to be connected using the `targets` option.
+It can take the following values:
+
+- (default)
+    If left unspecified, targets assumes a special `dymos.utils.misc._unspecified` value.
+    In this case, dymos will attempt to connect to an input of the same name at the top of the ODE (either promoted there, or there because the ODE is a single component).
+
+- None
+    The state is explicitly not connected to any inputs in the ODE.
+- str or sequence of str
+    The state values are connected to inputs of the given name or names in the ODE.
+    These targets are specified by their path relative to the top level of the ODE.
+
+To simplify state specifications, using the first option (not specifying targets) and promoting targets of the state to inputs of the same name at the top-level of the ODE.
 
 ## Controls
 
