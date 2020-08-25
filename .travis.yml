@@ -136,11 +136,22 @@ script:
 - export OMPI_MCA_rmaps_base_oversubscribe=1
 - testflo -n 1 $dymos_path --pre_announce --coverage --coverpkg dymos;
 - testflo -b -n 1 benchmark --pre_announce
-- if [ "$UPLOAD_DOCS" ]; then
-    cd mkdocs;
-    mkdocs build;
-  fi
+# change to mkdocs path and build the documentation
+- cd mkdocs;
+- mkdocs build --verbose --clean
 
 after_success:
 - cd ..;
 - coveralls -v;
+
+deploy:
+  on:
+    push:
+      branches:
+        - master
+        - develop
+  provider: pages
+  skip_cleanup: true
+  github_token: $GH_TOKEN
+  keep_history: true
+  local_dir: $dymos_path/mkdocs/site
