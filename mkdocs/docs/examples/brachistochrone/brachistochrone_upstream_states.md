@@ -1,4 +1,4 @@
-# The Brachistochrone with Externally-Sourced Controls
+# The Brachistochrone with Externally-Sourced initial state values
 
 !!! info "Things you'll learn through this example"
     - How to link phase state boundary values to an externally provided value.
