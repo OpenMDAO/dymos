@@ -152,5 +152,7 @@ deploy:
   provider: pages
   skip_cleanup: true
   github_token: $GITHUB_TOKEN
-  keep_history: true
-  local_dir: $dymos_path/mkdocs/site
+  keep_history: false
+  local_dir: mkdocs/site
+  committer_from_gh: true
+  verbose: true
