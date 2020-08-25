@@ -187,7 +187,6 @@ class TranscriptionBase(object):
                         parts = pathname.split('.')
                         sub_sys = parts[0]
                         tgt_var = '.'.join(parts[1:])
-                        print(sub_sys, tgt_var, src_idxs)
                         phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
                                        src_indices=src_idxs, flat_src_indices=True)
 
