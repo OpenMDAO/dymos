@@ -26,7 +26,7 @@ def new_propelled_ascent_phase(transcription):
     propelled_ascent.set_state_options(
         'h', fix_initial=True, fix_final=False, ref=1.0, defect_ref=1.0)
     propelled_ascent.set_state_options(
-        'gam', fix_initial=False, fix_final=False, lower=0, upper=89.0, ref=90, units='deg')
+        'gam', fix_initial=False, fix_final=False, lower=0, upper=85.0, ref=90, units='deg')
     propelled_ascent.set_state_options(
         'v', fix_initial=True, fix_final=False, ref=100, defect_ref=100)
     propelled_ascent.set_state_options(

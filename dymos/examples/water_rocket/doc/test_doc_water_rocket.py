@@ -52,13 +52,13 @@ class TestWaterRocketForDocs(unittest.TestCase):
         plt.show()
 
         # Check results (tolerance is relative unless value is zero)
-        assert_near_equal(summary['Launch angle'].value, 89, .02)
-        assert_near_equal(summary['Flight angle at end of propulsion'].value, 89, .02)
-        assert_near_equal(summary['Empty mass'].value, 0.142878, 1e-3)
-        assert_near_equal(summary['Water volume'].value, 0.870367, 1e-3)
-        assert_near_equal(summary['Maximum range'].value, 0, 5)
-        assert_near_equal(summary['Maximum height'].value, 54.603214, 1e-3)
-        assert_near_equal(summary['Maximum velocity'].value, 47.259089, 1e-3)
+        assert_near_equal(summary['Launch angle'].value, 85, .02)
+        assert_near_equal(summary['Flight angle at end of propulsion'].value, 85, .02)
+        assert_near_equal(summary['Empty mass'].value, 0.1425114, 1e-3)
+        assert_near_equal(summary['Water volume'].value, 0.868281, 1e-3)
+        assert_near_equal(summary['Maximum range'].value, 15.78, 5)
+        assert_near_equal(summary['Maximum height'].value, 54.133184, 1e-3)
+        assert_near_equal(summary['Maximum velocity'].value, 47.320298, 1e-3)
 
     @save_for_docs
     def test_water_rocket_range_for_docs(self):
