@@ -146,6 +146,7 @@ after_success:
 
 deploy:
   on:
+    condition: $UPLOAD_DOCS = 1
     push:
       branches:
         - master
