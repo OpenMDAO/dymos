@@ -90,30 +90,17 @@ Phase.  The available options are as follows:
     _ForDocs
     control_options
 
-Design Parameters
+Parameters
 ^^^^^^^^^^^^^^^^^
 
 Inputs to the ODE which can be design parameters are added via the `add_parameter` method of
-Phase.  The available options are as follows:
+Phase.  You can optionally choose whether the phase will see them as design parameters by
+setting the "opt" argument to True. The available options are as follows:
 
 .. embed-options::
     dymos.phase.options
     _ForDocs
     parameter_options
-
-Input Parameters
-^^^^^^^^^^^^^^^^
-
-Inputs to the ODE which can be input parameters are added via the `add_input_parameter` method of
-Phase.
-They are similar to design parameters, but the phase cannot treat them as design
-variables to the optimization problem.
-The available options are as follows:
-
-.. embed-options::
-    dymos.phase.options
-    _ForDocs
-    input_parameter_options
 
 Using decorators to associate time, control, and parameter options with the ODE system
 --------------------------------------------------------------------------------------
@@ -124,7 +111,7 @@ For example, bounds on times, states, and controls will be problem-dependent.
 Other options, such as the `rate_source` of state variables or the target of time, states, or controllable parameters are a function of the ODE itself.
 Therefore it can sometimes be convenient to associate those properties with the ODE class itself.
 To allow this, Dymos provides decorators for ODEs which assign *default* values of these properties at the ODE level.
-These values can be overridden using the `set_time_options`, `add_state`, `add_control`, `add_parameter` or `add_input_parameter` methods on Phase.
+These values can be overridden using the `set_time_options`, `add_state`, `add_control` or `add_parameter` methods on Phase.
 
 .. note::
 
@@ -240,6 +227,6 @@ Non-Vector Inputs
 
 Declaring inputs as vectors means that they have the potential to be used either as design parameters or as dynamic controls which can assume a different value at each node.
 For some quantities, such as gravitational acceleration in the Brachistochrone example, we can assume that the value will never need to be dynamic.
-To accommodate this, design and input parameters can be declared static with the argument `dynamic=False`.
+To accommodate this, parameters can be declared static with the argument `dynamic=False`.
 This prevents Dymos from "fanning out" the static value to the *n* nodes in the ODE system.
 If a parameter is declared static in the `declare_parameter` decorator, it cannot be used as a dynamic control.
