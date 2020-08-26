@@ -32,7 +32,7 @@ that provide the rates of the state variables.  This model can be an OpenMDAO mo
 complexity, including nested groups and components, layers of nonlinear solvers, etc.
 
 Dymos solutions are constructed of one or more _Phases_.
-When setting up a phase, we add state variables, dynamic controls, and design parameters,
+When setting up a phase, we add state variables, dynamic controls, and parameters,
 tell Dymos how the value of each should be connected to the ODE system, and tell Dymos
 the variable paths in the system that contain the rates of our state variables that are to be
 integrated.

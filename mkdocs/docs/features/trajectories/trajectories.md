@@ -40,13 +40,13 @@ The acceleration needs to be zero in the coast phase, but continuous between `bu
 
 ##  Trajectory-Level Parameters
 
-Often times, there are parameters which apply to the entirety of a trajectory that potentially need to be optimized.  
-If we implemented these as design parameters within each phase individually, we would need some constraints to ensure that they held the same value within each phase.  
+Often times, there are parameters which apply to the entirety of a trajectory that potentially need to be optimized.
+If we implemented these as parameters within each phase individually, we would need some constraints to ensure that they held the same value within each phase.
 To avoid this complexity, Dymos Trajectory objects support their own Parameters.
 
 Like their Phase-based counterparts, Trajectory parameters produce may be design variables for the problem or used as inputs to the trajectory from external sources.
 
-When using Trajectory parameters, their values are connected to each phase as an Input Parameter within the Phase.  
+When using Trajectory parameters, their values are connected to each phase as an Input Parameter within the Phase.
 Because ODEs in different phases may have different names for parameters (e.g. 'mass', 'm', 'm_total', etc) Dymos allows the user to specify the targeted ODE parameters on a phase-by-phase basis using the `targets` and `target_params` option.
 It can take on the following values.
 

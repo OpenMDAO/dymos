@@ -103,10 +103,12 @@ Polynomial controls are specified at some limited number of points throughout a 
 ## Parameters
 
 Some inputs impact the system but have one set value throughout the trajectory.
-We refer to these non-time-varying inputs as *design parameters*, since they typically involve parameters which define a system.
+We refer to these non-time-varying inputs as *parameters*, since they typically involve parameters which define a system.
 Parameters could include things like the wingspan of a vehicle or the mass of a heatsink.
+In Dymos, parameters can be optimized (by providing argument `opt = True`).
+If not optimized they can be targets for connections from outside of the Phase or Trajectory.
 
-{{ embed_options('dymos.phase.options.DesignParameterOptionsDictionary', '###Options for Parameters') }}
+{{ embed_options('dymos.phase.options.ParameterOptionsDictionary', '###Options for Parameters') }}
 
 Parameters and controls can have their values determined by the optimizer, or they can be passed in from an external source.
 
