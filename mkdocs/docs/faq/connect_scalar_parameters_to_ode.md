@@ -2,7 +2,7 @@
 
 By default, we recommend that users treat all ODE input variables as if they are _potentially_ dynamic.
 This allows the user to use the input as either a dynamic control, or as a static design or input parameter.
-By default, input and design parameters will "fan" the value out to all nodes.
+By default, parameters will "fan" the value out to all nodes.
 This allows the partials to be defined in a consistent fashion (generally a diagonal matrix for a scalar input and output) regardless of whether the input is static or dynamic.
 
 **But** there are some cases in which the user may know that a variable will never have the potential to change throughout the trajectory.

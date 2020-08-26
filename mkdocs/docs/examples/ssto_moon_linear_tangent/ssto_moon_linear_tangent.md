@@ -15,10 +15,8 @@ just two scalar parameters, $a$ and $b$.
 $$\theta = \arctan{\left(a * t + b\right)}$$
 
 Implementing this modified constrol scheme requires only a few changes.
-Rather than declaring $\theta$ as a controllable parameter for the ODE
-system, we implement a new component, _LinearTangentGuidanceComp_ that
-accepts $a$ and $b$ as design parameters to be optimized. It calculates
-$\theta$, which is then connected to the equations of motion component.
+Rather than declaring $\theta$ as a controllable parameter for the ODE system, we implement a new component, _LinearTangentGuidanceComp_ that accepts $a$ and $b$ as parameters to be optimized.
+It calculates $\theta$, which is then connected to the equations of motion component.
 
 ## Extended Design Structure Matrix
 
