@@ -14,8 +14,24 @@ The software has two primary objectives:
 Installation
 ------------
 
+The default installation of the developmental version of Dymos will install the minimum number of prerequisites:
+
 ```
 python -m pip install git+https://github.com/OpenMDAO/dymos.git
+```
+
+Installation of a specific version can be accomplished with
+
+```
+python -m pip install git+https://github.com/OpenMDAO/dymos.git@RELEASENAME
+```
+
+See the [releases page](https://github.com/OpenMDAO/dymos/releases) for a listing of the latest releases.
+
+If you plan on building the documentation or running all of the tests locally, you should install _all_ dependencies with:
+
+```
+pip install git+https://github.com/OpenMDAO/dymos.git#egg=project[all]
 ```
 
 Documentation

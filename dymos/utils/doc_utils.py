@@ -86,13 +86,19 @@ def save_for_docs(method, transparent=False):
             os.mkdir(output_dir)
 
         backend_save = matplotlib.get_backend()
-        plt.switch_backend('Agg')
 
-        with open(output_path, 'w') as f:
-            sys.stdout = tee(sys.stdout, f)
-            sys.stderr = tee(sys.stdout, f)
+        f = open(output_path, 'w')
+        sys.stdout = tee(sys.stdout, f)
+        sys.stderr = tee(sys.stdout, f)
+
+        try:
             method(self)
+        finally:
+            f.close()
+            sys.stdout = stdout_save
+            sys.stderr = stderr_save
 
+        plt.switch_backend('Agg')
         for i in plt.get_fignums():
             plt.figure(i)
 
@@ -104,8 +110,6 @@ def save_for_docs(method, transparent=False):
             plt.savefig(output_dir.joinpath(f'{classname}.{testname}_{i}.png'),
                         transparent=transparent)
 
-        sys.stdout = stdout_save
-        sys.stderr = stderr_save
         plt.switch_backend(backend_save)
 
     wrapped._method = method
