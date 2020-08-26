@@ -28,7 +28,7 @@ class TestRunProblem(unittest.TestCase):
         p.driver.options['optimizer'] = optimizer
 
         if optimizer == 'SNOPT':
-            p.driver.opt_settings['Major iterations limit'] = 100
+            p.driver.opt_settings['Major iterations limit'] = 200
             p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
             p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         elif optimizer == 'IPOPT':
@@ -50,11 +50,11 @@ class TestRunProblem(unittest.TestCase):
 
         phase0.add_objective('xL', loc='final')
 
-        phase0.set_refine_options(refine=True)
+        phase0.set_refine_options(refine=True, tol=1e-6)
 
         p.setup(check=True)
 
-        tf = 100
+        tf = np.float128(100)
 
         p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[1.5, 1], nodes='state_input'))
         p.set_val('traj.phase0.states:xL', phase0.interpolate(ys=[0, 1], nodes='state_input'))
@@ -62,7 +62,7 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.t_duration', tf)
         p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
                                                                nodes='control_input'))
-        dm.run_problem(p, True, refine_method='hp')
+        dm.run_problem(p, True, refine_method='hp', refine_iteration_limit=15)
 
         sqrt_two = np.sqrt(2)
         val = sqrt_two * tf
