@@ -665,7 +665,6 @@ class Radau(PseudospectralBase):
                 src_idxs = np.squeeze(src_idxs, axis=0)
 
             rhs_all_tgts = ['rhs_all.{0}'.format(t) for t in targets]
-            print(targets, rhs_all_tgts)
             connection_info.append((rhs_all_tgts, src_idxs))
 
         return connection_info
