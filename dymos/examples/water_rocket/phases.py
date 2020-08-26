@@ -108,7 +108,7 @@ def new_water_rocket_trajectory(objective):
     if objective == 'height':
         ballistic_ascent.add_objective('h', loc='final', ref=-1.0)
     elif objective == 'range':
-        descent.add_objective('r', loc='final', scaler=-1.0)
+        descent.add_objective('r', loc='final', ref=-0.01)
     else:
         raise ValueError(f"objective='{objective}' is not defined. Try using 'height' or 'range'")
 
