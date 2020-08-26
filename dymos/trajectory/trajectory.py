@@ -737,7 +737,7 @@ class Trajectory(om.Group):
         # Assign trajectory parameter values
         meta = self._problem_meta
         prom2abs = meta['prom2abs']
-        conns = meta['connections']
+        conns = meta['model_ref']()._conn_global_abs_in2out
         param_names = [key for key in self.parameter_options.keys()]
         for name in param_names:
             prom_path = f'traj.parameters:{name}'
