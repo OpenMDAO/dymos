@@ -10,12 +10,12 @@ except ImportError:
 import numpy as np
 
 import openmdao.api as om
+from openmdao.utils.general_utils import warn_deprecation
 
 from ..utils.constants import INF_BOUND
 
-from ..transcriptions.common import InputParameterComp, PhaseLinkageComp
-from ..phase.options import TrajDesignParameterOptionsDictionary, \
-    TrajInputParameterOptionsDictionary
+from ..transcriptions.common import PhaseLinkageComp
+from ..phase.options import TrajParameterOptionsDictionary
 
 
 _unspecified = object()
@@ -29,8 +29,7 @@ class Trajectory(om.Group):
     def __init__(self, **kwargs):
         super(Trajectory, self).__init__(**kwargs)
 
-        self.input_parameter_options = {}
-        self.design_parameter_options = {}
+        self.parameter_options = {}
         self._linkages = OrderedDict()
         self._phases = OrderedDict()
         self._phase_add_kwargs = {}
@@ -64,6 +63,110 @@ class Trajectory(om.Group):
         self._phase_add_kwargs[name] = kwargs
         return phase
 
+    def add_parameter(self, name, units, val=_unspecified, desc=_unspecified, opt=False,
+                      targets=_unspecified, custom_targets=_unspecified,
+                      lower=_unspecified, upper=_unspecified, scaler=_unspecified,
+                      adder=_unspecified, ref0=_unspecified, ref=_unspecified,
+                      shape=_unspecified, dynamic=_unspecified):
+        """
+        Add a parameter (static control) to the trajectory.
+
+        Parameters
+        ----------
+        name : str
+            Name of the parameter.
+        val : float or ndarray
+            Default value of the parameter at all nodes.
+        desc : str
+            A description of the parameter.
+        targets : dict or None
+            If None, then the parameter will be connected to the controllable parameter
+            in the ODE of each phase.  For each phase where no such controllable parameter exists,
+            a warning will be issued.  If targets is given as a dict, the dict should provide
+            the relevant phase names as keys, each associated with the respective controllable
+            parameter as a value.
+        custom_targets : dict or None
+            By default, the input parameter will be connect to the parameter/targets of the given
+            name in each phase.  This argument can be used to override that behavior on a phase
+            by phase basis.
+        units : str or None or 0
+            Units in which the parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        opt : bool
+            If True the value(s) of this parameter will be design variables in
+            the optimization problem. The default is False.
+        lower : float or ndarray
+            The lower bound of the parameter value.
+        upper : float or ndarray
+            The upper bound of the parameter value.
+        scaler : float or ndarray
+            The scaler of the parameter value for the optimizer.
+        adder : float or ndarray
+            The adder of the parameter value for the optimizer.
+        ref0 : float or ndarray
+            The zero-reference value of the parameter for the optimizer.
+        ref : float or ndarray
+            The unit-reference value of the parameter for the optimizer.
+        shape : Sequence of int
+            The shape of the parameter.
+        dynamic : bool
+            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
+            of nodes) else False.
+        """
+        if name not in self.parameter_options:
+            self.parameter_options[name] = TrajParameterOptionsDictionary()
+
+        if units is not _unspecified:
+            self.parameter_options[name]['units'] = units
+
+        if opt is not _unspecified:
+            self.parameter_options[name]['opt'] = opt
+
+        if val is not _unspecified:
+            self.parameter_options[name]['val'] = val
+
+        if desc is not _unspecified:
+            self.parameter_options[name]['desc'] = desc
+
+        if lower is not _unspecified:
+            self.parameter_options[name]['lower'] = lower
+
+        if upper is not _unspecified:
+            self.parameter_options[name]['upper'] = upper
+
+        if scaler is not _unspecified:
+            self.parameter_options[name]['scaler'] = scaler
+
+        if adder is not _unspecified:
+            self.parameter_options[name]['adder'] = adder
+
+        if ref0 is not _unspecified:
+            self.parameter_options[name]['ref0'] = ref0
+
+        if ref is not _unspecified:
+            self.parameter_options[name]['ref'] = ref
+
+        if targets is not _unspecified:
+            if isinstance(targets, str):
+                self.parameter_options[name]['targets'] = (targets,)
+            else:
+                self.parameter_options[name]['targets'] = targets
+
+        if custom_targets is not _unspecified:
+            warnings.warn('Option custom_targets is now targets, and should provide the ode '
+                          'targets for the parameter in each phase', DeprecationWarning)
+
+            if isinstance(custom_targets, str):
+                self.parameter_options[name]['targets'] = (custom_targets,)
+            else:
+                self.parameter_options[name]['targets'] = custom_targets
+
+        if shape is not _unspecified:
+            self.parameter_options[name]['shape'] = shape
+
+        if dynamic is not _unspecified:
+            self.parameter_options[name]['dynamic'] = dynamic
+
     def add_input_parameter(self, name, units, val=_unspecified, desc=_unspecified,
                             targets=_unspecified, custom_targets=_unspecified,
                             shape=_unspecified, dynamic=_unspecified):
@@ -90,38 +193,11 @@ class Trajectory(om.Group):
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
             of nodes) else False.
         """
-        if name not in self.input_parameter_options:
-            self.input_parameter_options[name] = TrajInputParameterOptionsDictionary()
-
-        if units is not _unspecified:
-            self.input_parameter_options[name]['units'] = units
-
-        if val is not _unspecified:
-            self.input_parameter_options[name]['val'] = val
-
-        if desc is not _unspecified:
-            self.input_parameter_options[name]['desc'] = desc
-
-        if targets is not _unspecified:
-            if isinstance(targets, str):
-                self.input_parameter_options[name]['targets'] = (targets,)
-            else:
-                self.input_parameter_options[name]['targets'] = targets
-
-        if custom_targets is not _unspecified:
-            warnings.warn('Option custom_targets is now targets, and should provide the ode '
-                          'targets for the parameter in each phase', DeprecationWarning)
-
-            if isinstance(custom_targets, str):
-                self.input_parameter_options[name]['targets'] = (custom_targets,)
-            else:
-                self.input_parameter_options[name]['targets'] = custom_targets
-
-        if shape is not _unspecified:
-            self.input_parameter_options[name]['shape'] = shape
-
-        if dynamic is not _unspecified:
-            self.input_parameter_options[name]['dynamic'] = dynamic
+        msg = "DesignParameters and InputParameters are being replaced by Parameters in  " + \
+            "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
+            "deprecation warning."
+        warn_deprecation(msg)
+        self.add_parameter(name, units, val, desc, targets, custom_targets, shape, dynamic)
 
     def add_design_parameter(self, name, units, val=_unspecified, desc=_unspecified, opt=_unspecified,
                              targets=_unspecified, custom_targets=_unspecified,
@@ -153,11 +229,8 @@ class Trajectory(om.Group):
             Units in which the design parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         opt : bool
-            If True (default) the value(s) of this design parameter will be design variables in
-            the optimization problem, in the path
-            'traj_name.design_params.design_parameters:name'.  If False, the this design
-            parameter will still be owned by an IndepVarComp in the phase, but it will not be a
-            design variable in the optimization.
+            If True (default) the value(s) of this parameter will be design variables in
+            the optimization problem.
         lower : float or ndarray
             The lower bound of the design parameter value.
         upper : float or ndarray
@@ -176,120 +249,27 @@ class Trajectory(om.Group):
             True if the targets in the ODE may be dynamic (if the inputs are sized to the number
             of nodes) else False.
         """
-        if name not in self.design_parameter_options:
-            self.design_parameter_options[name] = TrajDesignParameterOptionsDictionary()
+        msg = "DesignParameters and InputParameters are being replaced by Parameters in  " + \
+            "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
+            "deprecation warning."
+        warn_deprecation(msg)
+        self.add_parameter(name, units, val, desc, opt, targets, custom_targets, lower, upper,
+                           scaler, adder, ref0, ref, shape, dynamic)
 
-        if units is not _unspecified:
-            self.design_parameter_options[name]['units'] = units
-
-        if opt is not _unspecified:
-            self.design_parameter_options[name]['opt'] = opt
-
-        if val is not _unspecified:
-            self.design_parameter_options[name]['val'] = val
-
-        if desc is not _unspecified:
-            self.design_parameter_options[name]['desc'] = desc
-
-        if lower is not _unspecified:
-            self.design_parameter_options[name]['lower'] = lower
-
-        if upper is not _unspecified:
-            self.design_parameter_options[name]['upper'] = upper
-
-        if scaler is not _unspecified:
-            self.design_parameter_options[name]['scaler'] = scaler
-
-        if adder is not _unspecified:
-            self.design_parameter_options[name]['adder'] = adder
-
-        if ref0 is not _unspecified:
-            self.design_parameter_options[name]['ref0'] = ref0
-
-        if ref is not _unspecified:
-            self.design_parameter_options[name]['ref'] = ref
-
-        if targets is not _unspecified:
-            if isinstance(targets, str):
-                self.design_parameter_options[name]['targets'] = (targets,)
-            else:
-                self.design_parameter_options[name]['targets'] = targets
-
-        if custom_targets is not _unspecified:
-            warnings.warn('Option custom_targets is now targets, and should provide the ode '
-                          'targets for the parameter in each phase', DeprecationWarning)
-
-            if isinstance(custom_targets, str):
-                self.design_parameter_options[name]['targets'] = (custom_targets,)
-            else:
-                self.design_parameter_options[name]['targets'] = custom_targets
-
-        if shape is not _unspecified:
-            self.design_parameter_options[name]['shape'] = shape
-
-        if dynamic is not _unspecified:
-            self.design_parameter_options[name]['dynamic'] = dynamic
-
-    def _setup_input_parameters(self):
+    def _setup_parameters(self):
         """
         Adds an IndepVarComp if necessary and issues appropriate connections based
         on transcription.
         """
-        if self.input_parameter_options:
-            passthru = InputParameterComp(input_parameter_options=self.input_parameter_options)
+        if self.parameter_options:
+            for name, options in self.parameter_options.items():
+                src_name = 'parameters:{0}'.format(name)
 
-            self.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
-                               promotes_outputs=['*'])
-
-            for name, options in self.input_parameter_options.items():
-
-                tgts = options['targets']
-
-                if tgts is None:
-                    # The user is implicitly connecting to input parameters in all phases.
-                    # No need to create input parameters in each phase.
-                    continue
-
-                for phase_name, phs in self._phases.items():
-                    if phase_name not in tgts or isinstance(tgts[phase_name], str):
-                        # If user omitted this phase from targets, we will try to connect
-                        # to an existing input parameter in the phase.
-                        # If the target for this phase is a string, assume the user specified the
-                        # name of an input parameter in the phase for this parameter.
-                        # Skip addition of input parameter to this phase.
-                        continue
-                    elif tgts[phase_name] is None:
-                        # Targets for this phase are explicitly None.
-                        # Skip addition of input parameter to this phase.
-                        continue
-                    elif isinstance(tgts[phase_name], Sequence):
-                        # User specified ODE targets for this parameter in this phase.
-                        # We need to add an input parameter to this phase.
-
-                        # The default target in the phase is name unless otherwise specified.
-                        kwargs = {'dynamic': options['dynamic'],
-                                  'units': options['units'],
-                                  'val': options['val'],
-                                  'targets': tgts[phase_name]}
-
-                        if not self.options['sim_mode']:
-                            phs.add_input_parameter(name, **kwargs)
-
-    def _setup_design_parameters(self):
-        """
-        Adds an IndepVarComp if necessary and issues appropriate connections based
-        on transcription.
-        """
-        if self.design_parameter_options:
-            indep = self.add_subsystem('design_params', subsys=om.IndepVarComp(),
-                                       promotes_outputs=['*'])
-
-            for name, options in self.design_parameter_options.items():
                 if options['opt']:
                     lb = -INF_BOUND if options['lower'] is None else options['lower']
                     ub = INF_BOUND if options['upper'] is None else options['upper']
 
-                    self.add_design_var(name='design_parameters:{0}'.format(name),
+                    self.add_design_var(name='parameters:{0}'.format(name),
                                         lower=lb,
                                         upper=ub,
                                         scaler=options['scaler'],
@@ -297,10 +277,13 @@ class Trajectory(om.Group):
                                         ref0=options['ref0'],
                                         ref=options['ref'])
 
-                indep.add_output(name='design_parameters:{0}'.format(name),
-                                 val=options['val'],
-                                 shape=(1, np.prod(options['shape'])),
-                                 units=options['units'])
+                val = options['val']
+                _shape = (1,) + options['shape']
+                shaped_val = np.broadcast_to(val, _shape)
+
+                self.set_input_defaults(name=src_name,
+                                        val=shaped_val,
+                                        units=options['units'])
 
                 tgts = options['targets']
 
@@ -332,7 +315,7 @@ class Trajectory(om.Group):
                                   'targets': tgts[phase_name]}
 
                         if not self.options['sim_mode']:
-                            phs.add_input_parameter(name, **kwargs)
+                            phs.add_parameter(name, **kwargs)
 
     def _setup_linkages(self):
         link_comp = None
@@ -389,12 +372,9 @@ class Trajectory(om.Group):
                     elif var in p1.polynomial_control_options:
                         units_map[var] = p1.polynomial_control_options[var]['units']
                         shape_map[var] = p1.polynomial_control_options[var]['shape']
-                    elif var in p1.design_parameter_options:
-                        units_map[var] = p1.design_parameter_options[var]['units']
-                        shape_map[var] = p1.design_parameter_options[var]['shape']
-                    elif var in p1.input_parameter_options:
-                        units_map[var] = p1.input_parameter_options[var]['units']
-                        shape_map[var] = p1.input_parameter_options[var]['shape']
+                    elif var in p1.parameter_options:
+                        units_map[var] = p1.parameter_options[var]['units']
+                        shape_map[var] = p1.parameter_options[var]['shape']
                     elif var == 'time':
                         units_map[var] = p1.time_options['units']
                         shape_map[var] = (1,)
@@ -418,11 +398,8 @@ class Trajectory(om.Group):
         """
         super(Trajectory, self).setup()
 
-        if self.design_parameter_options:
-            self._setup_design_parameters()
-
-        if self.input_parameter_options:
-            self._setup_input_parameters()
+        if self.parameter_options:
+            self._setup_parameters()
 
         phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup(), promotes_inputs=['*'],
                                           promotes_outputs=['*'])
@@ -435,54 +412,43 @@ class Trajectory(om.Group):
         if self._linkages:
             self._setup_linkages()
 
-    def _configure_parameters(self, mode):
+    def _configure_parameters(self):
         """
         Configure connections from input or design parameters to the appropriate targets
         in each phase.
-
-        Parameters
-        ----------
-        mode : str
-            One of 'input' or 'design' to specify if we are dealing with input parameters or
-            design parameters.
         """
-        parameter_options = self.input_parameter_options if mode == 'input' \
-            else self.design_parameter_options
+        parameter_options = self.parameter_options
 
         for name, options in parameter_options.items():
-
-            # Connect the design parameter to its target in each phase
-            suffix = '' if mode == 'design' else '_out'
-            src_name = '{0}_parameters:{1}{2}'.format(mode, name, suffix)
-
-            targets = options['targets']
+            prom_name = f'parameters:{name}'
 
             for phase_name, phs in self._phases.items():
+                targets = options['targets']
 
                 if targets is None or phase_name not in targets:
                     # Attempt to connect to an input parameter of the same name in the phase, if
                     # it exists.
-                    if name in phs.input_parameter_options:
-                        tgt = '{0}.input_parameters:{1}'.format(phase_name, name)
+                    if name in phs.parameter_options:
+                        tgt = f'{phase_name}.parameters:{name}'
                     else:
                         continue
                 elif targets[phase_name] is None:
                     # Connections to this phase are explicitly omitted
                     continue
                 elif isinstance(targets[phase_name], str) and \
-                        targets[phase_name] in phs.input_parameter_options:
+                        targets[phase_name] in phs.parameter_options:
                     # Connect to an input parameter with a different name in this phase
-                    tgt = '{0}.input_parameters:{1}'.format(phase_name, targets[phase_name])
+                    tgt = '{0}.parameters:{1}'.format(phase_name, targets[phase_name])
                 elif isinstance(targets[phase_name], Sequence) and \
-                        name in phs.input_parameter_options:
+                        name in phs.parameter_options:
                     # User gave a list of ODE targets which were passed to the creation of a
                     # new input parameter in setup, just connect to that new input parameter
-                    tgt = '{0}.input_parameters:{1}'.format(phase_name, name)
+                    tgt = f'{phase_name}.parameters:{name}'
                 else:
                     raise ValueError('Unhandled {0} parameter target in '
                                      'phase {1}'.format(mode, phase_name))
 
-                self.connect(src_name=src_name, tgt_name=tgt)
+                self.promotes('phases', inputs=[(tgt, prom_name)])
 
     def _configure_linkages(self):
 
@@ -509,11 +475,8 @@ class Trajectory(om.Group):
             p1_controls = set([key for key in p1.control_options])
             p2_controls = set([key for key in p2.control_options])
 
-            p1_design_parameters = set([key for key in p1.design_parameter_options])
-            p2_design_parameters = set([key for key in p2.design_parameter_options])
-
-            p1_input_parameters = set([key for key in p1.input_parameter_options])
-            p2_input_parameters = set([key for key in p2.input_parameter_options])
+            p1_parameters = set([key for key in p1.parameter_options])
+            p2_parameters = set([key for key in p2.parameter_options])
 
             # Dict of vars that expands '*' to include time and states
             _vars = {}
@@ -560,10 +523,8 @@ class Trajectory(om.Group):
                     source1 = 'controls:{0}{1}'.format(var, loc1)
                 elif var == 'time':
                     source1 = '{0}{1}'.format(var, loc1)
-                elif var in p1_design_parameters:
-                    source1 = 'design_parameters:{0}'.format(var)
-                elif var in p1_input_parameters:
-                    source1 = 'input_parameters:{0}'.format(var)
+                elif var in p1_parameters:
+                    source1 = 'parameters:{0}'.format(var)
                 else:
                     raise ValueError('Cannot find linkage variable \'{0}\' in '
                                      'phase \'{1}\'.  Only states, time, controls, or parameters '
@@ -575,10 +536,8 @@ class Trajectory(om.Group):
                     source2 = 'controls:{0}{1}'.format(var, loc2)
                 elif var == 'time':
                     source2 = '{0}{1}'.format(var, loc2)
-                elif var in p2_design_parameters:
-                    source2 = 'design_parameters:{0}'.format(var)
-                elif var in p2_input_parameters:
-                    source2 = 'input_parameters:{0}'.format(var)
+                elif var in p2_parameters:
+                    source2 = 'parameters:{0}'.format(var)
                 else:
                     raise ValueError('Cannot find linkage variable \'{0}\' in '
                                      'phase \'{1}\'.  Only states, time, controls, or parameters '
@@ -618,10 +577,8 @@ class Trajectory(om.Group):
         setup has already been called on all children of the Trajectory, we can query them for
         variables at this point.
         """
-        if self.design_parameter_options:
-            self._configure_parameters(mode='design')
-        if self.input_parameter_options:
-            self._configure_parameters(mode='input')
+        if self.parameter_options:
+            self._configure_parameters()
         if self._linkages:
             self._configure_linkages()
 
@@ -760,8 +717,7 @@ class Trajectory(om.Group):
                                                atol=atol, rtol=rtol)
             sim_traj.add_phase(name, sim_phs)
 
-        sim_traj.design_parameter_options.update(self.design_parameter_options)
-        sim_traj.input_parameter_options.update(self.input_parameter_options)
+        sim_traj.parameter_options.update(self.parameter_options)
 
         sim_prob = om.Problem(model=om.Group())
 
@@ -778,21 +734,35 @@ class Trajectory(om.Group):
         traj_op_dict = dict([(name, opts) for (name, opts) in self.list_outputs(units=True,
                                                                                 out_stream=None)])
 
-        # Assign trajectory design parameter values
-        for name, options in self.design_parameter_options.items():
-            op = traj_op_dict[f'design_params.design_parameters:{name}']
-            var_name = '{0}.design_parameters:{1}'.format(self.name, name)
-            sim_prob[var_name] = op['value'][0, ...]
+        # Assign trajectory parameter values
+        meta = self._problem_meta
+        prom2abs = meta['prom2abs']
+        conns = meta['connections']
+        param_names = [key for key in self.parameter_options.keys()]
+        for name in param_names:
+            prom_path = f'traj.parameters:{name}'
+            abs_in = prom2abs['input'][prom_path][0]
+            src = conns[abs_in]
 
-        # Assign trajectory input parameter values
-        for name, options in self.input_parameter_options.items():
-            op = traj_op_dict[f'input_params.input_parameters:{name}_out']
-            var_name = '{0}.input_parameters:{1}'.format(self.name, name)
-            sim_prob[var_name] = op['value'][0, ...]
+            # We use this private function to grab the correctly sized variable from the
+            # auto_ivc source.
+            val = self._abs_get_val(src, False, None, 'nonlinear', 'output', False, from_root=True)
+            prob_path = f'traj.parameters:{name}'
+            sim_prob[prob_path][...] = val
 
         for phase_name, phs in sim_traj._phases.items():
+            skip_params = set(param_names)
+            for name in param_names:
+                targets = self.parameter_options[name]['targets']
+                if targets and phase_name in targets:
+                    targets_phase = targets[phase_name]
+                    if isinstance(targets_phase, str):
+                        targets_phase = [targets_phase]
+                    skip_params = skip_params.union(targets_phase)
+
             phs.initialize_values_from_phase(sim_prob, self._phases[phase_name],
-                                             phase_path=traj_name)
+                                             phase_path=traj_name,
+                                             skip_params=skip_params)
 
         print('\nSimulating trajectory {0}'.format(self.pathname))
         sim_prob.run_model()

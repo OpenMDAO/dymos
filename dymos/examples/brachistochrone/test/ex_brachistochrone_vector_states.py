@@ -65,9 +65,9 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                       continuity=True, rate_continuity=True,
                       units='deg', lower=0.01, upper=179.9)
 
-    phase.add_design_parameter('g',
-                               targets=BrachistochroneVectorStatesODE.parameters['g']['targets'],
-                               opt=False, units='m/s**2', val=9.80665)
+    phase.add_parameter('g',
+                        targets=BrachistochroneVectorStatesODE.parameters['g']['targets'],
+                        opt=False, units='m/s**2', val=9.80665)
 
     if not fix_final:
         phase.add_boundary_constraint('pos', loc='final', units='m', shape=(2,), equals=[10, 5])
@@ -87,7 +87,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
     p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
     p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-    p['traj0.phase0.design_parameters:g'] = 9.80665
+    p['traj0.phase0.parameters:g'] = 9.80665
 
     p.run_model()
     if run_driver:

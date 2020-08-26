@@ -35,9 +35,9 @@ class TestODE(om.Group):
                            promotes_outputs=['Out'])
 
 
-class TestSimulateShapedInputParams(unittest.TestCase):
+class TestSimulateShapedParams(unittest.TestCase):
 
-    def test_shaped_input_params(self):
+    def test_shaped_params(self):
 
         main_tx = dm.Radau(num_segments=1, order=3, compressed=False)
 
@@ -56,9 +56,9 @@ class TestSimulateShapedInputParams(unittest.TestCase):
         main_phase.set_time_options(fix_initial=True, fix_duration=True, units='s',
                                     duration_bounds=(1.0, 10))
 
-        main_phase.add_input_parameter('chord', targets='chord', shape=(4,), units='inch',
-                                       dynamic=False)
-        p.model.connect('chord', 'hop0.main_phase.input_parameters:chord')
+        main_phase.add_parameter('chord', targets='chord', shape=(4,), units='inch',
+                                 dynamic=False)
+        p.model.connect('chord', 'hop0.main_phase.parameters:chord')
 
         main_phase.add_state('impulse', fix_initial=True, fix_final=False, units='N*s',
                              rate_source='Out',

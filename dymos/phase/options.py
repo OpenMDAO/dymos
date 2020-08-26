@@ -210,22 +210,22 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
                           'to the default value of True.')
 
 
-class DesignParameterOptionsDictionary(om.OptionsDictionary):
+class ParameterOptionsDictionary(om.OptionsDictionary):
     """
-    An OptionsDictionary specific to design parameters.
+    An OptionsDictionary specific to parameters.
     """
 
     def __init__(self, read_only=False):
-        super(DesignParameterOptionsDictionary, self).__init__(read_only)
+        super(ParameterOptionsDictionary, self).__init__(read_only)
 
         self.declare(name='name', types=str,
-                     desc='The name of ODE system parameter to be set via design parameter.')
+                     desc='The name of ODE system parameter to be set via parameter.')
 
         self.declare(name='units', types=str, default=None,
-                     allow_none=True, desc='The units in which the design parameter is defined.')
+                     allow_none=True, desc='The units in which the parameter is defined.')
 
         self.declare(name='desc', types=str, default='',
-                     desc='The description of the design parameter.')
+                     desc='The description of the parameter.')
 
         self.declare(name='opt', default=True, types=bool,
                      desc='If True, the control value will be a design variable '
@@ -236,55 +236,55 @@ class DesignParameterOptionsDictionary(om.OptionsDictionary):
                      desc='True if this parameter can be used as a dynamic control, else False')
 
         self.declare(name='targets', types=Iterable, default=[],
-                     desc='Used to store target information for the design parameter.')
+                     desc='Used to store target information for the parameter.')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
-                     desc='The default value of the design parameter in the phase.')
+                     desc='The default value of the parameter in the phase.')
 
         self.declare(name='shape', types=Iterable, default=(1,),
-                     desc='The shape of the design parameter.')
+                     desc='The shape of the parameter.')
 
         self.declare(name='lower', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The lower bound of the design parameter. This '
+                     desc='The lower bound of the parameter. This '
                           'option is invalid if opt=False.')
 
         self.declare(name='upper', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The upper bound of the design parameter. This '
+                     desc='The upper bound of the parameter. This '
                           'option is invalid if opt=False.')
 
         self.declare(name='scaler', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The scaler of the design parameter. This '
+                     desc='The scaler of the parameter. This '
                           'option is invalid if opt=False.')
 
         self.declare(name='adder', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The adder of the design parameter. This'
+                     desc='The adder of the parameter. This'
                           'option is invalid if opt=False.')
 
         self.declare(name='ref0', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The zero-reference value of the design parameter. This '
+                     desc='The zero-reference value of the parameter. This '
                           'option is invalid if opt=False.')
 
         self.declare(name='ref', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The unit-reference value of the design parameter. This '
+                     desc='The unit-reference value of the parameter. This '
                           'option is invalid if opt=False.')
 
         self.declare(name='include_timeseries', types=bool, default=True,
-                     desc='True if the static design parameters should be included in output timeseries, else False')
+                     desc='True if the static parameters should be included in output timeseries, else False')
 
 
-class TrajDesignParameterOptionsDictionary(DesignParameterOptionsDictionary):
+class TrajParameterOptionsDictionary(ParameterOptionsDictionary):
     """
     An OptionsDictionary specific to trajectory design parameters.
     """
 
     def __init__(self, read_only=False):
-        super(TrajDesignParameterOptionsDictionary, self).__init__(read_only)
+        super(TrajParameterOptionsDictionary, self).__init__(read_only)
 
         self.declare(name='custom_targets', types=dict, default=None, allow_none=True,
                      desc='Used to override the default targets of the trajectory input parameter'
@@ -293,68 +293,8 @@ class TrajDesignParameterOptionsDictionary(DesignParameterOptionsDictionary):
         self._dict.pop('targets')
 
         self.declare(name='targets', types=dict, default=None, allow_none=True,
-                     desc='Used to specify the targets for the input parameter in each phase. '
-                          'If None, Dymos will attempt to connect it to an input parameter of '
-                          'the same name in each phase.  Otherwise, targets should be a given '
-                          'as a dictionary.  For each phase name given as a key in the dictionary,'
-                          'if the associated value is a string, connect the parameter to the phase'
-                          ' input parameter given by the string. If the associated value is a'
-                          ' sequence, treat it as a list of ODE-relative targets for the parameter'
-                          ' in that phase')
-
-
-class InputParameterOptionsDictionary(om.OptionsDictionary):
-    """
-    An OptionsDictionary specific to input parameters.
-    """
-
-    def __init__(self, read_only=False):
-        super(InputParameterOptionsDictionary, self).__init__(read_only)
-
-        self.declare(name='name', types=str,
-                     desc='The name of ODE system parameter to be set via input parameter, or '
-                          'an alias.  If an alias is provided, then "target_param" should provide'
-                          'the ODE system parameter name.')
-
-        self.declare(name='units', types=str, default=None,
-                     allow_none=True, desc='The units in which the design parameter is defined.')
-
-        self.declare(name='desc', types=str, default='',
-                     desc='The description of the design parameter.')
-
-        self.declare(name='dynamic', types=bool, default=True,
-                     desc='True if this parameter can be used as a dynamic control, else False')
-
-        self.declare(name='targets', types=Iterable, default=[],
-                     desc='Used to store target information for the input parameter.')
-
-        self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
-                     desc='The default value of the design parameter in the phase.')
-
-        self.declare(name='shape', types=Iterable, default=(1,),
-                     desc='The shape of the design parameter.')
-
-        self.declare(name='include_timeseries', types=bool, default=True,
-                     desc='True if the static input parameters should be included in output timeseries, else False')
-
-
-class TrajInputParameterOptionsDictionary(InputParameterOptionsDictionary):
-    """
-    An OptionsDictionary specific to trajectory input parameters.
-    """
-
-    def __init__(self, read_only=False):
-        super(TrajInputParameterOptionsDictionary, self).__init__(read_only)
-
-        self.declare(name='custom_targets', types=dict, default=None, allow_none=True,
-                     desc='Used to override the default targets of the trajectory input parameter'
-                          ' in each phase.  By default its target will be the same as its name')
-
-        self._dict.pop('targets')
-
-        self.declare(name='targets', types=dict, default=None, allow_none=True,
-                     desc='Used to specify the targets for the input parameter in each phase. '
-                          'If None, Dymos will attempt to connect it to an input parameter of '
+                     desc='Used to specify the targets for the parameter in each phase. '
+                          'If None, Dymos will attempt to connect it to a parameter of '
                           'the same name in each phase.  Otherwise, targets should be a given '
                           'as a dictionary.  For each phase name given as a key in the dictionary,'
                           'if the associated value is a string, connect the parameter to the phase'
@@ -596,5 +536,4 @@ class _ForDocs(object):  # pragma: no cover
         self.time_options = TimeOptionsDictionary()
         self.state_options = StateOptionsDictionary()
         self.control_options = ControlOptionsDictionary()
-        self.design_parameter_options = DesignParameterOptionsDictionary()
-        self.input_parameter_options = InputParameterOptionsDictionary()
+        self.parameter_options = ParameterOptionsDictionary()

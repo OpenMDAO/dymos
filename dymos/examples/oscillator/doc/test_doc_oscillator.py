@@ -33,9 +33,9 @@ class TestDocOscillator(unittest.TestCase):
 
         # The spring constant, damping coefficient, and mass are inputs to the system
         # that are constant throughout the phase.
-        phase.add_input_parameter('k', units='N/m', targets=['k'])
-        phase.add_input_parameter('c', units='N*s/m', targets=['c'])
-        phase.add_input_parameter('m', units='kg', targets=['m'])
+        phase.add_parameter('k', units='N/m', targets=['k'])
+        phase.add_parameter('c', units='N*s/m', targets=['c'])
+        phase.add_parameter('m', units='kg', targets=['m'])
 
         # Setup the OpenMDAO problem
         prob.setup()
@@ -47,9 +47,9 @@ class TestDocOscillator(unittest.TestCase):
         prob.set_val('traj.phase0.states:x', 10.0)
         prob.set_val('traj.phase0.states:v', 0.0)
 
-        prob.set_val('traj.phase0.input_parameters:k', 1.0)
-        prob.set_val('traj.phase0.input_parameters:c', 0.5)
-        prob.set_val('traj.phase0.input_parameters:m', 1.0)
+        prob.set_val('traj.phase0.parameters:k', 1.0)
+        prob.set_val('traj.phase0.parameters:c', 0.5)
+        prob.set_val('traj.phase0.parameters:m', 1.0)
 
         # Perform a single execution of the model (executing the model is required before simulation).
         prob.run_model()
@@ -98,9 +98,9 @@ class TestDocOscillator(unittest.TestCase):
 
         # The spring constant, damping coefficient, and mass are inputs to the system that are
         # constant throughout the phase.
-        phase.add_input_parameter('k', units='N/m', targets=['k'])
-        phase.add_input_parameter('c', units='N*s/m', targets=['c'])
-        phase.add_input_parameter('m', units='kg', targets=['m'])
+        phase.add_parameter('k', units='N/m', targets=['k'])
+        phase.add_parameter('c', units='N*s/m', targets=['c'])
+        phase.add_parameter('m', units='kg', targets=['m'])
 
         # Setup the OpenMDAO problem
         prob.setup()
@@ -112,9 +112,9 @@ class TestDocOscillator(unittest.TestCase):
         prob.set_val('traj.phase0.states:x', 10.0)
         prob.set_val('traj.phase0.states:v', 0.0)
 
-        prob.set_val('traj.phase0.input_parameters:k', 1.0)
-        prob.set_val('traj.phase0.input_parameters:c', 0.5)
-        prob.set_val('traj.phase0.input_parameters:m', 1.0)
+        prob.set_val('traj.phase0.parameters:k', 1.0)
+        prob.set_val('traj.phase0.parameters:c', 0.5)
+        prob.set_val('traj.phase0.parameters:m', 1.0)
 
         # Now we're using the optimization driver to iteratively run the model and vary the
         # phase duration until the final y value is 0.
@@ -170,9 +170,9 @@ class TestDocOscillator(unittest.TestCase):
 
         # The spring constant, damping coefficient, and mass are inputs to the system that are
         # constant throughout the phase.
-        phase.add_input_parameter('k', units='N/m', targets=['k'])
-        phase.add_input_parameter('c', units='N*s/m', targets=['c'])
-        phase.add_input_parameter('m', units='kg', targets=['m'])
+        phase.add_parameter('k', units='N/m', targets=['k'])
+        phase.add_parameter('c', units='N*s/m', targets=['c'])
+        phase.add_parameter('m', units='kg', targets=['m'])
 
         # Since we're using an optimization driver, an objective is required.  We'll minimize
         # the final time in this case.
@@ -188,9 +188,9 @@ class TestDocOscillator(unittest.TestCase):
         prob.set_val('traj.phase0.states:x', 10.0)
         prob.set_val('traj.phase0.states:v', 0.0)
 
-        prob.set_val('traj.phase0.input_parameters:k', 1.0)
-        prob.set_val('traj.phase0.input_parameters:c', 0.5)
-        prob.set_val('traj.phase0.input_parameters:m', 1.0)
+        prob.set_val('traj.phase0.parameters:k', 1.0)
+        prob.set_val('traj.phase0.parameters:c', 0.5)
+        prob.set_val('traj.phase0.parameters:m', 1.0)
 
         # Now we're using the optimization driver to iteratively run the model and vary the
         # phase duration until the final y value is 0.
@@ -246,9 +246,9 @@ class TestDocOscillator(unittest.TestCase):
 
         # The spring constant, damping coefficient, and mass are inputs to the system that
         # are constant throughout the phase.
-        phase.add_input_parameter('k', units='N/m', targets=['k'])
-        phase.add_input_parameter('c', units='N*s/m', targets=['c'])
-        phase.add_input_parameter('m', units='kg', targets=['m'])
+        phase.add_parameter('k', units='N/m', targets=['k'])
+        phase.add_parameter('c', units='N*s/m', targets=['c'])
+        phase.add_parameter('m', units='kg', targets=['m'])
 
         # Since we're using an optimization driver, an objective is required.  We'll minimize
         # the final time in this case.
@@ -264,9 +264,9 @@ class TestDocOscillator(unittest.TestCase):
         prob.set_val('traj.phase0.states:x', 10.0)
         prob.set_val('traj.phase0.states:v', 0.0)
 
-        prob.set_val('traj.phase0.input_parameters:k', 1.0)
-        prob.set_val('traj.phase0.input_parameters:c', 0.5)
-        prob.set_val('traj.phase0.input_parameters:m', 1.0)
+        prob.set_val('traj.phase0.parameters:k', 1.0)
+        prob.set_val('traj.phase0.parameters:c', 0.5)
+        prob.set_val('traj.phase0.parameters:m', 1.0)
 
         # Now we're using the optimization driver to iteratively run the model and vary the
         # phase duration until the final y value is 0.
@@ -322,9 +322,9 @@ class TestDocOscillator(unittest.TestCase):
 
         # The spring constant, damping coefficient, and mass are inputs to the system that are
         # constant throughout the phase.
-        phase.add_input_parameter('k', units='N/m', targets=['k'])
-        phase.add_input_parameter('c', units='N*s/m', targets=['c'])
-        phase.add_input_parameter('m', units='kg', targets=['m'])
+        phase.add_parameter('k', units='N/m', targets=['k'])
+        phase.add_parameter('c', units='N*s/m', targets=['c'])
+        phase.add_parameter('m', units='kg', targets=['m'])
 
         # Since we're using an optimization driver, an objective is required.  We'll minimize
         # the final time in this case.
@@ -340,9 +340,9 @@ class TestDocOscillator(unittest.TestCase):
         prob.set_val('traj.phase0.states:x', 10.0)
         prob.set_val('traj.phase0.states:v', 0.0)
 
-        prob.set_val('traj.phase0.input_parameters:k', 1.0)
-        prob.set_val('traj.phase0.input_parameters:c', 0.5)
-        prob.set_val('traj.phase0.input_parameters:m', 1.0)
+        prob.set_val('traj.phase0.parameters:k', 1.0)
+        prob.set_val('traj.phase0.parameters:c', 0.5)
+        prob.set_val('traj.phase0.parameters:m', 1.0)
 
         # Now we're using the optimization driver to iteratively run the model and vary the
         # phase duration until the final y value is 0.
@@ -398,9 +398,9 @@ class TestDocOscillator(unittest.TestCase):
 
         # The spring constant, damping coefficient, and mass are inputs to the system that are
         # constant throughout the phase.
-        phase.add_input_parameter('k', units='N/m', targets=['k'])
-        phase.add_input_parameter('c', units='N*s/m', targets=['c'])
-        phase.add_input_parameter('m', units='kg', targets=['m'])
+        phase.add_parameter('k', units='N/m', targets=['k'])
+        phase.add_parameter('c', units='N*s/m', targets=['c'])
+        phase.add_parameter('m', units='kg', targets=['m'])
 
         # Since we're using an optimization driver, an objective is required.  We'll minimize
         # the final time in this case.
@@ -416,9 +416,9 @@ class TestDocOscillator(unittest.TestCase):
         prob.set_val('traj.phase0.states:x', 10.0)
         prob.set_val('traj.phase0.states:v', 0.0)
 
-        prob.set_val('traj.phase0.input_parameters:k', 1.0)
-        prob.set_val('traj.phase0.input_parameters:c', 0.5)
-        prob.set_val('traj.phase0.input_parameters:m', 1.0)
+        prob.set_val('traj.phase0.parameters:k', 1.0)
+        prob.set_val('traj.phase0.parameters:c', 0.5)
+        prob.set_val('traj.phase0.parameters:m', 1.0)
 
         # Now we're using the optimization driver to iteratively run the model and vary the
         # phase duration until the final y value is 0.

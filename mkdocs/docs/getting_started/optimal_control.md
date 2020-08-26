@@ -11,13 +11,13 @@ although solving systems of DAEs is also possible.
   \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d})
 \end{align}
 
-# Controls and Design Parameters
+# Controls and Parameters
 
 In order to impact the behavior of such systems we need *controls*.
 Controls may be allowed to vary with time, such as the angle-of-attack of an aircraft during flight.
 We refer to these as _dynamic_ controls $\left(\bar{u}\right)$.
 Other controllable parameters might be fixed with time, such as the wingspan of an aircraft.
-We refer to these as _design parameters_ $\left(\bar{d}\right)$, although in the literature they may also be referred to as static controls.
+We refer to these as _parameters_ $\left(\bar{d}\right)$, although in the literature they may also be referred to as static controls.
 The endpoints in time, state values, control values, and design parameter values define the independent variables for our optimization problem.
 In Dymos, we discretize these variables in time to convert a continuous-time optimal control problem into a nonlinear programming (NLP) problem.
 

@@ -567,15 +567,7 @@ class GaussLobatto(PseudospectralBase):
                                                                             time_units,
                                                                             deriv=2))
 
-            # Design parameters are delayed until configure so that we can query the units.
-
-            for param_name, options in phase.input_parameter_options.items():
-                if options['include_timeseries']:
-                    units = options['units']
-                    timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
-                                                           var_class=phase.classify_var(param_name),
-                                                           shape=options['shape'],
-                                                           units=units)
+            # Parameters are delayed until configure so that we can query the units.
 
             for var, options in phase._timeseries[name]['outputs'].items():
                 output_name = options['output_name']
@@ -640,17 +632,17 @@ class GaussLobatto(PseudospectralBase):
                               tgt_name='{0}.input_values:'
                                        'polynomial_control_rates:{1}_rate2'.format(name, control_name))
 
-            for param_name, options in phase.design_parameter_options.items():
+            for param_name, options in phase.parameter_options.items():
                 if options['include_timeseries']:
-                    prom_name = 'design_parameters:{0}'.format(param_name)
-                    tgt_name = 'input_values:design_parameters:{0}'.format(param_name)
+                    prom_name = 'parameters:{0}'.format(param_name)
+                    tgt_name = 'input_values:parameters:{0}'.format(param_name)
 
                     if options['targets']:
                         prom_param = options['targets'][0]
                     else:
                         prom_param = param_name
 
-                    # Get the design var's real units.
+                    # Get the param's real units.
                     abs_param = phase.rhs_disc._var_allprocs_prom2abs_list['input'][prom_param]
                     units = phase.rhs_disc._var_abs2meta[abs_param[0]]['units']
 
@@ -666,17 +658,6 @@ class GaussLobatto(PseudospectralBase):
 
                     phase.promotes(name, inputs=[(tgt_name, prom_name)],
                                    src_indices=src_idxs, flat_src_indices=True)
-
-            for param_name, options in phase.input_parameter_options.items():
-                if options['include_timeseries']:
-                    units = options['units']
-
-                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-
-                    phase.connect(src_name='input_parameters:{0}_out'.format(param_name),
-                                  tgt_name='{0}.input_values:input_parameters:{1}'.format(name, param_name),
-                                  src_indices=src_idxs, flat_src_indices=True)
 
             for var, options in phase._timeseries[name]['outputs'].items():
                 output_name = options['output_name']
@@ -752,11 +733,8 @@ class GaussLobatto(PseudospectralBase):
             control_name = var[:-6]
             rate_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
             node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'design_parameter':
-            rate_path = 'design_parameters:{0}'.format(var)
-            node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
-        elif var_type == 'input_parameter':
-            rate_path = 'input_parameters:{0}_out'.format(var)
+        elif var_type == 'parameter':
+            rate_path = 'parameters:{0}'.format(var)
             node_idxs = np.zeros(gd.subset_num_nodes[nodes], dtype=int)
         # Failed to find variable, it must be an ODE output
         else:
@@ -794,8 +772,7 @@ class GaussLobatto(PseudospectralBase):
         """
         connection_info = []
 
-        parameter_options = phase.design_parameter_options.copy()
-        parameter_options.update(phase.input_parameter_options)
+        parameter_options = phase.parameter_options.copy()
         parameter_options.update(phase.control_options)
 
         if name in parameter_options:

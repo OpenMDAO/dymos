@@ -45,9 +45,9 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
                           targets=BrachistochroneVectorStatesODE.parameters['theta']['targets'],
                           rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_design_parameter('g',
-                                   targets=BrachistochroneVectorStatesODE.parameters['g']['targets'],
-                                   units='m/s**2', opt=False, val=9.80665)
+        phase.add_parameter('g',
+                            targets=BrachistochroneVectorStatesODE.parameters['g']['targets'],
+                            units='m/s**2', opt=False, val=9.80665)
 
         phase.add_boundary_constraint('pos', loc='final', equals=[10, 5])
 
@@ -66,7 +66,7 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
         p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-        p['phase0.design_parameters:g'] = 9.80665
+        p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
 
@@ -143,9 +143,9 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
                           targets=BrachistochroneVectorStatesODE.parameters['theta']['targets'],
                           rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_design_parameter('g',
-                                   targets=BrachistochroneVectorStatesODE.parameters['g']['targets'],
-                                   units='m/s**2', opt=False, val=9.80665)
+        phase.add_parameter('g',
+                            targets=BrachistochroneVectorStatesODE.parameters['g']['targets'],
+                            units='m/s**2', opt=False, val=9.80665)
 
         phase.add_boundary_constraint('pos', loc='final', equals=[10, 5], indices=[0, 1])
 
@@ -164,7 +164,7 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
         p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-        p['phase0.design_parameters:g'] = 9.80665
+        p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
 
@@ -241,9 +241,9 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
                           targets=BrachistochroneVectorStatesODE.parameters['theta']['targets'],
                           rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_design_parameter('g',
-                                   targets=BrachistochroneVectorStatesODE.parameters['g']['targets'],
-                                   units='m/s**2', opt=False, val=9.80665)
+        phase.add_parameter('g',
+                            targets=BrachistochroneVectorStatesODE.parameters['g']['targets'],
+                            units='m/s**2', opt=False, val=9.80665)
 
         phase.add_boundary_constraint('pos', loc='final', equals=5, indices=[1])
 
@@ -262,7 +262,7 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
         p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-        p['phase0.design_parameters:g'] = 9.80665
+        p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
 

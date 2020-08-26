@@ -76,7 +76,7 @@ Other inputs are values which impact the system but have one set value throughou
 We refer to these non-time-varying inputs as *design parameters*, since they typically involve
 parameters which define a system. Design parameters include things like the wingspan of a vehicle
 or the mass of a heatsink.  A design parameter can be declared using the phase method
-`add_design_parameter`.
+`add_parameter`.
 
 States are defined in the ODE.  Controls and design parameters, on the other hand, are optionally
 assigned to controllable parameters in the ODE.  Therefore, the method name to add a control to
@@ -90,7 +90,7 @@ a phase is `add_control`. Valid options for controls and design parameters are a
 .. embed-options::
     dymos.phase.options
     _ForDocs
-    design_parameter_options
+    parameter_options
 
 Like states, *dynamic* controls are modeled as polynomials within each segment.  When
 transcribed to a nonlinear programming problem, a dynamic control is given a unique value at each

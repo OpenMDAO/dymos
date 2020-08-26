@@ -4,9 +4,9 @@ One of the design goals of Dymos is to allow the trajectory to be a part of a la
 Sometimes, you may want to take the results of some upstream design and use them as an input to a Dymos trajectory.
 There are different ways of doing this depending on what is being connected from the upstream source.
 
-## Upstream outputs as input parameters
+## Upstream outputs as parameters
 
-If an upstream component performs some calculations to compute an output that is static through the trajectory, this is a use-case for input parameters.
+If an upstream component performs some calculations to compute an output that is static through the trajectory, this is a use-case for parameters.
 For instance, we might use an upstream analysis to compute a wing area, spacecraft dry mass, or rotor radius.
 
 

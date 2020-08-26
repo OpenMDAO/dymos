@@ -57,8 +57,8 @@ class TestStaticInputParameters(unittest.TestCase):
 
         phase.set_time_options(units='s', targets=['comp.time'])
         phase.add_state(name='F', rate_source='comp.y')
-        phase.add_input_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
-                                  targets='comp.alpha', dynamic=False)
+        phase.add_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
+                            targets='comp.alpha', dynamic=False)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -79,8 +79,8 @@ class TestStaticInputParameters(unittest.TestCase):
 
         phase.set_time_options(units='s', targets=['comp.time'])
         phase.add_state(name='F', rate_source='comp.y')
-        phase.add_input_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
-                                  targets='comp.alpha', dynamic=False)
+        phase.add_parameter('alpha', val=np.ones((n_traj, 2)), units='m',
+                            targets='comp.alpha', dynamic=False)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -88,3 +88,7 @@ class TestStaticInputParameters(unittest.TestCase):
             p.setup()
         except Exception as e:
             self.fail('Exception encountered in setup:\n' + str(e))
+
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()

@@ -255,10 +255,10 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
         phase.add_boundary_constraint('vx', loc='final', equals=1627.0)
         phase.add_boundary_constraint('vy', loc='final', equals=0)
 
-        phase.add_design_parameter('a_ctrl', units='1/s', opt=True, targets=['guidance.a_ctrl'])
-        phase.add_design_parameter('b_ctrl', units=None, opt=True, targets=['guidance.b_ctrl'])
-        phase.add_design_parameter('thrust', units='N', opt=False, val=3.0 * 50000.0 * 1.61544, targets=['eom.thrust'])
-        phase.add_design_parameter('Isp', units='s', opt=False, val=1.0E6, targets=['eom.Isp'])
+        phase.add_parameter('a_ctrl', units='1/s', opt=True, targets=['guidance.a_ctrl'])
+        phase.add_parameter('b_ctrl', units=None, opt=True, targets=['guidance.b_ctrl'])
+        phase.add_parameter('thrust', units='N', opt=False, val=3.0 * 50000.0 * 1.61544, targets=['eom.thrust'])
+        phase.add_parameter('Isp', units='s', opt=False, val=1.0E6, targets=['eom.Isp'])
 
         phase.add_objective('time', index=-1, scaler=0.01)
 
@@ -275,8 +275,8 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
         p['traj.phase0.states:vx'] = phase.interpolate(ys=[0, 1627.0], nodes='state_input')
         p['traj.phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_input')
         p['traj.phase0.states:m'] = phase.interpolate(ys=[50000, 50000], nodes='state_input')
-        p['traj.phase0.design_parameters:a_ctrl'] = -0.01
-        p['traj.phase0.design_parameters:b_ctrl'] = 3.0
+        p['traj.phase0.parameters:a_ctrl'] = -0.01
+        p['traj.phase0.parameters:b_ctrl'] = 3.0
 
         dm.run_problem(p)
 

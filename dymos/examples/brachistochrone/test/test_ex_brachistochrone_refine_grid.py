@@ -60,8 +60,8 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_input_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', val=9.80665)
+        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                            units='m/s**2', val=9.80665)
 
         phase.add_timeseries('timeseries2',
                              transcription=dm.Radau(num_segments=num_segments * 5,
@@ -84,7 +84,7 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
         p['traj0.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
         p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
         p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-        p['traj0.phase0.input_parameters:g'] = 9.80665
+        p['traj0.phase0.parameters:g'] = 9.80665
 
         return p
 
@@ -102,7 +102,7 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
         v0 = p.get_val('traj0.phase0.timeseries.states:v')[0]
         vf = p.get_val('traj0.phase0.timeseries.states:v')[-1]
 
-        g = p.get_val('traj0.phase0.timeseries.input_parameters:g')[0]
+        g = p.get_val('traj0.phase0.timeseries.parameters:g')[0]
 
         thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1]
 

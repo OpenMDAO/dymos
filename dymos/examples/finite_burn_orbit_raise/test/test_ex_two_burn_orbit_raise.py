@@ -20,8 +20,8 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 
     traj = dm.Trajectory()
 
-    traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU',
-                              targets={'burn1': ['c'], 'burn2': ['c']})
+    traj.add_parameter('c', opt=False, val=1.5, units='DU/TU',
+                       targets={'burn1': ['c'], 'burn2': ['c']})
 
     # First Phase (burn)
 
@@ -62,8 +62,8 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     coast.add_state('deltav', fix_initial=False, fix_final=False,
                     rate_source='deltav_dot', units='DU/TU')
 
-    coast.add_design_parameter('u1', opt=False, val=0.0, units='deg', targets=['u1'])
-    coast.add_input_parameter('c', val=0.0, units='DU/TU', targets=['c'])
+    coast.add_parameter('u1', opt=False, val=0.0, units='deg', targets=['u1'])
+    coast.add_parameter('c', val=0.0, units='DU/TU', targets=['c'])
 
     # Third Phase (burn)
     burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=t[transcription])
@@ -184,7 +184,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     p.setup(check=True)
 
     # Set Initial Guesses
-    p.set_val('traj.design_parameters:c', value=1.5, units='DU/TU')
+    p.set_val('traj.parameters:c', value=1.5, units='DU/TU')
 
     burn1 = p.model.traj.phases.burn1
     burn2 = p.model.traj.phases.burn2

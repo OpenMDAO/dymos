@@ -28,12 +28,8 @@ class ODEIntegrationInterfaceSystem(om.Group):
         # self.options.declare('polynomial_control_interpolants', default={}, types=dict,
         #                      desc='Dictionary of polynomial control names/interpolants.')
 
-        self.options.declare('design_parameter_options', default=None, types=dict, allow_none=True,
-                             desc='Dictionary of design parameter names/options for the segments '
-                                  'parent Phase.')
-
-        self.options.declare('input_parameter_options', default=None, types=dict, allow_none=True,
-                             desc='Dictionary of input parameter names/options for the segments '
+        self.options.declare('parameter_options', default=None, types=dict, allow_none=True,
+                             desc='Dictionary of parameter names/options for the segments '
                                   'parent Phase.')
 
         self.options.declare('ode_class',
@@ -104,28 +100,16 @@ class ODEIntegrationInterfaceSystem(om.Group):
                     self.connect('polynomial_control_rates:{0}_rate2'.format(name),
                                  ['ode.{0}'.format(tgt) for tgt in rate2_tgts])
 
-        if self.options['design_parameter_options']:
-            for name, options in self.options['design_parameter_options'].items():
-                ivc.add_output('design_parameters:{0}'.format(name),
+        if self.options['parameter_options']:
+            for name, options in self.options['parameter_options'].items():
+                ivc.add_output('parameters:{0}'.format(name),
                                shape=options['shape'],
                                units=options['units'])
                 if options['targets'] is not None:
                     tgts = options['targets']
                     if isinstance(tgts, str):
                         tgts = [tgts]
-                    self.connect('design_parameters:{0}'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in tgts])
-
-        if self.options['input_parameter_options']:
-            for name, options in self.options['input_parameter_options'].items():
-                ivc.add_output('input_parameters:{0}'.format(name),
-                               shape=options['shape'],
-                               units=options['units'])
-                if options['targets'] is not None:
-                    tgts = options['targets']
-                    if isinstance(tgts, str):
-                        tgts = [tgts]
-                    self.connect('input_parameters:{0}'.format(name),
+                    self.connect('parameters:{0}'.format(name),
                                  ['ode.{0}'.format(tgt) for tgt in tgts])
 
         # The ODE System
@@ -170,10 +154,8 @@ class ODEIntegrationInterfaceSystem(om.Group):
             rate_path = 'controls:{0}'.format(var)
         elif self.options['polynomial_control_options'] is not None and var in self.options['polynomial_control_options']:
             rate_path = 'polynomial_controls:{0}'.format(var)
-        elif self.options['design_parameter_options'] is not None and var in self.options['design_parameter_options']:
-            rate_path = 'design_parameters:{0}'.format(var)
-        elif self.options['input_parameter_options'] is not None and var in self.options['input_parameter_options']:
-            rate_path = 'input_parameters:{0}'.format(var)
+        elif self.options['parameter_options'] is not None and var in self.options['parameter_options']:
+            rate_path = 'parameters:{0}'.format(var)
         elif var.endswith('_rate') and self.options['control_options'] is not None and \
                 var[:-5] in self.options['control_options']:
             rate_path = 'control_rates:{0}'.format(var)

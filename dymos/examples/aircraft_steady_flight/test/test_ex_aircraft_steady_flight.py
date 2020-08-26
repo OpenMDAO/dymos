@@ -74,18 +74,18 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
 
     phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
 
-    phase.add_input_parameter('S',
-                              targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
-                              units='m**2')
+    phase.add_parameter('S',
+                        targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
+                        units='m**2')
 
-    phase.add_input_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
-    phase.add_input_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
+    phase.add_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
+    phase.add_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 
     phase.add_path_constraint('propulsion.tau', lower=0.01, upper=2.0, shape=(1,))
 
-    p.model.connect('assumptions.S', 'phase0.input_parameters:S')
-    p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
-    p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
+    p.model.connect('assumptions.S', 'phase0.parameters:S')
+    p.model.connect('assumptions.mass_empty', 'phase0.parameters:mass_empty')
+    p.model.connect('assumptions.mass_payload', 'phase0.parameters:mass_payload')
 
     phase.add_objective('range', loc='final', ref=-1.0e-4)
 

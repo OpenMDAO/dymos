@@ -52,13 +52,13 @@ class TestWaterRocketForDocs(unittest.TestCase):
         plt.show()
 
         # Check results (tolerance is relative unless value is zero)
-        assert_near_equal(summary['Launch angle'].value, 89, .02)
-        assert_near_equal(summary['Flight angle at end of propulsion'].value, 89, .02)
-        assert_near_equal(summary['Empty mass'].value, 0.142878, 1e-3)
-        assert_near_equal(summary['Water volume'].value, 0.870367, 1e-3)
-        assert_near_equal(summary['Maximum range'].value, 0, 5)
-        assert_near_equal(summary['Maximum height'].value, 54.603214, 1e-3)
-        assert_near_equal(summary['Maximum velocity'].value, 47.259089, 1e-3)
+        assert_near_equal(summary['Launch angle'].value, 85, .02)
+        assert_near_equal(summary['Flight angle at end of propulsion'].value, 85, .02)
+        assert_near_equal(summary['Empty mass'].value, 0.1425114, 1e-3)
+        assert_near_equal(summary['Water volume'].value, 0.868281, 1e-3)
+        assert_near_equal(summary['Maximum range'].value, 15.78, 5)
+        assert_near_equal(summary['Maximum height'].value, 54.133184, 1e-3)
+        assert_near_equal(summary['Maximum velocity'].value, 47.320298, 1e-3)
 
     @save_for_docs
     def test_water_rocket_range_for_docs(self):
@@ -208,7 +208,7 @@ def plot_propelled_ascent(p, exp_out):
     ax[1].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L'), 'ro', markerfacecolor='None')
     ax[1].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L'), 'r-')
     ax[1].set_ylabel('$V_w$ (L)')
-    ax[1].set_ylim(0, p.get_val('traj.design_parameters:V_b', 'L'))
+    ax[1].set_ylim(0, p.get_val('traj.parameters:V_b', 'L')[0])
 
     ax[2].plot(t_imp, p.get_val('traj.propelled_ascent.timeseries.T', 'N'), 'ro', markerfacecolor='None')
     ax[2].plot(t_exp, exp_out.get_val('traj.propelled_ascent.timeseries.T', 'N'), 'r-')
@@ -237,7 +237,7 @@ def summarize_results(water_rocket_problem):
         'Launch angle': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',  units='deg')[0, 0], 'deg'),
         'Flight angle at end of propulsion': Entry(p.get_val('traj.propelled_ascent.timeseries.states:gam',
                                                    units='deg')[-1, 0], 'deg'),
-        'Empty mass': Entry(p.get_val('traj.design_parameters:m_empty', units='kg')[0, 0], 'kg'),
+        'Empty mass': Entry(p.get_val('traj.parameters:m_empty', units='kg')[0], 'kg'),
         'Water volume': Entry(p.get_val('traj.propelled_ascent.timeseries.states:V_w', 'L')[0, 0], 'L'),
         'Maximum range': Entry(p.get_val('traj.descent.timeseries.states:r', units='m')[-1, 0], 'm'),
         'Maximum height': Entry(p.get_val('traj.ballistic_ascent.timeseries.states:h', units='m')[-1, 0], 'm'),

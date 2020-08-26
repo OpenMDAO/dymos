@@ -133,7 +133,7 @@ preferable when using a differential inclusion approach to problems.
 |-------------|------------------------|-----------|---------------------|-----------------|
 |climb\_rate  |aircraft rate of climb  |True       |False                |False            |
 
-### Design Parameters
+### Parameters
 
 |Name           |Description                 |Optimized             |
 |---------------|----------------------------|----------------------|
@@ -371,19 +371,16 @@ indent_level=0)
 }}
 
 In this case the system has only two integrated states:
-_range_ and _mass\_fuel_. There are six parameters. Two of them, _alt_ and
-_climb\_rate_, will be varied dynamically in the phase, and
-the other four, _mach_, _S_, _mass\_empty_, and _mass\_payload_, will be set
-to fixed values as non-optimized design parameters. More details on the
-various models involved can be found in the examples code.
+_range_ and _mass\_fuel_. There are six parameters.
+Two of them (_alt_ and _climb\_rate_) will be varied dynamically in the phase
+The other four (_mach_, _S_, _mass\_empty_, and _mass\_payload_), will be set to fixed values as non-optimized parameters.
+More details on the various models involved can be found in the examples code.
 
 ## Building and running the problem
 
 In the following code we define and solve the optimal control problem.
-Note that we demonstrate the use of externally-connected design
-parameters in this case. The four design parameters have `input_value =
-True`, and are connected to a source provided by the
-_assumptions_ IndepVarComp.
+Note that we demonstrate the use of externally-connected design parameters in this case.
+The four parameters are connected to a source provided by the _assumptions_ IndepVarComp.
 
 {{ embed_test('dymos.examples.aircraft_steady_flight.doc.test_doc_aircraft_steady_flight.TestSteadyAircraftFlightForDocs.test_steady_aircraft_for_docs') }}
 

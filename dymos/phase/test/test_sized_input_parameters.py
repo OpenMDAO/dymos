@@ -12,7 +12,7 @@ import numpy as np
 
 class TestInputParameterConnections(unittest.TestCase):
 
-    def test_dynamic_input_parameter_connections_radau(self):
+    def test_dynamic_parameter_connections_radau(self):
 
         class TrajectoryODE(om.Group):
             def initialize(self):
@@ -59,7 +59,7 @@ class TestInputParameterConnections(unittest.TestCase):
         phase.add_state('h', fix_initial=True, fix_final=True, lower=0.0, units='m', rate_source='eom.h_dot')
         phase.add_state('v', fix_initial=True, fix_final=False, units='m/s', rate_source='eom.v_dot')
 
-        phase.add_input_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m')
+        phase.add_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m')
 
         p.model.linear_solver = om.DirectSolver()
 
@@ -77,7 +77,7 @@ class TestInputParameterConnections(unittest.TestCase):
                                    (p.model.phase0.options['transcription'].grid_data.num_nodes, 2, 2))
         assert_near_equal(p.get_val('phase0.rhs_all.sum.m'), expected)
 
-    def test_static_input_parameter_connections_radau(self):
+    def test_static_parameter_connections_radau(self):
 
         class TrajectoryODE(om.Group):
             def initialize(self):
@@ -120,7 +120,7 @@ class TestInputParameterConnections(unittest.TestCase):
         phase.add_state('h', fix_initial=True, fix_final=True, lower=0.0, units='m', rate_source='eom.h_dot')
         phase.add_state('v', fix_initial=True, fix_final=False, units='m/s', rate_source='eom.v_dot')
 
-        phase.add_input_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m', dynamic=False)
+        phase.add_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m', dynamic=False)
 
         p.model.linear_solver = om.DirectSolver()
 
@@ -137,7 +137,7 @@ class TestInputParameterConnections(unittest.TestCase):
         expected = np.array([[1, 2], [3, 4]])
         assert_near_equal(p.get_val('phase0.rhs_all.sum.m'), expected)
 
-    def test_dynamic_input_parameter_connections_gl(self):
+    def test_dynamic_parameter_connections_gl(self):
 
         class TrajectoryODE(om.Group):
             def initialize(self):
@@ -180,7 +180,7 @@ class TestInputParameterConnections(unittest.TestCase):
         phase.add_state('h', fix_initial=True, fix_final=True, lower=0.0, units='m', rate_source='eom.h_dot')
         phase.add_state('v', fix_initial=True, fix_final=False, units='m/s', rate_source='eom.v_dot')
 
-        phase.add_input_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m')
+        phase.add_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m')
 
         p.model.linear_solver = om.DirectSolver()
 
@@ -204,7 +204,7 @@ class TestInputParameterConnections(unittest.TestCase):
                                    (gd.subset_num_nodes['col'], 2, 2))
         assert_near_equal(p.get_val('phase0.rhs_col.sum.m'), expected)
 
-    def test_static_input_parameter_connections_gl(self):
+    def test_static_parameter_connections_gl(self):
 
         class TrajectoryODE(om.Group):
             def initialize(self):
@@ -247,7 +247,7 @@ class TestInputParameterConnections(unittest.TestCase):
         phase.add_state('h', fix_initial=True, fix_final=True, lower=0.0, units='m', rate_source='eom.h_dot')
         phase.add_state('v', fix_initial=True, fix_final=False, units='m/s', rate_source='eom.v_dot')
 
-        phase.add_input_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m', dynamic=False)
+        phase.add_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m', dynamic=False)
 
         p.model.linear_solver = om.DirectSolver()
 

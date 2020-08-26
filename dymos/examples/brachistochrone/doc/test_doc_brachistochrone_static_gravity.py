@@ -93,7 +93,7 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_design_parameter('g', targets=['g'], dynamic=False, opt=False)
+        phase.add_parameter('g', targets=['g'], dynamic=False, opt=False)
 
         #
         # Minimize time at the end of the phase
@@ -126,7 +126,7 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         p.set_val('traj.phase0.controls:theta', phase.interpolate(ys=[5, 100.5], nodes='control_input'))
 
         # Set the value for gravitational acceleration.
-        p.set_val('traj.phase0.design_parameters:g', 9.80665)
+        p.set_val('traj.phase0.parameters:g', 9.80665)
 
         #
         # Solve for the optimal trajectory

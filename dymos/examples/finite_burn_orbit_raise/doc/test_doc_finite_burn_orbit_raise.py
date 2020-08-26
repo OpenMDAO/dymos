@@ -27,8 +27,8 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
         traj = dm.Trajectory()
 
-        traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU',
-                                  targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
+        traj.add_parameter('c', opt=False, val=1.5, units='DU/TU',
+                           targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
 
         # First Phase (burn)
 
@@ -73,7 +73,7 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         coast.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
 
-        coast.add_design_parameter('u1', opt=False, val=0.0, units='deg', targets=['u1'])
+        coast.add_parameter('u1', opt=False, val=0.0, units='deg', targets=['u1'])
 
         # Third Phase (burn)
         burn2 = dm.Phase(ode_class=FiniteBurnODE,
@@ -128,7 +128,7 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         p.setup(check=True, mode='fwd')
 
         # Set Initial Guesses
-        p.set_val('traj.design_parameters:c', value=1.5, units='DU/TU')
+        p.set_val('traj.parameters:c', value=1.5, units='DU/TU')
 
         burn1 = p.model.traj.phases.burn1
         burn2 = p.model.traj.phases.burn2

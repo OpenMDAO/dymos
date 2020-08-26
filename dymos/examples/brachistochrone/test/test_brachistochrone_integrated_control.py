@@ -109,7 +109,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
         phase.add_control('theta_dot', units='deg/s', rate_continuity=True, lower=0, upper=60)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
+        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -184,7 +184,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
         phase.add_control('theta_dot', units='deg/s', rate_continuity=True, lower=0, upper=60)
 
-        phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
+        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)

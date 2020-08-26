@@ -204,15 +204,9 @@ class RungeKutta(TranscriptionBase):
             rate_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
             size = num_segments * num_stages * state_size
             src_idxs = np.arange(size, dtype=int).reshape((num_segments, num_stages, state_size))
-        elif var_type == 'design_parameter':
-            rate_path = 'design_parameters:{0}'.format(var)
-            size = np.prod(phase.design_parameter_options[var]['shape'])
-            src_idxs = np.zeros(num_segments * num_stages * size, dtype=int).reshape((num_segments,
-                                                                                      num_stages,
-                                                                                      state_size))
-        elif var_type == 'input_parameter':
-            rate_path = 'input_parameters:{0}_out'.format(var)
-            size = np.prod(phase.input_parameter_options[var]['shape'])
+        elif var_type == 'parameter':
+            rate_path = 'parameters:{0}'.format(var)
+            size = np.prod(phase.parameter_options[var]['shape'])
             src_idxs = np.zeros(num_segments * num_stages * size, dtype=int).reshape((num_segments,
                                                                                       num_stages,
                                                                                       state_size))
@@ -816,19 +810,12 @@ class RungeKutta(TranscriptionBase):
                                                                             time_units,
                                                                             deriv=2))
 
-            for param_name, options in phase.design_parameter_options.items():
+            for param_name, options in phase.parameter_options.items():
                 if options['include_timeseries']:
                     units = options['units']
-                    timeseries_comp._add_timeseries_output('design_parameters:{0}'.format(param_name),
+                    timeseries_comp._add_timeseries_output('parameters:{0}'.format(param_name),
                                                            var_class=phase.classify_var(param_name),
                                                            shape=options['shape'],
-                                                           units=units)
-
-            for param_name, options in phase.input_parameter_options.items():
-                if options['include_timeseries']:
-                    units = options['units']
-                    timeseries_comp._add_timeseries_output('input_parameters:{0}'.format(param_name),
-                                                           var_class=phase.classify_var(param_name),
                                                            units=units)
 
             for var, options in phase._timeseries[name]['outputs'].items():
@@ -909,24 +896,15 @@ class RungeKutta(TranscriptionBase):
                                        ':{1}_rate2'.format(name, control_name),
                               src_indices=src_idxs, flat_src_indices=True)
 
-            for param_name, options in phase.design_parameter_options.items():
+            for param_name, options in phase.parameter_options.items():
                 if options['include_timeseries']:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
-                    prom_name = 'design_parameters:{0}'.format(param_name)
-                    tgt_name = 'input_values:design_parameters:{0}'.format(param_name)
+                    prom_name = 'parameters:{0}'.format(param_name)
+                    tgt_name = 'input_values:parameters:{0}'.format(param_name)
                     phase.promotes(name, inputs=[(tgt_name, prom_name)],
                                    src_indices=src_idxs, flat_src_indices=True)
-
-            for param_name, options in phase.input_parameter_options.items():
-                if options['include_timeseries']:
-                    src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['segment_ends'], dtype=int)
-                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-
-                    phase.connect(src_name='input_parameters:{0}_out'.format(param_name),
-                                  tgt_name='{0}.input_values:input_parameters:{1}'.format(name, param_name),
-                                  src_indices=src_idxs, flat_src_indices=True)
 
             for var, options in phase._timeseries[name]['outputs'].items():
                 output_name = options['output_name']
@@ -973,8 +951,7 @@ class RungeKutta(TranscriptionBase):
         num_iter_ode_nodes = num_seg * num_stages
         num_final_ode_nodes = 2 * num_seg
 
-        parameter_options = phase.design_parameter_options.copy()
-        parameter_options.update(phase.input_parameter_options)
+        parameter_options = phase.parameter_options.copy()
         parameter_options.update(phase.control_options)
 
         if name in parameter_options:
@@ -1063,20 +1040,13 @@ class RungeKutta(TranscriptionBase):
             units = control_units
             linear = False
             constraint_path = 'polynomial_control_values:{0}'.format(var)
-        elif var_type == 'design_parameter':
-            control_shape = phase.design_parameter_options[var]['shape']
-            control_units = phase.design_parameter_options[var]['units']
+        elif var_type == 'parameter':
+            control_shape = phase.parameter_options[var]['shape']
+            control_units = phase.parameter_options[var]['units']
             shape = control_shape
             units = control_units
             linear = True
-            constraint_path = 'design_parameters:{0}'.format(var)
-        elif var_type == 'input_parameter':
-            control_shape = phase.input_parameter_options[var]['shape']
-            control_units = phase.input_parameter_options[var]['units']
-            shape = control_shape
-            units = control_units
-            linear = False
-            constraint_path = 'input_parameters:{0}_out'.format(var)
+            constraint_path = 'parameters:{0}'.format(var)
         elif var_type in ('control_rate', 'control_rate2'):
             control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
             control_shape = phase.control_options[control_var]['shape']

@@ -10,7 +10,7 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 
 class TestPhaseParameterPromotion(unittest.TestCase):
 
-    def test_promotes_input_parameter(self):
+    def test_promotes_parameter(self):
         transcription = 'radau-ps'
         optimizer = 'SNOPT'
         num_segments = 10
@@ -40,7 +40,7 @@ class TestPhaseParameterPromotion(unittest.TestCase):
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
 
-        traj.add_phase('phase0', phase, promotes_inputs=['t_initial', 't_duration', 'input_parameters:g'])
+        traj.add_phase('phase0', phase, promotes_inputs=['t_initial', 't_duration', 'parameters:g'])
 
         p.model.add_subsystem('traj', traj)
 
@@ -56,7 +56,7 @@ class TestPhaseParameterPromotion(unittest.TestCase):
         phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9, targets=['theta'])
 
-        phase.add_input_parameter('g', units='m/s**2', val=9.80665, targets=['g'])
+        phase.add_parameter('g', units='m/s**2', val=9.80665, targets=['g'])
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -73,7 +73,7 @@ class TestPhaseParameterPromotion(unittest.TestCase):
         p['traj.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
         p['traj.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
         p['traj.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-        p['traj.input_parameters:g'] = 9.80665
+        p['traj.parameters:g'] = 9.80665
 
         p.run_driver()
 

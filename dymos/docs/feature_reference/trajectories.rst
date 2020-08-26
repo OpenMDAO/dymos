@@ -47,34 +47,34 @@ case is somewhat unusual in that the thrust acceleration is modeled as a state v
 needs to be zero in the coast phase, but continuous between `burn1` and `burn2`, assuming no mass
 was jettisoned during the coast and that the thrust magnitude doesn't change.
 
-Trajectory Design Parameters and Input Parameters
--------------------------------------------------
+Trajectory Parameters
+---------------------
 Often times, there are parameters which apply to the entirety of a trajectory that potentially
-need to be optimized.  If we implemented these as design parameters within each phase individually,
+need to be optimized.  If we implemented these as parameters within each phase individually,
 we would need some constraints to ensure that they held the same value within each phase.  To avoid
-this complexity, Dymos Trajectory objects support their own Design Parameters and Input Parameters.
+this complexity, Dymos Trajectory objects support their own Parameters.
 
-Like their Phase-based counterparts, Trajectory design parameters produce an output which can be used
+Like their Phase-based counterparts, Trajectory parameters produce an output which can be used
 as a design variable to provide an optimal solution.  Similarly, input parameters provide an input
 at the trajectory level which may be connected to some output external to the trajectory.
 
-When using Trajectory Design and Input parameters, their values are connected to each phase as an
-Input Parameter within the Phase.  Because ODEs in different phases may have different names
+When using Trajectory parameters, their values are connected to each phase as an
+parameter within the Phase.  Because ODEs in different phases may have different names
 for parameters (e.g. 'mass', 'm', 'm_total', etc) Dymos allows the user to specify the targeted
 ODE parameters on a phase-by-phase basis using the `targets` and `target_params` option.
 It can take on the following values.
 
-*  If `targets` is `None` the trajectory design or input parameter will be connected to the phase input parameter of the same name in each phase, if it exists (otherwise it is not connected to that phase).
+*  If `targets` is `None` the trajectory parameter will be connected to the phase parameter of the same name in each phase, if it exists (otherwise it is not connected to that phase).
 
 *  Otherwise targets should be specified as a dictionary. And the behavior depends on the value associated with each phase name:
 
-    * If the phase name is not in the given dictionary, attempt to connect to an existing input parameter of the same name in that phase.
+    * If the phase name is not in the given dictionary, attempt to connect to an existing parameter of the same name in that phase.
 
     * If the associated value is None, explicitly omit a connection to that phase.
 
-    * If the associated value is a string, connect to an existing input parameter whose name is given by the string in that phase.
+    * If the associated value is a string, connect to an existing parameter whose name is given by the string in that phase.
 
-    * If the associated value is a Sequence, create an input parameter in that phase connected to the ODE targets given by the Sequence.
+    * If the associated value is a Sequence, create an parameter in that phase connected to the ODE targets given by the Sequence.
 
 Explicit Simulation of Trajectories
 -----------------------------------

@@ -43,7 +43,7 @@ in this case an :code:`ExplicitComponent`.  The :code:`declare_time`, :code:`dec
 :code:`declare_parameter` decorators are used to inform Dymos as to where the time, states, and
 potential control variables should be connected to the system.  These decorators are *optional* and
 only provide defaults for these values.  Otherwise they can be set via the Phase API (``set_time_options``,
-``add_state``, ``add_control``, ``add_design_parameter``, ``add_input_parameter`` etc.
+``add_state``, ``add_control``, ``add_parameter`` etc.
 The :code:`rate_source` parameter of :code:`declare_state` dictates the output in the system
 that provides the time-derivative of the corresponding state variable.
 

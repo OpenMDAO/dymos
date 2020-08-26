@@ -148,16 +148,15 @@ class TranscriptionBase(object):
     def configure_polynomial_controls(self, phase):
         pass
 
-    def setup_design_parameters(self, phase):
+    def setup_parameters(self, phase):
         """
-        Adds an IndepVarComp if necessary and issues appropriate connections based
-        on transcription.
+        Sets input defaults for parameters and optionally adds design variables.
         """
-        phase._check_design_parameter_options()
+        phase._check_parameter_options()
 
-        if phase.design_parameter_options:
-            for name, options in phase.design_parameter_options.items():
-                src_name = 'design_parameters:{0}'.format(name)
+        if phase.parameter_options:
+            for name, options in phase.parameter_options.items():
+                src_name = 'parameters:{0}'.format(name)
 
                 if options['opt']:
                     lb = -INF_BOUND if options['lower'] is None else options['lower']
@@ -179,10 +178,10 @@ class TranscriptionBase(object):
                                          val=shaped_val,
                                          units=options['units'])
 
-    def configure_design_parameters(self, phase):
-        if phase.design_parameter_options:
-            for name, options in phase.design_parameter_options.items():
-                prom_name = 'design_parameters:{0}'.format(name)
+    def configure_parameters(self, phase):
+        if phase.parameter_options:
+            for name, options in phase.parameter_options.items():
+                prom_name = 'parameters:{0}'.format(name)
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
                     for pathname in tgts:
                         parts = pathname.split('.')
@@ -190,25 +189,6 @@ class TranscriptionBase(object):
                         tgt_var = '.'.join(parts[1:])
                         phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
                                        src_indices=src_idxs, flat_src_indices=True)
-
-    def setup_input_parameters(self, phase):
-        """
-        Adds a InputParameterComp to allow input parameters to be connected from sources
-        external to the phase.
-        """
-        if phase.input_parameter_options:
-            passthru = InputParameterComp(input_parameter_options=phase.input_parameter_options)
-
-            phase.add_subsystem('input_params', subsys=passthru, promotes_inputs=['*'],
-                                promotes_outputs=['*'])
-
-    def configure_input_parameters(self, phase):
-        for name in phase.input_parameter_options:
-            src_name = 'input_parameters:{0}_out'.format(name)
-
-            for tgts, src_idxs in self.get_parameter_connections(name, phase):
-                phase.connect(src_name, [t for t in tgts],
-                              src_indices=src_idxs, flat_src_indices=True)
 
     def setup_states(self, phase):
         raise NotImplementedError('Transcription {0} does not implement method '
@@ -350,7 +330,7 @@ class TranscriptionBase(object):
             else:
                 src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
 
-            if 'design_parameters:' in src:
+            if 'parameters:' in src:
                 sys_name = '{0}_boundary_constraints'.format(loc)
                 tgt_name = '{0}_value_in:{1}'.format(loc, con_name)
                 phase.promotes(sys_name, inputs=[(tgt_name, src)],

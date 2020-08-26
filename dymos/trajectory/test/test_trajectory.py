@@ -48,7 +48,7 @@ class TestTrajectory(unittest.TestCase):
                         rate_source='deltav_dot', units='DU/TU')
         burn1.add_control('u1',  targets=['u1'], rate_continuity=True, rate2_continuity=True,
                           units='deg', scaler=0.01, lower=-30, upper=30)
-        burn1.add_design_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
+        burn1.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
 
         # Second Phase (Coast)
 
@@ -70,7 +70,7 @@ class TestTrajectory(unittest.TestCase):
         coast.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
         coast.add_control('u1', targets=['u1'], opt=False, val=0.0, units='deg')
-        coast.add_design_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
+        coast.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
 
         # Third Phase (burn)
 
@@ -93,7 +93,7 @@ class TestTrajectory(unittest.TestCase):
                         rate_source='deltav_dot', units='DU/TU')
         burn2.add_control('u1', targets=['u1'], rate_continuity=True, rate2_continuity=True,
                           units='deg', scaler=0.01, lower=-30, upper=30)
-        burn2.add_design_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
+        burn2.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
 
         burn2.add_objective('deltav', loc='final')
 
@@ -122,7 +122,7 @@ class TestTrajectory(unittest.TestCase):
         p.set_val('burn1.states:deltav', value=burn1.interpolate(ys=[0, 0.1], nodes='state_input'))
         p.set_val('burn1.controls:u1',
                   value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
-        p.set_val('burn1.design_parameters:c', value=1.5)
+        p.set_val('burn1.parameters:c', value=1.5)
 
         p.set_val('coast.t_initial', value=2.25)
         p.set_val('coast.t_duration', value=3.0)
@@ -134,7 +134,7 @@ class TestTrajectory(unittest.TestCase):
         p.set_val('coast.states:vt', value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
         p.set_val('coast.states:accel', value=coast.interpolate(ys=[0, 0], nodes='state_input'))
         p.set_val('coast.controls:u1', value=coast.interpolate(ys=[0, 0], nodes='control_input'))
-        p.set_val('coast.design_parameters:c', value=1.5)
+        p.set_val('coast.parameters:c', value=1.5)
 
         p.set_val('burn2.t_initial', value=5.25)
         p.set_val('burn2.t_duration', value=1.75)
@@ -148,7 +148,7 @@ class TestTrajectory(unittest.TestCase):
         p.set_val('burn2.states:deltav',
                   value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
         p.set_val('burn2.controls:u1', value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
-        p.set_val('burn2.design_parameters:c', value=1.5)
+        p.set_val('burn2.parameters:c', value=1.5)
 
         p.run_model()
 
@@ -189,7 +189,7 @@ class TestInvalidLinkages(unittest.TestCase):
                         rate_source='deltav_dot', units='DU/TU')
         burn1.add_control('u1',  targets=['u1'], rate_continuity=True, rate2_continuity=True,
                           units='deg', scaler=0.01, lower=-30, upper=30)
-        burn1.add_design_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
+        burn1.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
 
         # Second Phase (Coast)
 
@@ -211,7 +211,7 @@ class TestInvalidLinkages(unittest.TestCase):
         coast.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
         coast.add_control('u1', targets=['u1'], opt=False, val=0.0, units='deg')
-        coast.add_design_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
+        coast.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
 
         # Third Phase (burn)
 
@@ -234,7 +234,7 @@ class TestInvalidLinkages(unittest.TestCase):
                         rate_source='deltav_dot', units='DU/TU')
         burn2.add_control('u1', targets=['u1'], rate_continuity=True, rate2_continuity=True,
                           units='deg', scaler=0.01, lower=-30, upper=30)
-        burn2.add_design_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
+        burn2.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
 
         burn2.add_objective('deltav', loc='final')
 
@@ -285,7 +285,7 @@ class TestInvalidLinkages(unittest.TestCase):
                         rate_source='deltav_dot', units='DU/TU')
         burn1.add_control('u1',  targets=['u1'], rate_continuity=True, rate2_continuity=True,
                           units='deg', scaler=0.01, lower=-30, upper=30)
-        burn1.add_design_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
+        burn1.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
 
         # Second Phase (Coast)
 
@@ -307,7 +307,7 @@ class TestInvalidLinkages(unittest.TestCase):
         coast.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
         coast.add_control('u1', targets=['u1'], opt=False, val=0.0, units='deg')
-        coast.add_design_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
+        coast.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
 
         # Third Phase (burn)
 
@@ -330,7 +330,7 @@ class TestInvalidLinkages(unittest.TestCase):
                         rate_source='deltav_dot', units='DU/TU')
         burn2.add_control('u1', targets=['u1'], rate_continuity=True, rate2_continuity=True,
                           units='deg', scaler=0.01, lower=-30, upper=30)
-        burn2.add_design_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
+        burn2.add_parameter('c', opt=False, val=1.5, targets=['c'], units='DU/TU')
 
         burn2.add_objective('deltav', loc='final')
 

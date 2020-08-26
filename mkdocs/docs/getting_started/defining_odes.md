@@ -1,7 +1,6 @@
 # Defining ODEs
 
-Optimal control problems contain ordinary differential equations (ODE) or
-differential algebraic equations (DAE) that dictate the evolution of the state of the system.
+Optimal control problems contain ordinary differential equations (ODE) or differential algebraic equations (DAE) that dictate the evolution of the state of the system.
 Typically this evolution occurs in time, and the ODE represents equations of motion (EOM).
 The equations of motion can define a variety of systems, not just mechanical ones.
 In other fields they are sometimes referred to as *process equations*.
@@ -12,9 +11,10 @@ In other fields they are sometimes referred to as *process equations*.
 
 To represent EOM, Dymos uses a standard OpenMDAO System (a Group or Component).
 This System takes some set of variables as input and computes outputs that include the time-derivatives of the state variables $\bar{x}$.
-The ODE may also be a function of the the current time $t$.  
+The ODE may also be a function of the the current time $t$.
+
 Finally, the dynamics may be subject to some set of controllable parameters.
-In Dymos these are broken into the dynamic controls $\bar{u}$ and the static design parameters $\bar{d}$.
+In Dymos these are broken into the dynamic controls $\bar{u}$ and the static parameters $\bar{d}$.
 
 ##  System Options
 
@@ -33,84 +33,35 @@ Dymos needs to know how state, time, and control variables are to be connected t
 
 The following time options can be set via the `set_time_options` method of Phase:
 
-.. embed-options::
-    dymos.phase.options
-    _ForDocs
-    time_options
+{{ embed_options('dymos.phase.options.TimeOptionsDictionary', '###Options for Time') }}
 
 ### States
 
 States have the following options set via the `add_state` and `set_state_options` methods of Phase:
 
-.. embed-options::
-    dymos.phase.options
-    _ForDocs
-    state_options
+{{ embed_options('dymos.phase.options.StateOptionsDictionary', '###Options for States') }}
 
 ###  Controls
 
 Inputs to the ODE which are to be dynamic controls are added via the `add_control` and `set_control_options` methods of Phase.
 The available options are as follows:
 
-.. embed-options::
-    dymos.phase.options
-    _ForDocs
-    control_options
 
-###  Design Parameters
+{{ embed_options('dymos.phase.options.ControlOptionsDictionary', '###Options for Control') }}
 
-Inputs to the ODE which can be design parameters are added via the `add_design_parameter` method of
-Phase.  The available options are as follows:
+###  Parameters
 
-.. embed-options::
-    dymos.phase.options
-    _ForDocs
-    design_parameter_options
-
-###  Input Parameters
-
-Inputs to the ODE which can be input parameters are added via the `add_input_parameter` method of Phase.
-They are similar to design parameters, but the phase cannot treat them as design variables to the optimization problem.
+Inputs to the ODE which are non-time-varying can be specified using the `add_parameter` method of Phase.
+Parameters may be used as design variables (by setting `opt = True`), or they may be connected to an output external to the Phase or Trajectory.
 The available options are as follows:
 
-.. embed-options::
-    dymos.phase.options
-    _ForDocs
-    input_parameter_options
+{{ embed_options('dymos.phase.options.ParameterOptionsDictionary', '###Options for Parameters') }}
 
-Using decorators to associate time, control, and parameter options with the ODE system
---------------------------------------------------------------------------------------
+By default, Dymos assumes that the ODE is defined such that a value of the parameter is provided at each node.
+This makes it easier to define the partials for the ODE in a way such that some inputs may be used interchangeably as either controls or parameters.
+If an ODE input is only to be used as a static variable (and sized as `(1,)` instead of by the number of nodes, then the user may specify option `dynamic = False` to override this behavior.
 
-Some properties of the variables associated with the ODE function are dependent on the particular
-optimization problem.
-For example, bounds on times, states, and controls will be problem-dependent.
-Other options, such as the `rate_source` of state variables or the target of time, states, or controllable parameters are a function of the ODE itself.
-Therefore it can sometimes be convenient to associate those properties with the ODE class itself.
-To allow this, Dymos provides decorators for ODEs which assign *default* values of these properties at the ODE level.
-These values can be overridden using the `set_time_options`, `add_state`, `add_control`, `add_design_parameter` or `add_input_parameter` methods on Phase.
-
-.. note::
-
-    The units of variables need not match the units used inside the ODE system, it only needs to be compatible.
-    These are the default units in which the variable will be provided at the Phase level.
-
-.. code-block:: python
-
-    from openmdao.api import ExplicitComponent
-    from dymos import declare_time, declare_state, declare_parameter
-
-    @declare_time(units='s')
-    @declare_state('x', rate_source='xdot', units='m')
-    @declare_state('y', rate_source='ydot', units='m')
-    @declare_state('v', rate_source='vdot', targets=['v'], units='m/s')
-    @declare_parameter('theta', targets=['theta'], units='rad')
-    @declare_parameter('g', units='m/s**2', targets=['g'])
-    class BrachistochroneODE(ExplicitComponent):
-
-        ...
-
-Vectorizing the ODE
--------------------
+## Vectorizing the ODE
 
 In addition to specifying the ODE Options, a system used as an ODE is required to have a metadata
 entry called `num_nodes`.  When evaluating the dynamics, these systems will receive time, states,
@@ -135,18 +86,19 @@ to computational advantages when using sparse-aware optimizers like SNOPT.  User
 the partial derivatives of their components to be sparse (by specifying nonzero rows and columns)
 whenever possible.
 
-.. code-block:: python
+```python3
 
     class MyODESystem(ExplicitComponent):
 
         def initialize(self):
             self.metadata.declare('num_nodes', types=int)
 
+```
 
-For example, if `MyODEComponent` is to compute the linear function :math:`y = a * x + b` then the
+For example, if `MyODEComponent` is to compute the linear function $y = a * x + b$ then the
 setup, compute, and compute partials methods might look like this:
 
-.. code-block:: console
+```python3
 
     def setup(self):
         nn = self.metadata['num_nodes']
@@ -176,6 +128,7 @@ setup, compute, and compute partials methods might look like this:
 
         partials['y', 'a'] = x
         partials['y', 'x'] = a
+```
 
 A few things to note here.  We can use the `shape` or `val` argument of `add_input` and `add_output`
 to dimension each variable.  In this case each variable is assumed to be a scalar at each point in
@@ -189,8 +142,7 @@ In this example, the partial of `y` with respect to `b` is linear, so we can sim
 the `declare_partials` call rather than reassigning it every time `compute_partials` is called.
 The provided scalar value of `1.0` is broadcast to all `nn` values of the Jacobian matrix.
 
-Dimensioned Inputs and Outputs
-------------------------------
+## Dimensioned Inputs and Outputs
 
 The above example assumes all inputs and outputs are scalar at each node.  Sometimes the user may
 encounter a situation in which the inputs and/or outputs are vectors, matrices, or tensors at
@@ -198,11 +150,9 @@ each node.  In this case the dimension of the variable is `num_nodes`, with the 
 variable at a single node filling out the remaining indices. A 3-vector is thus dimensioned
 `(num_nodes, 3)`, while a 3 x 3 matrix would be sized `(num_nodes, 3, 3)`.
 
-Non-Vector Inputs
------------------
+##  Non-Vector Inputs
 
-Declaring inputs as vectors means that they have the potential to be used either as design parameters or as dynamic controls which can assume a different value at each node.
+Declaring inputs as vectors means that they have the potential to be used either as parameters or as dynamic controls which can assume a different value at each node.
 For some quantities, such as gravitational acceleration in the Brachistochrone example, we can assume that the value will never need to be dynamic.
-To accommodate this, design and input parameters can be declared static with the argument `dynamic=False`.
+To accommodate this, parameters can be declared static with the argument `dynamic=False`.
 This prevents Dymos from "fanning out" the static value to the *n* nodes in the ODE system.
-If a parameter is declared static in the `declare_parameter` decorator, it cannot be used as a dynamic control.

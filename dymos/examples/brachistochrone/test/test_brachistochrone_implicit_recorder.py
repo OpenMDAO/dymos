@@ -44,9 +44,9 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
                           targets=BrachistochroneODE.parameters['theta']['targets'],
                           rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_design_parameter('g',
-                                   targets=BrachistochroneODE.parameters['g']['targets'],
-                                   units='m/s**2', opt=False, val=9.80665)
+        phase.add_parameter('g',
+                            targets=BrachistochroneODE.parameters['g']['targets'],
+                            units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)

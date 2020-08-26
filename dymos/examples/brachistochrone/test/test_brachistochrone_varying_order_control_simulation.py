@@ -43,8 +43,8 @@ class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_input_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', val=9.80665)
+        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                            units='m/s**2', val=9.80665)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -61,7 +61,7 @@ class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
         p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-        p['phase0.input_parameters:g'] = 9.80665
+        p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
 
@@ -79,7 +79,7 @@ class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
         v0 = p.get_val('phase0.timeseries.states:v')[0]
         vf = p.get_val('phase0.timeseries.states:v')[-1]
 
-        g = p.get_val('phase0.timeseries.input_parameters:g')[0]
+        g = p.get_val('phase0.timeseries.parameters:g')[0]
 
         thetaf = exp_out.get_val('phase0.timeseries.controls:theta')[-1]
 
@@ -128,8 +128,8 @@ class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
                           continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_input_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                  units='m/s**2', val=9.80665)
+        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
+                            units='m/s**2', val=9.80665)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -146,7 +146,7 @@ class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
         p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-        p['phase0.input_parameters:g'] = 9.80665
+        p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
 
@@ -164,7 +164,7 @@ class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
         v0 = p.get_val('phase0.timeseries.states:v')[0]
         vf = p.get_val('phase0.timeseries.states:v')[-1]
 
-        g = p.get_val('phase0.timeseries.input_parameters:g')[0]
+        g = p.get_val('phase0.timeseries.parameters:g')[0]
 
         thetaf = exp_out.get_val('phase0.timeseries.controls:theta')[-1]
 

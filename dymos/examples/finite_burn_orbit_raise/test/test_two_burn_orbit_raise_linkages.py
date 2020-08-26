@@ -31,8 +31,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         p.driver.declare_coloring()
 
-        traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU',
-                                  targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
+        traj.add_parameter('c', opt=False, val=1.5, units='DU/TU',
+                           targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
 
         # First Phase (burn)
 
@@ -79,7 +79,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                         rate_source='at_dot', targets=['accel'], units='DU/TU**2')
         coast.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
-        coast.add_design_parameter('u1', targets=['u1'], opt=False, val=0.0, units='deg')
+        coast.add_parameter('u1', targets=['u1'], opt=False, val=0.0, units='deg')
 
         # Third Phase (burn)
 
@@ -125,7 +125,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.setup(check=True, force_alloc_complex=True)
 
         # Set Initial Guesses
-        p.set_val('traj.design_parameters:c', value=1.5)
+        p.set_val('traj.parameters:c', value=1.5)
 
         p.set_val('traj.burn1.t_initial', value=0.0)
         p.set_val('traj.burn1.t_duration', value=2.25)
