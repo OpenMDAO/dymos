@@ -1910,7 +1910,7 @@ class Phase(om.Group):
         # Assign parameter values
         meta = phs._problem_meta
         prom2abs = meta['prom2abs']
-        conns = meta['connections']
+        conns = meta['model_ref']()._conn_global_abs_in2out
         pname = '{0}parameters:{1}'
         for name in phs.parameter_options:
 
