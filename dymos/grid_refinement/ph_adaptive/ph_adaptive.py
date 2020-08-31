@@ -1,15 +1,16 @@
-from collections.abc import Iterable, Sequence
 from ...transcriptions.grid_data import GridData
 from ...transcriptions.common import TimeComp
+from ...transcriptions import Radau, GaussLobatto
 from ...phase.phase import Phase
 from ...utils.lagrange import lagrange_matrices
+from ...utils.misc import get_targets
+from ..error_estimation import eval_ode_on_grid, compute_state_quadratures
 
 from scipy.linalg import block_diag
 
 import numpy as np
 
 import openmdao.api as om
-from dymos.utils.misc import get_targets
 import dymos as dm
 
 
@@ -136,17 +137,115 @@ class PHAdaptive:
         self.phases = phases
         self.error = {}
 
+    # def check_error(self):
+    #     """
+    #     Compute the error in every solved segment
+    #
+    #     Returns
+    #     -------
+    #     need_refinement: dict
+    #         Indicator for which segments of the given phase require grid refinement
+    #
+    #     """
+    #     refine_results = {}
+    #     for phase_path, phase in self.phases.items():
+    #         refine_results[phase_path] = {}
+    #
+    #         # Save the original grid to the refine results
+    #         tx = phase.options['transcription']
+    #         gd = tx.grid_data
+    #         num_nodes = gd.subset_num_nodes['all']
+    #         numseg = gd.num_segments
+    #
+    #         refine_results[phase_path]['num_segments'] = numseg
+    #         refine_results[phase_path]['order'] = gd.transcription_order
+    #         refine_results[phase_path]['segment_ends'] = gd.segment_ends
+    #         refine_results[phase_path]['need_refinement'] = np.zeros(numseg, dtype=bool)
+    #         refine_results[phase_path]['error'] = np.zeros(numseg, dtype=float)
+    #
+    #         if isinstance(tx, dm.RungeKutta):
+    #             continue
+    #
+    #         outputs = phase.list_outputs(units=False, out_stream=None)
+    #
+    #         out_values_dict = {k: v['value'] for k, v in outputs}
+    #
+    #         prom_to_abs_map = phase._var_allprocs_prom2abs_list['output']
+    #
+    #         num_scalar_states = 0
+    #         for state_name, options in phase.state_options.items():
+    #             shape = options['shape']
+    #             size = np.prod(shape)
+    #             num_scalar_states += size
+    #
+    #         x = np.zeros([num_nodes, num_scalar_states])
+    #         f = np.zeros([num_nodes, num_scalar_states])
+    #         c = 0
+    #
+    #         # Obtain the solution on the current grid
+    #         for state_name, options in phase.state_options.items():
+    #             prom_name = f'timeseries.states:{state_name}'
+    #             abs_name = prom_to_abs_map[prom_name][0]
+    #             rate_source_prom_name = f"timeseries.state_rates:{state_name}"
+    #             rate_abs_name = prom_to_abs_map[rate_source_prom_name][0]
+    #             x[:, c] = out_values_dict[prom_name].ravel()
+    #             f[:, c] = out_values_dict[rate_source_prom_name].ravel()
+    #             c += 1
+    #
+    #         # Obtain the solution on the new grid
+    #         # interpolate x at t_hat
+    #         new_order = gd.transcription_order + 1
+    #         # Gauss-Lobatto does not allow even orders so increase order by 2 instead
+    #         if gd.transcription == 'gauss-lobatto':
+    #             new_order += 1
+    #         new_grid = GridData(numseg, gd.transcription, new_order, gd.segment_ends, gd.compressed)
+    #         left_end_idxs = new_grid.subset_node_indices['segment_ends'][0::2]
+    #         left_end_idxs = np.append(left_end_idxs, new_grid.subset_num_nodes['all'] - 1)
+    #
+    #         L = interpolation_lagrange_matrix(gd, new_grid)
+    #         I = integration_matrix(new_grid)
+    #
+    #         # Call the ODE at all nodes of the new grid
+    #         x_hat, x_prime = self.eval_ode(phase, new_grid, L, I)
+    #         E = {}
+    #         e = {}
+    #         err_over_states = {}
+    #         for state_name, options in phase.state_options.items():
+    #             E[state_name] = np.absolute(x_prime[state_name] - x_hat[state_name])
+    #             for k in range(0, numseg):
+    #                 e[state_name] = E[state_name]/(1 + np.max(x_hat[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))
+    #             err_over_states[state_name] = np.zeros(numseg)
+    #
+    #         for state_name, options in phase.state_options.items():
+    #             for k in range(0, numseg):
+    #                 err_over_states[state_name][k] = np.max(e[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
+    #
+    #         self.error[phase_path] = np.zeros(numseg)
+    #         refine_results[phase_path]['error'] = np.zeros(numseg)
+    #         refine_results[phase_path]['need_refinement'] = np.zeros(numseg, dtype=bool)
+    #
+    #         # Assess the errors in each state
+    #         for state_name, options in phase.state_options.items():
+    #             for k in range(0, numseg):
+    #                 if err_over_states[state_name][k] > self.error[phase_path][k]:
+    #                     self.error[phase_path][k] = err_over_states[state_name][k]
+    #                     refine_results[phase_path]['error'][k] = err_over_states[state_name][k]
+    #                     if self.error[phase_path][k] > phase.refine_options['tolerance']:
+    #                         refine_results[phase_path]['need_refinement'][k] = True
+    #
+    #     return refine_results
+
+
     def check_error(self):
         """
         Compute the error in every solved segment
-
         Returns
         -------
         need_refinement: dict
             Indicator for which segments of the given phase require grid refinement
-
         """
         refine_results = {}
+
         for phase_path, phase in self.phases.items():
             refine_results[phase_path] = {}
 
@@ -190,6 +289,27 @@ class PHAdaptive:
                 x[:, c] = out_values_dict[prom_name].ravel()
                 f[:, c] = out_values_dict[rate_source_prom_name].ravel()
                 c += 1
+
+            # Instantiate a new phase as a copy of the old one, but first up the transcription order
+            # by 1 for Radau and by 2 for Gauss-Lobatto
+            new_num_segments = tx.options['num_segments']
+            new_segment_ends = tx.options['segment_ends']
+            new_compressed = tx.options['compressed']
+            if isinstance(tx, GaussLobatto):
+                new_order = tx.options['order'] + 2
+                new_tx = GaussLobatto(num_segments=new_num_segments, order=new_order,
+                                      segment_ends=new_segment_ends, compressed=new_compressed)
+            elif isinstance(tx, Radau):
+                new_order = tx.options['order'] + 1
+                new_tx = Radau(num_segments=new_num_segments, order=new_order,
+                               segment_ends=new_segment_ends, compressed=new_compressed)
+            else:
+                raise ValueError(f'Unsupported transcription type for grid refinement: {tx.__class__}')
+
+            # Get the indices of the first node in each segment
+            left_end_idxs = new_tx.grid_data.subset_node_indices['segment_ends'][0::2]
+            left_end_idxs = np.append(left_end_idxs, new_tx.grid_data.subset_num_nodes['all'] - 1)
+
 
             # Obtain the solution on the new grid
             # interpolate x at t_hat
@@ -271,9 +391,7 @@ class PHAdaptive:
 
             refine_seg_idxs = np.where(need_refine)
             P = np.zeros(numseg)
-            P[refine_seg_idxs] = np.log(self.error[phase_path][refine_seg_idxs] /
-                                        phase.refine_options['tolerance']) / np.log(
-                gd.transcription_order[refine_seg_idxs])
+            P[refine_seg_idxs] = np.log(refine_results[phase_path]['max_rel_error'] / phase.refine_options['tolerance'])[refine_seg_idxs] / np.log(gd.transcription_order[refine_seg_idxs])
             P = np.ceil(P).astype(int)
 
             if gd.transcription == 'gauss-lobatto':
@@ -475,7 +593,7 @@ class PHAdaptive:
             str_segorders = ', '.join(str(elem) for elem in refine_data['order'])
             print(f'            Segment Order = [{str_segorders}]', file=f)
 
-            error = refine_data['error']
+            error = refine_data['max_rel_error']
             str_errors = ', '.join(f'{elem:8.4g}' for elem in error)
             print(f'            Error = [{str_errors}]', file=f)
 
