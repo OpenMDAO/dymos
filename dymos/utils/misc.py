@@ -42,26 +42,24 @@ def get_rate_units(units, time_units, deriv=1):
     return rate_units
 
 
-def get_state_targets(ode, state_name, state_options):
+def get_targets(ode, name, user_targets):
     """
     Return the targets of a state variable in a given ODE system.
-
     If the targets of the state is _unspecified, and the state name is a top level input name
     in the ODE, then the state values are automatically connected to that top-level input.
     If _unspecified and not a top-level input of the ODE, no connection is made.
     If targets is explicitly None, then no connection is made.
     Otherwise, if the user specified some other string or sequence of strings as targets, then
     those are returned.
-
     Parameters
     ----------
     ode : om.System
         The OpenMDAO system which serves as the ODE for dymos.  This system should already have
         had its setup and configure methods called.
-    state_name : str
+    name : str
         The name of the state variable whose targets are desired.
-    state_options : StateOptionsDictionary
-        The StateOptionsDictionary providing options for the given state.
+    user_targets : str or None or Sequence or _unspecified
+        Targets for the variable as given by the user.
     Returns
     -------
     list
@@ -74,15 +72,15 @@ def get_state_targets(ode, state_name, state_options):
     """
     ode_inputs = [opts['prom_name'] for (k, opts) in ode.get_io_metadata(iotypes=('input',)).items()]
 
-    if state_options['targets'] is _unspecified:
-        if state_name in ode_inputs:
-            targets = [state_name]
+    if user_targets is _unspecified:
+        if name in ode_inputs:
+            targets = [name]
         else:
             targets = []
-    elif state_options['targets'] is None:
+    elif user_targets is None:
         targets = []
-    elif state_options['targets']:
-        targets = state_options['targets']
+    elif user_targets:
+        targets = user_targets
         if isinstance(targets, str):
             targets = [targets]
     else:

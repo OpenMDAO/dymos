@@ -1,5 +1,5 @@
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import openmdao.api as om
@@ -53,7 +53,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                     units=BrachistochroneODE.states['v']['units'],
                     fix_initial=True, fix_final=False, solve_segments=solve_segments)
 
-    phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+    phase.add_control('theta',
                       continuity=True, rate_continuity=True,
                       units='deg', lower=0.01, upper=179.9)
 

@@ -4,7 +4,7 @@ from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
 from ..common import PathConstraintComp, PseudospectralTimeseriesOutputComp, \
     GaussLobattoContinuityComp
-from ...utils.misc import get_rate_units, get_state_targets
+from ...utils.misc import get_rate_units, get_targets
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
 
@@ -63,8 +63,9 @@ class GaussLobatto(PseudospectralBase):
             phase.connect('t_duration',
                           ['rhs_disc.{0}'.format(t) for t in tgts])
 
-    def setup_controls(self, phase):
-        super(GaussLobatto, self).setup_controls(phase)
+    def configure_controls(self, phase):
+        super(GaussLobatto, self).configure_controls(phase)
+
         grid_data = self.grid_data
 
         for name, options in phase.control_options.items():
@@ -78,17 +79,18 @@ class GaussLobatto(PseudospectralBase):
                 disc_src_idxs = disc_src_idxs.ravel()
                 col_src_idxs = col_src_idxs.ravel()
 
-            if phase.control_options[name]['targets']:
-                targets = phase.control_options[name]['targets']
+            # Control targets are detected automatically
+            targets = get_targets(phase.rhs_disc, name, options['targets'])
 
-                phase.connect('control_values:{0}'.format(name),
-                              ['rhs_disc.{0}'.format(t) for t in targets],
-                              src_indices=disc_src_idxs, flat_src_indices=True)
+            phase.connect(f'control_values:{name}',
+                          [f'rhs_disc.{t}' for t in targets],
+                          src_indices=disc_src_idxs, flat_src_indices=True)
 
-                phase.connect('control_values:{0}'.format(name),
-                              ['rhs_col.{0}'.format(t) for t in targets],
-                              src_indices=col_src_idxs, flat_src_indices=True)
+            phase.connect(f'control_values:{name}',
+                          [f'rhs_col.{t}' for t in targets],
+                          src_indices=col_src_idxs, flat_src_indices=True)
 
+            # Rate targets must be specified explicitly
             if phase.control_options[name]['rate_targets']:
                 targets = phase.control_options[name]['rate_targets']
 
@@ -100,6 +102,7 @@ class GaussLobatto(PseudospectralBase):
                               ['rhs_col.{0}'.format(t) for t in targets],
                               src_indices=col_src_idxs, flat_src_indices=True)
 
+            # Second time derivative targets must be specified explicitly
             if phase.control_options[name]['rate2_targets']:
                 targets = phase.control_options[name]['rate2_targets']
 
@@ -195,7 +198,7 @@ class GaussLobatto(PseudospectralBase):
                 """ Flat state variable is passed as 1D data."""
                 src_idxs = src_idxs.ravel()
 
-            targets = get_state_targets(ode=phase.rhs_disc, state_name=name, state_options=options)
+            targets = get_targets(ode=phase.rhs_disc, name=name, user_targets=options['targets'])
 
             if targets:
                 phase.connect('states:{0}'.format(name),

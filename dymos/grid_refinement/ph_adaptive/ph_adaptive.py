@@ -9,7 +9,7 @@ from scipy.linalg import block_diag
 import numpy as np
 
 import openmdao.api as om
-from dymos.utils.misc import get_state_targets
+from dymos.utils.misc import get_targets
 import dymos as dm
 
 
@@ -383,7 +383,7 @@ class PHAdaptive:
             x[state_name] = values_dict[prom_name]
             x_hat[state_name] = np.dot(L, x[state_name])
             ivc.add_output(f'states:{state_name}', val=x_hat[state_name], units=options['units'])
-            targets = get_state_targets(p.model.ode, state_name, options)
+            targets = get_targets(ode=p.model.ode, name=state_name, user_targets=options['targets'])
             if targets:
                 p.model.connect(f'states:{state_name}', [f'ode.{tgt}' for tgt in targets])
 
@@ -392,8 +392,9 @@ class PHAdaptive:
             u[control_name] = values_dict[prom_name]
             u_hat[control_name] = np.dot(L, u[control_name])
             ivc.add_output(f'controls:{control_name}', val=u_hat[control_name], units=options['units'])
-            if options['targets'] is not None:
-                p.model.connect(f'controls:{control_name}', [f'ode.{tgt}' for tgt in options['targets']])
+            targets = get_targets(ode=p.model.ode, name=state_name, user_targets=options['targets'])
+            if targets:
+                p.model.connect(f'controls:{control_name}', [f'ode.{tgt}' for tgt in targets])
 
         p.setup()
 

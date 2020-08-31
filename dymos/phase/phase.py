@@ -246,9 +246,7 @@ class Phase(om.Group):
         if rate_source is not _unspecified:
             self.state_options[name]['rate_source'] = rate_source
 
-        if targets is None:  # handle None to explicitly do nothing
-            pass
-        elif targets is _unspecified:
+        if targets is _unspecified:
             pass  # optional target should be connected only if ODE input exists (checked in configure)
         elif targets is not _unspecified:  # and not None
             if isinstance(targets, str):
@@ -521,12 +519,8 @@ class Phase(om.Group):
         if desc is not _unspecified:
             self.control_options[name]['desc'] = desc
 
-        if targets is None:  # handle None to explicitly do nothing
+        if targets is _unspecified:  # [default] was the same as None
             pass
-        elif targets is _unspecified:  # [default] was the same as None
-            warn_deprecation("The default behavior of 'targets=_unspecified' is changing. "
-                             "It is currently equivalent to targets=None', but in the future it will try to "
-                             "automatically connect to ODE inputs. Set targets=None to retain the old behavior.")
         elif targets is not _unspecified:
             if isinstance(targets, str):
                 self.control_options[name]['targets'] = (targets,)

@@ -5,7 +5,7 @@ from ..transcription_base import TranscriptionBase
 from .components import SegmentSimulationComp, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
 from ..common import TimeComp
-from ...utils.misc import get_rate_units, get_state_targets
+from ...utils.misc import get_rate_units, get_targets
 from ...utils.indexing import get_src_indices_by_row
 
 
@@ -142,7 +142,7 @@ class SolveIVP(TranscriptionBase):
             phase.connect('segment_0.states:{0}'.format(state_name),
                           'state_mux_comp.segment_0_states:{0}'.format(state_name))
 
-            targets = get_state_targets(phase.ode, state_name=state_name, state_options=options)
+            targets = get_targets(ode=phase.ode, name=state_name, user_targets=options['targets'])
 
             if targets:
                 phase.connect('state_mux_comp.states:{0}'.format(state_name),
@@ -238,9 +238,9 @@ class SolveIVP(TranscriptionBase):
                               tgt_name='segment_{0}.controls:{1}'.format(i, name),
                               src_indices=src_idxs, flat_src_indices=True)
 
-            if phase.control_options[name]['targets']:
+            targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
+            if targets:
                 src_name = 'control_values:{0}'.format(name)
-                targets = phase.control_options[name]['targets']
                 phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
 
             if phase.control_options[name]['rate_targets']:

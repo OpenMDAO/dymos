@@ -7,7 +7,7 @@ from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGro
     RungeKuttaTimeseriesOutputComp, RungeKuttaControlContinuityComp
 from ..common import TimeComp, EndpointConditionsComp, PathConstraintComp
 from ...utils.rk_methods import rk_methods
-from ...utils.misc import CoerceDesvar, get_rate_units, get_state_targets
+from ...utils.misc import CoerceDesvar, get_rate_units, get_targets
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
@@ -291,7 +291,7 @@ class RungeKutta(TranscriptionBase):
             if shape == (1,):
                 src_idxs = src_idxs.ravel()
 
-            targets = get_state_targets(ode=phase.ode, state_name=state_name, state_options=options)
+            targets = get_targets(ode=phase.ode, name=state_name, user_targets=options['targets'])
 
             if targets:
                 phase.connect('states:{0}'.format(state_name),
@@ -323,13 +323,12 @@ class RungeKutta(TranscriptionBase):
                 segend_src_idxs = segend_src_idxs.ravel()
                 all_src_idxs = all_src_idxs.ravel()
 
-            if phase.control_options[name]['targets']:
+            targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
+            if targets:
                 src_name = 'control_values:{0}'.format(name)
-                targets = phase.control_options[name]['targets']
                 phase.connect(src_name,
                               ['ode.{0}'.format(t) for t in targets],
                               src_indices=segend_src_idxs, flat_src_indices=True)
-
                 phase.connect(src_name,
                               ['rk_solve_group.ode.{0}'.format(t) for t in targets],
                               src_indices=all_src_idxs, flat_src_indices=True)

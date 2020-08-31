@@ -2,7 +2,7 @@ import numpy as np
 from .odeint_control_interpolation_comp import ODEIntControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from ....phase.options import TimeOptionsDictionary
-from ....utils.misc import get_state_targets
+from ....utils.misc import get_targets
 import openmdao.api as om
 
 
@@ -67,18 +67,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
             self.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])
             self.connect('time', ['indep_controls.time'])
 
-        if self.options['control_options']:
-            for name, options in self.options['control_options'].items():
-                if options['targets']:
-                    self.connect('controls:{0}'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in options['targets']])
-                if options['rate_targets']:
-                    self.connect('control_rates:{0}_rate'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in options['rate_targets']])
-                if options['rate2_targets']:
-                    self.connect('control_rates:{0}_rate2'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in options['rate2_targets']])
-
         if self.options['polynomial_control_options']:
             for name, options in self.options['polynomial_control_options'].items():
                 tgts = options['targets']
@@ -124,7 +112,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
     def configure(self):
 
-        # The States Comp
+        # Configure states
         for name, options in self.options['state_options'].items():
             self.ivc.add_output('states:{0}'.format(name),
                                 shape=(1, np.prod(options['shape'])),
@@ -134,10 +122,24 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
             self.connect(rate_src, 'state_rate_collector.state_rates_in:{0}_rate'.format(name))
 
-            targets = get_state_targets(ode=self.ode, state_name=name, state_options=options)
+            targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
 
             if targets:
                 self.connect(f'states:{name}', [f'ode.{tgt}' for tgt in targets])
+
+        # Configure controls
+        if self.options['control_options']:
+            for name, options in self.options['control_options'].items():
+                targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
+                if targets:
+                    self.connect('controls:{0}'.format(name),
+                                 ['ode.{0}'.format(tgt) for tgt in targets])
+                if options['rate_targets']:
+                    self.connect('control_rates:{0}_rate'.format(name),
+                                 ['ode.{0}'.format(tgt) for tgt in options['rate_targets']])
+                if options['rate2_targets']:
+                    self.connect('control_rates:{0}_rate2'.format(name),
+                                 ['ode.{0}'.format(tgt) for tgt in options['rate2_targets']])
 
     def _get_rate_source_path(self, state_var):
         var = self.options['state_options'][state_var]['rate_source']

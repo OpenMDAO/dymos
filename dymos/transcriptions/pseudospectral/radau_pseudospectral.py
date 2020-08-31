@@ -2,7 +2,7 @@ import numpy as np
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import PathConstraintComp, RadauPSContinuityComp, PseudospectralTimeseriesOutputComp
-from ...utils.misc import get_rate_units, get_state_targets
+from ...utils.misc import get_rate_units, get_targets
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 
@@ -49,29 +49,25 @@ class Radau(PseudospectralBase):
             phase.connect('t_duration',
                           ['rhs_all.{0}'.format(t) for t in tgts])
 
-    def setup_controls(self, phase):
-        super(Radau, self).setup_controls(phase)
+    def configure_controls(self, phase):
+        super(Radau, self).configure_controls(phase)
 
-        for name, options in phase.control_options.items():
+        if phase.control_options:
+            for name, options in phase.control_options.items():
+                targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
+                if targets:
+                    phase.connect('control_values:{0}'.format(name),
+                                  ['rhs_all.{0}'.format(t) for t in targets])
 
-            if phase.control_options[name]['targets']:
-                targets = phase.control_options[name]['targets']
+                if phase.control_options[name]['rate_targets']:
+                    targets = phase.control_options[name]['rate_targets']
+                    phase.connect('control_rates:{0}_rate'.format(name),
+                                  ['rhs_all.{0}'.format(t) for t in targets])
 
-                phase.connect('control_values:{0}'.format(name),
-                              ['rhs_all.{0}'.format(t) for t in targets])
-
-            if phase.control_options[name]['rate_targets']:
-                targets = phase.control_options[name]['rate_targets']
-                phase.connect('control_rates:{0}_rate'.format(name),
-                              ['rhs_all.{0}'.format(t) for t in targets])
-
-            if phase.control_options[name]['rate2_targets']:
-                targets = phase.control_options[name]['rate2_targets']
-                phase.connect('control_rates:{0}_rate2'.format(name),
-                              ['rhs_all.{0}'.format(t) for t in targets])
-
-    def setup_polynomial_controls(self, phase):
-        super(Radau, self).setup_polynomial_controls(phase)
+                if phase.control_options[name]['rate2_targets']:
+                    targets = phase.control_options[name]['rate2_targets']
+                    phase.connect('control_rates:{0}_rate2'.format(name),
+                                  ['rhs_all.{0}'.format(t) for t in targets])
 
     def configure_polynomial_controls(self, phase):
         super(Radau, self).configure_polynomial_controls(phase)
@@ -123,7 +119,7 @@ class Radau(PseudospectralBase):
                 """ Flat state variable is passed as 1D data."""
                 src_idxs = src_idxs.ravel()
 
-            targets = get_state_targets(ode=phase.rhs_all, state_name=name, state_options=options)
+            targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
 
             if targets:
                 phase.connect('states:{0}'.format(name),
