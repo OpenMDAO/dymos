@@ -147,8 +147,8 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
                      desc='If True, the final value of this control is fixed and not a '
                           'design variable. This option is invalid if opt=False.')
 
-        self.declare(name='targets', types=Iterable, default=[],
-                     desc='Used to store target information.')
+        self.declare(name='targets', allow_none=True, default=_unspecified,
+                     desc='Targets in the ODE to which the state is connected')
 
         self.declare(name='rate_targets', types=Iterable, allow_none=True,
                      default=None,

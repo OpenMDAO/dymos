@@ -365,7 +365,6 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         phase.add_polynomial_control('theta',
                                      order=1,
-                                     targets=BrachistochroneODE.parameters['theta']['targets'],
                                      units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],

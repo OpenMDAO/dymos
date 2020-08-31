@@ -374,9 +374,9 @@ class RungeKutta(TranscriptionBase):
                 segend_src_idxs = segend_src_idxs.ravel()
                 all_src_idxs = all_src_idxs.ravel()
 
-            if phase.polynomial_control_options[name]['targets']:
+            targets = get_targets(phase.ode, name=name, user_targets=options['targets'])
+            if targets:
                 src_name = 'polynomial_control_values:{0}'.format(name)
-                targets = phase.polynomial_control_options[name]['targets']
                 phase.connect(src_name,
                               ['ode.{0}'.format(t) for t in targets],
                               src_indices=segend_src_idxs, flat_src_indices=True)

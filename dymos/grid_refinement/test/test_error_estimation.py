@@ -12,8 +12,6 @@ from dymos.grid_refinement.error_estimation import eval_ode_on_grid, compute_sta
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
 
 
-
-
 class TestBrachistochroneExample(unittest.TestCase):
 
     def _run_brachistochrone(self, transcription_class=dm.Radau, control_type='control', g=9.80665):

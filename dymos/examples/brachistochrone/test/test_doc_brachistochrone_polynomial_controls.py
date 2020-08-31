@@ -36,8 +36,7 @@ class TestBrachistochronePolynomialControl(unittest.TestCase):
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9,
-                                     targets=BrachistochroneODE.parameters['theta']['targets'],)
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
                             units='m/s**2', opt=False, val=9.80665)

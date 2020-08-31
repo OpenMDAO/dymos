@@ -262,17 +262,17 @@ class SolveIVP(TranscriptionBase):
             phase.add_subsystem('polynomial_control_group', subsys=sys,
                                 promotes_inputs=['*'], promotes_outputs=['*'])
 
+    def configure_polynomial_controls(self, phase):
+
         for name, options in phase.polynomial_control_options.items():
 
             for iseg in range(self.grid_data.num_segments):
                 phase.connect(src_name='polynomial_controls:{0}'.format(name),
                               tgt_name='segment_{0}.polynomial_controls:{1}'.format(iseg, name))
 
-            if phase.polynomial_control_options[name]['targets']:
+            targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
+            if targets:
                 src_name = 'polynomial_control_values:{0}'.format(name)
-                targets = phase.polynomial_control_options[name]['targets']
-                if isinstance(targets, str):
-                    targets = [targets]
                 phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
 
             if phase.polynomial_control_options[name]['rate_targets']:

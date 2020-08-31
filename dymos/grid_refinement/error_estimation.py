@@ -250,6 +250,7 @@ def compute_state_quadratures(x_hat, f_hat, t_duration, transcription):
 
     return x_prime
 
+
 def check_error(phases):
     """
     Compute the error in every solved segment
@@ -345,7 +346,7 @@ def check_error(phases):
                 i1, i2 = new_tx.grid_data.subset_segment_indices['all'][k, :]
                 k_idxs = new_tx.grid_data.subset_node_indices['all'][i1:i2]
                 e[state_name][k_idxs, ...] = E[state_name][k_idxs] \
-                                             / (1.0 + np.max(np.abs(x[state_name][k_idxs])))
+                    / (1.0 + np.max(np.abs(x[state_name][k_idxs])))
                 if np.any(np.max(e[state_name][k_idxs]) > refine_results[phase_path]['max_rel_error'][k]):
                     refine_results[phase_path]['max_rel_error'][k] = np.max(e[state_name][k_idxs])
                     refine_results[phase_path]['error_state'] = state_name

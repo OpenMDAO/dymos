@@ -29,12 +29,10 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True,
+        phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
@@ -100,12 +98,10 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=False, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True,
+        phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
@@ -172,12 +168,10 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True,
+        phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
@@ -244,12 +238,10 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True,
+        phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
@@ -316,12 +308,10 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True,
+        phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
@@ -388,12 +378,10 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True,
+        phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
@@ -460,12 +448,10 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True,
+        phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
@@ -534,12 +520,10 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_polynomial_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                                     units='deg', order=2, lower=0.01, upper=179.9)
+        phase.add_polynomial_control('theta', units='deg', order=2, lower=0.01, upper=179.9)
         #
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
                             units='m/s**2', opt=False, val=9.80665)
@@ -609,12 +593,10 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_polynomial_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                                     units='deg', order=1, lower=0.01, upper=179.9)
+        phase.add_polynomial_control('theta', units='deg', order=1, lower=0.01, upper=179.9)
         #
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
                             units='m/s**2', opt=False, val=9.80665)
@@ -680,12 +662,10 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True,
+        phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],

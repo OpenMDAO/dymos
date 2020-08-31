@@ -73,9 +73,8 @@ class Radau(PseudospectralBase):
         super(Radau, self).configure_polynomial_controls(phase)
 
         for name, options in phase.polynomial_control_options.items():
-            if phase.polynomial_control_options[name]['targets']:
-                targets = phase.polynomial_control_options[name]['targets']
-
+            targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
+            if targets:
                 phase.connect('polynomial_control_values:{0}'.format(name),
                               ['rhs_all.{0}'.format(t) for t in targets])
 

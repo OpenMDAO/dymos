@@ -67,27 +67,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
             self.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])
             self.connect('time', ['indep_controls.time'])
 
-        if self.options['polynomial_control_options']:
-            for name, options in self.options['polynomial_control_options'].items():
-                tgts = options['targets']
-                rate_tgts = options['rate_targets']
-                rate2_tgts = options['rate2_targets']
-                if options['targets']:
-                    if isinstance(tgts, str):
-                        tgts = [tgts]
-                    self.connect('polynomial_controls:{0}'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in tgts])
-                if options['rate_targets']:
-                    if isinstance(rate_tgts, str):
-                        rate_tgts = [rate_tgts]
-                    self.connect('polynomial_control_rates:{0}_rate'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in rate_tgts])
-                if options['rate2_targets']:
-                    if isinstance(rate2_tgts, str):
-                        rate2_tgts = [rate2_tgts]
-                    self.connect('polynomial_control_rates:{0}_rate2'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in rate2_tgts])
-
         if self.options['parameter_options']:
             for name, options in self.options['parameter_options'].items():
                 ivc.add_output('parameters:{0}'.format(name),
@@ -140,6 +119,28 @@ class ODEIntegrationInterfaceSystem(om.Group):
                 if options['rate2_targets']:
                     self.connect('control_rates:{0}_rate2'.format(name),
                                  ['ode.{0}'.format(tgt) for tgt in options['rate2_targets']])
+
+        # Polynomial controls
+        if self.options['polynomial_control_options']:
+            for name, options in self.options['polynomial_control_options'].items():
+                tgts = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
+                rate_tgts = options['rate_targets']
+                rate2_tgts = options['rate2_targets']
+                if options['targets']:
+                    if isinstance(tgts, str):
+                        tgts = [tgts]
+                    self.connect('polynomial_controls:{0}'.format(name),
+                                 ['ode.{0}'.format(tgt) for tgt in tgts])
+                if options['rate_targets']:
+                    if isinstance(rate_tgts, str):
+                        rate_tgts = [rate_tgts]
+                    self.connect('polynomial_control_rates:{0}_rate'.format(name),
+                                 ['ode.{0}'.format(tgt) for tgt in rate_tgts])
+                if options['rate2_targets']:
+                    if isinstance(rate2_tgts, str):
+                        rate2_tgts = [rate2_tgts]
+                    self.connect('polynomial_control_rates:{0}_rate2'.format(name),
+                                 ['ode.{0}'.format(tgt) for tgt in rate2_tgts])
 
     def _get_rate_source_path(self, state_var):
         var = self.options['state_options'][state_var]['rate_source']

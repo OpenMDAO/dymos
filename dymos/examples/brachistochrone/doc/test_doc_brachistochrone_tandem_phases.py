@@ -92,7 +92,6 @@ class TestBrachistochroneTandemPhases(unittest.TestCase):
                          fix_initial=True, fix_final=False, solve_segments=False)
 
         phase0.add_control('theta', continuity=True, rate_continuity=True,
-                           targets=BrachistochroneODE.parameters['theta']['targets'],
                            units='deg', lower=0.01, upper=179.9)
 
         phase0.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],

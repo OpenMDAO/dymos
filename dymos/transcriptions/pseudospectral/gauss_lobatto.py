@@ -114,8 +114,8 @@ class GaussLobatto(PseudospectralBase):
                               ['rhs_col.{0}'.format(t) for t in targets],
                               src_indices=col_src_idxs, flat_src_indices=True)
 
-    def setup_polynomial_controls(self, phase):
-        super(GaussLobatto, self).setup_polynomial_controls(phase)
+    def configure_polynomial_controls(self, phase):
+        super(GaussLobatto, self).configure_polynomial_controls(phase)
         grid_data = self.grid_data
 
         for name, options in phase.polynomial_control_options.items():
@@ -129,13 +129,11 @@ class GaussLobatto(PseudospectralBase):
                 disc_src_idxs = disc_src_idxs.ravel()
                 col_src_idxs = col_src_idxs.ravel()
 
-            if phase.polynomial_control_options[name]['targets']:
-                targets = phase.polynomial_control_options[name]['targets']
-
+            targets = get_targets(ode=phase.rhs_disc, name=name, user_targets=options['targets'])
+            if targets:
                 phase.connect('polynomial_control_values:{0}'.format(name),
                               ['rhs_disc.{0}'.format(t) for t in targets],
                               src_indices=disc_src_idxs, flat_src_indices=True)
-
                 phase.connect('polynomial_control_values:{0}'.format(name),
                               ['rhs_col.{0}'.format(t) for t in targets],
                               src_indices=col_src_idxs, flat_src_indices=True)
