@@ -267,7 +267,6 @@ def check_error(phases):
         # Save the original grid to the refine results
         tx = phase.options['transcription']
         gd = tx.grid_data
-        num_nodes = gd.subset_num_nodes['all']
         numseg = gd.num_segments
 
         refine_results[phase_path]['num_segments'] = numseg
@@ -276,32 +275,6 @@ def check_error(phases):
         refine_results[phase_path]['need_refinement'] = np.zeros(numseg, dtype=bool)
         refine_results[phase_path]['max_rel_error'] = np.zeros(numseg, dtype=float)  # Eq. 21
         refine_results[phase_path]['error_state'] = ['' for _ in phase.state_options]
-
-        # outputs = phase.list_outputs(units=False, out_stream=None)
-
-        # out_values_dict = {k: v['value'] for k, v in outputs}
-        #
-        # prom_to_abs_map = phase._var_allprocs_prom2abs_list['output']
-
-        # num_scalar_states = 0
-        # for state_name, options in phase.state_options.items():
-        #     shape = options['shape']
-        #     size = np.prod(shape)
-        #     num_scalar_states += size
-        #
-        # x = np.zeros([num_nodes, num_scalar_states])
-        # f = np.zeros([num_nodes, num_scalar_states])
-        # c = 0
-
-        # # Obtain the solution on the current grid
-        # for state_name, options in phase.state_options.items():
-        #     prom_name = f'timeseries.states:{state_name}'
-        #     abs_name = prom_to_abs_map[prom_name][0]
-        #     rate_source_prom_name = f"timeseries.state_rates:{state_name}"
-        #     rate_abs_name = prom_to_abs_map[rate_source_prom_name][0]
-        #     x[:, c] = out_values_dict[prom_name].ravel()
-        #     f[:, c] = out_values_dict[rate_source_prom_name].ravel()
-        #     c += 1
 
         # Instantiate a new phase as a copy of the old one, but first up the transcription order
         # by 1 for Radau and by 2 for Gauss-Lobatto
@@ -332,10 +305,6 @@ def check_error(phases):
 
         E = {}  # The absolute error computed in each state at each node (Eq. 20 pt 1)
         e = {}  # The relative error computed in each state at each node (Eq. 20 pt 2)
-
-        # # Get the indices of the first node in each segment
-        # left_end_idxs = new_tx.grid_data.subset_node_indices['segment_ends'][0::2]
-        # left_end_idxs = np.append(left_end_idxs, new_tx.grid_data.subset_num_nodes['all'] - 1)
 
         for state_name, options in phase.state_options.items():
             E[state_name] = np.abs(x_hat[state_name] - x[state_name])  # Equation 20.1

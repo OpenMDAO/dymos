@@ -9,7 +9,7 @@ from openmdao.utils.general_utils import set_pyoptsparse_opt
 
 from dymos.grid_refinement.error_estimation import eval_ode_on_grid, compute_state_quadratures
 
-OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT', fallback=True)
+OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP', fallback=True)
 
 
 class TestBrachistochroneExample(unittest.TestCase):
@@ -21,7 +21,7 @@ class TestBrachistochroneExample(unittest.TestCase):
         p.driver.options['optimizer'] = OPTIMIZER
         p.driver.declare_coloring(tol=1.0E-12)
 
-        tx = transcription_class(num_segments=50,
+        tx = transcription_class(num_segments=15,
                                  order=3,
                                  compressed=False)
 
@@ -86,14 +86,16 @@ class TestBrachistochroneExample(unittest.TestCase):
 
                         phase = p.model.traj0.phases.phase0
 
-                        x_hat, f_hat = eval_ode_on_grid(phase, phase.options['transcription'])
+                        x, f = eval_ode_on_grid(phase, phase.options['transcription'])
 
                         # Check that the computed state rates in the grid refinement ODE are equal to those
                         # in the original problem. (on the same grid they should be within machine precision)
                         for name, options in phase.state_options.items():
                             phase_rate_path = f'timeseries.state_rates:{name}'
+                            x_solution = phase.get_val(f'timeseries.states:{name}')
                             f_solution = phase.get_val(phase_rate_path)
-                            assert_near_equal(f_hat[name].ravel(), f_solution.ravel())
+                            assert_near_equal(x[name].ravel(), x_solution.ravel())
+                            assert_near_equal(f[name].ravel(), f_solution.ravel())
 
     def test_compute_state_quadratures(self):
         """ Tests that the eval_ode_on_grid method works correctly against a variety of problems. """
@@ -115,6 +117,6 @@ class TestBrachistochroneExample(unittest.TestCase):
 
                         x_hat = compute_state_quadratures(x, f, t_duration, phase.options['transcription'])
 
-                        assert_near_equal(x_hat['x'], x['x'], tolerance=5.0E-5)
-                        assert_near_equal(x_hat['y'], x['y'], tolerance=5.0E-5)
-                        assert_near_equal(x_hat['v'], x['v'], tolerance=5.0E-5)
+                        assert_near_equal(x_hat['x'], x['x'], tolerance=1.0E-4)
+                        assert_near_equal(x_hat['y'], x['y'], tolerance=1.0E-4)
+                        assert_near_equal(x_hat['v'], x['v'], tolerance=1.0E-4)
