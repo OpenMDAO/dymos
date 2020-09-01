@@ -936,11 +936,8 @@ class RungeKutta(TranscriptionBase):
         num_iter_ode_nodes = num_seg * num_stages
         num_final_ode_nodes = 2 * num_seg
 
-        parameter_options = phase.parameter_options.copy()
-        parameter_options.update(phase.control_options)
-
-        if name in parameter_options:
-            options = parameter_options[name]
+        if name in phase.parameter_options:
+            options = phase.parameter_options[name]
             ode_tgts = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
             dynamic = options['dynamic']
             shape = options['shape']

@@ -109,10 +109,12 @@ class TestBrachistochroneExample(unittest.TestCase):
 
                         phase = p.model.traj0.phases.phase0
 
-                        x_hat, f_hat = eval_ode_on_grid(phase, phase.options['transcription'])
+                        x, f = eval_ode_on_grid(phase, phase.options['transcription'])
 
                         t_duration = phase.get_val('t_duration')
 
-                        x_prime = compute_state_quadratures(x_hat, f_hat, t_duration, phase.options['transcription'])
+                        x_hat = compute_state_quadratures(x, f, t_duration, phase.options['transcription'])
 
-                        assert_near_equal(x_prime['v'], x_hat['v'], tolerance=5.0E-6)
+                        assert_near_equal(x_hat['x'], x['x'], tolerance=5.0E-5)
+                        assert_near_equal(x_hat['y'], x['y'], tolerance=5.0E-5)
+                        assert_near_equal(x_hat['v'], x['v'], tolerance=5.0E-5)

@@ -557,11 +557,8 @@ class SolveIVP(TranscriptionBase):
         num_final_ode_nodes = self.grid_data.subset_num_nodes['all'] \
             if output_nodes_per_seg is None else num_seg * output_nodes_per_seg
 
-        parameter_options = phase.parameter_options.copy()
-        parameter_options.update(phase.control_options)
-
-        if name in parameter_options:
-            options = parameter_options[name]
+        if name in phase.parameter_options:
+            options = phase.parameter_options[name]
             ode_tgts = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
 
             dynamic = options['dynamic']

@@ -764,11 +764,8 @@ class GaussLobatto(PseudospectralBase):
         """
         connection_info = []
 
-        parameter_options = phase.parameter_options.copy()
-        parameter_options.update(phase.control_options)
-
-        if name in parameter_options:
-            options = parameter_options[name]
+        if name in phase.parameter_options:
+            options = phase.parameter_options[name]
             targets = get_targets(ode=phase.rhs_disc, name=name, user_targets=options['targets'])
 
             dynamic = options['dynamic']
