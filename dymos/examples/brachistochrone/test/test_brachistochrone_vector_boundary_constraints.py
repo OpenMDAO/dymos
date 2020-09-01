@@ -37,16 +37,13 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
                         fix_initial=True, fix_final=False)
         phase.add_state('v',
                         rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        targets=BrachistochroneVectorStatesODE.states['v']['targets'],
                         units=BrachistochroneVectorStatesODE.states['v']['units'],
                         fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg',
-                          targets=BrachistochroneVectorStatesODE.parameters['theta']['targets'],
                           rate_continuity=False, lower=0.01, upper=179.9)
 
         phase.add_parameter('g',
-                            targets=BrachistochroneVectorStatesODE.parameters['g']['targets'],
                             units='m/s**2', opt=False, val=9.80665)
 
         phase.add_boundary_constraint('pos', loc='final', equals=[10, 5])
@@ -135,16 +132,13 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
                         fix_initial=True, fix_final=False)
         phase.add_state('v',
                         rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        targets=BrachistochroneVectorStatesODE.states['v']['targets'],
                         units=BrachistochroneVectorStatesODE.states['v']['units'],
                         fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg',
-                          targets=BrachistochroneVectorStatesODE.parameters['theta']['targets'],
                           rate_continuity=False, lower=0.01, upper=179.9)
 
         phase.add_parameter('g',
-                            targets=BrachistochroneVectorStatesODE.parameters['g']['targets'],
                             units='m/s**2', opt=False, val=9.80665)
 
         phase.add_boundary_constraint('pos', loc='final', equals=[10, 5], indices=[0, 1])
@@ -233,16 +227,13 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
                         fix_initial=True, fix_final=[True, False])
         phase.add_state('v',
                         rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        targets=BrachistochroneVectorStatesODE.states['v']['targets'],
                         units=BrachistochroneVectorStatesODE.states['v']['units'],
                         fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg',
-                          targets=BrachistochroneVectorStatesODE.parameters['theta']['targets'],
                           rate_continuity=False, lower=0.01, upper=179.9)
 
         phase.add_parameter('g',
-                            targets=BrachistochroneVectorStatesODE.parameters['g']['targets'],
                             units='m/s**2', opt=False, val=9.80665)
 
         phase.add_boundary_constraint('pos', loc='final', equals=5, indices=[1])

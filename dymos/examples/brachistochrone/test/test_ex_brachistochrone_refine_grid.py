@@ -58,8 +58,7 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
         phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                            units='m/s**2', val=9.80665)
+        phase.add_parameter('g', units='m/s**2', val=9.80665)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)

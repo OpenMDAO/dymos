@@ -28,26 +28,18 @@ class Radau(PseudospectralBase):
         super(Radau, self).setup_time(phase)
 
     def configure_time(self, phase):
+        options = phase.time_options
 
-        if phase.time_options['targets']:
-            phase.connect('time',
-                          ['rhs_all.{0}'.format(t) for t in phase.time_options['targets']],
-                          src_indices=self.grid_data.subset_node_indices['all'])
+        # The tuples here are (name, user_specified_targets, dynamic)
+        for name, usr_tgts, dynamic in [('time', options['targets'], True),
+                                        ('time_phase', options['time_phase_targets'], True),
+                                        ('t_initial', options['t_initial_targets'], False),
+                                        ('t_duration', options['t_duration_targets'], False)]:
 
-        if phase.time_options['time_phase_targets']:
-            phase.connect('time_phase',
-                          ['rhs_all.{0}'.format(t) for t in phase.time_options['time_phase_targets']],
-                          src_indices=self.grid_data.subset_node_indices['all'])
-
-        if phase.time_options['t_initial_targets']:
-            tgts = phase.time_options['t_initial_targets']
-            phase.connect('t_initial',
-                          ['rhs_all.{0}'.format(t) for t in tgts])
-
-        if phase.time_options['t_duration_targets']:
-            tgts = phase.time_options['t_duration_targets']
-            phase.connect('t_duration',
-                          ['rhs_all.{0}'.format(t) for t in tgts])
+            targets = get_targets(phase.rhs_all, name=name, user_targets=usr_tgts)
+            if targets:
+                src_idxs = self.grid_data.subset_node_indices['all'] if dynamic else None
+                phase.connect(name, [f'rhs_all.{t}' for t in targets], src_indices=src_idxs)
 
     def configure_controls(self, phase):
         super(Radau, self).configure_controls(phase)
@@ -119,7 +111,6 @@ class Radau(PseudospectralBase):
                 src_idxs = src_idxs.ravel()
 
             targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
-
             if targets:
                 phase.connect('states:{0}'.format(name),
                               ['rhs_all.{0}'.format(tgt) for tgt in targets],
@@ -500,8 +491,10 @@ class Radau(PseudospectralBase):
                     prom_name = 'parameters:{0}'.format(param_name)
                     tgt_name = 'input_values:parameters:{0}'.format(param_name)
 
-                    if options['targets']:
-                        prom_param = options['targets'][0]
+                    targets = get_targets(phase.rhs_all, name=param_name, user_targets=options['targets'])
+
+                    if targets:
+                        prom_param = targets[0]
                     else:
                         prom_param = param_name
 
@@ -641,13 +634,11 @@ class Radau(PseudospectralBase):
         parameter_options.update(phase.control_options)
 
         if name in parameter_options:
-            try:
-                targets = parameter_options[name]['targets']
-            except KeyError:
-                raise KeyError('Could not find any ODE targets associated with parameter {0}.'.format(name))
+            options = parameter_options[name]
+            targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
 
-            dynamic = parameter_options[name]['dynamic']
-            shape = parameter_options[name]['shape']
+            dynamic = options['dynamic']
+            shape = options['shape']
 
             if dynamic:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)

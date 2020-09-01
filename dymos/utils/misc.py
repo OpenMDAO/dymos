@@ -77,12 +77,11 @@ def get_targets(ode, name, user_targets):
             targets = [name]
         else:
             targets = []
-    elif user_targets is None:
-        targets = []
     elif user_targets:
-        targets = user_targets
-        if isinstance(targets, str):
-            targets = [targets]
+        if isinstance(user_targets, str):
+            targets = [user_targets]
+        else:
+            targets = user_targets
     else:
         targets = []
 

@@ -87,33 +87,45 @@ class SolveIVP(TranscriptionBase):
         output_nodes_per_seg = self.options['output_nodes_per_seg']
 
         for i in range(num_seg):
-            phase.connect('t_initial', 'segment_{0}.t_initial'.format(i))
-            phase.connect('t_duration', 'segment_{0}.t_duration'.format(i))
+            phase.connect('t_initial', f'segment_{i}.t_initial')
+            phase.connect('t_duration', f'segment_{i}.t_duration')
             if output_nodes_per_seg is None:
                 i1, i2 = grid_data.subset_segment_indices['all'][i, :]
                 src_idxs = grid_data.subset_node_indices['all'][i1:i2]
             else:
                 src_idxs = np.arange(i * output_nodes_per_seg, output_nodes_per_seg * (i + 1),
                                      dtype=int)
-            phase.connect('time', 'segment_{0}.time'.format(i), src_indices=src_idxs)
-            phase.connect('time_phase', 'segment_{0}.time_phase'.format(i), src_indices=src_idxs)
+            phase.connect('time', f'segment_{i}.time', src_indices=src_idxs)
+            phase.connect('time_phase', f'segment_{i}.time_phase', src_indices=src_idxs)
 
-        if phase.time_options['targets']:
-            phase.connect('time', ['ode.{0}'.format(t) for t in time_options['targets']])
+        options = phase.time_options
 
-        if phase.time_options['time_phase_targets']:
-            time_phase_tgts = time_options['time_phase_targets']
-            phase.connect('time_phase',
-                          ['ode.{0}'.format(t) for t in time_phase_tgts])
+        # The tuples here are (name, user_specified_targets, dynamic)
+        for name, usr_tgts, dynamic in [('time', options['targets'], True),
+                                        ('time_phase', options['time_phase_targets'], True),
+                                        ('t_initial', options['t_initial_targets'], False),
+                                        ('t_duration', options['t_duration_targets'], False)]:
 
-        if phase.time_options['t_initial_targets']:
-            time_phase_tgts = time_options['t_initial_targets']
-            phase.connect('t_initial', ['ode.{0}'.format(t) for t in time_phase_tgts])
+            targets = get_targets(phase.ode, name=name, user_targets=usr_tgts)
+            if targets:
+                phase.connect(name, [f'ode.{t}' for t in targets])
 
-        if phase.time_options['t_duration_targets']:
-            time_phase_tgts = time_options['t_duration_targets']
-            phase.connect('t_duration',
-                          ['ode.{0}'.format(t) for t in time_phase_tgts])
+        # if phase.time_options['targets']:
+        #     phase.connect('time', ['ode.{0}'.format(t) for t in time_options['targets']])
+        #
+        # if phase.time_options['time_phase_targets']:
+        #     time_phase_tgts = time_options['time_phase_targets']
+        #     phase.connect('time_phase',
+        #                   ['ode.{0}'.format(t) for t in time_phase_tgts])
+        #
+        # if phase.time_options['t_initial_targets']:
+        #     time_phase_tgts = time_options['t_initial_targets']
+        #     phase.connect('t_initial', ['ode.{0}'.format(t) for t in time_phase_tgts])
+        #
+        # if phase.time_options['t_duration_targets']:
+        #     time_phase_tgts = time_options['t_duration_targets']
+        #     phase.connect('t_duration',
+        #                   ['ode.{0}'.format(t) for t in time_phase_tgts])
 
     def setup_states(self, phase):
         """
@@ -467,8 +479,9 @@ class SolveIVP(TranscriptionBase):
         for name, options in phase.parameter_options.items():
             prom_name = 'parameters:{0}'.format(name)
 
-            if options['targets']:
-                prom_param = options['targets'][0]
+            targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
+            if targets:
+                prom_param = targets[0]
             else:
                 prom_param = name
 
@@ -548,11 +561,11 @@ class SolveIVP(TranscriptionBase):
         parameter_options.update(phase.control_options)
 
         if name in parameter_options:
-            ode_tgts = parameter_options[name]['targets']
-            if isinstance(ode_tgts, str):
-                ode_tgts = [ode_tgts]
-            dynamic = parameter_options[name]['dynamic']
-            shape = parameter_options[name]['shape']
+            options = parameter_options[name]
+            ode_tgts = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
+
+            dynamic = options['dynamic']
+            shape = options['shape']
 
             # Connections to the final ODE
             if dynamic:

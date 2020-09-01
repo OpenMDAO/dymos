@@ -19,13 +19,10 @@ class BrachistochroneODE(om.ExplicitComponent):
               'y': {'rate_source': 'ydot',
                     'units': 'm'},
               'v': {'rate_source': 'vdot',
-                    'targets': 'v',
                     'units': 'm/s'}}
 
-    parameters = {'theta': {'targets': 'theta',
-                            'units': 'rad'},
-                  'g': {'targets': 'g',
-                        'units': 'm/s**2'}}
+    parameters = {'theta': {'units': 'rad'},
+                  'g': {'units': 'm/s**2'}}
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)

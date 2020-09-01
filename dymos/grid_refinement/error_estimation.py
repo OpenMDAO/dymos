@@ -99,14 +99,12 @@ def eval_ode_on_grid(phase, transcription):
     transcription : Radau or GaussLobatto transcription instance
         The transcription object at which to execute the ODE of the given phase at all nodes.
 
-
-
     Returns
     -------
 
     """
-    x_hat = {}
-    f_hat = {}
+    x = {}
+    f = {}
 
     # Build the interpolation matrix which interpolates from all nodes on the old grid to
     # all nodes on the new grid.
@@ -134,11 +132,11 @@ def eval_ode_on_grid(phase, transcription):
 
     for name, options in phase.state_options.items():
         x_prev = phase.get_val(f'timeseries.states:{name}', units=options['units'])
-        x_hat[name] = np.dot(L, x_prev)
+        x[name] = np.dot(L, x_prev)
         targets = get_targets(ode, name, options['targets'])
         if not targets:
             continue
-        p_refine.set_val(f'states:{name}', x_hat[name])
+        p_refine.set_val(f'states:{name}', x[name])
 
     for name, options in phase.control_options.items():
         targets = get_targets(ode, name, options['targets'])
@@ -187,15 +185,15 @@ def eval_ode_on_grid(phase, transcription):
     # Execute the model
     p_refine.run_model()
 
-    # Assign the state rates on the new grid to f_hat
+    # Assign the state rates on the new grid to f
     for name, options in phase.state_options.items():
         rate_source = options['rate_source']
         rate_units = get_rate_units(options['units'], phase.time_options['units'])
-        f_hat[name] = np.atleast_2d(p_refine.get_val(f'ode.{rate_source}', units=rate_units))
+        f[name] = np.atleast_2d(p_refine.get_val(f'ode.{rate_source}', units=rate_units))
         if options['shape'] == (1,):
-            f_hat[name] = f_hat[name].T
+            f[name] = f[name].T
 
-    return x_hat, f_hat
+    return x, f
 
 
 def compute_state_quadratures(x_hat, f_hat, t_duration, transcription):

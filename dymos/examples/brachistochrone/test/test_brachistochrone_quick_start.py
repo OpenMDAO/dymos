@@ -108,11 +108,10 @@ class TestBrachistochroneQuickStart(unittest.TestCase):
         # given state.
         phase.add_state('x', fix_initial=True, fix_final=True, units='m', rate_source='xdot')
         phase.add_state('y', fix_initial=True, fix_final=True, units='m', rate_source='ydot')
-        phase.add_state('v', fix_initial=True, fix_final=False, units='m/s',
-                        rate_source='vdot', targets=['v'])
+        phase.add_state('v', fix_initial=True, fix_final=False, units='m/s', rate_source='vdot')
 
         # Define theta as a control.
-        phase.add_control(name='theta', units='rad', lower=0, upper=np.pi, targets=['theta'])
+        phase.add_control(name='theta', units='rad', lower=0, upper=np.pi)
 
         # Minimize final time.
         phase.add_objective('time', loc='final')

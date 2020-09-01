@@ -235,8 +235,8 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
         self.declare(name='dynamic', types=bool, default=True,
                      desc='True if this parameter can be used as a dynamic control, else False')
 
-        self.declare(name='targets', types=Iterable, default=[],
-                     desc='Used to store target information for the parameter.')
+        self.declare(name='targets', allow_none=True, default=_unspecified,
+                     desc='Targets in the ODE to which the state is connected')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the parameter in the phase.')

@@ -88,36 +88,22 @@ class RungeKutta(TranscriptionBase):
                             promotes_outputs=['h'])
 
     def configure_time(self, phase):
-        grid_data = self.grid_data
+        options = phase.time_options
 
-        if phase.time_options['targets']:
-            time_tgts = phase.time_options['targets']
+        # The tuples here are (name, user_specified_targets, dynamic)
+        for name, usr_tgts, dynamic in [('time', options['targets'], True),
+                                        ('time_phase', options['time_phase_targets'], True),
+                                        ('t_initial', options['t_initial_targets'], False),
+                                        ('t_duration', options['t_duration_targets'], False)]:
 
-            phase.connect('time', ['rk_solve_group.ode.{0}'.format(t) for t in time_tgts],
-                          src_indices=grid_data.subset_node_indices['all'])
-
-            phase.connect('time', ['ode.{0}'.format(t) for t in time_tgts],
-                          src_indices=grid_data.subset_node_indices['segment_ends'])
-
-        if phase.time_options['time_phase_targets']:
-            time_phase_tgts = phase.time_options['time_phase_targets']
-            phase.connect('time_phase',
-                          ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
-            phase.connect('time_phase',
-                          ['ode.{0}'.format(t) for t in time_phase_tgts],
-                          src_indices=grid_data.subset_node_indices['segment_ends'])
-
-        if phase.time_options['t_initial_targets']:
-            time_phase_tgts = phase.time_options['t_initial_targets']
-            phase.connect('t_initial', ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
-            phase.connect('t_initial', ['ode.{0}'.format(t) for t in time_phase_tgts])
-
-        if phase.time_options['t_duration_targets']:
-            time_phase_tgts = phase.time_options['t_duration_targets']
-            phase.connect('t_duration',
-                          ['rk_solve_group.ode.{0}'.format(t) for t in time_phase_tgts])
-            phase.connect('t_duration',
-                          ['ode.{0}'.format(t) for t in time_phase_tgts])
+            targets = get_targets(phase.ode, name=name, user_targets=usr_tgts)
+            if targets:
+                all_src_idxs = self.grid_data.subset_node_indices['all'] if dynamic else None
+                end_src_idxs = self.grid_data.subset_node_indices['segment_ends'] if dynamic else None
+                phase.connect(name, ['rk_solve_group.ode.{0}'.format(t) for t in targets],
+                              src_indices=all_src_idxs)
+                phase.connect(name, ['ode.{0}'.format(t) for t in targets],
+                              src_indices=end_src_idxs)
 
     def setup_ode(self, phase):
         phase.add_subsystem('rk_solve_group',
@@ -954,9 +940,10 @@ class RungeKutta(TranscriptionBase):
         parameter_options.update(phase.control_options)
 
         if name in parameter_options:
-            ode_tgts = parameter_options[name]['targets']
-            dynamic = parameter_options[name]['dynamic']
-            shape = parameter_options[name]['shape']
+            options = parameter_options[name]
+            ode_tgts = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
+            dynamic = options['dynamic']
+            shape = options['shape']
 
             if dynamic:
                 src_idxs_raw = np.zeros(num_final_ode_nodes, dtype=int)

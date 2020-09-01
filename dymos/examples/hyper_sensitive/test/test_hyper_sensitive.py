@@ -45,8 +45,8 @@ class TestHyperSensitive(unittest.TestCase):
         phase0 = traj.add_phase('phase0', Phase(ode_class=HyperSensitiveODE,
                                                 transcription=transcription(num_segments=numseg, order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
-        phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
-        phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
+        phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot')
+        phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L')
         phase0.add_control('u', opt=True, targets=['u'])
 
         phase0.add_boundary_constraint('x', loc='final', equals=1)

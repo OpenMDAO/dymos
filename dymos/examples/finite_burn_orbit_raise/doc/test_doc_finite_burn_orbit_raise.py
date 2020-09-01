@@ -39,21 +39,20 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
         burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='TU')
         burn1.add_state('r', fix_initial=True, fix_final=False, defect_scaler=100.0,
-                        rate_source='r_dot', targets=['r'], units='DU')
+                        rate_source='r_dot', units='DU')
         burn1.add_state('theta', fix_initial=True, fix_final=False, defect_scaler=100.0,
-                        rate_source='theta_dot', targets=['theta'], units='rad')
+                        rate_source='theta_dot', units='rad')
         burn1.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=100.0,
-                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
+                        rate_source='vr_dot', units='DU/TU')
         burn1.add_state('vt', fix_initial=True, fix_final=False, defect_scaler=100.0,
-                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
+                        rate_source='vt_dot', units='DU/TU')
         burn1.add_state('accel', fix_initial=True, fix_final=False,
-                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+                        rate_source='at_dot', units='DU/TU**2')
         burn1.add_state('deltav', fix_initial=True, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
         burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=0.01,
-                          rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
-                          lower=-30, upper=30, targets=['u1'])
+                          scaler=0.01, rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
+                          lower=-30, upper=30)
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
                          transcription=dm.GaussLobatto(num_segments=5, order=3, compressed=False))
@@ -85,22 +84,22 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         burn2.set_time_options(initial_bounds=(0.5, 50), duration_bounds=(.5, 10), initial_ref=10,
                                units='TU')
         burn2.add_state('r', fix_initial=False, fix_final=True, defect_scaler=100.0,
-                        rate_source='r_dot', targets=['r'], units='DU')
+                        rate_source='r_dot', units='DU')
         burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
-                        rate_source='theta_dot', targets=['theta'], units='rad')
+                        rate_source='theta_dot', units='rad')
         burn2.add_state('vr', fix_initial=False, fix_final=True, defect_scaler=1000.0,
-                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
+                        rate_source='vr_dot', units='DU/TU')
         burn2.add_state('vt', fix_initial=False, fix_final=True, defect_scaler=1000.0,
-                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
+                        rate_source='vt_dot', units='DU/TU')
         burn2.add_state('accel', fix_initial=False, fix_final=False, defect_scaler=1.0,
-                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+                        rate_source='at_dot', units='DU/TU**2')
         burn2.add_state('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0,
                         rate_source='deltav_dot', units='DU/TU')
 
         burn2.add_objective('deltav', loc='final', scaler=100.0)
 
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=0.01, lower=-90, upper=90, targets=['u1'])
+                          scaler=0.01, lower=-90, upper=90)
 
         burn1.add_timeseries_output('pos_x', units='DU')
         coast.add_timeseries_output('pos_x', units='DU')

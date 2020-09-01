@@ -72,12 +72,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
                 ivc.add_output('parameters:{0}'.format(name),
                                shape=options['shape'],
                                units=options['units'])
-                if options['targets'] is not None:
-                    tgts = options['targets']
-                    if isinstance(tgts, str):
-                        tgts = [tgts]
-                    self.connect('parameters:{0}'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in tgts])
 
         # The ODE System
         if self.options['ode_class'] is not None:
@@ -141,6 +135,14 @@ class ODEIntegrationInterfaceSystem(om.Group):
                         rate2_tgts = [rate2_tgts]
                     self.connect('polynomial_control_rates:{0}_rate2'.format(name),
                                  ['ode.{0}'.format(tgt) for tgt in rate2_tgts])
+
+        # Parameters
+        if self.options['parameter_options']:
+            for name, options in self.options['parameter_options'].items():
+                targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
+                if targets:
+                    self.connect('parameters:{0}'.format(name),
+                                 ['ode.{0}'.format(tgt) for tgt in targets])
 
     def _get_rate_source_path(self, state_var):
         var = self.options['state_options'][state_var]['rate_source']
