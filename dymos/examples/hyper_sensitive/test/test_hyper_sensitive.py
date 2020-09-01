@@ -45,15 +45,15 @@ class TestHyperSensitive(unittest.TestCase):
         phase0 = traj.add_phase('phase0', Phase(ode_class=HyperSensitiveODE,
                                                 transcription=transcription(num_segments=numseg, order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
-        phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
-        phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
+        phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot')
+        phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L')
         phase0.add_control('u', opt=True, targets=['u'])
 
         phase0.add_boundary_constraint('x', loc='final', equals=1)
 
         phase0.add_objective('xL', loc='final')
 
-        phase0.set_refine_options(refine=True, tol=1e-6, max_order=14)
+        phase0.set_refine_options(refine=True, tol=1e-7, max_order=14)
 
         p.setup(check=True)
 
@@ -86,17 +86,16 @@ class TestHyperSensitive(unittest.TestCase):
 
     def test_hyper_sensitive_radau(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT')
-        # p.run_driver()
         dm.run_problem(p, refine=True)
         ui, uf, J = self.solution()
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
                           ui,
-                          tolerance=1e-6)
+                          tolerance=5e-6)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1],
                           uf,
-                          tolerance=1e-6)
+                          tolerance=5e-6)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
                           J,

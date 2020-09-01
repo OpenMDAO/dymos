@@ -2,7 +2,7 @@ import numpy as np
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import PathConstraintComp, RadauPSContinuityComp, PseudospectralTimeseriesOutputComp
-from ...utils.misc import get_rate_units, get_state_targets
+from ...utils.misc import get_rate_units, get_targets
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 
@@ -28,70 +28,62 @@ class Radau(PseudospectralBase):
         super(Radau, self).setup_time(phase)
 
     def configure_time(self, phase):
+        options = phase.time_options
 
-        if phase.time_options['targets']:
-            phase.connect('time',
-                          ['rhs_all.{0}'.format(t) for t in phase.time_options['targets']],
-                          src_indices=self.grid_data.subset_node_indices['all'])
+        # The tuples here are (name, user_specified_targets, dynamic)
+        for name, usr_tgts, dynamic in [('time', options['targets'], True),
+                                        ('time_phase', options['time_phase_targets'], True),
+                                        ('t_initial', options['t_initial_targets'], False),
+                                        ('t_duration', options['t_duration_targets'], False)]:
 
-        if phase.time_options['time_phase_targets']:
-            phase.connect('time_phase',
-                          ['rhs_all.{0}'.format(t) for t in phase.time_options['time_phase_targets']],
-                          src_indices=self.grid_data.subset_node_indices['all'])
+            targets = get_targets(phase.rhs_all, name=name, user_targets=usr_tgts)
+            if targets:
+                src_idxs = self.grid_data.subset_node_indices['all'] if dynamic else None
+                phase.connect(name, [f'rhs_all.{t}' for t in targets], src_indices=src_idxs)
 
-        if phase.time_options['t_initial_targets']:
-            tgts = phase.time_options['t_initial_targets']
-            phase.connect('t_initial',
-                          ['rhs_all.{0}'.format(t) for t in tgts])
+    def configure_controls(self, phase):
+        super(Radau, self).configure_controls(phase)
 
-        if phase.time_options['t_duration_targets']:
-            tgts = phase.time_options['t_duration_targets']
-            phase.connect('t_duration',
-                          ['rhs_all.{0}'.format(t) for t in tgts])
+        if phase.control_options:
+            for name, options in phase.control_options.items():
+                targets = get_targets(ode=phase.rhs_all, name=name,
+                                      user_targets=options['targets'])
+                if targets:
+                    phase.connect(f'control_values:{name}',
+                                  [f'rhs_all.{t}' for t in targets])
 
-    def setup_controls(self, phase):
-        super(Radau, self).setup_controls(phase)
+                targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate',
+                                      user_targets=options['rate_targets'])
+                if targets:
+                    phase.connect(f'control_rates:{name}_rate',
+                                  [f'rhs_all.{t}' for t in targets])
 
-        for name, options in phase.control_options.items():
-
-            if phase.control_options[name]['targets']:
-                targets = phase.control_options[name]['targets']
-
-                phase.connect('control_values:{0}'.format(name),
-                              ['rhs_all.{0}'.format(t) for t in targets])
-
-            if phase.control_options[name]['rate_targets']:
-                targets = phase.control_options[name]['rate_targets']
-                phase.connect('control_rates:{0}_rate'.format(name),
-                              ['rhs_all.{0}'.format(t) for t in targets])
-
-            if phase.control_options[name]['rate2_targets']:
-                targets = phase.control_options[name]['rate2_targets']
-                phase.connect('control_rates:{0}_rate2'.format(name),
-                              ['rhs_all.{0}'.format(t) for t in targets])
-
-    def setup_polynomial_controls(self, phase):
-        super(Radau, self).setup_polynomial_controls(phase)
+                targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate2',
+                                      user_targets=options['rate2_targets'])
+                if targets:
+                    phase.connect(f'control_rates:{name}_rate2',
+                                  [f'rhs_all.{t}' for t in targets])
 
     def configure_polynomial_controls(self, phase):
         super(Radau, self).configure_polynomial_controls(phase)
 
         for name, options in phase.polynomial_control_options.items():
-            if phase.polynomial_control_options[name]['targets']:
-                targets = phase.polynomial_control_options[name]['targets']
+            targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
+            if targets:
+                phase.connect(f'polynomial_control_values:{name}',
+                              [f'rhs_all.{t}' for t in targets])
 
-                phase.connect('polynomial_control_values:{0}'.format(name),
-                              ['rhs_all.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate',
+                                  user_targets=options['rate_targets'])
+            if targets:
+                phase.connect(f'polynomial_control_rates:{name}_rate',
+                              [f'rhs_all.{t}' for t in targets])
 
-            if phase.polynomial_control_options[name]['rate_targets']:
-                targets = phase.polynomial_control_options[name]['rate_targets']
-                phase.connect('polynomial_control_rates:{0}_rate'.format(name),
-                              ['rhs_all.{0}'.format(t) for t in targets])
-
-            if phase.polynomial_control_options[name]['rate2_targets']:
-                targets = phase.polynomial_control_options[name]['rate2_targets']
-                phase.connect('polynomial_control_rates:{0}_rate2'.format(name),
-                              ['rhs_all.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate2',
+                                  user_targets=options['rate2_targets'])
+            if targets:
+                phase.connect(f'polynomial_control_rates:{name}_rate2',
+                              [f'rhs_all.{t}' for t in targets])
 
     def setup_ode(self, phase):
         super(Radau, self).setup_ode(phase)
@@ -123,8 +115,7 @@ class Radau(PseudospectralBase):
                 """ Flat state variable is passed as 1D data."""
                 src_idxs = src_idxs.ravel()
 
-            targets = get_state_targets(ode=phase.rhs_all, state_name=name, state_options=options)
-
+            targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
             if targets:
                 phase.connect('states:{0}'.format(name),
                               ['rhs_all.{0}'.format(tgt) for tgt in targets],
@@ -505,8 +496,10 @@ class Radau(PseudospectralBase):
                     prom_name = 'parameters:{0}'.format(param_name)
                     tgt_name = 'input_values:parameters:{0}'.format(param_name)
 
-                    if options['targets']:
-                        prom_param = options['targets'][0]
+                    targets = get_targets(phase.rhs_all, name=param_name, user_targets=options['targets'])
+
+                    if targets:
+                        prom_param = targets[0]
                     else:
                         prom_param = param_name
 
@@ -642,17 +635,12 @@ class Radau(PseudospectralBase):
         """
         connection_info = []
 
-        parameter_options = phase.parameter_options.copy()
-        parameter_options.update(phase.control_options)
+        if name in phase.parameter_options:
+            options = phase.parameter_options[name]
+            targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
 
-        if name in parameter_options:
-            try:
-                targets = parameter_options[name]['targets']
-            except KeyError:
-                raise KeyError('Could not find any ODE targets associated with parameter {0}.'.format(name))
-
-            dynamic = parameter_options[name]['dynamic']
-            shape = parameter_options[name]['shape']
+            dynamic = options['dynamic']
+            shape = options['shape']
 
             if dynamic:
                 src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)

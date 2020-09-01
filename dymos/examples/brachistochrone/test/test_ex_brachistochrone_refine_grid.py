@@ -52,22 +52,13 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
                         units=BrachistochroneODE.states['y']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True,
+        phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                            units='m/s**2', val=9.80665)
-
-        phase.add_timeseries('timeseries2',
-                             transcription=dm.Radau(num_segments=num_segments * 5,
-                                                    order=transcription_order,
-                                                    compressed=compressed),
-                             subset='control_input')
+        phase.add_parameter('g', units='m/s**2', val=9.80665)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)

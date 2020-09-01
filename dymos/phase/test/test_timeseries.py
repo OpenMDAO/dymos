@@ -32,20 +32,16 @@ class TestTimeseriesOutput(unittest.TestCase):
                         fix_initial=True, fix_final=True, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
-                          targets=BrachistochroneODE.parameters['theta']['targets'],
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
         if test_smaller_timeseries:
-            phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                opt=True, units='m/s**2', val=9.80665, include_timeseries=False)
+            phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665, include_timeseries=False)
         else:
-            phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                opt=True, units='m/s**2', val=9.80665)
+            phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)
@@ -131,20 +127,16 @@ class TestTimeseriesOutput(unittest.TestCase):
                         fix_initial=True, fix_final=True, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
-                          targets=BrachistochroneODE.parameters['theta']['targets'],
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
         if test_smaller_timeseries:
-            phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                opt=True, units='m/s**2', val=9.80665, include_timeseries=False)
+            phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665, include_timeseries=False)
         else:
-            phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                opt=True, units='m/s**2', val=9.80665)
+            phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)

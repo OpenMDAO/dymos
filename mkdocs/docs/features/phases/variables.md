@@ -91,6 +91,15 @@ The value of these controls are often determined by an optimizer.
 
 {{ embed_options('dymos.phase.options.ControlOptionsDictionary', '###Options for Control Variables') }}
 
+Control values are connected to the ODE using the `targets` argument.
+The values of this argument obey the same rules as those for states.
+
+The control first and second derivatives w.r.t. time may also be connected to the ODE.
+First derivatives of controls in Dymos assume the name `<control_name>_rate`.
+Second derviatives of controls in Dymos assume the name `<control_name>_rate2`.
+Control rates are automatically connected if a top-level input of the ODE is named `<control_name>_rate` or `<control_name>_rate2`.
+These variables are available in the timeseries output as `timeseries.control_rates.<control_name>_rate` and `timeseries.control_rates.<control_name>_rate2`, respectively.
+
 ## Polynomial Controls
 
 Sometimes it can be easier to optimize a problem by reducing the freedom in the controls.
@@ -99,6 +108,15 @@ In Dymos, this role is filled by the PolynomialControl.
 Polynomial controls are specified at some limited number of points throughout a _phase_, and then have their values interpolated to each node in each segment.
 
 {{ embed_options('dymos.phase.options.PolynomialControlOptionsDictionary', '###Options for Polynomial Control Variables') }}
+
+Polynomial values are connected to the ODE using the `targets` argument.
+The values of this argument obey the same rules as those for states.
+
+The polynomial control first and second derivatives w.r.t. time may also be connected to the ODE.
+First derivatives of controls in Dymos assume the name `<control_name>_rate`.
+Second derviatives of controls in Dymos assume the name `<control_name>_rate2`.
+Control rates are automatically connected if a top-level input of the ODE is named `<control_name>_rate` or `<control_name>_rate2`.
+These variables are available in the timeseries output as `timeseries.polynomial_control_rates.<control_name>_rate` and `timeseries.polynomial_control_rates.<control_name>_rate2`, respectively.
 
 ## Parameters
 
@@ -110,5 +128,11 @@ If not optimized they can be targets for connections from outside of the Phase o
 
 {{ embed_options('dymos.phase.options.ParameterOptionsDictionary', '###Options for Parameters') }}
 
-Parameters and controls can have their values determined by the optimizer, or they can be passed in from an external source.
+Parameters can have their values determined by the optimizer, or they can be passed in from an external source.
+
+Parameters obey the same connection rules as other variables, if targets is left unspecified.
+
+Parameters are available in the timeseries output as `timeseries.parameters.<parameter_name>`.
+Since parameters are constant throughout a trajectory, some users may want to prevent them from inclusion in the timeseries.
+This can be done by specifying `include_timeseries = False` in the parameter options.
 

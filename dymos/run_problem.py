@@ -6,6 +6,7 @@ import dymos as dm
 import numpy as np
 from dymos.trajectory.trajectory import Trajectory
 from dymos.load_case import load_case, find_phases
+from dymos.grid_refinement.error_estimation import check_error
 import os
 import sys
 
@@ -112,7 +113,7 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
         with open(out_file, 'w+') as f:
 
             for i in range(refine_iteration_limit):
-                refine_results = ref.check_error()
+                refine_results = check_error(phases)
 
                 ref.refine(refine_results)
 

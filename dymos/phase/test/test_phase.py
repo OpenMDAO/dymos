@@ -147,15 +147,12 @@ class TestPhaseBase(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', continuity=True, rate_continuity=True, units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', opt=False, lower=5, upper=10,
-                            targets=BrachistochroneODE.parameters['g']['targets'],
                             ref0=5, ref=10, scaler=1, adder=0)
 
         # Minimize time at the end of the phase
@@ -197,16 +194,13 @@ class TestPhaseBase(unittest.TestCase):
                         fix_initial=True, fix_final=True, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=False,
-                          targets=BrachistochroneODE.parameters['theta']['targets'],
                           units='deg', lower=0.01, upper=179.9, scaler=1, ref=1, ref0=0)
 
-        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                            opt=True, units='m/s**2', val=9.80665)
+        phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('g')
@@ -256,16 +250,13 @@ class TestPhaseBase(unittest.TestCase):
                         fix_initial=True, fix_final=True, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
-                          targets=BrachistochroneODE.parameters['theta']['targets'],
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
-        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                            opt=True, units='m/s**2', val=9.80665)
+        phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('g')
@@ -309,16 +300,13 @@ class TestPhaseBase(unittest.TestCase):
                         fix_initial=True, fix_final=True, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
-                          targets=BrachistochroneODE.parameters['theta']['targets'],
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
-        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                            opt=True, units='m/s**2', val=9.80665)
+        phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('g')
@@ -365,15 +353,12 @@ class TestPhaseBase(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                            opt=False, units='m/s**2', val=9.80665)
+        phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665)
 
         phase.add_boundary_constraint('theta', loc='final', lower=90.0, upper=90.0, units='deg')
 
@@ -423,15 +408,13 @@ class TestPhaseBase(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True, units='deg', lower=0.01, upper=179.9)
+        phase.add_control('theta', continuity=True, rate_continuity=True, units='deg',
+                          lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                            opt=False, units='m/s**2', val=9.80665)
+        phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665)
 
         phase.add_boundary_constraint('theta_rate', loc='final', equals=0.0, units='deg/s')
 
@@ -497,16 +480,13 @@ class TestPhaseBase(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True, rate2_continuity=True, units='deg',
-                          lower=0.01, upper=179.9)
+        phase.add_control('theta', continuity=True, rate_continuity=True, rate2_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                            opt=False, units='m/s**2', val=9.80665)
+        phase.add_parameter('g', opt=False, units='m/s**2', val=9.80665)
 
         phase.add_boundary_constraint('theta_rate2', loc='final', equals=0.0, units='deg/s**2')
 
@@ -569,16 +549,13 @@ class TestPhaseBase(unittest.TestCase):
                         fix_initial=True, fix_final=True, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
-                          continuity=True, rate_continuity=True, rate2_continuity=True, units='deg',
-                          lower=0.01, upper=179.9)
+        phase.add_control('theta', continuity=True, rate_continuity=True, rate2_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
 
-        phase.add_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                            opt=True, units='m/s**2', val=9.80665)
+        phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
 
         # We'll let g vary, but make sure it hits the desired value.
         # It's a static parameter, so it shouldn't matter whether we enforce it

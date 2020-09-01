@@ -5,7 +5,7 @@ from ..transcription_base import TranscriptionBase
 from .components import SegmentSimulationComp, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
 from ..common import TimeComp
-from ...utils.misc import get_rate_units, get_state_targets
+from ...utils.misc import get_rate_units, get_targets
 from ...utils.indexing import get_src_indices_by_row
 
 
@@ -87,33 +87,45 @@ class SolveIVP(TranscriptionBase):
         output_nodes_per_seg = self.options['output_nodes_per_seg']
 
         for i in range(num_seg):
-            phase.connect('t_initial', 'segment_{0}.t_initial'.format(i))
-            phase.connect('t_duration', 'segment_{0}.t_duration'.format(i))
+            phase.connect('t_initial', f'segment_{i}.t_initial')
+            phase.connect('t_duration', f'segment_{i}.t_duration')
             if output_nodes_per_seg is None:
                 i1, i2 = grid_data.subset_segment_indices['all'][i, :]
                 src_idxs = grid_data.subset_node_indices['all'][i1:i2]
             else:
                 src_idxs = np.arange(i * output_nodes_per_seg, output_nodes_per_seg * (i + 1),
                                      dtype=int)
-            phase.connect('time', 'segment_{0}.time'.format(i), src_indices=src_idxs)
-            phase.connect('time_phase', 'segment_{0}.time_phase'.format(i), src_indices=src_idxs)
+            phase.connect('time', f'segment_{i}.time', src_indices=src_idxs)
+            phase.connect('time_phase', f'segment_{i}.time_phase', src_indices=src_idxs)
 
-        if phase.time_options['targets']:
-            phase.connect('time', ['ode.{0}'.format(t) for t in time_options['targets']])
+        options = phase.time_options
 
-        if phase.time_options['time_phase_targets']:
-            time_phase_tgts = time_options['time_phase_targets']
-            phase.connect('time_phase',
-                          ['ode.{0}'.format(t) for t in time_phase_tgts])
+        # The tuples here are (name, user_specified_targets, dynamic)
+        for name, usr_tgts, dynamic in [('time', options['targets'], True),
+                                        ('time_phase', options['time_phase_targets'], True),
+                                        ('t_initial', options['t_initial_targets'], False),
+                                        ('t_duration', options['t_duration_targets'], False)]:
 
-        if phase.time_options['t_initial_targets']:
-            time_phase_tgts = time_options['t_initial_targets']
-            phase.connect('t_initial', ['ode.{0}'.format(t) for t in time_phase_tgts])
+            targets = get_targets(phase.ode, name=name, user_targets=usr_tgts)
+            if targets:
+                phase.connect(name, [f'ode.{t}' for t in targets])
 
-        if phase.time_options['t_duration_targets']:
-            time_phase_tgts = time_options['t_duration_targets']
-            phase.connect('t_duration',
-                          ['ode.{0}'.format(t) for t in time_phase_tgts])
+        # if phase.time_options['targets']:
+        #     phase.connect('time', ['ode.{0}'.format(t) for t in time_options['targets']])
+        #
+        # if phase.time_options['time_phase_targets']:
+        #     time_phase_tgts = time_options['time_phase_targets']
+        #     phase.connect('time_phase',
+        #                   ['ode.{0}'.format(t) for t in time_phase_tgts])
+        #
+        # if phase.time_options['t_initial_targets']:
+        #     time_phase_tgts = time_options['t_initial_targets']
+        #     phase.connect('t_initial', ['ode.{0}'.format(t) for t in time_phase_tgts])
+        #
+        # if phase.time_options['t_duration_targets']:
+        #     time_phase_tgts = time_options['t_duration_targets']
+        #     phase.connect('t_duration',
+        #                   ['ode.{0}'.format(t) for t in time_phase_tgts])
 
     def setup_states(self, phase):
         """
@@ -142,7 +154,7 @@ class SolveIVP(TranscriptionBase):
             phase.connect('segment_0.states:{0}'.format(state_name),
                           'state_mux_comp.segment_0_states:{0}'.format(state_name))
 
-            targets = get_state_targets(phase.ode, state_name=state_name, state_options=options)
+            targets = get_targets(ode=phase.ode, name=state_name, user_targets=options['targets'])
 
             if targets:
                 phase.connect('state_mux_comp.states:{0}'.format(state_name),
@@ -238,20 +250,21 @@ class SolveIVP(TranscriptionBase):
                               tgt_name='segment_{0}.controls:{1}'.format(i, name),
                               src_indices=src_idxs, flat_src_indices=True)
 
-            if phase.control_options[name]['targets']:
-                src_name = 'control_values:{0}'.format(name)
-                targets = phase.control_options[name]['targets']
-                phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
+            if targets:
+                phase.connect(f'control_values:{name}', [f'ode.{t}' for t in targets])
 
-            if phase.control_options[name]['rate_targets']:
-                src_name = 'control_rates:{0}_rate'.format(name)
-                targets = phase.control_options[name]['rate_targets']
-                phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.ode, name=f'{name}_rate',
+                                  user_targets=options['rate_targets'])
+            if targets:
+                phase.connect(f'control_rates:{name}_rate',
+                              [f'ode.{t}' for t in targets])
 
-            if phase.control_options[name]['rate2_targets']:
-                src_name = 'control_rates:{0}_rate2'.format(name)
-                targets = phase.control_options[name]['rate2_targets']
-                phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.ode, name=f'{name}_rate2',
+                                  user_targets=options['rate2_targets'])
+            if targets:
+                phase.connect('control_rates:{0}_rate2'.format(name),
+                              ['ode.{0}'.format(t) for t in targets])
 
     def setup_polynomial_controls(self, phase):
         if phase.polynomial_control_options:
@@ -262,32 +275,29 @@ class SolveIVP(TranscriptionBase):
             phase.add_subsystem('polynomial_control_group', subsys=sys,
                                 promotes_inputs=['*'], promotes_outputs=['*'])
 
+    def configure_polynomial_controls(self, phase):
+
         for name, options in phase.polynomial_control_options.items():
 
             for iseg in range(self.grid_data.num_segments):
                 phase.connect(src_name='polynomial_controls:{0}'.format(name),
                               tgt_name='segment_{0}.polynomial_controls:{1}'.format(iseg, name))
 
-            if phase.polynomial_control_options[name]['targets']:
-                src_name = 'polynomial_control_values:{0}'.format(name)
-                targets = phase.polynomial_control_options[name]['targets']
-                if isinstance(targets, str):
-                    targets = [targets]
-                phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
+            if targets:
+                phase.connect(f'polynomial_control_values:{name}', [f'ode.{t}' for t in targets])
 
-            if phase.polynomial_control_options[name]['rate_targets']:
-                src_name = 'polynomial_control_rates:{0}_rate'.format(name)
-                targets = phase.polynomial_control_options[name]['rate_targets']
-                if isinstance(targets, str):
-                    targets = [targets]
-                phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.ode, name=f'{name}_rate',
+                                  user_targets=options['rate_targets'])
+            if targets:
+                phase.connect(f'polynomial_control_rates:{name}_rate',
+                              [f'ode.{t}' for t in targets])
 
-            if phase.polynomial_control_options[name]['rate2_targets']:
-                src_name = 'polynomial_control_rates:{0}_rate2'.format(name)
-                targets = phase.polynomial_control_options[name]['rate2_targets']
-                if isinstance(targets, str):
-                    targets = [targets]
-                phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.ode, name=f'{name}_rate2',
+                                  user_targets=options['rate2_targets'])
+            if targets:
+                phase.connect('polynomial_control_rates:{0}_rate2'.format(name),
+                              ['ode.{0}'.format(t) for t in targets])
 
     def setup_defects(self, phase):
         """
@@ -467,8 +477,9 @@ class SolveIVP(TranscriptionBase):
         for name, options in phase.parameter_options.items():
             prom_name = 'parameters:{0}'.format(name)
 
-            if options['targets']:
-                prom_param = options['targets'][0]
+            targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
+            if targets:
+                prom_param = targets[0]
             else:
                 prom_param = name
 
@@ -544,15 +555,12 @@ class SolveIVP(TranscriptionBase):
         num_final_ode_nodes = self.grid_data.subset_num_nodes['all'] \
             if output_nodes_per_seg is None else num_seg * output_nodes_per_seg
 
-        parameter_options = phase.parameter_options.copy()
-        parameter_options.update(phase.control_options)
+        if name in phase.parameter_options:
+            options = phase.parameter_options[name]
+            ode_tgts = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
 
-        if name in parameter_options:
-            ode_tgts = parameter_options[name]['targets']
-            if isinstance(ode_tgts, str):
-                ode_tgts = [ode_tgts]
-            dynamic = parameter_options[name]['dynamic']
-            shape = parameter_options[name]['shape']
+            dynamic = options['dynamic']
+            shape = options['shape']
 
             # Connections to the final ODE
             if dynamic:

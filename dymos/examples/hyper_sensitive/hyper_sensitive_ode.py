@@ -20,8 +20,8 @@ class HyperSensitiveODE(om.ExplicitComponent):
 
         self.add_input('u', val=np.zeros(nn), desc='control')
 
-        self.add_output('x_dot', val=np.zeros(nn), desc='state rate')
-        self.add_output('L', val=np.zeros(nn), desc='Lagrangian')
+        self.add_output('x_dot', val=np.zeros(nn), desc='state rate', units='1/s')
+        self.add_output('L', val=np.zeros(nn), desc='Lagrangian', units='1/s')
 
         # Setup partials
         self.declare_partials(of='x_dot', wrt='x', rows=np.arange(nn), cols=np.arange(nn), val=-1)

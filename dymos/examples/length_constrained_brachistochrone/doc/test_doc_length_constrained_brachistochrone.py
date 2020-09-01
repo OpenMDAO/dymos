@@ -52,9 +52,9 @@ class TestLengthConstrainedBrachistochrone(unittest.TestCase):
 
         phase.add_state('x', units='m', rate_source='xdot', fix_initial=True, fix_final=True)
         phase.add_state('y', units='m', rate_source='ydot', fix_initial=True, fix_final=True)
-        phase.add_state('v', units='m/s', rate_source='vdot', targets=['v'], fix_initial=True, fix_final=False)
+        phase.add_state('v', units='m/s', rate_source='vdot', fix_initial=True, fix_final=False)
 
-        phase.add_control('theta', targets=['theta'], units='deg', lower=0.01, upper=179.9,
+        phase.add_control('theta', units='deg', lower=0.01, upper=179.9,
                           continuity=True, rate_continuity=True)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
