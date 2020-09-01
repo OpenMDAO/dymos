@@ -103,38 +103,40 @@ class ODEIntegrationInterfaceSystem(om.Group):
         # Configure controls
         if self.options['control_options']:
             for name, options in self.options['control_options'].items():
-                targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
+                targets = get_targets(ode=self.ode, name=name,
+                                      user_targets=options['targets'])
+                rate_targets = get_targets(ode=self.ode, name=f'{name}_rate',
+                                           user_targets=options['rate_targets'])
+                rate2_targets = get_targets(ode=self.ode, name=f'{name}_rate2',
+                                            user_targets=options['rate2_targets'])
                 if targets:
-                    self.connect('controls:{0}'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in targets])
-                if options['rate_targets']:
-                    self.connect('control_rates:{0}_rate'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in options['rate_targets']])
-                if options['rate2_targets']:
-                    self.connect('control_rates:{0}_rate2'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in options['rate2_targets']])
+                    self.connect(f'controls:{name}',
+                                 [f'ode.{tgt}' for tgt in targets])
+                if rate_targets:
+                    self.connect(f'control_rates:{name}_rate',
+                                 [f'ode.{tgt}' for tgt in rate_targets])
+                if rate2_targets:
+                    self.connect(f'control_rates:{name}_rate2',
+                                 [f'ode.{tgt}' for tgt in rate2_targets])
 
         # Polynomial controls
         if self.options['polynomial_control_options']:
             for name, options in self.options['polynomial_control_options'].items():
-                tgts = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
-                rate_tgts = options['rate_targets']
-                rate2_tgts = options['rate2_targets']
-                if options['targets']:
-                    if isinstance(tgts, str):
-                        tgts = [tgts]
-                    self.connect('polynomial_controls:{0}'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in tgts])
-                if options['rate_targets']:
-                    if isinstance(rate_tgts, str):
-                        rate_tgts = [rate_tgts]
-                    self.connect('polynomial_control_rates:{0}_rate'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in rate_tgts])
-                if options['rate2_targets']:
-                    if isinstance(rate2_tgts, str):
-                        rate2_tgts = [rate2_tgts]
-                    self.connect('polynomial_control_rates:{0}_rate2'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in rate2_tgts])
+                targets = get_targets(ode=self.ode, name=name,
+                                      user_targets=options['targets'])
+                rate_targets = get_targets(ode=self.ode, name=f'{name}_rate',
+                                           user_targets=options['rate_targets'])
+                rate2_targets = get_targets(ode=self.ode, name=f'{name}_rate2',
+                                            user_targets=options['rate2_targets'])
+                if targets:
+                    self.connect(f'polynomial_controls:{name}',
+                                 [f'ode.{tgt}' for tgt in targets])
+                if rate_targets:
+                    self.connect(f'polynomial_control_rates:{name}_rate',
+                                 [f'ode.{tgt}' for tgt in rate_targets])
+                if rate2_targets:
+                    self.connect(f'polynomial_control_rates:{name}_rate2',
+                                 [f'ode.{tgt}' for tgt in rate2_targets])
 
         # Parameters
         if self.options['parameter_options']:

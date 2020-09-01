@@ -39,14 +39,12 @@ class ControlOptionsDictionary(om.OptionsDictionary):
         self.declare(name='targets', allow_none=True, default=_unspecified,
                      desc='Targets in the ODE to which the state is connected')
 
-        self.declare(name='rate_targets', types=Iterable, allow_none=True,
-                     default=None,
+        self.declare(name='rate_targets', allow_none=True, default=_unspecified,
                      desc='The targets in the ODE to which the control rate is connected')
 
-        self.declare(name='rate2_targets', types=Iterable, allow_none=True,
-                     default=None,
-                     desc='The parameter in the ODE to which the control 2nd derivative '
-                          'is connected.')
+        self.declare(name='rate2_targets', allow_none=True, default=_unspecified,
+                     desc='The targets in the ODE to which the control 2nd derivative '
+                          'is connected')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the control variable at the '
@@ -150,14 +148,12 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
         self.declare(name='targets', allow_none=True, default=_unspecified,
                      desc='Targets in the ODE to which the state is connected')
 
-        self.declare(name='rate_targets', types=Iterable, allow_none=True,
-                     default=None,
-                     desc='The targets in the ODE to which the control rate is connected')
+        self.declare(name='rate_targets', allow_none=True, default=_unspecified,
+                     desc='The targets in the ODE to which the polynomial control rate is connected')
 
-        self.declare(name='rate2_targets', types=Iterable, allow_none=True,
-                     default=None,
-                     desc='The parameter in the ODE to which the control 2nd derivative '
-                          'is connected.')
+        self.declare(name='rate2_targets', allow_none=True, default=_unspecified,
+                     desc='The targets in the ODE to which the polynomial control 2nd derivative '
+                          'is connected')
 
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the control variable at the '

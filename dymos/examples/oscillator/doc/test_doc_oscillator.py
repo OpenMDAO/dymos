@@ -371,7 +371,7 @@ class TestDocOscillator(unittest.TestCase):
         import openmdao.api as om
         import dymos as dm
         import matplotlib.pyplot as plt
-        # plt.switch_backend('Agg')  # disable plotting to the screen
+        plt.switch_backend('Agg')  # disable plotting to the screen
 
         from dymos.examples.oscillator.doc.oscillator_ode import OscillatorODE
 

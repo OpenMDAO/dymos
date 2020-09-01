@@ -1,5 +1,6 @@
 import unittest
 
+import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
@@ -22,15 +23,13 @@ class TestBrachistochroneExample(unittest.TestCase):
         p.driver.declare_coloring(tol=1.0E-12)
 
         tx = transcription_class(num_segments=15,
-                                 order=3,
+                                 order=5,
                                  compressed=False)
 
         traj = dm.Trajectory()
         phase = dm.Phase(ode_class=BrachistochroneODE, transcription=tx)
         p.model.add_subsystem('traj0', traj)
         traj.add_phase('phase0', phase)
-
-        # p.model.add_subsystem('traj0', traj)
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
@@ -74,36 +73,17 @@ class TestBrachistochroneExample(unittest.TestCase):
 
         return p
 
-    def test_eval_ode_on_grid(self):
-        """ Tests that the eval_ode_on_grid method works correctly against a variety of problems. """
-
-        for tx_class in (dm.Radau, dm.GaussLobatto):
-            for control_type in ('control', 'polynomial_control'):
-                for g in (9.80665, 1.62):
-                    with self.subTest(msg=f'{tx_class.__name__} - {control_type} - g = {g}',):
-                        p = self._run_brachistochrone(transcription_class=tx_class, control_type=control_type, g=g)
-                        p.run_driver()
-
-                        phase = p.model.traj0.phases.phase0
-
-                        x, f = eval_ode_on_grid(phase, phase.options['transcription'])
-
-                        # Check that the computed state rates in the grid refinement ODE are equal to those
-                        # in the original problem. (on the same grid they should be within machine precision)
-                        for name, options in phase.state_options.items():
-                            phase_rate_path = f'timeseries.state_rates:{name}'
-                            x_solution = phase.get_val(f'timeseries.states:{name}')
-                            f_solution = phase.get_val(phase_rate_path)
-                            assert_near_equal(x[name].ravel(), x_solution.ravel())
-                            assert_near_equal(f[name].ravel(), f_solution.ravel())
-
     def test_compute_state_quadratures(self):
         """ Tests that the eval_ode_on_grid method works correctly against a variety of problems. """
 
         for tx_class in (dm.Radau, dm.GaussLobatto):
+            if tx_class is dm.Radau:
+                err_tol = 1.0E-4
+            else:
+                err_tol = 1.0E-3
             for control_type in ('control', 'polynomial_control'):
                 for g in (9.80665, 1.62):
-                    with self.subTest(msg=f'{tx_class.__name__} - {control_type} - g = {g}',):
+                    with self.subTest(msg=f'{tx_class.__name__} - {control_type} - g = {g}'):
                         p = self._run_brachistochrone(transcription_class=tx_class,
                                                       control_type=control_type,
                                                       g=g)
@@ -111,12 +91,35 @@ class TestBrachistochroneExample(unittest.TestCase):
 
                         phase = p.model.traj0.phases.phase0
 
-                        x, f = eval_ode_on_grid(phase, phase.options['transcription'])
+                        x, u, p, f = eval_ode_on_grid(phase, phase.options['transcription'])
 
                         t_duration = phase.get_val('t_duration')
 
                         x_hat = compute_state_quadratures(x, f, t_duration, phase.options['transcription'])
 
-                        assert_near_equal(x_hat['x'], x['x'], tolerance=1.0E-4)
-                        assert_near_equal(x_hat['y'], x['y'], tolerance=1.0E-4)
-                        assert_near_equal(x_hat['v'], x['v'], tolerance=1.0E-4)
+                        # Check that the computed state rates in the grid refinement ODE are equal to those
+                        # in the original problem. (on the same grid they should be within machine precision)
+
+                        print(f'{tx_class.__name__} - {control_type} - g = {g}')
+
+                        for name, options in phase.control_options.items():
+                            u_solution = phase.get_val(f'timeseries.controls:{name}')
+                            print(f'{name} interpolation error',
+                                  max(np.abs(u[name].ravel() - u_solution.ravel())))
+
+                        for name, options in phase.polynomial_control_options.items():
+                            p_solution = phase.get_val(f'timeseries.polynomial_controls:{name}')
+                            print(f'{name} interpolation error',
+                                  max(np.abs(p[name].ravel() - p_solution.ravel())))
+
+                        for name, options in phase.state_options.items():
+                            x_solution = phase.get_val(f'timeseries.states:{name}')
+                            f_solution = phase.get_val(f'timeseries.state_rates:{name}')
+
+                            print(f'{name} interpolation error', max(np.abs(x[name].ravel() - x_solution.ravel())))
+                            print(f'{name} rate error', max(np.abs(f[name].ravel() - f_solution.ravel())))
+                            print(f'{name} error:', max(np.abs(x_hat[name] - x[name])))
+
+                            assert_near_equal(x[name].ravel(), x_solution.ravel())
+                            assert_near_equal(f[name].ravel(), f_solution.ravel())
+                            assert_near_equal(x_hat[name], x[name], tolerance=err_tol)

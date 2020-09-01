@@ -10,7 +10,7 @@ from ..utils.misc import get_rate_units, get_targets
 
 from scipy.linalg import block_diag
 
-from ..transcriptions import GaussLobatto, Radau, RungeKutta
+from ..transcriptions import GaussLobatto, Radau
 
 from .grid_refinement_ode_system import GridRefinementODESystem
 
@@ -101,9 +101,19 @@ def eval_ode_on_grid(phase, transcription):
 
     Returns
     -------
+    x : dict of (str: np.ndarray)
+        A dictionary of the state values from the phase interpolated to the new transcription.
+    u : dict of (str: np.ndarray)
+        A dictionary of the control values from the phase interpolated to the new transcription.
+    p : dict of (str: np.ndarray)
+        A dictionary of the polynomial control values from the phase interpolated to the new transcription.
+    f : dict of (str: np.ndarray)
+        A dictionary of the state rates computed in the phase's ODE at the new transcription points.
 
     """
     x = {}
+    u = {}
+    p = {}
     f = {}
 
     # Build the interpolation matrix which interpolates from all nodes on the old grid to
@@ -140,34 +150,40 @@ def eval_ode_on_grid(phase, transcription):
 
     for name, options in phase.control_options.items():
         targets = get_targets(ode, name, options['targets'])
+        rate_targets = get_targets(ode, f'{name}_rate', options['rate_targets'])
+        rate2_targets = get_targets(ode, f'{name}_rate12', options['rate2_targets'])
+
         if targets:
             u_prev = phase.get_val(f'timeseries.controls:{name}', units=options['units'])
-            u_hat = np.dot(L, u_prev)
-            p_refine.set_val(f'controls:{name}', u_hat)
+            u[name] = np.dot(L, u_prev)
+            p_refine.set_val(f'controls:{name}', u[name])
 
-        if options['rate_targets']:
+        if rate_targets:
             u_rate_prev = phase.get_val(f'timeseries.control_rates:{name}_rate')
             u_rate_hat = np.dot(L, u_rate_prev)
             p_refine.set_val(f'control_rates:{name}_rate', u_rate_hat)
 
-        if options['rate2_targets']:
+        if rate2_targets:
             u_rate2_prev = phase.get_val(f'timeseries.control_rates:{name}_rate2')
             u_rate2_hat = np.dot(L, u_rate2_prev)
             p_refine.set_val(f'control_rates:{name}_rate2', u_rate2_hat)
 
     for name, options in phase.polynomial_control_options.items():
         targets = get_targets(ode, name, options['targets'])
-        if targets:
-            u_prev = phase.get_val(f'timeseries.polynomial_controls:{name}', units=options['units'])
-            u_hat = np.dot(L, u_prev)
-            p_refine.set_val(f'polynomial_controls:{name}', u_hat)
+        rate_targets = get_targets(ode, f'{name}_rate', options['rate_targets'])
+        rate2_targets = get_targets(ode, f'{name}_rate2', options['rate2_targets'])
 
-        if options['rate_targets']:
+        if targets:
+            p_prev = phase.get_val(f'timeseries.polynomial_controls:{name}', units=options['units'])
+            p[name] = np.dot(L, p_prev)
+            p_refine.set_val(f'polynomial_controls:{name}', p[name])
+
+        if rate_targets:
             u_rate_prev = phase.get_val(f'timeseries.polynomial_control_rates:{name}_rate')
             u_rate_hat = np.dot(L, u_rate_prev)
             p_refine.set_val(f'polynomial_control_rates:{name}_rate', u_rate_hat)
 
-        if options['rate2_targets']:
+        if rate2_targets:
             u_rate2_prev = phase.get_val(f'timeseries.polynomial_control_rates:{name}_rate2')
             u_rate2_hat = np.dot(L, u_rate2_prev)
             p_refine.set_val(f'polynomial_control_rates:{name}_rate2', u_rate2_hat)
@@ -193,7 +209,7 @@ def eval_ode_on_grid(phase, transcription):
         if options['shape'] == (1,):
             f[name] = f[name].T
 
-    return x, f
+    return x, u, p, f
 
 
 def compute_state_quadratures(x_hat, f_hat, t_duration, transcription):
@@ -294,9 +310,9 @@ def check_error(phases):
             continue
 
         # Let x be the interpolated states on the new transcription
-        # Let f by the evaulated state rates given the interpolation of the states and controls
+        # Let f by the evaluated state rates given the interpolation of the states and controls
         # onto the new grid.
-        x, f = eval_ode_on_grid(phase=phase, transcription=new_tx)
+        x, _, _, f = eval_ode_on_grid(phase=phase, transcription=new_tx)
 
         # x_hat is the state value at each node computed using a quadrature
         # from the initial state value in each segment and the computed state rates

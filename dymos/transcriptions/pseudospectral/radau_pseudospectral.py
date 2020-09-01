@@ -46,20 +46,23 @@ class Radau(PseudospectralBase):
 
         if phase.control_options:
             for name, options in phase.control_options.items():
-                targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
+                targets = get_targets(ode=phase.rhs_all, name=name,
+                                      user_targets=options['targets'])
                 if targets:
-                    phase.connect('control_values:{0}'.format(name),
-                                  ['rhs_all.{0}'.format(t) for t in targets])
+                    phase.connect(f'control_values:{name}',
+                                  [f'rhs_all.{t}' for t in targets])
 
-                if phase.control_options[name]['rate_targets']:
-                    targets = phase.control_options[name]['rate_targets']
-                    phase.connect('control_rates:{0}_rate'.format(name),
-                                  ['rhs_all.{0}'.format(t) for t in targets])
+                targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate',
+                                      user_targets=options['rate_targets'])
+                if targets:
+                    phase.connect(f'control_rates:{name}_rate',
+                                  [f'rhs_all.{t}' for t in targets])
 
-                if phase.control_options[name]['rate2_targets']:
-                    targets = phase.control_options[name]['rate2_targets']
-                    phase.connect('control_rates:{0}_rate2'.format(name),
-                                  ['rhs_all.{0}'.format(t) for t in targets])
+                targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate2',
+                                      user_targets=options['rate2_targets'])
+                if targets:
+                    phase.connect(f'control_rates:{name}_rate2',
+                                  [f'rhs_all.{t}' for t in targets])
 
     def configure_polynomial_controls(self, phase):
         super(Radau, self).configure_polynomial_controls(phase)
@@ -67,18 +70,20 @@ class Radau(PseudospectralBase):
         for name, options in phase.polynomial_control_options.items():
             targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
             if targets:
-                phase.connect('polynomial_control_values:{0}'.format(name),
-                              ['rhs_all.{0}'.format(t) for t in targets])
+                phase.connect(f'polynomial_control_values:{name}',
+                              [f'rhs_all.{t}' for t in targets])
 
-            if phase.polynomial_control_options[name]['rate_targets']:
-                targets = phase.polynomial_control_options[name]['rate_targets']
-                phase.connect('polynomial_control_rates:{0}_rate'.format(name),
-                              ['rhs_all.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate',
+                                  user_targets=options['rate_targets'])
+            if targets:
+                phase.connect(f'polynomial_control_rates:{name}_rate',
+                              [f'rhs_all.{t}' for t in targets])
 
-            if phase.polynomial_control_options[name]['rate2_targets']:
-                targets = phase.polynomial_control_options[name]['rate2_targets']
-                phase.connect('polynomial_control_rates:{0}_rate2'.format(name),
-                              ['rhs_all.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.rhs_all, name=f'{name}_rate2',
+                                  user_targets=options['rate2_targets'])
+            if targets:
+                phase.connect(f'polynomial_control_rates:{name}_rate2',
+                              [f'rhs_all.{t}' for t in targets])
 
     def setup_ode(self, phase):
         super(Radau, self).setup_ode(phase)

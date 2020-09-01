@@ -296,6 +296,8 @@ class RungeKutta(TranscriptionBase):
         super(RungeKutta, self).setup_controls(phase)
 
     def configure_controls(self, phase):
+        super(RungeKutta, self).configure_controls(phase)
+
         grid_data = self.grid_data
 
         for name, options in phase.control_options.items():
@@ -319,28 +321,30 @@ class RungeKutta(TranscriptionBase):
                               ['rk_solve_group.ode.{0}'.format(t) for t in targets],
                               src_indices=all_src_idxs, flat_src_indices=True)
 
-            if phase.control_options[name]['rate_targets']:
+            targets = get_targets(ode=phase.ode, name=f'{name}_rate',
+                                  user_targets=options['rate_targets'])
+            if targets:
                 src_name = 'control_rates:{0}_rate'.format(name)
-                targets = phase.control_options[name]['rate_targets']
 
                 phase.connect(src_name,
                               ['ode.{0}'.format(t) for t in targets],
                               src_indices=segend_src_idxs, flat_src_indices=True)
 
                 phase.connect(src_name,
-                              ['rk_solve_group.{0}'.format(t) for t in targets],
+                              ['rk_solve_group.ode.{0}'.format(t) for t in targets],
                               src_indices=all_src_idxs, flat_src_indices=True)
 
-            if phase.control_options[name]['rate2_targets']:
+            targets = get_targets(ode=phase.ode, name=f'{name}_rate2',
+                                  user_targets=options['rate2_targets'])
+            if targets:
                 src_name = 'control_rates:{0}_rate2'.format(name)
-                targets = phase.control_options[name]['rate2_targets']
 
                 phase.connect(src_name,
                               ['ode.{0}'.format(t) for t in targets],
                               src_indices=segend_src_idxs, flat_src_indices=True)
 
                 phase.connect(src_name,
-                              ['rk_solve_group.{0}'.format(t) for t in targets],
+                              ['rk_solve_group.ode.{0}'.format(t) for t in targets],
                               src_indices=all_src_idxs, flat_src_indices=True)
 
     def setup_polynomial_controls(self, phase):
@@ -371,28 +375,24 @@ class RungeKutta(TranscriptionBase):
                               ['rk_solve_group.ode.{0}'.format(t) for t in targets],
                               src_indices=all_src_idxs, flat_src_indices=True)
 
-            if phase.polynomial_control_options[name]['rate_targets']:
-                src_name = 'polynomial_control_rates:{0}_rate'.format(name)
-                targets = phase.polynomial_control_options[name]['rate_targets']
-
-                phase.connect(src_name,
+            targets = get_targets(ode=phase.ode, name=f'{name}_rate',
+                                  user_targets=options['rate_targets'])
+            if targets:
+                phase.connect(f'polynomial_control_rates:{name}_rate',
                               ['ode.{0}'.format(t) for t in targets],
                               src_indices=segend_src_idxs, flat_src_indices=True)
-
-                phase.connect(src_name,
-                              ['rk_solve_group.{0}'.format(t) for t in targets],
+                phase.connect(f'polynomial_control_rates:{name}_rate',
+                              ['rk_solve_group.ode.{0}'.format(t) for t in targets],
                               src_indices=all_src_idxs, flat_src_indices=True)
 
-            if phase.polynomial_control_options[name]['rate2_targets']:
-                src_name = 'polynomial_control_rates:{0}_rate2'.format(name)
-                targets = phase.polynomial_control_options[name]['rate2_targets']
-
-                phase.connect(src_name,
-                              ['ode.{0}'.format(t) for t in targets],
+            targets = get_targets(ode=phase.ode, name=f'{name}_rate2',
+                                  user_targets=options['rate2_targets'])
+            if targets:
+                phase.connect(f'polynomial_control_rates:{name}_rate2',
+                              [f'ode.{t}' for t in targets],
                               src_indices=segend_src_idxs, flat_src_indices=True)
-
-                phase.connect(src_name,
-                              ['rk_solve_group.{0}'.format(t) for t in targets],
+                phase.connect(f'polynomial_control_rates:{name}_rate2',
+                              [f'rk_solve_group.ode.{t}' for t in targets],
                               src_indices=all_src_idxs, flat_src_indices=True)
 
     def setup_defects(self, phase):

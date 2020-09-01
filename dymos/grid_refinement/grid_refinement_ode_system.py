@@ -111,33 +111,31 @@ class GridRefinementODESystem(om.Group):
 
         # Configure the controls
         for name, options in self.options['controls'].items():
-            targets = get_targets(self.ode, name, options['targets'])
-            rate_tgts = options['rate_targets']
-            rate2_tgts = options['rate2_targets']
             rate_units = get_rate_units(units=options['units'],
                                         time_units=self.options['time']['units'])
             rate2_units = get_rate_units(units=options['units'],
                                          time_units=self.options['time']['units'],
                                          deriv=2)
 
-            for tgt in targets:
-                self.promotes('ode', inputs=[(tgt, f'controls:{name}')])
+            targets = get_targets(self.ode, name, options['targets'])
             if targets:
+                for tgt in targets:
+                    self.promotes('ode', inputs=[(tgt, f'controls:{name}')])
                 self.set_input_defaults(name=f'controls:{name}',
                                         val=np.ones(num_nodes),
                                         units=options['units'])
-            if rate_tgts:
-                if isinstance(rate_tgts, str):
-                    rate_tgts = [rate_tgts]
-                for tgt in rate_tgts:
+
+            targets = get_targets(self.ode, f'{name}_rate', options['rate_targets'])
+            if targets:
+                for tgt in targets:
                     self.promotes('ode', inputs=[(tgt, f'control_rates:{name}_rate')])
                 self.set_input_defaults(name=f'control_rates:{name}_rate',
                                         val=np.ones(num_nodes),
                                         units=rate_units)
-            if rate2_tgts:
-                if isinstance(rate2_tgts, str):
-                    rate2_tgts = [rate2_tgts]
-                for tgt in rate2_tgts:
+
+            targets = get_targets(self.ode, f'{name}_rate2', options['rate2_targets'])
+            if targets:
+                for tgt in targets:
                     self.promotes('ode', inputs=[(tgt, f'control_rates:{name}_rate2')])
                 self.set_input_defaults(name=f'control_rates:{name}_rate2',
                                         val=np.ones(num_nodes),
@@ -145,33 +143,31 @@ class GridRefinementODESystem(om.Group):
 
         # Configure the polynomial controls
         for name, options in self.options['polynomial_controls'].items():
-            targets = get_targets(self.ode, name, options['targets'])
-            rate_tgts = options['rate_targets']
-            rate2_tgts = options['rate2_targets']
             rate_units = get_rate_units(units=options['units'],
                                         time_units=self.options['time']['units'])
             rate2_units = get_rate_units(units=options['units'],
                                          time_units=self.options['time']['units'],
                                          deriv=2)
 
-            for tgt in targets:
-                self.promotes('ode', inputs=[(tgt, f'polynomial_controls:{name}')])
+            targets = get_targets(self.ode, name, options['targets'])
             if targets:
+                for tgt in targets:
+                    self.promotes('ode', inputs=[(tgt, f'polynomial_controls:{name}')])
                 self.set_input_defaults(name=f'polynomial_controls:{name}',
                                         val=np.ones(num_nodes),
                                         units=options['units'])
-            if rate_tgts:
-                if isinstance(rate_tgts, str):
-                    rate_tgts = [rate_tgts]
-                for tgt in rate_tgts:
+
+            targets = get_targets(self.ode, f'{name}_rate', options['rate_targets'])
+            if targets:
+                for tgt in targets:
                     self.promotes('ode', inputs=[(tgt, f'polynomial_control_rates:{name}_rate')])
                 self.set_input_defaults(name=f'polynomial_control_rates:{name}_rate',
                                         val=np.ones(num_nodes),
                                         units=rate_units)
-            if rate2_tgts:
-                if isinstance(rate2_tgts, str):
-                    rate2_tgts = [rate2_tgts]
-                for tgt in rate2_tgts:
+
+            targets = get_targets(self.ode, f'{name}_rate2', options['rate2_targets'])
+            if targets:
+                for tgt in targets:
                     self.promotes('ode', inputs=[(tgt, f'polynomial_control_rates:{name}_rate2')])
                 self.set_input_defaults(name=f'polynomial_control_rates:{name}_rate2',
                                         val=np.ones(num_nodes),

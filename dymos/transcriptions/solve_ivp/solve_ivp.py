@@ -252,18 +252,19 @@ class SolveIVP(TranscriptionBase):
 
             targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
             if targets:
-                src_name = 'control_values:{0}'.format(name)
-                phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
+                phase.connect(f'control_values:{name}', [f'ode.{t}' for t in targets])
 
-            if phase.control_options[name]['rate_targets']:
-                src_name = 'control_rates:{0}_rate'.format(name)
-                targets = phase.control_options[name]['rate_targets']
-                phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.ode, name=f'{name}_rate',
+                                  user_targets=options['rate_targets'])
+            if targets:
+                phase.connect(f'control_rates:{name}_rate',
+                              [f'ode.{t}' for t in targets])
 
-            if phase.control_options[name]['rate2_targets']:
-                src_name = 'control_rates:{0}_rate2'.format(name)
-                targets = phase.control_options[name]['rate2_targets']
-                phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.ode, name=f'{name}_rate2',
+                                  user_targets=options['rate2_targets'])
+            if targets:
+                phase.connect('control_rates:{0}_rate2'.format(name),
+                              ['ode.{0}'.format(t) for t in targets])
 
     def setup_polynomial_controls(self, phase):
         if phase.polynomial_control_options:
@@ -284,22 +285,19 @@ class SolveIVP(TranscriptionBase):
 
             targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
             if targets:
-                src_name = 'polynomial_control_values:{0}'.format(name)
-                phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
+                phase.connect(f'polynomial_control_values:{name}', [f'ode.{t}' for t in targets])
 
-            if phase.polynomial_control_options[name]['rate_targets']:
-                src_name = 'polynomial_control_rates:{0}_rate'.format(name)
-                targets = phase.polynomial_control_options[name]['rate_targets']
-                if isinstance(targets, str):
-                    targets = [targets]
-                phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.ode, name=f'{name}_rate',
+                                  user_targets=options['rate_targets'])
+            if targets:
+                phase.connect(f'polynomial_control_rates:{name}_rate',
+                              [f'ode.{t}' for t in targets])
 
-            if phase.polynomial_control_options[name]['rate2_targets']:
-                src_name = 'polynomial_control_rates:{0}_rate2'.format(name)
-                targets = phase.polynomial_control_options[name]['rate2_targets']
-                if isinstance(targets, str):
-                    targets = [targets]
-                phase.connect(src_name, ['ode.{0}'.format(t) for t in targets])
+            targets = get_targets(ode=phase.ode, name=f'{name}_rate2',
+                                  user_targets=options['rate2_targets'])
+            if targets:
+                phase.connect('polynomial_control_rates:{0}_rate2'.format(name),
+                              ['ode.{0}'.format(t) for t in targets])
 
     def setup_defects(self, phase):
         """
