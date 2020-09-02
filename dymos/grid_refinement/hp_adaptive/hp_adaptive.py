@@ -361,8 +361,8 @@ class HPAdaptive:
             # Only segments where adjacent segments are also below error tolerance may be combined
             # Segments must be same order
             check_comb_indx = np.where(np.logical_and(np.logical_and(np.logical_and(np.invert(need_refine[:-1]),
-                                                                     np.invert(need_refine[1:])),
-                                                      new_order[:-1] == new_order[1:]),
+                                                                                    np.invert(need_refine[1:])),
+                                                                     new_order[:-1] == new_order[1:]),
                                                       new_order[:-1] == phase.refine_options['min_order']))[0]
 
             # segments under error tolerance but may not be combined have their order reduced
@@ -403,7 +403,6 @@ class HPAdaptive:
                                 new_order_state[state_name] = i - 1
                             else:
                                 new_order_state[state_name] = seg_order[k]
-                        print(new_order_state)
                         new_order[k] = max(new_order_state.values())
 
             # combine unnecessary segments
@@ -427,7 +426,8 @@ class HPAdaptive:
                         beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                         c = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
                         b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in range(new_order[k] + 1)]))
-                        b_hat = np.multiply(c.ravel(), np.array([(h_ / h[k + 1]) ** l for l in range(new_order[k] + 1)]))
+                        b_hat = np.multiply(c.ravel(),
+                                            np.array([(h_ / h[k + 1]) ** l for l in range(new_order[k] + 1)]))
                         err_val = np.dot(np.absolute(b - b_hat).ravel(),
                                          np.array([2 ** l for l in range(new_order[k] + 1)])) / beta
 
@@ -447,6 +447,9 @@ class HPAdaptive:
                     elif gd.segment_ends[j - 1] < new_segment_ends[i] < gd.segment_ends[j]:
                         self.parent_seg_map[phase_path][i] = int(j - 1)
                         break
+
+            if gd.transcription == 'gauss-lobatto':
+                new_order[new_order % 2 > 0] = new_order[new_order % 2 > 0] + 1
 
             refine_results[phase_path]['new_order'] = new_order
             refine_results[phase_path]['new_num_segments'] = new_num_segments
@@ -531,27 +534,39 @@ class HPAdaptive:
             non_smooth_idxs = np.where(R > phase.refine_options['smoothness_factor'])[0]
             smooth_need_refine_idxs = np.setdiff1d(refine_seg_idxs, non_smooth_idxs)
 
-            P = np.ones(numseg)
-            q = np.zeros(numseg)
+            mul_factor = np.ones(numseg)
             h = 0.5 * (seg_ends[1:] - seg_ends[:-1])
             H = np.ones(numseg, dtype=int)
             h_prev = 0.5 * (self.gd[phase_path].segment_ends[1:] - self.gd[phase_path].segment_ends[:-1])
 
             split_parent_seg_idxs = self.parent_seg_map[phase_path][smooth_need_refine_idxs]
 
-            q[smooth_need_refine_idxs] = np.log((self.error[phase_path][smooth_need_refine_idxs] /
-                                        self.previous_error[phase_path][split_parent_seg_idxs]) /
-                                       (seg_order[smooth_need_refine_idxs] / self.gd[phase_path].transcription_order[
-                                           split_parent_seg_idxs]) ** 2.5
-                                       ) / np.log((h[smooth_need_refine_idxs] / h_prev[split_parent_seg_idxs]) /
-                                                  (seg_order[smooth_need_refine_idxs] / self.gd[phase_path].transcription_order[
-                                                      split_parent_seg_idxs]))
+            q_smooth = (np.log(self.error[phase_path][smooth_need_refine_idxs] /
+                               self.previous_error[phase_path][split_parent_seg_idxs]) +
+                        2.5 * np.log(seg_order[smooth_need_refine_idxs] /
+                                     self.gd[phase_path].transcription_order[split_parent_seg_idxs])
+                        ) / (np.log((h[smooth_need_refine_idxs] / h_prev[split_parent_seg_idxs])) +
+                             np.log(seg_order[smooth_need_refine_idxs] /
+                                    self.gd[phase_path].transcription_order[split_parent_seg_idxs]))
 
-            P[smooth_need_refine_idxs] = (
-                    self.error[phase_path][smooth_need_refine_idxs] / phase.refine_options['tolerance']) ** \
-                                         (1 / (q[smooth_need_refine_idxs] - 2.5))
+            print(q_smooth)
+            q_smooth[q_smooth < 3] = 3.0
+            print(q_smooth)
+            q_smooth[np.isposinf(q_smooth)] = 3.0
 
-            new_order = np.ceil(gd.transcription_order * P).astype(int)
+            print(smooth_need_refine_idxs)
+            print(q_smooth)
+            print(self.error[phase_path][smooth_need_refine_idxs] /
+                                                          phase.refine_options['tolerance'])
+
+            mul_factor[smooth_need_refine_idxs] = (
+                                                          self.error[phase_path][smooth_need_refine_idxs] /
+                                                          phase.refine_options['tolerance']) ** \
+                                                  (1 / (q_smooth - 2.5))
+            print(mul_factor[smooth_need_refine_idxs])
+
+            new_order = np.ceil(gd.transcription_order * mul_factor).astype(int)
+            print(new_order[smooth_need_refine_idxs])
             if gd.transcription == 'gauss-lobatto':
                 odd_idxs = np.where(new_order % 2 != 0)
                 new_order[odd_idxs] += 1
@@ -569,19 +584,23 @@ class HPAdaptive:
             new_order[split_seg_idxs] = seg_order[split_seg_idxs]
             split_parent_seg_idxs = self.parent_seg_map[phase_path][split_seg_idxs]
 
-            q[split_seg_idxs] = np.log((self.error[phase_path][split_seg_idxs] /
-                                        self.previous_error[phase_path][split_parent_seg_idxs]) /
-                                       (seg_order[split_seg_idxs] / self.gd[phase_path].transcription_order[
-                                           split_parent_seg_idxs]) ** 2.5
-                                       ) / np.log((h[split_seg_idxs] / h_prev[split_parent_seg_idxs]) /
-                                                  (seg_order[split_seg_idxs] / self.gd[phase_path].transcription_order[
-                                                         split_parent_seg_idxs]))
+            q_split = np.log((self.error[phase_path][split_seg_idxs] /
+                              self.previous_error[phase_path][split_parent_seg_idxs]) /
+                             (seg_order[split_seg_idxs] / self.gd[phase_path].transcription_order[
+                                 split_parent_seg_idxs]) ** 2.5
+                             ) / np.log((h[split_seg_idxs] / h_prev[split_parent_seg_idxs]) /
+                                        (seg_order[split_seg_idxs] / self.gd[phase_path].transcription_order[
+                                            split_parent_seg_idxs]))
 
-            H[split_seg_idxs] = np.minimum(
+            q_split[q_split < 3] = 3
+            q_split[np.isposinf(q_split)] = 3
+
+            H[split_seg_idxs] = np.maximum(np.minimum(
                 np.ceil((self.error[phase_path][split_seg_idxs] / phase.refine_options['tolerance']
-                         ) ** (1 / q[split_seg_idxs])), np.ceil(np.log(self.error[phase_path][split_seg_idxs] /
-                                                                       phase.refine_options['tolerance']) / np.log(
-                    seg_order[split_seg_idxs])))
+                         ) ** (1 / q_split)), np.ceil(np.log(self.error[phase_path][split_seg_idxs] /
+                                                             phase.refine_options['tolerance']) /
+                                                      np.log(seg_order[split_seg_idxs]))),
+                2*np.ones(split_seg_idxs.size))
 
             # reduce segment order where error is much below the tolerance
             if reduce_order_indx.size > 0:
@@ -657,6 +676,9 @@ class HPAdaptive:
             new_order = np.repeat(new_order, repeats=H)
             new_num_segments = int(np.sum(H))
             new_segment_ends = split_segments(gd.segment_ends, H)
+
+            if gd.transcription == 'gauss-lobatto':
+                new_order[new_order % 2 > 0] = new_order[new_order % 2 > 0] + 1
 
             self.parent_seg_map[phase_path] = np.zeros(new_num_segments, dtype=int)
             for i in range(1, new_num_segments):

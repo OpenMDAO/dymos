@@ -24,7 +24,7 @@ class TestRunProblem(unittest.TestCase):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
-        optimizer = 'SNOPT'
+        optimizer = 'IPOPT'
         p.driver.options['optimizer'] = optimizer
 
         if optimizer == 'SNOPT':
@@ -62,7 +62,7 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.t_duration', tf)
         p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
                                                                nodes='control_input'))
-        dm.run_problem(p, True, refine_method='hp', refine_iteration_limit=15)
+        dm.run_problem(p, True, refine_method='hp', refine_iteration_limit=10)
 
         sqrt_two = np.sqrt(2)
         val = sqrt_two * tf
