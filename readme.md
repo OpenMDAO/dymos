@@ -14,8 +14,24 @@ The software has two primary objectives:
 Installation
 ------------
 
+The default installation of the developmental version of Dymos will install the minimum number of prerequisites:
+
 ```
 python -m pip install git+https://github.com/OpenMDAO/dymos.git
+```
+
+Installation of a specific version can be accomplished with
+
+```
+python -m pip install git+https://github.com/OpenMDAO/dymos.git@RELEASENAME
+```
+
+See the [releases page](https://github.com/OpenMDAO/dymos/releases) for a listing of the latest releases.
+
+If you plan on building the documentation or running all of the tests locally, you should install _all_ dependencies with:
+
+```
+pip install git+https://github.com/OpenMDAO/dymos.git#egg=project[all]
 ```
 
 Documentation
@@ -32,7 +48,7 @@ that provide the rates of the state variables.  This model can be an OpenMDAO mo
 complexity, including nested groups and components, layers of nonlinear solvers, etc.
 
 Dymos solutions are constructed of one or more _Phases_.
-When setting up a phase, we add state variables, dynamic controls, and design parameters,
+When setting up a phase, we add state variables, dynamic controls, and parameters,
 tell Dymos how the value of each should be connected to the ODE system, and tell Dymos
 the variable paths in the system that contain the rates of our state variables that are to be
 integrated.
@@ -43,10 +59,10 @@ integrated.
 
     class BrachistochroneEOM(ExplicitComponent):
         def initialize(self):
-            self.metadata.declare('num_nodes', types=int)
+            self.options.declare('num_nodes', types=int)
 
         def setup(self):
-            nn = self.metadata['num_nodes']
+            nn = self.options['num_nodes']
 
             # Inputs
             self.add_input('v',
@@ -85,7 +101,7 @@ integrated.
                             units='m/s')
 
             # Setup partials
-            arange = np.arange(self.metadata['num_nodes'])
+            arange = np.arange(self.options['num_nodes'])
 
             self.declare_partials(of='vdot', wrt='g', rows=arange, cols=arange, val=1.0)
             self.declare_partials(of='vdot', wrt='theta', rows=arange, cols=arange, val=1.0)
@@ -195,12 +211,11 @@ phase.set_time_options(fix_initial=True, duration_bounds=(0.5, 10.0), units='s')
 # Initial values of positions and velocity are all fixed.
 # The final value of position are fixed, but the final velocity is a free variable.
 # The equations of motion are not functions of position, so 'x' and 'y' have no targets.
-# The rate source points to the output in the ODE which provides the time derivative of the
-# given state.
+# The target of 'v' will be automatically found by Dymos since `v` is an input at the top-level of the ODE.
+# The rate source points to the output in the ODE which provides the time derivative of the given state.
 phase.add_state('x', fix_initial=True, fix_final=True, units='m', rate_source='xdot')
 phase.add_state('y', fix_initial=True, fix_final=True, units='m', rate_source='ydot')
-phase.add_state('v', fix_initial=True, fix_final=False, units='m/s',
-                rate_source='vdot', targets=['v'])
+phase.add_state('v', fix_initial=True, fix_final=False, units='m/s', rate_source='vdot')
 
 # Define theta as a control.
 phase.add_control(name='theta', units='rad', lower=0, upper=np.pi, targets=['theta'])

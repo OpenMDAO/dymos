@@ -48,7 +48,7 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
             name of the variable in this component's namespace.
         var_class : str
             The 'class' of the variable as given by phase.classify_var.  One of 'time', 'state',
-            'indep_control', 'input_control', 'design_parameter', 'input_parameter',
+            'indep_control', 'input_control', 'parameter',
             'control_rate', 'control_rate2', or 'ode'.
         shape : int or tuple or list or None
             Shape of this variable, only required if val is not an array.
@@ -64,13 +64,19 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
         src_all = var_class in ['time', 'time_phase', 'indep_control', 'input_control',
                                 'control_rate', 'control_rate2', 'indep_polynomial_control',
                                 'input_polynomial_control', 'polynomial_control_rate',
-                                'polynomial_control_rate2', 'design_parameter', 'input_parameter']
+                                'polynomial_control_rate2', 'parameter']
         kwargs = {'shape': shape, 'units': units, 'desc': desc, 'src_all': src_all,
                   'distributed': distributed}
         self._timeseries_outputs.append((name, kwargs))
 
 
 class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
+
+    def __init__(self, **kwargs):
+        super(PseudospectralTimeseriesOutputComp, self).__init__(**kwargs)
+
+        self.input_num_nodes = 0
+        self.output_num_nodes = 0
 
     def setup(self):
         """
@@ -83,8 +89,8 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         if ogd is None:
             ogd = igd
 
-        input_num_nodes = igd.num_nodes
-        output_num_nodes = ogd.subset_num_nodes[output_subset]
+        self.input_num_nodes = igd.num_nodes
+        self.output_num_nodes = ogd.subset_num_nodes[output_subset]
 
         # Build the interpolation matrix which maps from the input grid to the output grid.
         # Rather than a single phase-wide interpolating polynomial, map each segment.
@@ -121,36 +127,60 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
         self.interpolation_matrix = block_diag(*L_blocks)
 
         for (name, kwargs) in self._timeseries_outputs:
-            input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-            input_name = 'input_values:{0}'.format(name)
+            units = kwargs['units']
+            desc = kwargs['units']
             shape = kwargs['shape']
+            self._add_output_configure(name, units, shape, desc)
 
-            self.add_input(input_name,
-                           shape=(input_num_nodes,) + shape,
-                           **input_kwargs)
+    def _add_output_configure(self, name, units, shape, desc):
+        """
+        Add a single timeseries output.
 
-            output_name = name
-            output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-            output_kwargs['shape'] = (output_num_nodes,) + kwargs['shape']
-            self.add_output(output_name, **output_kwargs)
+        Can be called by parent groups in configure.
 
-            self._vars.append((input_name, output_name, shape))
+        Parameters
+        ----------
+        name : str
+            name of the variable in this component's namespace.
+        shape : int or tuple or list or None
+            Shape of this variable, only required if val is not an array.
+            Default is None.
+        units : str or None
+            Units in which the output variables will be provided to the component during execution.
+            Default is None, which means it has no units.
+        desc : str
+            description of the timeseries output variable.
+        """
+        input_num_nodes = self.input_num_nodes
+        output_num_nodes = self.output_num_nodes
 
-            size = np.prod(shape)
-            val_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
+        input_name = 'input_values:{0}'.format(name)
+        self.add_input(input_name,
+                       shape=(input_num_nodes,) + shape,
+                       units=units, desc=desc)
 
-            for i in range(size):
-                val_jac[:, i, :, i] = self.interpolation_matrix
+        output_name = name
+        self.add_output(output_name,
+                        shape=(output_num_nodes,) + shape,
+                        units=units, desc=desc)
 
-            val_jac = val_jac.reshape((output_num_nodes * size, input_num_nodes * size),
-                                      order='C')
+        self._vars.append((input_name, output_name, shape))
 
-            val_jac_rows, val_jac_cols = np.where(val_jac != 0)
+        size = np.prod(shape)
+        val_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
 
-            rs, cs = val_jac_rows, val_jac_cols
-            self.declare_partials(of=output_name,
-                                  wrt=input_name,
-                                  rows=rs, cols=cs, val=val_jac[rs, cs])
+        for i in range(size):
+            val_jac[:, i, :, i] = self.interpolation_matrix
+
+        val_jac = val_jac.reshape((output_num_nodes * size, input_num_nodes * size),
+                                  order='C')
+
+        val_jac_rows, val_jac_cols = np.where(val_jac != 0)
+
+        rs, cs = val_jac_rows, val_jac_cols
+        self.declare_partials(of=output_name,
+                              wrt=input_name,
+                              rows=rs, cols=cs, val=val_jac[rs, cs])
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for (input_name, output_name, _) in self._vars:

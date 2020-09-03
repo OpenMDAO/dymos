@@ -6,6 +6,8 @@ plt.switch_backend('Agg')
 plt.style.use('ggplot')
 import numpy as np
 
+from dymos.utils.doc_utils import save_for_docs
+
 
 class TestReentryForDocs(unittest.TestCase):
 
@@ -14,6 +16,7 @@ class TestReentryForDocs(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @save_for_docs
     def test_reentry(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -35,23 +38,21 @@ class TestReentryForDocs(unittest.TestCase):
 
         phase0.set_time_options(fix_initial=True, units='s', duration_ref=200)
         phase0.add_state('h', fix_initial=True, fix_final=True, units='ft', rate_source='hdot',
-                         targets=['h'], lower=0, ref0=75000, ref=300000, defect_ref=1000)
+                         lower=0, ref0=75000, ref=300000, defect_ref=1000)
         phase0.add_state('gamma', fix_initial=True, fix_final=True, units='rad',
-                         rate_source='gammadot', targets=['gamma'],
+                         rate_source='gammadot',
                          lower=-89. * np.pi / 180, upper=89. * np.pi / 180)
         phase0.add_state('phi', fix_initial=True, fix_final=False, units='rad',
                          rate_source='phidot', lower=0, upper=89. * np.pi / 180)
         phase0.add_state('psi', fix_initial=True, fix_final=False, units='rad',
-                         rate_source='psidot', targets=['psi'], lower=0, upper=90. * np.pi / 180)
+                         rate_source='psidot', lower=0, upper=90. * np.pi / 180)
         phase0.add_state('theta', fix_initial=True, fix_final=False, units='rad',
-                         rate_source='thetadot', targets=['theta'],
+                         rate_source='thetadot',
                          lower=-89. * np.pi / 180, upper=89. * np.pi / 180)
         phase0.add_state('v', fix_initial=True, fix_final=True, units='ft/s',
-                         rate_source='vdot', targets=['v'], lower=0, ref0=2500, ref=25000)
-        phase0.add_control('alpha', units='rad', opt=True,
-                           lower=-np.pi / 2, upper=np.pi / 2, targets=['alpha'])
-        phase0.add_control('beta', units='rad', opt=True,
-                           lower=-89 * np.pi / 180, upper=1 * np.pi / 180, targets=['beta'])
+                         rate_source='vdot', lower=0, ref0=2500, ref=25000)
+        phase0.add_control('alpha', units='rad', opt=True, lower=-np.pi / 2, upper=np.pi / 2, )
+        phase0.add_control('beta', units='rad', opt=True, lower=-89 * np.pi / 180, upper=1 * np.pi / 180, )
 
         # The original implementation by Betts includes a heating rate path constraint.
         # This will work with the SNOPT optimizer but SLSQP has difficulty converging the solution.

@@ -55,31 +55,29 @@ class TestAircraftCruise(unittest.TestCase):
                         defect_scaler=0.01)
         phase.add_state('mass_fuel', units='kg', fix_final=True, upper=20000.0, lower=0.0,
                         rate_source='propulsion.dXdt:mass_fuel',
-                        targets=['mass_comp.mass_fuel'],
                         scaler=1.0E-4, defect_scaler=1.0E-2)
         phase.add_state('alt',
                         rate_source='climb_rate',
-                        targets=['atmos.h', 'aero.alt', 'propulsion.alt'],
                         units='km', fix_initial=True)
 
         phase.add_control('mach',  targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
 
         phase.add_control('climb_rate', targets=['gam_comp.climb_rate'], units='m/s', opt=False)
 
-        phase.add_input_parameter('S',
-                                  targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
-                                  units='m**2')
+        phase.add_parameter('S',
+                            targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
+                            units='m**2')
 
-        phase.add_input_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
-        phase.add_input_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
+        phase.add_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
+        phase.add_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0, shape=(1,))
 
         phase.add_timeseries_output('tas_comp.TAS', units='m/s')
 
-        p.model.connect('assumptions.S', 'phase0.input_parameters:S')
-        p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
-        p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
+        p.model.connect('assumptions.S', 'phase0.parameters:S')
+        p.model.connect('assumptions.mass_empty', 'phase0.parameters:mass_empty')
+        p.model.connect('assumptions.mass_payload', 'phase0.parameters:mass_payload')
 
         phase.add_objective('time', loc='final', ref=3600)
 
@@ -149,31 +147,29 @@ class TestAircraftCruise(unittest.TestCase):
                         defect_scaler=0.01)
         phase.add_state('mass_fuel', units='kg', fix_final=True, upper=20000.0, lower=0.0,
                         rate_source='propulsion.dXdt:mass_fuel',
-                        targets=['mass_comp.mass_fuel'],
                         scaler=1.0E-4, defect_scaler=1.0E-2)
         phase.add_state('alt',
                         rate_source='climb_rate',
-                        targets=['atmos.h', 'aero.alt', 'propulsion.alt'],
                         units='km', fix_initial=True)
 
         phase.add_control('mach',  targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
 
         phase.add_control('climb_rate', targets=['gam_comp.climb_rate'], units='m/s', opt=False)
 
-        phase.add_input_parameter('S',
-                                  targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
-                                  units='m**2')
+        phase.add_parameter('S',
+                            targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
+                            units='m**2')
 
-        phase.add_input_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
-        phase.add_input_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
+        phase.add_parameter('mass_empty', targets=['mass_comp.mass_empty'], units='kg')
+        phase.add_parameter('mass_payload', targets=['mass_comp.mass_payload'], units='kg')
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0, shape=(1,))
 
         phase.add_timeseries_output('tas_comp.TAS', units='m/s')
 
-        p.model.connect('assumptions.S', 'phase0.input_parameters:S')
-        p.model.connect('assumptions.mass_empty', 'phase0.input_parameters:mass_empty')
-        p.model.connect('assumptions.mass_payload', 'phase0.input_parameters:mass_payload')
+        p.model.connect('assumptions.S', 'phase0.parameters:S')
+        p.model.connect('assumptions.mass_empty', 'phase0.parameters:mass_empty')
+        p.model.connect('assumptions.mass_payload', 'phase0.parameters:mass_payload')
 
         phase.add_objective('time', loc='final', ref=3600)
 

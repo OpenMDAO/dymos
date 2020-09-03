@@ -17,7 +17,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    p.driver.declare_coloring()
+    p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':
         t = dm.GaussLobatto(num_segments=num_segments,
@@ -46,17 +46,18 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
                     units=BrachistochroneODE.states['y']['units'],
                     fix_initial=True, fix_final=False, solve_segments=solve_segments)
+
+    # Note that by omitting the targets here Dymos will automatically attempt to connect
+    # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
     phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                    targets=BrachistochroneODE.states['v']['targets'],
                     units=BrachistochroneODE.states['v']['units'],
                     fix_initial=True, fix_final=False, solve_segments=solve_segments)
 
-    phase.add_control('theta', targets=BrachistochroneODE.parameters['theta']['targets'],
+    phase.add_control('theta',
                       continuity=True, rate_continuity=True,
                       units='deg', lower=0.01, upper=179.9)
 
-    phase.add_input_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                              units='m/s**2', val=9.80665)
+    phase.add_parameter('g', targets=['g'], units='m/s**2')
 
     phase.add_timeseries('timeseries2',
                          transcription=dm.Radau(num_segments=num_segments*5,
@@ -78,7 +79,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['traj0.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
     p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
     p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-    p['traj0.phase0.input_parameters:g'] = 9.80665
+    p['traj0.phase0.parameters:g'] = 9.80665
 
     dm.run_problem(p, run_driver=run_driver)
 

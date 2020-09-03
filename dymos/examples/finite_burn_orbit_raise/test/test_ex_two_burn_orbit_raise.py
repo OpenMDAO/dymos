@@ -20,8 +20,8 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 
     traj = dm.Trajectory()
 
-    traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU',
-                              targets={'burn1': ['c'], 'burn2': ['c']})
+    traj.add_parameter('c', opt=False, val=1.5, units='DU/TU',
+                       targets={'burn1': ['c'], 'burn2': ['c']})
 
     # First Phase (burn)
 
@@ -31,39 +31,39 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
 
     burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='TU')
     burn1.add_state('r', fix_initial=True, fix_final=False, defect_scaler=100.0,
-                    rate_source='r_dot', targets=['r'], units='DU')
+                    rate_source='r_dot', units='DU')
     burn1.add_state('theta', fix_initial=True, fix_final=False, defect_scaler=100.0,
-                    rate_source='theta_dot', targets=['theta'], units='rad')
+                    rate_source='theta_dot', units='rad')
     burn1.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=100.0,
-                    rate_source='vr_dot', targets=['vr'], units='DU/TU')
+                    rate_source='vr_dot', units='DU/TU')
     burn1.add_state('vt', fix_initial=True, fix_final=False, defect_scaler=100.0,
-                    rate_source='vt_dot', targets=['vt'], units='DU/TU')
+                    rate_source='vt_dot', units='DU/TU')
     burn1.add_state('accel', fix_initial=True, fix_final=False,
-                    rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+                    rate_source='at_dot', units='DU/TU**2')
     burn1.add_state('deltav', fix_initial=True, fix_final=False,
                     rate_source='deltav_dot', units='DU/TU')
     burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg', scaler=0.01,
                       rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
-                      lower=-30, upper=30, targets=['u1'])
+                      lower=-30, upper=30)
     # Second Phase (Coast)
     coast = dm.Phase(ode_class=FiniteBurnODE, transcription=t[transcription])
 
     coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 50), duration_ref=50, units='TU')
     coast.add_state('r', fix_initial=False, fix_final=False, defect_scaler=100.0,
-                    rate_source='r_dot', targets=['r'], units='DU')
+                    rate_source='r_dot', units='DU')
     coast.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
-                    rate_source='theta_dot', targets=['theta'], units='rad')
+                    rate_source='theta_dot', units='rad')
     coast.add_state('vr', fix_initial=False, fix_final=False, defect_scaler=100.0,
-                    rate_source='vr_dot', targets=['vr'], units='DU/TU')
+                    rate_source='vr_dot', units='DU/TU')
     coast.add_state('vt', fix_initial=False, fix_final=False, defect_scaler=100.0,
-                    rate_source='vt_dot', targets=['vt'], units='DU/TU')
+                    rate_source='vt_dot', units='DU/TU')
     coast.add_state('accel', fix_initial=True, fix_final=True,
-                    rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+                    rate_source='at_dot', units='DU/TU**2')
     coast.add_state('deltav', fix_initial=False, fix_final=False,
                     rate_source='deltav_dot', units='DU/TU')
 
-    coast.add_design_parameter('u1', opt=False, val=0.0, units='deg', targets=['u1'])
-    coast.add_input_parameter('c', val=0.0, units='DU/TU', targets=['c'])
+    coast.add_parameter('u1', opt=False, val=0.0, units='deg')
+    coast.add_parameter('c', val=0.0, units='DU/TU')
 
     # Third Phase (burn)
     burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=t[transcription])
@@ -75,22 +75,22 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         burn2.set_time_options(initial_bounds=(1.0, 60), duration_bounds=(-10.0, -0.5),
                                initial_ref=10, units='TU')
         burn2.add_state('r', fix_initial=True, fix_final=False, defect_scaler=100.0,
-                        rate_source='r_dot', targets=['r'], units='DU')
+                        rate_source='r_dot', units='DU')
         burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
-                        rate_source='theta_dot', targets=['theta'], units='rad')
+                        rate_source='theta_dot', units='rad')
         burn2.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=1000.0,
-                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
+                        rate_source='vr_dot', units='DU/TU')
         burn2.add_state('vt', fix_initial=True, fix_final=False, defect_scaler=1000.0,
-                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
+                        rate_source='vt_dot', units='DU/TU')
         burn2.add_state('accel', fix_initial=False, fix_final=False, defect_scaler=1.0,
-                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+                        rate_source='at_dot', units='DU/TU**2')
         burn2.add_state('deltav', fix_initial=False, fix_final=False, defect_scaler=1.0,
                         rate_source='deltav_dot', units='DU/TU')
 
         burn2.add_objective('deltav', loc='initial', scaler=100.0)
 
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
-                          scaler=0.01, lower=-180, upper=180, targets=['u1'])
+                          scaler=0.01, lower=-180, upper=180)
     else:
         traj.add_phase('coast', coast)
         traj.add_phase('burn2', burn2)
@@ -184,7 +184,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     p.setup(check=True)
 
     # Set Initial Guesses
-    p.set_val('traj.design_parameters:c', value=1.5, units='DU/TU')
+    p.set_val('traj.parameters:c', value=1.5, units='DU/TU')
 
     burn1 = p.model.traj.phases.burn1
     burn2 = p.model.traj.phases.burn2

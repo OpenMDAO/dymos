@@ -26,7 +26,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         v0 = p.get_val('traj0.phase0.timeseries.states:v')[0, 0]
         vf = p.get_val('traj0.phase0.timeseries.states:v')[-1, 0]
 
-        g = p.get_val('traj0.phase0.timeseries.design_parameters:g')
+        g = p.get_val('traj0.phase0.timeseries.parameters:g')
 
         thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1, 0]
 
@@ -140,7 +140,7 @@ class TestBrachistochroneExampleSolveSegments(unittest.TestCase):
         v0 = p.get_val('traj0.phase0.timeseries.states:v')[0]
         vf = p.get_val('traj0.phase0.timeseries.states:v')[-1]
 
-        g = p.get_val('traj0.phase0.timeseries.input_parameters:g')
+        g = p.get_val('traj0.phase0.timeseries.parameters:g')
 
         thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1, 0]
 

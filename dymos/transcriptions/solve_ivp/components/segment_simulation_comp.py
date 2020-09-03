@@ -54,12 +54,8 @@ class SegmentSimulationComp(om.ExplicitComponent):
                              desc='Dictionary of polynomial control names/options for the segments '
                                   'parent Phase.')
 
-        self.options.declare('design_parameter_options', default=None, types=dict, allow_none=True,
-                             desc='Dictionary of design parameter names/options for the segments '
-                                  'parent Phase.')
-
-        self.options.declare('input_parameter_options', default=None, types=dict, allow_none=True,
-                             desc='Dictionary of input parameter names/options for the segments '
+        self.options.declare('parameter_options', default=None, types=dict, allow_none=True,
+                             desc='Dictionary of parameter names/options for the segments '
                                   'parent Phase.')
 
         self.options.declare('ode_integration_interface', default=None, allow_none=True,
@@ -103,8 +99,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
                 state_options=self.options['state_options'],
                 control_options=self.options['control_options'],
                 polynomial_control_options=self.options['polynomial_control_options'],
-                design_parameter_options=self.options['design_parameter_options'],
-                input_parameter_options=self.options['input_parameter_options'],
+                parameter_options=self.options['parameter_options'],
                 ode_init_kwargs=self.options['ode_init_kwargs'])
 
         self.add_input(name='time', val=np.ones(nnps_i),
@@ -135,6 +130,8 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         self.initial_state_vec = np.zeros(self.state_vec_size)
 
+        self.options['ode_integration_interface'].prob.setup(check=False)
+
         # Setup the control interpolants
         if self.options['control_options']:
             for name, options in self.options['control_options'].items():
@@ -144,7 +141,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
                                desc='Values of control {0} at control discretization '
                                     'nodes within the segment.'.format(name))
                 interp = LagrangeBarycentricInterpolant(control_disc_seg_stau, options['shape'])
-                self.options['ode_integration_interface'].control_interpolants[name] = interp
+                self.options['ode_integration_interface'].set_interpolant(name, interp)
 
         if self.options['polynomial_control_options']:
             for name, options in self.options['polynomial_control_options'].items():
@@ -155,24 +152,27 @@ class SegmentSimulationComp(om.ExplicitComponent):
                                desc='Values of polynomial control {0} at control discretization '
                                     'nodes within the phase.'.format(name))
                 interp = LagrangeBarycentricInterpolant(poly_control_disc_ptau, options['shape'])
-                self.options['ode_integration_interface'].polynomial_control_interpolants[name] = \
-                    interp
-
-        if self.options['design_parameter_options']:
-            for name, options in self.options['design_parameter_options'].items():
-                self.add_input(name='design_parameters:{0}'.format(name), val=np.ones(options['shape']),
-                               units=options['units'],
-                               desc='values of design parameter {0}.'.format(name))
-
-        if self.options['input_parameter_options']:
-            for name, options in self.options['input_parameter_options'].items():
-                self.add_input(name='input_parameters:{0}'.format(name), val=np.ones(options['shape']),
-                               units=options['units'],
-                               desc='values of input parameter {0}'.format(name))
-
-        self.options['ode_integration_interface'].prob.setup(check=False)
+                self.options['ode_integration_interface'].set_interpolant(name, interp)
 
         self.declare_partials(of='*', wrt='*', method='fd')
+
+    def add_parameters(self, units_dict):
+        """
+        Add parameters with given units.
+
+        The units of the parameters are not known until after the rhs component has been setup.
+
+        Parameters
+        ----------
+        units_dict : dict
+            Dictionary containing the actual design variable units for each parameter.
+        """
+        if self.options['parameter_options']:
+            for name, options in self.options['parameter_options'].items():
+                units = units_dict[name]
+                self.add_input(name='parameters:{0}'.format(name), val=np.ones(options['shape']),
+                               units=units,
+                               desc='values of parameter {0}.'.format(name))
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         idx = self.options['index']
@@ -194,9 +194,10 @@ class SegmentSimulationComp(om.ExplicitComponent):
             tf_seg = inputs['time'][-1]
             for name, options in self.options['control_options'].items():
                 ctrl_vals = inputs['controls:{0}'.format(name)]
-                self.options['ode_integration_interface'].control_interpolants[name].setup(x0=t0_seg,
-                                                                                           xf=tf_seg,
-                                                                                           f_j=ctrl_vals)
+                self.options['ode_integration_interface'].setup_interpolant(name,
+                                                                            x0=t0_seg,
+                                                                            xf=tf_seg,
+                                                                            f_j=ctrl_vals)
 
         # Setup the polynomial control interpolants
         if self.options['polynomial_control_options']:
@@ -204,9 +205,10 @@ class SegmentSimulationComp(om.ExplicitComponent):
             tf_phase = inputs['t_initial'] + inputs['t_duration']
             for name, options in self.options['polynomial_control_options'].items():
                 ctrl_vals = inputs['polynomial_controls:{0}'.format(name)]
-                self.options['ode_integration_interface'].polynomial_control_interpolants[name].setup(x0=t0_phase,
-                                                                                                      xf=tf_phase,
-                                                                                                      f_j=ctrl_vals)
+                self.options['ode_integration_interface'].setup_interpolant(name,
+                                                                            x0=t0_phase,
+                                                                            xf=tf_phase,
+                                                                            f_j=ctrl_vals)
 
         # Set the values of t_initial and t_duration
         iface_prob.set_val('t_initial',
@@ -217,19 +219,12 @@ class SegmentSimulationComp(om.ExplicitComponent):
                            value=inputs['t_duration'],
                            units=self.options['time_options']['units'])
 
-        # Set the values of the phase design parameters
-        if self.options['design_parameter_options']:
-            for param_name, options in self.options['design_parameter_options'].items():
-                val = inputs['design_parameters:{0}'.format(param_name)]
-                iface_prob.set_val('design_parameters:{0}'.format(param_name),
+        # Set the values of the phase parameters
+        if self.options['parameter_options']:
+            for param_name, options in self.options['parameter_options'].items():
+                val = inputs['parameters:{0}'.format(param_name)]
+                iface_prob.set_val('parameters:{0}'.format(param_name),
                                    value=val,
-                                   units=options['units'])
-
-        # Set the values of the phase input parameters
-        if self.options['input_parameter_options']:
-            for param_name, options in self.options['input_parameter_options'].items():
-                iface_prob.set_val('input_parameters:{0}'.format(param_name),
-                                   value=inputs['input_parameters:{0}'.format(param_name)],
                                    units=options['units'])
 
         # Setup the evaluation times.
@@ -254,6 +249,9 @@ class SegmentSimulationComp(om.ExplicitComponent):
                         atol=self.options['atol'],
                         rtol=self.options['rtol'],
                         t_eval=t_eval)
+
+        if not sol.success:
+            raise om.AnalysisError('solve_ivp failed', sol.message)
 
         # Extract the solution
         pos = 0

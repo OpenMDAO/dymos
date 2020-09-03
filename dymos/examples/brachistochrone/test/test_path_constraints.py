@@ -27,16 +27,13 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
                         units=BrachistochroneODE.states['y']['units'])
         phase.add_state('v', fix_initial=True,
                         rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'])
 
         phase.add_control('theta', units='deg',
-                          targets=BrachistochroneODE.parameters['theta']['targets'],
                           rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_design_parameter('g',
-                                   targets=BrachistochroneODE.parameters['g']['targets'],
-                                   units='m/s**2', opt=False, val=9.80665)
+        phase.add_parameter('g',
+                            units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -85,16 +82,12 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
                         units=BrachistochroneODE.states['y']['units'])
         phase.add_state('v', fix_initial=True,
                         rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'])
 
         phase.add_control('theta', units='deg',
-                          targets=BrachistochroneODE.parameters['theta']['targets'],
                           rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_design_parameter('g',
-                                   targets=BrachistochroneODE.parameters['g']['targets'],
-                                   units='m/s**2', opt=False, val=9.80665)
+        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -145,16 +138,12 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
                         units=BrachistochroneODE.states['y']['units'])
         phase.add_state('v', fix_initial=True,
                         rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'])
 
         phase.add_control('theta', units='deg',
-                          targets=BrachistochroneODE.parameters['theta']['targets'],
                           rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_design_parameter('g',
-                                   targets=BrachistochroneODE.parameters['g']['targets'],
-                                   units='m/s**2', opt=False, val=9.80665)
+        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -204,16 +193,13 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
                         units=BrachistochroneODE.states['y']['units'])
         phase.add_state('v', fix_initial=True,
                         rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'])
 
         phase.add_control('theta', units='deg',
-                          targets=BrachistochroneODE.parameters['theta']['targets'],
                           rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_design_parameter('g',
-                                   targets=BrachistochroneODE.parameters['g']['targets'],
-                                   units='m/s**2', opt=False, val=9.80665)
+        phase.add_parameter('g',
+                            units='m/s**2', opt=False, val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)

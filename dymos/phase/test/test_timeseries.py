@@ -32,20 +32,16 @@ class TestTimeseriesOutput(unittest.TestCase):
                         fix_initial=True, fix_final=True, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
-                          targets=BrachistochroneODE.parameters['theta']['targets'],
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
         if test_smaller_timeseries:
-            phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                       opt=True, units='m/s**2', val=9.80665, include_timeseries=False)
+            phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665, include_timeseries=False)
         else:
-            phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                       opt=True, units='m/s**2', val=9.80665)
+            phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)
@@ -60,7 +56,7 @@ class TestTimeseriesOutput(unittest.TestCase):
         p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-        p['phase0.design_parameters:g'] = 9.80665
+        p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
 
@@ -93,18 +89,18 @@ class TestTimeseriesOutput(unittest.TestCase):
             for i in range(gd.subset_num_nodes['all']):
                 if test_smaller_timeseries:
                     with self.assertRaises(KeyError):
-                        p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+                        p.get_val('phase0.timeseries.parameters:{0}'.format(dp))
                 else:
-                    assert_near_equal(p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
-                                      p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))[i])
+                    assert_near_equal(p.get_val('phase0.parameters:{0}'.format(dp))[0],
+                                      p.get_val('phase0.timeseries.parameters:{0}'.format(dp))[i])
 
         # call simulate to test SolveIVP transcription
         exp_out = phase.simulate()
         if test_smaller_timeseries:
             with self.assertRaises(KeyError):
-                exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
-        else:  # no error accessing timseries.design_parameter
-            exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+                exp_out.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+        else:  # no error accessing timseries.parameter
+            exp_out.get_val('phase0.timeseries.parameters:{0}'.format(dp))
 
     def test_timeseries_gl_smaller_timeseries(self):
         self.test_timeseries_gl(test_smaller_timeseries=True)
@@ -131,20 +127,16 @@ class TestTimeseriesOutput(unittest.TestCase):
                         fix_initial=True, fix_final=True, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        targets=BrachistochroneODE.states['v']['targets'],
                         units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
-                          targets=BrachistochroneODE.parameters['theta']['targets'],
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
 
         if test_smaller_timeseries:
-            phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                       opt=True, units='m/s**2', val=9.80665, include_timeseries=False)
+            phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665, include_timeseries=False)
         else:
-            phase.add_design_parameter('g', targets=BrachistochroneODE.parameters['g']['targets'],
-                                       opt=True, units='m/s**2', val=9.80665)
+            phase.add_parameter('g', opt=True, units='m/s**2', val=9.80665)
 
         # Minimize time at the end of the phase
         phase.add_objective('time_phase', loc='final', scaler=10)
@@ -160,7 +152,7 @@ class TestTimeseriesOutput(unittest.TestCase):
         p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-        p['phase0.design_parameters:g'] = 9.80665
+        p['phase0.parameters:g'] = 9.80665
 
         p.run_driver()
 
@@ -188,19 +180,19 @@ class TestTimeseriesOutput(unittest.TestCase):
             for i in range(gd.subset_num_nodes['all']):
                 if test_smaller_timeseries:
                     with self.assertRaises(KeyError):
-                        p.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+                        p.get_val('phase0.timeseries.parameters:{0}'.format(dp))
                 else:
-                    assert_near_equal(p.get_val('phase0.design_parameters:{0}'.format(dp))[0, :],
-                                      p.get_val('phase0.timeseries.design_parameters:'
+                    assert_near_equal(p.get_val('phase0.parameters:{0}'.format(dp))[0],
+                                      p.get_val('phase0.timeseries.parameters:'
                                                 '{0}'.format(dp))[i])
 
         # call simulate to test SolveIVP transcription
         exp_out = phase.simulate()
         if test_smaller_timeseries:
             with self.assertRaises(KeyError):
-                exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
-        else:  # no error accessing timseries.design_parameter
-            exp_out.get_val('phase0.timeseries.design_parameters:{0}'.format(dp))
+                exp_out.get_val('phase0.timeseries.parameters:{0}'.format(dp))
+        else:  # no error accessing timseries.parameter
+            exp_out.get_val('phase0.timeseries.parameters:{0}'.format(dp))
 
         # Test that the state rates are output in both the radau and solveivp timeseries outputs
         t_sol = p.get_val('phase0.timeseries.time')

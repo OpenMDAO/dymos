@@ -11,8 +11,8 @@ from openmdao.core.system import System
 from openmdao.utils.general_utils import warn_deprecation
 import dymos as dm
 
-from .options import ControlOptionsDictionary, DesignParameterOptionsDictionary, \
-    InputParameterOptionsDictionary, StateOptionsDictionary, TimeOptionsDictionary, \
+from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
+    StateOptionsDictionary, TimeOptionsDictionary, \
     PolynomialControlOptionsDictionary, GridRefinementOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
@@ -56,8 +56,7 @@ class Phase(om.Group):
         self.state_options = {}
         self.control_options = {}
         self.polynomial_control_options = {}
-        self.design_parameter_options = {}
-        self.input_parameter_options = {}
+        self.parameter_options = {}
         self.refine_options = GridRefinementOptionsDictionary()
 
         # Dictionaries of variable options that are set by the user via the API
@@ -76,8 +75,7 @@ class Phase(om.Group):
             self.state_options = from_phase.state_options.copy()
             self.control_options = from_phase.control_options.copy()
             self.polynomial_control_options = from_phase.polynomial_control_options.copy()
-            self.design_parameter_options = from_phase.design_parameter_options.copy()
-            self.input_parameter_options = from_phase.input_parameter_options.copy()
+            self.parameter_options = from_phase.parameter_options.copy()
 
             self.refine_options.update(from_phase.refine_options)
 
@@ -248,15 +246,7 @@ class Phase(om.Group):
         if rate_source is not _unspecified:
             self.state_options[name]['rate_source'] = rate_source
 
-        if targets is None:  # handle None to explicitly do nothing
-            pass
-        elif targets is _unspecified:  # [default] was the same as None
-            # TODO: remove deprecation when this is working as described
-            warn_deprecation("The default behavior of 'targets=_unspecified' is changing. "
-                             "It is currently equivalent to targets=None', but in the future it will try to "
-                             "automatically connect to ODE inputs. Set targets=None to retain the old behavior.")
-            pass  # optional target should be connected only if ODE input exists (checked in configure)
-        elif targets is not _unspecified:  # and not None
+        if targets is not _unspecified:
             if isinstance(targets, str):
                 self.state_options[name]['targets'] = (targets,)
             else:
@@ -305,7 +295,7 @@ class Phase(om.Group):
         """
         Checks that the parameter of the given name is valid.
 
-        First name is checked against all existing states, controls, input parameters, and design
+        First name is checked against all existing states, controls, input parameters, and
         parameters.  If it has already been assigned to one of those, ValueError is raised.
         Finally, if *dynamic* is True, the control is not a dynamic parameter in the ODE,
         ValueError is raised.
@@ -329,10 +319,8 @@ class Phase(om.Group):
             raise ValueError('{0} has already been added as a state.'.format(name))
         elif name in self.control_options:
             raise ValueError('{0} has already been added as a control.'.format(name))
-        elif name in self.design_parameter_options:
-            raise ValueError('{0} has already been added as a design parameter.'.format(name))
-        elif name in self.input_parameter_options:
-            raise ValueError('{0} has already been added as an input parameter.'.format(name))
+        elif name in self.parameter_options:
+            raise ValueError('{0} has already been added as a parameter.'.format(name))
         elif name in self.polynomial_control_options:
             raise ValueError('{0} has already been added as a polynomial control.'.format(name))
 
@@ -529,13 +517,7 @@ class Phase(om.Group):
         if desc is not _unspecified:
             self.control_options[name]['desc'] = desc
 
-        if targets is None:  # handle None to explicitly do nothing
-            pass
-        elif targets is _unspecified:  # [default] was the same as None
-            warn_deprecation("The default behavior of 'targets=_unspecified' is changing. "
-                             "It is currently equivalent to targets=None', but in the future it will try to "
-                             "automatically connect to ODE inputs. Set targets=None to retain the old behavior.")
-        elif targets is not _unspecified:
+        if targets is not _unspecified:
             if isinstance(targets, str):
                 self.control_options[name]['targets'] = (targets,)
             else:
@@ -793,12 +775,171 @@ class Phase(om.Group):
         if ref is not _unspecified:
             self.polynomial_control_options[name]['ref'] = ref
 
+    def add_parameter(self, name, val=_unspecified, units=_unspecified, opt=False,
+                      desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
+                      adder=_unspecified, ref0=_unspecified, ref=_unspecified, targets=_unspecified,
+                      shape=_unspecified, dynamic=_unspecified, include_timeseries=_unspecified):
+        """
+        Add a parameter (static control variable) to the phase.
+
+        Parameters
+        ----------
+        name : str
+            Name of the parameter.
+        val : float or ndarray
+            Default value of the parameter at all nodes.
+        units : str or None or 0
+            Units in which the parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        opt : bool
+            If True, the value(s) of this parameter will be design variables in
+            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
+            If False (default), the this parameter will still be owned by an IndepVarComp in the phase,
+            but it will not be a design variable in the optimization.
+        desc : str
+            A description of the parameter.
+        lower : float or ndarray
+            The lower bound of the parameter value.
+        upper : float or ndarray
+            The upper bound of the parameter value.
+        scaler : float or ndarray
+            The scaler of the parameter value for the optimizer.
+        adder : float or ndarray
+            The adder of the parameter value for the optimizer.
+        ref0 : float or ndarray
+            The zero-reference value of the parameter for the optimizer.
+        ref : float or ndarray
+            The unit-reference value of the parameter for the optimizer.
+        targets : Sequence of str or None
+            Targets in the ODE to which this parameter is connected.
+            In the future, if left _unspecified (the default), the phase parameter will try to connect to an ODE input
+            of the same name. Currently _unspecified is the same as None, but a deprecation warning is issued.
+            Set targets to None to prevent this (the old default behavior).
+        shape : Sequence of int
+            The shape of the parameter.
+        dynamic : bool
+            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
+            of nodes) else False.
+        include_timeseries : bool
+            True if the static parameters should be included in output timeseries, else False.
+        """
+        self.check_parameter(name)
+
+        if name not in self.parameter_options:
+            self.parameter_options[name] = ParameterOptionsDictionary()
+            self.parameter_options[name]['name'] = name
+
+        self.set_parameter_options(name, val, units, opt, desc, lower, upper,
+                                   scaler, adder, ref0, ref, targets, shape, dynamic, include_timeseries)
+
+    def set_parameter_options(self, name, val=_unspecified, units=_unspecified, opt=False,
+                              desc=_unspecified, lower=_unspecified, upper=_unspecified,
+                              scaler=_unspecified, adder=_unspecified, ref0=_unspecified,
+                              ref=_unspecified, targets=_unspecified, shape=_unspecified,
+                              dynamic=_unspecified, include_timeseries=_unspecified):
+        """
+        Set options for an existing parameter (static control variable) in the phase.
+
+        Parameters
+        ----------
+        name : str
+            Name of the parameter.
+        val : float or ndarray
+            Default value of the parameter at all nodes.
+        units : str or None or 0
+            Units in which the parameter is defined.  If 0, use the units declared
+            for the parameter in the ODE.
+        opt : bool
+            If True the value(s) of this parameter will be design variables in
+            the optimization problem, in the path 'phase_name.indep_controls.controls:control_name'.
+            If False (default), the this parameter will still be owned by an IndepVarComp in the phase,
+            but it will not be a design variable in the optimization.
+        desc : str
+            A description of the parameter.
+        lower : float or ndarray
+            The lower bound of the parameter value.
+        upper : float or ndarray
+            The upper bound of the parameter value.
+        scaler : float or ndarray
+            The scaler of the parameter value for the optimizer.
+        adder : float or ndarray
+            The adder of the parameter value for the optimizer.
+        ref0 : float or ndarray
+            The zero-reference value of the parameter for the optimizer.
+        ref : float or ndarray
+            The unit-reference value of the parameter for the optimizer.
+        targets : Sequence of str or None
+            Targets in the ODE to which this parameter is connected.
+            In the future, if left _unspecified (the default), the phase parameter will try to connect to an ODE input
+            of the same name. Currently _unspecified is the same as None, but a deprecation warning is issued.
+            Set targets to None to prevent this (the old default behavior).
+        shape : Sequence of int
+            The shape of the parameter.
+        dynamic : bool
+            True if the targets in the ODE may be dynamic (if the inputs are sized to the number
+            of nodes) else False.
+        include_timeseries : bool
+            True if the static parameters should be included in output timeseries, else False.
+        """
+        if units is not _unspecified:
+            self.parameter_options[name]['units'] = units
+
+        self.parameter_options[name]['opt'] = opt
+
+        if desc is not _unspecified:
+            self.parameter_options[name]['desc'] = desc
+
+        if targets is not _unspecified:
+            if isinstance(targets, str):
+                self.parameter_options[name]['targets'] = (targets,)
+            else:
+                self.parameter_options[name]['targets'] = targets
+
+        if val is not _unspecified:
+            self.parameter_options[name]['val'] = val
+
+        if shape is not _unspecified:
+            self.parameter_options[name]['shape'] = shape
+        elif val is not _unspecified:
+            if isinstance(val, float):
+                self.parameter_options[name]['shape'] = (1,)
+            else:
+                self.parameter_options[name]['shape'] = np.asarray(val).shape
+        else:
+            self.parameter_options[name]['shape'] = (1,)
+
+        if dynamic is not _unspecified:
+            self.parameter_options[name]['dynamic'] = dynamic
+
+        if lower is not _unspecified:
+            self.parameter_options[name]['lower'] = lower
+
+        if upper is not _unspecified:
+            self.parameter_options[name]['upper'] = upper
+
+        if scaler is not _unspecified:
+            self.parameter_options[name]['scaler'] = scaler
+
+        if adder is not _unspecified:
+            self.parameter_options[name]['adder'] = adder
+
+        if ref0 is not _unspecified:
+            self.parameter_options[name]['ref0'] = ref0
+
+        if ref is not _unspecified:
+            self.parameter_options[name]['ref'] = ref
+
+        if include_timeseries is not _unspecified:
+            self.parameter_options[name]['include_timeseries'] = include_timeseries
+
     def add_design_parameter(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
                              desc=_unspecified, lower=_unspecified, upper=_unspecified, scaler=_unspecified,
                              adder=_unspecified, ref0=_unspecified, ref=_unspecified, targets=_unspecified,
                              shape=_unspecified, dynamic=_unspecified, include_timeseries=_unspecified):
         """
         Add a design parameter (static control variable) to the phase.
+
+        This method is deprecated. Use add_parameter instead.
 
         Parameters
         ----------
@@ -841,14 +982,14 @@ class Phase(om.Group):
         include_timeseries : bool
             True if the static design parameters should be included in output timeseries, else False.
         """
-        self.check_parameter(name)
-
-        if name not in self.design_parameter_options:
-            self.design_parameter_options[name] = DesignParameterOptionsDictionary()
-            self.design_parameter_options[name]['name'] = name
-
-        self.set_design_parameter_options(name, val, units, opt, desc, lower, upper,
-                                          scaler, adder, ref0, ref, targets, shape, dynamic, include_timeseries)
+        msg = "DesignParameters and InputParameters are being replaced by Parameters in  " + \
+            "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
+            "deprecation warning."
+        warn_deprecation(msg)
+        self.add_parameter(name, val=val, units=units, opt=opt, desc=desc, lower=lower,
+                           upper=upper, scaler=scaler, adder=adder, ref0=ref0, ref=ref,
+                           targets=targets, shape=shape, dynamic=dynamic,
+                           include_timeseries=include_timeseries)
 
     def set_design_parameter_options(self, name, val=_unspecified, units=_unspecified, opt=_unspecified,
                                      desc=_unspecified, lower=_unspecified, upper=_unspecified,
@@ -899,56 +1040,12 @@ class Phase(om.Group):
         include_timeseries : bool
             True if the static design parameters should be included in output timeseries, else False.
         """
-        if units is not _unspecified:
-            self.design_parameter_options[name]['units'] = units
-
-        if opt is not _unspecified:
-            self.design_parameter_options[name]['opt'] = opt
-
-        if desc is not _unspecified:
-            self.design_parameter_options[name]['desc'] = desc
-
-        if targets is None:  # handle None to explicitly do nothing
-            pass
-        elif targets is _unspecified:  # [default] was the same as None
-            warn_deprecation("The default behavior of 'targets=_unspecified' is changing. "
-                             "It is currently equivalent to targets=None', but in the future it will try to "
-                             "automatically connect to ODE inputs. Set targets=None to retain the old behavior.")
-        elif targets is not _unspecified:
-            if isinstance(targets, str):
-                self.design_parameter_options[name]['targets'] = (targets,)
-            else:
-                self.design_parameter_options[name]['targets'] = targets
-
-        if val is not _unspecified:
-            self.design_parameter_options[name]['val'] = val
-
-        if shape is not _unspecified:
-            self.design_parameter_options[name]['shape'] = shape
-
-        if dynamic is not _unspecified:
-            self.design_parameter_options[name]['dynamic'] = dynamic
-
-        if lower is not _unspecified:
-            self.design_parameter_options[name]['lower'] = lower
-
-        if upper is not _unspecified:
-            self.design_parameter_options[name]['upper'] = upper
-
-        if scaler is not _unspecified:
-            self.design_parameter_options[name]['scaler'] = scaler
-
-        if adder is not _unspecified:
-            self.design_parameter_options[name]['adder'] = adder
-
-        if ref0 is not _unspecified:
-            self.design_parameter_options[name]['ref0'] = ref0
-
-        if ref is not _unspecified:
-            self.design_parameter_options[name]['ref'] = ref
-
-        if include_timeseries is not _unspecified:
-            self.design_parameter_options[name]['include_timeseries'] = include_timeseries
+        msg = "DesignParameters and InputParameters are being replaced by Parameters in  " + \
+            "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
+            "deprecation warning."
+        warn_deprecation(msg)
+        self.set_parameter_options(name, val, units, opt, desc, lower, upper,
+                                   scaler, adder, ref0, ref, targets, shape, dynamic, include_timeseries)
 
     def add_input_parameter(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
                             desc=_unspecified, shape=_unspecified, dynamic=_unspecified,
@@ -956,14 +1053,16 @@ class Phase(om.Group):
         """
         Add an input parameter to the phase.
 
+        This method is deprecated. Use add_parameter instead.
+
         Parameters
         ----------
         name : str
             Name of the ODE parameter to be controlled via this input parameter.
         val : float or ndarray
-            Default value of the design parameter at all nodes.
+            Default value of the input parameter at all nodes.
         units : str or None or 0
-            Units in which the design parameter is defined.  If 0, use the units declared
+            Units in which the input parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
@@ -977,42 +1076,12 @@ class Phase(om.Group):
         include_timeseries : bool
             True if the static input parameters should be included in output timeseries, else False.
         """
-        self.check_parameter(name)
-
-        if name not in self.input_parameter_options:
-            self.input_parameter_options[name] = InputParameterOptionsDictionary()
-            self.input_parameter_options[name]['name'] = name
-
-        if units is not _unspecified:
-            self.input_parameter_options[name]['units'] = units
-
-        if val is not _unspecified:
-            self.input_parameter_options[name]['val'] = val
-
-        if desc is not _unspecified:
-            self.input_parameter_options[name]['desc'] = desc
-
-        if targets is not _unspecified:
-            if isinstance(targets, str):
-                self.input_parameter_options[name]['targets'] = (targets,)
-            else:
-                self.input_parameter_options[name]['targets'] = targets
-
-        if shape is not _unspecified:
-            self.input_parameter_options[name]['shape'] = shape
-        elif val is not _unspecified:
-            if isinstance(val, float):
-                self.input_parameter_options[name]['shape'] = (1,)
-            else:
-                self.input_parameter_options[name]['shape'] = np.asarray(val).shape
-        else:
-            self.input_parameter_options[name]['shape'] = (1,)
-
-        if dynamic is not _unspecified:
-            self.input_parameter_options[name]['dynamic'] = dynamic
-
-        if include_timeseries is not _unspecified:
-            self.input_parameter_options[name]['include_timeseries'] = include_timeseries
+        msg = "DesignParameters and InputParameters are being replaced by Parameters in  " + \
+            "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
+            "deprecation warning."
+        warn_deprecation(msg)
+        self.add_parameter(name, val=val, units=units, desc=desc, targets=targets, shape=shape,
+                           dynamic=dynamic, include_timeseries=include_timeseries)
 
     def set_input_parameter_options(self, name, val=_unspecified, units=_unspecified, targets=_unspecified,
                                     desc=_unspecified, shape=_unspecified, dynamic=_unspecified,
@@ -1025,9 +1094,9 @@ class Phase(om.Group):
         name : str
             Name of the ODE parameter to be controlled via this input parameter.
         val : float or ndarray
-            Default value of the design parameter at all nodes.
+            Default value of the input parameter at all nodes.
         units : str or None or 0
-            Units in which the design parameter is defined.  If 0, use the units declared
+            Units in which the input parameter is defined.  If 0, use the units declared
             for the parameter in the ODE.
         targets : Sequence of str or None
             Targets in the ODE to which this parameter is connected.
@@ -1041,36 +1110,12 @@ class Phase(om.Group):
         include_timeseries : bool
             True if the static input parameters should be included in output timeseries, else False.
         """
-        if units is not _unspecified:
-            self.input_parameter_options[name]['units'] = units
-
-        if val is not _unspecified:
-            self.input_parameter_options[name]['val'] = val
-
-        if desc is not _unspecified:
-            self.input_parameter_options[name]['desc'] = desc
-
-        if targets is not _unspecified:
-            if isinstance(targets, str):
-                self.input_parameter_options[name]['targets'] = (targets,)
-            else:
-                self.input_parameter_options[name]['targets'] = targets
-
-        if shape is not _unspecified:
-            self.input_parameter_options[name]['shape'] = shape
-        elif val is not _unspecified:
-            if isinstance(val, float):
-                self.input_parameter_options[name]['shape'] = (1,)
-            else:
-                self.input_parameter_options[name]['shape'] = np.asarray(val).shape
-        else:
-            self.input_parameter_options[name]['shape'] = (1,)
-
-        if dynamic is not _unspecified:
-            self.input_parameter_options[name]['dynamic'] = dynamic
-
-        if include_timeseries is not _unspecified:
-            self.input_parameter_options[name]['include_timeseries'] = include_timeseries
+        msg = "DesignParameters and InputParameters are being replaced by Parameters in  " + \
+            "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
+            "deprecation warning."
+        warn_deprecation(msg)
+        self.set_parameter_options(name, val, units, targets, desc, shape, dynamic,
+                                   include_timeseries)
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,
                                 shape=None, indices=None, lower=None, upper=None, equals=None,
@@ -1095,7 +1140,7 @@ class Phase(om.Group):
             the variables units.
         shape : tuple, list, ndarray, or None
             The shape of the variable being boundary-constrained.  This can be inferred
-            automatically for time, states, controls, and input/design parameters, but is required
+            automatically for time, states, controls, and parameters, but is required
             if the constrained variable is an output of the ODE system.
         indices : tuple, list, ndarray, or None
             The indices of the output variable to be boundary constrained.  Indices assumes C-order
@@ -1167,7 +1212,7 @@ class Phase(om.Group):
             the variables units.
         shape : tuple, list, ndarray, or None
             The shape of the variable being boundary-constrained.  This can be inferred
-            automatically for time, states, controls, and input/design parameters, but is required
+            automatically for time, states, controls, and parameters, but is required
             if the constrained variable is an output of the ODE system.
         indices : tuple, list, ndarray, or None
             The indices of the output variable to be path constrained.  Indices assumes C-order
@@ -1476,8 +1521,8 @@ class Phase(om.Group):
             The classification of the given variable, which is one of
             'time', 'state', 'input_control', 'indep_control', 'control_rate',
             'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
-            'polynomial_control_rate', 'polynomial_control_rate2', 'design_parameter',
-            'input_parameter', or 'ode'.
+            'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
+            or 'ode'.
 
         """
         if var == 'time':
@@ -1496,10 +1541,8 @@ class Phase(om.Group):
                 return 'indep_polynomial_control'
             else:
                 return 'input_polynomial_control'
-        elif var in self.design_parameter_options:
-            return 'design_parameter'
-        elif var in self.input_parameter_options:
-            return 'input_parameter'
+        elif var in self.parameter_options:
+            return 'parameter'
         elif var.endswith('_rate') and var[:-5] in self.control_options:
             return 'control_rate'
         elif var.endswith('_rate2') and var[:-6] in self.control_options:
@@ -1542,11 +1585,8 @@ class Phase(om.Group):
         if self.polynomial_control_options:
             transcription.setup_polynomial_controls(self)
 
-        if self.design_parameter_options:
-            transcription.setup_design_parameters(self)
-
-        if self.input_parameter_options:
-            transcription.setup_input_parameters(self)
+        if self.parameter_options:
+            transcription.setup_parameters(self)
 
         transcription.setup_states(self)
         self._check_ode()
@@ -1562,20 +1602,6 @@ class Phase(om.Group):
         transcription.setup_solvers(self)
 
     def configure(self):
-        # can't check ODE inputs in setup, soon you will be able to check them for children in configure
-        # need to move connect calls in transcription.setup_controls below to configure so that they
-        # can be skipped for non-ODE unspecified targets
-
-        # check that unspecified options exist in ODE or delete them
-        for k, v in self.state_options.items():
-            t = v['targets']
-            if t is _unspecified:
-                print('handle ODE check for ', k)
-                if False:  # TODO: if ODE input exists (how to check?) replace with real target
-                    self.state_options[k]['targets'] = (k,)
-                else:
-                    self.state_options[k]['targets'] = None  # else remove the target
-
         # Finalize the variables if it hasn't happened already.
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
@@ -1588,11 +1614,8 @@ class Phase(om.Group):
         if self.polynomial_control_options:
             transcription.configure_polynomial_controls(self)
 
-        if self.design_parameter_options:
-            transcription.configure_design_parameters(self)
-
-        if self.input_parameter_options:
-            transcription.configure_input_parameters(self)
+        if self.parameter_options:
+            transcription.configure_parameters(self)
 
         transcription.configure_states(self)
         transcription.configure_ode(self)
@@ -1677,9 +1700,9 @@ class Phase(om.Group):
                 self.control_options[name]['rate_continuity'] = False
                 self.control_options[name]['rate2_continuity'] = False
 
-    def _check_design_parameter_options(self):
+    def _check_parameter_options(self):
         """
-        Check that design parameter options are valid and issue warnings if invalid
+        Check that parameter options are valid and issue warnings if invalid
         options are provided.
 
         Warnings
@@ -1687,14 +1710,14 @@ class Phase(om.Group):
         RuntimeWarning
             RuntimeWarning is issued in the case of one or more invalid time options.
         """
-        for name, options in self.design_parameter_options.items():
+        for name, options in self.parameter_options.items():
             if not options['opt']:
                 invalid_options = []
                 for opt in 'lower', 'upper', 'scaler', 'adder', 'ref', 'ref0':
                     if options[opt] is not None:
                         invalid_options.append(opt)
                 if invalid_options:
-                    warnings.warn('Invalid options for non-optimal design_parameter \'{0}\' in '
+                    warnings.warn('Invalid options for non-optimal parameter \'{0}\' in '
                                   'phase \'{1}\': {2}'.format(name, self.name, ', '.join(invalid_options)),
                                   RuntimeWarning)
 
@@ -1807,20 +1830,26 @@ class Phase(om.Group):
 
         return sim_phase
 
-    def initialize_values_from_phase(self, prob, from_phase):
+    def initialize_values_from_phase(self, prob, from_phase, phase_path='', skip_params=None):
         """
         Initializes values in the Phase using the phase from which it was created.
 
         Parameters
         ----------
         prob : Problem
-            The problem instance under used to set values in this phase instance.
+            The problem instance to set values taken from the from_phase instance.
         from_phase : Phase
             The Phase instance from which the values in this phase are being initialized.
+        phase_path : str
+            The pathname of the system in prob that contains the phases.
+        skip_params : None or set.
+            Parameter names that will be skipped because they have already been initialized at the
+            trajetory level.
         """
         phs = from_phase
 
         op_dict = dict([(name, options) for (name, options) in phs.list_outputs(units=True,
+                                                                                list_autoivcs=True,
                                                                                 out_stream=None)])
         ip_dict = dict([(name, options) for (name, options) in phs.list_inputs(units=True,
                                                                                out_stream=None)])
@@ -1833,44 +1862,57 @@ class Phase(om.Group):
             self_path = self.pathname.split('.')[0] + '.' + self.name + '.'
 
         # Set the integration times
-        op = op_dict['{0}timeseries.time'.format(phs_path)]
-        prob.set_val('{0}t_initial'.format(self_path), op['value'][0, ...])
-        prob.set_val('{0}t_duration'.format(self_path), op['value'][-1, ...] - op['value'][0, ...])
+        op = op_dict['timeseries.time']
+        prob.set_val(f'{self_path}t_initial', op['value'][0, ...])
+        prob.set_val(f'{self_path}t_duration', op['value'][-1, ...] - op['value'][0, ...])
 
         # Assign initial state values
         for name in phs.state_options:
-            op = op_dict['{0}timeseries.states:{1}'.format(phs_path, name)]
-            prob['{0}initial_states:{1}'.format(self_path, name)][...] = op['value'][0, ...]
+            op = op_dict[f'timeseries.states:{name}']
+            prob[f'{self_path}initial_states:{name}'][...] = op['value'][0, ...]
 
         # Assign control values
         for name, options in phs.control_options.items():
             if options['opt']:
-                op = op_dict['{0}control_group.indep_controls.controls:{1}'.format(phs_path, name)]
-                prob['{0}controls:{1}'.format(self_path, name)][...] = op['value']
+                op = op_dict[f'control_group.indep_controls.controls:{name}']
+                prob[f'{self_path}controls:{name}'][...] = op['value']
             else:
-                ip = ip_dict['{0}control_group.control_interp_comp.controls:{1}'.format(phs_path, name)]
+                ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
                 prob['{0}controls:{1}'.format(self_path, name)][...] = ip['value']
 
         # Assign polynomial control values
         for name, options in phs.polynomial_control_options.items():
             if options['opt']:
-                op = op_dict['{0}polynomial_control_group.indep_polynomial_controls.'
-                             'polynomial_controls:{1}'.format(phs_path, name)]
-                prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = op['value']
+                op = op_dict[f'polynomial_control_group.indep_polynomial_controls.'
+                             f'polynomial_controls:{name}']
+                prob[f'{self_path}polynomial_controls:{name}'][...] = op['value']
             else:
-                ip = ip_dict['{0}polynomial_control_group.interp_comp.'
-                             'polynomial_controls:{1}'.format(phs_path, name)]
+                ip = ip_dict[f'{phs_path}polynomial_control_group.interp_comp.'
+                             f'polynomial_controls:{name}']
                 prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
 
-        # Assign design parameter values
-        for name in phs.design_parameter_options:
-            op = op_dict['{0}design_params.design_parameters:{1}'.format(phs_path, name)]
-            prob['{0}design_parameters:{1}'.format(self_path, name)][...] = op['value']
+        # Assign parameter values
+        meta = phs._problem_meta
+        prom2abs = meta['prom2abs']
+        conns = meta['model_ref']()._conn_global_abs_in2out
+        pname = '{0}parameters:{1}'
+        for name in phs.parameter_options:
 
-        # Assign input parameter values
-        for name in phs.input_parameter_options:
-            op = op_dict['{0}input_params.input_parameters:{1}_out'.format(phs_path, name)]
-            prob['{0}input_parameters:{1}'.format(self_path, name)][...] = op['value']
+            if skip_params and name in skip_params:
+                continue
+
+            prom_phs_path = pname.format(phs_path.replace('.phases.', '.'), name)
+            abs_in = prom2abs['input'][prom_phs_path][0]
+            src = conns[abs_in]
+
+            # We use this private function to grab the correctly sized variable from the
+            # auto_ivc source.
+            val = phs._abs_get_val(src, False, None, 'nonlinear', 'output', False, from_root=True)
+            if phase_path:
+                prob_path = '{0}.{1}.parameters:{2}'.format(phase_path, self.name, name)
+            else:
+                prob_path = '{0}.parameters:{1}'.format(self.name, name)
+            prob[prob_path][...] = val
 
     def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9,
                  record_file=None):

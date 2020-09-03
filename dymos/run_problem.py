@@ -1,5 +1,4 @@
 from .grid_refinement.ph_adaptive.ph_adaptive import PHAdaptive
-from .grid_refinement.hp_adaptive.hp_adaptive import HPAdaptive
 from .phase.phase import Phase
 
 import openmdao.api as om
@@ -7,6 +6,7 @@ import dymos as dm
 import numpy as np
 from dymos.trajectory.trajectory import Trajectory
 from dymos.load_case import load_case, find_phases
+from dymos.grid_refinement.error_estimation import check_error
 import os
 import sys
 
@@ -14,7 +14,6 @@ import sys
 def modify_problem(problem, restart=None, reset_grid=False):
     """
     Modifies the problem object by loading in a guess from a specified restart file.
-
     Parameters
     ----------
     problem : om.Problem
@@ -71,13 +70,11 @@ def modify_problem(problem, restart=None, reset_grid=False):
             load_case(problem, case)
 
 
-def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=True, simulate=False, no_iterate=False,
-                refine_method='ph'):
+def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=True, simulate=False, no_iterate=False):
     """
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
     Phases.  This function can iteratively call run_driver to perform grid refinement, and automatically
     call simulate following a run to check the validity of a result.
-
     Parameters
     ----------
     problem : om.Problem
@@ -109,87 +106,41 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
         out_file = 'grid_refinement.out'
 
         phases = find_phases(problem.model)
-        if refine_method == 'ph':
-            ref = PHAdaptive(phases)
-            with open(out_file, 'w+') as f:
 
-                for i in range(refine_iteration_limit):
-                    refine_results = ref.check_error()
+        ref = PHAdaptive(phases)
+        with open(out_file, 'w+') as f:
 
-                    ref.refine(refine_results)
+            for i in range(refine_iteration_limit):
+                refine_results = check_error(phases)
 
-                    for stream in f, sys.stdout:
-                        ref.write_iteration(stream, i, phases, refine_results)
+                ref.refine(refine_results)
 
-                    refined_phases = [phase_path for phase_path in refine_results if
-                                      phases[phase_path].refine_options['refine'] and
-                                      np.any(refine_results[phase_path]['need_refinement'])]
+                for stream in f, sys.stdout:
+                    ref.write_iteration(stream, i, phases, refine_results)
 
-                    if not refined_phases:
-                        break
+                refined_phases = [phase_path for phase_path in refine_results if
+                                  phases[phase_path].refine_options['refine'] and
+                                  np.any(refine_results[phase_path]['need_refinement'])]
 
-                    prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
-                                 'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
+                if not refined_phases:
+                    break
 
-                    # TODO: Until this is fixed in OpenMDAO 3.0.1
-                    if isinstance(problem.driver, om.pyOptSparseDriver):
-                        problem.driver._res_jacs = {}
+                prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
+                             'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 
-                    problem.setup()
+                problem.setup()
 
-                    load_case(problem, prev_soln)
+                load_case(problem, prev_soln)
 
-                    problem.run_driver()
-                for stream in [f, sys.stdout]:
-                    if i == refine_iteration_limit-1:
-                        print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
-                    else:
-                        print('Successfully completed grid refinement.', file=stream)
-                print(50 * '=')
-
-        elif refine_method == 'hp':
-            ref = HPAdaptive(phases)
-            with open(out_file, 'w+') as f:
-                refine_results = ref.check_error()
-                ref.refine_first_iter(refine_results)
-                for i in range(1, refine_iteration_limit):
-                    ref.iteration_number = i
-
-                    for stream in f, sys.stdout:
-                        ref.write_iteration(stream, i, phases, refine_results)
-
-                    refined_phases = [phase_path for phase_path in refine_results if
-                                      phases[phase_path].refine_options['refine'] and
-                                      np.any(refine_results[phase_path]['need_refinement'])]
-
-                    if not refined_phases:
-                        break
-
-                    prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
-                                 'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
-
-                    # TODO: Until this is fixed in OpenMDAO 3.0.1
-                    if isinstance(problem.driver, om.pyOptSparseDriver):
-                        problem.driver._res_jacs = {}
-
-                    problem.setup()
-
-                    load_case(problem, prev_soln)
-
-                    problem.run_driver()
-
-                    refine_results = ref.check_error()
-
-                    ref.refine(refine_results)
-
-                for stream in [f, sys.stdout]:
-                    if i == refine_iteration_limit - 1:
-                        print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
-                    else:
-                        print('Successfully completed grid refinement.', file=stream)
-                print(50 * '=')
+                problem.run_driver()
+            for stream in [f, sys.stdout]:
+                if i == refine_iteration_limit-1:
+                    print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
+                else:
+                    print('Successfully completed grid refinement.', file=stream)
+            print(50 * '=')
 
     if simulate:
-        for subsys, local in problem.model._all_subsystem_iter():
+        for subsys in problem.model.system_iter(include_self=True, recurse=True):
             if isinstance(subsys, Trajectory):
                 subsys.simulate(record_file='dymos_simulation.db')

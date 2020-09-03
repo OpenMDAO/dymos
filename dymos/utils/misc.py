@@ -42,6 +42,52 @@ def get_rate_units(units, time_units, deriv=1):
     return rate_units
 
 
+def get_targets(ode, name, user_targets):
+    """
+    Return the targets of a state variable in a given ODE system.
+    If the targets of the state is _unspecified, and the state name is a top level input name
+    in the ODE, then the state values are automatically connected to that top-level input.
+    If _unspecified and not a top-level input of the ODE, no connection is made.
+    If targets is explicitly None, then no connection is made.
+    Otherwise, if the user specified some other string or sequence of strings as targets, then
+    those are returned.
+    Parameters
+    ----------
+    ode : om.System
+        The OpenMDAO system which serves as the ODE for dymos.  This system should already have
+        had its setup and configure methods called.
+    name : str
+        The name of the state variable whose targets are desired.
+    user_targets : str or None or Sequence or _unspecified
+        Targets for the variable as given by the user.
+    Returns
+    -------
+    list
+        The target inputs of the state variable in the ODE, as a list.
+    Notes
+    -----
+    This method requires that the ODE has run its setup and configure methods.  Thus,
+    this method should be called from configure of some parent Group, and the ODE should
+    be a system within that Group.
+    """
+    ode_inputs = [opts['prom_name'] for (k, opts) in ode.get_io_metadata(iotypes=('input',)).items()]
+
+    if user_targets is _unspecified:
+        if name in ode_inputs:
+            targets = [name]
+        else:
+            targets = []
+    elif user_targets:
+        if isinstance(user_targets, str):
+            targets = [user_targets]
+        else:
+            targets = user_targets
+    else:
+        targets = []
+
+    return targets
+
+
 class CoerceDesvar(object):
     """
     Check the desvar options for the appropriate shape and resize

@@ -43,12 +43,12 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     phase.add_state('y', fix_initial=True, fix_final=False, solve_segments=False,
                     units='m', rate_source='ydot')
     phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=False,
-                    units='m/s', rate_source='vdot', targets=['v'])
+                    units='m/s', rate_source='vdot')
 
     phase.add_control('theta', continuity=True, rate_continuity=True,
-                      units='deg', lower=0.01, upper=179.9, targets=['theta'])
+                      units='deg', lower=0.01, upper=179.9)
 
-    phase.add_input_parameter('g', units='m/s**2', val=9.80665, targets=['g'])
+    phase.add_parameter('g', units='m/s**2', val=9.80665, targets=['g'])
 
     phase.add_boundary_constraint('x', loc='final', equals=10)
     phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -65,7 +65,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
     p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
     p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
-    p['phase0.input_parameters:g'] = 9.80665
+    p['phase0.parameters:g'] = 9.80665
 
     p.run_driver()
 
@@ -89,7 +89,7 @@ class BenchmarkBrachistochrone(unittest.TestCase):
         v0 = p.get_val('phase0.timeseries.states:v')[0]
         vf = p.get_val('phase0.timeseries.states:v')[-1]
 
-        g = p.get_val('phase0.timeseries.input_parameters:g')[0]
+        g = p.get_val('phase0.timeseries.parameters:g')[0]
 
         thetaf = p.get_val('phase0.timeseries.controls:theta')[-1]
 

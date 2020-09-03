@@ -26,13 +26,13 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=True)
+        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
         p.driver.options['optimizer'] = optimizer
 
         p.driver.declare_coloring()
 
-        traj.add_design_parameter('c', opt=False, val=1.5, units='DU/TU',
-                                  targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
+        traj.add_parameter('c', opt=False, val=1.5, units='DU/TU',
+                           targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
 
         # First Phase (burn)
 
@@ -67,12 +67,10 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10, units='TU')
 
-        # TODO Moving add_state('theta'... after add_state('r',... causes the
-        # coloring to be invalid with scipy > 1.0.1
-        coast.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
-                        units='rad', rate_source='theta_dot', targets=['theta'])
         coast.add_state('r', fix_initial=False, fix_final=False, defect_scaler=100.0,
                         rate_source='r_dot', targets=['r'], units='DU')
+        coast.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        units='rad', rate_source='theta_dot', targets=['theta'])
         coast.add_state('vr', fix_initial=False, fix_final=False, defect_scaler=100.0,
                         rate_source='vr_dot', targets=['vr'], units='DU/TU')
         coast.add_state('vt', fix_initial=False, fix_final=False, defect_scaler=100.0,
@@ -81,7 +79,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                         rate_source='at_dot', targets=['accel'], units='DU/TU**2')
         coast.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
-        coast.add_control('u1', targets=['u1'], opt=False, val=0.0, units='deg')
+        coast.add_parameter('u1', targets=['u1'], opt=False, val=0.0, units='deg')
 
         # Third Phase (burn)
 
@@ -118,7 +116,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         # Link Phases
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],
-                         vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
+                         vars=['time', 'r', 'vr', 'vt', 'deltav'])
         traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
         # Finish Problem Setup
@@ -127,7 +125,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.setup(check=True, force_alloc_complex=True)
 
         # Set Initial Guesses
-        p.set_val('traj.design_parameters:c', value=1.5)
+        p.set_val('traj.parameters:c', value=1.5)
 
         p.set_val('traj.burn1.t_initial', value=0.0)
         p.set_val('traj.burn1.t_duration', value=2.25)
@@ -160,8 +158,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                   value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
         p.set_val('traj.coast.states:accel',
                   value=coast.interpolate(ys=[0, 0], nodes='state_input'))
-        # p.set_val('traj.coast.controls:u1',
-        #           value=coast.interpolate(ys=[0, 0], nodes='control_input'))
 
         p.set_val('traj.burn2.t_initial', value=5.25)
         p.set_val('traj.burn2.t_duration', value=1.75)

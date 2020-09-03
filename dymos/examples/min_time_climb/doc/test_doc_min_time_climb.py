@@ -5,9 +5,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
+from dymos.utils.doc_utils import save_for_docs
+
 
 class TestMinTimeClimbForDocs(unittest.TestCase):
 
+    @save_for_docs
     def test_min_time_climb_for_docs_gauss_lobatto(self):
         import matplotlib.pyplot as plt
 
@@ -51,27 +54,27 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
 
         phase.add_state('h', fix_initial=True, lower=0, upper=20000.0,
                         ref=1.0E2, defect_ref=1.0E2, units='m',
-                        rate_source='flight_dynamics.h_dot', targets=['h'])
+                        rate_source='flight_dynamics.h_dot')
 
         phase.add_state('v', fix_initial=True, lower=10.0,
                         ref=1.0E2, defect_ref=1.0E2, units='m/s',
-                        rate_source='flight_dynamics.v_dot', targets=['v'])
+                        rate_source='flight_dynamics.v_dot')
 
         phase.add_state('gam', fix_initial=True, lower=-1.5, upper=1.5,
                         ref=1.0, defect_ref=1.0, units='rad',
-                        rate_source='flight_dynamics.gam_dot', targets=['gam'])
+                        rate_source='flight_dynamics.gam_dot')
 
         phase.add_state('m', fix_initial=True, lower=10.0, upper=1.0E5,
                         ref=1.0E3, defect_ref=1.0E3, units='kg',
-                        rate_source='prop.m_dot', targets=['m'])
+                        rate_source='prop.m_dot')
 
         phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
                           rate_continuity=True, rate_continuity_scaler=100.0,
                           rate2_continuity=False, targets=['alpha'])
 
-        phase.add_design_parameter('S', val=49.2386, units='m**2', opt=False, targets=['S'])
-        phase.add_design_parameter('Isp', val=1600.0, units='s', opt=False, targets=['Isp'])
-        phase.add_design_parameter('throttle', val=1.0, opt=False, targets=['throttle'])
+        phase.add_parameter('S', val=49.2386, units='m**2', opt=False, targets=['S'])
+        phase.add_parameter('Isp', val=1600.0, units='s', opt=False, targets=['Isp'])
+        phase.add_parameter('throttle', val=1.0, opt=False, targets=['throttle'])
 
         #
         # Setup the boundary and path constraints
