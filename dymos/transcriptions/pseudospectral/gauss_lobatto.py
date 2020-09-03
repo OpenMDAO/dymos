@@ -283,8 +283,8 @@ class GaussLobatto(PseudospectralBase):
                 shape = (1,) if options['shape'] is None else options['shape']
                 units = options['units']
 
-                if output_name in interleave_comp.vars:
-                    continue
+                # if output_name in interleave_comp.vars:
+                #     continue
 
                 interleave_comp.add_var(output_name, shape, units)
 
