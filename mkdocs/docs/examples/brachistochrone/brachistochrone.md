@@ -110,12 +110,7 @@ The following is a test method which creates a new OpenMDAO problem whose model 
 The problem is setup with the `force_alloc_complex=True` argument to enable complex-step approximation of the derivatives.
 Complex step typically produces derivative approximations with an error on the order of 1.0E-16, as opposed to ~1.0E-6 for forward finite difference approximations.
 
-=== "test_brachistochrone_partials.py"  
-{{ inline_source('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochroneForDocs.test_brachistochrone_partials',
-include_def=True,  
-include_docstring=True,  
-indent_level=0)  
-}}
+{{ embed_test('dymos.examples.brachistochrone.doc.test_doc_brachistochrone.TestBrachistochroneForDocs.test_brachistochrone_partials') }}
 
 ## Solving the Problem
 
