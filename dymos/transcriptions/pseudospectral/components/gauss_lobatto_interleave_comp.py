@@ -29,7 +29,16 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
             The shape of the variable at each instance in time.
         units : str
             The units of the variable.
+
+        Returns
+        -------
+        success : bool
+            True if the variable was added to the interleave comp, False if not due to it already
+            being there.
         """
+        if name in self._varnames:
+            return False
+
         num_disc_nodes = self.options['grid_data'].subset_num_nodes['state_disc']
         num_col_nodes = self.options['grid_data'].subset_num_nodes['col']
         num_nodes = self.options['grid_data'].subset_num_nodes['all']
@@ -74,6 +83,8 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
         self.declare_partials(of=self._varnames[name]['all'],
                               wrt=self._varnames[name]['col'],
                               rows=r, cols=c, val=1.0)
+
+        return True
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         disc_idxs = self.options['grid_data'].subset_node_indices['disc']

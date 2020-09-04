@@ -209,12 +209,18 @@ class GaussLobatto(PseudospectralBase):
                           'interleave_comp.col_values:state_rates:{0}'.format(name),
                           src_indices=col_src_idxs, flat_src_indices=True)
 
+        self.configure_interleave_comp(phase)
+
     def setup_interleave_comp(self, phase):
+        interleave_comp = GaussLobattoInterleaveComp(grid_data=self.grid_data)
+        phase.add_subsystem('interleave_comp', interleave_comp)
+
+    def configure_interleave_comp(self, phase):
+
         num_input_nodes = self.grid_data.subset_num_nodes['state_input']
 
         map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
 
-        interleave_comp = GaussLobattoInterleaveComp(grid_data=self.grid_data)
         time_units = phase.time_options['units']
         #
         # First do the states
@@ -223,6 +229,8 @@ class GaussLobatto(PseudospectralBase):
             shape = options['shape']
             units = options['units']
             rate_source = options['rate_source']
+
+            interleave_comp = phase._get_subsystem('interleave_comp')
 
             interleave_comp.add_var('states:{0}'.format(state_name), shape, units)
             interleave_comp.add_var('state_rates:{0}'.format(state_name), shape,
@@ -255,15 +263,11 @@ class GaussLobatto(PseudospectralBase):
             units = options['units']
             con_name = options['constraint_name']
 
-            if con_name in interleave_comp.vars:
-                continue
-
-            interleave_comp.add_var(con_name, shape, units)
-
-            phase.connect(src_name='rhs_disc.{0}'.format(var),
-                          tgt_name='interleave_comp.disc_values:{0}'.format(con_name))
-            phase.connect(src_name='rhs_col.{0}'.format(var),
-                          tgt_name='interleave_comp.col_values:{0}'.format(con_name))
+            if interleave_comp.add_var(con_name, shape, units):
+                phase.connect(src_name='rhs_disc.{0}'.format(var),
+                              tgt_name='interleave_comp.disc_values:{0}'.format(con_name))
+                phase.connect(src_name='rhs_col.{0}'.format(var),
+                              tgt_name='interleave_comp.col_values:{0}'.format(con_name))
 
         #
         # Do the timeseries outputs
@@ -292,8 +296,6 @@ class GaussLobatto(PseudospectralBase):
                               tgt_name='interleave_comp.disc_values:{0}'.format(output_name))
                 phase.connect(src_name='rhs_col.{0}'.format(var),
                               tgt_name='interleave_comp.col_values:{0}'.format(output_name))
-
-        phase.add_subsystem('interleave_comp', interleave_comp)
 
     def setup_defects(self, phase):
         super(GaussLobatto, self).setup_defects(phase)
