@@ -249,27 +249,6 @@ class GaussLobatto(PseudospectralBase):
                           'interleave_comp.col_values:states:{0}'.format(state_name))
 
         #
-        # Do the path constraints
-        #
-        for var, options in phase._path_constraints.items():
-
-            var_type = phase.classify_var(var)
-
-            # We only need to interleave state variables (covered above) and ODE outputs
-            if var_type != 'ode':
-                continue
-
-            shape = (1,) if options['shape'] is None else options['shape']
-            units = options['units']
-            con_name = options['constraint_name']
-
-            if interleave_comp.add_var(con_name, shape, units):
-                phase.connect(src_name='rhs_disc.{0}'.format(var),
-                              tgt_name='interleave_comp.disc_values:{0}'.format(con_name))
-                phase.connect(src_name='rhs_col.{0}'.format(var),
-                              tgt_name='interleave_comp.col_values:{0}'.format(con_name))
-
-        #
         # Do the timeseries outputs
         #
         for timeseries_name, timeseries_options in phase._timeseries.items():
@@ -320,100 +299,19 @@ class GaussLobatto(PseudospectralBase):
                           src_indices=src_idxs, flat_src_indices=True)
 
     def setup_path_constraints(self, phase):
-        path_comp = None
         gd = self.grid_data
-        time_units = phase.time_options['units']
 
         if phase._path_constraints:
             path_comp = PathConstraintComp(num_nodes=gd.num_nodes)
             phase.add_subsystem('path_constraints', subsys=path_comp)
 
-        for var, options in phase._path_constraints.items():
-            con_units = options.get('units', None)
-            con_name = options['constraint_name']
-
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
-
-            if var_type == 'time':
-                options['shape'] = (1,)
-                options['units'] = time_units if con_units is None else con_units
-                options['linear'] = True
-
-            elif var_type == 'time_phase':
-                options['shape'] = (1,)
-                options['units'] = time_units if con_units is None else con_units
-                options['linear'] = True
-
-            elif var_type == 'state':
-                state_shape = phase.state_options[var]['shape']
-                state_units = phase.state_options[var]['units']
-                options['shape'] = state_shape
-                options['units'] = state_units if con_units is None else con_units
-                options['linear'] = False
-
-            elif var_type in ('indep_control', 'input_control'):
-                control_shape = phase.control_options[var]['shape']
-                control_units = phase.control_options[var]['units']
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True
-
-            elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
-                control_shape = phase.polynomial_control_options[var]['shape']
-                control_units = phase.polynomial_control_options[var]['units']
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = False
-
-            elif var_type == 'control_rate':
-                control_name = var[:-5]
-                control_shape = phase.control_options[control_name]['shape']
-                control_units = phase.control_options[control_name]['units']
-                options['shape'] = control_shape
-                options['units'] = get_rate_units(control_units, time_units, deriv=1) \
-                    if con_units is None else con_units
-
-            elif var_type == 'control_rate2':
-                control_name = var[:-6]
-                control_shape = phase.control_options[control_name]['shape']
-                control_units = phase.control_options[control_name]['units']
-                options['shape'] = control_shape
-                options['units'] = get_rate_units(control_units, time_units, deriv=2) \
-                    if con_units is None else con_units
-
-            elif var_type == 'polynomial_control_rate':
-                control_name = var[:-5]
-                control_shape = phase.polynomial_control_options[control_name]['shape']
-                control_units = phase.polynomial_control_options[control_name]['units']
-                options['shape'] = control_shape
-                options['units'] = get_rate_units(control_units, time_units, deriv=1) \
-                    if con_units is None else con_units
-
-            elif var_type == 'polynomial_control_rate2':
-                control_name = var[:-6]
-                control_shape = phase.polynomial_control_options[control_name]['shape']
-                control_units = phase.polynomial_control_options[control_name]['units']
-                options['shape'] = control_shape
-                options['units'] = get_rate_units(control_units, time_units, deriv=2) \
-                    if con_units is None else con_units
-
-            else:
-                # Failed to find variable, assume it is in the ODE
-                options['linear'] = False
-                if options['shape'] is None:
-                    options['shape'] = (1,)
-
-            kwargs = options.copy()
-            kwargs.pop('constraint_name', None)
-            path_comp._add_path_constraint(con_name, var_type, **kwargs)
-
     def configure_path_constraints(self, phase):
+        time_units = phase.time_options['units']
+        path_comp = phase._get_subsystem('path_constraints')
+
         for var, options in phase._path_constraints.items():
             con_name = options['constraint_name']
+            con_units = options['units']
 
             # Determine the path to the variable which we will be constraining
             # This is more complicated for path constraints since, for instance,
@@ -424,53 +322,126 @@ class GaussLobatto(PseudospectralBase):
             if var_type == 'time':
                 phase.connect(src_name='time',
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                shape = (1,)
+                units = time_units if con_units is None else con_units
+                linear = True
 
             elif var_type == 'time_phase':
                 phase.connect(src_name='time_phase',
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                shape = (1,)
+                units = time_units if con_units is None else con_units
+                linear = True
 
             elif var_type == 'state':
                 phase.connect(src_name='interleave_comp.all_values:states:{0}'.format(var),
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                state_shape = phase.state_options[var]['shape']
+                state_units = phase.state_options[var]['units']
+                shape = state_shape
+                units = state_units if con_units is None else con_units
+                linear = False
 
             elif var_type in ('indep_control', 'input_control'):
                 constraint_path = 'control_values:{0}'.format(var)
                 phase.connect(src_name=constraint_path,
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                control_shape = phase.control_options[var]['shape']
+                control_units = phase.control_options[var]['units']
+                shape = control_shape
+                units = control_units if con_units is None else con_units
+                linear = True
 
             elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
                 constraint_path = 'polynomial_control_values:{0}'.format(var)
                 phase.connect(src_name=constraint_path,
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                control_shape = phase.polynomial_control_options[var]['shape']
+                control_units = phase.polynomial_control_options[var]['units']
+                shape = control_shape
+                units = control_units if con_units is None else con_units
+                linear = False
 
             elif var_type == 'control_rate':
                 control_name = var[:-5]
                 constraint_path = 'control_rates:{0}_rate'.format(control_name)
                 phase.connect(src_name=constraint_path,
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                control_shape = phase.control_options[control_name]['shape']
+                control_units = phase.control_options[control_name]['units']
+                shape = control_shape
+                units = get_rate_units(control_units, time_units, deriv=1) \
+                    if con_units is None else con_units
+                linear = False
 
             elif var_type == 'control_rate2':
                 control_name = var[:-6]
                 constraint_path = 'control_rates:{0}_rate2'.format(control_name)
                 phase.connect(src_name=constraint_path,
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                control_shape = phase.control_options[control_name]['shape']
+                control_units = phase.control_options[control_name]['units']
+                shape = control_shape
+                units = get_rate_units(control_units, time_units, deriv=2) \
+                    if con_units is None else con_units
+                linear = False
 
             elif var_type == 'polynomial_control_rate':
                 control_name = var[:-5]
                 constraint_path = 'polynomial_control_rates:{0}_rate'.format(control_name)
                 phase.connect(src_name=constraint_path,
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                control_shape = phase.polynomial_control_options[control_name]['shape']
+                control_units = phase.polynomial_control_options[control_name]['units']
+                shape = control_shape
+                units = get_rate_units(control_units, time_units, deriv=1) \
+                    if con_units is None else con_units
+                linear = False
 
             elif var_type == 'polynomial_control_rate2':
                 control_name = var[:-6]
                 constraint_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
                 phase.connect(src_name=constraint_path,
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                control_shape = phase.polynomial_control_options[control_name]['shape']
+                control_units = phase.polynomial_control_options[control_name]['units']
+                shape = control_shape
+                units = get_rate_units(control_units, time_units, deriv=2) \
+                    if con_units is None else con_units
+                linear = False
 
             else:
                 # Failed to find variable, assume it is in the ODE
+                interleave_comp = phase._get_subsystem('interleave_comp')
                 phase.connect(src_name='interleave_comp.all_values:{0}'.format(con_name),
                               tgt_name='path_constraints.all_values:{0}'.format(con_name))
+
+                ode_outputs = {opts['prom_name']: opts for (k, opts) in
+                               phase.rhs_disc.get_io_metadata(iotypes=('output',)).items()}
+
+                if var in ode_outputs:
+                    shape = (1,) if len(ode_outputs[var]['shape']) == 1 else ode_outputs[var]['shape'][1:]
+                    units = ode_outputs[var]['units'] if con_units is None else con_units
+                    linear = False
+
+                    if interleave_comp.add_var(con_name, shape, units):
+                        phase.connect(src_name='rhs_disc.{0}'.format(var),
+                                      tgt_name='interleave_comp.disc_values:{0}'.format(con_name))
+                        phase.connect(src_name='rhs_col.{0}'.format(var),
+                                      tgt_name='interleave_comp.col_values:{0}'.format(con_name))
+                else:
+                    raise ValueError(f'Path-constrained variable {var} is not a known variable in'
+                                     f' the phase {phase.pathname} nor is it a known output of '
+                                     f' the ODE.')
+
+            kwargs = options.copy()
+            kwargs.pop('shape', None)
+            kwargs.pop('units', None)
+            kwargs.pop('linear', None)
+            kwargs.pop('constraint_name', None)
+
+            path_comp._add_path_constraint_configure(con_name, shape=shape, units=units,
+                                                     linear=linear, **kwargs)
 
     def setup_timeseries_outputs(self, phase):
         gd = self.grid_data

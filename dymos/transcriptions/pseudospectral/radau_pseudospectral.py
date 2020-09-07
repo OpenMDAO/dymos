@@ -255,7 +255,7 @@ class Radau(PseudospectralBase):
                     options['shape'] = (1,)
                     constraint_kwargs['shape'] = (1,)
 
-            path_comp._add_path_constraint(con_name, var_type, **constraint_kwargs)
+            path_comp.add_path_constraint(con_name, var_type, **constraint_kwargs)
 
     def configure_path_constraints(self, phase):
         gd = self.grid_data

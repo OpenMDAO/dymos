@@ -13,12 +13,12 @@ class PathConstraintComp(om.ExplicitComponent):
                                                              'at which the path constraint is to '
                                                              'be evaluated')
 
-    def _add_path_constraint(self, name, var_class, shape=None, units=None, res_units=None, desc='',
-                             indices=None, lower=None, upper=None, equals=None, scaler=None,
-                             adder=None, ref=None, ref0=None, linear=False, res_ref=1.0, type_=None,
-                             distributed=False):
+    def add_path_constraint(self, name, var_class, shape=None, units=None, res_units=None, desc='',
+                            indices=None, lower=None, upper=None, equals=None, scaler=None,
+                            adder=None, ref=None, ref0=None, linear=False, res_ref=1.0, type_=None,
+                            distributed=False):
         """
-        Add a final constraint to this component
+        Add a path constraint to this component
 
         Parameters
         ----------
@@ -84,6 +84,81 @@ class PathConstraintComp(om.ExplicitComponent):
                   'type_': type_}
         self._path_constraints.append((name, kwargs))
 
+    def _add_path_constraint_configure(self, name, shape=None, units=None,
+                                       desc='', indices=None, lower=None, upper=None, equals=None,
+                                       scaler=None, adder=None, ref=None, ref0=None, linear=False):
+        """
+        Add a path constraint to this component
+
+        Parameters
+        ----------
+        name : str
+            name of the variable in this component's namespace.
+        shape : int or tuple or list or None
+            Shape of this variable, only required if val is not an array.
+            Default is None.
+        indices : tuple or list or ndarray or None
+            Indices that specify which elements in shape are to be path constrained.  If None,
+            then the constraint will apply to all values and lower/upper/equals must be scalar
+            or of the same shape.  Indices assumes C-order flattening.  For instance, if
+            constraining element [0, 1] of a variable with shape [2, 2], indices=[3].
+        units : str or None
+            Units in which the output variables will be provided to the component during execution.
+            Default is None, which means it has no units.
+        desc : str
+            description of the variable
+        lower : float or list or tuple or ndarray or None
+            lower bound(s) in user-defined units. It can be (1) a float, (2) an array_like
+            consistent with the shape arg (if given), or (3) an array_like matching the shape of
+            val, if val is array_like. A value of None means this output has no lower bound.
+            Default is None.
+        upper : float or list or tuple or ndarray or None
+            upper bound(s) in user-defined units. It can be (1) a float, (2) an array_like
+            consistent with the shape arg (if given), or (3) an array_like matching the shape of
+            val, if val is array_like. A value of None means this output has no upper bound.
+            Default is None.
+        ref : float
+            Scaling parameter. The value in the user-defined units of this output variable when
+            the scaled value is 1. Default is 1.
+        ref0 : float
+            Scaling parameter. The value in the user-defined units of this output variable when
+            the scaled value is 0. Default is 0.
+        linear : bool
+            True if the *total* derivative of the constrained variable is linear, otherwise False.
+        """
+        num_nodes = self.options['num_nodes']
+
+        input_name = 'all_values:{0}'.format(name)
+        self.add_input(input_name, shape=(num_nodes,) + shape, units=units, desc=desc)
+
+        output_name = 'path:{0}'.format(name)
+        self.add_output(output_name, shape=(num_nodes,) + shape, units=units, desc=desc)
+
+        # Convert indices from those in one time instance to those in all time instances
+        template = np.zeros(np.prod(shape), dtype=int)
+        template[indices] = 1
+        template = np.tile(template, num_nodes)
+        indices = np.nonzero(template)[0]
+
+        self.add_constraint(output_name, lower=lower, upper=upper, equals=equals, ref0=ref0,
+                            ref=ref, scaler=scaler, adder=adder, indices=indices, linear=linear)
+
+        self._vars.append((input_name, output_name, shape))
+
+        # Setup partials
+        all_shape = (num_nodes,) + shape
+        var_size = np.prod(shape)
+        all_size = np.prod(all_shape)
+
+        all_row_starts = np.arange(num_nodes, dtype=int) * var_size
+        all_rows = []
+        for i in all_row_starts:
+            all_rows.extend(range(i, i + var_size))
+        all_rows = np.asarray(all_rows, dtype=int)
+
+        self.declare_partials(of=output_name, wrt=input_name, rows=all_rows,
+                              cols=np.arange(all_size), val=1.0)
+
     def setup(self):
         """
         Define the independent variables as output variables.
@@ -91,49 +166,57 @@ class PathConstraintComp(om.ExplicitComponent):
         num_nodes = self.options['num_nodes']
 
         for (name, kwargs) in self._path_constraints:
-            input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-            input_name = 'all_values:{0}'.format(name)
-            self.add_input(input_name,
-                           shape=(num_nodes,) + kwargs['shape'],
-                           **input_kwargs)
-
-            output_name = 'path:{0}'.format(name)
-            output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-            output_kwargs['shape'] = (num_nodes,) + kwargs['shape']
-            self.add_output(output_name, **output_kwargs)
-
-            constraint_kwargs = {k: kwargs.get(k, None)
-                                 for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
-                                           'scaler', 'indices', 'linear')}
-
-            # Convert indices from those in one time instance to those in all time instances
-            template = np.zeros(np.prod(kwargs['shape']), dtype=int)
-            template[kwargs['indices']] = 1
-            template = np.tile(template, num_nodes)
-            constraint_kwargs['indices'] = np.nonzero(template)[0]
-
-            self.add_constraint(output_name, **constraint_kwargs)
-
-            self._vars.append((input_name, output_name, kwargs['shape']))
-
-            # Setup partials
-            all_shape = (num_nodes,) + kwargs['shape']
-            var_size = np.prod(kwargs['shape'])
-            all_size = np.prod(all_shape)
-
-            all_row_starts = np.arange(num_nodes, dtype=int) * var_size
-            all_rows = []
-            for i in all_row_starts:
-                all_rows.extend(range(i, i + var_size))
-            all_rows = np.asarray(all_rows, dtype=int)
-
-            self.declare_partials(
-                of=output_name,
-                wrt=input_name,
-                dependent=True,
-                rows=all_rows,
-                cols=np.arange(all_size),
-                val=1.0)
+            self._add_path_constraint_configure(name=name, shape=kwargs['shape'],
+                                                units=kwargs['units'], desc=kwargs['desc'],
+                                                indices=kwargs['indices'], lower=kwargs['lower'],
+                                                upper=kwargs['upper'], equals=kwargs['equals'],
+                                                scaler=kwargs['scaler'], adder=kwargs['adder'],
+                                                ref0=kwargs['ref0'], ref=kwargs['ref'],
+                                                linear=kwargs['linear'])
+            #
+            # input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
+            # input_name = 'all_values:{0}'.format(name)
+            # self.add_input(input_name,
+            #                shape=(num_nodes,) + kwargs['shape'],
+            #                **input_kwargs)
+            #
+            # output_name = 'path:{0}'.format(name)
+            # output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
+            # output_kwargs['shape'] = (num_nodes,) + kwargs['shape']
+            # self.add_output(output_name, **output_kwargs)
+            #
+            # constraint_kwargs = {k: kwargs.get(k, None)
+            #                      for k in ('lower', 'upper', 'equals', 'ref', 'ref0', 'adder',
+            #                                'scaler', 'indices', 'linear')}
+            #
+            # # Convert indices from those in one time instance to those in all time instances
+            # template = np.zeros(np.prod(kwargs['shape']), dtype=int)
+            # template[kwargs['indices']] = 1
+            # template = np.tile(template, num_nodes)
+            # constraint_kwargs['indices'] = np.nonzero(template)[0]
+            #
+            # self.add_constraint(output_name, **constraint_kwargs)
+            #
+            # self._vars.append((input_name, output_name, kwargs['shape']))
+            #
+            # # Setup partials
+            # all_shape = (num_nodes,) + kwargs['shape']
+            # var_size = np.prod(kwargs['shape'])
+            # all_size = np.prod(all_shape)
+            #
+            # all_row_starts = np.arange(num_nodes, dtype=int) * var_size
+            # all_rows = []
+            # for i in all_row_starts:
+            #     all_rows.extend(range(i, i + var_size))
+            # all_rows = np.asarray(all_rows, dtype=int)
+            #
+            # self.declare_partials(
+            #     of=output_name,
+            #     wrt=input_name,
+            #     dependent=True,
+            #     rows=all_rows,
+            #     cols=np.arange(all_size),
+            #     val=1.0)
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for (input_name, output_name, _) in self._vars:

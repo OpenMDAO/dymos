@@ -634,7 +634,7 @@ class RungeKutta(TranscriptionBase):
 
             kwargs = options.copy()
             kwargs.pop('constraint_name', None)
-            path_comp._add_path_constraint(con_name, var_type, **kwargs)
+            path_comp.add_path_constraint(con_name, var_type, **kwargs)
 
     def configure_path_constraints(self, phase):
         gd = self.grid_data
