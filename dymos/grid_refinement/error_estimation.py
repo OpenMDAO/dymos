@@ -33,6 +33,7 @@ def interpolation_lagrange_matrix(old_grid, new_grid):
 
     """
     L_blocks = []
+    D_blocks = []
 
     for iseg in range(old_grid.num_segments):
         i1, i2 = old_grid.subset_segment_indices['all'][iseg, :]
@@ -43,13 +44,15 @@ def interpolation_lagrange_matrix(old_grid, new_grid):
         indices = new_grid.subset_node_indices['all'][i1:i2]
         nodes_eval = new_grid.node_stau[indices]
 
-        L_block, _ = lagrange_matrices(nodes_given, nodes_eval)
+        L_block, D_block = lagrange_matrices(nodes_given, nodes_eval)
 
         L_blocks.append(L_block)
+        D_blocks.append(D_block)
 
     L = block_diag(*L_blocks)
+    D = block_diag(*D_blocks)
 
-    return L
+    return L, D
 
 
 def integration_matrix(grid):
@@ -119,8 +122,8 @@ def eval_ode_on_grid(phase, transcription):
     # Build the interpolation matrix which interpolates from all nodes on the old grid to
     # all nodes on the new grid.
     grid_data = transcription.grid_data
-    L = interpolation_lagrange_matrix(old_grid=phase.options['transcription'].grid_data,
-                                      new_grid=grid_data)
+    L, _ = interpolation_lagrange_matrix(old_grid=phase.options['transcription'].grid_data,
+                                         new_grid=grid_data)
 
     # Create a new problem for the grid_refinement
     # For this test, use the same grid as the original problem.

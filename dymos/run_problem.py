@@ -1,4 +1,5 @@
 from .grid_refinement.ph_adaptive.ph_adaptive import PHAdaptive
+from .grid_refinement.hp_adaptive.hp_adaptive import HPAdaptive
 from .phase.phase import Phase
 
 import openmdao.api as om
@@ -70,7 +71,8 @@ def modify_problem(problem, restart=None, reset_grid=False):
             load_case(problem, case)
 
 
-def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=True, simulate=False, no_iterate=False):
+def run_problem(problem, refine=False, refine_method='ph', refine_iteration_limit=10, run_driver=True,
+                simulate=False, no_iterate=False):
     """
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
     Phases.  This function can iteratively call run_driver to perform grid refinement, and automatically
@@ -81,6 +83,8 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
         The OpenMDAO problem object to be run.
     refine : bool
         If True, perform grid refinement on the Phases found in the Problem.
+    refine_method : String
+        The choice of refinement algorithm to use for grid refinement
     refine_iteration_limit : int
         The number of passes through the grid refinement algorithm to be made.
     run_driver : bool
@@ -92,6 +96,7 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
         has been run and grid refinement is complete.
     """
     problem.final_setup()  # make sure command line option hook has a chance to run
+    refinement_methods = {'hp': HPAdaptive, 'ph': PHAdaptive}
 
     if run_driver:
         if no_iterate:
@@ -107,16 +112,11 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
 
         phases = find_phases(problem.model)
 
-        ref = PHAdaptive(phases)
+        ref = refinement_methods[refine_method](phases)
         with open(out_file, 'w+') as f:
 
             for i in range(refine_iteration_limit):
                 refine_results = check_error(phases)
-
-                ref.refine(refine_results)
-
-                for stream in f, sys.stdout:
-                    ref.write_iteration(stream, i, phases, refine_results)
 
                 refined_phases = [phase_path for phase_path in refine_results if
                                   phases[phase_path].refine_options['refine'] and
@@ -124,6 +124,20 @@ def run_problem(problem, refine=False, refine_iteration_limit=10, run_driver=Tru
 
                 if not refined_phases:
                     break
+
+                if refine_method == 'hp':
+                    for phase_path in refine_results:
+                        ref.error[phase_path] = refine_results[phase_path]['max_rel_error']
+                    if i == 0:
+                        ref.refine_first_iter(refine_results)
+                    else:
+                        ref.refine(refine_results)
+                    ref.previous_error = ref.error.copy()
+                else:
+                    ref.refine(refine_results)
+
+                for stream in f, sys.stdout:
+                    ref.write_iteration(stream, i, phases, refine_results)
 
                 prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
                              'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
