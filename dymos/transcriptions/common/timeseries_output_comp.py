@@ -132,7 +132,7 @@ class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):
             shape = kwargs['shape']
             self._add_output_configure(name, units, shape, desc)
 
-    def _add_output_configure(self, name, units, shape, desc):
+    def _add_output_configure(self, name, units, shape, desc=None):
         """
         Add a single timeseries output.
 
