@@ -5,7 +5,7 @@ from dymos.transcriptions.common import EndpointConditionsComp
 
 import openmdao.api as om
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp
+from ..common import TimeComp, PseudospectralTimeseriesOutputComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
 from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.constants import INF_BOUND
@@ -346,6 +346,20 @@ class PseudospectralBase(TranscriptionBase):
 
     def configure_solvers(self, phase):
         pass
+
+    def setup_timeseries_outputs(self, phase):
+        gd = self.grid_data
+
+        for name, options in phase._timeseries.items():
+            if options['transcription'] is None:
+                ogd = None
+            else:
+                ogd = options['transcription'].grid_data
+
+            timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=gd,
+                                                                 output_grid_data=ogd,
+                                                                 output_subset=options['subset'])
+            phase.add_subsystem(name, subsys=timeseries_comp)
 
     def _get_boundary_constraint_src(self, var, loc, phase):
         # Determine the path to the variable which we will be constraining

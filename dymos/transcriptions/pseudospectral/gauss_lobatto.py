@@ -435,22 +435,6 @@ class GaussLobatto(PseudospectralBase):
             path_comp._add_path_constraint_configure(con_name, shape=shape, units=units,
                                                      linear=linear, **kwargs)
 
-    def setup_timeseries_outputs(self, phase):
-        gd = self.grid_data
-
-        for timeseries_name, timeseries_options in phase._timeseries.items():
-
-            if timeseries_options['transcription'] is None:
-                ogd = None
-            else:
-                ogd = timeseries_options['transcription'].grid_data
-
-            timeseries_comp = PseudospectralTimeseriesOutputComp(input_grid_data=gd,
-                                                                 output_grid_data=ogd,
-                                                                 output_subset=timeseries_options['subset'])
-
-            phase.add_subsystem(timeseries_name, subsys=timeseries_comp)
-
     def configure_timeseries_outputs(self, phase):
         for timeseries_name, timeseries_options in phase._timeseries.items():
             timeseries_comp = phase._get_subsystem(timeseries_name)
@@ -485,7 +469,8 @@ class GaussLobatto(PseudospectralBase):
                 # Control values
                 timeseries_comp._add_output_configure(f'controls:{control_name}',
                                                       shape=options['shape'],
-                                                      units=control_units)
+                                                      units=control_units,
+                                                      desc=options['desc'])
 
                 phase.connect(src_name=f'control_values:{control_name}',
                               tgt_name=f'{timeseries_name}.input_values:controls:{control_name}')
@@ -574,9 +559,9 @@ class GaussLobatto(PseudospectralBase):
                     phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
                                    src_indices=src_idxs, flat_src_indices=True)
 
-            for var, timeseries_options in phase._timeseries[timeseries_name]['outputs'].items():
-                output_name = timeseries_options['output_name']
-                timeseries_units = timeseries_options.get('units', None)
+            for var, options in phase._timeseries[timeseries_name]['outputs'].items():
+                output_name = options['output_name']
+                units = options.get('units', None)
 
                 # Determine the path to the variable which we will be constraining
                 # This is more complicated for path constraints since, for instance,
@@ -593,9 +578,9 @@ class GaussLobatto(PseudospectralBase):
 
                 if var in ode_outputs:
                     shape = (1,) if len(ode_outputs[var]['shape']) == 1 else ode_outputs[var]['shape'][1:]
-                    units = ode_outputs[var]['units'] if timeseries_units is None else timeseries_units
+                    units = ode_outputs[var]['units'] if units is None else units
 
-                    timeseries_comp = phase._get_subsystem('timeseries')
+                    timeseries_comp = phase._get_subsystem(timeseries_name)
                     timeseries_comp._add_output_configure(output_name, units, shape)
 
                     interleave_comp = phase._get_subsystem('interleave_comp')
