@@ -2,7 +2,7 @@ import numpy as np
 from .odeint_control_interpolation_comp import ODEIntControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from ....phase.options import TimeOptionsDictionary
-from ....utils.misc import get_targets
+from ....utils.misc import get_targets, get_target_metadata
 import openmdao.api as om
 
 
@@ -67,12 +67,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
             self.add_subsystem('indep_controls', self._interp_comp, promotes_outputs=['*'])
             self.connect('time', ['indep_controls.time'])
 
-        if self.options['parameter_options']:
-            for name, options in self.options['parameter_options'].items():
-                ivc.add_output('parameters:{0}'.format(name),
-                               shape=options['shape'],
-                               units=options['units'])
-
         # The ODE System
         if self.options['ode_class'] is not None:
             self.add_subsystem('ode', subsys=self.options['ode_class'](num_nodes=1,
@@ -84,6 +78,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
                                                   time_units=time_options['units']))
 
     def configure(self):
+        ivc = self._get_subsystem('ivc')
 
         # Configure states
         for name, options in self.options['state_options'].items():
@@ -93,7 +88,7 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
             rate_src = self._get_rate_source_path(name)
 
-            self.connect(rate_src, 'state_rate_collector.state_rates_in:{0}_rate'.format(name))
+            self.connect(rate_src, f'state_rate_collector.state_rates_in:{name}_rate')
 
             targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
 
@@ -142,9 +137,14 @@ class ODEIntegrationInterfaceSystem(om.Group):
         if self.options['parameter_options']:
             for name, options in self.options['parameter_options'].items():
                 targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
+                shape, units = get_target_metadata(ode=self.ode, name=name,
+                                                   user_targets=options['targets'],
+                                                   user_shape=options['shape'],
+                                                   user_units=options['units'])
+                ivc.add_output(f'parameters:{name}', shape=shape, units=units)
                 if targets:
-                    self.connect('parameters:{0}'.format(name),
-                                 ['ode.{0}'.format(tgt) for tgt in targets])
+                    self.connect(f'parameters:{name}',
+                                 [f'ode.{tgt}' for tgt in targets])
 
     def _get_rate_source_path(self, state_var):
         var = self.options['state_options'][state_var]['rate_source']

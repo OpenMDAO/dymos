@@ -5,7 +5,7 @@ from ..transcription_base import TranscriptionBase
 from .components import SegmentSimulationComp, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
 from ..common import TimeComp
-from ...utils.misc import get_rate_units, get_targets
+from ...utils.misc import get_rate_units, get_targets, get_target_metadata
 from ...utils.indexing import get_src_indices_by_row
 
 
@@ -299,6 +299,25 @@ class SolveIVP(TranscriptionBase):
                 phase.connect('polynomial_control_rates:{0}_rate2'.format(name),
                               ['ode.{0}'.format(t) for t in targets])
 
+    def configure_parameters(self, phase):
+        super(SolveIVP, self).configure_parameters(phase)
+
+        gd = self.grid_data
+
+        # We also need to take care of the segments.
+        segs = phase._get_subsystem('segments')
+
+        for name, options in phase.parameter_options.items():
+            shape, units = get_target_metadata(phase.ode, name=name,
+                                               user_targets=options['targets'],
+                                               user_shape=options['shape'],
+                                               user_units=options['units'])
+
+            for i in range(gd.num_segments):
+                seg_comp = segs._get_subsystem(f'segment_{i}')
+                seg_comp.add_input(name=f'parameters:{name}', val=np.ones(shape), units=units,
+                                   desc=f'values of parameter {name}.')
+
     def setup_defects(self, phase):
         """
         SolveIVP poses no defects.
@@ -507,12 +526,6 @@ class SolveIVP(TranscriptionBase):
                 tgt_name = 'all_values:parameters:{0}'.format(name)
                 phase.promotes('timeseries', inputs=[(tgt_name, prom_name)],
                                src_indices=src_idxs, flat_src_indices=True)
-
-        # We also need to take care of the segments.
-        segs = phase._get_subsystem('segments')
-        for i in range(num_seg):
-            seg_comp = segs._get_subsystem('segment_{0}'.format(i))
-            seg_comp.add_parameters(param_units)
 
         for var, options in phase._timeseries['timeseries']['outputs'].items():
             output_name = options['output_name']

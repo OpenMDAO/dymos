@@ -2,9 +2,8 @@ import numpy as np
 
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
-from ..common import PathConstraintComp, PseudospectralTimeseriesOutputComp, \
-    GaussLobattoContinuityComp
-from ...utils.misc import get_rate_units, get_targets
+from ..common import PathConstraintComp, GaussLobattoContinuityComp
+from ...utils.misc import get_rate_units, get_targets, get_target_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
 
@@ -243,30 +242,6 @@ class GaussLobatto(PseudospectralBase):
 
             phase.connect('state_interp.state_col:{0}'.format(state_name),
                           'interleave_comp.col_values:states:{0}'.format(state_name))
-
-        #
-        # # Do the timeseries outputs
-        # #
-        # for timeseries_name, timeseries_options in phase._timeseries.items():
-        #
-        #     for var, options in timeseries_options['outputs'].items():
-        #
-        #         var_type = phase.classify_var(var)
-        #
-        #         # We only need to interleave state variables (covered above) and ODE outputs
-        #         if var_type != 'ode':
-        #             continue
-        #
-        #         # Assume scalar shape here, but check config will warn that it's inferred.
-        #         output_name = options['output_name']
-        #         shape = (1,) if options['shape'] is None else options['shape']
-        #         units = options['units']
-        #
-        #         if interleave_comp.add_var(output_name, shape, units):
-        #             phase.connect(src_name='rhs_disc.{0}'.format(var),
-        #                           tgt_name='interleave_comp.disc_values:{0}'.format(output_name))
-        #             phase.connect(src_name='rhs_col.{0}'.format(var),
-        #                           tgt_name='interleave_comp.col_values:{0}'.format(output_name))
 
     def setup_defects(self, phase):
         super(GaussLobatto, self).setup_defects(phase)
@@ -530,31 +505,25 @@ class GaussLobatto(PseudospectralBase):
                                                                            time_units, deriv=2),
                                                       desc=f'second time-derivative of {control_name}')
 
-            for param_name, timeseries_options in phase.parameter_options.items():
-                if timeseries_options['include_timeseries']:
+            for param_name, options in phase.parameter_options.items():
+                if options['include_timeseries']:
                     prom_name = f'parameters:{param_name}'
                     tgt_name = f'input_values:parameters:{param_name}'
 
-                    targets = get_targets(phase.rhs_disc, name=param_name, user_targets=timeseries_options['targets'])
-
-                    if targets:
-                        prom_param = targets[0]
-                    else:
-                        prom_param = param_name
-
-                    # Get the param's real units.
-                    abs_param = phase.rhs_disc._var_allprocs_prom2abs_list['input'][prom_param]
-                    units = phase.rhs_disc._var_abs2meta[abs_param[0]]['units']
+                    shape, units = get_target_metadata(phase.rhs_disc, name=param_name,
+                                                       user_targets=options['targets'],
+                                                       user_shape=options['shape'],
+                                                       user_units=options['units'])
 
                     # Add output.
                     timeseries_comp = phase._get_subsystem(timeseries_name)
                     timeseries_comp._add_output_configure(prom_name,
                                                           desc='',
-                                                          shape=timeseries_options['shape'],
+                                                          shape=shape,
                                                           units=units)
 
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                    src_idxs = get_src_indices_by_row(src_idxs_raw, timeseries_options['shape'])
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
 
                     phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
                                    src_indices=src_idxs, flat_src_indices=True)

@@ -2,7 +2,7 @@ import numpy as np
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import PathConstraintComp, RadauPSContinuityComp, PseudospectralTimeseriesOutputComp
-from ...utils.misc import get_rate_units, get_targets
+from ...utils.misc import get_rate_units, get_targets, get_target_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 
@@ -450,22 +450,16 @@ class Radau(PseudospectralBase):
                     prom_name = f'parameters:{param_name}'
                     tgt_name = f'input_values:parameters:{param_name}'
 
-                    targets = get_targets(phase.rhs_all, name=param_name, user_targets=options['targets'])
-
-                    if targets:
-                        prom_param = targets[0]
-                    else:
-                        prom_param = param_name
-
-                    # Get the param's real units.
-                    abs_param = phase.rhs_all._var_allprocs_prom2abs_list['input'][prom_param]
-                    units = phase.rhs_all._var_abs2meta[abs_param[0]]['units']
+                    shape, units = get_target_metadata(phase.rhs_all, name=param_name,
+                                                       user_targets=options['targets'],
+                                                       user_shape=options['shape'],
+                                                       user_units=options['units'])
 
                     # Add output.
                     timeseries_comp = phase._get_subsystem(timeseries_name)
                     timeseries_comp._add_output_configure(prom_name,
                                                           desc='',
-                                                          shape=options['shape'],
+                                                          shape=shape,
                                                           units=units)
 
                     src_idxs_raw = np.zeros(gd.subset_num_nodes['all'], dtype=int)
