@@ -135,8 +135,6 @@ def load_case(problem, previous_solution):
         problem.set_val(ti_path, t_initial, units=t_initial_units)
         problem.set_val(td_path, t_duration, units=t_duration_units)
 
-        # TODO: set the previous values of the phase and trajectory design parameters and polynomial controls
-
         # Interpolate the timeseries state outputs from the previous solution onto the new grid.
         for state_name, options in phase.state_options.items():
             state_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.states:{state_name}')][0]
@@ -159,3 +157,29 @@ def load_case(problem, previous_solution):
                             phase.interpolate(xs=prev_time, ys=prev_control_val,
                                               nodes='control_input', kind='slinear'),
                             units=prev_control_units)
+
+        # Interpolate the timeseries polynomial control outputs from the previous solution onto the new grid
+        for polynomial_control_name, options in phase.polynomial_control_options.items():
+            polynomial_control_path = [s for s in phase_outputs if
+                                       s.endswith(f'{phase_name}.polynomial_controls:{polynomial_control_name}')][0]
+            prev_polynomial_control_path = [s for s in prev_outputs if
+                                            s.endswith(f'{phase_name}.'
+                                                       f'timeseries.polynomial_controls:{polynomial_control_name}')][0]
+            prev_polynomial_control_val = prev_outputs[prev_polynomial_control_path]['value']
+            prev_polynomial_control_units = prev_outputs[prev_polynomial_control_path]['units']
+            problem.set_val(polynomial_control_path,
+                            phase.interpolate(xs=prev_time, ys=prev_polynomial_control_val,
+                                              nodes='control_input', kind='slinear'),
+                            units=prev_polynomial_control_units)
+
+        # Interpolate the timeseries parameter outputs from the previous solution onto the new grid
+        for parameter_name, options in phase.parameter_options.items():
+            parameter_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.parameters:{parameter_name}')][0]
+            prev_parameter_path = [s for s in prev_outputs if
+                                   s.endswith(f'{phase_name}.timeseries.parameters:{parameter_name}')][0]
+            prev_parameter_val = prev_outputs[prev_parameter_path]['value'][0, ...]
+            prev_parameter_val = np.repeat(prev_parameter_val, axis=0,
+                                           repeats=phase.options['transcriptions'].grid_data.num_nodes)
+            prev_parameter_units = prev_outputs[prev_parameter_path]['units']
+
+            problem.set_val(parameter_path, prev_parameter_val, units=prev_parameter_units)
