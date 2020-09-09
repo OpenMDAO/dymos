@@ -37,37 +37,37 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
                              default='all',
                              desc='Name of the node subset at which outputs are desired.')
 
-    def _add_timeseries_output(self, name, var_class, shape=(1,), units=None, desc='',
-                               distributed=False):
-        """
-        Add a final constraint to this component
-
-        Parameters
-        ----------
-        name : str
-            name of the variable in this component's namespace.
-        var_class : str
-            The 'class' of the variable as given by phase.classify_var.  One of 'time', 'state',
-            'indep_control', 'input_control', 'parameter',
-            'control_rate', 'control_rate2', or 'ode'.
-        shape : int or tuple or list or None
-            Shape of this variable, only required if val is not an array.
-            Default is None.
-        units : str or None
-            Units in which the output variables will be provided to the component during execution.
-            Default is None, which means it has no units.
-        desc : str
-            description of the timeseries output variable.
-        distributed : bool
-            If True, this variable is distributed across multiple processes.
-        """
-        src_all = var_class in ['time', 'time_phase', 'indep_control', 'input_control',
-                                'control_rate', 'control_rate2', 'indep_polynomial_control',
-                                'input_polynomial_control', 'polynomial_control_rate',
-                                'polynomial_control_rate2', 'parameter']
-        kwargs = {'shape': shape, 'units': units, 'desc': desc, 'src_all': src_all,
-                  'distributed': distributed}
-        self._timeseries_outputs.append((name, kwargs))
+    # def _add_timeseries_output(self, name, var_class, shape=(1,), units=None, desc='',
+    #                            distributed=False):
+    #     """
+    #     Add a final constraint to this component
+    #
+    #     Parameters
+    #     ----------
+    #     name : str
+    #         name of the variable in this component's namespace.
+    #     var_class : str
+    #         The 'class' of the variable as given by phase.classify_var.  One of 'time', 'state',
+    #         'indep_control', 'input_control', 'parameter',
+    #         'control_rate', 'control_rate2', or 'ode'.
+    #     shape : int or tuple or list or None
+    #         Shape of this variable, only required if val is not an array.
+    #         Default is None.
+    #     units : str or None
+    #         Units in which the output variables will be provided to the component during execution.
+    #         Default is None, which means it has no units.
+    #     desc : str
+    #         description of the timeseries output variable.
+    #     distributed : bool
+    #         If True, this variable is distributed across multiple processes.
+    #     """
+    #     src_all = var_class in ['time', 'time_phase', 'indep_control', 'input_control',
+    #                             'control_rate', 'control_rate2', 'indep_polynomial_control',
+    #                             'input_polynomial_control', 'polynomial_control_rate',
+    #                             'polynomial_control_rate2', 'parameter']
+    #     kwargs = {'shape': shape, 'units': units, 'desc': desc, 'src_all': src_all,
+    #               'distributed': distributed}
+    #     self._timeseries_outputs.append((name, kwargs))
 
 
 class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):

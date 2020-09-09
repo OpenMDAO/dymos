@@ -1258,7 +1258,7 @@ class Phase(om.Group):
         self._path_constraints[name]['units'] = units
         self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
-    def add_timeseries_output(self, name, output_name=None, units=None, shape=(1,), timeseries='timeseries'):
+    def add_timeseries_output(self, name, output_name=None, units=None, shape=None, timeseries='timeseries'):
         r"""
         Add a variable to the timeseries outputs of the phase.
 

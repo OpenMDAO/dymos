@@ -2,7 +2,7 @@ import numpy as np
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import PathConstraintComp, RadauPSContinuityComp, PseudospectralTimeseriesOutputComp
-from ...utils.misc import get_rate_units, get_targets, get_target_metadata
+from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 
@@ -470,7 +470,6 @@ class Radau(PseudospectralBase):
 
             for var, options in phase._timeseries[timeseries_name]['outputs'].items():
                 output_name = options['output_name']
-                units = options['units']
 
                 # Determine the path to the variable which we will be constraining
                 # This is more complicated for path constraints since, for instance,
@@ -482,24 +481,19 @@ class Radau(PseudospectralBase):
                 if var_type != 'ode':
                     continue
 
-                ode_outputs = {opts['prom_name']: opts for (k, opts) in
-                               phase.rhs_all.get_io_metadata(iotypes=('output',)).items()}
-
-                if var in ode_outputs:
-                    shape = (1,) if len(ode_outputs[var]['shape']) == 1 else ode_outputs[var]['shape'][1:]
-                    units = ode_outputs[var]['units'] if units is None else units
-
-                    timeseries_comp = phase._get_subsystem(timeseries_name)
-                    timeseries_comp._add_output_configure(output_name, units, shape)
-
-                    phase.connect(src_name='rhs_all.{0}'.format(var),
-                                  tgt_name='{0}.input_values:{1}'.format(timeseries_name,
-                                                                         output_name))
-
-                else:
+                try:
+                    shape, units = get_source_metadata(phase.rhs_all, src=var,
+                                                       user_units=options['units'],
+                                                       user_shape=options['shape'])
+                except ValueError:
                     raise ValueError(f'Timeseries output {var} is not a known variable in'
                                      f' the phase {phase.pathname} nor is it a known output of '
                                      f' the ODE.')
+
+                timeseries_comp._add_output_configure(output_name, units, shape, desc='')
+                phase.connect(src_name='rhs_all.{0}'.format(var),
+                              tgt_name='{0}.input_values:{1}'.format(timeseries_name,
+                                                                     output_name))
 
     def get_rate_source_path(self, state_name, nodes, phase):
         gd = self.grid_data

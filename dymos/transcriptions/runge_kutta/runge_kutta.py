@@ -7,7 +7,8 @@ from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGro
     RungeKuttaTimeseriesOutputComp, RungeKuttaControlContinuityComp
 from ..common import TimeComp, EndpointConditionsComp, PathConstraintComp
 from ...utils.rk_methods import rk_methods
-from ...utils.misc import CoerceDesvar, get_rate_units, get_targets
+from ...utils.misc import CoerceDesvar, get_rate_units, get_targets, get_target_metadata,\
+    get_source_metadata
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
@@ -734,151 +735,122 @@ class RungeKutta(TranscriptionBase):
                                                              output_subset=options['subset'])
             phase.add_subsystem(name, subsys=timeseries_comp)
 
-            timeseries_comp._add_timeseries_output('time',
-                                                   var_class=phase.classify_var('time'),
-                                                   units=time_units)
-
-            timeseries_comp._add_timeseries_output('time_phase',
-                                                   var_class=phase.classify_var('time_phase'),
-                                                   units=time_units)
-
-            for state_name, options in phase.state_options.items():
-                timeseries_comp._add_timeseries_output('states:{0}'.format(state_name),
-                                                       var_class=phase.classify_var(state_name),
-                                                       shape=options['shape'],
-                                                       units=options['units'])
-
-            for control_name, options in phase.control_options.items():
-                control_units = options['units']
-                timeseries_comp._add_timeseries_output('controls:{0}'.format(control_name),
-                                                       var_class=phase.classify_var(control_name),
-                                                       shape=options['shape'],
-                                                       units=control_units)
-
-                # Control rates
-                timeseries_comp._add_timeseries_output('control_rates:{0}_rate'.format(control_name),
-                                                       var_class=phase.classify_var(control_name),
-                                                       shape=options['shape'],
-                                                       units=get_rate_units(control_units,
-                                                                            time_units,
-                                                                            deriv=1))
-
-                # Control second derivatives
-                timeseries_comp._add_timeseries_output('control_rates:{0}_rate2'.format(control_name),
-                                                       var_class=phase.classify_var(control_name),
-                                                       shape=options['shape'],
-                                                       units=get_rate_units(control_units,
-                                                                            time_units,
-                                                                            deriv=2))
-
-            for control_name, options in phase.polynomial_control_options.items():
-                control_units = options['units']
-                timeseries_comp._add_timeseries_output('polynomial_controls:{0}'.format(control_name),
-                                                       var_class=phase.classify_var(control_name),
-                                                       shape=options['shape'],
-                                                       units=control_units)
-
-                # Control rates
-                timeseries_comp._add_timeseries_output('polynomial_control_rates:{0}_rate'.format(control_name),
-                                                       var_class=phase.classify_var(control_name),
-                                                       shape=options['shape'],
-                                                       units=get_rate_units(control_units,
-                                                                            time_units,
-                                                                            deriv=1))
-
-                # Control second derivatives
-                timeseries_comp._add_timeseries_output('polynomial_control_rates:'
-                                                       '{0}_rate2'.format(control_name),
-                                                       var_class=phase.classify_var(control_name),
-                                                       shape=options['shape'],
-                                                       units=get_rate_units(control_units,
-                                                                            time_units,
-                                                                            deriv=2))
-
-            for param_name, options in phase.parameter_options.items():
-                if options['include_timeseries']:
-                    units = options['units']
-                    timeseries_comp._add_timeseries_output('parameters:{0}'.format(param_name),
-                                                           var_class=phase.classify_var(param_name),
-                                                           shape=options['shape'],
-                                                           units=units)
-
-            for var, options in phase._timeseries[name]['outputs'].items():
-                output_name = options['output_name']
-
-                # Determine the path to the variable which we will be constraining
-                # This is more complicated for path constraints since, for instance,
-                # a single state variable has two sources which must be connected to
-                # the path component.
-                var_type = phase.classify_var(var)
-
-                # Ignore any variables that we've already added (states, times, controls, etc)
-                if var_type != 'ode':
-                    continue
-
-                # Assume scalar shape if None, but check config will warn that it's inferred.
-                if options['shape'] is None:
-                    options['shape'] = (1,)
-
-                kwargs = options.copy()
-                kwargs.pop('output_name', None)
-                timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
-
     def configure_timeseries_outputs(self, phase):
         gd = self.grid_data
         num_seg = gd.num_segments
+        time_units = phase.time_options['units']
 
-        for name, options in phase._timeseries.items():
+        for timeseries_name, timeseries_options in phase._timeseries.items():
+            timeseries_comp = phase._get_subsystem(timeseries_name)
+
             src_idxs = get_src_indices_by_row(gd.subset_node_indices['segment_ends'], (1,))
 
-            phase.connect(src_name='time', tgt_name='{0}.input_values:time'.format(name),
+            timeseries_comp._add_output_configure('time',
+                                                  shape=(1,),
+                                                  units=time_units,
+                                                  desc='time')
+
+            timeseries_comp._add_output_configure('time_phase',
+                                                  shape=(1,),
+                                                  units=time_units,
+                                                  desc='phase elapsed time')
+
+            phase.connect(src_name='time', tgt_name=f'{timeseries_name}.input_values:time',
                           src_indices=src_idxs, flat_src_indices=True)
 
-            phase.connect(src_name='time_phase', tgt_name='{0}.input_values:time_phase'.format(name),
+            phase.connect(src_name='time_phase', tgt_name=f'{timeseries_name}.input_values:time_phase',
                           src_indices=src_idxs, flat_src_indices=True)
 
             for state_name, options in phase.state_options.items():
                 row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
                 row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
                 src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
-                phase.connect(src_name='states:{0}'.format(state_name),
-                              tgt_name='{0}.input_values:states:{1}'.format(name, state_name),
+
+                timeseries_comp._add_output_configure(f'states:{state_name}',
+                                                      shape=options['shape'],
+                                                      units=options['units'],
+                                                      desc=options['desc'])
+
+                phase.connect(src_name=f'states:{state_name}',
+                              tgt_name=f'{timeseries_name}.input_values:states:{state_name}',
                               src_indices=src_idxs, flat_src_indices=True)
 
             for control_name, options in phase.control_options.items():
+                control_units = options['units']
                 src_rows = gd.subset_node_indices['segment_ends']
                 src_idxs = get_src_indices_by_row(src_rows, options['shape'])
+
+                timeseries_comp._add_output_configure(f'controls:{control_name}',
+                                                      shape=options['shape'],
+                                                      units=control_units,
+                                                      desc=options['desc'])
+
                 phase.connect(src_name='control_values:{0}'.format(control_name),
-                              tgt_name='{0}.input_values:controls:{1}'.format(name, control_name),
+                              tgt_name=f'{timeseries_name}.input_values:controls:{control_name}',
                               src_indices=src_idxs, flat_src_indices=True)
 
                 # Control rates
-                phase.connect(src_name='control_rates:{0}_rate'.format(control_name),
-                              tgt_name='{0}.input_values:control_rates:{1}_rate'.format(name, control_name),
+                timeseries_comp._add_output_configure(f'control_rates:{control_name}_rate',
+                                                      shape=options['shape'],
+                                                      units=get_rate_units(control_units,
+                                                                           time_units,
+                                                                           deriv=1),
+                                                      desc=f'first time-derivative of control {control_name}')
+
+                phase.connect(src_name=f'control_rates:{control_name}_rate',
+                              tgt_name=f'{timeseries_name}.input_values:control_rates:{control_name}_rate',
                               src_indices=src_idxs, flat_src_indices=True)
 
                 # Control second derivatives
-                phase.connect(src_name='control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='{0}.input_values:control_rates:{1}_rate2'.format(name, control_name),
+                timeseries_comp._add_output_configure(f'control_rates:{control_name}_rate2',
+                                                      shape=options['shape'],
+                                                      units=get_rate_units(control_units,
+                                                                           time_units,
+                                                                           deriv=2),
+                                                      desc=f'second time-derivative of control {control_name}')
+
+                phase.connect(src_name=f'control_rates:{control_name}_rate2',
+                              tgt_name=f'{timeseries_name}.input_values:control_rates:{control_name}_rate2',
                               src_indices=src_idxs, flat_src_indices=True)
 
             for control_name, options in phase.polynomial_control_options.items():
                 src_rows = gd.subset_node_indices['segment_ends']
                 src_idxs = get_src_indices_by_row(src_rows, options['shape'])
-                phase.connect(src_name='polynomial_control_values:{0}'.format(control_name),
-                              tgt_name='{0}.input_values:polynomial_controls:{1}'.format(name, control_name),
+
+                control_units = options['units']
+
+                timeseries_comp._add_output_configure(f'polynomial_controls:{control_name}',
+                                                      shape=options['shape'],
+                                                      units=control_units,
+                                                      desc=options['desc'])
+
+                phase.connect(src_name=f'polynomial_control_values:{control_name}',
+                              tgt_name=f'{timeseries_name}.input_values:polynomial_controls:{control_name}',
                               src_indices=src_idxs, flat_src_indices=True)
 
                 # Control rates
-                phase.connect(src_name='polynomial_control_rates:{0}_rate'.format(control_name),
-                              tgt_name='{0}.input_values:polynomial_control_rates'
-                                       ':{1}_rate'.format(name, control_name),
+                timeseries_comp._add_output_configure('polynomial_control_rates:{0}_rate'.format(control_name),
+                                                      shape=options['shape'],
+                                                      units=get_rate_units(control_units, time_units,
+                                                                           deriv=1),
+                                                      desc=f'first time-derivative of polynomial '
+                                                           f'control {control_name}')
+
+                # Control rates
+                phase.connect(src_name=f'polynomial_control_rates:{control_name}_rate',
+                              tgt_name=f'{timeseries_name}.input_values:polynomial_control_rates:{control_name}_rate',
                               src_indices=src_idxs, flat_src_indices=True)
 
                 # Control second derivatives
-                phase.connect(src_name='polynomial_control_rates:{0}_rate2'.format(control_name),
-                              tgt_name='{0}.input_values:polynomial_control_rates'
-                                       ':{1}_rate2'.format(name, control_name),
+                timeseries_comp._add_output_configure(f'polynomial_control_rates:{control_name}_rate2',
+                                                      shape=options['shape'],
+                                                      units=get_rate_units(control_units, time_units,
+                                                                           deriv=2),
+                                                      desc=f'second time-derivative of polynomial '
+                                                           f'control {control_name}')
+
+                phase.connect(src_name=f'polynomial_control_rates:{control_name}_rate2',
+                              tgt_name=f'{timeseries_name}.input_values:polynomial_control_rates:{control_name}_rate2',
                               src_indices=src_idxs, flat_src_indices=True)
 
             for param_name, options in phase.parameter_options.items():
@@ -888,10 +860,21 @@ class RungeKutta(TranscriptionBase):
 
                     prom_name = 'parameters:{0}'.format(param_name)
                     tgt_name = 'input_values:parameters:{0}'.format(param_name)
-                    phase.promotes(name, inputs=[(tgt_name, prom_name)],
+
+                    shape, units = get_target_metadata(phase.ode, name=param_name,
+                                                       user_targets=options['targets'],
+                                                       user_shape=options['shape'],
+                                                       user_units=options['units'])
+
+                    timeseries_comp._add_output_configure(f'parameters:{param_name}',
+                                                          shape=shape,
+                                                          units=units,
+                                                          desc='')
+
+                    phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
                                    src_indices=src_idxs, flat_src_indices=True)
 
-            for var, options in phase._timeseries[name]['outputs'].items():
+            for var, options in timeseries_options['outputs'].items():
                 output_name = options['output_name']
 
                 # Determine the path to the variable which we will be constraining
@@ -904,13 +887,20 @@ class RungeKutta(TranscriptionBase):
                 if var_type != 'ode':
                     continue
 
-                # Assume scalar shape if None, but check config will warn that it's inferred.
-                if options['shape'] is None:
-                    options['shape'] = (1,)
+                try:
+                    shape, units = get_source_metadata(phase.ode, src=var,
+                                                       user_units=options['units'],
+                                                       user_shape=options['shape'])
+                except ValueError:
+                    raise ValueError(f'Timeseries output {var} is not a known variable in'
+                                     f' the phase {phase.pathname} nor is it a known output of '
+                                     f' the ODE.')
+
+                timeseries_comp._add_output_configure(output_name, units, shape, desc='')
 
                 # Failed to find variable, assume it is in the RHS
-                phase.connect(src_name='ode.{0}'.format(var),
-                              tgt_name='{0}.input_values:{1}'.format(name, output_name))
+                phase.connect(src_name=f'ode.{var}',
+                              tgt_name=f'{timeseries_name}.input_values:{output_name}')
 
     def get_parameter_connections(self, name, phase):
         """

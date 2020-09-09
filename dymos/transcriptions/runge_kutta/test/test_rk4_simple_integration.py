@@ -115,7 +115,7 @@ class TestRK4SimpleIntegration(unittest.TestCase):
         phase.set_time_options(fix_initial=True, fix_duration=True, targets=['t'])
         phase.add_state('y', connected_initial=True, targets=['y'], rate_source='ydot', units='m')
 
-        phase.add_timeseries_output('ydot', output_name='state_rate:y', units='m/s')
+        phase.add_timeseries_output('ydot', output_name='state_rate:y')
 
         p.setup(check=True, force_alloc_complex=True)
 

@@ -114,13 +114,13 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
                           scaler=0.01, lower=-180, upper=180, targets=['u1'])
 
-    burn1.add_timeseries_output('pos_x', units='DU')
-    coast.add_timeseries_output('pos_x', units='DU')
-    burn2.add_timeseries_output('pos_x', units='DU')
+    burn1.add_timeseries_output('pos_x')
+    coast.add_timeseries_output('pos_x')
+    burn2.add_timeseries_output('pos_x')
 
-    burn1.add_timeseries_output('pos_y', units='DU')
-    coast.add_timeseries_output('pos_y', units='DU')
-    burn2.add_timeseries_output('pos_y', units='DU')
+    burn1.add_timeseries_output('pos_y')
+    coast.add_timeseries_output('pos_y')
+    burn2.add_timeseries_output('pos_y')
 
     # Link Phases
     if connected:

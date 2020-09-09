@@ -101,13 +101,13 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         burn2.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
                           scaler=0.01, lower=-90, upper=90)
 
-        burn1.add_timeseries_output('pos_x', units='DU')
-        coast.add_timeseries_output('pos_x', units='DU')
-        burn2.add_timeseries_output('pos_x', units='DU')
+        burn1.add_timeseries_output('pos_x')
+        coast.add_timeseries_output('pos_x')
+        burn2.add_timeseries_output('pos_x')
 
-        burn1.add_timeseries_output('pos_y', units='DU')
-        coast.add_timeseries_output('pos_y', units='DU')
-        burn2.add_timeseries_output('pos_y', units='DU')
+        burn1.add_timeseries_output('pos_y')
+        coast.add_timeseries_output('pos_y')
+        burn2.add_timeseries_output('pos_y')
 
         # Link Phases
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],

@@ -206,7 +206,8 @@ def get_source_metadata(ode, src, user_units, user_shape):
         units = user_units
 
     if user_shape in {None, _unspecified}:
-        units = ode_outputs[src]['shape']
+        ode_shape = ode_outputs[src]['shape']
+        shape = (1,) if len(ode_shape) == 1 else ode_shape[1:]
     else:
         shape = user_shape
 
