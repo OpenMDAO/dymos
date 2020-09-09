@@ -370,9 +370,8 @@ class HPAdaptive:
 
             q_smooth[q_smooth < 3] = 3.0
             q_smooth[np.isposinf(q_smooth)] = 3.0
-            mul_factor[smooth_need_refine_idxs] = (
-                                                          self.error[phase_path][smooth_need_refine_idxs] /
-                                                          phase.refine_options['tolerance']) ** \
+            mul_factor[smooth_need_refine_idxs] = (self.error[phase_path][smooth_need_refine_idxs] /
+                                                   phase.refine_options['tolerance']) ** \
                                                   (1 / (q_smooth - 2.5))
 
             new_order = np.ceil(gd.transcription_order * mul_factor).astype(int)

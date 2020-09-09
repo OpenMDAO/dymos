@@ -131,5 +131,3 @@ class RobotArmODE(om.ExplicitComponent):
 
         partials['x5_dot', 'x0'] = 9*u2*(L - 2*x0)/(L*(L**2 - 3*L*x0 + 3*x0**2)**2)
         partials['x5_dot', 'u2'] = 3/((L - x0)**3 + x0**3)
-
-

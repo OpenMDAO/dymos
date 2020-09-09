@@ -45,9 +45,12 @@ class TestRobotArm(unittest.TestCase):
         phase.add_state('x4', fix_initial=True, fix_final=True, rate_source='x4_dot', targets=['x4'], units='rad/s')
         phase.add_state('x5', fix_initial=True, fix_final=True, rate_source='x5_dot', targets=['x5'], units='rad/s')
 
-        phase.add_control('u0', opt=True, lower=-1, upper=1, scaler=0.1, targets=['u0'], units='m**2/s**2', rate_continuity=False)
-        phase.add_control('u1', opt=True, lower=-1, upper=1, scaler=0.1, targets=['u1'], units='m**3*rad/s**2', rate_continuity=False)
-        phase.add_control('u2', opt=True, lower=-1, upper=1, scaler=0.1, targets=['u2'], units='m**3*rad/s**2', rate_continuity=False)
+        phase.add_control('u0', opt=True, lower=-1, upper=1, scaler=0.1, targets=['u0'], units='m**2/s**2',
+                          rate_continuity=False)
+        phase.add_control('u1', opt=True, lower=-1, upper=1, scaler=0.1, targets=['u1'], units='m**3*rad/s**2',
+                          rate_continuity=False)
+        phase.add_control('u2', opt=True, lower=-1, upper=1, scaler=0.1, targets=['u2'], units='m**3*rad/s**2',
+                          rate_continuity=False)
 
         phase.add_objective('time', scaler=1.0)
 
