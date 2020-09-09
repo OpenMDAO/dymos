@@ -163,6 +163,56 @@ def get_target_metadata(ode, name, user_targets, user_units, user_shape):
     return shape, units
 
 
+def get_source_metadata(ode, src, user_units, user_shape):
+    """
+    Return the targets of a state variable in a given ODE system.
+    If the targets of the state is _unspecified, and the state name is a top level input name
+    in the ODE, then the state values are automatically connected to that top-level input.
+    If _unspecified and not a top-level input of the ODE, no connection is made.
+    If targets is explicitly None, then no connection is made.
+    Otherwise, if the user specified some other string or sequence of strings as targets, then
+    those are returned.
+    Parameters
+    ----------
+    ode : om.System
+        The OpenMDAO system which serves as the ODE for dymos.  This system should already have
+        had its setup and configure methods called.
+    src : str
+        The relative path in the ODE to the source variable whose metadata is requested.
+    user_units : str or None or Sequence or _unspecified
+        Units for the variable as given by the user.
+    user_shape : str or None or Sequence or _unspecified
+        Shape for the variable as given by the user.
+    Returns
+    -------
+    shape : tuple
+        The shape of the variable.  If not specified, shape is taken from the ODE targets.
+    units : str
+        The units of the variable.  If not specified, units are taken from the ODE targets.
+    Notes
+    -----
+    This method requires that the ODE has run its setup and configure methods.  Thus,
+    this method should be called from configure of some parent Group, and the ODE should
+    be a system within that Group.
+    """
+    ode_outputs = {opts['prom_name']: opts for (k, opts) in ode.get_io_metadata(iotypes=('output',)).items()}
+
+    if src not in ode_outputs:
+        raise ValueError(f'Unable to find the source {src} in the ODE at {ode.pathname}.')
+
+    if user_units in {None, _unspecified}:
+        units = ode_outputs[src]['units']
+    else:
+        units = user_units
+
+    if user_shape in {None, _unspecified}:
+        units = ode_outputs[src]['shape']
+    else:
+        shape = user_shape
+
+    return shape, units
+
+
 class CoerceDesvar(object):
     """
     Check the desvar options for the appropriate shape and resize

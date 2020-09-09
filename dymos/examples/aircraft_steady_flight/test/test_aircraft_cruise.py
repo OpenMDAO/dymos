@@ -73,7 +73,7 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase.add_path_constraint('propulsion.tau', lower=0.01, upper=1.0, shape=(1,))
 
-        phase.add_timeseries_output('tas_comp.TAS', units='m/s')
+        phase.add_timeseries_output('tas_comp.TAS')
 
         p.model.connect('assumptions.S', 'phase0.parameters:S')
         p.model.connect('assumptions.mass_empty', 'phase0.parameters:mass_empty')
@@ -102,6 +102,14 @@ class TestAircraftCruise(unittest.TestCase):
         time = p.get_val('phase0.timeseries.time')
         tas = p.get_val('phase0.timeseries.TAS', units='km/s')
         range = p.get_val('phase0.timeseries.states:range')
+
+        assert_near_equal(range, tas*time, tolerance=1.0E-4)
+
+        exp_out = phase.simulate()
+
+        time = exp_out.get_val('phase0.timeseries.time')
+        tas = exp_out.get_val('phase0.timeseries.TAS', units='km/s')
+        range = exp_out.get_val('phase0.timeseries.states:range')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
 
@@ -194,6 +202,14 @@ class TestAircraftCruise(unittest.TestCase):
         time = p.get_val('phase0.timeseries.time')
         tas = p.get_val('phase0.timeseries.TAS', units='km/s')
         range = p.get_val('phase0.timeseries.states:range')
+
+        assert_near_equal(range, tas*time, tolerance=1.0E-4)
+
+        exp_out = phase.simulate()
+
+        time = exp_out.get_val('phase0.timeseries.time')
+        tas = exp_out.get_val('phase0.timeseries.TAS', units='km/s')
+        range = exp_out.get_val('phase0.timeseries.states:range')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
 

@@ -5,7 +5,7 @@ from ..transcription_base import TranscriptionBase
 from .components import SegmentSimulationComp, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
 from ..common import TimeComp
-from ...utils.misc import get_rate_units, get_targets, get_target_metadata
+from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 
 
@@ -433,27 +433,30 @@ class SolveIVP(TranscriptionBase):
                                                                         time_units,
                                                                         deriv=2))
 
-        for var, options in phase._timeseries['timeseries']['outputs'].items():
-            output_name = options['output_name']
-
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
-
-            # Ignore any variables that we've already added (states, times, controls, etc)
-            if var_type != 'ode':
-                continue
-
-            kwargs = options.copy()
-            kwargs.pop('output_name', None)
-            timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
+        # for var, options in phase._timeseries['timeseries']['outputs'].items():
+        #     output_name = options['output_name']
+        #
+        #     # Determine the path to the variable which we will be constraining
+        #     # This is more complicated for path constraints since, for instance,
+        #     # a single state variable has two sources which must be connected to
+        #     # the path component.
+        #     var_type = phase.classify_var(var)
+        #
+        #     # Ignore any variables that we've already added (states, times, controls, etc)
+        #     if var_type != 'ode':
+        #         continue
+        #
+        #     kwargs = options.copy()
+        #     kwargs.pop('output_name', None)
+        #     timeseries_comp._add_timeseries_output(output_name, var_type, **kwargs)
 
     def configure_timeseries_outputs(self, phase):
         gd = self.grid_data
         num_seg = gd.num_segments
         output_nodes_per_seg = self.options['output_nodes_per_seg']
+
+        timeseries_name = 'timeseries'
+        timeseries_comp = phase._get_subsystem(timeseries_name)
 
         phase.connect(src_name='time', tgt_name='timeseries.all_values:time')
 
@@ -492,20 +495,13 @@ class SolveIVP(TranscriptionBase):
                           tgt_name='timeseries.all_values:polynomial_control_rates'
                                    ':{0}_rate2'.format(name))
 
-        param_units = {}
         for name, options in phase.parameter_options.items():
             prom_name = 'parameters:{0}'.format(name)
 
-            targets = get_targets(ode=phase.ode, name=name, user_targets=options['targets'])
-            if targets:
-                prom_param = targets[0]
-            else:
-                prom_param = name
-
-            # Get the param's real units.
-            abs_param = phase.ode._var_allprocs_prom2abs_list['input'][prom_param]
-            units = phase.ode._var_abs2meta[abs_param[0]]['units']
-            param_units[name] = units
+            shape, units = get_target_metadata(phase.ode, name=name,
+                                               user_targets=options['targets'],
+                                               user_shape=options['shape'],
+                                               user_units=options['units'])
 
             for iseg in range(num_seg):
                 target_name = 'segment_{0}.parameters:{1}'.format(iseg, name)
@@ -514,7 +510,7 @@ class SolveIVP(TranscriptionBase):
             if options['include_timeseries']:
                 phase.timeseries._add_output_configure(prom_name,
                                                        desc='',
-                                                       shape=options['shape'],
+                                                       shape=shape,
                                                        units=units)
 
                 if output_nodes_per_seg is None:
@@ -539,6 +535,11 @@ class SolveIVP(TranscriptionBase):
             # Ignore any variables that we've already added (states, times, controls, etc)
             if var_type != 'ode':
                 continue
+
+            shape, units = get_source_metadata(phase.ode, src=var, user_shape=options['shape'],
+                                               user_units=options['units'])
+
+            timeseries_comp._add_output_configure(output_name, shape=shape, units=units, desc='')
 
             # Failed to find variable, assume it is in the RHS
             phase.connect(src_name='ode.{0}'.format(var),
