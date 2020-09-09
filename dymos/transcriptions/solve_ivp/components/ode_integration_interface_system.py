@@ -18,15 +18,9 @@ class ODEIntegrationInterfaceSystem(om.Group):
         self.options.declare('control_options', default=None, types=dict, allow_none=True,
                              desc='Dictionary of control names/options for the segments parent Phase.')
 
-        # self.options.declare('control_interpolants', default={}, types=dict,
-        #                      desc='Dictionary of control names/interpolants.')
-
         self.options.declare('polynomial_control_options', default=None, types=dict, allow_none=True,
                              desc='Dictionary of polynomial control names/options for the segments '
                                   'parent Phase.')
-
-        # self.options.declare('polynomial_control_interpolants', default={}, types=dict,
-        #                      desc='Dictionary of polynomial control names/interpolants.')
 
         self.options.declare('parameter_options', default=None, types=dict, allow_none=True,
                              desc='Dictionary of parameter names/options for the segments '
@@ -39,7 +33,6 @@ class ODEIntegrationInterfaceSystem(om.Group):
                              desc='Keyword arguments provided when initializing the ODE System')
 
     def setup(self):
-        # The time IVC
         ivc = om.IndepVarComp()
         time_options = self.options['time_options']
         time_units = time_options['units']
@@ -79,18 +72,19 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
     def configure(self):
         ivc = self._get_subsystem('ivc')
+        ode = self._get_subsystem('ode')
 
         # Configure states
         for name, options in self.options['state_options'].items():
-            self.ivc.add_output('states:{0}'.format(name),
-                                shape=(1, np.prod(options['shape'])),
-                                units=options['units'])
+            ivc.add_output(f'states:{name}',
+                           shape=(1, np.prod(options['shape'])),
+                           units=options['units'])
 
             rate_src = self._get_rate_source_path(name)
 
             self.connect(rate_src, f'state_rate_collector.state_rates_in:{name}_rate')
 
-            targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
+            targets = get_targets(ode=ode, name=name, user_targets=options['targets'])
 
             if targets:
                 self.connect(f'states:{name}', [f'ode.{tgt}' for tgt in targets])
@@ -98,11 +92,11 @@ class ODEIntegrationInterfaceSystem(om.Group):
         # Configure controls
         if self.options['control_options']:
             for name, options in self.options['control_options'].items():
-                targets = get_targets(ode=self.ode, name=name,
+                targets = get_targets(ode=ode, name=name,
                                       user_targets=options['targets'])
-                rate_targets = get_targets(ode=self.ode, name=f'{name}_rate',
+                rate_targets = get_targets(ode=ode, name=f'{name}_rate',
                                            user_targets=options['rate_targets'])
-                rate2_targets = get_targets(ode=self.ode, name=f'{name}_rate2',
+                rate2_targets = get_targets(ode=ode, name=f'{name}_rate2',
                                             user_targets=options['rate2_targets'])
                 if targets:
                     self.connect(f'controls:{name}',
@@ -117,11 +111,11 @@ class ODEIntegrationInterfaceSystem(om.Group):
         # Polynomial controls
         if self.options['polynomial_control_options']:
             for name, options in self.options['polynomial_control_options'].items():
-                targets = get_targets(ode=self.ode, name=name,
+                targets = get_targets(ode=ode, name=name,
                                       user_targets=options['targets'])
-                rate_targets = get_targets(ode=self.ode, name=f'{name}_rate',
+                rate_targets = get_targets(ode=ode, name=f'{name}_rate',
                                            user_targets=options['rate_targets'])
-                rate2_targets = get_targets(ode=self.ode, name=f'{name}_rate2',
+                rate2_targets = get_targets(ode=ode, name=f'{name}_rate2',
                                             user_targets=options['rate2_targets'])
                 if targets:
                     self.connect(f'polynomial_controls:{name}',
@@ -136,8 +130,8 @@ class ODEIntegrationInterfaceSystem(om.Group):
         # Parameters
         if self.options['parameter_options']:
             for name, options in self.options['parameter_options'].items():
-                targets = get_targets(ode=self.ode, name=name, user_targets=options['targets'])
-                shape, units = get_target_metadata(ode=self.ode, name=name,
+                targets = get_targets(ode=ode, name=name, user_targets=options['targets'])
+                shape, units = get_target_metadata(ode=ode, name=name,
                                                    user_targets=options['targets'],
                                                    user_shape=options['shape'],
                                                    user_units=options['units'])
