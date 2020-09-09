@@ -92,15 +92,15 @@ class TestRobotArm(unittest.TestCase):
 
         exp_out = p.model.traj.simulate()
 
-        t_exp = p.get_val('traj.phase.timeseries.time')
+        t_exp = exp_out.get_val('traj.phase.timeseries.time')
 
-        rho_exp = p.get_val('traj.phase.timeseries.states:x0')
-        theta_exp = p.get_val('traj.phase.timeseries.states:x1')
-        phi_exp = p.get_val('traj.phase.timeseries.states:x2')
+        rho_exp = exp_out.get_val('traj.phase.timeseries.states:x0')
+        theta_exp = exp_out.get_val('traj.phase.timeseries.states:x1')
+        phi_exp = exp_out.get_val('traj.phase.timeseries.states:x2')
 
-        u0_exp = p.get_val('traj.phase.timeseries.controls:u0')
-        u1_exp = p.get_val('traj.phase.timeseries.controls:u1')
-        u2_exp = p.get_val('traj.phase.timeseries.controls:u2')
+        u0_exp = exp_out.get_val('traj.phase.timeseries.controls:u0')
+        u1_exp = exp_out.get_val('traj.phase.timeseries.controls:u1')
+        u2_exp = exp_out.get_val('traj.phase.timeseries.controls:u2')
 
         if show_plots:
             import matplotlib.pyplot as plt
