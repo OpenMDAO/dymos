@@ -197,15 +197,16 @@ class HPAdaptive:
                     beta[state_name] += 1
 
                 for k in np.nditer(reduce_order_indx):
+                    seg_size = {'radau-ps': seg_order[k] + 1, 'gauss-lobatto': seg_order[k]}
                     if seg_order[k] == phase.refine_options['min_order']:
                         continue
                     new_order_state = {}
                     new_order[k] = seg_order[k]
-                    a = np.zeros((seg_order[k] + 1, seg_order[k] + 1))
+                    a = np.zeros((seg_size[gd.transcription], seg_size[gd.transcription]))
                     s, _ = lgr(seg_order[k], include_endpoint=True)
                     if gd.transcription == 'gauss-lobatto':
-                        s, _ = lgl(seg_order[k], include_endpoint=True)
-                    for j in range(0, seg_order[k] + 1):
+                        s, _ = lgl(seg_order[k])
+                    for j in range(0, seg_size[gd.transcription]):
                         roots = s[s != s[j]]
                         Q = np.poly(roots)
                         a[:, j] = Q / np.polyval(Q, s[j])
@@ -213,7 +214,7 @@ class HPAdaptive:
                     for state_name, options in phase.state_options.items():
                         b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
-                        for i in range(seg_order[k], phase.refine_options['min_order'], -1):
+                        for i in range(seg_size[gd.transcription] - 1, phase.refine_options['min_order'], -1):
                             if np.abs(b[i]) / beta[state_name] < phase.refine_options['tolerance'] and \
                                     i - 1 < new_order_state[state_name]:
                                 new_order_state[state_name] = i - 1
@@ -224,14 +225,15 @@ class HPAdaptive:
             # combine unnecessary segments
             if check_comb_indx.size > 0:
                 for k in np.nditer(check_comb_indx):
+                    seg_size = {'radau-ps': seg_order[k] + 1, 'gauss-lobatto': seg_order[k]}
                     if merge_seg[k]:
                         continue
-                    a = np.zeros((new_order[k] + 1, new_order[k] + 1))
+                    a = np.zeros((seg_size[gd.transcription], seg_size[gd.transcription]))
                     h_ = np.maximum(h[k], h[k + 1])
                     s, _ = lgr(new_order[k].astype(int), include_endpoint=True)
                     if gd.transcription == 'gauss-lobatto':
-                        s, _ = lgl(new_order[k], include_endpoint=True)
-                    for j in range(0, new_order[k] + 1):
+                        s, _ = lgl(new_order[k])
+                    for j in range(0, seg_size[gd.transcription]):
                         roots = s[s != s[j]]
                         Q = np.poly(roots)
                         a[:, j] = Q / np.polyval(Q, s[j])
@@ -241,11 +243,12 @@ class HPAdaptive:
                     for state_name, options in phase.state_options.items():
                         beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                         c = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
-                        b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in range(new_order[k] + 1)]))
+                        b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in
+                                                             range(seg_size[gd.transcription])]))
                         b_hat = np.multiply(c.ravel(),
-                                            np.array([(h_ / h[k + 1]) ** l for l in range(new_order[k] + 1)]))
+                                            np.array([(h_ / h[k + 1]) ** l for l in range(seg_size[gd.transcription])]))
                         err_val = np.dot(np.absolute(b - b_hat).ravel(),
-                                         np.array([2 ** l for l in range(new_order[k] + 1)])) / beta
+                                         np.array([2 ** l for l in range(seg_size[gd.transcription])])) / beta
 
                         if err_val > phase.refine_options['tolerance'] and merge_seg[k + 1]:
                             merge_seg[k + 1] = False
@@ -265,7 +268,7 @@ class HPAdaptive:
                         break
 
             if gd.transcription == 'gauss-lobatto':
-                new_order[new_order % 2 > 0] = new_order[new_order % 2 > 0] + 1
+                new_order[(new_order % 2) == 0] = new_order[(new_order % 2) == 0] + 1
 
             refine_results[phase_path]['new_order'] = new_order
             refine_results[phase_path]['new_num_segments'] = new_num_segments
@@ -421,15 +424,16 @@ class HPAdaptive:
                     beta[state_name] += 1
 
                 for k in np.nditer(reduce_order_indx):
+                    seg_size = {'radau-ps': seg_order[k] + 1, 'gauss-lobatto': seg_order[k]}
                     if seg_order[k] == phase.refine_options['min_order']:
                         continue
                     new_order_state = {}
                     new_order[k] = seg_order[k]
-                    a = np.zeros((seg_order[k] + 1, seg_order[k] + 1))
+                    a = np.zeros((seg_size[gd.transcription], seg_size[gd.transcription]))
                     s, _ = lgr(seg_order[k], include_endpoint=True)
                     if gd.transcription == 'gauss-lobatto':
-                        s, _ = lgl(seg_order[k], include_endpoint=True)
-                    for j in range(0, seg_order[k] + 1):
+                        s, _ = lgl(seg_order[k])
+                    for j in range(0, seg_size[gd.transcription]):
                         roots = s[s != s[j]]
                         Q = np.poly(roots)
                         a[:, j] = Q / np.polyval(Q, s[j])
@@ -438,7 +442,7 @@ class HPAdaptive:
                         new_order_state[state_name] = seg_order[k]
                         b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
-                        for i in range(seg_order[k], phase.refine_options['min_order'], -1):
+                        for i in range(seg_size[gd.transcription] - 1, phase.refine_options['min_order'], -1):
                             if np.abs(b[i]) / beta[state_name] < phase.refine_options['tolerance'] and \
                                     i - 1 < new_order_state[state_name]:
                                 new_order_state[state_name] = i - 1
@@ -450,15 +454,16 @@ class HPAdaptive:
             merge_seg = np.zeros(numseg, dtype=bool)
             if check_comb_indx.size > 0:
                 for k in np.nditer(check_comb_indx):
+                    seg_size = {'radau-ps': seg_order[k] + 1, 'gauss-lobatto': seg_order[k]}
                     if merge_seg[k]:
                         continue
 
-                    a = np.zeros((new_order[k] + 1, new_order[k] + 1))
+                    a = np.zeros((seg_size[gd.transcription], seg_size[gd.transcription]))
                     h_ = np.maximum(h[k], h[k + 1])
                     s, _ = lgr(new_order[k].astype(int), include_endpoint=True)
                     if gd.transcription == 'gauss-lobatto':
-                        s, _ = lgl(new_order[k], include_endpoint=True)
-                    for j in range(0, new_order[k] + 1):
+                        s, _ = lgl(new_order[k])
+                    for j in range(0, seg_size[gd.transcription]):
                         roots = s[s != s[j]]
                         Q = np.poly(roots)
                         a[:, j] = Q / np.polyval(Q, s[j])
@@ -468,11 +473,12 @@ class HPAdaptive:
                     for state_name, options in phase.state_options.items():
                         beta = 1 + np.max(x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                         c = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
-                        b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in range(new_order[k] + 1)]))
+                        b = np.multiply(c.ravel(), np.array([(h_ / h[k]) ** l for l in
+                                                             range(seg_size[gd.transcription])]))
                         b_hat = np.multiply(c.ravel(),
-                                            np.array([(h_ / h[k + 1]) ** l for l in range(new_order[k] + 1)]))
+                                            np.array([(h_ / h[k + 1]) ** l for l in range(seg_size[gd.transcription])]))
                         err_val = np.dot(np.absolute(b - b_hat).ravel(),
-                                         np.array([2 ** l for l in range(new_order[k] + 1)])) / beta
+                                         np.array([2 ** l for l in range(seg_size[gd.transcription])])) / beta
 
                         if err_val > phase.refine_options['tolerance'] and merge_seg[k + 1]:
                             merge_seg[k + 1] = False
@@ -484,7 +490,7 @@ class HPAdaptive:
             new_segment_ends = split_segments(gd.segment_ends, H)
 
             if gd.transcription == 'gauss-lobatto':
-                new_order[new_order % 2 > 0] = new_order[new_order % 2 > 0] + 1
+                new_order[new_order % 2 == 0] = new_order[new_order % 2 == 0] + 1
 
             self.parent_seg_map[phase_path] = np.zeros(new_num_segments, dtype=int)
             for i in range(1, new_num_segments):
