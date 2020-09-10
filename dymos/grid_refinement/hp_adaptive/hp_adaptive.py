@@ -129,6 +129,7 @@ class HPAdaptive:
             self.x_dd[phase_path] = {}
             self.error[phase_path] = refine_results[phase_path]['max_rel_error']
 
+            # Get information about current grid
             num_scalar_states = 0
             for state_name, options in phase.state_options.items():
                 shape = options['shape']
@@ -156,14 +157,13 @@ class HPAdaptive:
             for state_name, options in phase.state_options.items():
                 self.x_dd[phase_path][state_name] = D @ x_d[state_name]
 
-            # Refinement is needed
             gd = phase.options['transcription'].grid_data
             numseg = gd.num_segments
 
             merge_seg = np.zeros(numseg, dtype=bool)
 
             # In the first iteration no segments are split. All segments not meeting error requirements have their order
-            # increased
+            # increased by 3 for Radau transcription and by 2 for GL
             inc_seg_order_idxs = np.where(need_refine)
             P = np.zeros(numseg)
             if gd.transcription == 'radau-ps':
@@ -182,10 +182,12 @@ class HPAdaptive:
                                                                      new_order[:-1] == new_order[1:]),
                                                       new_order[:-1] == phase.refine_options['min_order']))[0]
 
-            # segments under error tolerance but may not be combined have their order reduced
+            # segments under error tolerance but may not be combined are checked to have their order reduced
             reduce_order_indx = np.setdiff1d(np.where(np.invert(need_refine)), check_comb_indx)
 
             # reduce segment order where error is much below the tolerance
+            # Order reduction is done by creating a power series representation of the state data on the segment
+            # Series order is progressively reduced until removal of additional terms would lead to error > tolerance
             if reduce_order_indx.size > 0:
                 # compute normalization factor beta
                 beta = {}
@@ -224,6 +226,9 @@ class HPAdaptive:
                         new_order[k] = max(new_order_state.values())
 
             # combine unnecessary segments
+            # The first of the two segments is extrapolated onto the second segment
+            # The extrapolation is checked against the current solution
+            # If they match closely enough the segments may be merged
             if check_comb_indx.size > 0:
                 for k in np.nditer(check_comb_indx):
                     seg_size = {'radau-ps': seg_order[k] + 1, 'gauss-lobatto': seg_order[k]}
@@ -258,6 +263,7 @@ class HPAdaptive:
             new_num_segments = new_segment_ends.shape[0] - 1
             new_order = np.delete(new_order, np.where(merge_seg), axis=None)
 
+            # Create a dictionary with the information on which segment included the time of each segment
             self.parent_seg_map[phase_path] = np.zeros(new_num_segments, dtype=int)
             for i in range(1, new_num_segments):
                 for j in range(1, numseg):
@@ -344,21 +350,26 @@ class HPAdaptive:
             P_hat = {}
             R = np.zeros(numseg)
 
+            # Compute the maximum magnitude of the second derivative of each state
+            # Find the same value at the same time on the previous solution
+            # If the ratio of these two values for a given state is highest, it is stored as the curvature
             for state_name, options in phase.state_options.items():
-                interp = LagrangeBarycentricInterpolant(self.gd[phase_path].node_ptau, options['shape'])
-                interp.setup(x0=t[0], xf=t[0] + t[-1], f_j=self.x_dd[phase_path][state_name])
                 x_dd[phase_path][state_name] = D @ x_d[state_name]
                 P[state_name] = np.zeros(numseg)
                 P_hat[state_name] = np.zeros(numseg)
                 for k in np.nditer(refine_seg_idxs):
+                    interp = LagrangeBarycentricInterpolant(
+                        self.gd[phase_path].node_stau[left_end_idxs[k]:left_end_idxs[k + 1]],
+                        options['shape'])
+                    interp.setup(x0=-1, xf=1,
+                                 f_j=self.x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
                     P[state_name][k] = np.max(
                         np.absolute(x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))
-                    xdd_max_time = gd.node_ptau[np.argmax(
+                    xdd_max_time = gd.node_stau[left_end_idxs[k] + np.argmax(
                         np.absolute(x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))]
-                    P_hat[state_name][k] = interp.eval(xdd_max_time)
+                    P_hat[state_name][k] = abs(interp.eval(xdd_max_time))
                     if P[state_name][k] / P_hat[state_name][k] > R[k]:
                         R[k] = P[state_name][k] / P_hat[state_name][k]
-
             non_smooth_idxs = np.where(R > phase.refine_options['smoothness_factor'])[0]
             smooth_need_refine_idxs = np.setdiff1d(refine_seg_idxs, non_smooth_idxs)
 
