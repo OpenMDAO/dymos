@@ -57,17 +57,22 @@ OpenMDAO ships with an interface to the optimizers in SciPy [@2020SciPy-NMeth], 
 For simple problems, Scipy's SLSQP optimizer generally works fine.
 On more challenging optimal-control problems, higher quality optimizers are important for getting good performance.
 
-## The value of using nonlinear solvers and analytic derivatives in optimal control
+## Statement of Need
+
+Modeling complex multidisciplinary systems often involves the use of iterative nonlinear solvers to converge the design or operational parameters of interacting subsystems.
+To speed the design optimization of such systems, the NASA's OpenMDAO software was developed to generalize the calculation of derivatives across models for use in gradient-based optimization.
+However, the optimal control of multidisciplinary systems may involve the use of nonlinear solvers within the ODE itself.
+The implicit analysis could arise due to the need for some high fidelity physics model (e.g. a vortex lattice method for aerodynamic performance prediction) or from the formulation of a differential inclusion approach.
+Despite the application of adjoint differentiation, shooting methods based on explicit time-marching still suffer from a performance standpoint due to the need to reconverge the solvers within the ODE at each time step.
+Dymos was developed to leverage the advanced differentiation capabilities of OpenMDAO in combination with modern pseudospectral optimal control techniques to enable optimization of dynamic systems that feature complex interactions between subsystems.
+Implicit pseudospectral approaches evaluate the ODE across an entire trajectory simultaneously.
+While explicit time-marching requires of the repeated convergence of small, dense systems of equations at a single instant in time, implicit pseudospectral methods converge a larger but more sparse system of equations once across the trajectory per evaluation of the ODE.
 
 Combining nonlinear solvers within the context of optimal-control problems grants the user a lot of flexibility in how to handle the direct collocation problems.
-Typically, the collocation defects --- necessary to enforce the physics the ODE --- are handled by assigning equality constraints to the optimizer.
+Typically, the collocation defects --- necessary to enforce the physics of the ODE --- are handled by assigning equality constraints to the optimizer.
 However it is also possible to use a solver to converge the defects for every optimizer iteration, in effect creating a single or multiple shooting approach that may be beneficial for some problems.
 If a solver-based collocation approach is used in combination with finite-differencing to approximate the derivatives needed by the optimizer, then the potential benefits are outweighed by numerical inaccuracies and high computational cost.
 Dymos works around this problem by leveraging OpenMDAO's support for adjoint (reverse) differentiation to realize the benefits of shooting methods without a substantial performance penalty.
-
-Another use case for nonlinear solvers is to enable the inclusion of implicit nonlinear analyses inside the ODE itself.
-The implicit analysis could arise due to the need for some high fidelity physics model (e.g. a vortex lattice method for aerodynamic performance prediction) or from the formulation of a differential inclusion approach.
-Again, in these cases the nonlinear solver would normally present numerical and computational challenges for an optimizer, but the use of analytic derivatives mitigates this issue.
 
 ## Selected applications of dymos
 
