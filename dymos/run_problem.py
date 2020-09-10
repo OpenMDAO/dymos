@@ -1,5 +1,6 @@
 from .grid_refinement.ph_adaptive.ph_adaptive import PHAdaptive
 from .grid_refinement.hp_adaptive.hp_adaptive import HPAdaptive
+from .grid_refinement.write_iteration import write_error, write_refine_iter
 from .phase.phase import Phase
 
 import openmdao.api as om
@@ -71,7 +72,7 @@ def modify_problem(problem, restart=None, reset_grid=False):
             load_case(problem, case)
 
 
-def run_problem(problem, refine=False, refine_method='ph', refine_iteration_limit=10, run_driver=True,
+def run_problem(problem, refine=False, refine_method='hp', refine_iteration_limit=10, run_driver=True,
                 simulate=False, no_iterate=False):
     """
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
@@ -122,13 +123,16 @@ def run_problem(problem, refine=False, refine_method='ph', refine_iteration_limi
                                   phases[phase_path].refine_options['refine'] and
                                   np.any(refine_results[phase_path]['need_refinement'])]
 
+                for stream in f, sys.stdout:
+                    write_error(stream, i, phases, refine_results)
+
                 if not refined_phases:
                     break
 
                 ref.refine(refine_results, i)
 
                 for stream in f, sys.stdout:
-                    ref.write_iteration(stream, i, phases, refine_results)
+                    write_refine_iter(stream, i, phases, refine_results)
 
                 prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
                              'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
