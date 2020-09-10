@@ -54,13 +54,16 @@ class PHAdaptive:
         self.phases = phases
         self.error = {}
 
-    def refine(self, refine_results):
+    def refine(self, refine_results, iter_number):
         """
         Compute the order, number of nodes, and segment ends required for the new grid
         and assigns them to the transcription of each phase.
 
         Parameters
         ----------
+        iter_number: int
+            An integer value representing the iteration of the grid refinement
+
         refine_results : dict
             A dictionary where each key is the path to a phase in the problem, and the
             associated value are various properties of that phase needed by the refinement

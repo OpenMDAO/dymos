@@ -125,16 +125,7 @@ def run_problem(problem, refine=False, refine_method='ph', refine_iteration_limi
                 if not refined_phases:
                     break
 
-                if refine_method == 'hp':
-                    for phase_path in refine_results:
-                        ref.error[phase_path] = refine_results[phase_path]['max_rel_error']
-                    if i == 0:
-                        ref.refine_first_iter(refine_results)
-                    else:
-                        ref.refine(refine_results)
-                    ref.previous_error = ref.error.copy()
-                else:
-                    ref.refine(refine_results)
+                ref.refine(refine_results, i)
 
                 for stream in f, sys.stdout:
                     ref.write_iteration(stream, i, phases, refine_results)

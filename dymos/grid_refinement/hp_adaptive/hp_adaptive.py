@@ -127,6 +127,7 @@ class HPAdaptive:
             gd = tx.grid_data
             self.gd[phase_path] = gd
             self.x_dd[phase_path] = {}
+            self.error[phase_path] = refine_results[phase_path]['max_rel_error']
 
             num_scalar_states = 0
             for state_name, options in phase.state_options.items():
@@ -278,8 +279,9 @@ class HPAdaptive:
             tx.options['num_segments'] = new_num_segments
             tx.options['segment_ends'] = new_segment_ends
             tx.init_grid()
+            self.previous_error[phase_path] = self.error[phase_path].copy()
 
-    def refine(self, refine_results):
+    def refine(self, refine_results, iter_number):
         """
                     Compute the order, number of nodes, and segment ends required for the new grid
                     and assigns them to the transcription of each phase. Method of refinement is
@@ -287,6 +289,8 @@ class HPAdaptive:
 
                     Parameters
                     ----------
+                    iter_number: int
+                        An integer value representing the iteration of the grid refinement
                     refine_results : dict
                         A dictionary where each key is the path to a phase in the problem, and the
                         associated value are various properties of that phase needed by the refinement
@@ -299,9 +303,14 @@ class HPAdaptive:
                         A dictionary of phase paths : phases which were refined.
 
         """
+        if iter_number == 0:
+            self.refine_first_iter(refine_results)
+            return
+
         x_dd = {}
         for phase_path, phase_refinement_results in refine_results.items():
             phase = self.phases[phase_path]
+            self.error[phase_path] = refine_results[phase_path]['max_rel_error']
             tx = phase.options['transcription']
             gd = tx.grid_data
 
@@ -509,7 +518,8 @@ class HPAdaptive:
             tx.options['num_segments'] = new_num_segments
             tx.options['segment_ends'] = new_segment_ends
             tx.init_grid()
-            self.x_dd[phase_path] = copy.deepcopy(x_dd[phase_path])
+            self.x_dd[phase_path] = x_dd[phase_path].copy()
+            self.previous_error[phase_path] = self.error[phase_path].copy()
             self.gd[phase_path] = copy.deepcopy(gd)
 
     def write_iteration(self, f, iter_number, phases, refine_results):
