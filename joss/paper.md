@@ -60,13 +60,14 @@ On more challenging optimal-control problems, higher quality optimizers are impo
 ## Statement of Need
 
 Modeling complex multidisciplinary systems often involves the use of iterative nonlinear solvers to converge the design or operational parameters of interacting subsystems.
-To speed the design optimization of such systems, the NASA's OpenMDAO software was developed to generalize the calculation of derivatives across models for use in gradient-based optimization.
+To speed the design optimization of such systems, NASA's OpenMDAO software was developed to generalize the calculation of derivatives across models for use in gradient-based optimization.
 However, the optimal control of multidisciplinary systems may involve the use of nonlinear solvers within the ODE itself.
 The implicit analysis could arise due to the need for some high fidelity physics model (e.g. a vortex lattice method for aerodynamic performance prediction) or from the formulation of a differential inclusion approach.
 Despite the application of adjoint differentiation, shooting methods based on explicit time-marching still suffer from a performance standpoint due to the need to reconverge the solvers within the ODE at each time step.
 Dymos was developed to leverage the advanced differentiation capabilities of OpenMDAO in combination with modern pseudospectral optimal control techniques to enable optimization of dynamic systems that feature complex interactions between subsystems.
 Implicit pseudospectral approaches evaluate the ODE across an entire trajectory simultaneously.
-While explicit time-marching requires of the repeated convergence of small, dense systems of equations at a single instant in time, implicit pseudospectral methods converge a larger but more sparse system of equations once across the trajectory per evaluation of the ODE.
+While explicit time-marching requires the repeated convergence of small, dense systems of equations at a single instant in time, implicit pseudospectral methods converge a larger but more sparse system of equations once across the trajectory per evaluation of the ODE.
+Computing the derivatives across iterative systems analytically does not require the systems to be reconverged, significantly reduces computational time during optimization.
 
 Combining nonlinear solvers within the context of optimal-control problems grants the user a lot of flexibility in how to handle the direct collocation problems.
 Typically, the collocation defects --- necessary to enforce the physics of the ODE --- are handled by assigning equality constraints to the optimizer.
