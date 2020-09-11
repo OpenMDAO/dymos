@@ -4,7 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 
-from .common import BoundaryConstraintComp, InputParameterComp, ControlGroup, \
+from .common import BoundaryConstraintComp, ControlGroup, \
     PolynomialControlGroup
 from ..utils.constants import INF_BOUND
 
