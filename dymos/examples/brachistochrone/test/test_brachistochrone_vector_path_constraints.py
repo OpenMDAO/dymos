@@ -49,7 +49,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase.add_boundary_constraint('theta_rate2', loc='final', equals=0.0)
         phase.add_path_constraint('pos', indices=[1], lower=5)
 
-        phase.add_timeseries_output('pos_dot', shape=(2,), units='m/s')
+        phase.add_timeseries_output('pos_dot')
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -169,7 +169,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase.add_path_constraint('pos_dot', shape=(2,), units='m/s', indices=[1],
                                   lower=-4, upper=4)
 
-        phase.add_timeseries_output('pos_dot', shape=(2,), units='m/s')
+        phase.add_timeseries_output('pos_dot')
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -290,7 +290,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase.add_path_constraint('pos_dot', shape=(2,), units='m/s',
                                   lower=-4, upper=12)
 
-        phase.add_timeseries_output('pos_dot', shape=(2,), units='m/s')
+        phase.add_timeseries_output('pos_dot')
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -410,7 +410,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.add_path_constraint('pos', indices=[1], lower=5)
 
-        phase.add_timeseries_output('pos_dot', shape=(2,), units='m/s')
+        phase.add_timeseries_output('pos_dot')
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -534,7 +534,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase.add_path_constraint('pos_dot', shape=(2,), units='m/s', indices=[1],
                                   lower=-4, upper=4)
 
-        phase.add_timeseries_output('pos_dot', shape=(2,), units='m/s')
+        phase.add_timeseries_output('pos_dot')
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -655,7 +655,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase.add_path_constraint('pos_dot', shape=(2,), units='m/s',
                                   lower=-4, upper=12)
 
-        phase.add_timeseries_output('pos_dot', shape=(2,), units='m/s')
+        phase.add_timeseries_output('pos_dot')
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -775,7 +775,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase.add_boundary_constraint('pos', loc='final', equals=[10, 5])
         phase.add_path_constraint('pos', indices=[1], lower=5)
 
-        phase.add_timeseries_output('pos_dot', shape=(2,), units='m/s')
+        phase.add_timeseries_output('pos_dot')
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -897,7 +897,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase.add_path_constraint('pos_dot', shape=(2,), units='m/s', indices=[1],
                                   lower=-4, upper=4)
 
-        phase.add_timeseries_output('pos_dot', shape=(2,), units='m/s')
+        phase.add_timeseries_output('pos_dot')
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -1020,7 +1020,7 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase.add_path_constraint('pos_dot', shape=(2,), units='m/s',
                                   lower=-4, upper=12)
 
-        phase.add_timeseries_output('pos_dot', shape=(2,), units='m/s')
+        phase.add_timeseries_output('pos_dot')
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)

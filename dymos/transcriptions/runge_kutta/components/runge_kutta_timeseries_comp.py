@@ -2,7 +2,6 @@ import numpy as np
 from scipy.linalg import block_diag
 
 from ...common.timeseries_output_comp import TimeseriesOutputCompBase
-from ....transcriptions.grid_data import GridData
 from dymos.utils.lagrange import lagrange_matrices
 
 
@@ -52,40 +51,53 @@ class RungeKuttaTimeseriesOutputComp(TimeseriesOutputCompBase):
             L_blocks.append(L)
 
         self.interpolation_matrix = block_diag(*L_blocks)
-        r, c = np.nonzero(self.interpolation_matrix)
 
+    def _add_output_configure(self, name, units, shape, desc=None):
+        """
+        Add a single timeseries output.
+
+        Can be called by parent groups in configure.
+
+        Parameters
+        ----------
+        name : str
+            name of the variable in this component's namespace.
+        shape : int or tuple or list or None
+            Shape of this variable, only required if val is not an array.
+            Default is None.
+        units : str or None
+            Units in which the output variables will be provided to the component during execution.
+            Default is None, which means it has no units.
+        desc : str
+            description of the timeseries output variable.
+        """
+        input_name = 'input_values:{0}'.format(name)
         output_num_nodes, input_num_nodes = self.interpolation_matrix.shape
 
-        for (name, kwargs) in self._timeseries_outputs:
+        self.add_input(input_name,
+                       shape=(input_num_nodes,) + shape,
+                       units=units,
+                       desc=desc)
 
-            input_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-            input_name = 'input_values:{0}'.format(name)
-            self.add_input(input_name,
-                           shape=(input_num_nodes,) + kwargs['shape'],
-                           **input_kwargs)
+        self.add_output(name, shape=(output_num_nodes,) + shape, desc=desc)
 
-            output_name = name
-            output_kwargs = {k: kwargs[k] for k in ('units', 'desc')}
-            output_kwargs['shape'] = (output_num_nodes,) + kwargs['shape']
-            self.add_output(output_name, **output_kwargs)
+        self._vars.append((input_name, name, shape))
 
-            self._vars.append((input_name, output_name, kwargs['shape']))
+        size = np.prod(shape)
+        val_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
 
-            size = np.prod(kwargs['shape'])
-            val_jac = np.zeros((output_num_nodes, size, input_num_nodes, size))
+        for i in range(size):
+            val_jac[:, i, :, i] = self.interpolation_matrix
 
-            for i in range(size):
-                val_jac[:, i, :, i] = self.interpolation_matrix
+        val_jac = val_jac.reshape((output_num_nodes * size, input_num_nodes * size),
+                                  order='C')
 
-            val_jac = val_jac.reshape((output_num_nodes * size, input_num_nodes * size),
-                                      order='C')
+        val_jac_rows, val_jac_cols = np.where(val_jac != 0)
 
-            val_jac_rows, val_jac_cols = np.where(val_jac != 0)
-
-            rs, cs = val_jac_rows, val_jac_cols
-            self.declare_partials(of=output_name,
-                                  wrt=input_name,
-                                  rows=rs, cols=cs, val=val_jac[rs, cs])
+        rs, cs = val_jac_rows, val_jac_cols
+        self.declare_partials(of=name,
+                              wrt=input_name,
+                              rows=rs, cols=cs, val=val_jac[rs, cs])
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         for (input_name, output_name, _) in self._vars:

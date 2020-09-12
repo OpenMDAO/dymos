@@ -156,23 +156,23 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         self.declare_partials(of='*', wrt='*', method='fd')
 
-    def add_parameters(self, units_dict):
-        """
-        Add parameters with given units.
-
-        The units of the parameters are not known until after the rhs component has been setup.
-
-        Parameters
-        ----------
-        units_dict : dict
-            Dictionary containing the actual design variable units for each parameter.
-        """
-        if self.options['parameter_options']:
-            for name, options in self.options['parameter_options'].items():
-                units = units_dict[name]
-                self.add_input(name='parameters:{0}'.format(name), val=np.ones(options['shape']),
-                               units=units,
-                               desc='values of parameter {0}.'.format(name))
+    # def add_parameters(self, units_dict):
+    #     """
+    #     Add parameters with given units.
+    #
+    #     The units of the parameters are not known until after the rhs component has been setup.
+    #
+    #     Parameters
+    #     ----------
+    #     units_dict : dict
+    #         Dictionary containing the actual design variable units for each parameter.
+    #     """
+    #     if self.options['parameter_options']:
+    #         for name, options in self.options['parameter_options'].items():
+    #             units = units_dict[name]
+    #             self.add_input(name='parameters:{0}'.format(name), val=np.ones(options['shape']),
+    #                            units=units,
+    #                            desc='values of parameter {0}.'.format(name))
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         idx = self.options['index']

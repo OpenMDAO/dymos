@@ -106,13 +106,13 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         burn2.add_objective('deltav', loc='final', scaler=1.0)
 
-        burn1.add_timeseries_output('pos_x', units='DU')
-        coast.add_timeseries_output('pos_x', units='DU')
-        burn2.add_timeseries_output('pos_x', units='DU')
+        burn1.add_timeseries_output('pos_x')
+        coast.add_timeseries_output('pos_x')
+        burn2.add_timeseries_output('pos_x')
 
-        burn1.add_timeseries_output('pos_y', units='DU')
-        coast.add_timeseries_output('pos_y', units='DU')
-        burn2.add_timeseries_output('pos_y', units='DU')
+        burn1.add_timeseries_output('pos_y')
+        coast.add_timeseries_output('pos_y')
+        burn2.add_timeseries_output('pos_y')
 
         # Link Phases
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],

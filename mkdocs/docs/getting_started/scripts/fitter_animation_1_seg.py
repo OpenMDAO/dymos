@@ -47,8 +47,6 @@ phase.add_parameter('m', units='kg', targets=['m'])
 # secondary "dense" timeseries
 phase.add_timeseries('timeseries2', transcription=dm.Radau(num_segments=NUM_SEG, order=41, compressed=False))
 
-# phase.add_timeseries_output('time', timeseries='timeseries2', shape=(1,))
-
 # Since we're using an optimization driver, an objective is required.  We'll minimize the final time in this case.
 phase.add_objective('time', loc='final')
 

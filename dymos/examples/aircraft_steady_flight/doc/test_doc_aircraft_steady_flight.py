@@ -91,8 +91,8 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         phase.add_objective('range', loc='final', ref=-1.0e-4)
 
-        phase.add_timeseries_output('aero.CL', units=None, shape=(1,))
-        phase.add_timeseries_output('aero.CD', units=None, shape=(1,))
+        phase.add_timeseries_output('aero.CL')
+        phase.add_timeseries_output('aero.CD')
 
         p.setup()
 
@@ -114,6 +114,14 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
                           726.85, tolerance=1.0E-2)
 
         exp_out = traj.simulate()
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.CL')[0],
+                          exp_out.get_val('traj.phase0.timeseries.CL')[0],
+                          tolerance=1.0E-9)
+
+        assert_near_equal(p.get_val('traj.phase0.timeseries.CD')[0],
+                          exp_out.get_val('traj.phase0.timeseries.CD')[0],
+                          tolerance=1.0E-9)
 
         plot_results([('traj.phase0.timeseries.states:range', 'traj.phase0.timeseries.states:alt',
                        'range (NM)', 'altitude (kft)'),
