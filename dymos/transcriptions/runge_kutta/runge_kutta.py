@@ -539,105 +539,19 @@ class RungeKutta(TranscriptionBase):
     def setup_path_constraints(self, phase):
         """
         Add a path constraint component if necessary and issue appropriate connections as
-        part of the setup stack.
+        part of the setup stack.  This overrides the default transcription path constraints at
+        all nodes and only applies them at the segment end points, the only points in an RK segment
+        where all of the variables are valid.
         """
-        path_comp = None
         gd = self.grid_data
-        time_units = phase.time_options['units']
 
         if phase._path_constraints:
             path_comp = PathConstraintComp(num_nodes=gd.subset_num_nodes['segment_ends'])
             phase.add_subsystem('path_constraints', subsys=path_comp)
 
-        for var, options in phase._path_constraints.items():
-            con_units = options.get('units', None)
-            con_name = options['constraint_name']
-
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
-
-            if var_type == 'time':
-                options['shape'] = (1,)
-                options['units'] = time_units if con_units is None else con_units
-                options['linear'] = True
-
-            elif var_type == 'time_phase':
-                options['shape'] = (1,)
-                options['units'] = time_units if con_units is None else con_units
-                options['linear'] = True
-
-            elif var_type == 'state':
-                state_shape = phase.state_options[var]['shape']
-                state_units = phase.state_options[var]['units']
-                options['shape'] = state_shape
-                options['units'] = state_units if con_units is None else con_units
-                options['linear'] = False
-
-            elif var_type in ('indep_control', 'input_control'):
-                control_shape = phase.control_options[var]['shape']
-                control_units = phase.control_options[var]['units']
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = True if var_type == 'indep_control' else False
-
-            elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
-                control_shape = phase.polynomial_control_options[var]['shape']
-                control_units = phase.polynomial_control_options[var]['units']
-                options['shape'] = control_shape
-                options['units'] = control_units if con_units is None else con_units
-                options['linear'] = False
-
-            elif var_type in ('control_rate', 'control_rate2'):
-                if var.endswith('_rate'):
-                    control_name = var[:-5]
-                elif var.endswith('_rate2'):
-                    control_name = var[:-6]
-                control_shape = phase.control_options[control_name]['shape']
-                control_units = phase.control_options[control_name]['units']
-                options['shape'] = control_shape
-
-                if var_type == 'control_rate':
-                    options['units'] = get_rate_units(control_units, time_units) \
-                        if con_units is None else con_units
-                elif var_type == 'control_rate2':
-                    options['units'] = get_rate_units(control_units, time_units, deriv=2) \
-                        if con_units is None else con_units
-
-                options['linear'] = False
-
-            elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
-                if var.endswith('_rate'):
-                    control_name = var[:-5]
-                elif var.endswith('_rate2'):
-                    control_name = var[:-6]
-                control_shape = phase.polynomial_control_options[control_name]['shape']
-                control_units = phase.polynomial_control_options[control_name]['units']
-                options['shape'] = control_shape
-
-                if var_type == 'polynomial_control_rate':
-                    options['units'] = get_rate_units(control_units, time_units) \
-                        if con_units is None else con_units
-                elif var_type == 'polynomial_control_rate2':
-                    options['units'] = get_rate_units(control_units, time_units, deriv=2) \
-                        if con_units is None else con_units
-
-                options['linear'] = False
-
-            else:
-                # Failed to find variable, assume it is in the ODE
-                options['linear'] = False
-
-                if options['shape'] is None:
-                    options['shape'] = (1,)
-
-            kwargs = options.copy()
-            kwargs.pop('constraint_name', None)
-            path_comp.add_path_constraint(con_name, var_type, **kwargs)
-
     def configure_path_constraints(self, phase):
+        super(RungeKutta, self).configure_path_constraints(phase)
+
         gd = self.grid_data
         num_seg = gd.num_segments
         num_seg_ends = self.grid_data.subset_num_nodes['segment_ends']
@@ -653,75 +567,75 @@ class RungeKutta(TranscriptionBase):
             var_type = phase.classify_var(var)
 
             if var_type == 'time':
-                phase.connect(src_name='time',
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                              src_indices=np.reshape(seg_end_idxs, newshape=(num_seg_ends, 1)))
+                src = 'time'
+                tgt = f'path_constraints.all_values:{con_name}'
+                src_idxs = np.reshape(seg_end_idxs, newshape=(num_seg_ends, 1))
+                flat_src_idxs = False
 
             elif var_type == 'time_phase':
-                phase.connect(src_name='time_phase',
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                              src_indices=np.reshape(seg_end_idxs, newshape=(num_seg_ends, 1)))
+                src = 'time_phase'
+                tgt = f'path_constraints.all_values:{con_name}'
+                src_idxs = np.reshape(seg_end_idxs, newshape=(num_seg_ends, 1))
+                flat_src_idxs = False
 
             elif var_type == 'state':
+                state_shape = phase.state_options[var]['shape']
                 row_idxs = np.repeat(np.arange(1, num_seg, dtype=int), repeats=2)
                 row_idxs = np.concatenate(([0], row_idxs, [num_seg]))
-                src_idxs = get_src_indices_by_row(row_idxs, options['shape'])
-
-                phase.connect('states:{0}'.format(var),
-                              'path_constraints.all_values:{0}'.format(var),
-                              src_indices=src_idxs, flat_src_indices=True)
+                src_idxs = get_src_indices_by_row(row_idxs, state_shape)
+                flat_src_idxs = True
+                src = f'states:{var}'
+                tgt = f'path_constraints.all_values:{var}'
 
             elif var_type in ('indep_control', 'input_control'):
+                control_shape = phase.control_options[var]['shape']
+
                 src_rows = self.grid_data.subset_node_indices['segment_ends']
-                src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
+                src_idxs = get_src_indices_by_row(src_rows, shape=control_shape)
+                flat_src_idxs = True
 
-                src = 'control_values:{0}'.format(var)
-                tgt = 'path_constraints.all_values:{0}'.format(con_name)
-
-                phase.connect(src_name=src, tgt_name=tgt,
-                              src_indices=src_idxs, flat_src_indices=True)
+                src = f'control_values:{var}'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type in ('indep_polynomial_control', 'input_polynomial_control'):
-                src_idxs = get_src_indices_by_row(seg_end_idxs, shape=options['shape'])
+                shape = phase.polynomial_control_options[var]['shape']
+                src_idxs = get_src_indices_by_row(seg_end_idxs, shape=shape)
+                flat_src_idxs = True
 
-                src = 'polynomial_control_values:{0}'.format(var)
-                tgt = 'path_constraints.all_values:{0}'.format(con_name)
-
-                phase.connect(src_name=src, tgt_name=tgt,
-                              src_indices=src_idxs, flat_src_indices=True)
+                src = f'polynomial_control_values:{var}'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type in ('control_rate', 'control_rate2'):
-                src_idxs = get_src_indices_by_row(seg_end_idxs, shape=options['shape'])
+                control_name = var[:-5] if var.endswith('_rate') else var[:-6]
+                control_shape = phase.control_options[control_name]['shape']
+                src_idxs = get_src_indices_by_row(seg_end_idxs, shape=control_shape)
+                flat_src_idxs = True
 
-                src = 'control_rates:{0}'.format(var)
-                tgt = 'path_constraints.all_values:{0}'.format(con_name)
-
-                phase.connect(src_name=src, tgt_name=tgt,
-                              src_indices=src_idxs, flat_src_indices=True)
+                src = f'control_rates:{var}'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
-                src_idxs = get_src_indices_by_row(seg_end_idxs, shape=options['shape'])
+                control_name = var[:-5] if var.endswith('_rate') else var[:-6]
+                control_shape = phase.polynomial_control_options[control_name]['shape']
+                src_idxs = get_src_indices_by_row(seg_end_idxs, shape=control_shape)
+                flat_src_idxs = True
 
-                src = 'polynomial_control_rates:{0}'.format(var)
-                tgt = 'path_constraints.all_values:{0}'.format(con_name)
-
-                phase.connect(src_name=src, tgt_name=tgt,
-                              src_indices=src_idxs, flat_src_indices=True)
+                src = f'polynomial_control_rates:{var}'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             else:
-                # Failed to find variable, assume it is in the ODE
                 src_rows = np.arange(num_seg * 2, dtype=int)
                 src_idxs = get_src_indices_by_row(src_rows, shape=options['shape'])
+                flat_src_idxs = True
 
-                src = 'ode.{0}'.format(var)
-                tgt = 'path_constraints.all_values:{0}'.format(con_name)
+                src = f'ode.{var}'
+                tgt = f'path_constraints.all_values:{con_name}'
 
-                phase.connect(src_name=src, tgt_name=tgt,
-                              src_indices=src_idxs, flat_src_indices=True)
+            phase.connect(src_name=src, tgt_name=tgt,
+                          src_indices=src_idxs, flat_src_indices=flat_src_idxs)
 
     def setup_timeseries_outputs(self, phase):
         gd = self.grid_data
-        time_units = phase.time_options['units']
 
         for name, options in phase._timeseries.items():
 

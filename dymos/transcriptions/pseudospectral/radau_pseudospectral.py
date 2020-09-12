@@ -144,125 +144,16 @@ class Radau(PseudospectralBase):
                           'collocation_constraint.f_computed:{0}'.format(name),
                           src_indices=src_idxs, flat_src_indices=True)
 
-    def setup_path_constraints(self, phase):
-        """
-        Add a path constraint component if necessary and issue appropriate connections as
-        part of the setup stack.
-        """
-        path_comp = None
-        gd = self.grid_data
-        time_units = phase.time_options['units']
-
-        if phase._path_constraints:
-            path_comp = PathConstraintComp(num_nodes=gd.num_nodes)
-            phase.add_subsystem('path_constraints', subsys=path_comp)
-
-        for var, options in phase._path_constraints.items():
-            constraint_kwargs = options.copy()
-            con_units = constraint_kwargs['units'] = options.get('units', None)
-            con_name = constraint_kwargs.pop('constraint_name')
-
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
-
-            if var_type == 'time':
-                constraint_kwargs['shape'] = (1,)
-                constraint_kwargs['units'] = time_units if con_units is None else con_units
-                constraint_kwargs['linear'] = True
-
-            elif var_type == 'time_phase':
-                constraint_kwargs['shape'] = (1,)
-                constraint_kwargs['units'] = time_units if con_units is None else con_units
-                constraint_kwargs['linear'] = True
-
-            elif var_type == 'state':
-                state_shape = phase.state_options[var]['shape']
-                state_units = phase.state_options[var]['units']
-                constraint_kwargs['shape'] = state_shape
-                constraint_kwargs['units'] = state_units if con_units is None else con_units
-                constraint_kwargs['linear'] = False
-
-            elif var_type == 'indep_control':
-                control_shape = phase.control_options[var]['shape']
-                control_units = phase.control_options[var]['units']
-
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = control_units if con_units is None else con_units
-                constraint_kwargs['linear'] = True
-
-            elif var_type == 'input_control':
-                control_shape = phase.control_options[var]['shape']
-                control_units = phase.control_options[var]['units']
-
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = control_units if con_units is None else con_units
-                constraint_kwargs['linear'] = True
-
-            elif var_type == 'indep_polynomial_control':
-                control_shape = phase.polynomial_control_options[var]['shape']
-                control_units = phase.polynomial_control_options[var]['units']
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = control_units if con_units is None else con_units
-                constraint_kwargs['linear'] = False
-
-            elif var_type == 'input_polynomial_control':
-                control_shape = phase.polynomial_control_options[var]['shape']
-                control_units = phase.polynomial_control_options[var]['units']
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = control_units if con_units is None else con_units
-                constraint_kwargs['linear'] = False
-
-            elif var_type == 'control_rate':
-                control_name = var[:-5]
-                control_shape = phase.control_options[control_name]['shape']
-                control_units = phase.control_options[control_name]['units']
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
-                    if con_units is None else con_units
-
-            elif var_type == 'control_rate2':
-                control_name = var[:-6]
-                control_shape = phase.control_options[control_name]['shape']
-                control_units = phase.control_options[control_name]['units']
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
-                    if con_units is None else con_units
-
-            elif var_type == 'polynomial_control_rate':
-                control_name = var[:-5]
-                control_shape = phase.polynomial_control_options[control_name]['shape']
-                control_units = phase.polynomial_control_options[control_name]['units']
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
-                    if con_units is None else con_units
-
-            elif var_type == 'polynomial_control_rate2':
-                control_name = var[:-6]
-                control_shape = phase.polynomial_control_options[control_name]['shape']
-                control_units = phase.polynomial_control_options[control_name]['units']
-                constraint_kwargs['shape'] = control_shape
-                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
-                    if con_units is None else con_units
-
-            else:
-                # Failed to find variable, assume it is in the ODE
-                constraint_kwargs['linear'] = False
-                constraint_kwargs['shape'] = options.get('shape', None)
-                if constraint_kwargs['shape'] is None:
-                    options['shape'] = (1,)
-                    constraint_kwargs['shape'] = (1,)
-
-            path_comp.add_path_constraint(con_name, var_type, **constraint_kwargs)
-
     def configure_path_constraints(self, phase):
+        super(Radau, self).configure_path_constraints(phase)
+
         gd = self.grid_data
 
         for var, options in phase._path_constraints.items():
             constraint_kwargs = options.copy()
             con_name = constraint_kwargs.pop('constraint_name')
+            src_idxs = None
+            flat_src_idxs = False
 
             # Determine the path to the variable which we will be constraining
             # This is more complicated for path constraints since, for instance,
@@ -271,68 +162,63 @@ class Radau(PseudospectralBase):
             var_type = phase.classify_var(var)
 
             if var_type == 'time':
-                phase.connect(src_name='time',
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                src = 'time'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type == 'time_phase':
-                phase.connect(src_name='time_phase',
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                src = 'time_phase'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type == 'state':
                 state_shape = phase.state_options[var]['shape']
                 src_idxs = get_src_indices_by_row(gd.input_maps['state_input_to_disc'], state_shape)
-                phase.connect(src_name='states:{0}'.format(var),
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name),
-                              src_indices=src_idxs, flat_src_indices=True)
+                flat_src_idxs = True
+                src = f'states:{var}'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type == 'indep_control':
-                constraint_path = 'control_values:{0}'.format(var)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                src = f'control_values:{var}'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type == 'input_control':
-                constraint_path = 'control_values:{0}'.format(var)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                src = 'control_values:{0}'.format(var)
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type == 'indep_polynomial_control':
-                constraint_path = 'polynomial_control_values:{0}'.format(var)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                src = f'polynomial_control_values:{var}'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type == 'input_polynomial_control':
-                constraint_path = 'polynomial_control_values:{0}'.format(var)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                src = f'polynomial_control_values:{var}'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type == 'control_rate':
                 control_name = var[:-5]
-                constraint_path = 'control_rates:{0}_rate'.format(control_name)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                src = f'control_rates:{control_name}_rate'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type == 'control_rate2':
                 control_name = var[:-6]
-                constraint_path = 'control_rates:{0}_rate2'.format(control_name)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                src = f'control_rates:{control_name}_rate2'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type == 'polynomial_control_rate':
                 control_name = var[:-5]
-                constraint_path = 'polynomial_control_rates:{0}_rate'.format(control_name)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                src = f'polynomial_control_rates:{control_name}_rate'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             elif var_type == 'polynomial_control_rate2':
                 control_name = var[:-6]
-                constraint_path = 'polynomial_control_rates:{0}_rate2'.format(control_name)
-                phase.connect(src_name=constraint_path,
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                src = f'polynomial_control_rates:{control_name}_rate2'
+                tgt = f'path_constraints.all_values:{con_name}'
 
             else:
                 # Failed to find variable, assume it is in the ODE
-                phase.connect(src_name='rhs_all.{0}'.format(var),
-                              tgt_name='path_constraints.all_values:{0}'.format(con_name))
+                src = f'rhs_all.{var}'
+                tgt = f'path_constraints.all_values:{con_name}'
+
+            phase.connect(src_name=src, tgt_name=tgt,
+                          src_indices=src_idxs, flat_src_indices=flat_src_idxs)
 
     def configure_timeseries_outputs(self, phase):
         gd = self.grid_data
