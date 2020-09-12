@@ -4,8 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 
-from .common import BoundaryConstraintComp, ControlGroup, \
-    PolynomialControlGroup, PathConstraintComp
+from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
 from ..utils.constants import INF_BOUND
 from ..utils.misc import get_rate_units
 

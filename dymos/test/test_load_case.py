@@ -37,7 +37,7 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10)):
     phase.add_control('theta', units='deg',
                       rate_continuity=False, lower=0.01, upper=179.9)
 
-    phase.add_design_parameter('g', units='m/s**2', opt=False, val=9.80665)
+    phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
     if isinstance(trans, RungeKutta):
         phase.add_timeseries_output('check', units='m/s', shape=(1,))

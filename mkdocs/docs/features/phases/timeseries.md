@@ -24,8 +24,7 @@ By default, the timeseries output will include the following variables for every
 |``<phase path>.timeseries.polynomial_controls:<p>``           |Value of polynomial control variable named u         |
 |``<phase path>.timeseries.polynomial_control_rates:<p>_rate`` |Time derivative of polynomial control named u        |
 |``<phase path>.timeseries.polynomial_control_rates:<p>_rate2``|Second time derivative of polynomial control named u |
-|``<phase path>.timeseries.design_parameters:<d>``             |Value of design parameter named d                    |
-|``<phase path>.timeseries.input_parameters:<s>``              |Value of input parameter named s                     |
+|``<phase path>.timeseries.parameters:<d>``                    |Value of parameter named d                           |
 
 In addition to these default values, any output of the ODE can be added to the timeseries output
 using the ``add_timeseries_output`` method on Phase.  These outputs are available as

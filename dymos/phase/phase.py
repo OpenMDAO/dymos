@@ -1967,7 +1967,7 @@ class Phase(om.Group):
         return sim_prob
 
     def set_refine_options(self, refine=_unspecified, tol=_unspecified, min_order=_unspecified,
-                           max_order=_unspecified):
+                           max_order=_unspecified, smoothness_factor=_unspecified):
         """
         Set the specified option(s) for grid refinement in the phase.
 
@@ -1981,6 +1981,8 @@ class Phase(om.Group):
             The minimum allowable transcription order for segments in the phase.
         max_order : int
             The maximum allowable transcription order for segments in the phase.
+        smoothness_factor: float
+            The maximum allowable ratio of state second derivatives. If exceeded the segment must be split
         """
         if refine is not _unspecified:
             self.refine_options['refine'] = refine
@@ -1990,3 +1992,5 @@ class Phase(om.Group):
             self.refine_options['min_order'] = min_order
         if max_order is not _unspecified:
             self.refine_options['max_order'] = max_order
+        if smoothness_factor is not _unspecified:
+            self.refine_options['smoothness_factor'] = smoothness_factor

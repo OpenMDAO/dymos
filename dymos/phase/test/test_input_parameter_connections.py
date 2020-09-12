@@ -43,7 +43,7 @@ class MyODE(om.Group):
                                          n_traj=n_traj))
 
 
-class TestStaticInputParameters(unittest.TestCase):
+class TestStaticParameters(unittest.TestCase):
 
     def test_radau(self):
 

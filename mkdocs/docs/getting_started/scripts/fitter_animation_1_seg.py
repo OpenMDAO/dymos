@@ -40,9 +40,9 @@ phase.add_state('x', fix_initial=True, rate_source='v', targets=['x'], units='m'
 phase.add_state('v', fix_initial=True, rate_source='v_dot', targets=['v'], units='m/s')
 
 # The spring constant, damping coefficient, and mass are inputs to the system that are constant throughout the phase.
-phase.add_input_parameter('k', units='N/m', targets=['k'])
-phase.add_input_parameter('c', units='N*s/m', targets=['c'])
-phase.add_input_parameter('m', units='kg', targets=['m'])
+phase.add_parameter('k', units='N/m', targets=['k'])
+phase.add_parameter('c', units='N*s/m', targets=['c'])
+phase.add_parameter('m', units='kg', targets=['m'])
 
 # secondary "dense" timeseries
 phase.add_timeseries('timeseries2', transcription=dm.Radau(num_segments=NUM_SEG, order=41, compressed=False))
@@ -60,9 +60,9 @@ prob.set_val('traj.phase0.t_duration', 5.0)
 prob.set_val('traj.phase0.states:x', 10.0)
 prob.set_val('traj.phase0.states:v', 0.0)
 
-prob.set_val('traj.phase0.input_parameters:k', 1.0)
-prob.set_val('traj.phase0.input_parameters:c', 0.5)
-prob.set_val('traj.phase0.input_parameters:m', 1.0)
+prob.set_val('traj.phase0.parameters:k', 1.0)
+prob.set_val('traj.phase0.parameters:c', 0.5)
+prob.set_val('traj.phase0.parameters:m', 1.0)
 
 starts= {}
 

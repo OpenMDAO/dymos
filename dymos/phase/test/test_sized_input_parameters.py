@@ -10,7 +10,7 @@ from dymos.models.eom import FlightPathEOM2D
 import numpy as np
 
 
-class TestInputParameterConnections(unittest.TestCase):
+class TestParameterConnections(unittest.TestCase):
 
     def test_dynamic_parameter_connections_radau(self):
 
