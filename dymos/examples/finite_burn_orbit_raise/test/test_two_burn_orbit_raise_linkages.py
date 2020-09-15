@@ -1,13 +1,11 @@
 import unittest
+from openmdao.utils.testing_utils import use_tempdirs
 
 import matplotlib
 matplotlib.use('Agg')
 
-from openmdao.utils.testing_utils import use_tempdirs
-
 
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
-
     @use_tempdirs
     def test_two_burn_orbit_raise_gl_rk_gl_constrained(self):
         import numpy as np
@@ -344,9 +342,9 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         burn2.add_objective('deltav', loc='final', scaler=1.0)
 
         # demonstrate adding multiple variables at once using list in add_timeseries_output
-        burn1.add_timeseries_output(['pos_x', 'pos_y'])
         # test dict for units, ignore mismatched unit
-        coast.add_timeseries_output(['pos_x', 'pos_y'], units={'pos_x': 'm', 'junk': 'lbm'})
+        burn1.add_timeseries_output(['pos_x', 'pos_y'], units={'pos_x': 'm', 'junk': 'lbm'})
+        coast.add_timeseries_output(['pos_x', 'pos_y'])
         # test list for units
         burn2.add_timeseries_output(['pos_x', 'pos_y'], units=['m', 'm'])
 
@@ -418,6 +416,13 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         assert_near_equal(p.get_val('traj.burn2.timeseries.states:deltav')[-1],
                           0.3995,
                           tolerance=2.0E-3)
+
+        # check units
+        un = dict(p.model.list_outputs(units=True))
+        assert(un['traj.phases.burn1.timeseries.pos_x']['units'] == 'm')
+        assert(un['traj.phases.burn1.timeseries.pos_y']['units'] == 'DU')
+        assert(un['traj.phases.burn2.timeseries.pos_x']['units'] == 'm')
+        assert(un['traj.phases.burn2.timeseries.pos_y']['units'] == 'm')
 
     @use_tempdirs
     def test_two_burn_orbit_raise_gl_wildcard_add_timeseries_output(self):
@@ -590,7 +595,21 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                           tolerance=2.0E-3)
 
         # test ODE output wildcard matching in solve_ivp
-        traj.simulate()
+        exp_out = traj.simulate()
+
+        for prob in (p, exp_out):
+            # check timeseries: pos_x = r * cos(theta) and pos_y = r * sin(theta)
+            for phs in ['burn1', 'coast', 'burn2']:
+                x = np.array(prob.get_val('traj.{0}.timeseries.pos_x'.format(phs))).flatten()
+                y = np.array(prob.get_val('traj.{0}.timeseries.pos_y'.format(phs))).flatten()
+                t = np.array(prob.get_val('traj.{0}.timeseries.states:theta'.format(phs))).flatten()
+                r = np.array(prob.get_val('traj.{0}.timeseries.states:r'.format(phs))).flatten()
+
+                xerr = x - r * np.cos(t)
+                yerr = y - r * np.sin(t)
+
+                assert_near_equal(np.sqrt(np.mean(xerr * xerr)), 0.0)
+                assert_near_equal(np.sqrt(np.mean(yerr * yerr)), 0.0)
 
     @use_tempdirs
     def test_two_burn_orbit_raise_radau_wildcard_add_timeseries_output(self):
@@ -763,7 +782,22 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                           tolerance=2.0E-3)
 
         # test ODE output wildcard matching in solve_ivp
-        traj.simulate()
+        exp_out = traj.simulate()
+
+        for prob in (p, exp_out):
+            # check timeseries: pos_x = r * cos(theta) and pos_y = r * sin(theta)
+            for phs in ['burn1', 'coast', 'burn2']:
+                x = np.array(prob.get_val('traj.{0}.timeseries.pos_x'.format(phs))).flatten()
+                y = np.array(prob.get_val('traj.{0}.timeseries.pos_y'.format(phs))).flatten()
+                t = np.array(prob.get_val('traj.{0}.timeseries.states:theta'.format(phs))).flatten()
+                r = np.array(prob.get_val('traj.{0}.timeseries.states:r'.format(phs))).flatten()
+
+                xerr = x - r * np.cos(t)
+                yerr = y - r * np.sin(t)
+
+                assert_near_equal(np.sqrt(np.mean(xerr*xerr)), 0.0)
+                assert_near_equal(np.sqrt(np.mean(yerr*yerr)), 0.0)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()
