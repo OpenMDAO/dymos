@@ -7,7 +7,7 @@ from .components import SegmentSimulationComp, SegmentStateMuxComp, \
 from ..common import TimeComp
 from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
-from fnmatch import fnmatch
+from fnmatch import filter
 
 
 class SolveIVP(TranscriptionBase):
@@ -481,7 +481,7 @@ class SolveIVP(TranscriptionBase):
             if '*' in var:  # match outputs from the ODE
                 ode_outputs = {opts['prom_name']: opts for (k, opts) in
                                phase.ode.get_io_metadata(iotypes=('output',)).items()}
-                matches = [n for n in list(ode_outputs.keys()) if fnmatch(n, var)]
+                matches = filter(list(ode_outputs.keys()), var)
             else:
                 matches = [var]
 

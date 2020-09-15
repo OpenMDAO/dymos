@@ -6,7 +6,7 @@ from ..common import PathConstraintComp, GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
-from fnmatch import fnmatch
+from fnmatch import filter
 
 
 class GaussLobatto(PseudospectralBase):
@@ -472,7 +472,7 @@ class GaussLobatto(PseudospectralBase):
                 if '*' in var:  # match outputs from the ODE
                     ode_outputs = {opts['prom_name']: opts for (k, opts) in
                                    phase.rhs_disc.get_io_metadata(iotypes=('output',)).items()}
-                    matches = [n for n in list(ode_outputs.keys()) if fnmatch(n, var)]
+                    matches = filter(list(ode_outputs.keys()), var)
                 else:
                     matches = [var]
 
