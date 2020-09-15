@@ -487,7 +487,7 @@ class SolveIVP(TranscriptionBase):
 
             for v in matches:
                 if '*' in var:
-                    output_name = v
+                    output_name = v.split('.')[-1]
 
                 # Determine the path to the variable which we will be constraining
                 # This is more complicated for path constraints since, for instance,
@@ -502,7 +502,13 @@ class SolveIVP(TranscriptionBase):
                 shape, units = get_source_metadata(phase.ode, src=v, user_shape=options['shape'],
                                                    user_units=options['units'])
 
-                timeseries_comp._add_output_configure(output_name, shape=shape, units=units, desc='')
+                try:
+                    timeseries_comp._add_output_configure(output_name, shape=shape, units=units, desc='')
+                except ValueError as e:  # OK if it already exists
+                    if 'already exists' in str(e):
+                        continue
+                    else:
+                        raise e
 
                 # Failed to find variable, assume it is in the RHS
                 phase.connect(src_name=f'ode.{v}',

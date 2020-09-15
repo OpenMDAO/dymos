@@ -478,7 +478,7 @@ class GaussLobatto(PseudospectralBase):
 
                 for v in matches:
                     if '*' in var:
-                        output_name = v
+                        output_name = v.split('.')[-1]
 
                     # Determine the path to the variable which we will be constraining
                     # This is more complicated for path constraints since, for instance,
@@ -499,7 +499,13 @@ class GaussLobatto(PseudospectralBase):
                                          f' the phase {phase.pathname} nor is it a known output of '
                                          f' the ODE.')
 
-                    timeseries_comp._add_output_configure(output_name, units, shape)
+                    try:
+                        timeseries_comp._add_output_configure(output_name, units, shape)
+                    except ValueError as e:  # OK if it already exists
+                        if 'already exists' in str(e):
+                            continue
+                        else:
+                            raise e
 
                     interleave_comp = phase._get_subsystem('interleave_comp')
                     if interleave_comp.add_var(output_name, shape, units):
