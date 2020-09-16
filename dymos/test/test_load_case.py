@@ -36,7 +36,7 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=Fal
 
     if not polynomial_control:
         phase.add_control('theta', units='deg',
-                        rate_continuity=False, lower=0.01, upper=179.9)
+                          rate_continuity=False, lower=0.01, upper=179.9)
     else:
         phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
 
@@ -146,7 +146,8 @@ class TestLoadCase(unittest.TestCase):
                                                                 out_stream=None)])
 
         assert_near_equal(p['phase0.polynomial_controls:theta'],
-                          outputs['phase0.control_group.indep_controls.controls:theta']['value'])
+                          outputs['phase0.polynomial_control_group.indep_polynomial_controls.polynomial_controls:theta']
+                          ['value'])
 
     def test_load_case_lgl_to_radau(self):
         import openmdao.api as om
