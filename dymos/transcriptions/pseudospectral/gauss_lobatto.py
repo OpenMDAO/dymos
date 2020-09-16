@@ -6,6 +6,7 @@ from ..common import PathConstraintComp, GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
+from fnmatch import filter
 
 
 class GaussLobatto(PseudospectralBase):
@@ -468,36 +469,53 @@ class GaussLobatto(PseudospectralBase):
                 output_name = options['output_name']
                 units = options.get('units', None)
 
-                # Determine the path to the variable which we will be constraining
-                # This is more complicated for path constraints since, for instance,
-                # a single state variable has two sources which must be connected to
-                # the path component.
-                var_type = phase.classify_var(var)
+                if '*' in var:  # match outputs from the ODE
+                    ode_outputs = {opts['prom_name']: opts for (k, opts) in
+                                   phase.rhs_disc.get_io_metadata(iotypes=('output',)).items()}
+                    matches = filter(list(ode_outputs.keys()), var)
+                else:
+                    matches = [var]
 
-                # Ignore any variables that we've already added (states, times, controls, etc)
-                if var_type != 'ode':
-                    continue
+                for v in matches:
+                    if '*' in var:
+                        output_name = v.split('.')[-1]
 
-                try:
-                    shape, units = get_source_metadata(phase.rhs_disc, src=var,
-                                                       user_units=options['units'],
-                                                       user_shape=options['shape'])
-                except ValueError:
-                    raise ValueError(f'Timeseries output {var} is not a known variable in'
-                                     f' the phase {phase.pathname} nor is it a known output of '
-                                     f' the ODE.')
+                    # Determine the path to the variable which we will be constraining
+                    # This is more complicated for path constraints since, for instance,
+                    # a single state variable has two sources which must be connected to
+                    # the path component.
+                    var_type = phase.classify_var(v)
 
-                timeseries_comp._add_output_configure(output_name, units, shape)
+                    # Ignore any variables that we've already added (states, times, controls, etc)
+                    if var_type != 'ode':
+                        continue
 
-                interleave_comp = phase._get_subsystem('interleave_comp')
-                if interleave_comp.add_var(output_name, shape, units):
-                    phase.connect(src_name=f'rhs_disc.{var}',
-                                  tgt_name=f'interleave_comp.disc_values:{output_name}')
-                    phase.connect(src_name=f'rhs_col.{var}',
-                                  tgt_name=f'interleave_comp.col_values:{output_name}')
+                    try:
+                        shape, units = get_source_metadata(phase.rhs_disc, src=v,
+                                                           user_units=options['units'],
+                                                           user_shape=options['shape'])
+                    except ValueError:
+                        raise ValueError(f'Timeseries output {v} is not a known variable in'
+                                         f' the phase {phase.pathname} nor is it a known output of '
+                                         f' the ODE.')
 
-                phase.connect(src_name=f'interleave_comp.all_values:{output_name}',
-                              tgt_name=f'{timeseries_name}.input_values:{output_name}')
+                    try:
+                        timeseries_comp._add_output_configure(output_name, units, shape)
+                    except ValueError as e:  # OK if it already exists
+                        if 'already exists' in str(e):
+                            continue
+                        else:
+                            raise e
+
+                    interleave_comp = phase._get_subsystem('interleave_comp')
+                    if interleave_comp.add_var(output_name, shape, units):
+                        phase.connect(src_name=f'rhs_disc.{v}',
+                                      tgt_name=f'interleave_comp.disc_values:{output_name}')
+                        phase.connect(src_name=f'rhs_col.{v}',
+                                      tgt_name=f'interleave_comp.col_values:{output_name}')
+
+                    phase.connect(src_name=f'interleave_comp.all_values:{output_name}',
+                                  tgt_name=f'{timeseries_name}.input_values:{output_name}')
 
     def get_rate_source_path(self, state_name, nodes, phase):
         gd = self.grid_data
