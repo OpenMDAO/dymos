@@ -1,7 +1,6 @@
 import unittest
 
 
-
 class TestUpgrade_0_16_0(unittest.TestCase):
 
     def test_parameters(self):
