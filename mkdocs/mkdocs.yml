@@ -80,9 +80,10 @@ nav:
         - 'api/run_problem.md'
         - 'api/phase_api.md'
         - 'api/trajectory_api.md'
-        - 'api/transcriptions_api.md'
     - 'Command Line Interface':
         - 'command_line/command_line.md'
+    - 'Release Notes':
+        - 'release_notes/version_0.16.0.md'
     - 'Contributing':
         - 'contributing/contributing.md'
 

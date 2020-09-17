@@ -324,6 +324,66 @@ def define_env(env):
 
         return ss.getvalue()
 
+    @env.macro
+    def upgrade_doc(reference, feature, old_label='previous', new_label='updated'):
+        """
+        This macro embeds an "upgrade guide" from the given reference string.
+
+        In this case, the reference should point to a test method.
+        The test method should document the new/preferred way of doing something.
+
+        In the body of the test method, this macro searches for the
+        strings '# upgrade_doc: begin {name}' and '# upgrade_doc: end {name}'
+        where {name} is some feature to be demonstrated.  The code between those comments will
+        be documented in a tab-enclosed code-block with the label as given by 'new_label'.
+
+        If old/deprecated behavior is to be shown for comparison, this should be placed in the
+        test method's doc string between the '# upgrade_doc: begin {name}' and
+        '# upgrade_doc: end {name}' strings.  If present, this code will be shown in a separate
+        tab-enclosed code-block with the label given by 'old_label'.
+
+        Parameters
+        ----------
+        reference : str
+            The path to the upgrade test for the given feature.
+        feature : str
+            The name of the feature whose use is to be documented.
+        old_label : str
+            The tab label for the tab showing the old/deprecated behavior (if present).
+        new_label : str
+            The tab label for the tab showing the new/preferred behavior.
+
+        Returns
+        -------
+        str
+            The markdown representation of the API documentation.
+
+        """
+        ss = io.StringIO()
+        _upgrade_doc_markdown(reference, feature, outstream=ss,
+                              old_label=old_label, new_label=new_label)
+        return ss.getvalue()
+
+
+def _sub_unspecified_in_signature(signature):
+    """
+    Returns the function signature with all instances of '<object object at (hexcode)>' removed and
+    replaced with 'unspecified'.
+
+    Parameters
+    ----------
+    signature : str
+        The default function signature.
+
+    Returns
+    -------
+    str
+        The signature with object instances replaced with the 'unspecified' keyword.
+
+    """
+    return signature
+    return re.sub(r'\<object.+?\>', 'unspecified', signature)
+
 
 def get_object_from_reference(reference):
     split = reference.split('.')
@@ -391,6 +451,7 @@ def _function_doc_markdown(func, reference, outstream=sys.stdout, indent='', met
         The markdown representation of the function documentation.
     """
     doc = FunctionDoc(func)
+    sig = _sub_unspecified_in_signature(doc['Signature'])
 
     if not method:
         print(f'{indent}!!! abstract "{reference}"\n', file=outstream)
@@ -398,7 +459,7 @@ def _function_doc_markdown(func, reference, outstream=sys.stdout, indent='', met
         print(f'{indent}!!! abstract ""\n', file=outstream)
     indent = indent + '    '
 
-    print(f"{indent}**{doc['Signature']}**\n", file=outstream)
+    print(f"{indent}**{sig}**\n", file=outstream)
     print('', file=outstream)
 
     if doc['Summary']:
@@ -460,9 +521,6 @@ def _class_doc_markdown(cls, reference, members=None, outstream=sys.stdout, inde
             print(f'{indent}=== "{p.name}"\n', file=outstream)
             _function_doc_markdown(getattr(cls, p.name), ref, outstream=outstream, indent=indent + "    ", method=True)
 
-    for key in doc.keys():
-        print(key, file=outstream)
-
 
 def _options_dict_to_markdown(od):
     """
@@ -498,3 +556,59 @@ def _options_dict_to_markdown(od):
     md = '\n'.join(lines[1:-1])
 
     return md
+
+
+def _split_docstring(obj):
+    docstring = inspect.getdoc(obj)
+    lines = inspect.getsourcelines(obj)[0]
+    docstring_start = docstring_end = -1
+    for i, line in enumerate(lines):
+        # print(line)
+        if line.strip().startswith('"""') or line.strip().startswith("'''"):
+            if docstring_start >= 0:
+                docstring_end = i
+                break
+            else:
+                docstring_start = i
+    func_body = ''.join(lines[:docstring_start]) + ''.join(lines[docstring_end + 1:])
+    return docstring, func_body
+
+def _upgrade_doc_markdown(test_reference, feature, outstream=sys.stdout,
+                          old_label='previous', new_label='updated'):
+    obj = get_object_from_reference(test_reference)
+    docstring, func_body = _split_docstring(obj)
+
+    re_feature = re.compile(rf'# upgrade_doc: begin {feature}(.+?)# upgrade_doc: end {feature}',
+                            flags=re.MULTILINE|re.DOTALL)
+
+    doc_match = re_feature.search(docstring) if docstring else None
+    body_match = re_feature.search(func_body)
+
+    try:
+        old_way = textwrap.dedent(doc_match.groups()[0].strip())
+    except AttributeError:
+        print(f'Unable to find feature label {feature} in the doc string of {test_reference}')
+        old_way = None
+    try:
+        new_way = textwrap.dedent(body_match.groups()[0].strip())
+    except AttributeError:
+        raise ValueError(f'Unable to find feature label {feature} in the body of {test_reference}')
+
+    indent = '    '
+
+    if old_way:
+        print(f'=== "{old_label}"', file=outstream)
+        print(f'{indent}```', file=outstream)
+        print(f'{textwrap.indent(old_way, indent)}', file=outstream)
+        print(f'{indent}```', file=outstream)
+
+    print(f'=== "{new_label}"', file=outstream)
+    print(f'{indent}```', file=outstream)
+    print(f'{textwrap.indent(new_way, indent)}', file=outstream)
+    print(f'{indent}```', file=outstream)
+
+
+if __name__ == '__main__':
+
+    obj = _upgrade_doc_markdown('dymos.test.test_upgrade_guide.TestUpgrade_0_16_0.test_parameter_no_include_timeseries',
+                                feature='parameter_no_timeseries')

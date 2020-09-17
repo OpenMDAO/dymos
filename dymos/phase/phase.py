@@ -1976,13 +1976,13 @@ class Phase(om.Group):
         refine : bool
             If True, this Phase will undergo refinement during the grid refinement procedure.
         tol : float
-            The error tolerance for the ph grid refinement algorithm.
+            The error tolerance used by all grid-refinement algorithms.
         min_order : int
-            The minimum allowable transcription order for segments in the phase.
+            The minimum allowable transcription order for segments in the phase (hp and ph refinement methods)
         max_order : int
-            The maximum allowable transcription order for segments in the phase.
+            The maximum allowable transcription order for segments in the phase (hp and ph refinement methods)
         smoothness_factor: float
-            The maximum allowable ratio of state second derivatives. If exceeded the segment must be split
+            The maximum allowable ratio of state second derivatives. If exceeded the segment must be split. (hp refinement method)
         """
         if refine is not _unspecified:
             self.refine_options['refine'] = refine
