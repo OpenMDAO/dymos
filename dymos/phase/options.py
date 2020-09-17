@@ -345,7 +345,7 @@ class StateOptionsDictionary(om.OptionsDictionary):
                      desc='description of the state variable')
 
         self.declare(name='shape', types=Iterable, default=(1,),
-                     desc='shape of the state variable')
+                     desc='shape of the state variable, as determined by introspection')
 
         self.declare(name='rate_source', types=str,
                      desc='ODE-path to the derivative of the state variable')

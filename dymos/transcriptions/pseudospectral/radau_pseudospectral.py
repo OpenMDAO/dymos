@@ -18,6 +18,10 @@ class Radau(PseudospectralBase):
     Control Problems Using a Radau Pseudospectral Method." American Institute of Aeronautics
     and Astronautics, 2009.
     """
+    def __init__(self, **kwargs):
+        super(Radau, self).__init__(**kwargs)
+        self._rhs_source = 'rhs_all'
+
     def init_grid(self):
         self.grid_data = GridData(num_segments=self.options['num_segments'],
                                   transcription='radau-ps',

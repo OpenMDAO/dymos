@@ -7,7 +7,7 @@ import openmdao.api as om
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, PseudospectralTimeseriesOutputComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
-from ...utils.misc import CoerceDesvar, get_rate_units
+from ...utils.misc import CoerceDesvar, get_rate_units, get_target_metadata
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 
@@ -36,7 +36,6 @@ class PseudospectralBase(TranscriptionBase):
         Add an IndepVarComp for the states and setup the states as design variables.
         """
         grid_data = self.grid_data
-        num_state_input_nodes = grid_data.subset_num_nodes['state_input']
 
         self.any_solved_segs = False
         self.any_connected_opt_segs = False
@@ -56,21 +55,42 @@ class PseudospectralBase(TranscriptionBase):
         else:
             indep = om.IndepVarComp()
 
-            for name, options in phase.state_options.items():
-                if not options['solve_segments'] and not options['connected_initial']:
-                    indep.add_output(name='states:{0}'.format(name),
-                                     shape=(num_state_input_nodes, np.prod(options['shape'])),
-                                     units=options['units'])
-
         num_connected = len([s for (s, opts) in phase.state_options.items() if opts['connected_initial']])
         prom_inputs = ['initial_states:*'] if num_connected > 0 else None
         phase.add_subsystem('indep_states', indep, promotes_inputs=prom_inputs,
                             promotes_outputs=['*'])
 
+    def configure_states(self, phase):
+        grid_data = self.grid_data
+        num_state_input_nodes = grid_data.subset_num_nodes['state_input']
+        indep = phase.indep_states
+        time_units = phase.time_options['units']
+        ode = phase._get_subsystem(self._rhs_source)
+
         # add all the des-vars (either from the IndepVarComp or from the indep-var-like
         # outputs of the collocation comp)
         for name, options in phase.state_options.items():
-            size = np.prod(options['shape'])
+
+            shape, units = get_target_metadata(ode, name=name,
+                                               user_targets=options['rate_source'],
+                                               user_units=options['units'])
+
+            if options['units'] is None:
+                # Units are from the rate source and should be converted.
+                units = f'{units}*{time_units}'
+                options['units'] = units
+
+            # Let's store these introspected values so we don't need to get them again.
+            options['shape'] = shape
+
+            # In certain cases, we put an output on the IVC.
+            if not self.any_solved_segs and not self.any_connected_opt_segs:
+                if not options['solve_segments'] and not options['connected_initial']:
+                    indep.add_output(name='states:{0}'.format(name),
+                                     shape=shape,
+                                     units=units)
+
+            size = np.prod(shape)
             if options['opt']:
                 if options['solve_segments']:
                     # If we are using a solver on the defects, then our design variables
@@ -150,7 +170,6 @@ class PseudospectralBase(TranscriptionBase):
                                      ref=coerce_desvar_option('ref'),
                                      indices=desvar_indices)
 
-    def configure_states(self, phase):
         if self.any_solved_segs or self.any_connected_opt_segs:
             for name, options in phase.state_options.items():
                 if options['solve_segments']:
@@ -172,6 +191,8 @@ class PseudospectralBase(TranscriptionBase):
         grid_data = self.grid_data
         map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
         num_input_nodes = grid_data.subset_num_nodes['state_input']
+
+        phase.state_interp.configure_io()
 
         phase.connect('dt_dstau', 'state_interp.dt_dstau',
                       src_indices=grid_data.subset_node_indices['col'])

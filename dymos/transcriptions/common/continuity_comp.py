@@ -201,7 +201,11 @@ class ContinuityCompBase(om.ExplicitComponent):
                 't_duration', dependent=True
             )
 
-    def setup(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         self.rate_jac_templates = {}
         self.name_maps = {}
 

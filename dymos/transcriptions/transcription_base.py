@@ -34,6 +34,9 @@ class TranscriptionBase(object):
         self.options.update(kwargs)
         self.init_grid()
 
+        # Where to query var info.
+        self._rhs_source = None
+
     def _declare_options(self):
         pass
 

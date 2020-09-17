@@ -88,7 +88,8 @@ def get_targets(ode, name, user_targets):
     return targets
 
 
-def get_target_metadata(ode, name, user_targets, user_units, user_shape):
+def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,
+                        user_shape=_unspecified):
     """
     Return the targets of a state variable in a given ODE system.
     If the targets of the state is _unspecified, and the state name is a top level input name
@@ -122,7 +123,8 @@ def get_target_metadata(ode, name, user_targets, user_units, user_shape):
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
-    ode_inputs = {opts['prom_name']: opts for (k, opts) in ode.get_io_metadata(iotypes=('input',)).items()}
+    ode_inputs = {opts['prom_name']: opts for (k, opts) in \
+                  ode.get_io_metadata(iotypes=('input', 'output')).items()}
 
     if user_targets is _unspecified:
         if name in ode_inputs:
