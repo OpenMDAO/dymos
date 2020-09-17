@@ -139,6 +139,8 @@ class Radau(PseudospectralBase):
                                 promotes_inputs=['t_duration'])
 
     def configure_defects(self, phase):
+        super(Radau, self).configure_defects(phase)
+
         for name, options in phase.state_options.items():
             phase.connect('state_interp.staterate_col:{0}'.format(name),
                           'collocation_constraint.f_approx:{0}'.format(name))

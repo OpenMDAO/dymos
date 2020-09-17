@@ -262,6 +262,8 @@ class GaussLobatto(PseudospectralBase):
                                 promotes_inputs=['t_duration'])
 
     def configure_defects(self, phase):
+        super(GaussLobatto, self).configure_defects(phase)
+
         grid_data = self.grid_data
 
         if grid_data.num_segments > 1:

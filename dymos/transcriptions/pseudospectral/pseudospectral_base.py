@@ -80,8 +80,11 @@ class PseudospectralBase(TranscriptionBase):
                 units = f'{units}*{time_units}'
                 options['units'] = units
 
-            # Let's store these introspected values so we don't need to get them again.
-            options['shape'] = shape
+            # Determine and store the pre-discretized state shape for use by other components.
+            if len(shape) < 2:
+                options['shape'] = (1, )
+            else:
+                options['shape'] = shape[1:]
 
             # In certain cases, we put an output on the IVC.
             if not self.any_solved_segs and not self.any_connected_opt_segs:
@@ -214,7 +217,6 @@ class PseudospectralBase(TranscriptionBase):
         Setup the Collocation and Continuity components as necessary.
         """
         grid_data = self.grid_data
-        num_seg = grid_data.num_segments
 
         time_units = phase.time_options['units']
 
@@ -225,6 +227,12 @@ class PseudospectralBase(TranscriptionBase):
 
         phase.connect('dt_dstau', ('collocation_constraint.dt_dstau'),
                       src_indices=grid_data.subset_node_indices['col'])
+
+    def configure_defects(self, phase):
+        grid_data = self.grid_data
+        num_seg = grid_data.num_segments
+
+        phase.collocation_constraint.configure_io()
 
         # Add the continuity constraint component if necessary
         if num_seg > 1:
@@ -285,33 +293,36 @@ class PseudospectralBase(TranscriptionBase):
 
         phase.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
 
-        for state_name, options in phase.state_options.items():
-            jump_comp.add_output('initial_jump:{0}'.format(state_name),
-                                 val=np.zeros(options['shape']),
-                                 units=options['units'],
-                                 desc='discontinuity in {0} at the '
-                                      'start of the phase'.format(state_name))
+    def configure_endpoint_conditions(self, phase):
+        phase.initial_conditions.configure_io()
+        phase.final_conditions.configure_io()
 
-            jump_comp.add_output('final_jump:{0}'.format(state_name),
-                                 val=np.zeros(options['shape']),
-                                 units=options['units'],
-                                 desc='discontinuity in {0} at the '
-                                      'end of the phase'.format(state_name))
+        for state_name, options in phase.state_options.items():
+            phase.indep_jumps.add_output('initial_jump:{0}'.format(state_name),
+                                         val=np.zeros(options['shape']),
+                                         units=options['units'],
+                                         desc='discontinuity in {0} at the '
+                                         'start of the phase'.format(state_name))
+
+            phase.indep_jumps.add_output('final_jump:{0}'.format(state_name),
+                                         val=np.zeros(options['shape']),
+                                         units=options['units'],
+                                         desc='discontinuity in {0} at the '
+                                         'end of the phase'.format(state_name))
 
         for control_name, options in phase.control_options.items():
-            jump_comp.add_output('initial_jump:{0}'.format(control_name),
-                                 val=np.zeros(options['shape']),
-                                 units=options['units'],
-                                 desc='discontinuity in {0} at the '
-                                      'start of the phase'.format(control_name))
+            phase.indep_jumps.add_output('initial_jump:{0}'.format(control_name),
+                                         val=np.zeros(options['shape']),
+                                         units=options['units'],
+                                         desc='discontinuity in {0} at the '
+                                         'start of the phase'.format(control_name))
 
-            jump_comp.add_output('final_jump:{0}'.format(control_name),
-                                 val=np.zeros(options['shape']),
-                                 units=options['units'],
-                                 desc='discontinuity in {0} at the '
-                                      'end of the phase'.format(control_name))
+            phase.indep_jumps.add_output('final_jump:{0}'.format(control_name),
+                                         val=np.zeros(options['shape']),
+                                         units=options['units'],
+                                         desc='discontinuity in {0} at the '
+                                         'end of the phase'.format(control_name))
 
-    def configure_endpoint_conditions(self, phase):
         phase.connect('time', 'initial_conditions.initial_value:time')
         phase.connect('time', 'final_conditions.final_value:time')
 

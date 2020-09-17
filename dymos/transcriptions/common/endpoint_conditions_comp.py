@@ -248,7 +248,11 @@ class EndpointConditionsComp(om.ExplicitComponent):
             self.declare_partials(of='time++', wrt='{0}_value:time'.format(loc), val=1.0)
             self.declare_partials(of='time++', wrt='final_jump:time', val=1.0)
 
-    def setup(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         self._setup_time()
         self._setup_states()
         self._setup_controls()

@@ -72,27 +72,27 @@ class StateInterpComp(om.ExplicitComponent):
 
             self.add_input(
                 name='state_disc:{0}'.format(state_name),
-                shape=shape,
+                shape=(num_disc_nodes,) + shape,
                 desc='Values of state {0} at discretization nodes'.format(state_name),
                 units=units)
 
             if transcription == 'gauss-lobatto':
                 self.add_input(
                     name='staterate_disc:{0}'.format(state_name),
-                    shape=shape,
+                    shape=(num_disc_nodes,) + shape,
                     units=rate_units,
                     desc='EOM time derivative of state {0} at '
                          'discretization nodes'.format(state_name))
 
                 self.add_output(
                     name='state_col:{0}'.format(state_name),
-                    shape=shape, units=units,
+                    shape=(num_col_nodes,) + shape, units=units,
                     desc='Interpolated values of state {0} at '
                          'collocation nodes'.format(state_name))
 
             self.add_output(
                 name='staterate_col:{0}'.format(state_name),
-                shape=shape,
+                shape=(num_col_nodes,) + shape,
                 units=rate_units,
                 desc='Interpolated rate of state {0} at collocation nodes'.format(state_name))
 
@@ -121,7 +121,7 @@ class StateInterpComp(om.ExplicitComponent):
         for name, options in state_options.items():
             shape = options['shape']
 
-            size = np.prod(shape) / num_disc_nodes
+            size = np.prod(shape)
             self.sizes[name] = size
 
             for key in self.jacs:
@@ -166,6 +166,7 @@ class StateInterpComp(om.ExplicitComponent):
 
     def _compute_radau(self, inputs, outputs):
         num_disc_nodes = self.options['grid_data'].subset_num_nodes['disc']
+        num_col_nodes = self.options['grid_data'].subset_num_nodes['col']
         state_options = self.options['state_options']
         dt_dstau = inputs['dt_dstau'][:, np.newaxis]
 
@@ -179,7 +180,7 @@ class StateInterpComp(om.ExplicitComponent):
                                  newshape=(num_disc_nodes, size))
 
             outputs[xdotc_str] = np.reshape(self.matrices['Ad'].dot(xd_flat) / dt_dstau,
-                                            newshape=shape)
+                                            newshape=(num_col_nodes,) + shape)
 
     def _compute_gauss_lobatto(self, inputs, outputs):
         state_options = self.options['state_options']
@@ -187,6 +188,7 @@ class StateInterpComp(om.ExplicitComponent):
         dt_dstau = inputs['dt_dstau'][:, np.newaxis]
 
         num_disc_nodes = self.options['grid_data'].subset_num_nodes['disc']
+        num_col_nodes = self.options['grid_data'].subset_num_nodes['col']
 
         Ai = self.matrices['Ai']
         Bi = self.matrices['Bi']
@@ -195,7 +197,7 @@ class StateInterpComp(om.ExplicitComponent):
 
         for name in state_options:
             shape = state_options[name]['shape']
-            size = np.prod(shape) / num_disc_nodes
+            size = np.prod(shape)
             xc_str = self.xc_str[name]
             xdotc_str = self.xdotc_str[name]
             xd_str = self.xd_str[name]
@@ -206,11 +208,11 @@ class StateInterpComp(om.ExplicitComponent):
 
             col_val = Bi.dot(fd_flat) * dt_dstau + Ai.dot(xd_flat)
 
-            outputs[xc_str] = np.reshape(col_val, shape)
+            outputs[xc_str] = np.reshape(col_val, (num_col_nodes,) + shape)
 
             col_rate = Ad.dot(xd_flat) / dt_dstau + Bd.dot(fd_flat)
 
-            outputs[xdotc_str] = np.reshape(col_rate, shape)
+            outputs[xdotc_str] = np.reshape(col_rate, (num_col_nodes,) + shape)
 
     def _compute_partials_radau(self, inputs, partials):
         state_options = self.options['state_options']
