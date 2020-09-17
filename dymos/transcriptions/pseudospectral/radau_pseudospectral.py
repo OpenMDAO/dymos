@@ -5,6 +5,7 @@ from ..common import PathConstraintComp, RadauPSContinuityComp, PseudospectralTi
 from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
+from fnmatch import filter
 
 
 class Radau(PseudospectralBase):
@@ -357,29 +358,47 @@ class Radau(PseudospectralBase):
             for var, options in phase._timeseries[timeseries_name]['outputs'].items():
                 output_name = options['output_name']
 
-                # Determine the path to the variable which we will be constraining
-                # This is more complicated for path constraints since, for instance,
-                # a single state variable has two sources which must be connected to
-                # the path component.
-                var_type = phase.classify_var(var)
+                if '*' in var:  # match outputs from the ODE
+                    ode_outputs = {opts['prom_name']: opts for (k, opts) in
+                                   phase.rhs_all.get_io_metadata(iotypes=('output',)).items()}
+                    matches = filter(list(ode_outputs.keys()), var)
+                else:
+                    matches = [var]
 
-                # Ignore any variables that we've already added (states, times, controls, etc)
-                if var_type != 'ode':
-                    continue
+                for v in matches:
+                    if '*' in var:
+                        output_name = v.split('.')[-1]
 
-                try:
-                    shape, units = get_source_metadata(phase.rhs_all, src=var,
-                                                       user_units=options['units'],
-                                                       user_shape=options['shape'])
-                except ValueError:
-                    raise ValueError(f'Timeseries output {var} is not a known variable in'
-                                     f' the phase {phase.pathname} nor is it a known output of '
-                                     f' the ODE.')
+                    # Determine the path to the variable which we will be constraining
+                    # This is more complicated for path constraints since, for instance,
+                    # a single state variable has two sources which must be connected to
+                    # the path component.
+                    var_type = phase.classify_var(v)
 
-                timeseries_comp._add_output_configure(output_name, units, shape, desc='')
-                phase.connect(src_name='rhs_all.{0}'.format(var),
-                              tgt_name='{0}.input_values:{1}'.format(timeseries_name,
-                                                                     output_name))
+                    # Ignore any variables that we've already added (states, times, controls, etc)
+                    if var_type != 'ode':
+                        continue
+
+                    try:
+                        shape, units = get_source_metadata(phase.rhs_all, src=v,
+                                                           user_units=options['units'],
+                                                           user_shape=options['shape'])
+                    except ValueError:
+                        raise ValueError(f'Timeseries output {v} is not a known variable in'
+                                         f' the phase {phase.pathname} nor is it a known output of '
+                                         f' the ODE.')
+
+                    try:
+                        timeseries_comp._add_output_configure(output_name, units, shape, desc='')
+                    except ValueError as e:  # OK if it already exists
+                        if 'already exists' in str(e):
+                            continue
+                        else:
+                            raise e
+
+                    phase.connect(src_name='rhs_all.{0}'.format(v),
+                                  tgt_name='{0}.input_values:{1}'.format(timeseries_name,
+                                                                         output_name))
 
     def get_rate_source_path(self, state_name, nodes, phase):
         gd = self.grid_data

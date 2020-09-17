@@ -8,7 +8,7 @@ import dymos as dm
 om_version = tuple([int(s) for s in openmdao.__version__.split('-')[0].split('.')])
 
 
-def setup_problem(trans=dm.GaussLobatto(num_segments=10)):
+def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=False):
     from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
     from dymos.transcriptions.runge_kutta.runge_kutta import RungeKutta
 
@@ -34,8 +34,11 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10)):
                     rate_source=BrachistochroneODE.states['v']['rate_source'],
                     units=BrachistochroneODE.states['v']['units'])
 
-    phase.add_control('theta', units='deg',
-                      rate_continuity=False, lower=0.01, upper=179.9)
+    if not polynomial_control:
+        phase.add_control('theta', units='deg',
+                          rate_continuity=False, lower=0.01, upper=179.9)
+    else:
+        phase.add_polynomial_control('theta', order=1, units='deg', lower=0.01, upper=179.9)
 
     phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -66,7 +69,10 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10)):
     p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
     p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
     p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-    p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
+    if not polynomial_control:
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
+    else:
+        p['phase0.polynomial_controls:theta'][:] = 5.0
 
     return p
 
@@ -110,6 +116,38 @@ class TestLoadCase(unittest.TestCase):
 
         assert_near_equal(p['phase0.controls:theta'],
                           outputs['phase0.control_group.indep_controls.controls:theta']['value'])
+
+    def test_load_case_unchanged_grid_polynomial_control(self):
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_near_equal
+        import dymos as dm
+
+        p = setup_problem(dm.GaussLobatto(num_segments=10), polynomial_control=True)
+
+        # Solve for the optimal trajectory
+        p.run_driver()
+
+        # Load the solution
+        cr = om.CaseReader('brachistochrone_solution.db')
+        system_cases = cr.list_cases('root')
+        case = cr.get_case(system_cases[-1])
+
+        # Initialize the system with values from the case.
+        # We unnecessarily call setup again just to make sure we obliterate the previous solution
+        p.setup()
+
+        # Load the values from the previous solution
+        dm.load_case(p, case)
+
+        # Run the model to ensure we find the same output values as those that we recorded
+        p.run_driver()
+
+        outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
+                                                                out_stream=None)])
+
+        assert_near_equal(p['phase0.polynomial_controls:theta'],
+                          outputs['phase0.polynomial_control_group.indep_polynomial_controls.polynomial_controls:theta']
+                          ['value'])
 
     def test_load_case_lgl_to_radau(self):
         import openmdao.api as om

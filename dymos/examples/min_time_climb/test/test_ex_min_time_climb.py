@@ -82,6 +82,9 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', ref=1.0)
 
+    # test wildcard ODE variable expansion with period for add_timeseries_output
+    phase.add_timeseries_output('aero.*')
+
     p.model.linear_solver = om.DirectSolver()
 
     p.setup(check=True, force_alloc_complex=force_alloc_complex)
@@ -114,6 +117,11 @@ class TestMinTimeClimb(unittest.TestCase):
         # Verify that ODE output mach is added to the timeseries
         assert_near_equal(p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
 
+        # verify all wildcard timeseries exist
+        ts = [k for k, v in dict(p.model.list_outputs(units=True)).items() if 'timeseries' in k]
+        for c in ['mach', 'CD0', 'kappa', 'CLa', 'CL', 'CD', 'q', 'f_lift', 'f_drag']:
+            assert(any([True for t in ts if 'timeseries.' + c in t]))
+
     @use_tempdirs
     def test_results_radau(self):
         p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
@@ -124,6 +132,11 @@ class TestMinTimeClimb(unittest.TestCase):
 
         # Verify that ODE output mach is added to the timeseries
         assert_near_equal(p.get_val('traj.phase0.timeseries.mach')[-1], 1.0, tolerance=1.0E-2)
+
+        # verify all wildcard timeseries exist
+        ts = [k for k, v in dict(p.model.list_outputs(units=True)).items() if 'timeseries' in k]
+        for c in ['mach', 'CD0', 'kappa', 'CLa', 'CL', 'CD', 'q', 'f_lift', 'f_drag']:
+            assert(any([True for t in ts if 'timeseries.' + c in t]))
 
 
 if __name__ == '__main__':  # pragma: no cover
