@@ -160,7 +160,7 @@ def load_case(problem, previous_solution):
                                               nodes='control_input', kind='slinear'),
                             units=prev_control_units)
 
-        # Interpolate the timeseries polynomial control outputs from the previous solution onto the new grid
+        # Set the output polynomial control outputs from the previous solution as the value
         for polynomial_control_name, options in phase.polynomial_control_options.items():
             polynomial_control_path = [s for s in phase_outputs if
                                        s.endswith(f'{phase_name}.polynomial_controls:{polynomial_control_name}')][0]
@@ -172,7 +172,7 @@ def load_case(problem, previous_solution):
             problem.set_val(polynomial_control_path, prev_polynomial_control_val,
                             units=prev_polynomial_control_units)
 
-        # Interpolate the timeseries parameter outputs from the previous solution onto the new grid
+        # Set the timeseries parameter outputs from the previous solution as the parameter value
         for parameter_name, options in phase.parameter_options.items():
             parameter_path = [s for s in phase_inputs if s.endswith(f'{phase_name}.parameters:{parameter_name}')][0]
             prev_parameter_path = [s for s in prev_outputs if
