@@ -4,18 +4,18 @@ import os
 import unittest
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
 import numpy as np
 
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
-from openmdao.utils.general_utils import set_pyoptsparse_opt
 
 
+@use_tempdirs
 class TestRunProblem(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(self):
         for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
             if os.path.exists(filename):
                 os.remove(filename)

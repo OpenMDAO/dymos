@@ -7,6 +7,7 @@ from .components import SegmentSimulationComp, SegmentStateMuxComp, \
 from ..common import TimeComp
 from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
+from fnmatch import filter
 
 
 class SolveIVP(TranscriptionBase):
@@ -477,24 +478,41 @@ class SolveIVP(TranscriptionBase):
         for var, options in phase._timeseries['timeseries']['outputs'].items():
             output_name = options['output_name']
 
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
+            if '*' in var:  # match outputs from the ODE
+                ode_outputs = {opts['prom_name']: opts for (k, opts) in
+                               phase.ode.get_io_metadata(iotypes=('output',)).items()}
+                matches = filter(list(ode_outputs.keys()), var)
+            else:
+                matches = [var]
 
-            # Ignore any variables that we've already added (states, times, controls, etc)
-            if var_type != 'ode':
-                continue
+            for v in matches:
+                if '*' in var:
+                    output_name = v.split('.')[-1]
 
-            shape, units = get_source_metadata(phase.ode, src=var, user_shape=options['shape'],
-                                               user_units=options['units'])
+                # Determine the path to the variable which we will be constraining
+                # This is more complicated for path constraints since, for instance,
+                # a single state variable has two sources which must be connected to
+                # the path component.
+                var_type = phase.classify_var(v)
 
-            timeseries_comp._add_output_configure(output_name, shape=shape, units=units, desc='')
+                # Ignore any variables that we've already added (states, times, controls, etc)
+                if var_type != 'ode':
+                    continue
 
-            # Failed to find variable, assume it is in the RHS
-            phase.connect(src_name=f'ode.{var}',
-                          tgt_name=f'timeseries.all_values:{output_name}')
+                shape, units = get_source_metadata(phase.ode, src=v, user_shape=options['shape'],
+                                                   user_units=options['units'])
+
+                try:
+                    timeseries_comp._add_output_configure(output_name, shape=shape, units=units, desc='')
+                except ValueError as e:  # OK if it already exists
+                    if 'already exists' in str(e):
+                        continue
+                    else:
+                        raise e
+
+                # Failed to find variable, assume it is in the RHS
+                phase.connect(src_name=f'ode.{v}',
+                              tgt_name=f'timeseries.all_values:{output_name}')
 
     def get_parameter_connections(self, name, phase):
         """

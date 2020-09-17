@@ -1,13 +1,11 @@
 import unittest
+from openmdao.utils.testing_utils import use_tempdirs
 
 import matplotlib
 matplotlib.use('Agg')
 
-from openmdao.utils.testing_utils import use_tempdirs
-
 
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
-
     @use_tempdirs
     def test_two_burn_orbit_raise_gl_rk_gl_constrained(self):
         import numpy as np
@@ -246,6 +244,559 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
             ax_xy.plot(x_exp[phs], y_exp[phs], 'b-', label='explicit')
 
         plt.show()
+
+    @use_tempdirs
+    def test_two_burn_orbit_raise_gl_list_add_timeseries_output(self):
+        import numpy as np
+
+        import matplotlib.pyplot as plt
+
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_near_equal
+        from openmdao.utils.general_utils import set_pyoptsparse_opt
+
+        import dymos as dm
+        from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
+
+        traj = dm.Trajectory()
+        p = om.Problem(model=om.Group())
+        p.model.add_subsystem('traj', traj)
+
+        p.driver = om.pyOptSparseDriver()
+        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+        p.driver.options['optimizer'] = optimizer
+
+        p.driver.declare_coloring()
+
+        traj.add_parameter('c', opt=False, val=1.5, units='DU/TU',
+                           targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
+
+        # First Phase (burn)
+        burn1 = dm.Phase(ode_class=FiniteBurnODE,
+                         transcription=dm.GaussLobatto(num_segments=10, order=3, compressed=True))
+
+        burn1 = traj.add_phase('burn1', burn1)
+
+        burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='TU')
+        burn1.add_state('r', fix_initial=True, fix_final=False, defect_scaler=100.0,
+                        rate_source='r_dot', targets=['r'], units='DU')
+        burn1.add_state('theta', fix_initial=True, fix_final=False, defect_scaler=100.0,
+                        rate_source='theta_dot', targets=['theta'], units='rad')
+        burn1.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=100.0,
+                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
+        burn1.add_state('vt', fix_initial=True, fix_final=False, defect_scaler=100.0,
+                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
+        burn1.add_state('accel', fix_initial=True, fix_final=False,
+                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+        burn1.add_state('deltav', fix_initial=True, fix_final=False,
+                        rate_source='deltav_dot', units='DU/TU')
+        burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
+                          scaler=0.01,
+                          rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
+                          lower=-30, upper=30, targets=['u1'])
+
+        # Second Phase (Coast)
+        coast = dm.Phase(ode_class=FiniteBurnODE,
+                         transcription=dm.RungeKutta(num_segments=20))
+
+        traj.add_phase('coast', coast)
+
+        coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10, units='TU')
+
+        coast.add_state('r', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        rate_source='r_dot', targets=['r'], units='DU')
+        coast.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        units='rad', rate_source='theta_dot', targets=['theta'])
+        coast.add_state('vr', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
+        coast.add_state('vt', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
+        coast.add_state('accel', fix_initial=True, fix_final=False, ref=1.0E-12, defect_ref=1.0E-12,
+                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+        coast.add_state('deltav', fix_initial=False, fix_final=False,
+                        rate_source='deltav_dot', units='DU/TU')
+        coast.add_parameter('u1', targets=['u1'], opt=False, val=0.0, units='deg')
+
+        # Third Phase (burn)
+        burn2 = dm.Phase(ode_class=FiniteBurnODE,
+                         transcription=dm.GaussLobatto(num_segments=10, order=3, compressed=True))
+
+        traj.add_phase('burn2', burn2)
+
+        burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), initial_ref=10, units='TU')
+        burn2.add_state('r', fix_initial=False, fix_final=True,
+                        rate_source='r_dot', targets=['r'], units='DU')
+        burn2.add_state('theta', fix_initial=False, fix_final=False,
+                        rate_source='theta_dot', targets=['theta'], units='rad')
+        burn2.add_state('vr', fix_initial=False, fix_final=True,
+                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
+        burn2.add_state('vt', fix_initial=False, fix_final=True,
+                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
+        burn2.add_state('accel', fix_initial=False, fix_final=False, defect_ref=1.0E-6,
+                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+        burn2.add_state('deltav', fix_initial=False, fix_final=False,
+                        rate_source='deltav_dot', units='DU/TU')
+        burn2.add_control('u1', targets=['u1'], rate_continuity=True, rate2_continuity=True,
+                          units='deg', scaler=0.01, lower=-30, upper=30)
+
+        burn2.add_objective('deltav', loc='final', scaler=1.0)
+
+        # demonstrate adding multiple variables at once using list in add_timeseries_output
+        # test dict for units, ignore mismatched unit
+        burn1.add_timeseries_output(['pos_x', 'pos_y'], units={'pos_x': 'm', 'junk': 'lbm'})
+        coast.add_timeseries_output(['pos_x', 'pos_y'])
+        # test list for units
+        burn2.add_timeseries_output(['pos_x', 'pos_y'], units=['m', 'm'])
+
+        # Link Phases
+        traj.link_phases(phases=['burn1', 'coast', 'burn2'],
+                         vars=['time', 'r', 'vr', 'vt', 'deltav'])
+        traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
+
+        # Finish Problem Setup
+        p.model.linear_solver = om.DirectSolver()
+
+        p.setup(check=True, force_alloc_complex=True)
+
+        # Set Initial Guesses
+        p.set_val('traj.parameters:c', value=1.5)
+
+        p.set_val('traj.burn1.t_initial', value=0.0)
+        p.set_val('traj.burn1.t_duration', value=2.25)
+
+        p.set_val('traj.burn1.states:r',
+                  value=burn1.interpolate(ys=[1, 1.5], nodes='state_input'))
+        p.set_val('traj.burn1.states:theta',
+                  value=burn1.interpolate(ys=[0, 1.7], nodes='state_input'))
+        p.set_val('traj.burn1.states:vr',
+                  value=burn1.interpolate(ys=[0, 0], nodes='state_input'))
+        p.set_val('traj.burn1.states:vt',
+                  value=burn1.interpolate(ys=[1, 1], nodes='state_input'))
+        p.set_val('traj.burn1.states:accel',
+                  value=burn1.interpolate(ys=[0.1, 0], nodes='state_input'))
+        p.set_val('traj.burn1.states:deltav',
+                  value=burn1.interpolate(ys=[0, 0.1], nodes='state_input'), )
+        p.set_val('traj.burn1.controls:u1',
+                  value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
+
+        p.set_val('traj.coast.t_initial', value=2.25)
+        p.set_val('traj.coast.t_duration', value=3.0)
+
+        p.set_val('traj.coast.states:r',
+                  value=coast.interpolate(ys=[1.3, 1.5], nodes='state_input'))
+        p.set_val('traj.coast.states:theta',
+                  value=coast.interpolate(ys=[2.1767, 1.7], nodes='state_input'))
+        p.set_val('traj.coast.states:vr',
+                  value=coast.interpolate(ys=[0.3285, 0], nodes='state_input'))
+        p.set_val('traj.coast.states:vt',
+                  value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
+        p.set_val('traj.coast.states:accel',
+                  value=coast.interpolate(ys=[0, 0], nodes='state_input'))
+
+        p.set_val('traj.burn2.t_initial', value=5.25)
+        p.set_val('traj.burn2.t_duration', value=1.75)
+
+        p.set_val('traj.burn2.states:r',
+                  value=burn2.interpolate(ys=[1.8, 3], nodes='state_input'))
+        p.set_val('traj.burn2.states:theta',
+                  value=burn2.interpolate(ys=[3.2, 4.0], nodes='state_input'))
+        p.set_val('traj.burn2.states:vr',
+                  value=burn2.interpolate(ys=[.5, 0], nodes='state_input'))
+        p.set_val('traj.burn2.states:vt',
+                  value=burn2.interpolate(ys=[1, np.sqrt(1 / 3)], nodes='state_input'))
+        p.set_val('traj.burn2.states:accel',
+                  value=burn2.interpolate(ys=[0.1, 0], nodes='state_input'))
+        p.set_val('traj.burn2.states:deltav',
+                  value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
+        p.set_val('traj.burn2.controls:u1',
+                  value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
+
+        p.run_driver()
+
+        assert_near_equal(p.get_val('traj.burn2.timeseries.states:deltav')[-1],
+                          0.3995,
+                          tolerance=2.0E-3)
+
+        # check units
+        un = dict(p.model.list_outputs(units=True))
+        assert(un['traj.phases.burn1.timeseries.pos_x']['units'] == 'm')
+        assert(un['traj.phases.burn1.timeseries.pos_y']['units'] == 'DU')
+        assert(un['traj.phases.burn2.timeseries.pos_x']['units'] == 'm')
+        assert(un['traj.phases.burn2.timeseries.pos_y']['units'] == 'm')
+
+    @use_tempdirs
+    def test_two_burn_orbit_raise_gl_wildcard_add_timeseries_output(self):
+        import numpy as np
+
+        import matplotlib.pyplot as plt
+
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_near_equal
+        from openmdao.utils.general_utils import set_pyoptsparse_opt
+
+        import dymos as dm
+        from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
+
+        traj = dm.Trajectory()
+        p = om.Problem(model=om.Group())
+        p.model.add_subsystem('traj', traj)
+
+        p.driver = om.pyOptSparseDriver()
+        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+        p.driver.options['optimizer'] = optimizer
+
+        p.driver.declare_coloring()
+
+        traj.add_parameter('c', opt=False, val=1.5, units='DU/TU',
+                           targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
+
+        # First Phase (burn)
+        burn1 = dm.Phase(ode_class=FiniteBurnODE,
+                         transcription=dm.GaussLobatto(num_segments=10, order=3, compressed=True))
+
+        burn1 = traj.add_phase('burn1', burn1)
+
+        burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='TU')
+        burn1.add_state('r', fix_initial=True, fix_final=False, defect_scaler=100.0,
+                        rate_source='r_dot', targets=['r'], units='DU')
+        burn1.add_state('theta', fix_initial=True, fix_final=False, defect_scaler=100.0,
+                        rate_source='theta_dot', targets=['theta'], units='rad')
+        burn1.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=100.0,
+                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
+        burn1.add_state('vt', fix_initial=True, fix_final=False, defect_scaler=100.0,
+                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
+        burn1.add_state('accel', fix_initial=True, fix_final=False,
+                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+        burn1.add_state('deltav', fix_initial=True, fix_final=False,
+                        rate_source='deltav_dot', units='DU/TU')
+        burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
+                          scaler=0.01,
+                          rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
+                          lower=-30, upper=30, targets=['u1'])
+
+        # Second Phase (Coast)
+        coast = dm.Phase(ode_class=FiniteBurnODE,
+                         transcription=dm.RungeKutta(num_segments=20))
+
+        traj.add_phase('coast', coast)
+
+        coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10, units='TU')
+
+        coast.add_state('r', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        rate_source='r_dot', targets=['r'], units='DU')
+        coast.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        units='rad', rate_source='theta_dot', targets=['theta'])
+        coast.add_state('vr', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
+        coast.add_state('vt', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
+        coast.add_state('accel', fix_initial=True, fix_final=False, ref=1.0E-12, defect_ref=1.0E-12,
+                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+        coast.add_state('deltav', fix_initial=False, fix_final=False,
+                        rate_source='deltav_dot', units='DU/TU')
+        coast.add_parameter('u1', targets=['u1'], opt=False, val=0.0, units='deg')
+
+        # Third Phase (burn)
+        burn2 = dm.Phase(ode_class=FiniteBurnODE,
+                         transcription=dm.GaussLobatto(num_segments=10, order=3, compressed=True))
+
+        traj.add_phase('burn2', burn2)
+
+        burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), initial_ref=10, units='TU')
+        burn2.add_state('r', fix_initial=False, fix_final=True,
+                        rate_source='r_dot', targets=['r'], units='DU')
+        burn2.add_state('theta', fix_initial=False, fix_final=False,
+                        rate_source='theta_dot', targets=['theta'], units='rad')
+        burn2.add_state('vr', fix_initial=False, fix_final=True,
+                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
+        burn2.add_state('vt', fix_initial=False, fix_final=True,
+                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
+        burn2.add_state('accel', fix_initial=False, fix_final=False, defect_ref=1.0E-6,
+                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+        burn2.add_state('deltav', fix_initial=False, fix_final=False,
+                        rate_source='deltav_dot', units='DU/TU')
+        burn2.add_control('u1', targets=['u1'], rate_continuity=True, rate2_continuity=True,
+                          units='deg', scaler=0.01, lower=-30, upper=30)
+
+        burn2.add_objective('deltav', loc='final', scaler=1.0)
+
+        # demonstrate adding multiple variables at once using wildcard in add_timeseries_output
+        burn1.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Gauss Lobatto)
+        coast.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Runge Kutta)
+        burn2.add_timeseries_output('*')      # add all ODE outputs
+
+        # Link Phases
+        traj.link_phases(phases=['burn1', 'coast', 'burn2'],
+                         vars=['time', 'r', 'vr', 'vt', 'deltav'])
+        traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
+
+        # Finish Problem Setup
+        p.model.linear_solver = om.DirectSolver()
+
+        p.setup(check=True, force_alloc_complex=True)
+
+        # Set Initial Guesses
+        p.set_val('traj.parameters:c', value=1.5)
+
+        p.set_val('traj.burn1.t_initial', value=0.0)
+        p.set_val('traj.burn1.t_duration', value=2.25)
+
+        p.set_val('traj.burn1.states:r',
+                  value=burn1.interpolate(ys=[1, 1.5], nodes='state_input'))
+        p.set_val('traj.burn1.states:theta',
+                  value=burn1.interpolate(ys=[0, 1.7], nodes='state_input'))
+        p.set_val('traj.burn1.states:vr',
+                  value=burn1.interpolate(ys=[0, 0], nodes='state_input'))
+        p.set_val('traj.burn1.states:vt',
+                  value=burn1.interpolate(ys=[1, 1], nodes='state_input'))
+        p.set_val('traj.burn1.states:accel',
+                  value=burn1.interpolate(ys=[0.1, 0], nodes='state_input'))
+        p.set_val('traj.burn1.states:deltav',
+                  value=burn1.interpolate(ys=[0, 0.1], nodes='state_input'), )
+        p.set_val('traj.burn1.controls:u1',
+                  value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
+
+        p.set_val('traj.coast.t_initial', value=2.25)
+        p.set_val('traj.coast.t_duration', value=3.0)
+
+        p.set_val('traj.coast.states:r',
+                  value=coast.interpolate(ys=[1.3, 1.5], nodes='state_input'))
+        p.set_val('traj.coast.states:theta',
+                  value=coast.interpolate(ys=[2.1767, 1.7], nodes='state_input'))
+        p.set_val('traj.coast.states:vr',
+                  value=coast.interpolate(ys=[0.3285, 0], nodes='state_input'))
+        p.set_val('traj.coast.states:vt',
+                  value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
+        p.set_val('traj.coast.states:accel',
+                  value=coast.interpolate(ys=[0, 0], nodes='state_input'))
+
+        p.set_val('traj.burn2.t_initial', value=5.25)
+        p.set_val('traj.burn2.t_duration', value=1.75)
+
+        p.set_val('traj.burn2.states:r',
+                  value=burn2.interpolate(ys=[1.8, 3], nodes='state_input'))
+        p.set_val('traj.burn2.states:theta',
+                  value=burn2.interpolate(ys=[3.2, 4.0], nodes='state_input'))
+        p.set_val('traj.burn2.states:vr',
+                  value=burn2.interpolate(ys=[.5, 0], nodes='state_input'))
+        p.set_val('traj.burn2.states:vt',
+                  value=burn2.interpolate(ys=[1, np.sqrt(1 / 3)], nodes='state_input'))
+        p.set_val('traj.burn2.states:accel',
+                  value=burn2.interpolate(ys=[0.1, 0], nodes='state_input'))
+        p.set_val('traj.burn2.states:deltav',
+                  value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
+        p.set_val('traj.burn2.controls:u1',
+                  value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
+
+        p.run_driver()
+
+        assert_near_equal(p.get_val('traj.burn2.timeseries.states:deltav')[-1],
+                          0.3995,
+                          tolerance=2.0E-3)
+
+        # test ODE output wildcard matching in solve_ivp
+        exp_out = traj.simulate()
+
+        for prob in (p, exp_out):
+            # check timeseries: pos_x = r * cos(theta) and pos_y = r * sin(theta)
+            for phs in ['burn1', 'coast', 'burn2']:
+                x = np.array(prob.get_val('traj.{0}.timeseries.pos_x'.format(phs))).flatten()
+                y = np.array(prob.get_val('traj.{0}.timeseries.pos_y'.format(phs))).flatten()
+                t = np.array(prob.get_val('traj.{0}.timeseries.states:theta'.format(phs))).flatten()
+                r = np.array(prob.get_val('traj.{0}.timeseries.states:r'.format(phs))).flatten()
+
+                xerr = x - r * np.cos(t)
+                yerr = y - r * np.sin(t)
+
+                assert_near_equal(np.sqrt(np.mean(xerr * xerr)), 0.0)
+                assert_near_equal(np.sqrt(np.mean(yerr * yerr)), 0.0)
+
+    @use_tempdirs
+    def test_two_burn_orbit_raise_radau_wildcard_add_timeseries_output(self):
+        import numpy as np
+
+        import matplotlib.pyplot as plt
+
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_near_equal
+        from openmdao.utils.general_utils import set_pyoptsparse_opt
+
+        import dymos as dm
+        from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
+
+        traj = dm.Trajectory()
+        p = om.Problem(model=om.Group())
+        p.model.add_subsystem('traj', traj)
+
+        p.driver = om.pyOptSparseDriver()
+        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+        p.driver.options['optimizer'] = optimizer
+
+        p.driver.declare_coloring()
+
+        traj.add_parameter('c', opt=False, val=1.5, units='DU/TU',
+                           targets={'burn1': ['c'], 'coast': ['c'], 'burn2': ['c']})
+
+        # First Phase (burn)
+        burn1 = dm.Phase(ode_class=FiniteBurnODE,
+                         transcription=dm.Radau(num_segments=10, order=3, compressed=True))
+
+        burn1 = traj.add_phase('burn1', burn1)
+
+        burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='TU')
+        burn1.add_state('r', fix_initial=True, fix_final=False, defect_scaler=100.0,
+                        rate_source='r_dot', targets=['r'], units='DU')
+        burn1.add_state('theta', fix_initial=True, fix_final=False, defect_scaler=100.0,
+                        rate_source='theta_dot', targets=['theta'], units='rad')
+        burn1.add_state('vr', fix_initial=True, fix_final=False, defect_scaler=100.0,
+                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
+        burn1.add_state('vt', fix_initial=True, fix_final=False, defect_scaler=100.0,
+                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
+        burn1.add_state('accel', fix_initial=True, fix_final=False,
+                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+        burn1.add_state('deltav', fix_initial=True, fix_final=False,
+                        rate_source='deltav_dot', units='DU/TU')
+        burn1.add_control('u1', rate_continuity=True, rate2_continuity=True, units='deg',
+                          scaler=0.01,
+                          rate_continuity_scaler=0.001, rate2_continuity_scaler=0.001,
+                          lower=-30, upper=30, targets=['u1'])
+
+        # Second Phase (Coast)
+        coast = dm.Phase(ode_class=FiniteBurnODE,
+                         transcription=dm.RungeKutta(num_segments=20))
+
+        traj.add_phase('coast', coast)
+
+        coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10, units='TU')
+
+        coast.add_state('r', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        rate_source='r_dot', targets=['r'], units='DU')
+        coast.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        units='rad', rate_source='theta_dot', targets=['theta'])
+        coast.add_state('vr', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
+        coast.add_state('vt', fix_initial=False, fix_final=False, defect_scaler=100.0,
+                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
+        coast.add_state('accel', fix_initial=True, fix_final=False, ref=1.0E-12, defect_ref=1.0E-12,
+                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+        coast.add_state('deltav', fix_initial=False, fix_final=False,
+                        rate_source='deltav_dot', units='DU/TU')
+        coast.add_parameter('u1', targets=['u1'], opt=False, val=0.0, units='deg')
+
+        # Third Phase (burn)
+        burn2 = dm.Phase(ode_class=FiniteBurnODE,
+                         transcription=dm.Radau(num_segments=10, order=3, compressed=True))
+
+        traj.add_phase('burn2', burn2)
+
+        burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), initial_ref=10, units='TU')
+        burn2.add_state('r', fix_initial=False, fix_final=True,
+                        rate_source='r_dot', targets=['r'], units='DU')
+        burn2.add_state('theta', fix_initial=False, fix_final=False,
+                        rate_source='theta_dot', targets=['theta'], units='rad')
+        burn2.add_state('vr', fix_initial=False, fix_final=True,
+                        rate_source='vr_dot', targets=['vr'], units='DU/TU')
+        burn2.add_state('vt', fix_initial=False, fix_final=True,
+                        rate_source='vt_dot', targets=['vt'], units='DU/TU')
+        burn2.add_state('accel', fix_initial=False, fix_final=False, defect_ref=1.0E-6,
+                        rate_source='at_dot', targets=['accel'], units='DU/TU**2')
+        burn2.add_state('deltav', fix_initial=False, fix_final=False,
+                        rate_source='deltav_dot', units='DU/TU')
+        burn2.add_control('u1', targets=['u1'], rate_continuity=True, rate2_continuity=True,
+                          units='deg', scaler=0.01, lower=-30, upper=30)
+
+        burn2.add_objective('deltav', loc='final', scaler=1.0)
+
+        # demonstrate adding multiple variables at once using wildcard in add_timeseries_output
+        burn1.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Radau)
+        coast.add_timeseries_output('pos_*')  # match partial variable in ODE outputs (Runge Kutta)
+        burn2.add_timeseries_output('*')      # add all ODE outputs
+
+        # Link Phases
+        traj.link_phases(phases=['burn1', 'coast', 'burn2'],
+                         vars=['time', 'r', 'vr', 'vt', 'deltav'])
+        traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
+
+        # Finish Problem Setup
+        p.model.linear_solver = om.DirectSolver()
+
+        p.setup(check=True, force_alloc_complex=True)
+
+        # Set Initial Guesses
+        p.set_val('traj.parameters:c', value=1.5)
+
+        p.set_val('traj.burn1.t_initial', value=0.0)
+        p.set_val('traj.burn1.t_duration', value=2.25)
+
+        p.set_val('traj.burn1.states:r',
+                  value=burn1.interpolate(ys=[1, 1.5], nodes='state_input'))
+        p.set_val('traj.burn1.states:theta',
+                  value=burn1.interpolate(ys=[0, 1.7], nodes='state_input'))
+        p.set_val('traj.burn1.states:vr',
+                  value=burn1.interpolate(ys=[0, 0], nodes='state_input'))
+        p.set_val('traj.burn1.states:vt',
+                  value=burn1.interpolate(ys=[1, 1], nodes='state_input'))
+        p.set_val('traj.burn1.states:accel',
+                  value=burn1.interpolate(ys=[0.1, 0], nodes='state_input'))
+        p.set_val('traj.burn1.states:deltav',
+                  value=burn1.interpolate(ys=[0, 0.1], nodes='state_input'), )
+        p.set_val('traj.burn1.controls:u1',
+                  value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
+
+        p.set_val('traj.coast.t_initial', value=2.25)
+        p.set_val('traj.coast.t_duration', value=3.0)
+
+        p.set_val('traj.coast.states:r',
+                  value=coast.interpolate(ys=[1.3, 1.5], nodes='state_input'))
+        p.set_val('traj.coast.states:theta',
+                  value=coast.interpolate(ys=[2.1767, 1.7], nodes='state_input'))
+        p.set_val('traj.coast.states:vr',
+                  value=coast.interpolate(ys=[0.3285, 0], nodes='state_input'))
+        p.set_val('traj.coast.states:vt',
+                  value=coast.interpolate(ys=[0.97, 1], nodes='state_input'))
+        p.set_val('traj.coast.states:accel',
+                  value=coast.interpolate(ys=[0, 0], nodes='state_input'))
+
+        p.set_val('traj.burn2.t_initial', value=5.25)
+        p.set_val('traj.burn2.t_duration', value=1.75)
+
+        p.set_val('traj.burn2.states:r',
+                  value=burn2.interpolate(ys=[1.8, 3], nodes='state_input'))
+        p.set_val('traj.burn2.states:theta',
+                  value=burn2.interpolate(ys=[3.2, 4.0], nodes='state_input'))
+        p.set_val('traj.burn2.states:vr',
+                  value=burn2.interpolate(ys=[.5, 0], nodes='state_input'))
+        p.set_val('traj.burn2.states:vt',
+                  value=burn2.interpolate(ys=[1, np.sqrt(1 / 3)], nodes='state_input'))
+        p.set_val('traj.burn2.states:accel',
+                  value=burn2.interpolate(ys=[0.1, 0], nodes='state_input'))
+        p.set_val('traj.burn2.states:deltav',
+                  value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
+        p.set_val('traj.burn2.controls:u1',
+                  value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
+
+        p.run_driver()
+
+        assert_near_equal(p.get_val('traj.burn2.timeseries.states:deltav')[-1],
+                          0.3995,
+                          tolerance=2.0E-3)
+
+        # test ODE output wildcard matching in solve_ivp
+        exp_out = traj.simulate()
+
+        for prob in (p, exp_out):
+            # check timeseries: pos_x = r * cos(theta) and pos_y = r * sin(theta)
+            for phs in ['burn1', 'coast', 'burn2']:
+                x = np.array(prob.get_val('traj.{0}.timeseries.pos_x'.format(phs))).flatten()
+                y = np.array(prob.get_val('traj.{0}.timeseries.pos_y'.format(phs))).flatten()
+                t = np.array(prob.get_val('traj.{0}.timeseries.states:theta'.format(phs))).flatten()
+                r = np.array(prob.get_val('traj.{0}.timeseries.states:r'.format(phs))).flatten()
+
+                xerr = x - r * np.cos(t)
+                yerr = y - r * np.sin(t)
+
+                assert_near_equal(np.sqrt(np.mean(xerr*xerr)), 0.0)
+                assert_near_equal(np.sqrt(np.mean(yerr*yerr)), 0.0)
 
 
 if __name__ == '__main__':  # pragma: no cover

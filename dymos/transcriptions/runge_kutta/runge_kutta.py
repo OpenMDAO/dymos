@@ -12,6 +12,7 @@ from ...utils.misc import CoerceDesvar, get_rate_units, get_targets, get_target_
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
+from fnmatch import filter
 
 
 class RungeKutta(TranscriptionBase):
@@ -791,30 +792,47 @@ class RungeKutta(TranscriptionBase):
             for var, options in timeseries_options['outputs'].items():
                 output_name = options['output_name']
 
-                # Determine the path to the variable which we will be constraining
-                # This is more complicated for path constraints since, for instance,
-                # a single state variable has two sources which must be connected to
-                # the path component.
-                var_type = phase.classify_var(var)
+                if '*' in var:  # match outputs from the ODE
+                    ode_outputs = {opts['prom_name']: opts for (k, opts) in
+                                   phase.ode.get_io_metadata(iotypes=('output',)).items()}
+                    matches = filter(list(ode_outputs.keys()), var)
+                else:
+                    matches = [var]
 
-                # Ignore any variables that we've already added (states, times, controls, etc)
-                if var_type != 'ode':
-                    continue
+                for v in matches:
+                    if '*' in var:
+                        output_name = v.split('.')[-1]
 
-                try:
-                    shape, units = get_source_metadata(phase.ode, src=var,
-                                                       user_units=options['units'],
-                                                       user_shape=options['shape'])
-                except ValueError:
-                    raise ValueError(f'Timeseries output {var} is not a known variable in'
-                                     f' the phase {phase.pathname} nor is it a known output of '
-                                     f' the ODE.')
+                    # Determine the path to the variable which we will be constraining
+                    # This is more complicated for path constraints since, for instance,
+                    # a single state variable has two sources which must be connected to
+                    # the path component.
+                    var_type = phase.classify_var(v)
 
-                timeseries_comp._add_output_configure(output_name, units, shape, desc='')
+                    # Ignore any variables that we've already added (states, times, controls, etc)
+                    if var_type != 'ode':
+                        continue
 
-                # Failed to find variable, assume it is in the RHS
-                phase.connect(src_name=f'ode.{var}',
-                              tgt_name=f'{timeseries_name}.input_values:{output_name}')
+                    try:
+                        shape, units = get_source_metadata(phase.ode, src=v,
+                                                           user_units=options['units'],
+                                                           user_shape=options['shape'])
+                    except ValueError:
+                        raise ValueError(f'Timeseries output {v} is not a known variable in'
+                                         f' the phase {phase.pathname} nor is it a known output of '
+                                         f' the ODE.')
+
+                    try:
+                        timeseries_comp._add_output_configure(output_name, units, shape, desc='')
+                    except ValueError as e:  # OK if it already exists
+                        if 'already exists' in str(e):
+                            continue
+                        else:
+                            raise e
+
+                    # Failed to find variable, assume it is in the RHS
+                    phase.connect(src_name=f'ode.{v}',
+                                  tgt_name=f'{timeseries_name}.input_values:{output_name}')
 
     def get_parameter_connections(self, name, phase):
         """
