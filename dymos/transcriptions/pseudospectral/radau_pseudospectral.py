@@ -1,11 +1,12 @@
+from fnmatch import filter
+
 import numpy as np
 
 from .pseudospectral_base import PseudospectralBase
-from ..common import PathConstraintComp, RadauPSContinuityComp, PseudospectralTimeseriesOutputComp
+from ..common import RadauPSContinuityComp
 from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
-from fnmatch import filter
 
 
 class Radau(PseudospectralBase):
@@ -140,6 +141,10 @@ class Radau(PseudospectralBase):
 
     def configure_defects(self, phase):
         super(Radau, self).configure_defects(phase)
+
+        grid_data = self.grid_data
+        if grid_data.num_segments > 1:
+            phase.continuity_comp.configure_io()
 
         for name, options in phase.state_options.items():
             phase.connect('state_interp.staterate_col:{0}'.format(name),

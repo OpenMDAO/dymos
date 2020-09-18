@@ -71,27 +71,27 @@ class PseudospectralBase(TranscriptionBase):
         # outputs of the collocation comp)
         for name, options in phase.state_options.items():
 
-            shape, units = get_target_metadata(ode, name=name,
-                                               user_targets=options['rate_source'],
-                                               user_units=options['units'])
+            full_shape, units = get_target_metadata(ode, name=name,
+                                                    user_targets=options['rate_source'],
+                                                    user_units=options['units'])
 
             if options['units'] is None:
                 # Units are from the rate source and should be converted.
                 units = f'{units}*{time_units}'
                 options['units'] = units
 
-            # Determine and store the pre-discretized state shape for use by other components.
-            if len(shape) < 2:
-                options['shape'] = (1, )
-            else:
-                options['shape'] = shape[1:]
-
             # In certain cases, we put an output on the IVC.
             if not self.any_solved_segs and not self.any_connected_opt_segs:
                 if not options['solve_segments'] and not options['connected_initial']:
                     indep.add_output(name='states:{0}'.format(name),
-                                     shape=shape,
+                                     shape=full_shape,
                                      units=units)
+
+            # Determine and store the pre-discretized state shape for use by other components.
+            if len(full_shape) < 2:
+                options['shape'] = shape = (1, )
+            else:
+                options['shape'] = shape = full_shape[1:]
 
             size = np.prod(shape)
             if options['opt']:

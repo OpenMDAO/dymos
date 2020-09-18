@@ -265,7 +265,6 @@ class GaussLobatto(PseudospectralBase):
         super(GaussLobatto, self).configure_defects(phase)
 
         grid_data = self.grid_data
-
         if grid_data.num_segments > 1:
             phase.continuity_comp.configure_io()
 
