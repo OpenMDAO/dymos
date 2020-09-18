@@ -51,7 +51,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     phase.add_state('pos',
                     rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
                     units=BrachistochroneVectorStatesODE.states['pos']['units'],
-                    shape=BrachistochroneVectorStatesODE.states['pos']['shape'],
                     fix_initial=True, fix_final=fix_final, solve_segments=solve_segments)
     #
     phase.add_state('v',

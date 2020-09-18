@@ -255,3 +255,24 @@ class CoerceDesvar(object):
                 raise ValueError('array-valued option {0} must have length '
                                  'num_input_nodes ({1})'.format(option, val))
             return val[self.desvar_indices]
+
+
+def CompWrapperConfig(comp_class):
+    """
+    Returns a wrapped comp_class that calls its configure_io method at the end of setup.
+
+    This allows for standalone testing of Dymos components that normally require their parent group
+    to configure them.
+
+    Parameters
+    ----------
+    comp_class : Component class
+       Class that we would like to wrap.
+    """
+    class WrappedClass(comp_class):
+
+        def setup(self):
+            super(WrappedClass, self).setup()
+            self.configure_io()
+
+    return WrappedClass

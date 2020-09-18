@@ -7,7 +7,7 @@ import openmdao.api as om
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, PseudospectralTimeseriesOutputComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
-from ...utils.misc import CoerceDesvar, get_rate_units, get_target_metadata
+from ...utils.misc import CoerceDesvar, get_rate_units, get_target_metadata, _unspecified
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 
@@ -71,21 +71,21 @@ class PseudospectralBase(TranscriptionBase):
         # outputs of the collocation comp)
         for name, options in phase.state_options.items():
 
+            rate_src = options['rate_source']
+            # This feels a little hackish
+            if rate_src in phase.control_options:
+                targets = phase.control_options[rate_src]['targets']
+                if targets is not _unspecified:
+                    rate_src = targets[0]
+
             full_shape, units = get_target_metadata(ode, name=name,
-                                                    user_targets=options['rate_source'],
+                                                    user_targets=rate_src,
                                                     user_units=options['units'])
 
             if options['units'] is None:
                 # Units are from the rate source and should be converted.
                 units = f'{units}*{time_units}'
                 options['units'] = units
-
-            # In certain cases, we put an output on the IVC.
-            if not self.any_solved_segs and not self.any_connected_opt_segs:
-                if not options['solve_segments'] and not options['connected_initial']:
-                    indep.add_output(name='states:{0}'.format(name),
-                                     shape=full_shape,
-                                     units=units)
 
             # Determine and store the pre-discretized state shape for use by other components.
             if len(full_shape) < 2:
@@ -94,6 +94,13 @@ class PseudospectralBase(TranscriptionBase):
                 options['shape'] = shape = full_shape[1:]
 
             size = np.prod(shape)
+            # In certain cases, we put an output on the IVC.
+            if isinstance(indep, om.IndepVarComp):
+                if not options['solve_segments'] and not options['connected_initial']:
+                    indep.add_output(name='states:{0}'.format(name),
+                                     shape=(num_state_input_nodes, size),
+                                     units=units)
+
             if options['opt']:
                 if options['solve_segments']:
                     # If we are using a solver on the defects, then our design variables

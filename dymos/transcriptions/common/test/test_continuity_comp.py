@@ -12,6 +12,11 @@ from dymos.transcriptions.grid_data import GridData
 from dymos.transcriptions.common import GaussLobattoContinuityComp, RadauPSContinuityComp
 from dymos.phase.options import StateOptionsDictionary, ControlOptionsDictionary
 
+# Modify class so we can run it standalone.
+from dymos.utils.misc import CompWrapperConfig
+GaussLobattoContinuityComp = CompWrapperConfig(GaussLobattoContinuityComp)
+RadauPSContinuityComp = CompWrapperConfig(RadauPSContinuityComp)
+
 
 class TestContinuityComp(unittest.TestCase):
 

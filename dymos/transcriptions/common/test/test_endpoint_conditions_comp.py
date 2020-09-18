@@ -10,6 +10,10 @@ from dymos.phase.options import TimeOptionsDictionary, StateOptionsDictionary, \
     ControlOptionsDictionary
 from dymos.transcriptions.common import EndpointConditionsComp
 
+# Modify class so we can run it standalone.
+from dymos.utils.misc import CompWrapperConfig
+EndpointConditionsComp = CompWrapperConfig(EndpointConditionsComp)
+
 
 class TestEndpointConditionComp(unittest.TestCase):
 

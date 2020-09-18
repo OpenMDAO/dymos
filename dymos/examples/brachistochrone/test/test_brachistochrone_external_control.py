@@ -64,10 +64,9 @@ class TestBrachistochroneExternalControl(unittest.TestCase):
         # The equations of motion are not functions of position, so 'x' and 'y' have no targets.
         # The rate source points to the output in the ODE which provides the time derivative of the
         # given state.
-        phase.add_state('x', fix_initial=True, fix_final=True, units='m', rate_source='xdot')
-        phase.add_state('y', fix_initial=True, fix_final=True, units='m', rate_source='ydot')
-        phase.add_state('v', fix_initial=True, fix_final=False, units='m/s',
-                        rate_source='vdot', targets=['v'])
+        phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot')
+        phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot')
+        phase.add_state('v', fix_initial=True, fix_final=False, rate_source='vdot', targets=['v'])
 
         # Define theta as a control.
         # Use opt=False to allow it to be connected to an external source.

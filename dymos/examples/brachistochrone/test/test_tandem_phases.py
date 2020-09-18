@@ -114,14 +114,11 @@ class TestTandemPhases(unittest.TestCase):
         phase0.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase0.add_state('x', fix_initial=True, fix_final=False,
-                         rate_source=BrachistochroneODE.states['x']['rate_source'],
-                         units=BrachistochroneODE.states['x']['units'])
+                         rate_source=BrachistochroneODE.states['x']['rate_source'])
         phase0.add_state('y', fix_initial=True, fix_final=False,
-                         rate_source=BrachistochroneODE.states['y']['rate_source'],
-                         units=BrachistochroneODE.states['y']['units'])
+                         rate_source=BrachistochroneODE.states['y']['rate_source'])
         phase0.add_state('v', fix_initial=True,
-                         rate_source=BrachistochroneODE.states['v']['rate_source'],
-                         units=BrachistochroneODE.states['v']['units'])
+                         rate_source=BrachistochroneODE.states['v']['rate_source'])
 
         phase0.add_parameter('g',
                              units=BrachistochroneODE.parameters['g']['units'],
@@ -146,7 +143,7 @@ class TestTandemPhases(unittest.TestCase):
 
         phase1.set_time_options(fix_initial=True, input_duration=True)
 
-        phase1.add_state('S', fix_initial=True, fix_final=False, rate_source='Sdot', units='m')
+        phase1.add_state('S', fix_initial=True, fix_final=False, rate_source='Sdot')
 
         phase1.add_control('theta', opt=False, units='deg', targets=['theta'])
         phase1.add_control('v', opt=False, units='m/s', targets=['v'])
