@@ -7,6 +7,7 @@ import re
 import sys
 import textwrap
 from pathlib import Path
+from redbaron import RedBaron
 
 try:
     from numpydoc.docscrape import FunctionDoc, ClassDoc
@@ -409,6 +410,20 @@ def get_parent_dir(env):
 
 
 def _get_test_source(reference):
+    """
+    Return the source code from the test specified by the gien reference.
+
+    Parameters
+    ----------
+    reference : str
+        A dotted path to the test method whose source is desired.
+
+    Returns
+    -------
+    str
+        The returned source, dedented and having had assert method calls removed.
+
+    """
     obj = get_object_from_reference(reference)
     try:
         method = obj._method
@@ -431,8 +446,44 @@ def _get_test_source(reference):
     source = textwrap.dedent(source)
     source = source.strip()
 
+    # Remove the assert method calls from documentation.
+    source = _strip_asserts(source)
+
     return source
 
+def _strip_asserts(source):
+    """
+    Remove assert method calls from source code.
+
+    Using RedBaron, replace some assert calls with print statements that print the actual
+    value given in the asserts. Depending on the calls, the actual value can be the first or second
+    argument.
+
+    Parameters
+    ----------
+    source : str
+        String containing source lines.
+
+    Returns
+    -------
+    str
+        Source with asserts removed.
+    """
+    rb = RedBaron(source)  # convert to RedBaron internal structure
+
+    # findAll is slow, so only check the ones that are present.
+    asserts = ['assertAlmostEqual', 'assertLess', 'assertGreater', 'assertEqual',
+               'assert_equal_arrays', 'assertTrue', 'assertFalse', 'assert_near_equal',
+               'assert_rel_error', 'assert_almost_equal', 'assert_allclose']
+
+    for assert_type in asserts:
+        assert_nodes = rb.findAll("NameNode", value=assert_type)
+        for i in reversed(range(len(assert_nodes))):
+            parent = assert_nodes[i].parent
+            for j in reversed(range(len(parent.value))):
+                assert_nodes[i].parent.remove(parent.value[j])
+
+    return rb.dumps()
 
 def _function_doc_markdown(func, reference, outstream=sys.stdout, indent='', method=False):
     """
@@ -558,6 +609,7 @@ def _options_dict_to_markdown(od):
     return md
 
 
+<<<<<<< HEAD
 def _split_docstring(obj):
     docstring = inspect.getdoc(obj)
     lines = inspect.getsourcelines(obj)[0]
@@ -606,9 +658,3 @@ def _upgrade_doc_markdown(test_reference, feature, outstream=sys.stdout,
     print(f'{indent}```', file=outstream)
     print(f'{textwrap.indent(new_way, indent)}', file=outstream)
     print(f'{indent}```', file=outstream)
-
-
-if __name__ == '__main__':
-
-    obj = _upgrade_doc_markdown('dymos.test.test_upgrade_guide.TestUpgrade_0_16_0.test_parameter_no_include_timeseries',
-                                feature='parameter_no_timeseries')
