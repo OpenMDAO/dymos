@@ -608,8 +608,6 @@ def _options_dict_to_markdown(od):
 
     return md
 
-
-<<<<<<< HEAD
 def _split_docstring(obj):
     docstring = inspect.getdoc(obj)
     lines = inspect.getsourcelines(obj)[0]
