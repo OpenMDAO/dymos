@@ -367,7 +367,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
                             ('f_drag', 'N')]:
             self.assertEqual(op_dict[f'traj.phase0.timeseries.{name}'], units)
 
-
+    @unittest.skip
     def test_sequence_timeseries_outputs(self):
         """
         # upgrade_doc: begin glob_timeseries_outputs
