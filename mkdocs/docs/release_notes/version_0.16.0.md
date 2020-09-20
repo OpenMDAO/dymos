@@ -36,35 +36,23 @@ This is redundant since that information was defined in the timeseries itself.
 However, dymos had no way to determine that variable metadata.
 With recent changes to OpenMDAO, this is now possible and the addition of ODE variables is simplified by no longer having to specify units or shape of the timeseries outputs.
 
-=== "Adding timseries otuputs in dymos < 0.16.0"
-    ```
-    phase.add_timeseries_output('aero.lift_force', units='N', shape=(1,))
-    ```
-
-=== "Adding timeseries outputs in dymos >= 0.16.0"
-    ```
-    phase.add_timeseries_output('aero.lift_force')
-    ```
+{{ upgrade_doc('dymos.test.test_upgrade_guide.TestUpgrade_0_16_0.test_parameter_no_include_timeseries',
+               feature='simplified_ode_timeseries_output',
+               old_label='dymos < 0.16.0',
+               new_label='dymos >= 0.16.0') }}
 
 Adding timeseries outputs for a large ODE in previous versions of Dymos was a very verbose process, with a call to `add_timeseries_output` for each ODE-output of interest.
 The `add_timeseries_output` method now supports the addition of multiple outputs with a single call, through providing the timeseries outputs as a sequence of strings, or via a glob pattern.
 Timeseries outputs and glob patterns are matched based on their promoted path _relative to the top of the ODE_.
 
-For instance, adding all ODE outputs to a timeseries is as simple as:
+The block below shows the code required to create timeseries for all outputs of the `aero` subsystem in the minimum-time-climb ODE in version 0.15.0 compared to 0.16.0.
 
-=== "Adding timeseries outputs with glob pattern"
-    ```
-    phase.add_timeseries_output('*')
-    ```
+{{ upgrade_doc('dymos.test.test_upgrade_guide.TestUpgrade_0_16_0.test_glob_timeseries_outputs',
+               feature='glob_timeseries_outputs',
+               old_label='dymos < 0.16.0',
+               new_label='dymos >= 0.16.0') }}
 
-Adding all outputs of a particular subsystem in the ODE (in this case named `aero`) is done as follows:
-
-=== "Adding all ODE outputs from a particular subsystem"
-    ```
-    phase.add_timeseries_output('aero.*')
-    ```
-
-Added a handful of outputs can be done by providing a sequence of output paths in the ODE.
+Adding a handful of outputs can be done by providing a sequence of output paths in the ODE.
 Units can also be provided as a dictionary in which the keys are one or more of the output names provided.
 
 === "Adding multiple variables with a sequence"
