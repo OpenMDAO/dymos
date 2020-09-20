@@ -590,41 +590,5 @@ class TestPhaseBase(unittest.TestCase):
                           tolerance=1.0E-6)
 
 
-class TestPhaseBase(unittest.TestCase):
-
-    def test_invalid_ode_wrong_class(self):
-
-        p = om.Problem(model=om.Group())
-
-        p.driver = om.ScipyOptimizeDriver()
-
-        p.driver.declare_coloring()
-
-        phase = dm.Phase(ode_class=_A,
-                         transcription=dm.GaussLobatto(num_segments=20, order=3, compressed=True))
-
-        p.model.add_subsystem('phase0', phase)
-
-        phase.set_time_options(fix_initial=True, duration_bounds=(4, 10))
-
-        phase.add_state('x', fix_initial=True, fix_final=True)
-        phase.add_state('y', fix_initial=True, fix_final=True)
-        phase.add_state('v', fix_initial=True, fix_final=False)
-
-        phase.add_control('theta', continuity=True, rate_continuity=True, opt=False)
-
-        phase.add_parameter('g', units='m/s**2', opt=True, val=9.80665)
-
-        # Minimize time at the end of the phase
-        phase.add_objective('g')
-
-        p.model.linear_solver = om.DirectSolver()
-
-        with self.assertRaises(ValueError) as e:
-            p.setup(check=True)
-
-        self.assertEqual(str(e.exception), 'ode_class must be derived from openmdao.core.System.')
-
-
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()
