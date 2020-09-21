@@ -791,6 +791,7 @@ class RungeKutta(TranscriptionBase):
 
             for var, options in timeseries_options['outputs'].items():
                 output_name = options['output_name']
+                units = options.get('units', None)
 
                 if '*' in var:  # match outputs from the ODE
                     ode_outputs = {opts['prom_name']: opts for (k, opts) in
@@ -802,6 +803,7 @@ class RungeKutta(TranscriptionBase):
                 for v in matches:
                     if '*' in var:
                         output_name = v.split('.')[-1]
+                        units = ode_outputs[v]['units']
 
                     # Determine the path to the variable which we will be constraining
                     # This is more complicated for path constraints since, for instance,
@@ -815,7 +817,7 @@ class RungeKutta(TranscriptionBase):
 
                     try:
                         shape, units = get_source_metadata(phase.ode, src=v,
-                                                           user_units=options['units'],
+                                                           user_units=units,
                                                            user_shape=options['shape'])
                     except ValueError:
                         raise ValueError(f'Timeseries output {v} is not a known variable in'

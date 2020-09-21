@@ -479,6 +479,7 @@ class GaussLobatto(PseudospectralBase):
                 for v in matches:
                     if '*' in var:
                         output_name = v.split('.')[-1]
+                        units = ode_outputs[v]['units']
 
                     # Determine the path to the variable which we will be constraining
                     # This is more complicated for path constraints since, for instance,
@@ -492,7 +493,7 @@ class GaussLobatto(PseudospectralBase):
 
                     try:
                         shape, units = get_source_metadata(phase.rhs_disc, src=v,
-                                                           user_units=options['units'],
+                                                           user_units=units,
                                                            user_shape=options['shape'])
                     except ValueError:
                         raise ValueError(f'Timeseries output {v} is not a known variable in'
