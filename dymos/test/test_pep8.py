@@ -38,7 +38,7 @@ class TestPep8(unittest.TestCase):
 
         Notes
         -----
-        max_line_length has been set to 100 for this test.
+        max_line_length has been set to 130 for this test.
         """
         dymos_path = os.path.split(dymos.__file__)[0]
         pyfiles = _discover_python_files(dymos_path)

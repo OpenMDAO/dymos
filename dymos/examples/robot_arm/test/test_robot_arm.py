@@ -5,16 +5,17 @@ import unittest
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
+from openmdao.utils.testing_utils import use_tempdirs
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.robot_arm.robot_arm_ode import RobotArmODE
 import numpy as np
 import dymos as dm
 
 
+@use_tempdirs
 class TestRobotArm(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(self):
         for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
             if os.path.exists(filename):
                 os.remove(filename)

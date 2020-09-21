@@ -4,7 +4,8 @@ import os
 import unittest
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
+from openmdao.utils.general_utils import printoptions
+from openmdao.utils.testing_utils import use_tempdirs
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 import numpy as np
@@ -13,10 +14,10 @@ import dymos as dm
 tf = np.float128(10)
 
 
+@use_tempdirs
 class TestHyperSensitive(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(self):
         for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
             if os.path.exists(filename):
                 os.remove(filename)

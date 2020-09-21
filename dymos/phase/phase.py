@@ -1258,14 +1258,14 @@ class Phase(om.Group):
         self._path_constraints[name]['units'] = units
         self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
-    def add_timeseries_output(self, name, output_name=None, units=None, shape=(1,), timeseries='timeseries'):
+    def add_timeseries_output(self, name, output_name=None, units=None, shape=None, timeseries='timeseries'):
         r"""
         Add a variable to the timeseries outputs of the phase.
 
         Parameters
         ----------
-        name : string
-            The name of the variable to be used as a timeseries output.  Must be one of
+        name : string, or list of strings
+            The name(s) of the variable to be used as a timeseries output.  Must be one of
             'time', 'time_phase', one of the states, controls, control rates, or parameters,
             in the phase, or the path to an output variable in the ODE.
         output_name : string or None
@@ -1276,12 +1276,24 @@ class Phase(om.Group):
             The units in which the boundary constraint is to be applied.  If None, use the
             units associated with the constrained output.  If provided, must be compatible with
             the variables units.
+            If a list of names is provided, units can be a matching list or dictionary.
         shape : tuple
             The shape of the timeseries output variable.  This must be provided (if not scalar)
             since Dymos doesn't necessarily know the shape of ODE outputs until setup time.
         timeseries : str or None
             The name of the timeseries to which the output is being added.
         """
+        if type(name) is list:
+            for i, n in enumerate(name):
+                u = units  # default
+                if type(units) is dict:  # accept dict for units when using array of name
+                    u = units.get(n, None)
+                elif type(units) is list:  # allow matching list for units
+                    u = units[i]
+
+                self.add_timeseries_output(n, output_name, u, shape, timeseries)
+            return
+
         if output_name is None:
             output_name = name.split('.')[-1]
 

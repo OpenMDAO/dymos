@@ -45,12 +45,12 @@ class TestPathConstraintComp(unittest.TestCase):
 
         self.p.model.add_subsystem('path_constraints', subsys=path_comp)
 
-        path_comp._add_path_constraint('a', var_class='ode', shape=(1,),
-                                       lower=0, upper=10, units='m')
-        path_comp._add_path_constraint('b', var_class='input_control', shape=(3,),
-                                       lower=0, upper=10, units='s')
-        path_comp._add_path_constraint('c', var_class='control_rate2', shape=(3, 3),
-                                       lower=0, upper=10, units='kg')
+        path_comp._add_path_constraint_configure('a', shape=(1,),
+                                                 lower=0, upper=10, units='m')
+        path_comp._add_path_constraint_configure('b', shape=(3,),
+                                                 lower=0, upper=10, units='s')
+        path_comp._add_path_constraint_configure('c', shape=(3, 3),
+                                                 lower=0, upper=10, units='kg')
 
         self.p.model.connect('a_disc', 'path_constraints.all_values:a')
         self.p.model.connect('b_disc', 'path_constraints.all_values:b')

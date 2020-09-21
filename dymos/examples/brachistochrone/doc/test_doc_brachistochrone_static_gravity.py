@@ -67,7 +67,7 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         phase = traj.add_phase('phase0',
                                dm.Phase(ode_class=BrachistochroneODE,
                                         ode_init_kwargs={'static_gravity': True},
-                                        transcription=dm.Radau(num_segments=10)))
+                                        transcription=dm.GaussLobatto(num_segments=10)))
 
         #
         # Set the variables

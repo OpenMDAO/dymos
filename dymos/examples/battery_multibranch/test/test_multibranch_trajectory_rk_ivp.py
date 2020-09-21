@@ -26,9 +26,9 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('state_of_charge', fix_initial=True, fix_final=False,
                          targets=['SOC'], rate_source='dXdt:SOC')
-        phase0.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
-        phase0.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
-        phase0.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+        phase0.add_timeseries_output('battery.V_oc', output_name='V_oc')
+        phase0.add_timeseries_output('battery.V_pack', output_name='V_pack')
+        phase0.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li')
         traj.add_phase('phase0', phase0)
 
         # Second phase: normal operation.
@@ -62,9 +62,9 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1_mfail.set_time_options(fix_initial=False, fix_duration=True)
         phase1_mfail.add_state('state_of_charge', fix_initial=False, fix_final=False, solve_segments=True,
                                targets=['SOC'], rate_source='dXdt:SOC')
-        phase1_mfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
-        phase1_mfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
-        phase1_mfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+        phase1_mfail.add_timeseries_output('battery.V_oc', output_name='V_oc')
+        phase1_mfail.add_timeseries_output('battery.V_pack', output_name='V_pack')
+        phase1_mfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li')
         traj.add_phase('phase1_mfail', phase1_mfail)
 
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'], connected=True)
@@ -169,9 +169,9 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('state_of_charge', fix_initial=True, fix_final=False,
                          targets=['SOC'], rate_source='dXdt:SOC')
-        phase0.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
-        phase0.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
-        phase0.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+        phase0.add_timeseries_output('battery.V_oc', output_name='V_oc')
+        phase0.add_timeseries_output('battery.V_pack', output_name='V_pack')
+        phase0.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li')
         traj.add_phase('phase0', phase0)
 
         # Second phase: normal operation.
@@ -182,9 +182,9 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1.add_state('state_of_charge', fix_initial=False, fix_final=False,
                          solve_segments=True,
                          targets=['SOC'], rate_source='dXdt:SOC')
-        phase1.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
-        phase1.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
-        phase1.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+        phase1.add_timeseries_output('battery.V_oc', output_name='V_oc')
+        phase1.add_timeseries_output('battery.V_pack', output_name='V_pack')
+        phase1.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li')
         traj.add_phase('phase1', phase1)
 
         # Second phase, but with battery failure.
@@ -195,9 +195,9 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1_bfail.add_state('state_of_charge', fix_initial=False, fix_final=False,
                                solve_segments=True,
                                targets=['SOC'], rate_source='dXdt:SOC')
-        phase1_bfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
-        phase1_bfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
-        phase1_bfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+        phase1_bfail.add_timeseries_output('battery.V_oc', output_name='V_oc')
+        phase1_bfail.add_timeseries_output('battery.V_pack', output_name='V_pack')
+        phase1_bfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li')
         traj.add_phase('phase1_bfail', phase1_bfail)
 
         # Second phase, but with motor failure.
@@ -208,9 +208,9 @@ class TestBatteryRKIVP(unittest.TestCase):
         phase1_mfail.add_state('state_of_charge', fix_initial=False, fix_final=False,
                                solve_segments=True,
                                targets=['SOC'], rate_source='dXdt:SOC')
-        phase1_mfail.add_timeseries_output('battery.V_oc', output_name='V_oc', units='V')
-        phase1_mfail.add_timeseries_output('battery.V_pack', output_name='V_pack', units='V')
-        phase1_mfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li', units='A')
+        phase1_mfail.add_timeseries_output('battery.V_oc', output_name='V_oc')
+        phase1_mfail.add_timeseries_output('battery.V_pack', output_name='V_pack')
+        phase1_mfail.add_timeseries_output('pwr_balance.I_Li', output_name='I_Li')
         traj.add_phase('phase1_mfail', phase1_mfail)
 
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'],

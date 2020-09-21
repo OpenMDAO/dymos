@@ -4,9 +4,9 @@ import numpy as np
 
 import openmdao.api as om
 
-from .common import BoundaryConstraintComp, ControlGroup, \
-    PolynomialControlGroup
+from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
 from ..utils.constants import INF_BOUND
+from ..utils.misc import get_rate_units
 
 
 class TranscriptionBase(object):
@@ -342,6 +342,123 @@ class TranscriptionBase(object):
                               src_indices=src_idxs,
                               flat_src_indices=True)
 
+    def setup_path_constraints(self, phase):
+        """
+        Add a path constraint component if necessary.
+        """
+        gd = self.grid_data
+
+        if phase._path_constraints:
+            path_comp = PathConstraintComp(num_nodes=gd.num_nodes)
+            phase.add_subsystem('path_constraints', subsys=path_comp)
+
+    def configure_path_constraints(self, phase):
+        """
+        Handle the common operations for configuration of the path constraints.
+        """
+        time_units = phase.time_options['units']
+
+        for var, options in phase._path_constraints.items():
+            constraint_kwargs = options.copy()
+            con_units = constraint_kwargs['units'] = options.get('units', None)
+            con_name = constraint_kwargs.pop('constraint_name')
+
+            # Determine the path to the variable which we will be constraining
+            # This is more complicated for path constraints since, for instance,
+            # a single state variable has two sources which must be connected to
+            # the path component.
+            var_type = phase.classify_var(var)
+
+            if var_type == 'time':
+                constraint_kwargs['shape'] = (1,)
+                constraint_kwargs['units'] = time_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
+
+            elif var_type == 'time_phase':
+                constraint_kwargs['shape'] = (1,)
+                constraint_kwargs['units'] = time_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
+
+            elif var_type == 'state':
+                state_shape = phase.state_options[var]['shape']
+                state_units = phase.state_options[var]['units']
+                constraint_kwargs['shape'] = state_shape
+                constraint_kwargs['units'] = state_units if con_units is None else con_units
+                constraint_kwargs['linear'] = False
+
+            elif var_type == 'indep_control':
+                control_shape = phase.control_options[var]['shape']
+                control_units = phase.control_options[var]['units']
+
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
+
+            elif var_type == 'input_control':
+                control_shape = phase.control_options[var]['shape']
+                control_units = phase.control_options[var]['units']
+
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = True
+
+            elif var_type == 'indep_polynomial_control':
+                control_shape = phase.polynomial_control_options[var]['shape']
+                control_units = phase.polynomial_control_options[var]['units']
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = False
+
+            elif var_type == 'input_polynomial_control':
+                control_shape = phase.polynomial_control_options[var]['shape']
+                control_units = phase.polynomial_control_options[var]['units']
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = control_units if con_units is None else con_units
+                constraint_kwargs['linear'] = False
+
+            elif var_type == 'control_rate':
+                control_name = var[:-5]
+                control_shape = phase.control_options[control_name]['shape']
+                control_units = phase.control_options[control_name]['units']
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                    if con_units is None else con_units
+
+            elif var_type == 'control_rate2':
+                control_name = var[:-6]
+                control_shape = phase.control_options[control_name]['shape']
+                control_units = phase.control_options[control_name]['units']
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                    if con_units is None else con_units
+
+            elif var_type == 'polynomial_control_rate':
+                control_name = var[:-5]
+                control_shape = phase.polynomial_control_options[control_name]['shape']
+                control_units = phase.polynomial_control_options[control_name]['units']
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=1) \
+                    if con_units is None else con_units
+
+            elif var_type == 'polynomial_control_rate2':
+                control_name = var[:-6]
+                control_shape = phase.polynomial_control_options[control_name]['shape']
+                control_units = phase.polynomial_control_options[control_name]['units']
+                constraint_kwargs['shape'] = control_shape
+                constraint_kwargs['units'] = get_rate_units(control_units, time_units, deriv=2) \
+                    if con_units is None else con_units
+
+            else:
+                # Failed to find variable, assume it is in the ODE
+                constraint_kwargs['linear'] = False
+                constraint_kwargs['shape'] = options.get('shape', None)
+                if constraint_kwargs['shape'] is None:
+                    options['shape'] = (1,)
+                    constraint_kwargs['shape'] = (1,)
+
+            constraint_kwargs.pop('constraint_name', None)
+            phase._get_subsystem('path_constraints')._add_path_constraint_configure(con_name, **constraint_kwargs)
+
     def setup_objective(self, phase):
         """
         Find the path of the objective(s) and add the objective using the standard OpenMDAO method.
@@ -458,26 +575,6 @@ class TranscriptionBase(object):
                 # Failed to find variable, assume it is in the ODE
                 if options['shape'] is None:
                     logger.warning('Unable to infer shape of boundary constraint \'{0}\' in '
-                                   'phase \'{1}\'. Scalar assumed.  If this ODE output is '
-                                   'is not scalar, connection errors will '
-                                   'result.'.format(var, phase.name))
-
-        for name, timeseries_options in phase._timeseries.items():
-            for var, options in phase._timeseries[name]['outputs'].items():
-
-                # Determine the path to the variable which we will be constraining
-                # This is more complicated for path constraints since, for instance,
-                # a single state variable has two sources which must be connected to
-                # the path component.
-                var_type = phase.classify_var(var)
-
-                # Ignore any variables that we've already added (states, times, controls, etc)
-                if var_type != 'ode':
-                    continue
-
-                # Assume scalar shape here, but check config will warn that it's inferred.
-                if options['shape'] is None:
-                    logger.warning('Unable to infer shape of timeseries output \'{0}\' in '
                                    'phase \'{1}\'. Scalar assumed.  If this ODE output is '
                                    'is not scalar, connection errors will '
                                    'result.'.format(var, phase.name))
