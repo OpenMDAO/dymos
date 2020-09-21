@@ -706,14 +706,10 @@ class Trajectory(om.Group):
                                                                                 out_stream=None)])
 
         # Assign trajectory parameter values
-        meta = self._problem_meta
-        prom2abs = meta['prom2abs']
-        conns = meta['model_ref']()._conn_global_abs_in2out
         param_names = [key for key in self.parameter_options.keys()]
         for name in param_names:
             prom_path = f'traj.parameters:{name}'
-            abs_in = prom2abs['input'][prom_path][0]
-            src = conns[abs_in]
+            src = self.get_source(prom_path)
 
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.

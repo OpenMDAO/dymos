@@ -74,8 +74,8 @@ def find_phases(sys):
     if isinstance(sys, Phase):
         phase_paths[sys.pathname] = sys
     elif isinstance(sys, om.Group):
-        for subsys in sys._loc_subsys_map:
-            phase_paths.update(find_phases(getattr(sys, subsys)))
+        for sub in sys.system_iter(recurse=False):
+            phase_paths.update(find_phases(sub))
     return phase_paths
 
 
