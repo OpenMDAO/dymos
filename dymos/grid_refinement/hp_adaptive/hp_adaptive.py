@@ -96,8 +96,8 @@ class HPAdaptive:
         self.error = {}
         self.iteration_number = 0
         self.previous_error = {}
-        self.gd = {}
-        self.x_dd = {}
+        self.previous_gd = {}
+        self.previous_x_dd = {}
         self.parent_seg_map = {}
 
     def refine_first_iter(self, refine_results):
@@ -125,8 +125,8 @@ class HPAdaptive:
             phase = self.phases[phase_path]
             tx = phase.options['transcription']
             gd = tx.grid_data
-            self.gd[phase_path] = gd
-            self.x_dd[phase_path] = {}
+            self.previous_gd[phase_path] = gd
+            self.previous_x_dd[phase_path] = {}
             self.error[phase_path] = refine_results[phase_path]['max_rel_error']
 
             # Get information about current grid
@@ -155,7 +155,7 @@ class HPAdaptive:
 
             # create and store second derivative information using differentiation matrix
             for state_name, options in phase.state_options.items():
-                self.x_dd[phase_path][state_name] = D @ x_d[state_name]
+                self.previous_x_dd[phase_path][state_name] = D @ x_d[state_name]
 
             gd = phase.options['transcription'].grid_data
             numseg = gd.num_segments
@@ -341,6 +341,9 @@ class HPAdaptive:
             left_end_idxs = np.append(left_end_idxs, gd.subset_num_nodes['all'])
             refine_seg_idxs = np.where(need_refine)[0]
 
+            old_left_end_idxs = self.previous_gd[phase_path].subset_node_indices['segment_ends'][0::2]
+            old_left_end_idxs = np.append(old_left_end_idxs, self.previous_gd[phase_path].subset_num_nodes['all'])
+
             # compute curvature
             L, D = interpolation_lagrange_matrix(gd, gd)
             t = phase.get_val(f'timeseries.time')
@@ -359,10 +362,14 @@ class HPAdaptive:
                 P_hat[state_name] = np.zeros(numseg)
                 for k in np.nditer(refine_seg_idxs):
                     interp = LagrangeBarycentricInterpolant(
-                        self.gd[phase_path].node_stau[left_end_idxs[k]:left_end_idxs[k + 1]],
+                        self.previous_gd[phase_path].node_stau[old_left_end_idxs[self.parent_seg_map[phase_path][k]]:
+                                                               old_left_end_idxs[self.parent_seg_map[phase_path][k] +
+                                                                                 1]],
                         options['shape'])
                     interp.setup(x0=-1, xf=1,
-                                 f_j=self.x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]])
+                                 f_j=self.previous_x_dd[phase_path][state_name][
+                                     old_left_end_idxs[self.parent_seg_map[phase_path][k]]:old_left_end_idxs[
+                                         self.parent_seg_map[phase_path][k] + 1]])
                     P[state_name][k] = np.max(
                         np.absolute(x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))
                     xdd_max_time = gd.node_stau[left_end_idxs[k] + np.argmax(
@@ -376,17 +383,17 @@ class HPAdaptive:
             mul_factor = np.ones(numseg)
             h = 0.5 * (seg_ends[1:] - seg_ends[:-1])
             H = np.ones(numseg, dtype=int)
-            h_prev = 0.5 * (self.gd[phase_path].segment_ends[1:] - self.gd[phase_path].segment_ends[:-1])
+            h_prev = 0.5 * (self.previous_gd[phase_path].segment_ends[1:] - self.previous_gd[phase_path].segment_ends[:-1])
 
             split_parent_seg_idxs = self.parent_seg_map[phase_path][smooth_need_refine_idxs]
 
             q_smooth = (np.log(self.error[phase_path][smooth_need_refine_idxs] /
                                self.previous_error[phase_path][split_parent_seg_idxs]) +
                         2.5 * np.log(seg_order[smooth_need_refine_idxs] /
-                                     self.gd[phase_path].transcription_order[split_parent_seg_idxs])
+                                     self.previous_gd[phase_path].transcription_order[split_parent_seg_idxs])
                         ) / (np.log((h[smooth_need_refine_idxs] / h_prev[split_parent_seg_idxs])) +
                              np.log(seg_order[smooth_need_refine_idxs] /
-                                    self.gd[phase_path].transcription_order[split_parent_seg_idxs]))
+                                    self.previous_gd[phase_path].transcription_order[split_parent_seg_idxs]))
 
             q_smooth[q_smooth < 3] = 3.0
             q_smooth[np.isposinf(q_smooth)] = 3.0
@@ -414,10 +421,10 @@ class HPAdaptive:
 
             q_split = np.log((self.error[phase_path][split_seg_idxs] /
                               self.previous_error[phase_path][split_parent_seg_idxs]) /
-                             (seg_order[split_seg_idxs] / self.gd[phase_path].transcription_order[
+                             (seg_order[split_seg_idxs] / self.previous_gd[phase_path].transcription_order[
                                  split_parent_seg_idxs]) ** 2.5
                              ) / np.log((h[split_seg_idxs] / h_prev[split_parent_seg_idxs]) /
-                                        (seg_order[split_seg_idxs] / self.gd[phase_path].transcription_order[
+                                        (seg_order[split_seg_idxs] / self.previous_gd[phase_path].transcription_order[
                                             split_parent_seg_idxs]))
 
             q_split[q_split < 3] = 3
@@ -462,7 +469,7 @@ class HPAdaptive:
                         b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
                         for i in range(seg_size[gd.transcription] - 1, phase.refine_options['min_order'], -1):
-                            if np.abs(b[i]) / beta[state_name] < phase.refine_options['tolerance'] and \
+                            if np.abs(b[i]) / beta[state_name] < phase.refine_options['tolerance']/10 and \
                                     i - 1 < new_order_state[state_name]:
                                 new_order_state[state_name] = i - 1
                             else:
@@ -499,7 +506,7 @@ class HPAdaptive:
                         err_val = np.dot(np.absolute(b - b_hat).ravel(),
                                          np.array([2 ** l for l in range(seg_size[gd.transcription])])) / beta
 
-                        if err_val > phase.refine_options['tolerance'] and merge_seg[k + 1]:
+                        if err_val > phase.refine_options['tolerance']/10 and merge_seg[k + 1]:
                             merge_seg[k + 1] = False
 
             H[np.where(merge_seg)] = 0
@@ -529,6 +536,6 @@ class HPAdaptive:
             tx.options['num_segments'] = new_num_segments
             tx.options['segment_ends'] = new_segment_ends
             tx.init_grid()
-            self.x_dd[phase_path] = x_dd[phase_path].copy()
+            self.previous_x_dd[phase_path] = x_dd[phase_path].copy()
             self.previous_error[phase_path] = self.error[phase_path].copy()
-            self.gd[phase_path] = copy.deepcopy(gd)
+            self.previous_gd[phase_path] = copy.deepcopy(gd)
