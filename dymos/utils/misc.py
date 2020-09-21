@@ -123,7 +123,7 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
-    ode_inputs = {opts['prom_name']: opts for (k, opts) in \
+    ode_inputs = {opts['prom_name']: opts for (k, opts) in
                   ode.get_io_metadata(iotypes=('input', 'output')).items()}
 
     if user_targets is _unspecified:

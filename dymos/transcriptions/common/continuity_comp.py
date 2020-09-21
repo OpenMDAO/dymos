@@ -34,7 +34,7 @@ class ContinuityCompBase(om.ExplicitComponent):
             return
 
         for state_name, options in state_options.items():
-            shape = options['shape']
+            shape = options['shape'] if options['shape'] is not None else (1, )
             size = np.prod(shape)
             units = options['units']
 

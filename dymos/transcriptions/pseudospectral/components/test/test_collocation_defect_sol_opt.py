@@ -12,6 +12,7 @@ from dymos.transcriptions.pseudospectral.components.state_independents import St
 # Modify class so we can run it standalone.
 from dymos.utils.misc import CompWrapperConfig
 CollocationComp = CompWrapperConfig(CollocationComp)
+StateIndependentsComp = CompWrapperConfig(StateIndependentsComp)
 
 
 class TestCollocationCompSolOpt(unittest.TestCase):

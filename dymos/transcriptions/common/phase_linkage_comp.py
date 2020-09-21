@@ -114,7 +114,14 @@ class PhaseLinkageComp(om.ExplicitComponent):
             lnk['adder'] = adder
             lnk['ref0'] = ref0
             lnk['ref'] = ref
-            lnk['shape'] = _shapes.get(var, (1,))
+
+            # This nonsense shouldn't be required, but the default value for shape is None, and
+            # can't be _undefined due to limitations in the options dictionary.
+            shape = _shapes.get(var, (1,))
+            if shape is None:
+                shape = (1, )
+
+            lnk['shape'] = shape
             lnk['linear'] = linear
             lnk['units'] = _units.get(var, None)
             lnk['cond0_name'] = '{0}:lhs'.format(lnk['name'])
@@ -142,7 +149,6 @@ class PhaseLinkageComp(om.ExplicitComponent):
 
             self.declare_partials(of=lnk['name'], wrt=lnk['cond1_name'], rows=ar, cols=ar, val=1.0)
             self.declare_partials(of=lnk['name'], wrt=lnk['cond0_name'], rows=ar, cols=ar, val=-1.0)
-
 
     def compute(self, inputs, outputs):
 
