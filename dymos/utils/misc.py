@@ -151,7 +151,7 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
     else:
         units = user_units
 
-    if user_shape is _unspecified:
+    if user_shape in {None, _unspecified}:
         target_shape_set = {ode_inputs[tgt]['shape'] for tgt in targets}
         if len(target_shape_set) == 1:
             shape = next(iter(target_shape_set))

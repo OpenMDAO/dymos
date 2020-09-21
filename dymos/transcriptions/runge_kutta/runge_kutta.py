@@ -220,15 +220,24 @@ class RungeKutta(TranscriptionBase):
         for state_name, options in phase.state_options.items():
 
             rate_src = options['rate_source']
+
+            # Handle states that point to a control.
             # This feels a little hackish
             if rate_src in phase.control_options:
                 targets = phase.control_options[rate_src]['targets']
                 if targets is not _unspecified:
                     rate_src = targets[0]
 
+            # Handle states that point to another state. States must be declared in the right
+            # order.
+            # This feels a little hackish
+            if rate_src in phase.state_options and options['shape'] in (_unspecified, None):
+                options['shape'] = phase.state_options[rate_src]['shape']
+
             full_shape, units = get_target_metadata(phase.ode, name=state_name,
                                                     user_targets=rate_src,
-                                                    user_units=options['units'])
+                                                    user_units=options['units'],
+                                                    user_shape=options['shape'])
 
             if options['units'] is None:
                 # Units are from the rate source and should be converted.
@@ -237,11 +246,12 @@ class RungeKutta(TranscriptionBase):
 
             # Determine and store the pre-discretized state shape for use by other components.
             if len(full_shape) < 2:
-                options['shape'] = shape = (1, )
+                if options['shape'] in (_unspecified, None):
+                    options['shape'] = (1, )
             else:
-                options['shape'] = shape = full_shape[1:]
+                options['shape'] = full_shape[1:]
 
-            size = np.prod(shape)
+            size = np.prod(options['shape'])
 
             if options['opt']:
                 # Set the desvar indices accordingly
@@ -491,6 +501,11 @@ class RungeKutta(TranscriptionBase):
 
         phase.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
 
+    def configure_endpoint_conditions(self, phase):
+        phase.initial_conditions.configure_io()
+        phase.final_conditions.configure_io()
+
+        jump_comp = phase.indep_jumps
         for state_name, options in phase.state_options.items():
 
             jump_comp.add_output('initial_jump:{0}'.format(state_name),
@@ -520,10 +535,6 @@ class RungeKutta(TranscriptionBase):
                                  units=options['units'],
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(control_name))
-
-    def configure_endpoint_conditions(self, phase):
-        phase.initial_conditions.configure_io()
-        phase.final_conditions.configure_io()
 
         phase.connect('time', 'initial_conditions.initial_value:time')
         phase.connect('time', 'final_conditions.final_value:time')

@@ -72,15 +72,24 @@ class PseudospectralBase(TranscriptionBase):
         for name, options in phase.state_options.items():
 
             rate_src = options['rate_source']
+
+            # Handle states that point to a control.
             # This feels a little hackish
             if rate_src in phase.control_options:
                 targets = phase.control_options[rate_src]['targets']
                 if targets is not _unspecified:
                     rate_src = targets[0]
 
+            # Handle states that point to another state. States must be declared in the right
+            # order.
+            # This feels a little hackish
+            if rate_src in phase.state_options and options['shape'] in (_unspecified, None):
+                options['shape'] = phase.state_options[rate_src]['shape']
+
             full_shape, units = get_target_metadata(ode, name=name,
                                                     user_targets=rate_src,
-                                                    user_units=options['units'])
+                                                    user_units=options['units'],
+                                                    user_shape=options['shape'])
 
             if options['units'] is None:
                 # Units are from the rate source and should be converted.
@@ -89,11 +98,12 @@ class PseudospectralBase(TranscriptionBase):
 
             # Determine and store the pre-discretized state shape for use by other components.
             if len(full_shape) < 2:
-                options['shape'] = shape = (1, )
+                if options['shape'] in (_unspecified, None):
+                    options['shape'] = (1, )
             else:
-                options['shape'] = shape = full_shape[1:]
+                options['shape'] = full_shape[1:]
 
-            size = np.prod(shape)
+            size = np.prod(options['shape'])
             # In certain cases, we put an output on the IVC.
             if isinstance(indep, om.IndepVarComp):
                 if not options['solve_segments'] and not options['connected_initial']:
@@ -179,6 +189,9 @@ class PseudospectralBase(TranscriptionBase):
                                      ref0=coerce_desvar_option('ref0'),
                                      ref=coerce_desvar_option('ref'),
                                      indices=desvar_indices)
+
+        if not isinstance(indep, om.IndepVarComp):
+            indep.configure_io()
 
         if self.any_solved_segs or self.any_connected_opt_segs:
             for name, options in phase.state_options.items():

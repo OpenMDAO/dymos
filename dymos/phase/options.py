@@ -344,7 +344,7 @@ class StateOptionsDictionary(om.OptionsDictionary):
         self.declare(name='desc', types=str, default='',
                      desc='description of the state variable')
 
-        self.declare(name='shape', types=Iterable, default=(1,),
+        self.declare(name='shape', types=Iterable, allow_none=True, default=None,
                      desc='shape of the state variable, as determined by introspection')
 
         self.declare(name='rate_source', types=str,

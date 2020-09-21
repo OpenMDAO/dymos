@@ -100,7 +100,7 @@ class Phase(om.Group):
         self.options.declare('timeseries', types=(dict,),
                              desc='Alternative timeseries.')
 
-    def add_state(self, name, units=_unspecified,
+    def add_state(self, name, units=_unspecified, shape=_unspecified,
                   rate_source=_unspecified, targets=_unspecified,
                   val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
                   lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
@@ -118,6 +118,9 @@ class Phase(om.Group):
             units for the state variable, but the IndepVarComp which provides its value will provide
             it in these units, and collocation defects will use these units.  If units is not
             specified here then the unit will be determined from the rate_source.
+        shape : tuple of int
+            The shape of the state variable.  For instance, a 3D cartesian position vector would have
+            a shape of (3,).  This only needs to be specified if the rate_source target is a control.
         rate_source : str
             The path to the ODE output which provides the rate of this state variable.
         targets : str or Sequence of str
@@ -163,14 +166,14 @@ class Phase(om.Group):
             self.state_options[name] = StateOptionsDictionary()
             self.state_options[name]['name'] = name
 
-        self.set_state_options(name=name, units=units, rate_source=rate_source,
+        self.set_state_options(name=name, units=units, shape=shape, rate_source=rate_source,
                                targets=targets, val=val, fix_initial=fix_initial,
                                fix_final=fix_final, lower=lower, upper=upper, scaler=scaler,
                                adder=adder, ref0=ref0, ref=ref, defect_scaler=defect_scaler,
                                defect_ref=defect_ref, solve_segments=solve_segments,
                                connected_initial=connected_initial)
 
-    def set_state_options(self, name, units=_unspecified,
+    def set_state_options(self, name, units=_unspecified, shape=_unspecified,
                           rate_source=_unspecified, targets=_unspecified,
                           val=_unspecified, fix_initial=_unspecified, fix_final=_unspecified,
                           lower=_unspecified, upper=_unspecified, scaler=_unspecified, adder=_unspecified,
@@ -188,6 +191,9 @@ class Phase(om.Group):
             units for the state variable, but the IndepVarComp which provides its value will provide
             it in these units, and collocation defects will use these units.  If units is not
             specified here then the unit will be determined from the rate_source.
+        shape : tuple of int
+            The shape of the state variable.  For instance, a 3D cartesian position vector would have
+            a shape of (3,).  This only needs to be specified if the rate_source target is a control.
         rate_source : str
             The path to the ODE output which provides the rate of this state variable.
         targets : str or Sequence of str
@@ -231,6 +237,9 @@ class Phase(om.Group):
         """
         if units is not _unspecified:
             self.state_options[name]['units'] = units
+
+        if shape is not _unspecified:
+            self.state_options[name]['shape'] = shape
 
         if rate_source is not _unspecified:
             self.state_options[name]['rate_source'] = rate_source
