@@ -45,7 +45,13 @@ which each state (and each dynamic control) is modeled as a polynomial.  The ord
 polynomial is specified using the *transcription_order* method.  **In Dymos, the minimum state
 transcription order is 3.**
 
-Users can specify bounds, scaling, and units of the state variables with the phase method `add_state`.
+Users can specify bounds and scaling of the state variables with the phase method `add_state`.
+The units and shape arguments are not required, as dymos will pull that information from the rate_source when
+possible. You may still add units if you would like the driver or the timeseries to see a different unit than
+what is defined in the rate source. There are two exceptions:
+ - If the rate_source references a control that has no targets, shape is required.
+ - If the rate_source is another state, that state needs to be declared first. If the relationship is circular, shape is required.
+
 Settings on a previously-added state variable may be changed using the `set_state_options` method.
 The following options are valid:
 
