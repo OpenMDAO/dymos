@@ -792,6 +792,7 @@ class RungeKutta(TranscriptionBase):
             for var, options in timeseries_options['outputs'].items():
                 output_name = options['output_name']
                 units = options.get('units', None)
+                timeseries_units = options.get('timeseries_units', None)
 
                 if '*' in var:  # match outputs from the ODE
                     ode_outputs = {opts['prom_name']: opts for (k, opts) in
@@ -804,6 +805,9 @@ class RungeKutta(TranscriptionBase):
                     if '*' in var:
                         output_name = v.split('.')[-1]
                         units = ode_outputs[v]['units']
+                        # check for timeseries_units override of ODE units
+                        if v in timeseries_units:
+                            units = timeseries_units[v]
 
                     # Determine the path to the variable which we will be constraining
                     # This is more complicated for path constraints since, for instance,
