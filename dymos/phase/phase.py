@@ -1904,9 +1904,6 @@ class Phase(om.Group):
                 prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
 
         # Assign parameter values
-        meta = phs._problem_meta
-        prom2abs = meta['prom2abs']
-        conns = meta['model_ref']()._conn_global_abs_in2out
         pname = '{0}parameters:{1}'
         for name in phs.parameter_options:
 
@@ -1914,8 +1911,7 @@ class Phase(om.Group):
                 continue
 
             prom_phs_path = pname.format(phs_path.replace('.phases.', '.'), name)
-            abs_in = prom2abs['input'][prom_phs_path][0]
-            src = conns[abs_in]
+            src = phs.get_source(prom_phs_path)
 
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.

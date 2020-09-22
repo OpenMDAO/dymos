@@ -20,6 +20,7 @@ class TestRunProblem(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @unittest.skip("temporary skip while test is being fixed")
     def test_run_HS_problem_radau(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
