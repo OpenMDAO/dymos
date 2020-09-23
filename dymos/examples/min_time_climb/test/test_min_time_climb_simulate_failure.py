@@ -7,31 +7,15 @@ from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 from openmdao.utils.testing_utils import use_tempdirs
 
 
-def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
-                   transcription_order=3, force_alloc_complex=False):
+def min_time_climb(num_seg=3, transcription_order=3, force_alloc_complex=False):
 
     p = om.Problem(model=om.Group())
 
-    p.driver = om.pyOptSparseDriver()
-    p.driver.options['optimizer'] = optimizer
-    p.driver.declare_coloring()
-
-    if optimizer == 'SNOPT':
-        p.driver.opt_settings['Major iterations limit'] = 1000
-        p.driver.opt_settings['iSumm'] = 6
-        p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
-        p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-        p.driver.opt_settings['Function precision'] = 1.0E-12
-        p.driver.opt_settings['Linesearch tolerance'] = 0.1
-        p.driver.opt_settings['Major step limit'] = 0.5
-
-    t = {'gauss-lobatto': dm.GaussLobatto(num_segments=num_seg, order=transcription_order),
-         'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order),
-         'runge-kutta': dm.RungeKutta(num_segments=num_seg)}
+    tx = dm.GaussLobatto(num_segments=num_seg, order=transcription_order)
 
     traj = dm.Trajectory()
 
-    phase = dm.Phase(ode_class=MinTimeClimbODE, transcription=t[transcription])
+    phase = dm.Phase(ode_class=MinTimeClimbODE, transcription=tx)
     traj.add_phase('phase0', phase)
 
     p.model.add_subsystem('traj', traj)
@@ -107,8 +91,7 @@ class TestMinTimeClimbSimulateFailure(unittest.TestCase):
         Test that simulation of a naive alpha guess for the min time climb results in an
         AnalysisError due to a singularity in the dynamics
         """
-        p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
-                           transcription='gauss-lobatto')
+        p = min_time_climb(num_seg=12, transcription_order=3)
 
         with self.assertRaises(om.AnalysisError) as e:
             dm.run_problem(p, run_driver=False, simulate=True)
