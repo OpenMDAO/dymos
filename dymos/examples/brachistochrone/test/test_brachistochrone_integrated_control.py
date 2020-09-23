@@ -104,7 +104,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
         phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot', units='m')
         phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot', units='m')
-        phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s', targets=['v'])
+        phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s')
         phase.add_state('theta', targets='theta', fix_initial=False, rate_source='theta_dot',
                         units='rad', shape=(1, ))
 
@@ -180,7 +180,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
 
         phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot', units='m')
         phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot', units='m')
-        phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s', targets=['v'])
+        phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s')
         phase.add_state('theta', targets='theta', fix_initial=False, rate_source='theta_dot',
                         units='rad', shape=(1, ))
 
