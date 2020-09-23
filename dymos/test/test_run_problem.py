@@ -63,7 +63,7 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.t_duration', tf)
         p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
                                                                nodes='control_input'))
-        dm.run_problem(p, True, refine_method='hp', refine_iteration_limit=10)
+        dm.run_problem(p, refine_method='hp', refine_iteration_limit=10)
 
         sqrt_two = np.sqrt(2)
         val = sqrt_two * tf
@@ -128,7 +128,7 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.t_duration', tf)
         p.set_val('traj.phase0.controls:u', phase0.interpolate(ys=[-0.6, 2.4],
                                                                nodes='control_input'))
-        dm.run_problem(p, refine=True, refine_method='hp')
+        dm.run_problem(p, refine_method='hp')
 
         sqrt_two = np.sqrt(2)
         val = sqrt_two * tf
@@ -194,7 +194,7 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100], nodes='control_input'))
         p.set_val('traj.phase0.parameters:g', 9.80665)
 
-        dm.run_problem(p, True)
+        dm.run_problem(p)
 
     def test_modify_problem(self):
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
@@ -219,7 +219,7 @@ class TestRunProblem(unittest.TestCase):
         modify_problem(q, restart='vanderpol_simulation.sql')
 
         # # Run the model
-        run_problem(q, no_iterate=True)
+        run_problem(q)
 
         #  The solution should look like the explicit time history for the states and controls.
         DO_PLOTS = False

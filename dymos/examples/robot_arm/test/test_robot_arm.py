@@ -82,7 +82,7 @@ class TestRobotArm(unittest.TestCase):
 
     def test_robot_arm_radau(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT', numseg=12)
-        dm.run_problem(p, refine=True)
+        dm.run_problem(p)
         show_plots = False
 
         t = p.get_val('traj.phase.timeseries.time')
@@ -124,7 +124,7 @@ class TestRobotArm(unittest.TestCase):
 
     def test_robot_arm_gl(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT', numseg=20)
-        dm.run_problem(p, refine=False)
+        dm.run_problem(p)
         show_plots = False
 
         t = p.get_val('traj.phase.timeseries.time')

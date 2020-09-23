@@ -422,7 +422,7 @@ class TestDocOscillator(unittest.TestCase):
 
         # Now we're using the optimization driver to iteratively run the model and vary the
         # phase duration until the final y value is 0.
-        dm.run_problem(prob, refine=False, refine_iteration_limit=10)
+        dm.run_problem(prob, refine_iteration_limit=10)
 
         # Perform an explicit simulation of our ODE from the initial conditions.
         sim_out = traj.simulate(times_per_seg=50)

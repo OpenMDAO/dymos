@@ -112,15 +112,15 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
 
     def test_refine_brachistochrone_rungekutta_compressed(self):
         p = self.make_problem(transcription='runge-kutta', num_segments=10, transcription_order=3)
-        dm.run_problem(p, refine=True)
+        dm.run_problem(p)
         self.run_asserts(self.p)
 
     def test_refine_brachistochrone_radau_compressed(self):
         p = self.make_problem(transcription='radau-ps', num_segments=5, transcription_order=3, compressed=True)
-        dm.run_problem(p, refine=True)
+        dm.run_problem(p)
         self.run_asserts(self.p)
 
     def test_refine_brachistochrone_gauss_lobatto_compressed(self):
         p = self.make_problem(transcription='gauss-lobatto', num_segments=5, transcription_order=3, compressed=True)
-        dm.run_problem(p, refine=True)
+        dm.run_problem(p)
         self.run_asserts(self.p)
