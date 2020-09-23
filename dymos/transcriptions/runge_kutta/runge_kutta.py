@@ -22,6 +22,10 @@ class RungeKutta(TranscriptionBase):
     RungeKutta transcription in Dymos uses the RungeKutta-based shooting method which propagates
     the states from the phase initial time to the phase final time.
     """
+    def __init__(self, **kwargs):
+        super(RungeKutta, self).__init__(**kwargs)
+        self._rhs_source = 'ode'
+
     def initialize(self):
 
         self.options.declare('method', default='RK4', values=('RK4',),

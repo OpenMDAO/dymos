@@ -12,6 +12,10 @@ from dymos.transcriptions.common import TimeComp
 from dymos.transcriptions.common.control_group import ControlInterpComp
 from dymos.transcriptions.grid_data import GridData
 
+# Modify class so we can run it standalone.
+from dymos.utils.misc import CompWrapperConfig
+ControlInterpComp = CompWrapperConfig(ControlInterpComp)
+
 
 # Test 1:  Let x = t**2, f = 2*t
 def f_a(t):

@@ -6,7 +6,7 @@ import openmdao.api as om
 
 from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
 from ..utils.constants import INF_BOUND
-from ..utils.misc import get_rate_units
+from ..utils.misc import get_rate_units, _unspecified, get_target_metadata
 
 
 class TranscriptionBase(object):
@@ -130,11 +130,36 @@ class TranscriptionBase(object):
                                          grid_data=self.grid_data)
 
             phase.add_subsystem('control_group',
-                                subsys=control_group,
-                                promotes=['controls:*', 'control_values:*', 'control_rates:*'])
+                                subsys=control_group)
 
     def configure_controls(self, phase):
+        ode = phase._get_subsystem(self._rhs_source)
+        time_units = phase.time_options['units']
+
+        # Interrogate shapes and units.
+        for name, options in phase.control_options.items():
+
+            full_shape, units = get_target_metadata(ode, name=name,
+                                                    user_targets=options['targets'],
+                                                    user_units=options['units'],
+                                                    user_shape=options['shape'])
+
+            if options['units'] is None:
+                options['units'] = units
+
+            # Determine and store the pre-discretized state shape for use by other components.
+            if len(full_shape) < 2:
+                if options['shape'] in (_unspecified, None):
+                    options['shape'] = (1, )
+            else:
+                options['shape'] = full_shape[1:]
+
         if phase.control_options:
+            phase.control_group.configure_io()
+            phase.promotes('control_group',
+                           inputs=['controls:*'],
+                           outputs=['control_values:*', 'control_rates:*'])
+
             phase.connect('dt_dstau', 'control_group.dt_dstau')
 
     def setup_polynomial_controls(self, phase):

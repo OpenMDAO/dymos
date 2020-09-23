@@ -23,6 +23,7 @@ class SolveIVP(TranscriptionBase):
     def __init__(self, grid_data=None, **kwargs):
         super(SolveIVP, self).__init__(**kwargs)
         self.grid_data = grid_data
+        self._rhs_source = 'ode'
 
     def initialize(self):
         super(SolveIVP, self).initialize()
