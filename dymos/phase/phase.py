@@ -1260,7 +1260,8 @@ class Phase(om.Group):
         self._path_constraints[name]['units'] = units
         self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
-    def add_timeseries_output(self, name, output_name=None, units=None, shape=None, timeseries='timeseries'):
+    def add_timeseries_output(self, name, output_name=None, units=None, shape=None,
+                              timeseries='timeseries', _unit_dict={}):
         r"""
         Add a variable to the timeseries outputs of the phase.
 
@@ -1293,7 +1294,7 @@ class Phase(om.Group):
                 elif type(units) is list:  # allow matching list for units
                     u = units[i]
 
-                self.add_timeseries_output(n, output_name, u, shape, timeseries)
+                self.add_timeseries_output(n, output_name, u, shape, timeseries, units if type(units) is dict else {})
             return
 
         if output_name is None:
@@ -1305,9 +1306,16 @@ class Phase(om.Group):
         if name not in self._timeseries[timeseries]['outputs']:
             self._timeseries[timeseries]['outputs'][name] = {}
             self._timeseries[timeseries]['outputs'][name]['output_name'] = output_name
+            self._timeseries[timeseries]['outputs'][name]['timeseries_units'] = {}
 
         self._timeseries[timeseries]['outputs'][name]['units'] = units
         self._timeseries[timeseries]['outputs'][name]['shape'] = shape
+        for k, v in _unit_dict.items():
+            existing = self._timeseries[timeseries]['outputs'][name]['timeseries_units']
+            if k in existing and existing[k] != v:
+                raise ValueError('Unit mismatch in add_timeseries_output unit dictionary')
+            else:
+                existing[k] = v  # save for ODE wildcard matching
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""
