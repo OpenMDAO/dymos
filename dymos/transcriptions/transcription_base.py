@@ -134,7 +134,6 @@ class TranscriptionBase(object):
 
     def configure_controls(self, phase):
         ode = phase._get_subsystem(self._rhs_source)
-        time_units = phase.time_options['units']
 
         # Interrogate shapes and units.
         for name, options in phase.control_options.items():
@@ -142,7 +141,8 @@ class TranscriptionBase(object):
             full_shape, units = get_target_metadata(ode, name=name,
                                                     user_targets=options['targets'],
                                                     user_units=options['units'],
-                                                    user_shape=options['shape'])
+                                                    user_shape=options['shape'],
+                                                    control_rate=True)
 
             if options['units'] is None:
                 options['units'] = units
@@ -157,8 +157,7 @@ class TranscriptionBase(object):
         if phase.control_options:
             phase.control_group.configure_io()
             phase.promotes('control_group',
-                           inputs=['controls:*'],
-                           outputs=['control_values:*', 'control_rates:*'])
+                           any=['controls:*', 'control_values:*', 'control_rates:*'])
 
             phase.connect('dt_dstau', 'control_group.dt_dstau')
 
