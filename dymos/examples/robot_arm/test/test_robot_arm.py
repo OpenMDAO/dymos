@@ -120,7 +120,7 @@ class TestRobotArm(unittest.TestCase):
             axs[1, 2].plot(t_exp, u2_exp, marker='', linestyle='-')
             plt.show()
 
-        assert_near_equal(t[-1], 9.14138, tolerance=1e-4)
+        assert_near_equal(t[-1], 9.14138, tolerance=1e-3)
 
     def test_robot_arm_gl(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT', numseg=20)

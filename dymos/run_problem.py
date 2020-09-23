@@ -139,7 +139,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=10, run_driv
                                 write_refine_iter(stream, i, phases, refine_results)
 
                             prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
-                                         'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
+                                        'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 
                             problem.setup()
 
