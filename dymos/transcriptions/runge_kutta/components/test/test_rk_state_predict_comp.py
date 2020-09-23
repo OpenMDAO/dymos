@@ -8,6 +8,10 @@ from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 from dymos.transcriptions.runge_kutta.components.runge_kutta_state_predict_comp import \
     RungeKuttaStatePredictComp
 
+# Modify class so we can run it standalone.
+from dymos.utils.misc import CompWrapperConfig
+RungeKuttaStatePredictComp = CompWrapperConfig(RungeKuttaStatePredictComp)
+
 
 class TestRKStatePredictComp(unittest.TestCase):
 

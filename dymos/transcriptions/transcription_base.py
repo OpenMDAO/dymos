@@ -34,6 +34,9 @@ class TranscriptionBase(object):
         self.options.update(kwargs)
         self.init_grid()
 
+        # Where to query var info.
+        self._rhs_source = None
+
     def _declare_options(self):
         pass
 
@@ -217,7 +220,6 @@ class TranscriptionBase(object):
         """
         if loc not in ('initial', 'final'):
             raise ValueError('loc must be one of \'initial\' or \'final\'.')
-        bc_comp = None
 
         bc_dict = phase._initial_boundary_constraints \
             if loc == 'initial' else phase._final_boundary_constraints
@@ -225,6 +227,25 @@ class TranscriptionBase(object):
         if bc_dict:
             bc_comp = phase.add_subsystem('{0}_boundary_constraints'.format(loc),
                                           subsys=BoundaryConstraintComp(loc=loc))
+
+    def configure_boundary_constraints(self, loc, phase):
+        """
+        Adds BoundaryConstraintComp for initial and/or final boundary constraints if necessary
+        and issues appropriate connections.
+
+        Parameters
+        ----------
+        loc : str
+            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
+        phase
+            The phase object to which this transcription instance applies.
+
+        """
+        bc_dict = phase._initial_boundary_constraints \
+            if loc == 'initial' else phase._final_boundary_constraints
+
+        sys_name = '{0}_boundary_constraints'.format(loc)
+        bc_comp = phase._get_subsystem(sys_name)
 
         for var, options in bc_dict.items():
             con_name = options['constraint_name']
@@ -297,21 +318,8 @@ class TranscriptionBase(object):
 
             bc_comp._add_constraint(con_name, **con_options)
 
-    def configure_boundary_constraints(self, loc, phase):
-        """
-        Adds BoundaryConstraintComp for initial and/or final boundary constraints if necessary
-        and issues appropriate connections.
-
-        Parameters
-        ----------
-        loc : str
-            The kind of boundary constraints being setup.  Must be one of 'initial' or 'final'.
-        phase
-            The phase object to which this transcription instance applies.
-
-        """
-        bc_dict = phase._initial_boundary_constraints \
-            if loc == 'initial' else phase._final_boundary_constraints
+        if bc_comp:
+            bc_comp.configure_io()
 
         for var, options in bc_dict.items():
             con_name = options['constraint_name']

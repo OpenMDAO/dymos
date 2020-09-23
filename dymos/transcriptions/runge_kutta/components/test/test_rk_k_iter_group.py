@@ -9,6 +9,10 @@ from openmdao.utils.assert_utils import assert_check_partials
 from dymos.transcriptions.runge_kutta.components.runge_kutta_k_iter_group import RungeKuttaKIterGroup
 from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
 
+# Modify class so we can run it standalone.
+from dymos.utils.misc import CompWrapperConfig
+RungeKuttaKIterGroup = CompWrapperConfig(RungeKuttaKIterGroup)
+
 
 class TestRungeKuttaKIterGroup(unittest.TestCase):
 

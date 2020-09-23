@@ -18,37 +18,44 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
                                'defect_ref': None, 'lower': None, 'upper': None,
                                'connected_initial': False}}
 
-        p = om.Problem(model=om.Group())
+        class RKGroup(om.Group):
 
-        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
+            def setup(self):
 
-        ivc.add_output('time', val=np.array([0.00, 0.25, 0.25, 0.50,
-                                             0.50, 0.75, 0.75, 1.00,
-                                             1.00, 1.25, 1.25, 1.50,
-                                             1.50, 1.75, 1.75, 2.00]), units='s')
+                ivc = self.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
-        ivc.add_output('h', val=np.array([0.5, 0.5, 0.5, 0.5]), units='s')
+                ivc.add_output('time', val=np.array([0.00, 0.25, 0.25, 0.50,
+                                                     0.50, 0.75, 0.75, 1.00,
+                                                     1.00, 1.25, 1.25, 1.50,
+                                                     1.50, 1.75, 1.75, 2.00]), units='s')
 
-        p.model.add_subsystem('cnty_iter_group',
-                              RungeKuttaStateContinuityIterGroup(
-                                  num_segments=num_seg,
-                                  method='RK4',
-                                  state_options=state_options,
-                                  time_units='s',
-                                  ode_class=TestODE,
-                                  ode_init_kwargs={},
-                                  k_solver_class=om.NonlinearRunOnce),
-                              promotes_outputs=['states:*'])
+                ivc.add_output('h', val=np.array([0.5, 0.5, 0.5, 0.5]), units='s')
 
-        p.model.connect('h', 'cnty_iter_group.h')
-        p.model.connect('time', 'cnty_iter_group.ode.t')
+                self.add_subsystem('cnty_iter_group',
+                                   RungeKuttaStateContinuityIterGroup(
+                                       num_segments=num_seg,
+                                       method='RK4',
+                                       state_options=state_options,
+                                       time_units='s',
+                                       ode_class=TestODE,
+                                       ode_init_kwargs={},
+                                       k_solver_class=om.NonlinearRunOnce),
+                                   promotes_outputs=['states:*'])
 
-        src_idxs = np.arange(16, dtype=int).reshape((num_seg, 4, 1))
-        p.model.connect('cnty_iter_group.ode.ydot', 'cnty_iter_group.k_comp.f:y',
-                        src_indices=src_idxs, flat_src_indices=True)
+                self.connect('h', 'cnty_iter_group.h')
+                self.connect('time', 'cnty_iter_group.ode.t')
 
-        p.model.nonlinear_solver = om.NonlinearRunOnce()
-        p.model.linear_solver = om.DirectSolver()
+                src_idxs = np.arange(16, dtype=int).reshape((num_seg, 4, 1))
+                self.connect('cnty_iter_group.ode.ydot', 'cnty_iter_group.k_comp.f:y',
+                             src_indices=src_idxs, flat_src_indices=True)
+
+                self.nonlinear_solver = om.NonlinearRunOnce()
+                self.linear_solver = om.DirectSolver()
+
+            def configure(self):
+                self.cnty_iter_group.configure_io()
+
+        p = om.Problem(model=RKGroup())
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -111,37 +118,43 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
                                'defect_ref': 1.0, 'lower': None, 'upper': None,
                                'connected_initial': False}}
 
-        p = om.Problem(model=om.Group())
+        class RKGroup(om.Group):
 
-        ivc = p.model.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
+            def setup(self):
+                ivc = self.add_subsystem('ivc', om.IndepVarComp(), promotes_outputs=['*'])
 
-        ivc.add_output('time', val=np.array([0.00, 0.25, 0.25, 0.50,
-                                             0.50, 0.75, 0.75, 1.00,
-                                             1.00, 1.25, 1.25, 1.50,
-                                             1.50, 1.75, 1.75, 2.00]), units='s')
+                ivc.add_output('time', val=np.array([0.00, 0.25, 0.25, 0.50,
+                                                     0.50, 0.75, 0.75, 1.00,
+                                                     1.00, 1.25, 1.25, 1.50,
+                                                     1.50, 1.75, 1.75, 2.00]), units='s')
 
-        ivc.add_output('h', val=np.array([0.5, 0.5, 0.5, 0.5]), units='s')
+                ivc.add_output('h', val=np.array([0.5, 0.5, 0.5, 0.5]), units='s')
 
-        p.model.add_subsystem('cnty_iter_group',
-                              RungeKuttaStateContinuityIterGroup(
-                                  num_segments=num_seg,
-                                  method='RK4',
-                                  state_options=state_options,
-                                  time_units='s',
-                                  ode_class=TestODE,
-                                  ode_init_kwargs={},
-                                  k_solver_class=None),
-                              promotes_outputs=['states:*'])
+                self.add_subsystem('cnty_iter_group',
+                                   RungeKuttaStateContinuityIterGroup(
+                                       num_segments=num_seg,
+                                       method='RK4',
+                                       state_options=state_options,
+                                       time_units='s',
+                                       ode_class=TestODE,
+                                       ode_init_kwargs={},
+                                       k_solver_class=None),
+                                   promotes_outputs=['states:*'])
 
-        p.model.connect('h', 'cnty_iter_group.h')
-        p.model.connect('time', 'cnty_iter_group.ode.t')
+                self.connect('h', 'cnty_iter_group.h')
+                self.connect('time', 'cnty_iter_group.ode.t')
 
-        src_idxs = np.arange(16, dtype=int).reshape((num_seg, 4, 1))
-        p.model.connect('cnty_iter_group.ode.ydot', 'cnty_iter_group.k_comp.f:y',
-                        src_indices=src_idxs, flat_src_indices=True)
+                src_idxs = np.arange(16, dtype=int).reshape((num_seg, 4, 1))
+                self.connect('cnty_iter_group.ode.ydot', 'cnty_iter_group.k_comp.f:y',
+                             src_indices=src_idxs, flat_src_indices=True)
 
-        p.model.nonlinear_solver = om.NewtonSolver(solve_subsystems=False)
-        p.model.linear_solver = om.DirectSolver()
+                self.nonlinear_solver = om.NewtonSolver(solve_subsystems=False)
+                self.linear_solver = om.DirectSolver()
+
+            def configure(self):
+                self.cnty_iter_group.configure_io()
+
+        p = om.Problem(model=RKGroup())
 
         p.setup(check=True, force_alloc_complex=True)
 
@@ -173,3 +186,6 @@ class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
         J_fd[0, 0] = -1.0
 
         assert_near_equal(J_fwd, J_fd)
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()

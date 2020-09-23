@@ -8,7 +8,7 @@ from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGro
 from ..common import TimeComp, EndpointConditionsComp, PathConstraintComp
 from ...utils.rk_methods import rk_methods
 from ...utils.misc import CoerceDesvar, get_rate_units, get_targets, get_target_metadata,\
-    get_source_metadata
+    get_source_metadata, _unspecified
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
@@ -128,6 +128,8 @@ class RungeKutta(TranscriptionBase):
                                                        **phase.options['ode_init_kwargs']))
 
     def configure_ode(self, phase):
+        phase.rk_solve_group.configure_io()
+
         num_connected = len([s for s in phase.state_options
                              if phase.state_options[s]['connected_initial']])
 
@@ -208,15 +210,48 @@ class RungeKutta(TranscriptionBase):
         return rate_path, src_idxs
 
     def setup_states(self, phase):
-        """
-        Add an IndepVarComp for the states and setup the states as design variables.
-        """
+        pass
+
+    def configure_states(self, phase):
+        time_units = phase.time_options['units']
         num_seg = self.options['num_segments']
         num_state_input_nodes = num_seg + 1
 
         for state_name, options in phase.state_options.items():
-            shape = options['shape']
-            size = np.prod(shape)
+
+            rate_src = options['rate_source']
+
+            # Handle states that point to a control.
+            # This feels a little hackish
+            if rate_src in phase.control_options:
+                targets = phase.control_options[rate_src]['targets']
+                if targets is not _unspecified:
+                    rate_src = targets[0]
+
+            # Handle states that point to another state. States must be declared in the right
+            # order.
+            # This feels a little hackish
+            if rate_src in phase.state_options and options['shape'] in (_unspecified, None):
+                options['shape'] = phase.state_options[rate_src]['shape']
+
+            full_shape, units = get_target_metadata(phase.ode, name=state_name,
+                                                    user_targets=rate_src,
+                                                    user_units=options['units'],
+                                                    user_shape=options['shape'])
+
+            if options['units'] is None:
+                # Units are from the rate source and should be converted.
+                units = f'{units}*{time_units}'
+                options['units'] = units
+
+            # Determine and store the pre-discretized state shape for use by other components.
+            if len(full_shape) < 2:
+                if options['shape'] in (_unspecified, None):
+                    options['shape'] = (1, )
+            else:
+                options['shape'] = full_shape[1:]
+
+            size = np.prod(options['shape'])
 
             if options['opt']:
                 # Set the desvar indices accordingly
@@ -265,7 +300,6 @@ class RungeKutta(TranscriptionBase):
                                          ref=coerce_desvar_option('ref'),
                                          indices=desvar_indices)
 
-    def configure_states(self, phase):
         num_seg = self.options['num_segments']
 
         for state_name, options in phase.state_options.items():
@@ -424,6 +458,8 @@ class RungeKutta(TranscriptionBase):
 
         # Add the continuity constraint component if necessary
         if num_seg > 1 and phase.control_options:
+            phase.continuity_comp.configure_io()
+
             for name, options in phase.control_options.items():
                 # The sub-indices of control_disc indices that are segment ends
                 segment_end_idxs = grid_data.subset_node_indices['segment_ends']
@@ -465,6 +501,11 @@ class RungeKutta(TranscriptionBase):
 
         phase.add_subsystem(name='final_conditions', subsys=fc_comp, promotes_outputs=['*'])
 
+    def configure_endpoint_conditions(self, phase):
+        phase.initial_conditions.configure_io()
+        phase.final_conditions.configure_io()
+
+        jump_comp = phase.indep_jumps
         for state_name, options in phase.state_options.items():
 
             jump_comp.add_output('initial_jump:{0}'.format(state_name),
@@ -495,7 +536,6 @@ class RungeKutta(TranscriptionBase):
                                  desc='discontinuity in {0} at the '
                                       'end of the phase'.format(control_name))
 
-    def configure_endpoint_conditions(self, phase):
         phase.connect('time', 'initial_conditions.initial_value:time')
         phase.connect('time', 'final_conditions.final_value:time')
         phase.connect('initial_jump:time', 'initial_conditions.initial_jump:time')

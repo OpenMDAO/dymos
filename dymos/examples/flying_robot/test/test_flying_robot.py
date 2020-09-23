@@ -34,7 +34,7 @@ def flying_robot_direct_collocation(transcription='gauss-lobatto', compressed=Tr
 
     phase.add_state('x', shape=(2,), fix_initial=True, fix_final=True, rate_source='v', units='m')
     phase.add_state('v', shape=(2,), fix_initial=True, fix_final=True, rate_source='u', units='m/s')
-    phase.add_state('J', shape=(1,), fix_initial=True, fix_final=False, rate_source='u_mag2', units='m**2/s**3')
+    phase.add_state('J', fix_initial=True, fix_final=False, rate_source='u_mag2', units='m**2/s**3')
 
     phase.add_control('u', units='m/s**2', shape=(2,), scaler=0.01, continuity=False, rate_continuity=False,
                       rate2_continuity=False, lower=-1, upper=1)

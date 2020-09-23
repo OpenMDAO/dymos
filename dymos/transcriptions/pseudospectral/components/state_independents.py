@@ -74,9 +74,10 @@ class StateIndependentsComp(om.ImplicitComponent):
         # NOTE: num_col_nodes MUST equal len(self.solver_node_idx) - 1 in order to ensure
         # you get a well defined problem; if that doesn't happen, something is wrong
 
-    def setup(self):
+    def configure_io(self):
         """
-        Define the independent variables, output variables, and partials.
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
         """
         state_options = self.options['state_options']
         grid_data = self.options['grid_data']

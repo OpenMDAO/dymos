@@ -117,11 +117,11 @@ class Phase(om.Group):
             Units in which the state variable is defined.  Internally components may use different
             units for the state variable, but the IndepVarComp which provides its value will provide
             it in these units, and collocation defects will use these units.  If units is not
-            specified here then the value as defined in the ODEOptions (@dm.declare_state) will be
-            used.
+            specified here then the unit will be determined from the rate_source.
         shape : tuple of int
             The shape of the state variable.  For instance, a 3D cartesian position vector would have
-            a shape of (3,).
+            a shape of (3,).  This only needs to be specified if the rate_source target points to
+            a control or state whose shape isn't known in time.
         rate_source : str
             The path to the ODE output which provides the rate of this state variable.
         targets : str or Sequence of str
@@ -191,11 +191,11 @@ class Phase(om.Group):
             Units in which the state variable is defined.  Internally components may use different
             units for the state variable, but the IndepVarComp which provides its value will provide
             it in these units, and collocation defects will use these units.  If units is not
-            specified here then the value as defined in the ODEOptions (@dm.declare_state) will be
-            used.
+            specified here then the unit will be determined from the rate_source.
         shape : tuple of int
             The shape of the state variable.  For instance, a 3D cartesian position vector would have
-            a shape of (3,).
+            a shape of (3,).  This only needs to be specified if the rate_source target points to
+            a control or state whose shape isn't known in time.
         rate_source : str
             The path to the ODE output which provides the rate of this state variable.
         targets : str or Sequence of str

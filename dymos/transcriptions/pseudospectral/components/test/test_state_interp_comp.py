@@ -9,6 +9,10 @@ from dymos.transcriptions.pseudospectral.components import StateInterpComp
 from dymos.transcriptions.grid_data import GridData
 from dymos.utils.lgr import lgr
 
+# Modify class so we can run it standalone.
+from dymos.utils.misc import CompWrapperConfig
+StateInterpComp = CompWrapperConfig(StateInterpComp)
+
 SHOW_PLOTS = False
 
 if SHOW_PLOTS:
