@@ -2,6 +2,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.recorders.case import Case
 from .phase.phase import Phase
+from .utils.lgl import lgl
 
 
 def _split_var_path(path):
@@ -73,8 +74,8 @@ def find_phases(sys):
     if isinstance(sys, Phase):
         phase_paths[sys.pathname] = sys
     elif isinstance(sys, om.Group):
-        for subsys in sys._loc_subsys_map:
-            phase_paths.update(find_phases(getattr(sys, subsys)))
+        for sub in sys.system_iter(recurse=False):
+            phase_paths.update(find_phases(sub))
     return phase_paths
 
 
@@ -112,6 +113,7 @@ def load_case(problem, previous_solution):
     phase_io = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
                 'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 
+    phase_inputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in phase_io['inputs']}
     phase_outputs = {v['prom_name']: {'value': v['value'], 'units': v['units']} for k, v in phase_io['outputs']}
 
     for phase_abs_path, phase in phase_paths.items():
@@ -135,8 +137,6 @@ def load_case(problem, previous_solution):
         problem.set_val(ti_path, t_initial, units=t_initial_units)
         problem.set_val(td_path, t_duration, units=t_duration_units)
 
-        # TODO: set the previous values of the phase and trajectory design parameters and polynomial controls
-
         # Interpolate the timeseries state outputs from the previous solution onto the new grid.
         for state_name, options in phase.state_options.items():
             state_path = [s for s in phase_outputs if s.endswith(f'{phase_name}.states:{state_name}')][0]
@@ -159,3 +159,25 @@ def load_case(problem, previous_solution):
                             phase.interpolate(xs=prev_time, ys=prev_control_val,
                                               nodes='control_input', kind='slinear'),
                             units=prev_control_units)
+
+        # Set the output polynomial control outputs from the previous solution as the value
+        for polynomial_control_name, options in phase.polynomial_control_options.items():
+            polynomial_control_path = [s for s in phase_outputs if
+                                       s.endswith(f'{phase_name}.polynomial_controls:{polynomial_control_name}')][0]
+            prev_polynomial_control_path = [s for s in prev_outputs if
+                                            s.endswith(f'{phase_name}.'
+                                                       f'polynomial_controls:{polynomial_control_name}')][0]
+            prev_polynomial_control_val = prev_outputs[prev_polynomial_control_path]['value']
+            prev_polynomial_control_units = prev_outputs[prev_polynomial_control_path]['units']
+            problem.set_val(polynomial_control_path, prev_polynomial_control_val,
+                            units=prev_polynomial_control_units)
+
+        # Set the timeseries parameter outputs from the previous solution as the parameter value
+        for parameter_name, options in phase.parameter_options.items():
+            parameter_path = [s for s in phase_inputs if s.endswith(f'{phase_name}.parameters:{parameter_name}')][0]
+            prev_parameter_path = [s for s in prev_outputs if
+                                   s.endswith(f'{phase_name}.timeseries.parameters:{parameter_name}')][0]
+            prev_parameter_val = prev_outputs[prev_parameter_path]['value'][0, ...]
+            prev_parameter_units = prev_outputs[prev_parameter_path]['units']
+
+            problem.set_val(parameter_path, prev_parameter_val, units=prev_parameter_units)
