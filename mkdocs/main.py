@@ -185,7 +185,8 @@ def define_env(env):
         return f'<img alt="{alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>'
 
     @env.macro
-    def embed_test(reference, script_name='script', plot_alt_text='', plots=(1,), plot_size=(640, 480)):
+    def embed_test(reference, script_name='script', plot_alt_text='', plots=None, plot_size=(640, 480),
+                   show_output=True, show_script=True, plot_names=None):
         """
         Macro to embed a unittest.TestCase method source, output, and plots in mkdocs.
 
@@ -204,10 +205,16 @@ def define_env(env):
             A heading for the test being run.
         plot_alt_text : str
             Alternative text for the plots, for 508 compliance.
-        plots : tuple of ints
-            The plots being requested (indexed at 1).
-        plot_size
+        plots : tuple of ints or None
+            The plots being requested (indexed at 1) or None for all plots.
+        plot_size : tuple of width, height in pixels.
             The size of the plot figures being embedded in the markdown.
+        show_output : bool
+            Show output tab if True.
+        show_script : bool
+            Show script tab if True.
+        plot_names : sequence of str or None
+            If given, a sequence of tab titles to be assigned to the plots.
 
         Returns
         -------
@@ -215,42 +222,49 @@ def define_env(env):
             The markdown source that provides a set of tabs for the test source, the test
             output, and the requested plots produced by the test.
         """
-
-        # First tab for the source
-        src = textwrap.indent(_get_test_source(reference), '    ')
         ss = io.StringIO()
-        print(f'=== "{script_name}"', file=ss)
-        print('    ```python3', file=ss)
-        print(src, file=ss)
-        print('    ```', file=ss)
+        # First tab for the source
+        if show_script:
+            src = textwrap.indent(_get_test_source(reference), '    ')
+            print(f'=== "{script_name}"', file=ss)
+            print('    ```python3', file=ss)
+            print(src, file=ss)
+            print('    ```', file=ss)
 
         # Second tab for the output
         test_case, test_method = reference.split('.')[-2:]
         testcase_obj = get_object_from_reference('.'.join(reference.split('.')[:-1]))
         test_dir = Path(inspect.getfile(testcase_obj)).parent
-        output_file = test_dir.joinpath('_output').joinpath(f'{test_case}.{test_method}.out')
-        with open(output_file) as f:
-            text = f.read()
 
-        print(f'=== "output"', file=ss)
-        print('    ```', file=ss)
-        print(textwrap.indent(text, '    '), file=ss)
-        print('    ```', file=ss)
+        if show_output:
+            output_file = test_dir.joinpath('_output').joinpath(f'{test_case}.{test_method}.out')
+            with open(output_file) as f:
+                text = f.read()
+
+            print(f'=== "output"', file=ss)
+            print('    ```', file=ss)
+            print(textwrap.indent(text, '    '), file=ss)
+            print('    ```', file=ss)
 
         # Remaining tabs are for plots
 
         for index in range(1, 100):
-            plot_file = test_dir.joinpath('_output').joinpath(f'{test_case}.{test_method}_{index}.png')
-            if not os.path.exists(plot_file):
-                break
+            if plots is None or index in plots:
+                plot_file = test_dir.joinpath('_output').joinpath(f'{test_case}.{test_method}_{index}.png')
+                if not os.path.exists(plot_file):
+                    break
 
-            with open(plot_file, 'rb') as f:
-                buf = io.BytesIO(f.read())
+                with open(plot_file, 'rb') as f:
+                    buf = io.BytesIO(f.read())
 
-            data = base64.b64encode(buf.getbuffer()).decode("ascii")
-            width, height = plot_size
-            print(f'=== "plot {index}"\n', file=ss)
-            print(f'    <img alt="{plot_alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>\n', file=ss)
+                data = base64.b64encode(buf.getbuffer()).decode("ascii")
+                width, height = plot_size
+                try:
+                    plot_name = plot_names[index-1] if plot_names else f'{index}'
+                except:
+                    plot_name = f'{index}'
+                print(f'=== "{plot_name}"\n', file=ss)
+                print(f'    <img alt="{plot_alt_text}" width="{width}" height="{height}" src="data:image/png;base64,{data}"/>\n', file=ss)
 
         return ss.getvalue()
 
