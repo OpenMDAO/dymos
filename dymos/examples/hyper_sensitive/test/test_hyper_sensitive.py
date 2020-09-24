@@ -123,7 +123,7 @@ class TestHyperSensitive(unittest.TestCase):
 
     def test_refinement_warning(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT')
-        dm.run_problem(p, refine_iteration_limit=5)
+        dm.run_problem(p)
 
         msg = "Refinement not performed. Set run_driver to True to perform refinement."
 

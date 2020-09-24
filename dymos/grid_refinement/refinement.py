@@ -37,8 +37,8 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', recorder
                 refine_results = check_error(phases)
 
                 refined_phases = [phase_path for phase_path in refine_results if
-                                    phases[phase_path].refine_options['refine'] and
-                                    np.any(refine_results[phase_path]['need_refinement'])]
+                                  phases[phase_path].refine_options['refine'] and
+                                  np.any(refine_results[phase_path]['need_refinement'])]
 
                 for stream in f, sys.stdout:
                     write_error(stream, i, phases, refine_results)
@@ -52,7 +52,7 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', recorder
                     write_refine_iter(stream, i, phases, refine_results)
 
                 prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
-                                'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
+                             'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 
                 problem.setup()
 
