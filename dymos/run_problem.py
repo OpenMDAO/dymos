@@ -73,7 +73,7 @@ def modify_problem(problem, restart=None, reset_grid=False, solultion_file='dymo
             load_case(problem, case)
 
 
-def run_problem(problem, refine_method='hp', refine_iteration_limit=10, run_driver=True,
+def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_driver=True,
                 simulate=False, recorder_file='dymos_simulation.db', restart=None):
     """
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
@@ -107,12 +107,12 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=10, run_driv
 
     if run_driver:
         problem.run_driver()
+        _refine_iter(problem, refine_iteration_limit, refine_method, recorder_file)
     else:
         problem.run_model()
+        simple_warning("Refinement not performed. Set run_driver to True to perform refinement.")
 
     problem.record('final')  # save case for potential restart
-
-    _refine_iter(problem, refine_iteration_limit, refine_method, recorder_file)
 
     if simulate:
         for subsys in problem.model.system_iter(include_self=True, recurse=True):

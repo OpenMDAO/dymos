@@ -87,7 +87,7 @@ class TestHyperSensitive(unittest.TestCase):
 
     def test_hyper_sensitive_radau(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT')
-        dm.run_problem(p)
+        dm.run_problem(p, refine_iteration_limit=5)
         ui, uf, J = self.solution()
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
@@ -104,8 +104,7 @@ class TestHyperSensitive(unittest.TestCase):
 
     def test_hyper_sensitive_gauss_lobatto(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT')
-        # p.run_driver()
-        dm.run_problem(p)
+        dm.run_problem(p, refine_iteration_limit=5)
 
         ui, uf, J = self.solution()
 

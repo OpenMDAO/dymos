@@ -12,7 +12,7 @@ import numpy as np
 import sys
 
 
-def _refine_iter(problem, refine_iteration_limit=10, refine_method='hp', recorder_file='dymos_simulation.db'):
+def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', recorder_file='dymos_simulation.db'):
     """
     This function performs grid refinement for a phases in which solve_segments is true.
 
@@ -28,45 +28,41 @@ def _refine_iter(problem, refine_iteration_limit=10, refine_method='hp', recorde
     phases = find_phases(problem.model)
     refinement_methods = {'hp': HPAdaptive, 'ph': PHAdaptive}
 
-    if refine_iteration_limit >= 0:
+    if refine_iteration_limit > 0:
         out_file = 'grid_refinement.out'
 
         ref = refinement_methods[refine_method](phases)
         with open(out_file, 'w+') as f:
-            for phase in phases.values():
-                for name in phase.state_options:
-                    if phase.state_options[name]['solve_segments']:
+            for i in range(refine_iteration_limit):
+                refine_results = check_error(phases)
 
-                        for i in range(refine_iteration_limit):
-                            refine_results = check_error(phases)
+                refined_phases = [phase_path for phase_path in refine_results if
+                                    phases[phase_path].refine_options['refine'] and
+                                    np.any(refine_results[phase_path]['need_refinement'])]
 
-                            refined_phases = [phase_path for phase_path in refine_results if
-                                              phases[phase_path].refine_options['refine'] and
-                                              np.any(refine_results[phase_path]['need_refinement'])]
+                for stream in f, sys.stdout:
+                    write_error(stream, i, phases, refine_results)
 
-                            for stream in f, sys.stdout:
-                                write_error(stream, i, phases, refine_results)
+                if not refined_phases:
+                    break
 
-                            if not refined_phases:
-                                break
+                ref.refine(refine_results, i)
 
-                            ref.refine(refine_results, i)
+                for stream in f, sys.stdout:
+                    write_refine_iter(stream, i, phases, refine_results)
 
-                            for stream in f, sys.stdout:
-                                write_refine_iter(stream, i, phases, refine_results)
+                prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
+                                'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
 
-                            prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
-                                         'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
+                problem.setup()
 
-                            problem.setup()
+                load_case(problem, prev_soln)
 
-                            load_case(problem, prev_soln)
+                problem.run_driver()
 
-                            problem.run_driver()
-
-                            for stream in [f, sys.stdout]:
-                                if i == refine_iteration_limit-1:
-                                    print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
-                                else:
-                                    print('Successfully completed grid refinement.', file=stream)
-                            print(50 * '=')
+                for stream in [f, sys.stdout]:
+                    if i == refine_iteration_limit-1:
+                        print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
+                    else:
+                        print('Successfully completed grid refinement.', file=stream)
+                print(50 * '=')
