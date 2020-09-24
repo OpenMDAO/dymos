@@ -2,6 +2,7 @@ from __future__ import print_function, division, absolute_import
 
 import os
 import unittest
+import warnings
 from openmdao.api import Problem, Group, pyOptSparseDriver
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import printoptions
@@ -119,3 +120,15 @@ class TestHyperSensitive(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase0.timeseries.states:xL')[-1],
                           J,
                           tolerance=1e-4)
+
+    def test_refinement_warning(self):
+        p = self.make_problem(transcription=Radau, optimizer='IPOPT')
+        dm.run_problem(p, refine_iteration_limit=5)
+
+        msg = "Refinement not performed. Set run_driver to True to perform refinement."
+
+        with warnings.catch_warnings(record=True) as ctx:
+            warnings.simplefilter('always')
+            dm.run_problem(p, run_driver=False)
+
+        self.assertIn(msg, [str(w.message) for w in ctx])

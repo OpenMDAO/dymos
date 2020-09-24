@@ -1,3 +1,5 @@
+import warnings
+
 from .grid_refinement.ph_adaptive.ph_adaptive import PHAdaptive
 from .grid_refinement.hp_adaptive.hp_adaptive import HPAdaptive
 from .grid_refinement.write_iteration import write_error, write_refine_iter
@@ -110,7 +112,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         _refine_iter(problem, refine_iteration_limit, refine_method, recorder_file)
     else:
         problem.run_model()
-        simple_warning("Refinement not performed. Set run_driver to True to perform refinement.")
+        warnings.warn("Refinement not performed. Set run_driver to True to perform refinement.")
 
     problem.record('final')  # save case for potential restart
 
