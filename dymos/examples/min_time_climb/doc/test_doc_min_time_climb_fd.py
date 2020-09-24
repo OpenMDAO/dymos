@@ -37,6 +37,7 @@ def _view_coloring(coloring_file, show_sparsity_text=False, show_sparsity=True,
 
     coloring.summary()
 
+
 class TestMinTimeClimbForDocs(unittest.TestCase):
 
     @save_for_docs
