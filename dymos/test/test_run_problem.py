@@ -215,10 +215,10 @@ class TestRunProblem(unittest.TestCase):
         q = vanderpol(transcription='gauss-lobatto', num_segments=75)
 
         # Call modify_problem with simulation restart database
-        modify_problem(q, restart='vanderpol_simulation.sql')
+        # modify_problem(q, restart='vanderpol_simulation.sql')
 
         # # Run the model
-        run_problem(q)
+        run_problem(q, restart='vanderpol_simulation.sql')
 
         #  The solution should look like the explicit time history for the states and controls.
         DO_PLOTS = False
