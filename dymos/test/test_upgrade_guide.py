@@ -467,38 +467,3 @@ class TestUpgrade_0_16_0(unittest.TestCase):
                             ('CL', None), ('CD', None), ('q', 'N/m**2'), ('f_lift', 'lbf'),
                             ('f_drag', 'N'), ('thrust', 'lbf')]:
             self.assertEqual(op_dict[f'traj.phase0.timeseries.{name}'], units)
-
-    def test_connect_unitless_to_none(self):
-        import warnings
-        p = om.Problem()
-        ivc = p.model.add_subsystem('indeps', om.IndepVarComp())
-        ivc.add_output('x', val=5.0, units='1/s*s')
-        ivc.add_output('y', val=10.0, units='Hz*s')
-        p.model.add_subsystem('exec_comp', om.ExecComp('z = x + y', z={'units': None},
-                                                       x={'units': None}, y={'units': None}))
-        p.model.connect('indeps.x', 'exec_comp.x')
-        p.model.connect('indeps.y', 'exec_comp.y')
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            p.setup()
-
-        p.run_model()
-        assert_near_equal(p.get_val('exec_comp.z'), 15.0)
-
-    def test_promote_unitless_and_none(self):
-        import warnings
-        p = om.Problem()
-        ivc = p.model.add_subsystem('indeps', om.IndepVarComp(), promotes_outputs=['x', 'y'])
-        ivc.add_output('x', val=5.0, units='1/s*s')
-        ivc.add_output('y', val=10.0, units='Hz*s')
-        p.model.add_subsystem('exec_comp', om.ExecComp('z = x + y', z={'units': None},
-                                                       x={'units': None}, y={'units': None}),
-                              promotes_inputs=['x', 'y'])
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            p.setup()
-
-        p.run_model()
-        assert_near_equal(p.get_val('exec_comp.z'), 15.0)
