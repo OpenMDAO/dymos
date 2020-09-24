@@ -18,8 +18,11 @@ class RungeKuttaStatePredictComp(om.ExplicitComponent):
         self.options.declare('state_options', types=dict,
                              desc='Dictionary of state names/options for the phase')
 
-    def setup(self):
-
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         self._var_names = {}
         num_seg = self.options['num_segments']
 

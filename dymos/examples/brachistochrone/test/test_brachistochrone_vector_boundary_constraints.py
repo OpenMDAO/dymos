@@ -31,13 +31,10 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('pos',
-                        shape=(2,),
                         rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        units=BrachistochroneVectorStatesODE.states['pos']['units'],
                         fix_initial=True, fix_final=False)
         phase.add_state('v',
                         rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        units=BrachistochroneVectorStatesODE.states['v']['units'],
                         fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg',
@@ -126,13 +123,10 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('pos',
-                        shape=(2,),
                         rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        units=BrachistochroneVectorStatesODE.states['pos']['units'],
                         fix_initial=True, fix_final=False)
         phase.add_state('v',
                         rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        units=BrachistochroneVectorStatesODE.states['v']['units'],
                         fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg',
@@ -221,13 +215,10 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('pos',
-                        shape=(2,),
                         rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        units=BrachistochroneVectorStatesODE.states['pos']['units'],
                         fix_initial=True, fix_final=[True, False])
         phase.add_state('v',
                         rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        units=BrachistochroneVectorStatesODE.states['v']['units'],
                         fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg',

@@ -41,7 +41,11 @@ class StateInterpComp(om.ExplicitComponent):
             'time_units', default=None, allow_none=True, types=str,
             desc='Units of the integration variable')
 
-    def setup(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         time_units = self.options['time_units']
 
         num_disc_nodes = self.options['grid_data'].subset_num_nodes['state_disc']

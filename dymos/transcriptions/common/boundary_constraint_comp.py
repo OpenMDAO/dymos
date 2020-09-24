@@ -14,9 +14,12 @@ class BoundaryConstraintComp(om.ExplicitComponent):
         self._constraints = []
         self._vars = {}
 
-    def setup(self):
+    def configure_io(self):
         """
         Define the independent variables as output variables.
+
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
         """
         for (name, kwargs) in self._constraints:
             input_name = '{0}_value_in:{1}'.format(self.options['loc'], name)
