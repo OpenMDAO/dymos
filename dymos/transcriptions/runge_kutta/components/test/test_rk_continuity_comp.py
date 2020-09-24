@@ -8,6 +8,10 @@ from openmdao.utils.assert_utils import assert_near_equal
 from dymos.transcriptions.runge_kutta.components.runge_kutta_state_continuity_comp import \
     RungeKuttaStateContinuityComp
 
+# Modify class so we can run it standalone.
+from dymos.utils.misc import CompWrapperConfig
+RungeKuttaStateContinuityComp = CompWrapperConfig(RungeKuttaStateContinuityComp)
+
 
 class TestRungeKuttaContinuityComp(unittest.TestCase):
 

@@ -1,11 +1,12 @@
+from fnmatch import filter
+
 import numpy as np
 
 from .pseudospectral_base import PseudospectralBase
-from ..common import PathConstraintComp, RadauPSContinuityComp, PseudospectralTimeseriesOutputComp
+from ..common import RadauPSContinuityComp
 from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
-from fnmatch import filter
 
 
 class Radau(PseudospectralBase):
@@ -18,6 +19,10 @@ class Radau(PseudospectralBase):
     Control Problems Using a Radau Pseudospectral Method." American Institute of Aeronautics
     and Astronautics, 2009.
     """
+    def __init__(self, **kwargs):
+        super(Radau, self).__init__(**kwargs)
+        self._rhs_source = 'rhs_all'
+
     def init_grid(self):
         self.grid_data = GridData(num_segments=self.options['num_segments'],
                                   transcription='radau-ps',
@@ -135,6 +140,12 @@ class Radau(PseudospectralBase):
                                 promotes_inputs=['t_duration'])
 
     def configure_defects(self, phase):
+        super(Radau, self).configure_defects(phase)
+
+        grid_data = self.grid_data
+        if grid_data.num_segments > 1:
+            phase.continuity_comp.configure_io()
+
         for name, options in phase.state_options.items():
             phase.connect('state_interp.staterate_col:{0}'.format(name),
                           'collocation_constraint.f_approx:{0}'.format(name))
@@ -357,6 +368,8 @@ class Radau(PseudospectralBase):
 
             for var, options in phase._timeseries[timeseries_name]['outputs'].items():
                 output_name = options['output_name']
+                units = options.get('units', None)
+                timeseries_units = options.get('timeseries_units', None)
 
                 if '*' in var:  # match outputs from the ODE
                     ode_outputs = {opts['prom_name']: opts for (k, opts) in
@@ -368,6 +381,10 @@ class Radau(PseudospectralBase):
                 for v in matches:
                     if '*' in var:
                         output_name = v.split('.')[-1]
+                        units = ode_outputs[v]['units']
+                        # check for timeseries_units override of ODE units
+                        if v in timeseries_units:
+                            units = timeseries_units[v]
 
                     # Determine the path to the variable which we will be constraining
                     # This is more complicated for path constraints since, for instance,
@@ -381,7 +398,7 @@ class Radau(PseudospectralBase):
 
                     try:
                         shape, units = get_source_metadata(phase.rhs_all, src=v,
-                                                           user_units=options['units'],
+                                                           user_units=units,
                                                            user_shape=options['shape'])
                     except ValueError:
                         raise ValueError(f'Timeseries output {v} is not a known variable in'

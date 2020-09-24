@@ -14,30 +14,6 @@ class PhaseLinkageComp(om.ExplicitComponent):
     def initialize(self):
         self.options.declare('linkages', default=[])
 
-    def setup(self):
-
-        for lnk in self.options['linkages']:
-            self.add_input(name=lnk['cond0_name'], shape=lnk['shape'],
-                           val=np.zeros(lnk['shape']), units=lnk['units'])
-
-            self.add_input(name=lnk['cond1_name'], shape=lnk['shape'],
-                           val=np.zeros(lnk['shape']), units=lnk['units'])
-
-            self.add_output(name=lnk['name'], shape=lnk['shape'],
-                            val=np.zeros(lnk['shape']), units=lnk['units'])
-
-            self.add_constraint(name=lnk['name'], equals=lnk['equals'],
-                                lower=lnk['lower'], upper=lnk['upper'],
-                                ref=lnk['ref'], ref0=lnk['ref0'],
-                                scaler=lnk['scaler'], adder=lnk['adder'],
-                                linear=lnk['linear'])
-
-            shape = lnk['shape']
-            ar = np.arange(np.prod(shape))
-
-            self.declare_partials(of=lnk['name'], wrt=lnk['cond1_name'], rows=ar, cols=ar, val=1.0)
-            self.declare_partials(of=lnk['name'], wrt=lnk['cond0_name'], rows=ar, cols=ar, val=-1.0)
-
     def add_linkage(self, name, vars, shape=(1,), equals=None, lower=None, upper=None, units=None,
                     scaler=None, adder=None, ref0=None, ref=None, linear=False):
         """
@@ -138,13 +114,41 @@ class PhaseLinkageComp(om.ExplicitComponent):
             lnk['adder'] = adder
             lnk['ref0'] = ref0
             lnk['ref'] = ref
-            lnk['shape'] = _shapes.get(var, (1,))
+
+            # This nonsense shouldn't be required, but the default value for shape is None, and
+            # can't be _undefined due to limitations in the options dictionary.
+            shape = _shapes.get(var, (1,))
+            if shape is None:
+                shape = (1, )
+
+            lnk['shape'] = shape
             lnk['linear'] = linear
             lnk['units'] = _units.get(var, None)
             lnk['cond0_name'] = '{0}:lhs'.format(lnk['name'])
             lnk['cond1_name'] = '{0}:rhs'.format(lnk['name'])
 
             self.options['linkages'].append(lnk)
+
+            self.add_input(name=lnk['cond0_name'], shape=lnk['shape'],
+                           val=np.zeros(lnk['shape']), units=lnk['units'])
+
+            self.add_input(name=lnk['cond1_name'], shape=lnk['shape'],
+                           val=np.zeros(lnk['shape']), units=lnk['units'])
+
+            self.add_output(name=lnk['name'], shape=lnk['shape'],
+                            val=np.zeros(lnk['shape']), units=lnk['units'])
+
+            self.add_constraint(name=lnk['name'], equals=lnk['equals'],
+                                lower=lnk['lower'], upper=lnk['upper'],
+                                ref=lnk['ref'], ref0=lnk['ref0'],
+                                scaler=lnk['scaler'], adder=lnk['adder'],
+                                linear=lnk['linear'])
+
+            shape = lnk['shape']
+            ar = np.arange(np.prod(shape))
+
+            self.declare_partials(of=lnk['name'], wrt=lnk['cond1_name'], rows=ar, cols=ar, val=1.0)
+            self.declare_partials(of=lnk['name'], wrt=lnk['cond0_name'], rows=ar, cols=ar, val=-1.0)
 
     def compute(self, inputs, outputs):
 

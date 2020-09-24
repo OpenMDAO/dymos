@@ -8,6 +8,10 @@ from openmdao.utils.assert_utils import assert_check_partials
 
 from dymos.transcriptions.common.boundary_constraint_comp import BoundaryConstraintComp
 
+# Modify class so we can run it standalone.
+from dymos.utils.misc import CompWrapperConfig
+BoundaryConstraintComp = CompWrapperConfig(BoundaryConstraintComp)
+
 
 class TestInitialScalarBoundaryValue(unittest.TestCase):
 

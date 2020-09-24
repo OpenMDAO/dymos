@@ -125,7 +125,8 @@ def get_targets(ode, name, user_targets):
     return targets
 
 
-def get_target_metadata(ode, name, user_targets, user_units, user_shape):
+def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,
+                        user_shape=_unspecified):
     """
     Return the targets of a state variable in a given ODE system.
     If the targets of the state is _unspecified, and the state name is a top level input name
@@ -159,7 +160,8 @@ def get_target_metadata(ode, name, user_targets, user_units, user_shape):
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
-    ode_inputs = {opts['prom_name']: opts for (k, opts) in ode.get_io_metadata(iotypes=('input',)).items()}
+    ode_inputs = {opts['prom_name']: opts for (k, opts) in
+                  ode.get_io_metadata(iotypes=('input', 'output')).items()}
 
     if user_targets is _unspecified:
         if name in ode_inputs:
@@ -186,7 +188,7 @@ def get_target_metadata(ode, name, user_targets, user_units, user_shape):
     else:
         units = user_units
 
-    if user_shape is _unspecified:
+    if user_shape in {None, _unspecified}:
         target_shape_set = {ode_inputs[tgt]['shape'] for tgt in targets}
         if len(target_shape_set) == 1:
             shape = next(iter(target_shape_set))
@@ -290,3 +292,24 @@ class CoerceDesvar(object):
                 raise ValueError('array-valued option {0} must have length '
                                  'num_input_nodes ({1})'.format(option, val))
             return val[self.desvar_indices]
+
+
+def CompWrapperConfig(comp_class):
+    """
+    Returns a wrapped comp_class that calls its configure_io method at the end of setup.
+
+    This allows for standalone testing of Dymos components that normally require their parent group
+    to configure them.
+
+    Parameters
+    ----------
+    comp_class : Component class
+       Class that we would like to wrap.
+    """
+    class WrappedClass(comp_class):
+
+        def setup(self):
+            super(WrappedClass, self).setup()
+            self.configure_io()
+
+    return WrappedClass

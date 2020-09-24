@@ -9,6 +9,10 @@ from openmdao.utils.assert_utils import assert_check_partials
 from dymos.transcriptions.pseudospectral.components import CollocationComp
 from dymos.transcriptions.grid_data import GridData
 
+# Modify class so we can run it standalone.
+from dymos.utils.misc import CompWrapperConfig
+CollocationComp = CompWrapperConfig(CollocationComp)
+
 
 class TestCollocationComp(unittest.TestCase):
 

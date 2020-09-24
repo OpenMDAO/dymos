@@ -117,11 +117,11 @@ class Phase(om.Group):
             Units in which the state variable is defined.  Internally components may use different
             units for the state variable, but the IndepVarComp which provides its value will provide
             it in these units, and collocation defects will use these units.  If units is not
-            specified here then the value as defined in the ODEOptions (@dm.declare_state) will be
-            used.
+            specified here then the unit will be determined from the rate_source.
         shape : tuple of int
             The shape of the state variable.  For instance, a 3D cartesian position vector would have
-            a shape of (3,).
+            a shape of (3,).  This only needs to be specified if the rate_source target points to
+            a control or state whose shape isn't known in time.
         rate_source : str
             The path to the ODE output which provides the rate of this state variable.
         targets : str or Sequence of str
@@ -191,11 +191,11 @@ class Phase(om.Group):
             Units in which the state variable is defined.  Internally components may use different
             units for the state variable, but the IndepVarComp which provides its value will provide
             it in these units, and collocation defects will use these units.  If units is not
-            specified here then the value as defined in the ODEOptions (@dm.declare_state) will be
-            used.
+            specified here then the unit will be determined from the rate_source.
         shape : tuple of int
             The shape of the state variable.  For instance, a 3D cartesian position vector would have
-            a shape of (3,).
+            a shape of (3,).  This only needs to be specified if the rate_source target points to
+            a control or state whose shape isn't known in time.
         rate_source : str
             The path to the ODE output which provides the rate of this state variable.
         targets : str or Sequence of str
@@ -1258,7 +1258,8 @@ class Phase(om.Group):
         self._path_constraints[name]['units'] = units
         self.add_timeseries_output(name, output_name=constraint_name, units=units, shape=shape)
 
-    def add_timeseries_output(self, name, output_name=None, units=None, shape=None, timeseries='timeseries'):
+    def add_timeseries_output(self, name, output_name=None, units=None, shape=None,
+                              timeseries='timeseries', _unit_dict={}):
         r"""
         Add a variable to the timeseries outputs of the phase.
 
@@ -1291,7 +1292,7 @@ class Phase(om.Group):
                 elif type(units) is list:  # allow matching list for units
                     u = units[i]
 
-                self.add_timeseries_output(n, output_name, u, shape, timeseries)
+                self.add_timeseries_output(n, output_name, u, shape, timeseries, units if type(units) is dict else {})
             return
 
         if output_name is None:
@@ -1303,9 +1304,16 @@ class Phase(om.Group):
         if name not in self._timeseries[timeseries]['outputs']:
             self._timeseries[timeseries]['outputs'][name] = {}
             self._timeseries[timeseries]['outputs'][name]['output_name'] = output_name
+            self._timeseries[timeseries]['outputs'][name]['timeseries_units'] = {}
 
         self._timeseries[timeseries]['outputs'][name]['units'] = units
         self._timeseries[timeseries]['outputs'][name]['shape'] = shape
+        for k, v in _unit_dict.items():
+            existing = self._timeseries[timeseries]['outputs'][name]['timeseries_units']
+            if k in existing and existing[k] != v:
+                raise ValueError('Unit mismatch in add_timeseries_output unit dictionary')
+            else:
+                existing[k] = v  # save for ODE wildcard matching
 
     def add_timeseries(self, name, transcription, subset='all'):
         r"""
@@ -1904,9 +1912,6 @@ class Phase(om.Group):
                 prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
 
         # Assign parameter values
-        meta = phs._problem_meta
-        prom2abs = meta['prom2abs']
-        conns = meta['model_ref']()._conn_global_abs_in2out
         pname = '{0}parameters:{1}'
         for name in phs.parameter_options:
 
@@ -1914,8 +1919,7 @@ class Phase(om.Group):
                 continue
 
             prom_phs_path = pname.format(phs_path.replace('.phases.', '.'), name)
-            abs_in = prom2abs['input'][prom_phs_path][0]
-            src = conns[abs_in]
+            src = phs.get_source(prom_phs_path)
 
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.

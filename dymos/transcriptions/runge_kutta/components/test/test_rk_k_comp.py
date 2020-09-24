@@ -7,6 +7,10 @@ from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_k_comp import RungeKuttaKComp
 
+# Modify class so we can run it standalone.
+from dymos.utils.misc import CompWrapperConfig
+RungeKuttaKComp = CompWrapperConfig(RungeKuttaKComp)
+
 
 class TestRKKComp(unittest.TestCase):
 

@@ -52,8 +52,7 @@ class RungeKuttaKIterGroup(om.Group):
         self.add_subsystem('state_predict_comp',
                            RungeKuttaStatePredictComp(method=self.options['method'],
                                                       num_segments=num_seg,
-                                                      state_options=state_options),
-                           promotes_inputs=['initial_states_per_seg:*'])
+                                                      state_options=state_options))
         self.add_subsystem('ode',
                            subsys=self.options['ode_class'](num_nodes=num_nodes,
                                                             **self.options['ode_init_kwargs']))
@@ -62,10 +61,15 @@ class RungeKuttaKIterGroup(om.Group):
                            subsys=RungeKuttaKComp(method=self.options['method'],
                                                   num_segments=num_seg,
                                                   state_options=state_options,
-                                                  time_units=self.options['time_units']),
-                           promotes_inputs=['h'])
+                                                  time_units=self.options['time_units']))
 
-    def configure(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
+        self.state_predict_comp.configure_io()
+        self.k_comp.configure_io()
 
         for state_name, options in self.options['state_options'].items():
             targets = get_targets(ode=self.ode, name=state_name, user_targets=options['targets'])
@@ -78,6 +82,10 @@ class RungeKuttaKIterGroup(om.Group):
             # Connect the k value associated with the state to the state predict comp
             self.connect('k_comp.k:{0}'.format(state_name),
                          'state_predict_comp.k:{0}'.format(state_name))
+
+            # Delayed promotes
+            self.promotes('state_predict_comp', inputs=[f'initial_states_per_seg:{state_name}'])
+            self.promotes('k_comp', inputs=['h'])
 
         self.linear_solver = om.DirectSolver()
         if self.options['solver_class']:

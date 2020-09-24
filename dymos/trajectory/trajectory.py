@@ -331,10 +331,7 @@ class Trajectory(om.Group):
             p1 = self._phases[phase_name1]
             p2 = self._phases[phase_name2]
 
-            p1_states = set([key for key in p1.state_options])
             p2_states = set([key for key in p2.state_options])
-
-            p1_controls = set([key for key in p1.control_options])
 
             # Dict of vars that expands '*' to include time and states
             _vars = {}
@@ -349,10 +346,6 @@ class Trajectory(om.Group):
                 else:
                     _vars[var] = vars[var].copy()
 
-            units_map = {}
-            shape_map = {}
-            vars_to_constrain = []
-
             for var, options in _vars.items():
                 if options['connected']:
                     # If this is a state, and we are linking it, we need to do some checks.
@@ -361,36 +354,9 @@ class Trajectory(om.Group):
                         p2.add_state(var, connected_initial=True)
                     elif var == 'time':
                         p2.set_time_options(input_initial=True)
-                else:
-                    vars_to_constrain.append(var)
-                    if var in p1.state_options:
-                        units_map[var] = p1.state_options[var]['units']
-                        shape_map[var] = p1.state_options[var]['shape']
-                    elif var in p1.control_options:
-                        units_map[var] = p1.control_options[var]['units']
-                        shape_map[var] = p1.control_options[var]['shape']
-                    elif var in p1.polynomial_control_options:
-                        units_map[var] = p1.polynomial_control_options[var]['units']
-                        shape_map[var] = p1.polynomial_control_options[var]['shape']
-                    elif var in p1.parameter_options:
-                        units_map[var] = p1.parameter_options[var]['units']
-                        shape_map[var] = p1.parameter_options[var]['shape']
-                    elif var == 'time':
-                        units_map[var] = p1.time_options['units']
-                        shape_map[var] = (1,)
-                    else:
-                        units_map[var] = None
-                        shape_map[var] = (1,)
 
-            if vars_to_constrain:
-                if not link_comp:
+                elif not link_comp:
                     link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
-
-                linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
-                link_comp.add_linkage(name=linkage_name,
-                                      vars=vars_to_constrain,
-                                      shape=shape_map,
-                                      units=units_map)
 
     def setup(self):
         """
@@ -459,11 +425,6 @@ class Trajectory(om.Group):
         for pair, vars in self._linkages.items():
             phase_name1, phase_name2 = pair
 
-            for name in pair:
-                if name not in self._phases:
-                    raise ValueError('Invalid linkage.  Phase \'{0}\' does not exist in '
-                                     'trajectory \'{1}\'.'.format(name, self.pathname))
-
             p1 = self._phases[phase_name1]
             p2 = self._phases[phase_name2]
 
@@ -497,12 +458,18 @@ class Trajectory(om.Group):
             for var, options in _vars.items():
                 if not options['connected']:
                     vars_to_constrain.append(var)
-                    if var in p1_states:
+                    if var in p1.state_options:
                         units_map[var] = p1.state_options[var]['units']
                         shape_map[var] = p1.state_options[var]['shape']
-                    elif var in p1_controls:
+                    elif var in p1.control_options:
                         units_map[var] = p1.control_options[var]['units']
                         shape_map[var] = p1.control_options[var]['shape']
+                    elif var in p1.polynomial_control_options:
+                        units_map[var] = p1.polynomial_control_options[var]['units']
+                        shape_map[var] = p1.polynomial_control_options[var]['shape']
+                    elif var in p1.parameter_options:
+                        units_map[var] = p1.parameter_options[var]['units']
+                        shape_map[var] = p1.parameter_options[var]['shape']
                     elif var == 'time':
                         units_map[var] = p1.time_options['units']
                         shape_map[var] = (1,)
@@ -513,6 +480,10 @@ class Trajectory(om.Group):
             if vars_to_constrain:
 
                 linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
+                self.linkages.add_linkage(name=linkage_name,
+                                          vars=vars_to_constrain,
+                                          shape=shape_map,
+                                          units=units_map)
 
             for var, options in _vars.items():
                 loc1, loc2 = options['locs']
@@ -735,14 +706,10 @@ class Trajectory(om.Group):
                                                                                 out_stream=None)])
 
         # Assign trajectory parameter values
-        meta = self._problem_meta
-        prom2abs = meta['prom2abs']
-        conns = meta['model_ref']()._conn_global_abs_in2out
         param_names = [key for key in self.parameter_options.keys()]
         for name in param_names:
             prom_path = f'traj.parameters:{name}'
-            abs_in = prom2abs['input'][prom_path][0]
-            src = conns[abs_in]
+            src = self.get_source(prom_path)
 
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
