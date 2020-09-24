@@ -642,6 +642,7 @@ def _upgrade_doc_markdown(test_reference, feature, outstream=sys.stdout,
     try:
         new_way = textwrap.dedent(body_match.groups()[0].strip())
     except AttributeError:
+        print(func_body)
         raise ValueError(f'Unable to find feature label {feature} in the body of {test_reference}')
 
     indent = '    '
@@ -656,3 +657,8 @@ def _upgrade_doc_markdown(test_reference, feature, outstream=sys.stdout,
     print(f'{indent}```', file=outstream)
     print(f'{textwrap.indent(new_way, indent)}', file=outstream)
     print(f'{indent}```', file=outstream)
+
+
+if __name__ == '__main__':
+    obj =_upgrade_doc_markdown('dymos.test.test_upgrade_guide.TestUpgrade_0_16_0.test_glob_timeseries_outputs',
+                               'glob_timeseries_outputs')

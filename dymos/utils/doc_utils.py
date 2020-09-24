@@ -86,6 +86,7 @@ def save_for_docs(method, transparent=False):
             os.mkdir(output_dir)
 
         backend_save = matplotlib.get_backend()
+        plt.switch_backend('Agg')
 
         f = open(output_path, 'w')
         sys.stdout = tee(sys.stdout, f)
@@ -98,7 +99,6 @@ def save_for_docs(method, transparent=False):
             sys.stdout = stdout_save
             sys.stderr = stderr_save
 
-        plt.switch_backend('Agg')
         for i in plt.get_fignums():
             plt.figure(i)
 

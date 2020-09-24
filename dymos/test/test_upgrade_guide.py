@@ -110,7 +110,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         nn = phase.options['transcription'].grid_data.num_nodes
         assert_near_equal(thrust, 2.1E6 * np.ones([nn, 1]))
 
-    def test_parameter_no_include_timeseries(self):
+    def test_parameter_no_timeseries(self):
         import openmdao.api as om
         import dymos as dm
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
@@ -340,7 +340,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
 
         # upgrade_doc: begin glob_timeseries_outputs
         phase.add_timeseries_output('aero.*')
-        # upgrade_doc: begin glob_timeseries_outputs
+        # upgrade_doc: end glob_timeseries_outputs
 
         p.setup(check=True)
 
@@ -444,7 +444,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         # upgrade_doc: begin sequence_timeseries_outputs
         phase.add_timeseries_output(['aero.*', 'prop.thrust'],
                                     units={'aero.f_lift': 'lbf', 'prop.thrust': 'lbf'})
-        # upgrade_doc: begin sequence_timeseries_outputs
+        # upgrade_doc: end sequence_timeseries_outputs
 
         p.setup(check=True)
 
@@ -467,7 +467,3 @@ class TestUpgrade_0_16_0(unittest.TestCase):
                             ('CL', None), ('CD', None), ('q', 'N/m**2'), ('f_lift', 'lbf'),
                             ('f_drag', 'N'), ('thrust', 'lbf')]:
             self.assertEqual(op_dict[f'traj.phase0.timeseries.{name}'], units)
-
-
-if __name__ == '__main__':  # pragma: no cover
-    unittest.main()

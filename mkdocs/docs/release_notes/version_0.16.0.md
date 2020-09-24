@@ -24,7 +24,7 @@ Likewise, the path to the parameter values in the timeseries outputs is changed:
 Since parameters are static, including their values in the timeseries can lead to more data being stored than necessary.
 If desired, one can avoid storing parameters in timeseries using the `include_timeseries=False` directive.
 
-{{ upgrade_doc('dymos.test.test_upgrade_guide.TestUpgrade_0_16_0.test_parameter_no_include_timeseries',
+{{ upgrade_doc('dymos.test.test_upgrade_guide.TestUpgrade_0_16_0.test_parameter_no_timeseries',
                feature='parameter_no_timeseries',
                old_label='dymos < 0.16.0',
                new_label='dymos >= 0.16.0') }}
@@ -36,8 +36,8 @@ This is redundant since that information was defined in the timeseries itself.
 However, dymos had no way to determine that variable metadata.
 With recent changes to OpenMDAO, this is now possible and the addition of ODE variables is simplified by no longer having to specify units or shape of the timeseries outputs.
 
-{{ upgrade_doc('dymos.test.test_upgrade_guide.TestUpgrade_0_16_0.test_parameter_no_include_timeseries',
-               feature='simplified_ode_timeseries_output',
+{{ upgrade_doc('dymos.test.test_upgrade_guide.TestUpgrade_0_16_0.test_simplified_ode_timeseries_output',
+               feature='simplified_ode_output_timeseries',
                old_label='dymos < 0.16.0',
                new_label='dymos >= 0.16.0') }}
 
