@@ -647,16 +647,16 @@ def _upgrade_doc_markdown(test_reference, feature, outstream=sys.stdout,
 
     indent = '    '
 
+    print(f'=== "{new_label}"', file=outstream)
+    print(f'{indent}```', file=outstream)
+    print(f'{textwrap.indent(new_way, indent)}', file=outstream)
+    print(f'{indent}```', file=outstream)
+
     if old_way:
         print(f'=== "{old_label}"', file=outstream)
         print(f'{indent}```', file=outstream)
         print(f'{textwrap.indent(old_way, indent)}', file=outstream)
         print(f'{indent}```', file=outstream)
-
-    print(f'=== "{new_label}"', file=outstream)
-    print(f'{indent}```', file=outstream)
-    print(f'{textwrap.indent(new_way, indent)}', file=outstream)
-    print(f'{indent}```', file=outstream)
 
 
 if __name__ == '__main__':
