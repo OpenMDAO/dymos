@@ -55,12 +55,12 @@ The block below shows the code required to create timeseries for all outputs of 
 Adding a handful of outputs can be done by providing a sequence of output paths in the ODE.
 Units can also be provided as a dictionary in which the keys are one or more of the output names provided.
 
-=== "Adding multiple variables with a sequence"
-    ```
-    phase.add_timeseries_output(['aero.*', 'prop.thrust', 'Q_body_inertial'], units={'prop.thrust': 'lbf', 'aero.lift': 'lbf'})
-    ```
+{{ upgrade_doc('dymos.test.test_upgrade_guide.TestUpgrade_0_16_0.test_sequence_timeseries_outputs',
+               feature='sequence_timeseries_outputs',
+               old_label='dymos < 0.16.0',
+               new_label='dymos >= 0.16.0') }}
 
-The rate of a state variable as computed by the ODE (or provided by another variable) is now avilable in a timeseries as `timeseries.state_rates:{state_name}`.
+Finally, the rates of a state variables as computed by the ODE (or provided by another variable) are now avilable in a timeseries as `timeseries.state_rates:{state_name}`.
 
 ### dymos.run_problem
 

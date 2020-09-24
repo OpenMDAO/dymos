@@ -367,10 +367,9 @@ class TestUpgrade_0_16_0(unittest.TestCase):
                             ('f_drag', 'N')]:
             self.assertEqual(op_dict[f'traj.phase0.timeseries.{name}'], units)
 
-    @unittest.skip
     def test_sequence_timeseries_outputs(self):
         """
-        # upgrade_doc: begin glob_timeseries_outputs
+        # upgrade_doc: begin sequence_timeseries_outputs
         phase.add_timeseries_output('aero.mach', shape=(1,), units=None)
         phase.add_timeseries_output('aero.CD0', shape=(1,), units=None)
         phase.add_timeseries_output('aero.kappa', shape=(1,), units=None)
@@ -381,7 +380,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         phase.add_timeseries_output('aero.f_lift', shape=(1,), units='N')
         phase.add_timeseries_output('aero.f_drag', shape=(1,), units='N')
         phase.add_timeseries_output('prop.thrust', shape=(1,), units='N')
-        # upgrade_doc: end glob_timeseries_outputs
+        # upgrade_doc: end sequence_timeseries_outputs
         """
         from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
@@ -442,10 +441,10 @@ class TestUpgrade_0_16_0(unittest.TestCase):
 
         p.model.linear_solver = om.DirectSolver()
 
-        # upgrade_doc: begin glob_timeseries_outputs
+        # upgrade_doc: begin sequence_timeseries_outputs
         phase.add_timeseries_output(['aero.*', 'prop.thrust'],
                                     units={'aero.f_lift': 'lbf', 'prop.thrust': 'lbf'})
-        # upgrade_doc: begin glob_timeseries_outputs
+        # upgrade_doc: begin sequence_timeseries_outputs
 
         p.setup(check=True)
 
@@ -459,9 +458,6 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         p['traj.phase0.states:m'] = phase.interpolate(ys=[19030.468, 10000.], nodes='state_input')
         p['traj.phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_input')
 
-        #
-        # Solve for the optimal trajectory
-        #
         p.run_model()
 
         outputs = p.model.list_outputs(units=True, out_stream=None, prom_name=True)
@@ -470,7 +466,6 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         for name, units in [('mach', None), ('CD0', None), ('kappa', None), ('CLa', None),
                             ('CL', None), ('CD', None), ('q', 'N/m**2'), ('f_lift', 'lbf'),
                             ('f_drag', 'N'), ('thrust', 'lbf')]:
-            print(name, units, op_dict[f'traj.phase0.timeseries.{name}'])
             self.assertEqual(op_dict[f'traj.phase0.timeseries.{name}'], units)
 
 
