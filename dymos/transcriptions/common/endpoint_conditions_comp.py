@@ -15,7 +15,7 @@ class EndpointConditionsComp(om.ExplicitComponent):
         self.options.declare('state_options', types=dict)
         self.options.declare('control_options', types=dict)
 
-    def _setup_states(self):
+    def _configure_states(self):
         loc = self.options['loc']
         for name, options in self.options['state_options'].items():
             shape = options['shape']
@@ -98,7 +98,7 @@ class EndpointConditionsComp(om.ExplicitComponent):
                                       wrt='final_jump:{0}'.format(name), rows=ar,
                                       cols=ar, val=1.0)
 
-    def _setup_controls(self):
+    def _configure_controls(self):
         loc = self.options['loc']
         for name, options in self.options['control_options'].items():
             shape = options['shape']
@@ -195,7 +195,7 @@ class EndpointConditionsComp(om.ExplicitComponent):
                                       wrt='final_jump:{0}'.format(name), rows=ar,
                                       cols=ar, val=1.0)
 
-    def _setup_time(self):
+    def _configure_time(self):
         loc = self.options['loc']
         time_units = self.options['time_options']['units']
 
@@ -253,9 +253,9 @@ class EndpointConditionsComp(om.ExplicitComponent):
         I/O creation is delayed until configure so that we can determine the shape and units for
         the states.
         """
-        self._setup_time()
-        self._setup_states()
-        self._setup_controls()
+        self._configure_time()
+        self._configure_states()
+        self._configure_controls()
 
     def compute(self, inputs, outputs):
         loc = self.options['loc']

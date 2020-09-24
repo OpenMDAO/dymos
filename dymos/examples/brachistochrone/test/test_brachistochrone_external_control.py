@@ -66,7 +66,7 @@ class TestBrachistochroneExternalControl(unittest.TestCase):
         # given state.
         phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot')
         phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot')
-        phase.add_state('v', fix_initial=True, fix_final=False, rate_source='vdot', targets=['v'])
+        phase.add_state('v', fix_initial=True, fix_final=False, rate_source='vdot')
 
         # Define theta as a control.
         # Use opt=False to allow it to be connected to an external source.
