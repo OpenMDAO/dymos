@@ -164,6 +164,9 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         target_shape_set = {ode_inputs[tgt]['shape'] for tgt in targets}
         if len(target_shape_set) == 1:
             shape = next(iter(target_shape_set))
+        elif len(target_shape_set) == 0:
+            raise ValueError(f'Unable to automatically assign a shape to {name}. '
+                             'Independent controls need to declare a shape.')
         else:
             raise ValueError(f'Unable to automatically assign a shape to {name} based on targets. '
                              f'Targets have multiple shapes assigned: {target_shape_set}. '

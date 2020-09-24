@@ -77,13 +77,20 @@ class PseudospectralBase(TranscriptionBase):
             # This feels a little hackish
             if rate_src in phase.control_options:
                 targets = phase.control_options[rate_src]['targets']
+                shape = phase.control_options[rate_src]['shape']
+                units = phase.control_options[rate_src]['units']
                 if targets is not _unspecified:
                     rate_src = targets[0]
+                else:
+                    if units is not _unspecified and options['units'] in (_unspecified, None):
+                        options['units'] = f'{units}*{time_units}'
+                    if shape is not _unspecified and options['shape'] in (_unspecified, None):
+                        options['shape'] = shape
 
             # Handle states that point to another state. States must be declared in the right
             # order.
             # This feels a little hackish
-            if rate_src in phase.state_options and options['shape'] in (_unspecified, None):
+            elif rate_src in phase.state_options and options['shape'] in (_unspecified, None):
                 options['shape'] = phase.state_options[rate_src]['shape']
 
             full_shape, units = get_target_metadata(ode, name=name,

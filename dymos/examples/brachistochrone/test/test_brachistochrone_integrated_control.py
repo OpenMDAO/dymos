@@ -105,10 +105,9 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot', units='m')
         phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot', units='m')
         phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s')
-        phase.add_state('theta', targets='theta', fix_initial=False, rate_source='theta_dot',
-                        units='rad', shape=(1, ))
+        phase.add_state('theta', targets='theta', fix_initial=False, rate_source='theta_dot')
 
-        phase.add_control('theta_dot', units='deg/s', rate_continuity=True, lower=0, upper=60)
+        phase.add_control('theta_dot', units='deg/s', rate_continuity=True, shape=(1, ), lower=0, upper=60)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
 
@@ -181,10 +180,9 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot', units='m')
         phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot', units='m')
         phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s')
-        phase.add_state('theta', targets='theta', fix_initial=False, rate_source='theta_dot',
-                        units='rad', shape=(1, ))
+        phase.add_state('theta', targets='theta', fix_initial=False, rate_source='theta_dot')
 
-        phase.add_control('theta_dot', units='deg/s', rate_continuity=True, lower=0, upper=60)
+        phase.add_control('theta_dot', units='deg/s', rate_continuity=True, shape=(1, ), lower=0, upper=60)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665, targets=['g'])
 
@@ -239,3 +237,7 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         assert_near_equal(v_interp(time_sol), v_sol, tolerance=1.0E-5)
         assert_near_equal(theta_interp(time_sol), theta_sol, tolerance=1.0E-5)
         assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-5)
+
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()
