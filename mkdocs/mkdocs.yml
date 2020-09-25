@@ -76,6 +76,8 @@ nav:
         - 'faq/upstream_analysis.md'
         - 'faq/downstream_analysis.md'
         - 'faq/tandem_phases.md'
+        - 'faq/use_partial_coloring.md'
+        - 'faq/debugging.md'
     - 'Dymos API Reference':
         - 'api/run_problem.md'
         - 'api/phase_api.md'

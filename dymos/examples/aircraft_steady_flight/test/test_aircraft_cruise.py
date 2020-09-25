@@ -18,7 +18,7 @@ except:
 class TestAircraftCruise(unittest.TestCase):
 
     def test_cruise_results_gl(self):
-        p = om.Problem(model=om.Group())
+        p = om.Problem()
         if optimizer == 'SNOPT':
             p.driver = om.pyOptSparseDriver()
             p.driver.options['optimizer'] = optimizer
@@ -34,17 +34,17 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver = om.ScipyOptimizeDriver()
             p.driver.declare_coloring()
 
-        transcription = dm.GaussLobatto(num_segments=1,
-                                        order=13,
-                                        compressed=False)
-        phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
-        p.model.add_subsystem('phase0', phase)
-
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', om.IndepVarComp())
         assumptions.add_output('S', val=427.8, units='m**2')
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
+
+        transcription = dm.GaussLobatto(num_segments=1,
+                                        order=13,
+                                        compressed=False)
+        phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
+        p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(initial_bounds=(0, 0),
                                duration_bounds=(3600, 3600),
@@ -112,6 +112,8 @@ class TestAircraftCruise(unittest.TestCase):
         range = exp_out.get_val('phase0.timeseries.states:range')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
+
+        om.n2(p.model)
 
     def test_cruise_results_radau(self):
         p = om.Problem(model=om.Group())
@@ -130,17 +132,15 @@ class TestAircraftCruise(unittest.TestCase):
             p.driver = om.ScipyOptimizeDriver()
             p.driver.declare_coloring()
 
-        transcription = dm.GaussLobatto(num_segments=1,
-                                        order=13,
-                                        compressed=False)
-        phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
-        p.model.add_subsystem('phase0', phase)
-
         # Pass Reference Area from an external source
         assumptions = p.model.add_subsystem('assumptions', om.IndepVarComp())
         assumptions.add_output('S', val=427.8, units='m**2')
         assumptions.add_output('mass_empty', val=1.0, units='kg')
         assumptions.add_output('mass_payload', val=1.0, units='kg')
+
+        transcription = dm.Radau(num_segments=1, order=13, compressed=False)
+        phase = dm.Phase(ode_class=AircraftODE, transcription=transcription)
+        p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(initial_bounds=(0, 0),
                                duration_bounds=(3600, 3600),
@@ -212,6 +212,8 @@ class TestAircraftCruise(unittest.TestCase):
         range = exp_out.get_val('phase0.timeseries.states:range')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
+
+        om.n2(p)
 
 
 if __name__ == '__main__':  # pragma: no cover
