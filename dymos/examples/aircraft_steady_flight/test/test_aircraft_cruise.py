@@ -113,8 +113,6 @@ class TestAircraftCruise(unittest.TestCase):
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
 
-        om.n2(p.model)
-
     def test_cruise_results_radau(self):
         p = om.Problem(model=om.Group())
         if optimizer == 'SNOPT':
@@ -212,8 +210,6 @@ class TestAircraftCruise(unittest.TestCase):
         range = exp_out.get_val('phase0.timeseries.states:range')
 
         assert_near_equal(range, tas*time, tolerance=1.0E-4)
-
-        om.n2(p)
 
 
 if __name__ == '__main__':  # pragma: no cover
