@@ -30,7 +30,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
-                          lower=0.01, upper=179.9)
+                          units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -95,7 +95,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=False, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
-                          lower=0.01, upper=179.9)
+                          units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -161,7 +161,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
-                          lower=0.01, upper=179.9)
+                          units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -227,7 +227,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
-                          lower=0.01, upper=179.9)
+                          units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -293,7 +293,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
-                          lower=0.01, upper=179.9)
+                          units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -359,7 +359,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
-                          lower=0.01, upper=179.9)
+                          units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -425,7 +425,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
-                          lower=0.01, upper=179.9)
+                          units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -492,7 +492,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_polynomial_control('theta', order=2, lower=0.01, upper=179.9)
+        phase.add_polynomial_control('theta', units='deg', order=2, lower=0.01, upper=179.9)
         #
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -561,7 +561,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_polynomial_control('theta', order=1, lower=0.01, upper=179.9)
+        phase.add_polynomial_control('theta', units='deg', order=1, lower=0.01, upper=179.9)
         #
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -627,7 +627,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
-                          lower=0.01, upper=179.9)
+                          units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -667,3 +667,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                           tolerance=1.0E-3)
         assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
                           tolerance=1.0E-3)
+
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()
