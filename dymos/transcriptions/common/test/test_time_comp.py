@@ -8,6 +8,9 @@ import openmdao.api as om
 from dymos.transcriptions.grid_data import GridData
 from dymos.transcriptions.common import TimeComp
 
+from dymos.utils.misc import CompWrapperConfig, GroupWrapperConfig
+TimeComp = CompWrapperConfig(TimeComp)
+
 _segends = np.array([0.0, 3.0, 10.0, 20])
 
 # LGL node locations per http://mathworld.wolfram.com/LobattoQuadrature.html

@@ -10,7 +10,7 @@ from dymos.transcriptions.grid_data import GridData
 from dymos.phase.options import PolynomialControlOptionsDictionary
 from dymos.utils.lgl import lgl
 
-from dymos.utils.misc import CompWrapperConfig, GroupWrapperConfig
+from dymos.utils.misc import CompWrapperConfig
 TimeComp = CompWrapperConfig(TimeComp)
 PolynomialControlGroup = GroupWrapperConfig(PolynomialControlGroup)
 

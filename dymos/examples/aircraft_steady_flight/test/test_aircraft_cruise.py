@@ -150,19 +150,19 @@ class TestAircraftCruise(unittest.TestCase):
                                duration_bounds=(3600, 3600),
                                duration_ref=3600)
 
-        phase.add_state('range', units='km', fix_initial=True, fix_final=False, scaler=0.01,
+        phase.add_state('range', fix_initial=True, fix_final=False, scaler=0.01,
                         rate_source='range_rate_comp.dXdt:range',
                         defect_scaler=0.01)
-        phase.add_state('mass_fuel', units='kg', fix_final=True, upper=20000.0, lower=0.0,
+        phase.add_state('mass_fuel', fix_final=True, upper=20000.0, lower=0.0,
                         rate_source='propulsion.dXdt:mass_fuel',
                         scaler=1.0E-4, defect_scaler=1.0E-2)
         phase.add_state('alt',
                         rate_source='climb_rate',
-                        units='km', fix_initial=True)
+                        fix_initial=True)
 
-        phase.add_control('mach',  targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
+        phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], opt=False)
 
-        phase.add_control('climb_rate', targets=['gam_comp.climb_rate'], units='m/s', opt=False)
+        phase.add_control('climb_rate', targets=['gam_comp.climb_rate'], opt=False)
 
         phase.add_parameter('S',
                             targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],

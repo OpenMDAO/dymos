@@ -14,6 +14,7 @@ from dymos.transcriptions.grid_data import GridData
 
 # Modify class so we can run it standalone.
 from dymos.utils.misc import CompWrapperConfig
+TimeComp = CompWrapperConfig(TimeComp)
 ControlInterpComp = CompWrapperConfig(ControlInterpComp)
 
 

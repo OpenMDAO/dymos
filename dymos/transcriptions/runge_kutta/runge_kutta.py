@@ -97,6 +97,7 @@ class RungeKutta(TranscriptionBase):
         super(RungeKutta, self).configure_time(phase)
 
         phase.time.configure_io()
+        phase.stepsize_comp.configure_io()
 
         options = phase.time_options
 
