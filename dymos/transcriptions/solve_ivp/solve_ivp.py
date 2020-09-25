@@ -1,6 +1,9 @@
+from fnmatch import filter
+
 import numpy as np
 
 import openmdao.api as om
+
 from ..transcription_base import TranscriptionBase
 from .components import SegmentSimulationComp, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
@@ -8,7 +11,6 @@ from ..common import TimeComp
 from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata, \
      _unspecified
 from ...utils.indexing import get_src_indices_by_row
-from fnmatch import filter
 
 
 class SolveIVP(TranscriptionBase):

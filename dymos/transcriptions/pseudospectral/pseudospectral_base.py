@@ -130,7 +130,6 @@ class PseudospectralBase(TranscriptionBase):
                     # If we have vectorized states of size n, then there are n design variables
                     # at each node.  For instance, with n=2, the desvar indices are [0, 1, 12, 13]
                     num_seg = grid_data.num_segments
-                    num_state_input_nodes_per_seg = grid_data.subset_num_nodes_per_segment['state_input']
                     # Get the desvar node indices
                     desvar_node_idxs = np.asarray(indep.state_idx_map[name]['indep'])
                     # In compressed transcription, the desvar indices are just the first

@@ -23,7 +23,11 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
 
         self._matrices = {}
 
-    def setup(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         self._input_names = {}
         self._output_val_names = {}
         self._output_rate_names = {}
@@ -43,11 +47,6 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
                        desc='duration of the phase to which this interpolated control group '
                             'belongs')
 
-    def configure_io(self):
-        """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
-        """
         gd = self.options['grid_data']
         num_nodes = gd.subset_num_nodes['all']
         eval_nodes = gd.node_ptau
