@@ -16,7 +16,7 @@ import os
 import sys
 
 
-def modify_problem(problem, restart=None, reset_grid=False, solultion_file='dymos_solution.db'):
+def modify_problem(problem, restart=None, reset_grid=False):
     """
     Modifies the problem object by loading in a guess from a specified restart file.
     Parameters
@@ -30,7 +30,7 @@ def modify_problem(problem, restart=None, reset_grid=False, solultion_file='dymo
     """
     # record variables to database when running driver under hook
     # pre-hook is important, because recording initialization is skipped if final_setup has run once
-    save_db = os.getcwd() + '/' + solultion_file
+    save_db = os.getcwd() + '/dymos_solution.db'
 
     try:
         os.remove(save_db)
@@ -76,7 +76,7 @@ def modify_problem(problem, restart=None, reset_grid=False, solultion_file='dymo
 
 
 def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_driver=True,
-                simulate=False, recorder_file='dymos_simulation.db', restart=None):
+                simulate=False, restart=None):
     """
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
     Phases.  This function can iteratively call run_driver to perform grid refinement, and automatically
@@ -109,7 +109,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
 
     if run_driver:
         problem.run_driver()
-        _refine_iter(problem, refine_iteration_limit, refine_method, recorder_file)
+        _refine_iter(problem, refine_iteration_limit, refine_method)
     else:
         problem.run_model()
         warnings.warn("Refinement not performed. Set run_driver to True to perform refinement.")
@@ -119,4 +119,4 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     if simulate:
         for subsys in problem.model.system_iter(include_self=True, recurse=True):
             if isinstance(subsys, Trajectory):
-                subsys.simulate(record_file=recorder_file)
+                subsys.simulate(record_file='dymos_simulation.db')

@@ -12,7 +12,7 @@ import numpy as np
 import sys
 
 
-def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', recorder_file='dymos_simulation.db'):
+def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp'):
     """
     This function performs grid refinement for a phases in which solve_segments is true.
 
