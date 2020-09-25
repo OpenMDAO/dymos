@@ -4,7 +4,7 @@ import numpy as np
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPSContinuityComp
-from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
+from ...utils.misc import get_rate_units, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 
@@ -348,17 +348,12 @@ class Radau(PseudospectralBase):
                     prom_name = f'parameters:{param_name}'
                     tgt_name = f'input_values:parameters:{param_name}'
 
-                    shape, units = get_target_metadata(phase.rhs_all, name=param_name,
-                                                       user_targets=options['targets'],
-                                                       user_shape=options['shape'],
-                                                       user_units=options['units'])
-
                     # Add output.
                     timeseries_comp = phase._get_subsystem(timeseries_name)
                     timeseries_comp._add_output_configure(prom_name,
                                                           desc='',
-                                                          shape=shape,
-                                                          units=units)
+                                                          shape=options['shape'],
+                                                          units=options['units'])
 
                     src_idxs_raw = np.zeros(gd.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
