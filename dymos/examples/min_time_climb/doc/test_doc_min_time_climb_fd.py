@@ -20,6 +20,9 @@ def _view_coloring(coloring_file, show_sparsity_text=False, show_sparsity=True,
 
     if show_sparsity:
         coloring.display()
+        fig = plt.gcf()
+        fig.set_size_inches(5.5, 5.5)
+        fig.tight_layout()
 
     if subjac_sparsity:
         print("\nSubjacobian sparsity:")
