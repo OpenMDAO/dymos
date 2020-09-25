@@ -72,7 +72,11 @@ class SegmentSimulationComp(om.ExplicitComponent):
 
         self.recording_options['options_excludes'] = ['ode_integration_interface']
 
-    def setup(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         idx = self.options['index']
         gd = self.options['grid_data']
 

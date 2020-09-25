@@ -159,7 +159,7 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
                      desc='The default value of the control variable at the '
                           'control discretization nodes.')
 
-        self.declare(name='shape', types=Iterable, default=(1,),
+        self.declare(name='shape', types=Iterable, allow_none=True, default=None,
                      desc='The shape of the control variable at each point in time.')
 
         self.declare(name='lower', types=(Iterable, Number), default=None,

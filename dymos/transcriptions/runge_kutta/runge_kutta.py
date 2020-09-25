@@ -94,6 +94,10 @@ class RungeKutta(TranscriptionBase):
                             promotes_outputs=['h'])
 
     def configure_time(self, phase):
+        super(RungeKutta, self).configure_time(phase)
+
+        phase.time.configure_io()
+
         options = phase.time_options
 
         # The tuples here are (name, user_specified_targets, dynamic)
@@ -391,6 +395,7 @@ class RungeKutta(TranscriptionBase):
         super(RungeKutta, self).setup_polynomial_controls(phase)
 
     def configure_polynomial_controls(self, phase):
+        super(RungeKutta, self).configure_polynomial_controls(phase)
         grid_data = self.grid_data
 
         for name, options in phase.polynomial_control_options.items():

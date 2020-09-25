@@ -31,6 +31,10 @@ class PseudospectralBase(TranscriptionBase):
 
         phase.add_subsystem('time', time_comp, promotes_inputs=['*'], promotes_outputs=['*'])
 
+    def configure_time(self, phase):
+        super(PseudospectralBase, self).configure_time(phase)
+        phase.time.configure_io()
+
     def setup_states(self, phase):
         """
         Add an IndepVarComp for the states and setup the states as design variables.
@@ -252,12 +256,12 @@ class PseudospectralBase(TranscriptionBase):
                                             state_options=phase.state_options,
                                             time_units=time_units))
 
-        phase.connect('dt_dstau', ('collocation_constraint.dt_dstau'),
-                      src_indices=grid_data.subset_node_indices['col'])
-
     def configure_defects(self, phase):
         grid_data = self.grid_data
         num_seg = grid_data.num_segments
+
+        phase.connect('dt_dstau', ('collocation_constraint.dt_dstau'),
+                      src_indices=grid_data.subset_node_indices['col'])
 
         phase.collocation_constraint.configure_io()
 

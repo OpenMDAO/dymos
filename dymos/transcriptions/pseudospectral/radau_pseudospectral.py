@@ -34,6 +34,7 @@ class Radau(PseudospectralBase):
         super(Radau, self).setup_time(phase)
 
     def configure_time(self, phase):
+        super(Radau, self).configure_time(phase)
         options = phase.time_options
 
         # The tuples here are (name, user_specified_targets, dynamic)

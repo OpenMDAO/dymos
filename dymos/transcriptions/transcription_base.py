@@ -54,42 +54,42 @@ class TranscriptionBase(object):
     def setup_time(self, phase):
         """
         Setup up the time component and time extents for the phase.
-
-        Returns
-        -------
-        comps
-            A list of the component names needed for time extents.
         """
         time_options = phase.time_options
-        time_units = time_options['units']
-
-        indeps = []
-        default_vals = {'t_initial': phase.time_options['initial_val'],
-                        't_duration': phase.time_options['duration_val']}
-        externals = []
-        comps = []
 
         # Warn about invalid options
         phase.check_time_options()
 
-        if time_options['input_initial']:
-            externals.append('t_initial')
-        else:
+        if not time_options['input_initial'] or not time_options['input_duration']:
+            phase.add_subsystem('time_extents', om.IndepVarComp(),
+                                promotes_outputs=['*'])
+
+    def configure_time(self, phase):
+        time_options = phase.time_options
+
+        # Determine the time unit.
+        if time_options['units'] in (None, _unspecified):
+            if time_options['targets']:
+                ode = phase._get_subsystem(self._rhs_source)
+
+                _, time_options['units'] = get_target_metadata(ode, name=name,
+                                                               user_targets=time_options['targets'],
+                                                               user_units=time_options['units'],
+                                                               user_shape='')
+
+        time_units = time_options['units']
+        indeps = []
+        default_vals = {'t_initial': phase.time_options['initial_val'],
+                        't_duration': phase.time_options['duration_val']}
+
+        if not time_options['input_initial']:
             indeps.append('t_initial')
 
-        if time_options['input_duration']:
-            externals.append('t_duration')
-        else:
+        if not time_options['input_duration']:
             indeps.append('t_duration')
 
-        if indeps:
-            indep = om.IndepVarComp()
-
-            for var in indeps:
-                indep.add_output(var, val=default_vals[var], units=time_units)
-
-            phase.add_subsystem('time_extents', indep, promotes_outputs=['*'])
-            comps += ['time_extents']
+        for var in indeps:
+            phase.time_extents.add_output(var, val=default_vals[var], units=time_units)
 
         if not (time_options['input_initial'] or time_options['fix_initial']):
             lb, ub = time_options['initial_bounds']
@@ -173,7 +173,29 @@ class TranscriptionBase(object):
                                 promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_polynomial_controls(self, phase):
-        pass
+        ode = phase._get_subsystem(self._rhs_source)
+
+        # Interrogate shapes and units.
+        for name, options in phase.polynomial_control_options.items():
+
+            full_shape, units = get_target_metadata(ode, name=name,
+                                                    user_targets=options['targets'],
+                                                    user_units=options['units'],
+                                                    user_shape=options['shape'],
+                                                    control_rate=True)
+
+            if options['units'] is None:
+                options['units'] = units
+
+            # Determine and store the pre-discretized state shape for use by other components.
+            if len(full_shape) < 2:
+                if options['shape'] in (_unspecified, None):
+                    options['shape'] = (1, )
+            else:
+                options['shape'] = full_shape[1:]
+
+        if phase.polynomial_control_options:
+            phase.polynomial_control_group.configure_io()
 
     def setup_parameters(self, phase):
         """

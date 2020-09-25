@@ -288,3 +288,27 @@ def CompWrapperConfig(comp_class):
             self.configure_io()
 
     return WrappedClass
+
+
+# Modify class so we can run it standalone.
+def GroupWrapperConfig(comp_class):
+    """
+    Returns a wrapped group_class that calls its configure_io method at the end of setup.
+
+    This allows for standalone testing of Dymos components that normally require their parent group
+    to configure them.
+
+    Parameters
+    ----------
+    comp_class : Component class
+       Class that we would like to wrap.
+    """
+    class WrappedClass(comp_class):
+
+        def setup(self):
+            super(WrappedClass, self).setup()
+
+        def configure(self):
+            self.configure_io()
+
+    return WrappedClass

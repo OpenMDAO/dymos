@@ -21,7 +21,11 @@ class TimeComp(om.ExplicitComponent):
         self.options.declare('units', default=None, allow_none=True, types=str,
                              desc='Units of time (or the integration variable)')
 
-    def setup(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         time_units = self.options['units']
         num_nodes = self.options['num_nodes']
 

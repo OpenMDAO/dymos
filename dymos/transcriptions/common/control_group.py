@@ -54,7 +54,7 @@ class ControlInterpComp(om.ExplicitComponent):
         self._output_rate_names = {}
         self._output_rate2_names = {}
 
-    def _setup_controls(self):
+    def _configure_controls(self):
         control_options = self.options['control_options']
         num_nodes = self.options['grid_data'].num_nodes
         num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
@@ -125,7 +125,11 @@ class ControlInterpComp(om.ExplicitComponent):
                                   wrt=self._input_names[name],
                                   rows=rs, cols=cs)
 
-    def setup(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         num_nodes = self.options['grid_data'].num_nodes
         time_units = self.options['time_units']
         gd = self.options['grid_data']
@@ -159,12 +163,7 @@ class ControlInterpComp(om.ExplicitComponent):
         # Matrix D2 provides second derivatives at all nodes given values at input nodes.
         self.D2 = D_da.dot(D_dd.dot(L_id))
 
-    def configure_io(self):
-        """
-        I/O creation is delayed until configure so that we can determine the shape and units for
-        the states.
-        """
-        self._setup_controls()
+        self._configure_controls()
 
         self.set_check_partial_options('*', method='cs')
 
