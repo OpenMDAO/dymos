@@ -102,7 +102,7 @@ class TestVanderpolForDocs(unittest.TestCase):
 
         # Enable grid refinement and find optimal control solution to stop oscillation
         p.model.traj.phases.phase0.set_refine_options(refine=True)
-        dm.run_problem(p, refine=True, refine_iteration_limit=10)
+        dm.run_problem(p, refine_iteration_limit=10)
 
         # check validity by using scipy.integrate.solve_ivp to integrate the solution
         exp_out = p.model.traj.simulate()
