@@ -462,7 +462,7 @@ class GaussLobatto(PseudospectralBase):
                     timeseries_comp._add_output_configure(prom_name,
                                                           desc='',
                                                           shape=options['shape'],
-                                                          units=options['units'] )
+                                                          units=options['units'])
 
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
