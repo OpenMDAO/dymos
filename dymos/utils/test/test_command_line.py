@@ -118,7 +118,7 @@ class TestCommandLine(unittest.TestCase):
         # run problem again loading the output simulation database, but not solving
         print('test_vanderpol_simulation_restart second run')
         # TODO: need this to match test_modify_problem:test_modify_problem?   q.driver.opt_settings['maxiter'] = 0
-        with patch.object(sys, 'argv', self.base_args + ['--solution=dymos_simulation.db'] + ['--no_iterate']):
+        with patch.object(sys, 'argv', self.base_args + ['--solution=dymos_simulation.db']):
             q = command_line.dymos_cmd()
 
         #  The solution should look like the explicit time history for the states and controls.

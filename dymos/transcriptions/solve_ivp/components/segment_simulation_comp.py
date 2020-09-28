@@ -238,7 +238,7 @@ class SegmentSimulationComp(om.ExplicitComponent):
                         t_eval=t_eval)
 
         if not sol.success:
-            raise om.AnalysisError(f'simulation of {self.pathname} failed: {sol.message}')
+            raise om.AnalysisError(f'solve_ivp failed: {sol.message}')
 
         # Extract the solution
         pos = 0
