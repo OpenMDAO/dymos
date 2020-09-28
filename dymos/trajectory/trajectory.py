@@ -86,7 +86,7 @@ class Trajectory(om.Group):
             the relevant phase names as keys, each associated with the respective controllable
             parameter as a value.
         custom_targets : dict or None
-            By default, the input parameter will be connect to the parameter/targets of the given
+            By default, the parameter will be connect to the parameter/targets of the given
             name in each phase.  This argument can be used to override that behavior on a phase
             by phase basis.
         units : str or None or 0
@@ -197,7 +197,8 @@ class Trajectory(om.Group):
             "Dymos 1.0.0. Please use add_parameter or set_parameter_options to remove this " + \
             "deprecation warning."
         warn_deprecation(msg)
-        self.add_parameter(name, units, val, desc, targets, custom_targets, shape, dynamic)
+        self.add_parameter(name, units, val=val, desc=desc, targets=targets, shape=shape,
+                           dynamic=dynamic)
 
     def add_design_parameter(self, name, units, val=_unspecified, desc=_unspecified, opt=_unspecified,
                              targets=_unspecified, custom_targets=_unspecified,
@@ -263,7 +264,7 @@ class Trajectory(om.Group):
         """
         if self.parameter_options:
             for name, options in self.parameter_options.items():
-                src_name = 'parameters:{0}'.format(name)
+                src_name = f'parameters:{name}'
 
                 if options['opt']:
                     lb = -INF_BOUND if options['lower'] is None else options['lower']
@@ -276,14 +277,6 @@ class Trajectory(om.Group):
                                         adder=options['adder'],
                                         ref0=options['ref0'],
                                         ref=options['ref'])
-
-                val = options['val']
-                _shape = (1,) + options['shape']
-                shaped_val = np.broadcast_to(val, _shape)
-
-                self.set_input_defaults(name=src_name,
-                                        val=shaped_val,
-                                        units=options['units'])
 
                 tgts = options['targets']
 
@@ -387,9 +380,17 @@ class Trajectory(om.Group):
 
         for name, options in parameter_options.items():
             prom_name = f'parameters:{name}'
+            targets = options['targets']
+
+            val = options['val']
+            _shape = (1,) + options['shape']
+            shaped_val = np.broadcast_to(val, _shape)
+
+            self.set_input_defaults(name=prom_name,
+                                    val=shaped_val,
+                                    units=options['units'])
 
             for phase_name, phs in self._phases.items():
-                targets = options['targets']
 
                 if targets is None or phase_name not in targets:
                     # Attempt to connect to an input parameter of the same name in the phase, if
@@ -411,8 +412,8 @@ class Trajectory(om.Group):
                     # new input parameter in setup, just connect to that new input parameter
                     tgt = f'{phase_name}.parameters:{name}'
                 else:
-                    raise ValueError('Unhandled {0} parameter target in '
-                                     'phase {1}'.format(mode, phase_name))
+                    raise ValueError(f'Unhandled parameter target in '
+                                     f'phase {phase_name}')
 
                 self.promotes('phases', inputs=[(tgt, prom_name)])
 

@@ -26,6 +26,9 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
     elif param_mode == 'param_sequence_missing_phase':
         traj.add_parameter('c', opt=False, val=1.5, units='DU/TU',
                            targets={'burn1': ['c'], 'burn2': ['c']})
+    elif param_mode == 'param_sequence_missing_phase_deprecated':
+        traj.add_input_parameter('c', val=1.5, units='DU/TU',
+                                 targets={'burn1': ['c'], 'burn2': ['c']})
     elif param_mode == 'param_no_targets':
         traj.add_parameter('c', val=1.5, units='DU/TU')
 
@@ -317,6 +320,22 @@ class TestTrajectoryParameters(unittest.TestCase):
             assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
 
+    def test_input_parameter_deprecated(self):
+        """
+        Make sure the old deprecated command works.
+        """
+
+        optimizer = 'IPOPT'
+
+        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                         compressed=False, optimizer=optimizer,
+                                         show_output=False,
+                                         param_mode='param_sequence_missing_phase_deprecated')
+
+        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
+            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+                              tolerance=2.0E-3)
+
     def test_param_no_targets(self):
         """
         Test that, when setting up a trajectory parameter with a phase omitted from input,
@@ -333,3 +352,7 @@ class TestTrajectoryParameters(unittest.TestCase):
         if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
             assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
+
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()
