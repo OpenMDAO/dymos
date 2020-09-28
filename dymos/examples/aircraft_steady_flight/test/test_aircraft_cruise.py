@@ -162,7 +162,7 @@ class TestAircraftCruise(unittest.TestCase):
 
         phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], opt=False)
 
-        phase.add_control('climb_rate', targets=['gam_comp.climb_rate'], opt=False)
+        phase.add_control('climb_rate', targets=['gam_comp.climb_rate'], units='m/s', opt=False)
 
         phase.add_parameter('S',
                             targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
