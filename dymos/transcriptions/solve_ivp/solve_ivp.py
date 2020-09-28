@@ -23,6 +23,7 @@ class SolveIVP(TranscriptionBase):
     def __init__(self, grid_data=None, **kwargs):
         super(SolveIVP, self).__init__(**kwargs)
         self.grid_data = grid_data
+        self._rhs_source = 'ode'
 
     def initialize(self):
         super(SolveIVP, self).initialize()
@@ -296,6 +297,8 @@ class SolveIVP(TranscriptionBase):
                                                user_targets=options['targets'],
                                                user_shape=options['shape'],
                                                user_units=options['units'])
+            options['units'] = units
+            options['shape'] = shape
 
             for i in range(gd.num_segments):
                 seg_comp = segs._get_subsystem(f'segment_{i}')
@@ -450,11 +453,6 @@ class SolveIVP(TranscriptionBase):
         for name, options in phase.parameter_options.items():
             prom_name = f'parameters:{name}'
 
-            shape, units = get_target_metadata(phase.ode, name=name,
-                                               user_targets=options['targets'],
-                                               user_shape=options['shape'],
-                                               user_units=options['units'])
-
             for iseg in range(num_seg):
                 target_name = f'segment_{iseg}.parameters:{name}'
                 phase.promotes('segments', inputs=[(target_name, prom_name)])
@@ -462,8 +460,8 @@ class SolveIVP(TranscriptionBase):
             if options['include_timeseries']:
                 phase.timeseries._add_output_configure(prom_name,
                                                        desc='',
-                                                       shape=shape,
-                                                       units=units)
+                                                       shape=options['shape'],
+                                                       units=options['units'])
 
                 if output_nodes_per_seg is None:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
