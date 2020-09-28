@@ -57,7 +57,7 @@ class TestVanderpolExample(unittest.TestCase):
         p = vanderpol(transcription='gauss-lobatto', num_segments=15)
 
         p.model.traj.phases.phase0.set_refine_options(refine=True)
-        dm.run_problem(p, refine=True, refine_iteration_limit=10)  # enable grid refinement and find optimal solution
+        dm.run_problem(p, refine_iteration_limit=10)  # enable grid refinement and find optimal solution
 
         if SHOW_PLOTS:
             vanderpol_dymos_plots(p)

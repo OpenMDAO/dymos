@@ -1,6 +1,9 @@
+import warnings
+
 from .grid_refinement.ph_adaptive.ph_adaptive import PHAdaptive
 from .grid_refinement.hp_adaptive.hp_adaptive import HPAdaptive
 from .grid_refinement.write_iteration import write_error, write_refine_iter
+from .grid_refinement.refinement import _refine_iter
 from .phase.phase import Phase
 
 import openmdao.api as om
@@ -72,8 +75,8 @@ def modify_problem(problem, restart=None, reset_grid=False):
             load_case(problem, case)
 
 
-def run_problem(problem, refine=False, refine_method='hp', refine_iteration_limit=10, run_driver=True,
-                simulate=False, no_iterate=False):
+def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_driver=True,
+                simulate=False, restart=None):
     """
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
     Phases.  This function can iteratively call run_driver to perform grid refinement, and automatically
@@ -97,57 +100,21 @@ def run_problem(problem, refine=False, refine_method='hp', refine_iteration_limi
         has been run and grid refinement is complete.
     """
     problem.final_setup()  # make sure command line option hook has a chance to run
-    refinement_methods = {'hp': HPAdaptive, 'ph': PHAdaptive}
+
+    if restart is not None:
+        cr = om.CaseReader(restart)
+        system_cases = cr.list_cases('root')
+        case = cr.get_case(system_cases[-1])
+        load_case(problem, case)
 
     if run_driver:
-        if no_iterate:
-            problem.driver.opt_settings['maxiter'] = 0
         problem.run_driver()
+        _refine_iter(problem, refine_iteration_limit, refine_method)
     else:
         problem.run_model()
+        warnings.warn("Refinement not performed. Set run_driver to True to perform refinement.")
 
     problem.record('final')  # save case for potential restart
-
-    if refine and refine_iteration_limit > 0 and run_driver:
-        out_file = 'grid_refinement.out'
-
-        phases = find_phases(problem.model)
-
-        ref = refinement_methods[refine_method](phases)
-        with open(out_file, 'w+') as f:
-
-            for i in range(refine_iteration_limit):
-                refine_results = check_error(phases)
-
-                refined_phases = [phase_path for phase_path in refine_results if
-                                  phases[phase_path].refine_options['refine'] and
-                                  np.any(refine_results[phase_path]['need_refinement'])]
-
-                for stream in f, sys.stdout:
-                    write_error(stream, i, phases, refine_results)
-
-                if not refined_phases:
-                    break
-
-                ref.refine(refine_results, i)
-
-                for stream in f, sys.stdout:
-                    write_refine_iter(stream, i, phases, refine_results)
-
-                prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
-                             'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
-
-                problem.setup()
-
-                load_case(problem, prev_soln)
-
-                problem.run_driver()
-            for stream in [f, sys.stdout]:
-                if i == refine_iteration_limit-1:
-                    print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
-                else:
-                    print('Successfully completed grid refinement.', file=stream)
-            print(50 * '=')
 
     if simulate:
         for subsys in problem.model.system_iter(include_self=True, recurse=True):

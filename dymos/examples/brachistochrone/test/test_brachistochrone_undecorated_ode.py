@@ -94,9 +94,9 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
 
-        phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot', units='m')
-        phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot', units='m')
-        phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s')
+        phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot')
+        phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot')
+        phase.add_state('v', fix_initial=True, rate_source='vdot')
 
         phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
 
@@ -141,9 +141,9 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
 
-        phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot', units='m')
-        phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot', units='m')
-        phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s')
+        phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot')
+        phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot')
+        phase.add_state('v', fix_initial=True, rate_source='vdot')
 
         phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
 
@@ -188,9 +188,9 @@ class TestBrachistochroneUndecoratedODE(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
 
-        phase.add_state('x', fix_initial=True, rate_source='xdot', units='m')
-        phase.add_state('y', fix_initial=True, rate_source='ydot', units='m')
-        phase.add_state('v', fix_initial=True, rate_source='vdot', targets=['v'], units='m/s')
+        phase.add_state('x', fix_initial=True, rate_source='xdot')
+        phase.add_state('y', fix_initial=True, rate_source='ydot')
+        phase.add_state('v', fix_initial=True, rate_source='vdot', targets=['v'])
 
         phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9, targets=['theta'])
 
@@ -234,10 +234,9 @@ class TestBrachistochroneBasePhaseClass(unittest.TestCase):
 
                 self.options['ode_class'] = BrachistochroneODE
                 self.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
-                self.add_state('x', fix_initial=True, rate_source='xdot', units='m')
-                self.add_state('y', fix_initial=True, rate_source='ydot', units='m')
-                self.add_state('v', fix_initial=True, rate_source='vdot', targets=['v'],
-                               units='m/s')
+                self.add_state('x', fix_initial=True, rate_source='xdot')
+                self.add_state('y', fix_initial=True, rate_source='ydot')
+                self.add_state('v', fix_initial=True, rate_source='vdot', targets=['v'])
                 self.add_control('theta', units='deg', rate_continuity=False,
                                  lower=0.01, upper=179.9, targets=['theta'])
                 self.add_parameter('g', units='m/s**2', opt=False, val=9.80665,

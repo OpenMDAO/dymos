@@ -24,9 +24,10 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
         self.options.declare('num_segments', types=int,
                              desc='The number of segments (timesteps) in the phase.')
 
-    def setup(self):
+    def configure_io(self):
         """
-        Define the independent variables, output variables, and partials.
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
         """
         num_seg = self.options['num_segments']
         state_options = self.options['state_options']

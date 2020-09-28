@@ -46,13 +46,10 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
         phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        units=BrachistochroneODE.states['x']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
         phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        units=BrachistochroneODE.states['y']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
@@ -112,15 +109,15 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
 
     def test_refine_brachistochrone_rungekutta_compressed(self):
         p = self.make_problem(transcription='runge-kutta', num_segments=10, transcription_order=3)
-        dm.run_problem(p, refine=True)
+        dm.run_problem(p)
         self.run_asserts(self.p)
 
     def test_refine_brachistochrone_radau_compressed(self):
         p = self.make_problem(transcription='radau-ps', num_segments=5, transcription_order=3, compressed=True)
-        dm.run_problem(p, refine=True)
+        dm.run_problem(p)
         self.run_asserts(self.p)
 
     def test_refine_brachistochrone_gauss_lobatto_compressed(self):
         p = self.make_problem(transcription='gauss-lobatto', num_segments=5, transcription_order=3, compressed=True)
-        dm.run_problem(p, refine=True)
+        dm.run_problem(p)
         self.run_asserts(self.p)

@@ -2,7 +2,7 @@ import numpy as np
 
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
-from ..common import PathConstraintComp, GaussLobattoContinuityComp
+from ..common import GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
@@ -19,6 +19,10 @@ class GaussLobatto(PseudospectralBase):
     High-Order Gauss-Lobatto Quadrature Rules." Journal of Guidance, Control, and
     Dynamics 19.3 (1996): 592-599.
     """
+    def __init__(self, **kwargs):
+        super(GaussLobatto, self).__init__(**kwargs)
+        self._rhs_source = 'rhs_disc'
+
     def init_grid(self):
         self.grid_data = GridData(num_segments=self.options['num_segments'],
                                   transcription='gauss-lobatto',
@@ -258,6 +262,12 @@ class GaussLobatto(PseudospectralBase):
                                 promotes_inputs=['t_duration'])
 
     def configure_defects(self, phase):
+        super(GaussLobatto, self).configure_defects(phase)
+
+        grid_data = self.grid_data
+        if grid_data.num_segments > 1:
+            phase.continuity_comp.configure_io()
+
         for name, options in phase.state_options.items():
             phase.connect('state_interp.staterate_col:{0}'.format(name),
                           'collocation_constraint.f_approx:{0}'.format(name))

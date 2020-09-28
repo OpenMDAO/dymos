@@ -27,7 +27,11 @@ class CollocationComp(om.ExplicitComponent):
             'time_units', default=None, allow_none=True, types=str,
             desc='Units of time')
 
-    def setup(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         gd = self.options['grid_data']
         num_col_nodes = gd.subset_num_nodes['col']
         time_units = self.options['time_units']

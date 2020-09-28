@@ -62,24 +62,26 @@ class RungeKuttaStateContinuityIterGroup(om.Group):
         self.add_subsystem('state_advance_comp',
                            RungeKuttaStateAdvanceComp(num_segments=self.options['num_segments'],
                                                       method=self.options['method'],
-                                                      state_options=self.options['state_options']),
-                           promotes_inputs=['initial_states_per_seg:*'],
-                           promotes_outputs=['state_integrals:*', 'final_states:*'])
-
-        num_connected = len([state for state in self.options['state_options'] if
-                             self.options['state_options'][state]['connected_initial']])
-        if num_connected > 0:
-            promoted_inputs = ['state_integrals:*', 'initial_states:*']
-        else:
-            promoted_inputs = ['state_integrals:*']
+                                                      state_options=self.options['state_options']))
 
         self.add_subsystem('continuity_comp',
                            RungeKuttaStateContinuityComp(
                                num_segments=self.options['num_segments'],
-                               state_options=self.options['state_options']),
-                           promotes_inputs=promoted_inputs,
-                           promotes_outputs=['states:*'])
+                               state_options=self.options['state_options']))
 
+        self.linear_solver = om.DirectSolver()
+
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
+        self.k_iter_group.configure_io()
+        self.state_advance_comp.configure_io()
+        self.continuity_comp.configure_io()
+
+        num_connected = len([state for state in self.options['state_options'] if
+                             self.options['state_options'][state]['connected_initial']])
         for state_name, options in self.options['state_options'].items():
             self.connect('k_comp.k:{0}'.format(state_name),
                          'state_advance_comp.k:{0}'.format(state_name))
@@ -89,4 +91,16 @@ class RungeKuttaStateContinuityIterGroup(om.Group):
                          'initial_states_per_seg:{0}'.format(state_name),
                          src_indices=src_idxs, flat_src_indices=True)
 
-        self.linear_solver = om.DirectSolver()
+            # Delayed promotes
+            self.promotes('state_advance_comp',
+                          inputs=[f'initial_states_per_seg:{state_name}'],
+                          outputs=[f'state_integrals:{state_name}', f'final_states:{state_name}'])
+
+            if num_connected > 0:
+                cc_promoted_inputs = [f'state_integrals:{state_name}', f'initial_states:{state_name}']
+            else:
+                cc_promoted_inputs = [f'state_integrals:{state_name}']
+
+            self.promotes('continuity_comp',
+                          inputs=cc_promoted_inputs,
+                          outputs=[f'states:{state_name}'])

@@ -25,6 +25,9 @@ class TestSegmentSimulationComp(unittest.TestCase):
         state_options['y']['targets'] = 'y'
         state_options['y']['rate_source'] = 'ydot'
 
+        # Non-standard way to assign state options, so we need this
+        state_options['y']['shape'] = (1, )
+
         gd = GridData(num_segments=4, transcription='gauss-lobatto', transcription_order=3)
 
         seg0_comp = SegmentSimulationComp(index=0, grid_data=gd, method='RK45',
@@ -44,3 +47,7 @@ class TestSegmentSimulationComp(unittest.TestCase):
         assert_near_equal(p.get_val('segment_0.states:y', units='m')[-1, ...],
                           1.425639364649936,
                           tolerance=1.0E-6)
+
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()
