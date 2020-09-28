@@ -36,7 +36,7 @@ class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
-                          lower=0.01, upper=179.9)
+                          units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', val=9.80665)
 
@@ -115,7 +115,7 @@ class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
-                          lower=0.01, upper=179.9)
+                          units='deg', lower=0.01, upper=179.9)
 
         phase.add_parameter('g', units='m/s**2', val=9.80665)
 
