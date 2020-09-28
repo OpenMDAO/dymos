@@ -68,7 +68,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
                     fix_initial=True, fix_final=fix_final,
                     lower=0.0, upper=60, ref=1e-3, defect_ref=1e-3)
 
-    phase.add_control('climb_rate', opt=True, lower=-3000, upper=3000,
+    phase.add_control('climb_rate', units='ft/min', opt=True, lower=-3000, upper=3000,
                       targets=['gam_comp.climb_rate'],
                       rate_continuity=True, rate2_continuity=False)
 
