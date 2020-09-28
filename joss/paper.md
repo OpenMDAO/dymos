@@ -50,8 +50,8 @@ For instance, the optimal trajectory of a launch vehicle may be required to asce
 Path constraints can be applied within each phase to bound some performance parameter within that phase.
 For example, reentry vehicles may need to shape their trajectory to limit aerodynamic heating.
 Phases also provide the ability to compose a trajectory of phases in which the dynamics may change from Phase to phase.
-A aircraft with vertical takeoff and landing capability, for instance, may use different sets of dynamics to define its flight while in vertical flight and horizontal flight.
-As another useful feature, dymos offers the ability to use variable order polynomial controls that are useful in forcing a lower-order control solution upon a phase of the trajectory.
+An aircraft with vertical takeoff and landing capability, for instance, may use different sets of dynamics to define its flight while in vertical flight and horizontal flight.
+As another useful feature, dymos offers the ability to use variable-order polynomial controls that are useful in forcing a lower-order control solution upon a phase of the trajectory.
 This can help to reduce "chatter" in controls and provide more robust convergence.
 
 Dymos is primarily focused on an implicit pseudospectral approach to optimal-control. 
