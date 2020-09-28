@@ -95,9 +95,9 @@ class TestMinTimeClimbSimulateFailure(unittest.TestCase):
 
         with self.assertRaises(om.AnalysisError) as e:
             dm.run_problem(p, run_driver=False, simulate=True)
-        self.assertEqual(str(e.exception), "simulation of traj.phases.phase0.segments.segment_2 "
-                                           "failed: Required step size is less than spacing "
-                                           "between numbers.")
+            self.assertEqual(str(e.exception), "simulation of traj.phases.phase0.segments.segment_2 "
+                                               "failed: Required step size is less than spacing "
+                                               "between numbers.")
 
 
 if __name__ == '__main__':  # pragma: no cover
