@@ -217,7 +217,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
         self.declare(name='name', types=str,
                      desc='The name of ODE system parameter to be set via parameter.')
 
-        self.declare(name='units', types=str, default=None,
+        self.declare(name='units', default=_unspecified,
                      allow_none=True, desc='The units in which the parameter is defined.')
 
         self.declare(name='desc', types=str, default='',
@@ -310,7 +310,7 @@ class StateOptionsDictionary(om.OptionsDictionary):
         self.declare(name='name', types=str,
                      desc='name of ODE state variable')
 
-        self.declare(name='units', types=str, default=None,
+        self.declare(name='units', default=_unspecified,
                      allow_none=True, desc='units in which the state variable is defined')
 
         self.declare(name='opt', types=bool, default=True,

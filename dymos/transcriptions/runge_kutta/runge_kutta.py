@@ -248,10 +248,11 @@ class RungeKutta(TranscriptionBase):
                                                     user_units=options['units'],
                                                     user_shape=options['shape'])
 
-            if options['units'] is None:
+            if options['units'] is _unspecified:
                 # Units are from the rate source and should be converted.
-                units = f'{units}*{time_units}'
-                options['units'] = units
+                if units is not None:
+                    units = f'{units}*{time_units}'
+            options['units'] = units
 
             # Determine and store the pre-discretized state shape for use by other components.
             if len(full_shape) < 2:
@@ -826,14 +827,9 @@ class RungeKutta(TranscriptionBase):
                     prom_name = 'parameters:{0}'.format(param_name)
                     tgt_name = 'input_values:parameters:{0}'.format(param_name)
 
-                    shape, units = get_target_metadata(phase.ode, name=param_name,
-                                                       user_targets=options['targets'],
-                                                       user_shape=options['shape'],
-                                                       user_units=options['units'])
-
                     timeseries_comp._add_output_configure(f'parameters:{param_name}',
-                                                          shape=shape,
-                                                          units=units,
+                                                          shape=options['shape'],
+                                                          units=options['units'],
                                                           desc='')
 
                     phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],

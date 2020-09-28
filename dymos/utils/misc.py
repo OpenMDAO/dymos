@@ -146,7 +146,7 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
     else:
         targets = []
 
-    if user_units in {None, _unspecified}:
+    if user_units is _unspecified:
         target_units_set = {ode_inputs[tgt]['units'] for tgt in targets}
         if len(target_units_set) == 1:
             units = next(iter(target_units_set))
