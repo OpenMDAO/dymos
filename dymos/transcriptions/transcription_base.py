@@ -144,8 +144,7 @@ class TranscriptionBase(object):
                                                     user_shape=options['shape'],
                                                     control_rate=True)
 
-            if options['units'] is None:
-                options['units'] = units
+            options['units'] = units
 
             # Determine and store the pre-discretized state shape for use by other components.
             if len(full_shape) < 2:
@@ -184,8 +183,7 @@ class TranscriptionBase(object):
                                                     user_shape=options['shape'],
                                                     control_rate=True)
 
-            if options['units'] is None:
-                options['units'] = units
+            options['units'] = units
 
             # Determine and store the pre-discretized state shape for use by other components.
             if len(full_shape) < 2:
