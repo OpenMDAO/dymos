@@ -83,14 +83,14 @@ class TestRobotArm(unittest.TestCase):
 
     def test_robot_arm_radau(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT', numseg=12)
-        dm.run_problem(p, refine=True, refine_iteration_limit=5)
+        dm.run_problem(p, refine_iteration_limit=5)
 
         t = p.get_val('traj.phase.timeseries.time')
         assert_near_equal(t[-1], 9.14138, tolerance=1e-3)
 
     def test_robot_arm_gl(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT', numseg=12)
-        dm.run_problem(p, refine=True, refine_iteration_limit=3)
+        dm.run_problem(p, refine_iteration_limit=3)
 
         t = p.get_val('traj.phase.timeseries.time')
 

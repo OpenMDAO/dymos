@@ -54,8 +54,6 @@ def dymos_cmd(argv=None):
                         help='If given, perform simulation after solving the problem.')
     parser.add_argument('-n', '--no_solve', action='store_true',
                         help='If given, do not run the driver on the problem (simulate only)')
-    parser.add_argument('-i', '--no_iterate', action='store_true',
-                        help='If given, do not iterate the driver on the problem)')
     parser.add_argument('-t', '--solution', default=None,
                         help='A previous solution record file (or explicit simulation record file)'
                              ' from which the initial guess should be loaded. (default: None)')
@@ -77,7 +75,6 @@ def dymos_cmd(argv=None):
         'restart': args.solution,
         'simulate': args.simulate,
         'no_solve': args.no_solve,
-        'no_iterate': args.no_iterate,
         'reset_grid': args.reset_grid
     }
 
@@ -110,8 +107,8 @@ def dymos_cmd(argv=None):
             self._post_hooks_enabled = False
 
             refine_iterations = opts.get('refine_iteration_limit')
-            run_problem(prob, refine_iterations > 0, refine_iteration_limit=refine_iterations,
-                        run_driver=not opts['no_solve'], simulate=opts['simulate'], no_iterate=opts['no_iterate'])
+            run_problem(prob, refine_iteration_limit=refine_iterations,
+                        run_driver=not opts['no_solve'], simulate=opts['simulate'])
 
     dymos_hooks = DymosHooks()
 
