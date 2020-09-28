@@ -91,10 +91,11 @@ class PseudospectralBase(TranscriptionBase):
                                                     user_units=options['units'],
                                                     user_shape=options['shape'])
 
-            if options['units'] is None:
+            if options['units'] is _unspecified:
                 # Units are from the rate source and should be converted.
-                units = f'{units}*{time_units}'
-                options['units'] = units
+                if units is not None:
+                    units = f'{units}*{time_units}'
+            options['units'] = units
 
             # Determine and store the pre-discretized state shape for use by other components.
             if len(full_shape) < 2:

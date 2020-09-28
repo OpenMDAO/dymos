@@ -84,7 +84,6 @@ def min_time_climb(num_seg=3, transcription_order=3, force_alloc_complex=False):
 
 @use_tempdirs
 class TestMinTimeClimbSimulateFailure(unittest.TestCase):
-
     def test_simulate_raises_analysis_error(self):
         """
         Test that simulation of a naive alpha guess for the min time climb results in an
@@ -94,10 +93,9 @@ class TestMinTimeClimbSimulateFailure(unittest.TestCase):
 
         with self.assertRaises(om.AnalysisError) as e:
             dm.run_problem(p, run_driver=False, simulate=True)
-        self.assertEqual(str(e.exception), "SegmentSimulationComp (traj.phases.phase0.segments."
-                                           "segment_2): Error calling compute(), solve_ivp failed: "
-                                           "Required step size is less than spacing "
-                                           "between numbers.")
+        expected = 'SegmentSimulationComp (traj.phases.phase0.segments.segment_2): Error calling compute(),' \
+                   ' solve_ivp failed: Required step size is less than spacing between numbers.'
+        self.assertEqual(str(e.exception), expected)
 
 
 if __name__ == '__main__':  # pragma: no cover
