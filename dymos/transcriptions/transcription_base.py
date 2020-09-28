@@ -6,7 +6,7 @@ import openmdao.api as om
 
 from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
 from ..utils.constants import INF_BOUND
-from ..utils.misc import get_rate_units
+from ..utils.misc import get_rate_units, get_target_metadata
 
 
 class TranscriptionBase(object):
@@ -173,17 +173,21 @@ class TranscriptionBase(object):
                                          ref0=options['ref0'],
                                          ref=options['ref'])
 
-                val = options['val']
-                _shape = (1,) + options['shape']
-                shaped_val = np.broadcast_to(val, _shape)
-
-                phase.set_input_defaults(name=src_name,
-                                         val=shaped_val,
-                                         units=options['units'])
-
     def configure_parameters(self, phase):
         if phase.parameter_options:
+            ode = phase._get_subsystem(self._rhs_source)
+
             for name, options in phase.parameter_options.items():
+                src_name = 'parameters:{0}'.format(name)
+
+                # Get units and shape from targets when needed.
+                shape, units = get_target_metadata(ode, name=name,
+                                                   user_targets=options['targets'],
+                                                   user_shape=options['shape'],
+                                                   user_units=options['units'])
+                options['units'] = units
+                options['shape'] = shape
+
                 prom_name = 'parameters:{0}'.format(name)
                 for tgts, src_idxs in self.get_parameter_connections(name, phase):
                     for pathname in tgts:
@@ -192,6 +196,13 @@ class TranscriptionBase(object):
                         tgt_var = '.'.join(parts[1:])
                         phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
                                        src_indices=src_idxs, flat_src_indices=True)
+
+                val = options['val']
+                _shape = (1,) + options['shape']
+                shaped_val = np.broadcast_to(val, _shape)
+                phase.set_input_defaults(name=src_name,
+                                         val=shaped_val,
+                                         units=options['units'])
 
     def setup_states(self, phase):
         raise NotImplementedError('Transcription {0} does not implement method '
