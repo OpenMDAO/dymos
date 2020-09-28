@@ -169,7 +169,7 @@ p.model.add_subsystem('traj', subsys=traj)
 
 # Define a Dymos Phase object with GaussLobatto Transcription
 phase = dm.Phase(ode_class=BrachistochroneEOM,
-                 transcription=dm.Radau(num_segments=10, order=3))
+                 transcription=dm.GaussLobatto(num_segments=10, order=3))
 traj.add_phase(name='phase0', phase=phase)
 
 # Set the time options
@@ -229,42 +229,9 @@ p.run_driver()
 # Check the validity of our results by using
 # scipy.integrate.solve_ivp to integrate the solution.
 sim_out = traj.simulate()
-
-# Plot the results
-fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 4.5))
-
-axes[0].plot(p.get_val('traj.phase0.timeseries.states:x'),
-             p.get_val('traj.phase0.timeseries.states:y'),
-             'ro', label='solution')
-
-axes[0].plot(sim_out.get_val('traj.phase0.timeseries.states:x'),
-             sim_out.get_val('traj.phase0.timeseries.states:y'),
-             'b-', label='simulation')
-
-axes[0].set_xlabel('x (m)')
-axes[0].set_ylabel('y (m/s)')
-axes[0].legend()
-axes[0].grid()
-
-axes[1].plot(p.get_val('traj.phase0.timeseries.time'),
-             p.get_val('traj.phase0.timeseries.controls:theta',
-                       units='deg'),
-             'ro', label='solution')
-
-axes[1].plot(sim_out.get_val('traj.phase0.timeseries.time'),
-             sim_out.get_val('traj.phase0.timeseries.controls:theta',
-                             units='deg'),
-             'b-', label='simulation')
-
-axes[1].set_xlabel('time (s)')
-axes[1].set_ylabel(r'$\theta$ (deg)')
-axes[1].legend()
-axes[1].grid()
-
-plt.show()
 ```
 
-The resulting plots of the state and control histories are:
+Plotting the resulting state and controls gives the following:
 
 ![Brachistochrone Solution](brach_plots.png)
 

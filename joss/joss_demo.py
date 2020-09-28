@@ -65,7 +65,7 @@ p = om.Problem(model=om.Group())
 traj = dm.Trajectory()
 p.model.add_subsystem('traj', subsys=traj)
 
-# Define a Dymos Phase object with GaussLobatto Transcription
+# Define a Dymos Phase object with Radau Transcription
 phase = dm.Phase(ode_class=BrachistochroneEOM,
                  transcription=dm.Radau(num_segments=10, order=3))
 traj.add_phase(name='phase0', phase=phase)
