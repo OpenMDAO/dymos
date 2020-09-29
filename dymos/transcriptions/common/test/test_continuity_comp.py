@@ -73,6 +73,11 @@ class TestContinuityComp(unittest.TestCase):
 
         control_options['v']['units'] = 'N'
 
+        # Need these for later in the test.
+        state_options['x']['shape'] = (1, )
+        state_options['y']['shape'] = (1, )
+        control_options['v']['shape'] = (1, )
+
         if transcription == 'gauss-lobatto':
             cnty_comp = GaussLobattoContinuityComp(grid_data=gd, time_units='s',
                                                    state_options=state_options,

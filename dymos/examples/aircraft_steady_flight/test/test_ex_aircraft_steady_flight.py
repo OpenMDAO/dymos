@@ -72,7 +72,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
                       targets=['gam_comp.climb_rate'],
                       rate_continuity=True, rate2_continuity=False)
 
-    phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
+    phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], opt=False)
 
     phase.add_parameter('S',
                         targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
