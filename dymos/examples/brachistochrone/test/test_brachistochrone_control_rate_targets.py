@@ -39,6 +39,8 @@ class BrachistochroneRateTargetODE(om.ExplicitComponent):
 
         self.add_input('g', val=g_default_val, desc='grav. acceleration', units='m/s/s')
 
+        # Note, kind of strange for this to be named theta_rate, but this is just a demonstration that
+        # we can connect to a control rate source in dymos.
         self.add_input('theta_rate', val=np.ones(nn), desc='angle of wire', units='rad')
 
         self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s')
@@ -134,7 +136,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
                         units='m/s',
                         fix_initial=True, fix_final=False, solve_segments=False)
 
-        phase.add_control('theta', units='deg*s', lower=0.01, upper=179.9, fix_initial=True)
+        phase.add_control('theta', lower=0.01, upper=179.9, fix_initial=True)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -185,6 +187,8 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
         theta_imp = p.get_val('phase0.timeseries.control_rates:theta_rate')
         t_exp = exp_out.get_val('phase0.timeseries.time')
         theta_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate')
+
+        self.assertEqual(p.model.get_var_meta('phase0.timeseries.controls:theta', 'units'), 'rad*s')
 
         ax.plot(t_imp, theta_imp, 'ro', label='solution')
         ax.plot(t_exp, theta_exp, 'b-', label='simulated')
@@ -1438,3 +1442,7 @@ class TestBrachistochronePolynomialControlExplicitRate2Targets(unittest.TestCase
         ax.legend(loc='upper right')
 
         plt.show()
+
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()

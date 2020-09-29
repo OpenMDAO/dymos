@@ -667,3 +667,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                           tolerance=1.0E-3)
         assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
                           tolerance=1.0E-3)
+
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()

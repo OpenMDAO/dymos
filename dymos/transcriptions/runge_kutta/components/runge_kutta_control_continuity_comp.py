@@ -5,13 +5,13 @@ class RungeKuttaControlContinuityComp(ContinuityCompBase):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
     """
-    def _setup_state_continuity(self):
+    def _configure_state_continuity(self):
         pass
 
     def _compute_state_continuity(self, inputs, outputs):
         pass
 
-    def _setup_control_continuity(self):
+    def _configure_control_continuity(self):
         control_options = self.options['control_options']
         num_segments = self.options['grid_data'].num_segments
         compressed = self.options['grid_data'].compressed
@@ -20,7 +20,7 @@ class RungeKuttaControlContinuityComp(ContinuityCompBase):
             # Control rate continuity is enforced even with compressed transcription
             return
 
-        super(RungeKuttaControlContinuityComp, self)._setup_control_continuity()
+        super(RungeKuttaControlContinuityComp, self)._configure_control_continuity()
 
         for control_name, options in control_options.items():
             if not compressed and options['continuity']:

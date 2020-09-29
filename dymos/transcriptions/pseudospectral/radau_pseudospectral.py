@@ -34,6 +34,7 @@ class Radau(PseudospectralBase):
         super(Radau, self).setup_time(phase)
 
     def configure_time(self, phase):
+        super(Radau, self).configure_time(phase)
         options = phase.time_options
 
         # The tuples here are (name, user_specified_targets, dynamic)
@@ -236,7 +237,7 @@ class Radau(PseudospectralBase):
         gd = self.grid_data
         time_units = phase.time_options['units']
 
-        for timeseries_name, timeseries_options in phase._timeseries.items():
+        for timeseries_name in phase._timeseries:
             timeseries_comp = phase._get_subsystem(timeseries_name)
 
             phase.connect(src_name='time', tgt_name=f'{timeseries_name}.input_values:time')

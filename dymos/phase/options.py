@@ -17,7 +17,7 @@ class ControlOptionsDictionary(om.OptionsDictionary):
         self.declare(name='name', types=str,
                      desc='The name of ODE system parameter to be controlled.')
 
-        self.declare(name='units', types=str, default=None,
+        self.declare(name='units', default=_unspecified,
                      allow_none=True, desc='The units in which the control variable is defined.')
 
         self.declare(name='desc', types=str, default='',
@@ -50,7 +50,7 @@ class ControlOptionsDictionary(om.OptionsDictionary):
                      desc='The default value of the control variable at the '
                           'control discretization nodes.')
 
-        self.declare(name='shape', types=Iterable, default=(1,),
+        self.declare(name='shape', types=Iterable, allow_none=True, default=None,
                      desc='The shape of the control variable at each point in time.')
 
         self.declare(name='lower', types=(Iterable, Number), default=None,
@@ -126,7 +126,7 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
         self.declare(name='name', types=str,
                      desc='The name of ODE system parameter to be controlled.')
 
-        self.declare(name='units', types=str, default=None,
+        self.declare(name='units', default=_unspecified,
                      allow_none=True, desc='The units in which the control variable is defined.')
 
         self.declare(name='desc', types=str, default='',
@@ -159,7 +159,7 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
                      desc='The default value of the control variable at the '
                           'control discretization nodes.')
 
-        self.declare(name='shape', types=Iterable, default=(1,),
+        self.declare(name='shape', types=Iterable, allow_none=True, default=None,
                      desc='The shape of the control variable at each point in time.')
 
         self.declare(name='lower', types=(Iterable, Number), default=None,

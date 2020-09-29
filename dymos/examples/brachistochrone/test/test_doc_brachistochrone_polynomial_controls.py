@@ -1564,3 +1564,7 @@ class TestBrachistochronePolynomialControlSimulation(unittest.TestCase):
 
         assert_near_equal(theta_exp[0], theta_imp[0])
         assert_near_equal(theta_exp[-1], theta_imp[-1])
+
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()
