@@ -1,11 +1,15 @@
 import unittest
 from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 import matplotlib
 matplotlib.use('Agg')
 
 
+@unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
+
     @use_tempdirs
     def test_two_burn_orbit_raise_gl_rk_gl_constrained(self):
         import numpy as np
