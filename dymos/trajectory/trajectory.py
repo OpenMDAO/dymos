@@ -541,25 +541,6 @@ class Trajectory(om.Group):
 
         print('----------------------------')
 
-    def _configure_phase_connections(self):
-        """
-        Reconfigure any parameter connections that have source indices.
-
-        When a phase parameter is promoted, it is broadcast to the segments using src_indices.
-        When a trajectory parameter is added, you can also specify src_indices to use a subset
-        of your source as the parameter input. Since this results in two sets of src_indices,
-        they must be transformed into a new src_indices set and replaced.
-        """
-        for prom_tgt, arg_tuple in self._manual_connections.items():
-            prom_src, src_idx, flat_src_idx = arg_tuple
-
-            if src_idx is None and flat_src_idx is None:
-                continue
-
-            for phase_name, phase in self._phases.items():
-                print('d')
-            print('hey')
-
     def configure(self):
         """
         Configure the Trajectory Group.
@@ -572,8 +553,6 @@ class Trajectory(om.Group):
             self._configure_parameters()
         if self._linkages:
             self._configure_linkages()
-        if self._manual_connections:
-            self._configure_phase_connections()
 
     def link_phases(self, phases, vars=None, locs=('++', '--'), connected=False):
         """
