@@ -7,6 +7,7 @@ import re
 import sys
 import textwrap
 from pathlib import Path
+import warnings
 from redbaron import RedBaron
 
 try:
@@ -651,7 +652,7 @@ def _upgrade_doc_markdown(test_reference, feature, outstream=sys.stdout,
     try:
         old_way = textwrap.dedent(doc_match.groups()[0].strip())
     except AttributeError:
-        print(f'Unable to find feature label {feature} in the doc string of {test_reference}')
+        warnings.warn(f'Unable to find feature label {feature} in the doc string of {test_reference}')
         old_way = None
     try:
         new_way = textwrap.dedent(body_match.groups()[0].strip())

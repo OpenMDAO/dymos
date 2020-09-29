@@ -56,5 +56,17 @@ Consider the steady-flight aircraft example.
 The ODE in this problem contains a nonlinear solver that determines the thrust and angle-of-attack required to achieve the given flight profile.
 Dymos itself consists of a lot of components used to provide the transcription.
 In general, Dymos users will want to zoom in on the ODE to see the connections in their model.
+The N2 is useful for checking misconfigured models.
+
+1. Checking Unconnected Inputs
+
+As of OpenMDAO version 3.2.0, there are no longer unconnected inputs in models.
+For any input without a connection, OpenMDAO will automatically create an IndepVarComp to serve as the source of that variable.
+The N2 diagram highlights variables that weren't connected in orange, and shows their connection to the upstream _AutoIVC_ component.
+One should be careful that any _AutoIVCed_ were intentionally left with explicit connections, or connection via promotion.
+
+!!! note
+    As of Dymos 0.16.0, Parameters are handled by promoting the relevant targets up to a common
+    input at the phase level with the name `parameters:{name}`.
 
 
