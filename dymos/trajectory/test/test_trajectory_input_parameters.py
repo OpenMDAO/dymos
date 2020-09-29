@@ -5,6 +5,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import set_pyoptsparse_opt
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -293,8 +294,6 @@ class TestTrajectoryParameters(unittest.TestCase):
         in each phase as targets and a corresponding parameter for the phase will
         automatically be added.
         """
-        optimizer = 'IPOPT'
-
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer=optimizer,
                                          show_output=False, param_mode='param_sequence')
@@ -308,9 +307,6 @@ class TestTrajectoryParameters(unittest.TestCase):
         Test that, when setting up a trajectory parameter with a phase omitted from input,
         that we attempt to connect to an existing input variable in that phase of the same name.
         """
-
-        optimizer = 'IPOPT'
-
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer=optimizer,
                                          show_output=False,
@@ -324,9 +320,6 @@ class TestTrajectoryParameters(unittest.TestCase):
         """
         Make sure the old deprecated command works.
         """
-
-        optimizer = 'IPOPT'
-
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer=optimizer,
                                          show_output=False,
@@ -341,9 +334,6 @@ class TestTrajectoryParameters(unittest.TestCase):
         Test that, when setting up a trajectory parameter with a phase omitted from input,
         that we attempt to connect to an existing input variable in that phase of the same name.
         """
-
-        optimizer = 'IPOPT'
-
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
                                          compressed=False, optimizer=optimizer,
                                          show_output=False,
