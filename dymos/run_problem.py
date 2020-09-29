@@ -81,6 +81,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
     Phases.  This function can iteratively call run_driver to perform grid refinement, and automatically
     call simulate following a run to check the validity of a result.
+
     Parameters
     ----------
     problem : om.Problem
@@ -112,7 +113,8 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         _refine_iter(problem, refine_iteration_limit, refine_method)
     else:
         problem.run_model()
-        warnings.warn("Refinement not performed. Set run_driver to True to perform refinement.")
+        if refine_iteration_limit > 0:
+            warnings.warn("Refinement not performed. Set run_driver to True to perform refinement.")
 
     problem.record('final')  # save case for potential restart
 
