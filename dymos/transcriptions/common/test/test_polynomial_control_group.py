@@ -10,6 +10,10 @@ from dymos.transcriptions.grid_data import GridData
 from dymos.phase.options import PolynomialControlOptionsDictionary
 from dymos.utils.lgl import lgl
 
+from dymos.utils.misc import CompWrapperConfig, GroupWrapperConfig
+TimeComp = CompWrapperConfig(TimeComp)
+PolynomialControlGroup = GroupWrapperConfig(PolynomialControlGroup)
+
 
 # Test 1:  Let x = t**2, f = 2*t
 def f_a(t):
@@ -82,10 +86,12 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         controls['a']['units'] = 'm'
         controls['a']['order'] = 3
+        controls['a']['shape'] = (1, )
         controls['a']['opt'] = True
 
         controls['b']['units'] = 'm'
         controls['b']['order'] = 3
+        controls['b']['shape'] = (1, )
         controls['b']['opt'] = True
 
         ivc = om.IndepVarComp()
@@ -176,10 +182,12 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         controls['a']['units'] = 'm'
         controls['a']['order'] = 3
+        controls['a']['shape'] = (1, )
         controls['a']['opt'] = True
 
         controls['b']['units'] = 'm'
         controls['b']['order'] = 3
+        controls['b']['shape'] = (1, )
         controls['b']['opt'] = True
 
         ivc = om.IndepVarComp()
@@ -272,10 +280,12 @@ class TestInterpolatedControLGroup(unittest.TestCase):
 
         controls['a']['units'] = 'm'
         controls['a']['order'] = 3
+        controls['a']['shape'] = (1, )
         controls['a']['opt'] = True
 
         controls['b']['units'] = 'm'
         controls['b']['order'] = 3
+        controls['b']['shape'] = (1, )
         controls['b']['opt'] = True
 
         ivc = om.IndepVarComp()

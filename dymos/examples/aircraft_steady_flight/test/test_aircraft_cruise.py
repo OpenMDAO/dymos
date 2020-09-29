@@ -60,7 +60,7 @@ class TestAircraftCruise(unittest.TestCase):
                         rate_source='climb_rate',
                         units='km', fix_initial=True)
 
-        phase.add_control('mach',  targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
+        phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
 
         phase.add_control('climb_rate', targets=['gam_comp.climb_rate'], units='m/s', opt=False)
 
@@ -160,7 +160,7 @@ class TestAircraftCruise(unittest.TestCase):
                         rate_source='climb_rate',
                         units='km', fix_initial=True)
 
-        phase.add_control('mach',  targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
+        phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], opt=False)
 
         phase.add_control('climb_rate', targets=['gam_comp.climb_rate'], units='m/s', opt=False)
 

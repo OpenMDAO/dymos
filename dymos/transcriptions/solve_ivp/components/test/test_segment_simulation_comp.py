@@ -8,6 +8,10 @@ from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
 from dymos.phase.options import TimeOptionsDictionary, StateOptionsDictionary
 from dymos.transcriptions.grid_data import GridData
 
+# Modify class so we can run it standalone.
+from dymos.utils.misc import CompWrapperConfig
+SegmentSimulationComp = CompWrapperConfig(SegmentSimulationComp)
+
 
 class TestSegmentSimulationComp(unittest.TestCase):
 

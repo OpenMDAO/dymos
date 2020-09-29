@@ -366,7 +366,8 @@ class Phase(om.Group):
         val : float
             The default value of the control variable at the control input nodes.
         shape : Sequence of int
-            The shape of the control variable at each point in time.
+            The shape of the control variable at each point in time. Only needed for controls that don't
+            have a target in the ode.
         lower : Sequence of Number or None
             The lower bound of the control variable at the nodes.
             This option is invalid if opt=False.
@@ -463,7 +464,8 @@ class Phase(om.Group):
         val : float
             The default value of the control variable at the control input nodes.
         shape : Sequence of int
-            The shape of the control variable at each point in time.
+            The shape of the control variable at each point in time. Only needed for controls that don't
+            have a target in the ode.
         lower : Sequence of Number or None
             The lower bound of the control variable at the nodes.
             This option is invalid if opt=False.

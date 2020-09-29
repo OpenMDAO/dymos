@@ -20,8 +20,11 @@ class RungeKuttaStepsizeComp(om.ExplicitComponent):
         self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of the integration variable')
 
-    def setup(self):
-
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         self._var_names = {}
 
         num_seg = self.options['num_segments']

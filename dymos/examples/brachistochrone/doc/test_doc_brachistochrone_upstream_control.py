@@ -75,7 +75,7 @@ class TestBrachistochroneUpstreamControl(unittest.TestCase):
         # Define theta as a control.
         # Use opt=False to allow it to be connected to an external source.
         # Arguments lower and upper are no longer valid for an input control.
-        phase.add_control(name='theta', units='rad', targets=['theta'], opt=False)
+        phase.add_control(name='theta', targets=['theta'], opt=False)
 
         # Minimize final time.
         phase.add_objective('time', loc='final')
