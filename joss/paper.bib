@@ -181,3 +181,106 @@ keywords = {49M37, Line search, Nonlinear programming, 90C30, Barrier method, 65
       adsurl = {https://rdcu.be/b08Wh},
       doi = {https://doi.org/10.1038/s41592-019-0686-2},
 }
+
+@Article{Andersson2018,
+  Author = {Joel A E Andersson and Joris Gillis and Greg Horn
+            and James B Rawlings and Moritz Diehl},
+  Title = {{CasADi} -- {A} software framework for nonlinear optimization
+           and optimal control},
+  Journal = {Mathematical Programming Computation},
+  volume={11},
+  pages={1--36},
+  Year = {2019},
+}
+
+@article{Patterson2014GPOPSII,
+author = {Patterson, Michael A. and Rao, Anil V.},
+title = {GPOPS-II: A MATLAB Software for Solving Multiple-Phase Optimal Control Problems Using Hp-Adaptive Gaussian Quadrature Collocation Methods and Sparse Nonlinear Programming},
+year = {2014},
+issue_date = {October 2014},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {41},
+number = {1},
+issn = {0098-3500},
+url = {https://doi.org/10.1145/2558904},
+doi = {10.1145/2558904},
+abstract = {A general-purpose MATLAB software program called GPOPS--II is described for solving multiple-phase optimal control problems using variable-order Gaussian quadrature collocation methods. The software employs a Legendre-Gauss-Radau quadrature orthogonal collocation method where the continuous-time optimal control problem is transcribed to a large sparse nonlinear programming problem (NLP). An adaptive mesh refinement method is implemented that determines the number of mesh intervals and the degree of the approximating polynomial within each mesh interval to achieve a specified accuracy. The software can be interfaced with either quasi-Newton (first derivative) or Newton (second derivative) NLP solvers, and all derivatives required by the NLP solver are approximated using sparse finite-differencing of the optimal control problem functions. The key components of the software are described in detail and the utility of the software is demonstrated on five optimal control problems of varying complexity. The software described in this article provides researchers a useful platform upon which to solve a wide variety of complex constrained optimal control problems.},
+journal = {ACM Trans. Math. Softw.},
+month = oct,
+articleno = {1},
+numpages = {37},
+keywords = {Optimal control, direct collocation, applied mathematics, hp--adaptive methods, scientific computation, numerical methods, Gaussian quadrature, MATLAB}
+}
+
+@inbook{Paris2006,
+author = {Stephen Paris and John Riehl and Waldy Sjauw},
+title = {Enhanced Procedures for Direct Trajectory Optimization Using Nonlinear Programming and Implicit Integration},
+booktitle = {AIAA/AAS Astrodynamics Specialist Conference and Exhibit},
+doi = {10.2514/6.2006-6309},
+URL = {https://arc.aiaa.org/doi/abs/10.2514/6.2006-6309},
+eprint = {https://arc.aiaa.org/doi/pdf/10.2514/6.2006-6309}
+}
+
+@article{Martins2003CS,
+author = {Martins, Joaquim R. R. A. and Sturdza, Peter and Alonso, Juan J.},
+title = {The Complex-Step Derivative Approximation},
+year = {2003},
+issue_date = {September 2003},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {29},
+number = {3},
+issn = {0098-3500},
+url = {https://doi.org/10.1145/838250.838251},
+doi = {10.1145/838250.838251},
+abstract = {The complex-step derivative approximation and its application to numerical algorithms are presented. Improvements to the basic method are suggested that further increase its accuracy and robustness and unveil the connection to algorithmic differentiation theory. A general procedure for the implementation of the complex-step method is described in detail and a script is developed that automates its implementation. Automatic implementations of the complex-step method for Fortran and C/C++ are presented and compared to existing algorithmic differentiation tools. The complex-step method is tested in two large multidisciplinary solvers and the resulting sensitivities are compared to results given by finite differences. The resulting sensitivities are shown to be as accurate as the analyses. Accuracy, robustness, ease of implementation and maintainability make these complex-step derivative approximation tools very attractive options for sensitivity analysis.},
+journal = {ACM Trans. Math. Softw.},
+month = sep,
+pages = {245–262},
+numpages = {18},
+keywords = {sensitivities, overloading, forward mode, gradients, complex-step derivative approximation, Automatic differentiation}
+}
+
+@article{MartinsHwang2013Unification,
+author = {Martins, Joaquim R. R. A. and Hwang, John T.},
+title = {Review and Unification of Methods for Computing Derivatives of Multidisciplinary Computational Models},
+journal = {AIAA Journal},
+volume = {51},
+number = {11},
+pages = {2582-2599},
+year = {2013},
+doi = {10.2514/1.J052184},
+
+URL = {
+        https://doi.org/10.2514/1.J052184
+
+},
+eprint = {
+        https://doi.org/10.2514/1.J052184
+
+}
+,
+    abstract = { This paper presents a review of all existing discrete methods for computing the derivatives of computational models within a unified mathematical framework. This framework hinges on a new equation, the unifying chain rule, from which all the methods can be derived. The computation of derivatives is described as a two-step process: the evaluation of the partial derivatives and the computation of the total derivatives, which are dependent on the partial derivatives. Finite differences, the complex-step method, and symbolic differentiation are discussed as options for computing the partial derivatives. It is shown that these are building blocks with which the total derivatives can be assembled using algorithmic differentiation, the direct and adjoint methods, and coupled analytic methods for multidisciplinary systems. Each of these methods is presented and applied to a common numerical example to demonstrate and compare the various approaches. The paper ends with a discussion of current challenges and possible future research directions in this field. }
+}
+
+@article{griewank2003mathematical,
+  title={A mathematical view of automatic differentiation},
+  author={Griewank, Andreas},
+  journal={Acta Numerica},
+  volume={12},
+  number={1},
+  pages={321--398},
+  year={2003}
+}
+
+@article{martins2005coupled,
+  title={A coupled-adjoint sensitivity analysis method for high-fidelity aero-structural design},
+  author={Martins, Joaquim RRA and Alonso, Juan J and Reuther, James J},
+  journal={Optimization and Engineering},
+  volume={6},
+  number={1},
+  pages={33--62},
+  year={2005},
+  publisher={Springer}
+}
