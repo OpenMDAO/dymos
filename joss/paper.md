@@ -28,41 +28,57 @@ bibliography: paper.bib
 
 # Summary
 
-Dymos is an library for solving optimal-control type optimization problems. 
-It contains capabilities typical of optimal control software and can handle a wide range of typical optimal control problems.
-Its software design (built on top of NASA's OpenMDAO Framework [@Gray2019a] also allows users to tackle problems where the trajectory is not necessarily central to the optimization and where the system dynamics may include expensive, implicit calculations.
-Building dymos as a library on top of OpenMDAO extends its capabilities due to the efficiency with which OpenMDAO can compute analytic derivatives, even in the presence of iterative behavior.
-Optimal control software generally requires that the dynamics of the system be defined as a set of explicit ordinary differential equations (ODE) which compute the rates of the state variables to be integrated.
-Sometimes the dynamics are instead posed as a set of differential algebraic equations, where some equality constraint needs to be satisfied at the solution in addition to the ODE.
+Dymos is an library for optimizing control schedules for dynamic systems --- sometimes referred to as trajectory optimization. 
+There are a number of other optimal control libraries that tackle a similar kind of problem, such as OTIS4, GPOPS, CASADI [CITATIONS!!]. 
+Dymos can operate in a similar manner to these codes where it is focused purely on the optimal control problem, 
+but it is unique in that it can also support broader cases where trajectory optimization is just one component in a larger physical model. 
+This allows Dymos to play a critical role in solving problems where the physical design of a system is optimized simultaneously with control schedule governing its transient performance. 
+This kind of problem is often referred to as co-design, controls-co-design, or multidisciplinary design optimization.
+Clear examples of Dymos used in this context are demonstrated in the coupled trajectory-thermal design of electric aircraft [CITATIONS]. 
+
+Optimal control software typically requires that the dynamics of the system be defined as a set of ordinary differential equations (ODE) that use explicit functions to compute the rates of the state variables to be time-integrated.
+Sometimes the dynamics are instead posed as a set of differential algebraic equations, where some residual equations need to be satisfied implicitly in order to solve ODE.
 One application of this approach is the method of differential inclusions, in which the state time-history is posed as a dynamic control, and the traditional control variables needed to achieve that trajectory are found using a nonlinear solver within the ODE [@Seywald1994].
 Support for implicit calculations gives users more freedom to pose dynamics in more natural ways, but typically causes numerical and computational cost challenges in an optimization context, especially when finite-differences are used to compute derivatives for the optimizer.
-The ability to efficiently solve problems with nested implicit behavior without completely reformulating the problem sets dymos apart from many other optimal control software tools.
+Some optimal control libraries tackle this numerical challenge with a monolithic algorithmic differentiation[CITE Greiwank paper?] approach. 
+While effective, the monolithic nature is both less efficient[CITE MARTINS ADjoint paper] and less flexible. 
 
-Dymos can be used stand-alone, or as a building block in a larger model where a significant portion of the optimization is focused on some non-controls aspect with a trajectory added to enforce some constraint upon the design.
-In some contexts, you may hear this kind of problem referred to as co-design, controls-co-design, or multidisciplinary design optimization.
+Instead, Dymos uses a modular approach that allows users to select any combination of finite-difference, complex-step[CITE Martins CS paper], algorithmic differentiation, and hand differentiation that suits their modeling needs. 
+This flexibility is achieved by leveraging the data passing and efficient differentiation fearures of NASA's OpenMDAO framework[@Gray2019a]. 
+Dymos extends OpenMDAO by adding differentiated time-integration schemes along with the necessary APIs for users to plug their ODEs and DAEs into those schemes.
+It also provides further APIs to enable in the input and output of information from the optimal control problem, in order to couple with the physical design models. 
+
 
 ## The dymos perspective on optimal control
 
-Dymos is similar to some other trajectory optimization tools in that the trajectory of a system is subdivided into chunks of time called _phases_.
+Dymos breaks the trajectory of a system is into chunks of time called _phases_.
 Breaking the trajectory into phases provides several capabilities.
 Intermediate constraints along a trajectory can be enforced by applying boundary constraint to a phase that begins or ends at the time of interest.
 For instance, the optimal trajectory of a launch vehicle may be required to ascend vertically to clear a launch tower before it pitches over on its way to orbit.
 Path constraints can be applied within each phase to bound some performance parameter within that phase.
-For example, reentry vehicles may need to shape their trajectory to limit aerodynamic heating.
-Phases also provide the ability to compose a trajectory of phases in which the dynamics may change from Phase to phase.
-An aircraft with vertical takeoff and landing capability, for instance, may use different sets of dynamics to define its flight while in vertical flight and horizontal flight.
-As another useful feature, dymos offers the ability to use variable-order polynomial controls that are useful in forcing a lower-order control solution upon a phase of the trajectory.
-This can help to reduce "chatter" in controls and provide more robust convergence.
+For example, reentry vehicles may need to adjust their trajectory to limit aerodynamic heating.
 
-Dymos is primarily focused on an implicit pseudospectral approach to optimal-control. 
-It leverages two common direct collocation transcriptions: the high-order Gauss-Lobatto transcription [@Herman1996] and the Radau pseudospectral method [@Garg2009].
-Dymos also provides explicit forms of both of these transcriptions, which provides a single or multiple-shooting approach.
-All of these transcriptions are implemented in a way that is independent of the ODE implementation, nearly transparent to the user, and requires very minor code changes - typically a single line in the run-script.
-ODE's are implemented as standard OpenMDAO systems which are passed to phases at instantiation time with some additional annotations to identify the states, state-rates, and control inputs.
+Each phase in a trajectory can use its own separate ODE. 
+For instance an aircraft with vertical takeoff and landing capability may use different ODEs for vertical flight and horizontal flight. 
+ODE's are implemented as standard OpenMDAO models which are passed to phases at instantiation time with some additional annotations to identify the states, state-rates, and control inputs.
+To use separate ODE's in separate phases, the user simply provides different OpenMDAO models to each phase. 
+
+
+Every phase uses its own specific time discretization tailored to the dynamics in that chunk of the time-history. 
+If one part of a trajectory has fast dynamics and another has slow dynamics, the time history can be broken into two phases with separate time discritizations.
+The available time discritization schemes in Dymos are based on pseudospectral methods, using two common direct collocation transcriptions: 
+the high-order Gauss-Lobatto transcription [@Herman1996] and the Radau pseudospectral method [@Garg2009].
+Both implicit and explicit forms these transcriptions are supported. 
+The explicit forms can be used to build single- or multiple-shooting style problem formulations.  
+The implicit forms construct two point boundary value problems. 
+Transcriptions are built to be totally independent of the ODE implementation, and nearly transparent to the user. 
+This means that switching transcriptions requires very minor code changes - typically a single line in the run-script.
 
 Dymos does not ship with its own built in optimizer. 
 It relies on whatever optimizers you have available in your OpenMDAO installation. 
-OpenMDAO ships with an interface to the optimizers in SciPy [@2020SciPy-NMeth], and an additional wrapper for the pyoptsparse [@Perez2012a] library which has more powerful optimizer options such as SNOPT [@GilMS05] and IPOPT [@wachter2006].
+OpenMDAO ships with an interface to the optimizers in SciPy [@2020SciPy-NMeth], 
+and an additional wrapper for the pyoptsparse [@Perez2012a] library which has more powerful optimizer options such as SNOPT [@GilMS05] and IPOPT [@wachter2006].
+OpenMDAO also allows users to integrate their own optimizer of choice, which Dymos can then seamless work with without any additional modifications. 
 For simple problems, Scipy's SLSQP optimizer generally works fine.
 On more challenging optimal-control problems, higher quality optimizers are important for getting good performance.
 
