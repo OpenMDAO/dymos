@@ -68,4 +68,15 @@ fort.6
 
 # openmdao
 **/visualization
-/mkdocs/site/
+
+# JOSS
+/joss/apa.csl
+/joss/joss-logo.png
+/joss/dymos_joss.pdf
+/joss/compile
+/joss/joss_demo.py
+/joss/latex.template
+/joss/paper.pdf
+
+# mkdocs
+/mkdocs/site

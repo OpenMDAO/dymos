@@ -182,11 +182,66 @@ optimization of systems and dynamics.
 
 Here is a Dymos solution for the Brachistochrone example shown above:
 
-```python
+```
 import numpy as np
 import openmdao.api as om
 import dymos as dm
 import matplotlib.pyplot as plt
+
+
+# First define a system which computes the equations of motion
+class BrachistochroneEOM(om.ExplicitComponent):
+    def initialize(self):
+        self.options.declare('num_nodes', types=int)
+
+    def setup(self):
+        nn = self.options['num_nodes']
+
+        # Inputs
+        self.add_input('v', val=np.zeros(nn), units='m/s',
+                       desc='velocity')
+
+        self.add_input('theta', val=np.zeros(nn), units='rad',
+                       desc='angle of wire')
+
+        self.add_output('xdot', val=np.zeros(nn), units='m/s',
+                        desc='velocity component in x')
+
+        self.add_output('ydot', val=np.zeros(nn), units='m/s',
+                        desc='velocity component in y')
+
+        self.add_output('vdot', val=np.zeros(nn), units='m/s**2',
+                        desc='acceleration magnitude')
+
+        # Setup partials for the analytic derivatives
+        # These all have diagonal partial-derivative jacobians
+        ar = np.arange(self.options['num_nodes'])
+
+        self.declare_partials(of='vdot', wrt='theta', rows=ar, cols=ar)
+        self.declare_partials(of='xdot', wrt='*', rows=ar, cols=ar)
+        self.declare_partials(of='ydot', wrt='*', rows=ar, cols=ar)
+
+    def compute(self, inputs, outputs):
+        v, theta = inputs.values()
+
+        outputs['vdot'] = 9.80665 * np.cos(theta)
+        outputs['xdot'] = v * np.sin(theta)
+        outputs['ydot'] = -v * np.cos(theta)
+
+    def compute_partials(self, inputs, jacobian):
+        v, theta = inputs.values()
+
+        cos_theta = np.cos(theta)
+        sin_theta = np.sin(theta)
+
+        jacobian['vdot', 'theta'] = -9.80665 * sin_theta
+
+        jacobian['xdot', 'v'] = sin_theta
+        jacobian['xdot', 'theta'] = v * cos_theta
+
+        jacobian['ydot', 'v'] = -cos_theta
+        jacobian['ydot', 'theta'] = v * sin_theta
+
 
 # Define the OpenMDAO problem
 p = om.Problem(model=om.Group())
@@ -196,29 +251,25 @@ traj = dm.Trajectory()
 p.model.add_subsystem('traj', subsys=traj)
 
 # Define a Dymos Phase object with GaussLobatto Transcription
-phase = dm.Phase(ode_class=BrachistochroneODE,
-                 transcription=dm.GaussLobatto(num_segments=10, order=3))
-
+phase = dm.Phase(ode_class=BrachistochroneEOM,
+                 transcription=dm.Radau(num_segments=10, order=3))
 traj.add_phase(name='phase0', phase=phase)
 
 # Set the time options
-# Time has no targets in our ODE.
-# We fix the initial time so that the it is not a design variable in the optimization.
-# The duration of the phase is allowed to be optimized, but is bounded on [0.5, 10].
-phase.set_time_options(fix_initial=True, duration_bounds=(0.5, 10.0), units='s')
+phase.set_time_options(fix_initial=True,
+                       duration_bounds=(0.5, 10.0))
 
-# Set the time options
-# Initial values of positions and velocity are all fixed.
-# The final value of position are fixed, but the final velocity is a free variable.
-# The equations of motion are not functions of position, so 'x' and 'y' have no targets.
-# The target of 'v' will be automatically found by Dymos since `v` is an input at the top-level of the ODE.
-# The rate source points to the output in the ODE which provides the time derivative of the given state.
-phase.add_state('x', fix_initial=True, fix_final=True, units='m', rate_source='xdot')
-phase.add_state('y', fix_initial=True, fix_final=True, units='m', rate_source='ydot')
-phase.add_state('v', fix_initial=True, fix_final=False, units='m/s', rate_source='vdot')
+# Set the state options
+phase.add_state('x', rate_source='xdot',
+                fix_initial=True, fix_final=True)
+phase.add_state('y', rate_source='ydot',
+                fix_initial=True, fix_final=True)
+phase.add_state('v', rate_source='vdot',
+                fix_initial=True, fix_final=False)
 
 # Define theta as a control.
-phase.add_control(name='theta', units='rad', lower=0, upper=np.pi, targets=['theta'])
+phase.add_control(name='theta', units='rad',
+                  lower=0, upper=np.pi)
 
 # Minimize final time.
 phase.add_objective('time', loc='final')
@@ -227,13 +278,18 @@ phase.add_objective('time', loc='final')
 p.driver = om.ScipyOptimizeDriver()
 
 # Allow OpenMDAO to automatically determine our sparsity pattern.
-# Doing so can significant speed up the execution of Dymos.
+# Doing so can significant speed up the execution of dymos.
 p.driver.declare_coloring()
 
 # Setup the problem
-p.setup(check=True)
+p.setup()
 
-# Now that the OpenMDAO problem is setup, we can set the values of the states.
+# Now that the OpenMDAO problem is setup, we can guess the
+# values of time, states, and controls.
+p.set_val('traj.phase0.t_duration', 2.0)
+
+# States and controls here use a linearly interpolated
+# initial guess along the trajectory.
 p.set_val('traj.phase0.states:x',
           phase.interpolate(ys=[0, 10], nodes='state_input'),
           units='m')
@@ -253,7 +309,8 @@ p.set_val('traj.phase0.controls:theta',
 # Run the driver to solve the problem
 p.run_driver()
 
-# Check the validity of our results by using scipy.integrate.solve_ivp to integrate the solution.
+# Check the validity of our results by using
+# scipy.integrate.solve_ivp to integrate the solution.
 sim_out = traj.simulate()
 
 # Plot the results
@@ -273,11 +330,13 @@ axes[0].legend()
 axes[0].grid()
 
 axes[1].plot(p.get_val('traj.phase0.timeseries.time'),
-             p.get_val('traj.phase0.timeseries.controls:theta', units='deg'),
+             p.get_val('traj.phase0.timeseries.controls:theta',
+                       units='deg'),
              'ro', label='solution')
 
 axes[1].plot(sim_out.get_val('traj.phase0.timeseries.time'),
-             sim_out.get_val('traj.phase0.timeseries.controls:theta', units='deg'),
+             sim_out.get_val('traj.phase0.timeseries.controls:theta',
+                             units='deg'),
              'b-', label='simulation')
 
 axes[1].set_xlabel('time (s)')
@@ -288,4 +347,4 @@ axes[1].grid()
 plt.show()
 ```
 
-![alt text](brachistochroneSolution.png "Brachistochrone Solution")
+![Brachistochrone Solution](brachistochroneSolution.png "Brachistochrone Solution")
