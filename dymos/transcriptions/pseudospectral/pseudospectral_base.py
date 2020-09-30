@@ -31,6 +31,10 @@ class PseudospectralBase(TranscriptionBase):
 
         phase.add_subsystem('time', time_comp, promotes_inputs=['*'], promotes_outputs=['*'])
 
+    def configure_time(self, phase):
+        super(PseudospectralBase, self).configure_time(phase)
+        phase.time.configure_io()
+
     def setup_states(self, phase):
         """
         Add an IndepVarComp for the states and setup the states as design variables.
@@ -77,13 +81,20 @@ class PseudospectralBase(TranscriptionBase):
             # This feels a little hackish
             if rate_src in phase.control_options:
                 targets = phase.control_options[rate_src]['targets']
+                shape = phase.control_options[rate_src]['shape']
+                units = phase.control_options[rate_src]['units']
                 if targets is not _unspecified:
                     rate_src = targets[0]
+                else:
+                    if units is not _unspecified and options['units'] in (_unspecified, None):
+                        options['units'] = f'{units}*{time_units}'
+                    if shape is not _unspecified and options['shape'] in (_unspecified, None):
+                        options['shape'] = shape
 
             # Handle states that point to another state. States must be declared in the right
             # order.
             # This feels a little hackish
-            if rate_src in phase.state_options and options['shape'] in (_unspecified, None):
+            elif rate_src in phase.state_options and options['shape'] in (_unspecified, None):
                 options['shape'] = phase.state_options[rate_src]['shape']
 
             full_shape, units = get_target_metadata(ode, name=name,
@@ -91,10 +102,11 @@ class PseudospectralBase(TranscriptionBase):
                                                     user_units=options['units'],
                                                     user_shape=options['shape'])
 
-            if options['units'] is None:
+            if options['units'] is _unspecified:
                 # Units are from the rate source and should be converted.
-                units = f'{units}*{time_units}'
-                options['units'] = units
+                if units is not None:
+                    units = f'{units}*{time_units}'
+            options['units'] = units
 
             # Determine and store the pre-discretized state shape for use by other components.
             if len(full_shape) < 2:
@@ -119,7 +131,6 @@ class PseudospectralBase(TranscriptionBase):
                     # If we have vectorized states of size n, then there are n design variables
                     # at each node.  For instance, with n=2, the desvar indices are [0, 1, 12, 13]
                     num_seg = grid_data.num_segments
-                    num_state_input_nodes_per_seg = grid_data.subset_num_nodes_per_segment['state_input']
                     # Get the desvar node indices
                     desvar_node_idxs = np.asarray(indep.state_idx_map[name]['indep'])
                     # In compressed transcription, the desvar indices are just the first
@@ -245,12 +256,12 @@ class PseudospectralBase(TranscriptionBase):
                                             state_options=phase.state_options,
                                             time_units=time_units))
 
-        phase.connect('dt_dstau', ('collocation_constraint.dt_dstau'),
-                      src_indices=grid_data.subset_node_indices['col'])
-
     def configure_defects(self, phase):
         grid_data = self.grid_data
         num_seg = grid_data.num_segments
+
+        phase.connect('dt_dstau', ('collocation_constraint.dt_dstau'),
+                      src_indices=grid_data.subset_node_indices['col'])
 
         phase.collocation_constraint.configure_io()
 

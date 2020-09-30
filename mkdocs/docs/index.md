@@ -1,4 +1,4 @@
-<img src="dymos_logo.png" alt="Dymos" style="width:250px;"/>
+<img src="dymos_logo.png" alt="Dymos" style="width:400px;"/>
 
 # Multidisciplinary Optimal Control Library
 

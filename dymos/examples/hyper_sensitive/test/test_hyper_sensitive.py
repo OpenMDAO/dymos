@@ -12,6 +12,9 @@ from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 import numpy as np
 import dymos as dm
 
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+
 tf = np.float128(10)
 
 
@@ -86,6 +89,7 @@ class TestHyperSensitive(unittest.TestCase):
         with printoptions(linewidth=1024, edgeitems=100):
             cpd = p.check_partials(method='fd', compact_print=True, out_stream=None)
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_hyper_sensitive_radau(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT')
         dm.run_problem(p, refine_iteration_limit=5)
@@ -103,6 +107,7 @@ class TestHyperSensitive(unittest.TestCase):
                           J,
                           tolerance=1e-6)
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_hyper_sensitive_gauss_lobatto(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT')
         dm.run_problem(p, refine_iteration_limit=5)
@@ -121,14 +126,14 @@ class TestHyperSensitive(unittest.TestCase):
                           J,
                           tolerance=1e-4)
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_refinement_warning(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT')
-        dm.run_problem(p)
 
         msg = "Refinement not performed. Set run_driver to True to perform refinement."
 
         with warnings.catch_warnings(record=True) as ctx:
             warnings.simplefilter('always')
-            dm.run_problem(p, run_driver=False)
+            dm.run_problem(p, run_driver=False, refine_iteration_limit=10)
 
         self.assertIn(msg, [str(w.message) for w in ctx])

@@ -8,11 +8,12 @@ optional_dependencies = {
         'mkdocs-material',
         'pymdown-extensions',
         'mkdocs-macros-plugin',
-        'mkdocs-bibtex'
+        'mkdocs-bibtex',
+        'numpydoc>=0.9.1',
+        'redbaron'
     ],
     'test': [
         'pep8',
-        'numpydoc>=0.9.1',
         'parameterized',
         'testflo>=1.3.6',
         'matplotlib'
@@ -48,7 +49,7 @@ setup(name='dymos',
     packages=find_packages(),
     python_requires=">=3.6",
     install_requires=[
-        'openmdao>=3.2.1',
+        'openmdao>=3.3.0',
         'numpy>=1.14.1',
         'scipy>=1.0.0'
     ],

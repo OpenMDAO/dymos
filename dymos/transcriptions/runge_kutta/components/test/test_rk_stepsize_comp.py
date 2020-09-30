@@ -7,6 +7,9 @@ from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_stepsize_comp import RungeKuttaStepsizeComp
 
+from dymos.utils.misc import CompWrapperConfig
+RungeKuttaStepsizeComp = CompWrapperConfig(RungeKuttaStepsizeComp)
+
 
 class TestRKStepsizeComp(unittest.TestCase):
 

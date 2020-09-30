@@ -5,6 +5,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import set_pyoptsparse_opt
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -272,8 +273,8 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_ex_two_burn_orbit_raise(self):
-        # _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
         optimizer = 'IPOPT'
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
@@ -289,8 +290,8 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_ex_two_burn_orbit_raise_connected(self):
-        # _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
         optimizer = 'IPOPT'
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,

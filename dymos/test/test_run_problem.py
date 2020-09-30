@@ -1,13 +1,16 @@
 from __future__ import print_function, division, absolute_import
-
 import os
 import unittest
+
+import numpy as np
+
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
-import dymos as dm
-import numpy as np
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
+import dymos as dm
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -20,11 +23,11 @@ class TestRunProblem(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_run_HS_problem_radau(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
-        optimizer = 'IPOPT'
         p.driver.options['optimizer'] = optimizer
 
         if optimizer == 'SNOPT':
@@ -86,11 +89,11 @@ class TestRunProblem(unittest.TestCase):
                           J,
                           tolerance=5e-4)
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_run_HS_problem_gl(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
-        optimizer = 'IPOPT'
         p.driver.options['optimizer'] = optimizer
 
         if optimizer == 'SNOPT':

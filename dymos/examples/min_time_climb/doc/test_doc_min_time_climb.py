@@ -49,28 +49,28 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
                                duration_ref=100.0)
 
         phase.add_state('r', fix_initial=True, lower=0, upper=1.0E6,
-                        ref=1.0E3, defect_ref=1.0E3, units='m',
+                        ref=1.0E3, defect_ref=1.0E3,
                         rate_source='flight_dynamics.r_dot')
 
         phase.add_state('h', fix_initial=True, lower=0, upper=20000.0,
-                        ref=1.0E2, defect_ref=1.0E2, units='m',
+                        ref=1.0E2, defect_ref=1.0E2,
                         rate_source='flight_dynamics.h_dot')
 
         phase.add_state('v', fix_initial=True, lower=10.0,
-                        ref=1.0E2, defect_ref=1.0E2, units='m/s',
+                        ref=1.0E2, defect_ref=1.0E2,
                         rate_source='flight_dynamics.v_dot')
 
         phase.add_state('gam', fix_initial=True, lower=-1.5, upper=1.5,
-                        ref=1.0, defect_ref=1.0, units='rad',
+                        ref=1.0, defect_ref=1.0,
                         rate_source='flight_dynamics.gam_dot')
 
         phase.add_state('m', fix_initial=True, lower=10.0, upper=1.0E5,
-                        ref=1.0E3, defect_ref=1.0E3, units='kg',
+                        ref=1.0E3, defect_ref=1.0E3,
                         rate_source='prop.m_dot')
 
         phase.add_control('alpha', units='deg', lower=-8.0, upper=8.0, scaler=1.0,
                           rate_continuity=True, rate_continuity_scaler=100.0,
-                          rate2_continuity=False, targets=['alpha'])
+                          rate2_continuity=False)
 
         phase.add_parameter('S', val=49.2386, units='m**2', opt=False, targets=['S'])
         phase.add_parameter('Isp', val=1600.0, units='s', opt=False, targets=['Isp'])

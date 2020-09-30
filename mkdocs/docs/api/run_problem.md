@@ -23,4 +23,4 @@ In general, they follow the following procedure:
 This requires another layer of iteration outside of the OpenMDAO `run_driver` method.
 This is the original motivation for Dymos' `run_problem` function.
 
-{{ api_doc('dymos.run_problem') }}
+{{ api_doc('dymos.run_problem.run_problem') }}

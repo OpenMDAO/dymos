@@ -3,7 +3,7 @@ import numpy as np
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
 from ..common import GaussLobattoContinuityComp
-from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
+from ...utils.misc import get_rate_units, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
 from fnmatch import filter
@@ -34,6 +34,7 @@ class GaussLobatto(PseudospectralBase):
         super(GaussLobatto, self).setup_time(phase)
 
     def configure_time(self, phase):
+        super(GaussLobatto, self).configure_time(phase)
         options = phase.time_options
 
         # The tuples here are (name, user_specified_targets, dynamic)
@@ -457,20 +458,15 @@ class GaussLobatto(PseudospectralBase):
                     prom_name = f'parameters:{param_name}'
                     tgt_name = f'input_values:parameters:{param_name}'
 
-                    shape, units = get_target_metadata(phase.rhs_disc, name=param_name,
-                                                       user_targets=options['targets'],
-                                                       user_shape=options['shape'],
-                                                       user_units=options['units'])
-
                     # Add output.
                     timeseries_comp = phase._get_subsystem(timeseries_name)
                     timeseries_comp._add_output_configure(prom_name,
                                                           desc='',
-                                                          shape=shape,
-                                                          units=units)
+                                                          shape=options['shape'],
+                                                          units=options['units'])
 
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                    src_idxs = get_src_indices_by_row(src_idxs_raw, shape)
+                    src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
 
                     phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
                                    src_indices=src_idxs, flat_src_indices=True)

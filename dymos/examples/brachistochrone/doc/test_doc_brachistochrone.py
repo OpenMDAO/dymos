@@ -6,6 +6,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+
 from dymos.utils.doc_utils import save_for_docs
 
 
@@ -417,6 +420,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_brachistochrone_for_docs_coloring_demo(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -511,6 +515,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_brachistochrone_for_docs_coloring_demo_solve_segments(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

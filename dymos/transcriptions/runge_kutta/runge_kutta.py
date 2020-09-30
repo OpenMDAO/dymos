@@ -22,6 +22,10 @@ class RungeKutta(TranscriptionBase):
     RungeKutta transcription in Dymos uses the RungeKutta-based shooting method which propagates
     the states from the phase initial time to the phase final time.
     """
+    def __init__(self, **kwargs):
+        super(RungeKutta, self).__init__(**kwargs)
+        self._rhs_source = 'ode'
+
     def initialize(self):
 
         self.options.declare('method', default='RK4', values=('RK4',),
@@ -90,6 +94,11 @@ class RungeKutta(TranscriptionBase):
                             promotes_outputs=['h'])
 
     def configure_time(self, phase):
+        super(RungeKutta, self).configure_time(phase)
+
+        phase.time.configure_io()
+        phase.stepsize_comp.configure_io()
+
         options = phase.time_options
 
         # The tuples here are (name, user_specified_targets, dynamic)
@@ -225,13 +234,20 @@ class RungeKutta(TranscriptionBase):
             # This feels a little hackish
             if rate_src in phase.control_options:
                 targets = phase.control_options[rate_src]['targets']
+                shape = phase.control_options[rate_src]['shape']
+                units = phase.control_options[rate_src]['units']
                 if targets is not _unspecified:
                     rate_src = targets[0]
+                else:
+                    if units is not _unspecified and options['units'] in (_unspecified, None):
+                        options['units'] = f'{units}*{time_units}'
+                    if shape is not _unspecified and options['shape'] in (_unspecified, None):
+                        options['shape'] = shape
 
             # Handle states that point to another state. States must be declared in the right
             # order.
             # This feels a little hackish
-            if rate_src in phase.state_options and options['shape'] in (_unspecified, None):
+            elif rate_src in phase.state_options and options['shape'] in (_unspecified, None):
                 options['shape'] = phase.state_options[rate_src]['shape']
 
             full_shape, units = get_target_metadata(phase.ode, name=state_name,
@@ -239,10 +255,11 @@ class RungeKutta(TranscriptionBase):
                                                     user_units=options['units'],
                                                     user_shape=options['shape'])
 
-            if options['units'] is None:
+            if options['units'] is _unspecified:
                 # Units are from the rate source and should be converted.
-                units = f'{units}*{time_units}'
-                options['units'] = units
+                if units is not None:
+                    units = f'{units}*{time_units}'
+            options['units'] = units
 
             # Determine and store the pre-discretized state shape for use by other components.
             if len(full_shape) < 2:
@@ -387,6 +404,7 @@ class RungeKutta(TranscriptionBase):
         super(RungeKutta, self).setup_polynomial_controls(phase)
 
     def configure_polynomial_controls(self, phase):
+        super(RungeKutta, self).configure_polynomial_controls(phase)
         grid_data = self.grid_data
 
         for name, options in phase.polynomial_control_options.items():
@@ -816,14 +834,9 @@ class RungeKutta(TranscriptionBase):
                     prom_name = 'parameters:{0}'.format(param_name)
                     tgt_name = 'input_values:parameters:{0}'.format(param_name)
 
-                    shape, units = get_target_metadata(phase.ode, name=param_name,
-                                                       user_targets=options['targets'],
-                                                       user_shape=options['shape'],
-                                                       user_units=options['units'])
-
                     timeseries_comp._add_output_configure(f'parameters:{param_name}',
-                                                          shape=shape,
-                                                          units=units,
+                                                          shape=options['shape'],
+                                                          units=options['units'],
                                                           desc='')
 
                     phase.promotes(timeseries_name, inputs=[(tgt_name, prom_name)],
