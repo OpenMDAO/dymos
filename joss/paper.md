@@ -84,21 +84,21 @@ On more challenging optimal-control problems, higher quality optimizers are impo
 
 ## Statement of Need
 
-Modeling complex multidisciplinary systems often involves the use of iterative nonlinear solvers to converge the design or operational parameters of interacting subsystems.
-To speed the design optimization of such systems, NASA's OpenMDAO software was developed to generalize the calculation of derivatives across models for use in gradient-based optimization.
-However, the optimal control of multidisciplinary systems may involve the use of nonlinear solvers within the ODE itself.
-The implicit analysis could arise due to the need for some high fidelity physics model (e.g. a vortex lattice method for aerodynamic performance prediction) or from the formulation of a differential inclusion approach.
-Despite the application of adjoint differentiation, shooting methods based on explicit time-marching still suffer from a performance standpoint due to the need to reconverge the solvers within the ODE at each time step.
-Dymos was developed to leverage the advanced differentiation capabilities of OpenMDAO in combination with modern pseudospectral optimal control techniques to enable optimization of dynamic systems that feature complex interactions between subsystems.
-Implicit pseudospectral approaches evaluate the ODE across an entire trajectory simultaneously.
-While explicit time-marching requires the repeated convergence of small, dense systems of equations at a single instant in time, implicit pseudospectral methods converge a larger but more sparse system of equations once across the trajectory per evaluation of the ODE.
-Computing the derivatives across iterative systems analytically does not require the systems to be reconverged, significantly reduces computational time during optimization.
+When dealing with the design of complex systems, there are two approaches: divide and conquer or coupled co-design. 
+The best choice depends on the degree of interaction, or coupling, between various sub-systems. 
+In the case where you have a system where performance is heavily influenced by its transient behavior, then the dynamic behavior becomes a critical subsystem. 
+If the coupling is strong in this case, a co-design (a.k.a. controls-co-design; a.k.a. multidsiciplinary design optimization) approach is necessary to achieve the best performance. 
 
-Combining nonlinear solvers within the context of optimal-control problems grants the user a lot of flexibility in how to handle the direct collocation problems.
-Typically, the collocation defects --- necessary to enforce the physics of the ODE --- are handled by assigning equality constraints to the optimizer.
-However it is also possible to use a solver to converge the defects for every optimizer iteration, in effect creating a single or multiple shooting approach that may be beneficial for some problems.
-If a solver-based collocation approach is used in combination with finite-differencing to approximate the derivatives needed by the optimizer, then the potential benefits are outweighed by numerical inaccuracies and high computational cost.
-Dymos works around this problem by leveraging OpenMDAO's support for adjoint (reverse) differentiation to realize the benefits of shooting methods without a substantial performance penalty.
+Though there are a number of effective optimal control libraries, they tend to assume that they are on top of the modeling stack. 
+Hence, they frame every optimization problem as if it was a pure optimal-control problem. 
+This poses large challenges when expanding to co-design type problems, which often do not fit well within the pure optimal-control paradigm. 
+
+Dymos provides a set of unique capabilities that make co-design possible via efficient gradient based optimization methods. 
+It provides differentiated time-integration schemes that can generate transient models from user provided ODEs, 
+along with APIs that enable users to couple the these transient models with other models to form the co-design system while carrying the differentiation through that coupling. 
+It also supports efficient differentiation of complex ODE's that include implicit relationships, such as differential algebraic equations. 
+These two features combined make Dymos capable of handling co-design problems in a manner that is more efficient than a pure optimal-control approach. 
+
 
 ## Selected applications of dymos
 
