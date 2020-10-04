@@ -588,7 +588,7 @@ class Trajectory(om.Group):
             determine the units of each variable in the linkage if possible.  Those that cannot
             be determined to be a time, state, control, design parameter, or control rate will
             be assumed to have units None.  If given as a dict, it should map the name of each
-            variable in vars to the approprite units.
+            variable in vars to the appropriate units.
         connected : bool
             Set to True to directly connect the phases being linked. Otherwise, create constraints
             for the optimizer to solve.

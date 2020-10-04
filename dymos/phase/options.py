@@ -70,7 +70,7 @@ class ControlOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='adder', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The adder of the control variable at the nodes. This'
+                     desc='The adder of the control variable at the nodes. This '
                           'option is invalid if opt=False.')
 
         self.declare(name='ref0', types=(Iterable, Number), default=None,
@@ -193,8 +193,8 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
                           'option is invalid if opt=False.')
 
         self.declare(name='order', types=(int,), default=None, allow_none=True,
-                     desc='A integer that provides the interpolation order when the control is'
-                          'to assume a single polynomial basis across the entire phase, or None'
+                     desc='A integer that provides the interpolation order when the control is '
+                          'to assume a single polynomial basis across the entire phase, or None '
                           'to use the default control behavior.')
 
         self.declare('dynamic', default=True, types=bool,
@@ -257,7 +257,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='adder', types=(Iterable, Number), default=None,
                      allow_none=True,
-                     desc='The adder of the parameter. This'
+                     desc='The adder of the parameter. This '
                           'option is invalid if opt=False.')
 
         self.declare(name='ref0', types=(Iterable, Number), default=None,
@@ -315,7 +315,7 @@ class StateOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='opt', types=bool, default=True,
                      desc='If true, the values of this state are a design variable '
-                          'for the optimizer.  Otherwise it exists as an unconnected'
+                          'for the optimizer.  Otherwise it exists as an unconnected '
                           'input.')
 
         self.declare(name='fix_initial', types=(bool, Iterable), default=False,

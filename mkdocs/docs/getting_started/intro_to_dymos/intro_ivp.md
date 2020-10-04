@@ -2,7 +2,7 @@
 
 !!! info "Things you'll learn through this example"
     - How to define a basic Dymos ODE system.
-    - How to explictly propagate the system from some initial state.
+    - How to explicitly propagate the system from some initial state.
 
 Dymos is a library for modeling dynamic systems and performing optimal
 control with the [OpenMDAO](https://github.com/OpenMDAO/OpenMDAO) framework.
@@ -15,7 +15,7 @@ Consider a simple damped harmonic oscillator.
 
 
 \begin{align}
-    \ddot{x} &= -\frac{kx}{m} - - \frac{c \dot{x}}{m}
+    \ddot{x} &= -\frac{kx}{m} - \frac{c \dot{x}}{m}
 \end{align}
 
 Converting this to a first order system results in an ODE system with two states:
@@ -94,12 +94,12 @@ Here they do not match because we only performed a single execution of the model
 These constraints include the collocation _defect_ constraints, which (when driven to zero) indicate that the current polynomial representation of the state-time history matches the physically correct trajectory.
 In this case, no iteration was performed, and thus the solution is not physically valid.
 
-To be clear, the output of Dymos in this case is not a physcially valid trajectory.
+To be clear, the output of Dymos in this case is not a physically valid trajectory.
 The `simulate()` call after executing the model is the expected result using the variable step integrator from Scipy.
 
 There are two ways to converge this solution using the implicit transcription techniques in Dymos.
 1. We can run an optimization driver with some "dummy" objective to converge the collocation defect constraints.
-2. We can have Dymos use a nonlinear solver to vary the state time-history until the colloction defect constraints are satisfied.
+2. We can have Dymos use a nonlinear solver to vary the state time-history until the collocation defect constraints are satisfied.
 
 Traditionally, many collocation optimal control techniques have use an optimizer-based approach because it is extremely efficient.
 OpenMDAO provides a lot of versatility in adding in nonlinear solvers within the optimization problem.

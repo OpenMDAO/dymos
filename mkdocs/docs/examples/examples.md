@@ -2,7 +2,7 @@
 
 The goal of these examples is to walk users through the process of formulating an optimal control problem and solving it using Dymos.
 
-In working through these examples, we'll try to emphasise the following process:
+In working through these examples, we'll try to emphasize the following process:
 
 1.  Formulate the optimal control problem
 2.  Identify state and control variables, and the ordinary differential equations (ODE) which govern the dynamics.

@@ -15,12 +15,12 @@ First, a few assumptions about the dynamic system:
 1.  Over portions of the trajectory, the state is continuous (there are no instantaneous changes in the states)
 2.  Over portions of the trajectory, the state is continuous in its first derivative w.r.t. time. (there are no instantaneous changes in the state rates)
 
-If those two conditions are met, then it's reasonable fit a polynomial to a plot of the state value over time.
+If those two conditions are met, then it's reasonable to fit a polynomial to a plot of the state value over time.
 Given the initial or final value of a state, and values of its rate at some number of points across the trajectory, then a polynomial can be fit whose initial or final value matches, and whose rates match the sampled rates.
 The value of the state at any point throughout the trajectory can then be inferred by interpolating the collocated polynomial.
 
 Solving this trajectory implicitly basically means _guessing_ values for the states along the trajectory.
-While one could use a power series polynomial coefficients ($a t^2 + b t + c), these coefficients can have vastly different values depending on the shape of the curve, making them difficult to scale numerically.
+While one could use a power series polynomial coefficients ($a t^2 + b t + c$), these coefficients can have vastly different values depending on the shape of the curve, making them difficult to scale numerically.
 Instead, Lagrange interpolating polynomials are typically used, where the actual values to be interpolated at various points are the implicit variables.
 This makes scaling the problem easier, and gives the implicit variables more intuitive meaning, making it easier to provide an initial guess.
 
@@ -140,7 +140,7 @@ As with the Gauss-Lobatto method, a third-order polynomial requires four pieces 
 In the case of the Radau Pseudospectral Method, we'll use four state values, guessed at the Radau nodes in dimensionless time in addition to the right endpoint of the interval (the _state discretization nodes_).
 
 A linear interpolation of the endpoint values will serve as the initial guess in this instance.
-The three Radau nodes that don't include the right endpoing will serve as the _collocation nodes_ in this case.
+The three Radau nodes that don't include the right endpoint will serve as the _collocation nodes_ in this case.
 Since these are a subset of the state discretization nodes, no interpolation of values is necessary...all of the state values have been provided.
 
 ![Screenshot](scripts/lgr_animation_0.png)
