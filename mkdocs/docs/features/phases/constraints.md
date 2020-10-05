@@ -11,7 +11,7 @@ As OpenMDAO components, outputs of Dymos Phases can be constrained using OpenMDA
 Boundary constraints are constraints on a variable value at the start or end of a phase.  There
 are a few different ways to impose these in Dymos, each with slightly different behavior.
 
-Lets consider that we want to solve for the elevation angle that results in the maximum possible
+Let's consider that we want to solve for the elevation angle that results in the maximum possible
 range flown by a cannonball.  In this situation we have some set of initial conditions that are
 fixed.
 
@@ -48,7 +48,7 @@ To *pin* the value of a state, time, or control to a value just set lower and up
 value.
 
 As for the pros and cons of this technique, its largely similar to that for the first technique,
-but it somewhat optimizer dependent.  Some optimizers *may* allow bounds on design variables to
+but it's somewhat optimizer dependent.  Some optimizers *may* allow bounds on design variables to
 be violated slightly (to some small tolerance).  In theory this could alleviate some of the issues
 with omitting a design variable altogether, but in practice that's unlikely.
 

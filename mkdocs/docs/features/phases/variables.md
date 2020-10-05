@@ -25,7 +25,7 @@ The variables `t_initial` and `t_duration` are converted to time values at the n
 Dymos computes the following time values, which can be used inside the ODE:
 
 - `time` - The canonical time. At the start of the phase `time = t_initial`, and `time = t_initial + t_duration` at the end of the phase.
-- `time_phase` - The elasped time since the beginning of the phase.  `time_phase = time - t_initial`
+- `time_phase` - The elapsed time since the beginning of the phase.  `time_phase = time - t_initial`
 - `t_initial` - The initial time of the current phase (this value is the same at all nodes within the phase).
 - `t_duration` - The phase time duration of the current phase (this value is the same at all nodes within the phase).
 
@@ -102,7 +102,7 @@ The values of this argument obey the same rules as those for states.
 
 The control first and second derivatives w.r.t. time may also be connected to the ODE.
 First derivatives of controls in Dymos assume the name `<control_name>_rate`.
-Second derviatives of controls in Dymos assume the name `<control_name>_rate2`.
+Second derivatives of controls in Dymos assume the name `<control_name>_rate2`.
 Control rates are automatically connected if a top-level input of the ODE is named `<control_name>_rate` or `<control_name>_rate2`.
 These variables are available in the timeseries output as `timeseries.control_rates.<control_name>_rate` and `timeseries.control_rates.<control_name>_rate2`, respectively.
 
@@ -120,7 +120,7 @@ The values of this argument obey the same rules as those for states.
 
 The polynomial control first and second derivatives w.r.t. time may also be connected to the ODE.
 First derivatives of controls in Dymos assume the name `<control_name>_rate`.
-Second derviatives of controls in Dymos assume the name `<control_name>_rate2`.
+Second derivatives of controls in Dymos assume the name `<control_name>_rate2`.
 Control rates are automatically connected if a top-level input of the ODE is named `<control_name>_rate` or `<control_name>_rate2`.
 These variables are available in the timeseries output as `timeseries.polynomial_control_rates.<control_name>_rate` and `timeseries.polynomial_control_rates.<control_name>_rate2`, respectively.
 
