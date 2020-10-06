@@ -553,6 +553,116 @@ class Trajectory(om.Group):
             self._configure_parameters()
         if self._linkages:
             self._configure_linkages()
+            
+    def add_linkage_constraint(self, phase_a, phase_b, var_a, var_b, loc_a='final', loc_b='initial',
+                               sign_a=1.0, sign_b=-1.0, units=_unspecified, lower=None, upper=None,
+                               equals=None, scaler=None, adder=None, ref0=None, ref=None,
+                               linear=False):
+        """
+        Explicitly add a phase linkage constraint.
+
+        Phase linkage constraints are enforced by constraining the following equation:
+
+        sign_a * var_a + sign_b * var_b
+
+        The resulting value of this equation is constrained.  This can satisfy 'coupling' or
+        'linkage' conditions across phase boundaries:  enforcing continuity,
+        common initial conditions, or common final conditions.
+
+        With default values, this equation can be used to enforce variable continuity at phase
+        boundaries.  For instance, constraining some variable `x` (either a state, control,
+        parameter, or output of the ODE) to have the same value at the final point of phase 'foo'
+        and the initial point of phase 'bar' is accomplished by:
+
+        ```
+        add_linkage_constraint('foo', 'bar', 'x', 'x')
+        ```
+
+        We may sometimes want two phases to have the same value of some variable at the start of
+        each phase:
+
+        ```
+        add_linkage_constraint('foo', 'bar', 'x', 'x', loc_a='initial', loc_b='initial')
+        ```
+
+        (Here the specification of loc_b is unnecessary but helps in the clarity of whats going on.)
+
+        Or perhaps a phase has cyclic behavior.  We may not know the exact value of some variable
+        `x` at the start and end of the phase `foo`, but it must be the same value at each point.
+
+        ```
+        add_linkage_constraint('foo', 'foo', 'x', 'x')
+        ```
+
+        If `lower`, `upper`, and `equals` are all `None`, then dymos will use `equals=0` by default.
+        If the continuity condition is limited by some bounds instead, lower and upper can be used.
+        For instance, perhaps the velocity ('vel') is allowed to have an impulsive change within
+        a certain magnitude between two phases:
+
+        ```
+        add_linkage_constraint('foo', 'bar', 'vel', 'vel', lower=-100, upper=100, units='m/s')
+        ```
+
+        Parameters
+        ----------
+        phase_a : str
+            The first phase in the linkage constraint.
+        phase_b : str
+        var_a : str
+            The linked variable from the first phase in the linkage constraint.
+        var_b : str
+        loc_a : str
+            The location of the variable in the first phase of the linkage constraint (one of
+            'initial' or 'final'.)
+        loc_b : str
+            The location of the variable in the second phase of the linkage constraint (one of
+            'initial' or 'final'.)
+        sign_a
+            The sign applied to the variable from the first phase in the linkage constraint.
+        sign_b
+            The sign applied to the variable from the second phase in the linkage constraint.
+        units : str or None or _unspecified
+            Units of the linkage.  If _unspecified, dymos will use the units from the variable
+            in the first phase of the linkage.  Units of the two specified variables must be
+            compatible.
+        lower : float or array or None
+            The lower bound applied as a constraint on the linkage equation.
+        upper : float or array or None
+            The upper bound applied as a constraint on the linkage equation.
+        equals : float or array or None
+            Specifies a targeted value for an equality constraint on the linkage equation.
+        scaler : float or array or None
+            The scaler of the linkage constraint.
+        adder : float or array or None
+            The adder of the linkage constraint.
+        ref0 : float or array or None
+            The zero-reference value of the linkage constraint.
+        ref : float or array or None
+            The unit-reference value of the linkage constraint.
+        linear : bool
+            If True, treat this variable as a linear constraint, otherwise False.  Linear
+            constraints should only be applied if the variable on each end of the linkage is a
+            design variable or a linear function of one.
+        """
+        if (phase_a, phase_b) not in self._linkages:
+                self._linkages[phase_a, phase_b] = OrderedDict()
+
+        if lower is None and upper is None and equals is None:
+            equals = 0.0
+
+        self._linkages[phase_a, phase_b][var_a, var_b] = {'locs': (loc_a, loc_b),
+                                                          'signs': (sign_a, sign_b),
+                                                          'units': units,
+                                                          'connected': False,
+                                                          'lower': lower,
+                                                          'upper': upper,
+                                                          'equals': equals,
+                                                          'scaler': scaler,
+                                                          'adder': adder,
+                                                          'ref0': ref0,
+                                                          'ref': ref,
+                                                          'linear': linear}
+
 
     def link_phases(self, phases, vars=None, locs=('++', '--'), connected=False):
         """
