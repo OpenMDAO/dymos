@@ -94,8 +94,9 @@ install:
     python -m pip install pyyaml;
     python -m pip install coveralls;
 
-    echo "Install pyoptsparse and along with IPOPT";
-    git clone https://github.com/OpenMDAO/build_pyoptsparse;
+    echo "Clone the build_pyoptsparse script";
+    echo $PWD;
+    git clone https://github.com/OpenMDAO/build_pyoptsparse ./build_pyoptsparse.git;
 
     if [ "$SNOPT_LOCATION" ]; then
       echo "Install SNOPT";
@@ -105,11 +106,13 @@ install:
       echo $PWD;
     fi
 
-    cd build_pyoptsparse;
+    echo "Build pyoptsparse"
+    echo $PWD
+    cd build_pyoptsparse.git;
+    ls;
     chmod 755 ./build_pyoptsparse_ipopt.sh;
     ./build_pyoptsparse_ipopt.sh v2.1.5 SNOPT=7.7
     cd ..
-    echo $PWD
 
     git clone https://github.com/OpenMDAO/MBI.git;
     cd MBI;
