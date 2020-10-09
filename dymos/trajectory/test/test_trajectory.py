@@ -252,8 +252,9 @@ class TestInvalidLinkages(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             p.setup(check=True)
 
-        self.assertEqual(str(e.exception), 'Invalid linkage:  Unable to find variable '
-                                           '\'bar\' in phase \'phases.burn1\' or its ODE.')
+        self.assertEqual(str(e.exception), 'Error in linking bar from burn1 to bar in burn2: '
+                                           'Unable to find variable \'bar\' in phase '
+                                           '\'phases.burn1\' or its ODE.')
 
     def test_invalid_linkage_phase(self):
         p = om.Problem(model=om.Group())

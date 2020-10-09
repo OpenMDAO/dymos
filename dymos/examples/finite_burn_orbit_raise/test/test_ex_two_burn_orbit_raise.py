@@ -302,7 +302,6 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
             assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
                               tolerance=4.0E-3)
 
-
 class TestExampleTwoBurnOrbitRaiseMPI(TestExampleTwoBurnOrbitRaise):
     N_PROCS = 3
 

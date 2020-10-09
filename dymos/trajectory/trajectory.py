@@ -430,60 +430,60 @@ class Trajectory(om.Group):
         var_a = linkage_options['var_a']
         var_b = linkage_options['var_b']
 
-        phase_a = self._get_subsystem(f'phases.{phase_name_a}')
-        phase_b = self._get_subsystem(f'phases.{phase_name_b}')
+        info_str = f'Error in linking {var_a} from {phase_name_a} to {var_b} in {phase_name_b}'
 
-        phases = {'a': self._get_subsystem(f'phases.{phase_name_a}'),
-                  'b': self._get_subsystem(f'phases.{phase_name_b}')}
+        phase_a = self._phases[phase_name_a]
+        phase_b = self._phases[phase_name_b]
+
+        phases = {'a': phase_a, 'b': phase_b}
 
         classes = {'a': phase_a.classify_var(var_a),
                    'b': phase_b.classify_var(var_b)}
 
         sources = {'a': None, 'b': None}
         vars = {'a': var_a, 'b': var_b}
-        units = {'a': linkage_options['units'], 'b': linkage_options['units']}
+        units = {'a': _unspecified, 'b': _unspecified}
         shapes = {'a': _unspecified, 'b': _unspecified}
 
         for i in ('a', 'b'):
             if classes[i] == 'time':
                 sources[i] = 'timeseries.time'
                 shapes[i] = (1,)
-                units[i] = phases[i].time_options['units'] if units[i] is _unspecified else units[i]
+                units[i] = phases[i].time_options['units']
             elif classes[i] == 'time_phase':
                 sources[i] = 'timeseries.time_phase'
-                units[i] = phases[i].time_options['units'] if units[i] is _unspecified else units[i]
+                units[i] = phases[i].time_options['units']
                 shapes[i] = (1,)
             elif classes[i] == 'state':
                 sources[i] = f'timeseries.states:{vars[i]}'
-                units[i] = phases[i].state_options[vars[i]]['units'] if units[i] is _unspecified else units[i]
+                units[i] = phases[i].state_options[vars[i]]['units']
                 shapes[i] = phases[i].state_options[vars[i]]['shape']
             elif classes[i] in {'indep_control', 'input_control'}:
                 sources[i] = f'timeseries.controls:{vars[i]}'
-                units[i] = phases[i].control_options[vars[i]]['units'] if units[i] is _unspecified else units[i]
+                units[i] = phases[i].control_options[vars[i]]['units']
                 shapes[i] = phases[i].control_options[vars[i]]['shape']
             elif classes[i] in {'control_rate', 'control_rate2'}:
                 sources[i] = f'timeseries.control_rates:{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'control_rate' else vars[i][:-6]
-                units[i] = phases[i].control_options[control_name]['units'] if units[i] is _unspecified else units[i]
+                units[i] = phases[i].control_options[control_name]['units']
                 deriv = 1 if classes[i] == 'control_rate' else 2
                 units[i] = get_rate_units(units[i], phases[i].time_options['units'], deriv=deriv)
                 shapes[i] = phases[i].control_options[control_name]['shape']
             elif classes[i] == 'polynomial_control':
                 sources[i] = f'timeseries.polynomial_controls:{vars[i]}'
-                units[i] = phases[i].polynomial_control_options[vars[i]]['units'] if units[i] is _unspecified else units[i]
+                units[i] = phases[i].polynomial_control_options[vars[i]]['units']
                 shapes[i] = phases[i].polynomial_control_options[vars[i]]['shape']
             elif classes[i] in {'polynomial_control_rate', 'polynomial_control_rate2'}:
                 sources[i] = f'timeseries.polynomial_control_rates:{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'polynomial_control_rate' else vars[i][:-6]
-                if units[i] is _unspecified:
-                    control_units = phases[i].polynomial_control_options[control_name]['units']
-                    time_units = phases[i].time_options['units']
-                    deriv = 1 if classes[i] == 'control_rate' else 2
-                    units[i] = get_rate_units(control_units, time_units, deriv=deriv)
+                control_units = phases[i].polynomial_control_options[control_name]['units']
+                time_units = phases[i].time_options['units']
+                deriv = 1 if classes[i] == 'control_rate' else 2
+                units[i] = get_rate_units(control_units, time_units, deriv=deriv)
                 shapes[i] = phases[i].polynomial_control_options[control_name]['shape']
             elif classes[i] == 'parameter':
                 sources[i] = f'timeseries.parameters:{vars[i]}'
-                units[i] = phases[i].parameter_options[vars[i]]['units'] if units[i] is _unspecified else units[i]
+                units[i] = phases[i].parameter_options[vars[i]]['units']
                 shapes[i] = phases[i].parameter_options[vars[i]]['shape']
             else:
                 rhs_source = phases[i].options['transcription']._rhs_source
@@ -493,13 +493,20 @@ class Trajectory(om.Group):
                                                               sources[i], user_units=units[i],
                                                               user_shape=_unspecified)
                 except ValueError as e:
-                    raise ValueError(f'Invalid linkage:  Unable to find variable \'{vars[i]}\' in '
+                    raise ValueError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
                                      f'phase \'{phases[i].pathname}\' or its ODE.')
 
         linkage_options['src_a'] = sources['a']
         linkage_options['src_b'] = sources['b']
         linkage_options['shape'] = shapes['b']
-        linkage_options['units'] = units['b']
+
+        if linkage_options['units'] is _unspecified:
+            if units['a'] != units['b']:
+                raise ValueError(f'{info_str}: Linkage units were not specified but the units of '
+                                 f'var_a ({units["a"]}) and var_b ({units["b"]}) are not the same. '
+                                 f'Units for this linkage constraint must be specified explicitly.')
+            else:
+                linkage_options['units'] = units['b']
 
     def _expand_star_linkage_configure(self):
         """
