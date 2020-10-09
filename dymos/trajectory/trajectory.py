@@ -315,14 +315,13 @@ class Trajectory(om.Group):
     def _setup_linkages(self):
         has_linkage_constraints = False
         for pair, var_dict in self._linkages.items():
-            phase_name1, phase_name2 = pair
-
-            phase2 = self._phases[phase_name2]
 
             for name in pair:
                 if name not in self._phases:
                     raise ValueError(f'Invalid linkage.  Phase \'{name}\' does not exist in '
                                      f'trajectory \'{self.pathname}\'.')
+
+            phase2 = self._phases[pair[1]]
 
             for var_pair, options in var_dict.items():
                 var1, var2 = var_pair
@@ -433,7 +432,7 @@ class Trajectory(om.Group):
 
         phase_a = self._get_subsystem(f'phases.{phase_name_a}')
         phase_b = self._get_subsystem(f'phases.{phase_name_b}')
-        
+
         phases = {'a': self._get_subsystem(f'phases.{phase_name_a}'),
                   'b': self._get_subsystem(f'phases.{phase_name_b}')}
 
@@ -489,9 +488,13 @@ class Trajectory(om.Group):
             else:
                 rhs_source = phases[i].options['transcription']._rhs_source
                 sources[i] = f'{rhs_source}:{vars[i]}'
-                shapes[i], units[i] = get_source_metadata(phases[i]._get_subsystem(rhs_source),
-                                                          sources[i], user_units=units[i],
-                                                          user_shape=_unspecified)
+                try:
+                    shapes[i], units[i] = get_source_metadata(phases[i]._get_subsystem(rhs_source),
+                                                              sources[i], user_units=units[i],
+                                                              user_shape=_unspecified)
+                except ValueError as e:
+                    raise ValueError(f'Invalid linkage:  Unable to find variable \'{vars[i]}\' in '
+                                     f'phase \'{phases[i].pathname}\' or its ODE.')
 
         linkage_options['src_a'] = sources['a']
         linkage_options['src_b'] = sources['b']
@@ -514,9 +517,9 @@ class Trajectory(om.Group):
 
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
 
-            for var_pair, options in var_dict.items():
+            for var_pair in var_dict.keys():
                 if tuple(var_pair) == ('*', '*'):
-                    expanded = True
+                    options = var_dict[var_pair]
                     self.add_linkage_constraint(phase_name_a, phase_name_b, var_a='time',
                                                 var_b='time', loc_a=options['loc_a'],
                                                 loc_b=options['loc_b'], sign_a=options['sign_a'],
@@ -530,12 +533,13 @@ class Trajectory(om.Group):
                     self._linkages[phase_pair].pop(var_pair)
 
     def _configure_linkages(self):
+        connected_linkage_inputs = []
 
         # First, if the user requested all states and time be continuous ('*', '*'), then
         # expand it out.
         self._expand_star_linkage_configure()
 
-        print('--- Linkage Report [{0}] ---'.format(self.pathname))
+        print(f'--- Linkage Report [{self.pathname}] ---')
 
         indent = '    '
 
@@ -543,8 +547,14 @@ class Trajectory(om.Group):
 
         for phase_pair, var_dict in self._linkages.items():
             phase_name_a, phase_name_b = phase_pair
-            phase_a = self._get_subsystem(f'phases.{phase_name_a}')
+            print(f'{indent}--- {phase_name_a} - {phase_name_b} ---')
+
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
+
+            # Pull out the maximum variable name length of all variables to make the print nicer.
+            var_len = [(len(var_pair[0]), len(var_pair[1])) for var_pair in var_dict]
+            max_varname_length = max(itertools.chain(*var_len))
+            padding = max_varname_length + 1
 
             for var_pair, options in var_dict.items():
                 var_a, var_b = var_pair
@@ -561,146 +571,34 @@ class Trajectory(om.Group):
 
                 if options['connected']:
                     if phase_b.classify_var(var_b) == 'time':
-                        self.connect(src_a, f'{phase_name_b}.t_initial', src_indices=[-1])
+                        self.connect(f'{phase_name_a}.{src_a}',
+                                     f'{phase_name_b}.t_initial',
+                                     src_indices=[-1])
+                        print(f'{indent * 2}{var_a:<{padding}s}  ==  {var_b:<{padding}s}')
                     elif phase_b.classify_var(var_b) == 'state':
                         tgt_b = f'initial_states:{var_b}'
-                        self.connect(f'{phase_name_a}.{src_a}', f'{phase_name_b}.{tgt_b}',
+                        self.connect(f'{phase_name_a}.{src_a}',
+                                     f'{phase_name_b}.{tgt_b}',
                                      src_indices=src_idxs_a)
+                        print(f'{indent * 2}{var_a:<{padding}s}  ->  {var_b:<{padding}s}')
                 else:
                     linkage_comp.add_linkage_configure(options)
 
-                    self.connect(f'{phase_name_a}.{src_a}',
-                                 f'linkages.{phase_name_a}:{var_a}_{loc_a}',
-                                 src_indices=src_idxs_a)
+                    if f'linkages.{phase_name_a}:{var_a}_{loc_a}' not in connected_linkage_inputs:
+                        self.connect(f'{phase_name_a}.{src_a}',
+                                     f'linkages.{phase_name_a}:{var_a}_{loc_a}',
+                                     src_indices=src_idxs_a)
+                        connected_linkage_inputs.append(f'linkages.{phase_name_a}:{var_a}_{loc_a}')
 
-                    self.connect(f'{phase_name_b}.{src_b}',
-                                 f'linkages.{phase_name_b}:{var_b}_{loc_b}',
-                                 src_indices=src_idxs_b)
+                    if f'linkages.{phase_name_b}:{var_b}_{loc_b}' not in connected_linkage_inputs:
+                        self.connect(f'{phase_name_b}.{src_b}',
+                                     f'linkages.{phase_name_b}:{var_b}_{loc_b}',
+                                     src_indices=src_idxs_b)
+                        connected_linkage_inputs.append(f'linkages.{phase_name_b}:{var_b}_{loc_b}')
 
-                    max_varname_length = 20
-                    padding = max_varname_length + 9
-                    print(f'{indent * 2}{var_a:<{padding}s}  =  {var_b:<{padding}s}')
+                    print(f'{indent * 2}{var_a:<{padding}s}  ==  {var_b:<{padding}s}')
 
             print('----------------------------')
-
-
-        #
-        #         exit(0)
-        #
-        #         var1, var2 = var_pair
-        #
-        #         if options['connected']:
-        #             if var2 == 'time':
-        #                 phase2.set_time_options(input_initial=True)
-        #             elif var2 == '*':
-        #                 phase2.set_time_options(input_initial=True)
-        #                 for state_name in phase2.state_options:
-        #                     phase2.set_state_options(state_name, conected_initial=True)
-        #             elif var2 in phase2.state_options:
-        #                 phase2.set_state_options(var2, connected_initial=True)
-        #         else:
-        #             has_linkage_constraints = True
-        #
-        #     # Dict of vars that expands '*' to include time and states
-        #     _vars = {}
-        #     for var in sorted(vars.keys()):
-        #         if var == '*':
-        #             _vars['time'] = vars[var].copy()
-        #             for state in p2_states:
-        #                 _vars[state] = vars[var].copy()
-        #         else:
-        #             _vars[var] = vars[var].copy()
-        #
-        #     max_varname_length = max(len(name) for name in _vars.keys())
-        #
-        #     units_map = {}
-        #     shape_map = {}
-        #     vars_to_constrain = []
-        #
-        #     for var, options in _vars.items():
-        #         if not options['connected']:
-        #             vars_to_constrain.append(var)
-        #             if var in p1.state_options:
-        #                 units_map[var] = p1.state_options[var]['units']
-        #                 shape_map[var] = p1.state_options[var]['shape']
-        #             elif var in p1.control_options:
-        #                 units_map[var] = p1.control_options[var]['units']
-        #                 shape_map[var] = p1.control_options[var]['shape']
-        #             elif var in p1.polynomial_control_options:
-        #                 units_map[var] = p1.polynomial_control_options[var]['units']
-        #                 shape_map[var] = p1.polynomial_control_options[var]['shape']
-        #             elif var in p1.parameter_options:
-        #                 units_map[var] = p1.parameter_options[var]['units']
-        #                 shape_map[var] = p1.parameter_options[var]['shape']
-        #             elif var == 'time':
-        #                 units_map[var] = p1.time_options['units']
-        #                 shape_map[var] = (1,)
-        #             else:
-        #                 units_map[var] = None
-        #                 shape_map[var] = (1,)
-        #
-        #     if vars_to_constrain:
-        #
-        #         linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
-        #         self.linkages.add_linkage(name=linkage_name,
-        #                                   vars=vars_to_constrain,
-        #                                   shape=shape_map,
-        #                                   units=units_map)
-        #
-        #     for var, options in _vars.items():
-        #         loc1, loc2 = options['locs']
-        #
-        #         if var in p1_states:
-        #             source1 = 'states:{0}{1}'.format(var, loc1)
-        #         elif var in p1_controls:
-        #             source1 = 'controls:{0}{1}'.format(var, loc1)
-        #         elif var == 'time':
-        #             source1 = '{0}{1}'.format(var, loc1)
-        #         elif var in p1_parameters:
-        #             source1 = 'parameters:{0}'.format(var)
-        #         else:
-        #             raise ValueError('Cannot find linkage variable \'{0}\' in '
-        #                              'phase \'{1}\'.  Only states, time, controls, or parameters '
-        #                              'may be linked via link_phases.'.format(var, pair[0]))
-        #
-        #         if var in p2_states:
-        #             source2 = 'states:{0}{1}'.format(var, loc2)
-        #         elif var in p2_controls:
-        #             source2 = 'controls:{0}{1}'.format(var, loc2)
-        #         elif var == 'time':
-        #             source2 = '{0}{1}'.format(var, loc2)
-        #         elif var in p2_parameters:
-        #             source2 = 'parameters:{0}'.format(var)
-        #         else:
-        #             raise ValueError('Cannot find linkage variable \'{0}\' in '
-        #                              'phase \'{1}\'.  Only states, time, controls, or parameters '
-        #                              'may be linked via link_phases.'.format(var, pair[1]))
-        #
-        #         if options['connected']:
-        #             if var == 'time':
-        #                 src = '{0}.{1}'.format(phase_name1, source1)
-        #                 path = 't_initial'
-        #                 self.connect(src, '{0}.{1}'.format(phase_name2, path))
-        #             else:
-        #                 path = 'initial_states:{0}'.format(var)
-        #                 self.connect('{0}.{1}'.format(phase_name1, source1),
-        #                              '{0}.{1}'.format(phase_name2, path))
-        #             print('{3}{0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
-        #                                                       max_varname_length + 9,
-        #                                                       indent*2))
-        #         else:
-        #
-        #             self.connect('{0}.{1}'.format(phase_name1, source1),
-        #                          'linkages.{0}_{1}:lhs'.format(linkage_name, var))
-        #
-        #             self.connect('{0}.{1}'.format(phase_name2, source2),
-        #                          'linkages.{0}_{1}:rhs'.format(linkage_name, var))
-        #
-        #             print('{3}{0:<{2}s}  =  {1:<{2}s}'.format(source1, source2,
-        #                                                       max_varname_length + 9,
-        #                                                       indent*2))
-        #
-        # print('----------------------------')
 
     def configure(self):
         """
@@ -714,7 +612,7 @@ class Trajectory(om.Group):
             self._configure_parameters()
         if self._linkages:
             self._configure_linkages()
-            
+
     def add_linkage_constraint(self, phase_a, phase_b, var_a, var_b, loc_a='final', loc_b='initial',
                                sign_a=1.0, sign_b=-1.0, units=_unspecified, lower=None, upper=None,
                                equals=None, scaler=None, adder=None, ref0=None, ref=None,
@@ -808,6 +706,18 @@ class Trajectory(om.Group):
             If True, this constraint is enforced by direct connection rather than a constraint
             for the optimizer.
         """
+        if 'connected':
+            invalid_options = []
+            for arg in ['lower', 'upper', 'equals', 'scaler', 'adder', 'ref0', 'ref']:
+                if locals()[arg] is not None:
+                    invalid_options.append(arg)
+            if locals()['linear']:
+                invalid_options.append('linear')
+            if invalid_options:
+                msg = 'The following options for add_linkage_constraint were specified but not ' \
+                      'valid when option \'connected\' is True: ' + ' '.join(invalid_options)
+                warnings.warn(msg)
+
         if (phase_a, phase_b) not in self._linkages:
             self._linkages[phase_a, phase_b] = OrderedDict()
 
@@ -927,7 +837,6 @@ class Trajectory(om.Group):
         next(b, None)
         phase_pairs = list(zip(a, b))
 
-        print(locs)
         if len(locs) == 1:
             _locs = num_links * locs
         elif len(locs) == 2:
@@ -946,19 +855,6 @@ class Trajectory(om.Group):
                 self.add_linkage_constraint(phase_a=phase_name_a, phase_b=phase_name_b,
                                             var_a=var, var_b=var, loc_a=loc_a, loc_b=loc_b,
                                             connected=connected)
-
-        print(self._linkages)
-
-        #
-        # for phase1_name, phase2_name in phase_pairs:
-        #     if (phase1_name, phase2_name) not in self._linkages:
-        #         self._linkages[phase1_name, phase2_name] = OrderedDict()
-        #
-        #     for var in _vars:
-        #         self.add_linkage_constraint(phase_a=phase1_name, phase_b=phase2_name,
-        #                                     var_a=var, var_b=var, loc_a=)
-        #         self._linkages[phase1_name, phase2_name][var, var] = {'locs': locs, 'units': None,
-        #                                                               'connected': connected}
 
     def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9, record_file=None):
         """
