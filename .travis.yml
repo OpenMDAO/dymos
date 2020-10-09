@@ -129,6 +129,7 @@ install:
 - cd ..;
 
 # install dymos itself.
+- echo $PWD;
 - python -m pip install -e .[all];
 
 # display summary of installed packages and their versions
