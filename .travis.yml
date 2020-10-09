@@ -95,6 +95,8 @@ install:
     python -m pip install coveralls;
 
     echo "Install pyoptsparse and along with IPOPT";
+    git clone https://github.com/OpenMDAO/build_pyoptsparse
+    cd build_pyoptsparse
     chmod 755 ./build_pyoptsparse_ipopt.sh; ./build_pyoptsparse_ipopt.sh;
 
     if [ "$SNOPT_LOCATION" ] && [ "${PY:0:1}" = "3" ]; then
