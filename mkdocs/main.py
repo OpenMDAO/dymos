@@ -529,10 +529,12 @@ def _function_doc_markdown(func, reference, outstream=sys.stdout, indent='', met
     print('', file=outstream)
 
     if doc['Summary']:
-        print(indent + ' '.join(doc['Summary']), file=outstream)
+        txt = textwrap.indent('\n'.join(doc['Summary']), indent) + '\n'
+        print(txt, file=outstream)
 
     if doc['Extended Summary']:
-        print(indent + ' '.join(doc['Extended Summary']) + '\n', file=outstream)
+        txt = textwrap.indent('\n'.join(doc['Extended Summary']), indent) + '\n'
+        print(txt, file=outstream)
 
     print('', file=outstream)
 

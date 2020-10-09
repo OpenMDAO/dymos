@@ -31,12 +31,41 @@ Phases are added to a Trajectory using the `add_phase` method.
 
 Having added phases to the Trajectory, they now exist as independent Groups within the OpenMDAO model.
 In order to enforce continuity among certain variables across phases, the user must declare which variables are to be continuous in value at each phase boundary.
+There are two methods in dymos which provide this functionality.
+The `add_linkage_constraint` method provides a very general way of coupling two phases together.
+It does so by generating a constraint of the following form:
+
+\begin{align}
+    c = \mathrm{sign}_a \mathrm{var}_a + \mathrm{sign}_b \mathrm{var}_b
+\end{align}
+
+Method `add_linkage_constraint` lets the user specify the variables and phases to be compared for this constraint, as well as the location of the variable in each phase (either 'initial' or 'final')
+By default this method is setup to provide continuity in a variable between two phases:
+- the sign of variable `a` is +1 while the sign of variable `b` is -1.
+- the location of variable `a` is 'final' while the location of variable `b` is 'initial'.
+- the default value of the constrained quantity is 0.0.
+
+In this way, the default behavior constrains the final value of some variable in phase `a` to be the same as the initial value of some variable in phase `b`.
+Other values for these options can provide other functionality.
+For instance, to simulate a mass jettison, we could require that the initial value of `mass` in phase `b` be 1000 kg less than the value of mass at the end of phase `a`.
+Providing arguments `equals = 1000, units='kg` would achieve this.
+
+Similarly, specifying other values for the locations of the variables in each phase can be used to ensure that two phases start or end at the same condition - such as the case in a branching trajectory or a rendezvous.
+
+While `add_linkage_constraint` gives the user a powerful capability, providing simple state and time continuity across multiple phases would be a very verbose undertaking using this method.
 The `link_phases` method is intended to simplify this process.
 In the finite-burn orbit raising example, there are three phases:  `burn1`, `coast`, `burn2`.
 This case is somewhat unusual in that the thrust acceleration is modeled as a state variable.  
 The acceleration needs to be zero in the coast phase, but continuous between `burn1` and `burn2`, assuming no mass was jettisoned during the coast and that the thrust magnitude doesn't change.
 
+### add_linkage_constraint
+
+{{ api_doc('dymos.Trajectory.add_linkage_constraint') }}
+
+### link_phases
+
 {{ api_doc('dymos.Trajectory.link_phases') }}
+
 
 ##  Trajectory-Level Parameters
 

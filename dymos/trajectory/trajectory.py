@@ -670,6 +670,7 @@ class Trajectory(om.Group):
         var_a : str
             The linked variable from the first phase in the linkage constraint.
         var_b : str
+            The linked variable from the second phase in the linkage constraint.
         loc_a : str
             The location of the variable in the first phase of the linkage constraint (one of
             'initial' or 'final'.)
