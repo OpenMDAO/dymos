@@ -59,9 +59,9 @@ class PhaseLinkageComp(om.ExplicitComponent):
         input_b = f'{phase_b}:{var_b}_{loc_b}'
         output = f'{phase_a}:{var_a}_{loc_a}|{phase_b}:{var_b}_{loc_b}'
 
-        lnk['input_a'] = input_a
-        lnk['input_b'] = input_b
-        lnk['output'] = output
+        lnk._input_a = input_a
+        lnk._input_b = input_b
+        lnk._output = output
 
         try:
             self.add_input(name=input_a, shape=shape, val=np.zeros(shape), units=units)
@@ -90,8 +90,8 @@ class PhaseLinkageComp(om.ExplicitComponent):
     def compute(self, inputs, outputs):
 
         for lnk in self.options['linkages']:
-            input_a = lnk['input_a']
-            input_b = lnk['input_b']
-            output = lnk['output']
+            input_a = lnk._input_a
+            input_b = lnk._input_b
+            output = lnk._output
 
             outputs[output] = lnk['sign_a'] * inputs[input_a] + lnk['sign_b'] * inputs[input_b]

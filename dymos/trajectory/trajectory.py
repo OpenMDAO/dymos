@@ -496,8 +496,8 @@ class Trajectory(om.Group):
                     raise ValueError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
                                      f'phase \'{phases[i].pathname}\' or its ODE.')
 
-        linkage_options['src_a'] = sources['a']
-        linkage_options['src_b'] = sources['b']
+        linkage_options._src_a = sources['a']
+        linkage_options._src_b = sources['b']
         linkage_options['shape'] = shapes['b']
 
         if linkage_options['units'] is _unspecified:
@@ -510,7 +510,7 @@ class Trajectory(om.Group):
 
     def _expand_star_linkage_configure(self):
         """
-        Finds the variable pair ('*', '*') and expands it out time time and all states if found.
+        Finds the variable pair ('*', '*') and expands it out to time and all states if found.
 
         Returns
         -------
@@ -570,8 +570,8 @@ class Trajectory(om.Group):
 
                 self._update_linkage_options_configure(options)
 
-                src_a = options['src_a']
-                src_b = options['src_b']
+                src_a = options._src_a
+                src_b = options._src_b
 
                 src_idxs_a = om.slicer[0, ...] if loc_a == 'initial' else om.slicer[-1, ...]
                 src_idxs_b = om.slicer[0, ...] if loc_b == 'initial' else om.slicer[-1, ...]
@@ -712,7 +712,7 @@ class Trajectory(om.Group):
             design variable or a linear function of one.
         connected : bool
             If True, this constraint is enforced by direct connection rather than a constraint
-            for the optimizer.
+            for the optimizer.  This is only valid for states and time.
         """
         if 'connected':
             invalid_options = []

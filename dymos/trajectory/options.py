@@ -78,20 +78,11 @@ class LinkageOptionsDictionary(om.OptionsDictionary):
                      desc='If True, this linkage is handled as a direct connection rather than'
                           'by a constraint.  This option only applies to time and states.')
 
-        self.declare(name='src_a', types=str, default=None, allow_none=True,
-                     desc='The path from which var_a should be pulled in the first phase.')
-
-        self.declare(name='src_b', types=str, default=None, allow_none=True,
-                     desc='The path from which var_b should be pulled in the second phase.')
-
         self.declare(name='constraint_name', types=str, default=None, allow_none=True,
                      desc='optional alternative constraint name to override name conflicts.')
 
-        self.declare(name='input_a', types=str, default=None, allow_none=True,
-                     desc='The name of the input associated with variable a for the linkage comp.')
-
-        self.declare(name='input_b', types=str, default=None, allow_none=True,
-                     desc='The name of the input associated with variable b for the linkage comp.')
-
-        self.declare(name='output', types=str, default=None, allow_none=True,
-                     desc='The name of the output associated with the linkage for the linkage comp.')
+        self._src_a = None
+        self._src_b = None
+        self._input_a = None
+        self._input_b = None
+        self._output = None
