@@ -97,7 +97,7 @@ install:
 
     echo "Clone the build_pyoptsparse script";
     echo $PWD;
-    git clone https://github.com/OpenMDAO/build_pyoptsparse ./build_pyoptsparse.git;
+    git clone https://github.com/OpenMDAO/build_pyoptsparse;
 
     if [ "$SNOPT_LOCATION" ]; then
       echo "Install SNOPT";
