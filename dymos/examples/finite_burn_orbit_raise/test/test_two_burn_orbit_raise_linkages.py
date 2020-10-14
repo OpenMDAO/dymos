@@ -393,7 +393,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.model.add_subsystem('traj', traj)
 
         p.driver = om.pyOptSparseDriver()
-        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=False)
         p.driver.options['optimizer'] = optimizer
 
         p.driver.declare_coloring()

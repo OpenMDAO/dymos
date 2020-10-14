@@ -736,7 +736,7 @@ class Trajectory(om.Group):
                 invalid_options.append('linear')
             if invalid_options:
                 msg = f'Invalid option in linkage between {phase_a}:{var_a} and {phase_b}:{var_b} ' \
-                      f'in trajectory {self.pathname}.  The following options for ' \
+                      f'in trajectory {self.pathname}. The following options for ' \
                       f'add_linkage_constraint were specified but not valid when ' \
                       f'option \'connected\' is True: ' + ' '.join(invalid_options)
                 warnings.warn(msg)

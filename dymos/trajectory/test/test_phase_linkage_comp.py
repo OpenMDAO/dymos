@@ -70,25 +70,23 @@ class TestPhaseLinkageComp(unittest.TestCase):
 
         self.p.model.add_subsystem('linkage_comp', subsys=linkage_comp)
 
-        self.p.model.connect('phase0:x', 'linkage_comp.phase0:x_final',
-                             src_indices=[-1],
-                             flat_src_indices=True)
+        self.p.model.connect('phase0:x', 'linkage_comp.phase0:x',
+                             src_indices=om.slicer[[0, -1], ...])
 
-        self.p.model.connect('phase1:x', 'linkage_comp.phase1:x_initial',
-                             src_indices=[0],
-                             flat_src_indices=True)
+        self.p.model.connect('phase1:x', 'linkage_comp.phase1:x',
+                             src_indices=om.slicer[[0, -1], ...])
 
-        self.p.model.connect('phase0:u', 'linkage_comp.phase0:u_final',
-                             src_indices=om.slicer[-1, ...])
+        self.p.model.connect('phase0:u', 'linkage_comp.phase0:u',
+                             src_indices=om.slicer[[0, -1], ...])
 
-        self.p.model.connect('phase1:u', 'linkage_comp.phase1:u_initial',
-                             src_indices=om.slicer[0, ...])
+        self.p.model.connect('phase1:u', 'linkage_comp.phase1:u',
+                             src_indices=om.slicer[[0, -1], ...])
 
-        self.p.model.connect('phase0:v', 'linkage_comp.phase0:v_final',
-                             src_indices=om.slicer[-1, ...])
+        self.p.model.connect('phase0:v', 'linkage_comp.phase0:v',
+                             src_indices=om.slicer[[0, -1], ...])
 
-        self.p.model.connect('phase1:v', 'linkage_comp.phase1:v_initial',
-                             src_indices=om.slicer[0, ...])
+        self.p.model.connect('phase1:v', 'linkage_comp.phase1:v',
+                             src_indices=om.slicer[[0, -1], ...])
 
         self.p.setup()
 
@@ -105,13 +103,13 @@ class TestPhaseLinkageComp(unittest.TestCase):
     def test_results(self):
 
         assert_almost_equal(-self.p['phase1:x'][0, ...] + self.p['phase0:x'][-1, ...],
-                            self.p['linkage_comp.phase0:x_final'] - self.p['linkage_comp.phase1:x_initial'])
+                            self.p['linkage_comp.phase0:x_final|phase1:x_initial'])
 
         assert_almost_equal(-self.p['phase1:u'][0, ...] + self.p['phase0:u'][-1, ...],
-                            self.p['linkage_comp.phase0:u_final'] - self.p['linkage_comp.phase1:u_initial'])
+                            self.p['linkage_comp.phase0:u_final|phase1:u_initial'])
 
         assert_almost_equal(-self.p['phase1:v'][0, ...] + self.p['phase0:v'][-1, ...],
-                            self.p['linkage_comp.phase0:v_final'] - self.p['linkage_comp.phase1:v_initial'])
+                            self.p['linkage_comp.phase0:v_final|phase1:v_initial'])
 
     def test_partials(self):
         cpd = self.p.check_partials(out_stream=None)
