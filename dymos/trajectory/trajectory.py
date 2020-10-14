@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from collections.abc import Sequence
+from copy import deepcopy
 import itertools
 import warnings
 try:
@@ -17,10 +18,8 @@ from ..utils.constants import INF_BOUND
 from .options import LinkageOptionsDictionary
 from .phase_linkage_comp import PhaseLinkageComp
 from ..phase.options import TrajParameterOptionsDictionary
-from ..utils.misc import get_rate_units, get_source_metadata
-
-
-_unspecified = object()
+from ..utils.misc import get_rate_units, get_source_metadata, _unspecified
+from ..utils.indexing import get_src_indices_by_row
 
 
 class Trajectory(om.Group):
@@ -429,6 +428,8 @@ class Trajectory(om.Group):
         phase_name_b = linkage_options['phase_b']
         var_a = linkage_options['var_a']
         var_b = linkage_options['var_b']
+        loc_a = linkage_options['loc_a']
+        loc_b = linkage_options['loc_b']
 
         info_str = f'Error in linking {var_a} from {phase_name_a} to {var_b} in {phase_name_b}'
 
@@ -444,6 +445,9 @@ class Trajectory(om.Group):
         vars = {'a': var_a, 'b': var_b}
         units = {'a': _unspecified, 'b': _unspecified}
         shapes = {'a': _unspecified, 'b': _unspecified}
+        src_idxs = {'a': None, 'b': None}
+        flat_src_idxs = {'a': False, 'b': False}
+        locs = {'a': loc_a, 'b': loc_b}
 
         for i in ('a', 'b'):
             if classes[i] == 'time':
@@ -487,17 +491,26 @@ class Trajectory(om.Group):
                 shapes[i] = phases[i].parameter_options[vars[i]]['shape']
             else:
                 rhs_source = phases[i].options['transcription']._rhs_source
-                sources[i] = f'{rhs_source}:{vars[i]}'
+                sources[i] = f'{rhs_source}.{vars[i]}'
                 try:
                     shapes[i], units[i] = get_source_metadata(phases[i]._get_subsystem(rhs_source),
-                                                              sources[i], user_units=units[i],
+                                                              vars[i], user_units=units[i],
                                                               user_shape=_unspecified)
                 except ValueError as e:
                     raise ValueError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
                                      f'phase \'{phases[i].pathname}\' or its ODE.')
 
+                num_ode_nodes = phases[i]._get_subsystem(rhs_source).options['num_nodes']
+                src_idxs[i] = get_src_indices_by_row([0], shapes[i]) if locs[i] == 'initial' else \
+                    get_src_indices_by_row([num_ode_nodes-1], shapes[i])
+                flat_src_idxs[i] = True
+
         linkage_options._src_a = sources['a']
         linkage_options._src_b = sources['b']
+        linkage_options._src_idxs_a = src_idxs['a']
+        linkage_options._src_idxs_b = src_idxs['b']
+        linkage_options._flat_src_idxs_a = flat_src_idxs['a']
+        linkage_options._flat_src_idxs_b = flat_src_idxs['b']
         linkage_options['shape'] = shapes['b']
 
         if linkage_options['units'] is _unspecified:
@@ -519,7 +532,8 @@ class Trajectory(om.Group):
             a phase boundary.
 
         """
-        for phase_pair, var_dict in self._linkages.items():
+        linkages_copy = deepcopy(self._linkages)
+        for phase_pair, var_dict in linkages_copy.items():
             phase_name_a, phase_name_b = phase_pair
 
             phase_b = self._get_subsystem(f'phases.{phase_name_b}')
@@ -573,37 +587,36 @@ class Trajectory(om.Group):
                 src_a = options._src_a
                 src_b = options._src_b
 
-                src_idxs_a = om.slicer[0, ...] if loc_a == 'initial' else om.slicer[-1, ...]
-                src_idxs_b = om.slicer[0, ...] if loc_b == 'initial' else om.slicer[-1, ...]
+                src_idxs = om.slicer[[0, -1], ...]
 
                 if options['connected']:
                     if phase_b.classify_var(var_b) == 'time':
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.t_initial',
                                      src_indices=[-1])
-                        print(f'{indent * 2}{var_a:<{padding}s}  ==  {var_b:<{padding}s}')
                     elif phase_b.classify_var(var_b) == 'state':
                         tgt_b = f'initial_states:{var_b}'
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'{phase_name_b}.{tgt_b}',
-                                     src_indices=src_idxs_a)
-                        print(f'{indent * 2}{var_a:<{padding}s}  ->  {var_b:<{padding}s}')
+                                     src_indices=om.slicer[-1, ...])
+                    print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ->  {var_b:<{padding}s}[{loc_b}]')
                 else:
                     linkage_comp.add_linkage_configure(options)
 
-                    if f'linkages.{phase_name_a}:{var_a}_{loc_a}' not in connected_linkage_inputs:
+                    if options._input_a not in connected_linkage_inputs:
                         self.connect(f'{phase_name_a}.{src_a}',
-                                     f'linkages.{phase_name_a}:{var_a}_{loc_a}',
-                                     src_indices=src_idxs_a)
-                        connected_linkage_inputs.append(f'linkages.{phase_name_a}:{var_a}_{loc_a}')
+                                     f'linkages.{options._input_a}',
+                                     src_indices=src_idxs)
+                        connected_linkage_inputs.append(options._input_a)
 
-                    if f'linkages.{phase_name_b}:{var_b}_{loc_b}' not in connected_linkage_inputs:
+                    if options._input_b not in connected_linkage_inputs:
                         self.connect(f'{phase_name_b}.{src_b}',
-                                     f'linkages.{phase_name_b}:{var_b}_{loc_b}',
-                                     src_indices=src_idxs_b)
-                        connected_linkage_inputs.append(f'linkages.{phase_name_b}:{var_b}_{loc_b}')
+                                     f'linkages.{options._input_b}',
+                                     src_indices=src_idxs)
+                        connected_linkage_inputs.append(options._input_b)
 
-                    print(f'{indent * 2}{var_a:<{padding}s}  ==  {var_b:<{padding}s}')
+                    a = var_a + f'[{loc_a}]'
+                    print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ==  {var_b:<{padding}s}[{loc_b}]')
 
             print('----------------------------')
 
@@ -714,7 +727,7 @@ class Trajectory(om.Group):
             If True, this constraint is enforced by direct connection rather than a constraint
             for the optimizer.  This is only valid for states and time.
         """
-        if 'connected':
+        if connected:
             invalid_options = []
             for arg in ['lower', 'upper', 'equals', 'scaler', 'adder', 'ref0', 'ref']:
                 if locals()[arg] is not None:
@@ -722,8 +735,10 @@ class Trajectory(om.Group):
             if locals()['linear']:
                 invalid_options.append('linear')
             if invalid_options:
-                msg = 'The following options for add_linkage_constraint were specified but not ' \
-                      'valid when option \'connected\' is True: ' + ' '.join(invalid_options)
+                msg = f'Invalid option in linkage between {phase_a}:{var_a} and {phase_b}:{var_b} ' \
+                      f'in trajectory {self.pathname}.  The following options for ' \
+                      f'add_linkage_constraint were specified but not valid when ' \
+                      f'option \'connected\' is True: ' + ' '.join(invalid_options)
                 warnings.warn(msg)
 
         if (phase_a, phase_b) not in self._linkages:

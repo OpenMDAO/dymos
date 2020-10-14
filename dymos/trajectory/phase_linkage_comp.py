@@ -49,28 +49,31 @@ class PhaseLinkageComp(om.ExplicitComponent):
         shape = lnk['shape']
         units = lnk['units']
 
-        var_a = lnk['constraint_name'] if lnk['constraint_name'] else lnk['var_a']
-        var_b = lnk['constraint_name'] if lnk['constraint_name'] else lnk['var_b']
+        var_a = lnk['constraint_name'] if lnk['constraint_name'] else lnk['var_a'].split('.')[-1]
+        var_b = lnk['constraint_name'] if lnk['constraint_name'] else lnk['var_b'].split('.')[-1]
 
-        loc_a = 'initial' if lnk['loc_a'] in {'initial', '--', '-+'} else 'final'
-        loc_b = 'initial' if lnk['loc_b'] in {'initial', '--', '-+'} else 'final'
+        loc_a = lnk['loc_a'] = 'initial' if lnk['loc_a'] in {'initial', '--', '-+'} else 'final'
+        loc_b = lnk['loc_b'] = 'initial' if lnk['loc_b'] in {'initial', '--', '-+'} else 'final'
 
-        input_a = f'{phase_a}:{var_a}_{loc_a}'
-        input_b = f'{phase_b}:{var_b}_{loc_b}'
+        input_a = f'{phase_a}:{var_a}'
+        input_b = f'{phase_b}:{var_b}'
         output = f'{phase_a}:{var_a}_{loc_a}|{phase_b}:{var_b}_{loc_b}'
+        ishape = (2,) + shape
 
         lnk._input_a = input_a
         lnk._input_b = input_b
+        lnk._idxs_a = (0, ...) if loc_a == 'initial' else (-1, ...)
+        lnk._idxs_b = (0, ...) if loc_b == 'initial' else (-1, ...)
         lnk._output = output
 
         try:
-            self.add_input(name=input_a, shape=shape, val=np.zeros(shape), units=units)
-        except ValueError:
+            self.add_input(name=input_a, shape=ishape, val=np.zeros(shape), units=units)
+        except ValueError as e:
             pass
 
         try:
-            self.add_input(name=input_b, shape=shape, val=np.zeros(shape), units=units)
-        except ValueError:
+            self.add_input(name=input_b, shape=ishape, val=np.zeros(shape), units=units)
+        except ValueError as e:
             pass
 
         self.add_output(name=output, shape=shape, val=np.zeros(shape), units=units)
@@ -82,16 +85,21 @@ class PhaseLinkageComp(om.ExplicitComponent):
                             upper=lnk['upper'], ref=lnk['ref'], ref0=lnk['ref0'],
                             scaler=lnk['scaler'], adder=lnk['adder'], linear=lnk['linear'])
 
-        ar = np.arange(np.prod(lnk['shape']))
+        size = np.prod(lnk['shape'])
+        rs = np.arange(size)
+        cs_a = rs if loc_a == 'initial' else size + rs
+        cs_b = rs if loc_b == 'initial' else size + rs
 
-        self.declare_partials(of=output, wrt=input_a, rows=ar, cols=ar, val=lnk['sign_a'])
-        self.declare_partials(of=output, wrt=input_b, rows=ar, cols=ar, val=lnk['sign_b'])
+        self.declare_partials(of=output, wrt=input_a, rows=rs, cols=cs_a, val=lnk['sign_a'])
+        self.declare_partials(of=output, wrt=input_b, rows=rs, cols=cs_b, val=lnk['sign_b'])
 
     def compute(self, inputs, outputs):
 
         for lnk in self.options['linkages']:
             input_a = lnk._input_a
             input_b = lnk._input_b
+            idxs_a = lnk._idxs_a
+            idxs_b = lnk._idxs_b
             output = lnk._output
 
-            outputs[output] = lnk['sign_a'] * inputs[input_a] + lnk['sign_b'] * inputs[input_b]
+            outputs[output] = lnk['sign_a'] * inputs[input_a][idxs_a] + lnk['sign_b'] * inputs[input_b][idxs_b]
