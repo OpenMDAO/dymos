@@ -110,8 +110,8 @@ install:
     echo "Build pyoptsparse";
     cd build_pyoptsparse;
     chmod 755 ./build_pyoptsparse.sh;
-    ./build_pyoptsparse.sh v2.1.5 SNOPT=7.7
-    cd ..
+    ./build_pyoptsparse.sh v2.1.5 SNOPT=7.7;
+    cd ..;
     echo $PWD
 
     git clone https://github.com/OpenMDAO/MBI.git;
