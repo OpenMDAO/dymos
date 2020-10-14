@@ -107,7 +107,7 @@ install:
       echo $PWD;
     fi
 
-    echo "Build pyoptsparse"
+    echo "Build pyoptsparse";
     cd build_pyoptsparse;
     chmod 755 ./build_pyoptsparse.sh;
     ./build_pyoptsparse.sh v2.1.5 SNOPT=7.7
