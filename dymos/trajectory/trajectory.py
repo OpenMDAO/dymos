@@ -266,7 +266,6 @@ class Trajectory(om.Group):
         """
         if self.parameter_options:
             for name, options in self.parameter_options.items():
-                src_name = f'parameters:{name}'
 
                 if options['opt']:
                     lb = -INF_BOUND if options['lower'] is None else options['lower']
@@ -476,25 +475,30 @@ class Trajectory(om.Group):
         shapes = {'a': _unspecified, 'b': _unspecified}
         src_idxs = {'a': None, 'b': None}
         flat_src_idxs = {'a': False, 'b': False}
-        locs = {'a': loc_a, 'b': loc_b}
 
         for i in ('a', 'b'):
+            num_nodes = phases[i].options['transcription'].grid_data.num_nodes
+
             if classes[i] == 'time':
                 sources[i] = 'timeseries.time'
                 shapes[i] = (1,)
                 units[i] = phases[i].time_options['units']
+                src_idxs[i] = get_src_indices_by_row([0, num_nodes-1], shape=shapes[i])
             elif classes[i] == 'time_phase':
                 sources[i] = 'timeseries.time_phase'
                 units[i] = phases[i].time_options['units']
                 shapes[i] = (1,)
+                src_idxs[i] = get_src_indices_by_row([0, num_nodes-1], shape=shapes[i])
             elif classes[i] == 'state':
                 sources[i] = f'timeseries.states:{vars[i]}'
                 units[i] = phases[i].state_options[vars[i]]['units']
                 shapes[i] = phases[i].state_options[vars[i]]['shape']
+                src_idxs[i] = get_src_indices_by_row([0, num_nodes-1], shape=shapes[i])
             elif classes[i] in {'indep_control', 'input_control'}:
                 sources[i] = f'timeseries.controls:{vars[i]}'
                 units[i] = phases[i].control_options[vars[i]]['units']
                 shapes[i] = phases[i].control_options[vars[i]]['shape']
+                src_idxs[i] = get_src_indices_by_row([0, num_nodes-1], shape=shapes[i])
             elif classes[i] in {'control_rate', 'control_rate2'}:
                 sources[i] = f'timeseries.control_rates:{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'control_rate' else vars[i][:-6]
@@ -502,10 +506,12 @@ class Trajectory(om.Group):
                 deriv = 1 if classes[i] == 'control_rate' else 2
                 units[i] = get_rate_units(units[i], phases[i].time_options['units'], deriv=deriv)
                 shapes[i] = phases[i].control_options[control_name]['shape']
+                src_idxs[i] = get_src_indices_by_row([0, num_nodes-1], shape=shapes[i])
             elif classes[i] == 'polynomial_control':
                 sources[i] = f'timeseries.polynomial_controls:{vars[i]}'
                 units[i] = phases[i].polynomial_control_options[vars[i]]['units']
                 shapes[i] = phases[i].polynomial_control_options[vars[i]]['shape']
+                src_idxs[i] = get_src_indices_by_row([0, num_nodes-1], shape=shapes[i])
             elif classes[i] in {'polynomial_control_rate', 'polynomial_control_rate2'}:
                 sources[i] = f'timeseries.polynomial_control_rates:{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'polynomial_control_rate' else vars[i][:-6]
@@ -514,12 +520,15 @@ class Trajectory(om.Group):
                 deriv = 1 if classes[i] == 'control_rate' else 2
                 units[i] = get_rate_units(control_units, time_units, deriv=deriv)
                 shapes[i] = phases[i].polynomial_control_options[control_name]['shape']
+                src_idxs[i] = get_src_indices_by_row([0, num_nodes-1], shape=shapes[i])
             elif classes[i] == 'parameter':
                 sources[i] = f'timeseries.parameters:{vars[i]}'
                 units[i] = phases[i].parameter_options[vars[i]]['units']
                 shapes[i] = phases[i].parameter_options[vars[i]]['shape']
+                src_idxs[i] = get_src_indices_by_row([0, num_nodes-1], shape=shapes[i])
             else:
                 rhs_source = phases[i].options['transcription']._rhs_source
+                num_ode_nodes = phases[i]._get_subsystem(rhs_source).options['num_nodes']
                 sources[i] = f'{rhs_source}.{vars[i]}'
                 try:
                     shapes[i], units[i] = get_source_metadata(phases[i]._get_subsystem(rhs_source),
@@ -529,9 +538,7 @@ class Trajectory(om.Group):
                     raise ValueError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
                                      f'phase \'{phases[i].pathname}\' or its ODE.')
 
-                num_ode_nodes = phases[i]._get_subsystem(rhs_source).options['num_nodes']
-                src_idxs[i] = get_src_indices_by_row([0], shapes[i]) if locs[i] == 'initial' else \
-                    get_src_indices_by_row([num_ode_nodes-1], shapes[i])
+                src_idxs[i] = get_src_indices_by_row([0, num_ode_nodes-1], shapes[i])
                 flat_src_idxs[i] = True
 
         linkage_options._src_a = sources['a']
@@ -616,7 +623,8 @@ class Trajectory(om.Group):
                 src_a = options._src_a
                 src_b = options._src_b
 
-                src_idxs = om.slicer[[0, -1], ...]
+                src_idxs_a = options._src_idxs_a
+                src_idxs_b = options._src_idxs_b
 
                 if options['connected']:
                     if phase_b.classify_var(var_b) == 'time':
@@ -635,13 +643,15 @@ class Trajectory(om.Group):
                     if options._input_a not in connected_linkage_inputs:
                         self.connect(f'{phase_name_a}.{src_a}',
                                      f'linkages.{options._input_a}',
-                                     src_indices=src_idxs)
+                                     src_indices=src_idxs_a,
+                                     flat_src_indices=True)
                         connected_linkage_inputs.append(options._input_a)
 
                     if options._input_b not in connected_linkage_inputs:
                         self.connect(f'{phase_name_b}.{src_b}',
                                      f'linkages.{options._input_b}',
-                                     src_indices=src_idxs)
+                                     src_indices=src_idxs_b,
+                                     flat_src_indices=True)
                         connected_linkage_inputs.append(options._input_b)
 
                     a = var_a + f'[{loc_a}]'
