@@ -58,7 +58,6 @@ class PhaseLinkageComp(om.ExplicitComponent):
         input_a = f'{phase_a}:{var_a}'
         input_b = f'{phase_b}:{var_b}'
         output = f'{phase_a}:{var_a}_{loc_a}|{phase_b}:{var_b}_{loc_b}'
-        print(var_a, var_b, shape)
         ishape = (2,) + shape
 
         lnk._input_a = input_a
