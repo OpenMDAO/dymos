@@ -534,25 +534,6 @@ class Trajectory(om.Group):
                     get_src_indices_by_row([num_ode_nodes-1], shapes[i])
                 flat_src_idxs[i] = True
 
-            #if MPI:
-                ## State/Parameter/Control dictionaries on phases are updated with new values for
-                ## shape and units, but we don't broadcast those to the off-ranks.
-                #all_ranks = self.comm.allgather(shapes[i])
-                #for item in all_ranks:
-                    #if item not in [None, _unspecified]:
-                        #shapes[i] = item
-                        #break
-                #else:
-                    #raise RuntimeError('Something is amiss.')
-
-                #all_ranks = self.comm.allgather(units[i])
-                #for item in all_ranks:
-                    #if item not in [None, _unspecified]:
-                        #units[i] = item
-                        #break
-                #else:
-                    #raise RuntimeError('Something is amiss.')
-
         linkage_options._src_a = sources['a']
         linkage_options._src_b = sources['b']
         linkage_options._src_idxs_a = src_idxs['a']
