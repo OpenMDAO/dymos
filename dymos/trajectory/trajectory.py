@@ -12,6 +12,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.general_utils import warn_deprecation
+from openmdao.utils.mpi import MPI
 
 from ..utils.constants import INF_BOUND
 
@@ -406,6 +407,34 @@ class Trajectory(om.Group):
 
                 self.promotes('phases', inputs=[(tgt, prom_name)])
 
+    def _configure_phase_options_dicts(self):
+        """
+        Called during configure if we are under MPI. Loops over all phases and broacasts the shape
+        and units options to all procs for all dymos variables.
+        """
+        for name, phase in self._phases.items():
+            all_dicts = [phase.state_options, phase.control_options, phase.parameter_options,
+                         phase.polynomial_control_options]
+
+            for opt_dict in all_dicts:
+                for options in opt_dict.values():
+
+                    all_ranks = self.comm.allgather(options['shape'])
+                    for item in all_ranks:
+                        if item not in [None, _unspecified]:
+                            options['shape'] = item
+                            break
+                    else:
+                        raise RuntimeError('Unexpectedly found no valid shape.')
+
+                    all_ranks = self.comm.allgather(options['units'])
+                    for item in all_ranks:
+                        if item is not _unspecified:
+                            options['units'] = item
+                            break
+                    else:
+                        raise RuntimeError('Unexpectedly found no valid units.')
+
     def _update_linkage_options_configure(self, linkage_options):
         """
         Called during configure to return the source paths, units, and shapes of variables
@@ -631,6 +660,8 @@ class Trajectory(om.Group):
         if self.parameter_options:
             self._configure_parameters()
         if self._linkages:
+            if MPI:
+                self._configure_phase_options_dicts()
             self._configure_linkages()
 
     def add_linkage_constraint(self, phase_a, phase_b, var_a, var_b, loc_a='final', loc_b='initial',
