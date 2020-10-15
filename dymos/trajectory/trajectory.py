@@ -433,8 +433,8 @@ class Trajectory(om.Group):
 
         info_str = f'Error in linking {var_a} from {phase_name_a} to {var_b} in {phase_name_b}'
 
-        phase_a = self._phases[phase_name_a]
-        phase_b = self._phases[phase_name_b]
+        phase_a = self._get_subsystem(f'phases.{phase_name_a}')
+        phase_b = self._get_subsystem(f'phases.{phase_name_b}')
 
         phases = {'a': phase_a, 'b': phase_b}
 

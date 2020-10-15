@@ -107,7 +107,8 @@ def get_targets(ode, name, user_targets):
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
-    ode_inputs = {opts['prom_name']: opts for (k, opts) in ode.get_io_metadata(iotypes=('input',)).items()}
+    ode_inputs = {opts['prom_name']: opts for (k, opts) in
+                  ode.get_io_metadata(iotypes=('input',), get_remote=True).items()}
 
     if user_targets is _unspecified:
         if name in ode_inputs:
@@ -165,7 +166,7 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
     """
     rate_src = False
     ode_inputs = {opts['prom_name']: opts for (k, opts) in
-                  ode.get_io_metadata(iotypes=('input', 'output')).items()}
+                  ode.get_io_metadata(iotypes=('input', 'output'), get_remote=True).items()}
 
     if user_targets is _unspecified:
         if name in ode_inputs:
@@ -246,7 +247,8 @@ def get_source_metadata(ode, src, user_units, user_shape):
     this method should be called from configure of some parent Group, and the ODE should
     be a system within that Group.
     """
-    ode_outputs = {opts['prom_name']: opts for (k, opts) in ode.get_io_metadata(iotypes=('output',)).items()}
+    ode_outputs = {opts['prom_name']: opts for (k, opts) in
+                   ode.get_io_metadata(iotypes=('output',), get_remote=True).items()}
 
     if src not in ode_outputs:
         raise ValueError(f'Unable to find the source {src} in the ODE at {ode.pathname}.')
