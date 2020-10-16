@@ -132,12 +132,12 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         # No direct connections to the end of a phase.
         traj.link_phases(phases=['burn2', 'coast'],
                          vars=['r', 'theta', 'vr', 'vt', 'deltav'],
-                         locs=('++', '++'))
+                         locs=('final', 'final'))
         traj.link_phases(phases=['burn2', 'coast'],
-                         vars=['time'], locs=('++', '++'))
+                         vars=['time'], locs=('final', 'final'))
 
         traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'],
-                         locs=('++', '++'))
+                         locs=('final', 'final'))
 
     else:
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],

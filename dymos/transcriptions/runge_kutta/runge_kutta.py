@@ -5,7 +5,7 @@ import openmdao.api as om
 from ..transcription_base import TranscriptionBase
 from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
     RungeKuttaTimeseriesOutputComp, RungeKuttaControlContinuityComp
-from ..common import TimeComp, EndpointConditionsComp, PathConstraintComp
+from ..common import TimeComp, PathConstraintComp
 from ...utils.rk_methods import rk_methods
 from ...utils.misc import CoerceDesvar, get_rate_units, get_targets, get_target_metadata,\
     get_source_metadata, _unspecified

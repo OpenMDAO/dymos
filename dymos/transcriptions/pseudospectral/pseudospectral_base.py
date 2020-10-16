@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 
 import numpy as np
-from dymos.transcriptions.common import EndpointConditionsComp
 
 import openmdao.api as om
 from ..transcription_base import TranscriptionBase

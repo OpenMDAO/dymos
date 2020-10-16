@@ -27,11 +27,11 @@ class TestVanderpolExample(unittest.TestCase):
         if SHOW_PLOTS:
             vanderpol_dymos_plots(p)
 
-        print('Objective function minimized to', p['traj.phases.phase0.final_conditions.states:J++'])
+        print('Objective function minimized to', p.get_val('traj.phase0.states:J')[-1, ...])
         # check that ODE states (excluding J) and control are driven to near zero
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x0++'], np.zeros(1))
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x1++'], np.zeros(1))
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.controls:u++'], np.zeros(1), decimal=3)
+        assert_almost_equal(p.get_val('traj.phase0.states:x0')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.states:x1')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.controls:u')[-1, ...], np.zeros(1), decimal=3)
 
     @unittest.skipUnless(MPI, 'the test runs without MPI, but is very slow')
     def test_vanderpol_optimal_slow(self):
@@ -46,11 +46,11 @@ class TestVanderpolExample(unittest.TestCase):
         if SHOW_PLOTS:
             vanderpol_dymos_plots(p)
 
-        print('Objective function minimized to', p['traj.phases.phase0.final_conditions.states:J++'])
+        print('Objective function minimized to', p.get_val('traj.phase0.states:J')[-1, ...])
         # check that ODE states (excluding J) and control are driven to near zero
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x0++'], np.zeros(1))
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x1++'], np.zeros(1))
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.controls:u++'], np.zeros(1), decimal=3)
+        assert_almost_equal(p.get_val('traj.phase0.states:x0')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.states:x1')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.controls:u')[-1, ...], np.zeros(1), decimal=3)
 
     def test_vanderpol_optimal_grid_refinement(self):
         # enabling grid refinement gives a faster and better solution with fewer segments

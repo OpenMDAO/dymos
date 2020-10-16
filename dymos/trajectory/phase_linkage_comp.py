@@ -1,5 +1,6 @@
 import numpy as np
 import openmdao.api as om
+from openmdao.utils.general_utils import warn_deprecation
 from .options import LinkageOptionsDictionary
 
 
@@ -51,6 +52,11 @@ class PhaseLinkageComp(om.ExplicitComponent):
 
         var_a = lnk['constraint_name'] if lnk['constraint_name'] else lnk['var_a'].split('.')[-1]
         var_b = lnk['constraint_name'] if lnk['constraint_name'] else lnk['var_b'].split('.')[-1]
+
+        if lnk['loc_a'] in {'++', '--', '-+', '+-'} or lnk['loc_b'] in {'++', '--', '-+', '+-'}:
+            warn_deprecation("The use of two-character location strings ('--', '-+', '+-', '++')\n"
+                             " is deprecated.  Use 'initial' to specify the value at the beginning"
+                             " of a phase and '--' to specify the value at the end of a phase.")
 
         loc_a = lnk['loc_a'] = 'initial' if lnk['loc_a'] in {'initial', '--', '-+'} else 'final'
         loc_b = lnk['loc_b'] = 'initial' if lnk['loc_b'] in {'initial', '--', '-+'} else 'final'
