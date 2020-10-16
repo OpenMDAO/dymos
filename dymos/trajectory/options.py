@@ -82,8 +82,6 @@ class LinkageOptionsDictionary(om.OptionsDictionary):
                      desc='optional alternative constraint name to override name conflicts.')
 
         self._src_a = None
-        self._src_idxs_a = None
-        self._src_idxs_b = None
         self._src_b = None
         self._input_a = None
         self._input_b = None
