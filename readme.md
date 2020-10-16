@@ -56,7 +56,7 @@ integrated.
 Integrating Ordinary Differential Equations
 -------------------------------------------
 
-Dymos's `RungeKutta` and solver-based pseudspectral transcriptions
+Dymos's solver-based pseudspectral transcriptions
 provide the ability to numerically integrate the ODE system it is given.
 Used in an optimal control context, these provide a shooting method in
 which each iteration provides a physically viable trajectory.
@@ -78,7 +78,7 @@ Dymos uses the concept of _Phases_ to support optimal control of dynamical syste
 Users connect one or more Phases to construct trajectories.
 Each Phase can have its own:
 
--   Optimal Control Transcription (Gauss-Lobatto, Radau Pseudospectral, or RungeKutta)
+-   Optimal Control Transcription (Gauss-Lobatto or Radau Pseudospectral)
 -   Equations of motion
 -   Boundary and path constraints
 

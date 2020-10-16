@@ -1,6 +1,7 @@
 import numpy as np
 
 import openmdao.api as om
+from openmdao.utils.general_utils import warn_deprecation
 
 from ..transcription_base import TranscriptionBase
 from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGroup, \
@@ -25,6 +26,11 @@ class RungeKutta(TranscriptionBase):
     def __init__(self, **kwargs):
         super(RungeKutta, self).__init__(**kwargs)
         self._rhs_source = 'ode'
+
+        msg = 'The RungeKutta transcription is deprecated and will be removed in Dymos v1.0.0.\n' \
+              'For equivalent behavior, users should switch to ' \
+              'GaussLobatto(order=3, solve_segments=True)'
+        warn_deprecation(msg)
 
     def initialize(self):
 
