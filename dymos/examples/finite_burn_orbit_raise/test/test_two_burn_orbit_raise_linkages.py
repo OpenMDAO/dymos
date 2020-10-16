@@ -395,6 +395,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.driver = om.pyOptSparseDriver()
         _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=False)
         p.driver.options['optimizer'] = optimizer
+        p.driver.opt_settings['max_iter'] = 500
+        p.driver.opt_settings['print_level'] = 5
 
         p.driver.declare_coloring()
 
@@ -446,7 +448,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
                         rate_source='at_dot', targets=['accel'], units='DU/TU**2')
         coast.add_state('deltav', fix_initial=False, fix_final=False,
                         rate_source='deltav_dot', units='DU/TU')
-        coast.add_parameter('u1', opt=True, units='deg')
+        coast.add_parameter('u1', opt=True, units='deg', lower=-30, upper=30, scaler=0.01)
 
         # Third Phase (burn)
 
@@ -484,7 +486,8 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         # Link Phases
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],
                          vars=['time', 'r', 'vr', 'vt', 'deltav'])
-        traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
+
+        # Here u1 is a control in the burns and a parameter in the coast
         traj.link_phases(phases=['burn1', 'coast', 'burn2'], vars=['u1'])
 
         # Finish Problem Setup
@@ -543,15 +546,17 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         p.set_val('traj.burn2.states:accel',
                   value=burn2.interpolate(ys=[0.1, 0], nodes='state_input'))
         p.set_val('traj.burn2.states:deltav',
-                  value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
+                  value=burn2.interpolate(ys=[0.1, 0.4], nodes='state_input'))
         p.set_val('traj.burn2.controls:u1',
                   value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
 
         p.run_driver()
 
+        # This tolerance is loosened because we're testing that the control
+        # stays continuous across the trajectory phases, which isn't necessarily optimal.
         assert_near_equal(p.get_val('traj.burn2.timeseries.states:deltav')[-1],
                           0.3995,
-                          tolerance=2.0E-3)
+                          tolerance=0.05)
 
         burn1_u1_final = p.get_val('traj.burn1.timeseries.controls:u1')[-1, ...]
         coast_u1_initial = p.get_val('traj.coast.timeseries.parameters:u1')[0, ...]
