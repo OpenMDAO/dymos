@@ -10,8 +10,8 @@ from dymos.transcriptions.runge_kutta.components.runge_kutta_k_iter_group import
 from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
 
 # Modify class so we can run it standalone.
-from dymos.utils.misc import CompWrapperConfig
-RungeKuttaKIterGroup = CompWrapperConfig(RungeKuttaKIterGroup)
+from dymos.utils.misc import GroupWrapperConfig
+RungeKuttaKIterGroup = GroupWrapperConfig(RungeKuttaKIterGroup)
 
 
 class TestRungeKuttaKIterGroup(unittest.TestCase):

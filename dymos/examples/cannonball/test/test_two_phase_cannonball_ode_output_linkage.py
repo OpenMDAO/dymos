@@ -3,13 +3,10 @@ import unittest
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 
-from dymos.utils.doc_utils import save_for_docs
 
+class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
-class TestTwoPhaseCannonballForDocs(unittest.TestCase):
-
-    @save_for_docs
-    def test_two_phase_cannonball_for_docs(self):
+    def test_two_phase_cannonball_ode_output_linkage(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
 
@@ -98,7 +95,12 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         traj.add_parameter('S', units='m**2', val=0.005)
 
         # Link Phases (link time and all state variables)
-        traj.link_phases(phases=['ascent', 'descent'], vars=['*'])
+        # Note velocity is not included here.  Doing so is equivalent to linking kinetic energy,
+        # and causes a duplicate row in the constraint jacobian.
+        traj.link_phases(phases=['ascent', 'descent'], vars=['time', 'r', 'h', 'gam'], connected=True)
+
+        traj.add_linkage_constraint('ascent', 'descent', 'kinetic_energy.ke', 'kinetic_energy.ke',
+                                    ref=100000, connected=False)
 
         # Issue Connections
         p.model.connect('external_params.radius', 'size_comp.radius')
@@ -107,10 +109,11 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.model.connect('size_comp.mass', 'traj.parameters:m')
         p.model.connect('size_comp.S', 'traj.parameters:S')
 
-        # A linear solver at the top level can improve performance.
+        # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
 
-        # Finish Problem Setup
+        p.driver.add_recorder(om.SqliteRecorder('ex_two_phase_cannonball.db'))
+
         p.setup()
 
         # Set Initial Guesses

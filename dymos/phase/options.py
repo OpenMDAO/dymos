@@ -301,7 +301,7 @@ class TrajParameterOptionsDictionary(ParameterOptionsDictionary):
 
 class StateOptionsDictionary(om.OptionsDictionary):
     """
-    An OptionsDictionary specific to controls.
+    An OptionsDictionary specific to states.
     """
 
     def __init__(self, read_only=False):
