@@ -10,8 +10,9 @@ from dymos.utils.doc_utils import save_for_docs
 
 _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
+
 class TestFiniteBurnOrbitRaise(unittest.TestCase):
-    
+
     @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     @save_for_docs
     def test_finite_burn_orbit_raise(self):

@@ -107,11 +107,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.model.connect('size_comp.mass', 'traj.parameters:m')
         p.model.connect('size_comp.S', 'traj.parameters:S')
 
-        # Finish Problem Setup
+        # A linear solver at the top level can improve performance.
         p.model.linear_solver = om.DirectSolver()
 
-        p.driver.add_recorder(om.SqliteRecorder('ex_two_phase_cannonball.db'))
-
+        # Finish Problem Setup
         p.setup()
 
         # Set Initial Guesses
