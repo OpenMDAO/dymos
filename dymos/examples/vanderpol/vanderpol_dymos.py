@@ -15,8 +15,11 @@ def vanderpol(transcription='gauss-lobatto', num_segments=8, transcription_order
     else:
         p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
-    if use_pyoptsparse and optimizer == 'SNOPT':
-        p.driver.opt_settings['iSumm'] = 6  # show detailed SNOPT output
+    if use_pyoptsparse:
+        if optimizer == 'SNOPT':
+            p.driver.opt_settings['iSumm'] = 6  # show detailed SNOPT output
+        elif optimizer == 'IPOPT':
+            p.driver.opt_settings['print_level'] = 5
     p.driver.declare_coloring()
 
     # define a Trajectory object and add to model
