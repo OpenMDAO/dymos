@@ -2,6 +2,8 @@
 
 ## Backwards incompatible changes
 
+### Design parameters and input parameters are now just parameters
+
 There is no longer a distinction between input parameters and design parameters.
 While the add_input_parameter and add_design_paramaters will still function until dymos 1.0.0, the path to the parameters themselves is changed in a backwards incompatible way.
 
@@ -17,6 +19,25 @@ Likewise, the path to the parameter values in the timeseries outputs is changed:
                old_label='dymos < 0.16.0',
                new_label='dymos >= 0.16.0') }}
 
+### The location specification for link phases is simplified
+
+When using the `link_phases` method, previously a "location" of `'--'` was used to specify the initial time in a phase and `'++'` was used to specify the final time.
+These have been changed to `initial` and `final` for more consistency across the codebase.
+The previous behavior is deprecated and will be removed in v1.0.0.
+
+### The endpoint conditions are no longer separately computed.
+
+We had toyed with they notion of allowing discontinuous jumps in states and controls at the beginning or end of a phase.
+Going forward, we'll handle this through special phase linkage conditions.
+In the mean time, the components used to compute the values of states and controls before/after these jumps have been removed.
+
+The initial and final value of a time, state, or control variable in a phase should now be retrieved from the timeseries.
+
+{{ upgrade_doc('dymos.test.test_upgrade_guide.TestUpgrade_0_16_0.test_sequence_timeseries_outputs',
+               feature='state_endpoint_values',
+               old_label='dymos < 0.16.0',
+               new_label='dymos >= 0.16.0') }}
+
 ## Enhancements
 
 ### Omitting parameter values from a timeseries
@@ -28,6 +49,10 @@ If desired, one can avoid storing parameters in timeseries using the `include_ti
                feature='parameter_no_timeseries',
                old_label='dymos < 0.16.0',
                new_label='dymos >= 0.16.0') }}
+
+!!! note "Phase linkages rely on timeseries values"
+    Currently in Dymos, when linking phases the values of the linked parameters are required to be present in the timeseries.  
+    Omitting a parameter from the timeseries will cause errors if it's used in a phase linkage constraint.
 
 ### Timeseries improvements
 
@@ -61,6 +86,13 @@ Units can also be provided as a dictionary in which the keys are one or more of 
                new_label='dymos >= 0.16.0') }}
 
 Finally, the rates of a state variables as computed by the ODE (or provided by another variable) are now avilable in a timeseries as `timeseries.state_rates:{state_name}`.
+
+### Phase Linkage improvements
+
+Phases may now be linked by any variable: times, states, controls, control rates, polynomial controls, polynomial control rates, parameters, or ODE outputs).
+The `link_phases` method continues to provide a convenient way of specifying continuity across multiple phases.
+A new Trajectory method, `add_linkage_constraint`, has been added to provide more general phase linkage conditions.
+`add_phase_linkage` allows inequality constraints to govern the way a variable's value changes between phases.
 
 ### dymos.run_problem
 
