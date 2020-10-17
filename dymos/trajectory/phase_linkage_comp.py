@@ -56,7 +56,7 @@ class PhaseLinkageComp(om.ExplicitComponent):
         if lnk['loc_a'] in {'++', '--', '-+', '+-'} or lnk['loc_b'] in {'++', '--', '-+', '+-'}:
             warn_deprecation("The use of two-character location strings ('--', '-+', '+-', '++')\n"
                              " is deprecated.  Use 'initial' to specify the value at the beginning"
-                             " of a phase and '--' to specify the value at the end of a phase.")
+                             " of a phase and 'final' to specify the value at the end of a phase.")
 
         loc_a = lnk['loc_a'] = 'initial' if lnk['loc_a'] in {'initial', '--', '-+'} else 'final'
         loc_b = lnk['loc_b'] = 'initial' if lnk['loc_b'] in {'initial', '--', '-+'} else 'final'
