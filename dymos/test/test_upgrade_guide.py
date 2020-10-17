@@ -466,7 +466,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
 
         # upgrade_doc: begin state_endpoint_values
         final_range = p.get_val('traj.phase0.timeseries.states:r')[-1, ...]
-        final_alpha = p.get_val('traj.phase0.timeseries.controls:r')[-1, ...]
+        final_alpha = p.get_val('traj.phase0.timeseries.controls:alpha')[-1, ...]
         # upgrade_doc: end state_endpoint_values
         self.assertEqual(final_range, 50000.0)
         self.assertEqual(final_alpha, 0.0)
