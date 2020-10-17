@@ -182,4 +182,3 @@ class GridRefinementODESystem(om.Group):
                 self.set_input_defaults(name=f'parameters:{name}',
                                         val=np.ones(num_nodes),
                                         units=options['units'])
-
