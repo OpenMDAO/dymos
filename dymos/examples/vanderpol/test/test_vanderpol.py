@@ -62,11 +62,11 @@ class TestVanderpolExample(unittest.TestCase):
         if SHOW_PLOTS:
             vanderpol_dymos_plots(p)
 
-        print('Objective function minimized to', p['traj.phases.phase0.final_conditions.states:J++'])
+        print('Objective function minimized to', p.get_val('traj.phase0.timeseries.states:J')[-1, ...])
         # check that ODE states (excluding J) and control are driven to near zero
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x0++'], np.zeros(1))
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x1++'], np.zeros(1))
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.controls:u++'], np.zeros(1), decimal=4)
+        assert_almost_equal(p.get_val('traj.phase0.timeseries.states:x0')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.timeseries.states:x1')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1, ...], np.zeros(1), decimal=4)
 
 
 if __name__ == '__main__':  # pragma: no cover
