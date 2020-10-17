@@ -11,7 +11,7 @@ class GridRefinementODESystem(om.Group):
     The Grid Refinement algorithms in Dymos use the following approach for computing
     errors in the transcription:
 
-    1. The phase segmentation is reproduced, except each segment is of one polyomial order higher
+    1. The phase segmentation is reproduced, except each segment is of one polynomial order higher
     (for Radau) or two orders higher (for GaussLobatto).
     2. An interpolation matrix (L) and an integration matrix (I) is developed that takes the solution
     from 'all' nodes of the existing solution and interpolates it onto 'all' nodes of the higher-order segmentation.
@@ -182,36 +182,3 @@ class GridRefinementODESystem(om.Group):
                 self.set_input_defaults(name=f'parameters:{name}',
                                         val=np.ones(num_nodes),
                                         units=options['units'])
-
-    def _get_rate_source_path(self, state_var):
-        var = self.options['states'][state_var]['rate_source']
-
-        # Assume the rate source is in the ODE, unless another specific condition is met.
-        rate_path = f'ode.{var}'
-
-        if var == 'time':
-            rate_path = 'time'
-        elif var == 'time_phase':
-            rate_path = 'time_phase'
-        elif self.options['states'] is not None and var in self.options['states']:
-            rate_path = 'states:{0}'.format(var)
-        elif self.options['controls'] is not None and var in self.options['controls']:
-            rate_path = 'controls:{0}'.format(var)
-        elif self.options['polynomial_controls'] is not None and var in self.options['polynomial_controls']:
-            rate_path = 'polynomial_controls:{0}'.format(var)
-        elif self.options['parameters'] is not None and var in self.options['parameters']:
-            rate_path = 'parameters:{0}'.format(var)
-        elif var.endswith('_rate') and self.options['controls'] is not None and \
-                var[:-5] in self.options['controls']:
-            rate_path = 'control_rates:{0}'.format(var)
-        elif var.endswith('_rate2') and self.options['controls'] is not None and \
-                var[:-6] in self.options['controls']:
-            rate_path = 'control_rates:{0}'.format(var)
-        elif var.endswith('_rate') and self.options['polynomial_controls'] is not None and \
-                var[:-5] in self.options['polynomial_controls']:
-            rate_path = 'polynomial_control_rates:{0}'.format(var)
-        elif var.endswith('_rate2') and self.options['polynomial_controls'] is not None and \
-                var[:-6] in self.options['polynomial_controls']:
-            rate_path = 'polynomial_control_rates:{0}'.format(var)
-
-        return rate_path

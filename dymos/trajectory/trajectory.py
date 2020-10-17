@@ -793,12 +793,8 @@ class Trajectory(om.Group):
         The location at which the variables should be coupled in the two phases are provided
         with a two character string:
 
-        - '--' specifies the value at the start of the phase before an initial state or control jump
-        - '-+' specifies the value at the start of the phase after an initial state or control jump
-        - '+-' specifies the value at the end of the phase before a final state or control jump
-        - '++' specifies the value at the end of the phase after a final state or control jump
-        - 'final' the same as '++'
-        - 'initial' the same as '--'
+        - 'final' specifies the value at the end of the phase (at time t_initial + t_duration)
+        - 'initial' specifies the value at the start of the phase (at time t_initial)
 
         Parameters
         ----------
@@ -852,15 +848,15 @@ class Trajectory(om.Group):
 
         **Specifying Linkage Locations**
 
-        Phase linkages assume that, for each pair, the state/control values after any discontinuous
-        jump in the first phase ('++') are linked to the state/control values before any
-        discontinuous jump in the second phase ('--').  The user can override this behavior, but
+        Phase linkages assume that, for each pair, the state/control values at the end ('final')
+        of the first phase are linked to the state/control values at the start of the second phase
+        ('initial').  The user can override this behavior, but
         they must specify a pair of location strings for each pair given in `phases`.  For instance,
         in the following example phases 'a' and 'b' have the same initial time and state, but
         phase 'c' follows phase 'b'.  Note since there are three phases provided, there are two
         linkages and thus two pairs of location specifiers given.
 
-        >>> t.link_phases(['a', 'b', 'c'], locs=[('--', '--'), ('++', '--')])
+        >>> t.link_phases(['a', 'b', 'c'], locs=[('initial', 'initial'), ('final', 'initial')])
 
         """
         num_links = len(phases) - 1

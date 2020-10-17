@@ -358,12 +358,6 @@ class SolveIVP(TranscriptionBase):
     def configure_objective(self, phase):
         pass
 
-    def setup_endpoint_conditions(self, phase):
-        pass
-
-    def configure_endpoint_conditions(self, phase):
-        pass
-
     def setup_path_constraints(self, phase):
         pass
 

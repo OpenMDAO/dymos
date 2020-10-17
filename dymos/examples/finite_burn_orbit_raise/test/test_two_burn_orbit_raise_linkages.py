@@ -245,12 +245,21 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         # Link Phases
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],
                          vars=['time', 'r', 'vr', 'vt', 'deltav'])
-        traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
+        traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'], locs=('++', '--'))
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
 
-        p.setup(check=True, force_alloc_complex=True)
+        with warnings.catch_warnings(record=True) as ctx:
+            warnings.simplefilter('always')
+            p.setup(check=True, force_alloc_complex=True)
+
+            expected_warning = "The use of two-character location strings " \
+                               "('--', '-+', '+-', '++')\n is deprecated.  Use 'initial' to specify " \
+                               "the value at the beginning of a phase and 'final' to specify the " \
+                               "value at the end of a phase."
+
+            self.assertIn(expected_warning, [str(w.message) for w in ctx])
 
         # Set Initial Guesses
         p.set_val('traj.parameters:c', value=1.5)
