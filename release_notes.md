@@ -1,7 +1,7 @@
-# Dymos Release Notes
+********************************
+# Release Notes for Dymos 0.16.0
 
-## 0.16.0
-2020-10-23
+October 23, 2020
 
 This is a long-overdue release of Dymos that features several useful new features.
 By taking advantage of recent changes to the OpenMDAO setup process, we can use introspection to determine a lot of things automatically now.
@@ -25,30 +25,43 @@ Connecting an external variable to the parameter makes it function as a InputPar
 
 From here on, we plan on making releases of Dymos roughly once per month.
 
-* [__Enhancement__] Phase linkage enhancments.  Any outputs can be linked across phases.  Added a more general and powerful `add_linkage_constraint` method, but the simpler `link_phases` method remains in place for simple continuity. #422
-* [__Enhancement__] Time, controls, and polynomial control units. #412
-* [__Bug Fix__] AnalysisError is now raised if scipy.integrate.solve_ivp fails during simulation. #400
-* [__Enhancement__] States now pull their default units and shapes from the rate source. #398
-* [__Enhancement__] Phase method `add_timeseries_output` now supports wildcards to allow multiple timeseries outputs to be added at once. #387, #399
-* [__Enhancement__] Timeseries outputs automatically detect shape and default units. #380
-* [__Enhancement__] Added ph-adaptive refinement method that is capable of shrinking the grid. #379
-* [__Enhancement__] Control targets will automatically be set to a top-level input of the ODE, if present. #373
-  * [__Enhancement__] API Change:  `design_parameters` and `input_parameters` are now just `parameters`. Old functionality deprecated. #365
-* [__Enhancement__] State targets will automatically be set to a top-level input of the ODE, if present. #356
-* [__Enhancement__] Water-powered rocket MDO example added. #343
-* [__Docs__] Documentation is now handled via mkdocs instead of sphinx. #337, #332
-* [__Enhancement__] State rates are included in timeseries outputs by default. #329
-* [__Enhancement__] By default, run_problem will use a problem recorder to record only the 'final' solution after an optimization. #328
-* [__Enhancement__] Move most setup functionality to configure to allow more introspection changes. #327
-* [__Bug Fix__] Switch to use preferred `assert_near_equal` method instead of `assert_rel_error` from OpenMDAO. #320
-* [__Bug Fix__] Fix for simulate encountering errors when time options `input_initial` or `input_duration` were True. #317
-* [__Enhancement__] Include examples using IPOPT via pyoptsparse. #311
-* [__Enhancement__] Parameters may now be selectively omitted from the timeseries outputs, but are included by default. #305
-* [__Enhancement__] Added a test of the distributed ODE capability. #304
-* [__Bug Fix__] Fixed a bug in which shaped input parameters were breaking simulate. #301
-* [__Bug Fix__] Sort linkage orders to make convergence more repeatable. #298
-* [__Enhancement__] Replace `load_case` with reinterpolate solution.
-* [__Bug Fix__] Fixed a bug involving GaussLobatto transcriptions `get_rate_source` method. #334
+## Backwards Incompatible API Changes & Deprecations:
+
+- `add_input_parameter` and `add_design_parameter` are deprecated and replaced with `add_parameter` [#365](https://github.com/OpenMDAO/dymos/pull/365)
+- The use of two-character location strings ('--' and '++') are replaced by 'initial' and 'final' when linking phases. [#427](https://github.com/OpenMDAO/dymos/pull/427)
+- The endpoint conditions component, used to pull out initial or final values of a variable in a phase, have been removed.  Values should instead by pulled from the timeseries. [#427](https://github.com/OpenMDAO/dymos/pull/427)
+
+## Enhancements:
+
+* Any outputs can now be linked across phases.  Added a more general and powerful `add_linkage_constraint` method, but the simpler `link_phases` method remains in place for simple continuity. [#422](https://github.com/OpenMDAO/dymos/pull/422)
+* Time, controls, and polynomial control units are now determined from targets. [#412](https://github.com/OpenMDAO/dymos/pull/412)
+* States now pull their default units and shapes from the rate source. [#398](https://github.com/OpenMDAO/dymos/pull/398)
+* Phase method `add_timeseries_output` now supports wildcards to allow multiple timeseries outputs to be added at once. [#387](https://github.com/OpenMDAO/dymos/pull/387), #387
+* Timeseries outputs automatically detect shape and default units. [#380](https://github.com/OpenMDAO/dymos/pull/380)
+* Added ph-adaptive refinement method that is capable of shrinking the grid. [#379](https://github.com/OpenMDAO/dymos/pull/379)
+* Control targets will automatically be set to a top-level input of the ODE, if present. [#373](https://github.com/OpenMDAO/dymos/pull/373)
+* State targets will automatically be set to a top-level input of the ODE, if present. [#356](https://github.com/OpenMDAO/dymos/pull/356)
+* Water-powered rocket MDO example added. [#343](https://github.com/OpenMDAO/dymos/pull/343)
+* State rates are included in timeseries outputs by default. [#329](https://github.com/OpenMDAO/dymos/pull/329)
+* By default, run_problem will use a problem recorder to record only the 'final' solution after an optimization. [#328](https://github.com/OpenMDAO/dymos/pull/328)
+* Move most setup functionality to configure to allow more introspection changes. [#327](https://github.com/OpenMDAO/dymos/pull/327)
+* Include examples using IPOPT via pyoptsparse. [#311](https://github.com/OpenMDAO/dymos/pull/311)
+* Parameters may now be selectively omitted from the timeseries outputs, but are included by default. [#305](https://github.com/OpenMDAO/dymos/pull/305)
+* Added a test of the distributed ODE capability. [#304](https://github.com/OpenMDAO/dymos/pull/304)
+* Replace `load_case` with `reinterpolate_solution`. [#296](https://github.com/OpenMDAO/dymos/pull/296)
+
+## Bug Fixes:
+
+* AnalysisError is now raised if scipy.integrate.solve_ivp fails during simulation. [#400](https://github.com/OpenMDAO/dymos/pull/400)
+* Fixed a bug involving GaussLobatto transcriptions `get_rate_source` method. [#334](https://github.com/OpenMDAO/dymos/pull/334)
+* Fix for simulate encountering errors when time options `input_initial` or `input_duration` were True. [#317](https://github.com/OpenMDAO/dymos/pull/317)
+* Fixed a bug in which shaped input parameters were breaking simulate. [#301](https://github.com/OpenMDAO/dymos/pull/301)
+* Sort linkage orders to make convergence more repeatable. [#298](https://github.com/OpenMDAO/dymos/pull/298)
+
+## Miscellaneous:
+
+* Switch to use preferred `assert_near_equal` method instead of `assert_rel_error` from OpenMDAO. [#320](https://github.com/OpenMDAO/dymos/pull/320)
+* Documentation is now handled via mkdocs instead of sphinx. [#337](https://github.com/OpenMDAO/dymos/pull/337), [#332](https://github.com/OpenMDAO/dymos/pull/332)
 
 ## 0.15.0
 2020-02-12
