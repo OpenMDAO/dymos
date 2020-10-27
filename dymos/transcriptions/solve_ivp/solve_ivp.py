@@ -294,10 +294,7 @@ class SolveIVP(TranscriptionBase):
     def configure_polynomial_controls(self, phase):
         # In transcription_base, we get the control units/shape from the target, and then call
         # configure on the control_group.
-        super(SolveIVP, self).configure_controls(phase)
-
-        if phase.polynomial_control_options:
-            phase.polynomial_control_group.configure_io()
+        super(SolveIVP, self).configure_polynomial_controls(phase)
 
         # Additional connections.
         for name, options in phase.polynomial_control_options.items():
