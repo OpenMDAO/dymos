@@ -76,7 +76,7 @@ This means that switching transcriptions requires very minor code changes - typi
 Dymos does not ship with its own built in optimizer. 
 It relies on whatever optimizers you have available in your OpenMDAO installation. 
 OpenMDAO ships with an interface to the optimizers in SciPy [@2020SciPy-NMeth], 
-and an additional wrapper for the pyoptsparse [@Perez2012a] library which has more powerful optimizer options such as SNOPT [@GilMS05] and IPOPT [@wachter2006].
+and an additional wrapper for the pyoptsparse [@Wu_pyoptsparse_2020] library which has more powerful optimizer options such as SNOPT [@GilMS05] and IPOPT [@wachter2006].
 OpenMDAO also allows users to integrate their own optimizer of choice, which Dymos can then seamlessly use with without any additional modifications.
 For simple problems, Scipy's SLSQP optimizer generally works fine.
 On more challenging optimal-control problems, higher quality optimizers are important for getting good performance.
