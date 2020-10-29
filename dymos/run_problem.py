@@ -28,20 +28,6 @@ def modify_problem(problem, restart=None, reset_grid=False):
     reset_grid: Boolean
         Flag to trigger a grid reset.
     """
-    # record variables to database when running driver under hook
-    # pre-hook is important, because recording initialization is skipped if final_setup has run once
-    save_db = os.getcwd() + '/dymos_solution.db'
-
-    try:
-        os.remove(save_db)
-    except FileNotFoundError:
-        pass  # OK if old database is not present to be deleted
-
-    print('adding recorder at:', save_db)
-    problem.add_recorder(om.SqliteRecorder(save_db))
-    problem.recording_options['includes'] = ['*']
-    problem.recording_options['record_inputs'] = True
-
     # if opts.get('reset_grid'):  # TODO: implement this option
     #     pass
 
@@ -100,6 +86,8 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         If True, perform a simulation of Trajectories found in the Problem after the driver
         has been run and grid refinement is complete.
     """
+    problem.add_recorder(om.SqliteRecorder('dymos_solution.db'))
+
     problem.final_setup()  # make sure command line option hook has a chance to run
 
     if restart is not None:
