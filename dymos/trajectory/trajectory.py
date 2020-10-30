@@ -935,13 +935,9 @@ class Trajectory(om.Group):
 
         if record_file is not None:
             rec = om.SqliteRecorder(record_file)
-            sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
-            sim_prob.model.add_recorder(rec)
+            sim_prob.add_recorder(rec)
 
         sim_prob.setup()
-
-        traj_op_dict = dict([(name, opts) for (name, opts) in self.list_outputs(units=True,
-                                                                                out_stream=None)])
 
         # Assign trajectory parameter values
         param_names = [key for key in self.parameter_options.keys()]
@@ -972,5 +968,8 @@ class Trajectory(om.Group):
         print('\nSimulating trajectory {0}'.format(self.pathname))
         sim_prob.run_model()
         print('Done simulating trajectory {0}'.format(self.pathname))
+        if record_file:
+            sim_prob.record('final')
+        sim_prob.cleanup()
 
         return sim_prob

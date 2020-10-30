@@ -1967,9 +1967,7 @@ class Phase(om.Group):
 
         if record_file is not None:
             rec = om.SqliteRecorder(record_file)
-            sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
-
-            sim_prob.model.add_recorder(rec)
+            sim_prob.add_recorder(rec)
 
         sim_prob.setup(check=True)
         sim_phase.initialize_values_from_phase(sim_prob, self)
@@ -1977,6 +1975,7 @@ class Phase(om.Group):
         print('\nSimulating phase {0}'.format(self.pathname))
         sim_prob.run_model()
         print('Done simulating phase {0}'.format(self.pathname))
+        sim_prob.record('final')
 
         sim_prob.cleanup()
 
