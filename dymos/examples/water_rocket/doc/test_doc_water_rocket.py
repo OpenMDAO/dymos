@@ -8,6 +8,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import set_pyoptsparse_opt
+from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.examples.water_rocket.phases import (new_water_rocket_trajectory,
                                                 set_sane_initial_guesses)
@@ -15,6 +16,7 @@ from dymos.examples.water_rocket.phases import (new_water_rocket_trajectory,
 from dymos.utils.doc_utils import save_for_docs
 
 
+@use_tempdirs
 class TestWaterRocketForDocs(unittest.TestCase):
 
     @save_for_docs

@@ -104,9 +104,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     problem.final_setup()  # make sure command line option hook has a chance to run
 
     if restart is not None:
-        cr = om.CaseReader(restart)
-        system_cases = cr.list_cases('root')
-        case = cr.get_case(system_cases[-1])
+        case = om.CaseReader(restart).get_case('final')
         load_case(problem, case)
 
     if run_driver:

@@ -6,6 +6,7 @@ from parameterized import parameterized
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
@@ -55,6 +56,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
     return p
 
 
+@use_tempdirs
 class TestDoubleIntegratorExample(unittest.TestCase):
 
     @classmethod

@@ -10,9 +10,9 @@ plt.switch_backend('Agg')
 
 
 @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+@use_tempdirs
 class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
-    @use_tempdirs
     def test_two_burn_orbit_raise_gl_rk_gl_changing_units_error(self):
         import numpy as np
 
@@ -136,7 +136,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         self.assertEqual(expected_exception, str(e.exception))
 
-    @use_tempdirs
     def test_two_burn_orbit_raise_gl_rk_gl_constrained(self):
         import numpy as np
 
@@ -384,7 +383,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         plt.show()
 
-    @use_tempdirs
     def test_two_burn_orbit_raise_link_control_to_param(self):
         import numpy as np
 

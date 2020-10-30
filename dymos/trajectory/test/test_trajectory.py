@@ -5,11 +5,13 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 
 
+@use_tempdirs
 class TestTrajectory(unittest.TestCase):
 
     @classmethod
@@ -159,6 +161,7 @@ class TestTrajectory(unittest.TestCase):
         assert_near_equal(accel_link_error, burn1_accel[-1]-burn2_accel[0])
 
 
+@use_tempdirs
 class TestInvalidLinkages(unittest.TestCase):
 
     def test_invalid_linkage_variable(self):
@@ -246,8 +249,6 @@ class TestInvalidLinkages(unittest.TestCase):
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
-
-        p.model.add_recorder(om.SqliteRecorder('test_trajectory_rec.db'))
 
         with self.assertRaises(ValueError) as e:
             p.setup(check=True)
