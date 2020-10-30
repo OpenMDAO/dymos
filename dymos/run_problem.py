@@ -86,13 +86,14 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         If True, perform a simulation of Trajectories found in the Problem after the driver
         has been run and grid refinement is complete.
     """
-    problem.add_recorder(om.SqliteRecorder('dymos_solution.db'))
+    if 'dymos_solution.db' not in [rec._filepath for rec in iter(problem._rec_mgr)]:
+        problem.add_recorder(om.SqliteRecorder('dymos_solution.db'))
 
     problem.final_setup()  # make sure command line option hook has a chance to run
 
     if restart is not None:
         cr = om.CaseReader(restart)
-        system_cases = cr.list_cases('root')
+        system_cases = cr.list_cases('problem')
         case = cr.get_case(system_cases[-1])
         load_case(problem, case)
 

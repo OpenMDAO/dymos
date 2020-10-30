@@ -3,6 +3,7 @@ import argparse
 import sys
 import os
 from dymos.run_problem import modify_problem, run_problem
+import openmdao.api as om
 from unittest.mock import patch
 
 
@@ -99,6 +100,7 @@ def dymos_cmd(argv=None):
             self._pre_hooks_enabled = False
 
             modify_problem(prob, restart=opts['restart'])
+            prob.add_recorder(om.SqliteRecorder('dymos_solution.db'))
             self._post_hooks_enabled = True
 
         def _post_final_setup(self, prob):
@@ -120,8 +122,8 @@ def dymos_cmd(argv=None):
 
     globals_dict = _simple_exec(args.script, user_args)  # run the script
 
-    if not sys.argv[0].endswith('dymos'):  # suppress printing return value when running from command line
-        return globals_dict  # return globals for possible checking in unit tests
+    # if not sys.argv[0].endswith('dymos'):  # suppress printing return value when running from command line
+    #     return globals_dict  # return globals for possible checking in unit tests
 
 
 if __name__ == '__main__':

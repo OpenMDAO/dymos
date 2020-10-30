@@ -2,6 +2,7 @@ import unittest
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 from openmdao.utils.general_utils import set_pyoptsparse_opt
+from openmdao.utils.testing_utils import use_tempdirs
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.shuttle_reentry.shuttle_ode import ShuttleODE
 import numpy as np
@@ -11,6 +12,7 @@ expected_results = {'constrained': {'time': 2198.67, 'theta': 30.6255},
                     'unconstrained': {'time': 2008.59, 'theta': 34.1412}}
 
 
+@use_tempdirs
 class TestReentry(unittest.TestCase):
 
     def make_problem(self, constrained=True, transcription=GaussLobatto, optimizer='SLSQP',
@@ -20,6 +22,9 @@ class TestReentry(unittest.TestCase):
         p.driver.declare_coloring()
         OPT, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=False)
         p.driver.options['optimizer'] = OPTIMIZER
+        if OPTIMIZER == 'IPOPT':
+            p.driver.opt_settings['print_level'] = 5
+            p.driver.opt_settings['max_iter'] = 1000
 
         traj = p.model.add_subsystem('traj', Trajectory())
         phase0 = traj.add_phase('phase0',
@@ -79,7 +84,7 @@ class TestReentry(unittest.TestCase):
         return p
 
     def test_partials(self):
-        p = self.make_problem(constrained=True, transcription=Radau, optimizer='SLSQP', numseg=5)
+        p = self.make_problem(constrained=True, transcription=Radau, optimizer='IPOPT', numseg=5)
         p.run_model()
         cpd = p.check_partials(method='cs', compact_print=True, out_stream=None)
         assert_check_partials(cpd, atol=1.0E-4, rtol=1.1)

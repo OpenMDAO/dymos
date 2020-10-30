@@ -6,9 +6,11 @@ plt.switch_backend('Agg')
 plt.style.use('ggplot')
 import numpy as np
 
+from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.doc_utils import save_for_docs
 
 
+@use_tempdirs
 class TestReentryForDocs(unittest.TestCase):
 
     def tearDown(self):
@@ -28,7 +30,9 @@ class TestReentryForDocs(unittest.TestCase):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
-        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver.options['optimizer'] = 'IPOPT'
+        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['max_iter'] = 500
 
         # Instantiate the trajectory and add a phase to it
         traj = p.model.add_subsystem('traj', dm.Trajectory())

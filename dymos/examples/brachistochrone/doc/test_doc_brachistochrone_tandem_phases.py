@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 import openmdao.api as om
 from dymos.utils.doc_utils import save_for_docs
+from openmdao.utils.testing_utils import use_tempdirs
 
 
 class BrachistochroneArclengthODE(om.ExplicitComponent):
@@ -43,6 +44,7 @@ class BrachistochroneArclengthODE(om.ExplicitComponent):
             (np.sqrt(1 + cot_theta**2))
 
 
+@use_tempdirs
 class TestBrachistochroneTandemPhases(unittest.TestCase):
 
     @save_for_docs

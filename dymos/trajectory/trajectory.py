@@ -935,8 +935,8 @@ class Trajectory(om.Group):
 
         if record_file is not None:
             rec = om.SqliteRecorder(record_file)
-            sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
-            sim_prob.model.add_recorder(rec)
+            sim_prob.recording_options['includes'] = ['*.timeseries.*']
+            sim_prob.add_recorder(rec)
 
         sim_prob.setup()
 
@@ -972,5 +972,6 @@ class Trajectory(om.Group):
         print('\nSimulating trajectory {0}'.format(self.pathname))
         sim_prob.run_model()
         print('Done simulating trajectory {0}'.format(self.pathname))
+        sim_prob.record('final')
 
         return sim_prob

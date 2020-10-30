@@ -81,19 +81,14 @@ class TestCommandLine(unittest.TestCase):
         print('test_ex_brachistochrone_no_solve')
         with patch.object(sys, 'argv', self.base_args + ['--no_solve']):
             command_line.dymos_cmd()
-
-        self.assertTrue(os.path.exists('dymos_solution.db'))
-        cr = om.CaseReader('dymos_solution.db')
-        self.assertTrue(len(cr.list_cases()) == 1)
+        self.assertFalse(os.path.exists('dymos_solution.db'))
 
     def test_ex_brachistochrone_simulate(self):
         print('test_ex_brachistochrone_simulate')
         with patch.object(sys, 'argv', self.base_args + ['--simulate']):
             command_line.dymos_cmd()
-
+        self.assertTrue(os.path.exists('dymos_solution.db'))
         self.assertTrue(os.path.exists('dymos_simulation.db'))
-
-        self._assert_correct_solution()
 
     @unittest.skipIf(True, reason='grid resetting not yet implemented')
     def test_ex_brachistochrone_reset_grid(self):

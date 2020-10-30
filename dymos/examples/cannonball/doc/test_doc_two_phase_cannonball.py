@@ -3,9 +3,11 @@ import unittest
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 
+from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.doc_utils import save_for_docs
 
 
+@use_tempdirs
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
     @save_for_docs

@@ -105,8 +105,6 @@ class TestTrajectory(unittest.TestCase):
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
 
-        p.model.add_recorder(om.SqliteRecorder('test_trajectory_rec.db'))
-
         p.setup(check=True)
 
         # Set Initial Guesses
@@ -247,8 +245,6 @@ class TestInvalidLinkages(unittest.TestCase):
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
 
-        p.model.add_recorder(om.SqliteRecorder('test_trajectory_rec.db'))
-
         with self.assertRaises(ValueError) as e:
             p.setup(check=True)
 
@@ -339,11 +335,6 @@ class TestInvalidLinkages(unittest.TestCase):
                          vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
 
         traj.link_phases(phases=['burn1', 'foo'], vars=['u1', 'u1'])
-
-        # Finish Problem Setup
-        p.model.linear_solver = om.DirectSolver()
-
-        p.model.add_recorder(om.SqliteRecorder('test_trajectory_rec.db'))
 
         with self.assertRaises(ValueError) as e:
             p.setup(check=True)

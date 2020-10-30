@@ -5,9 +5,11 @@ plt.switch_backend('Agg')
 plt.style.use('ggplot')
 
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.doc_utils import save_for_docs
 
 
+@use_tempdirs
 class TestDocSSTOEarth(unittest.TestCase):
 
     @save_for_docs

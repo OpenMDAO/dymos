@@ -50,7 +50,6 @@ class TestVanderpolExample(unittest.TestCase):
         assert_almost_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1, ...], np.zeros(1), decimal=4)
 
 
-@use_tempdirs
 class TestVanderpolExampleMPI(unittest.TestCase):
 
     N_PROCS = 4
@@ -64,7 +63,7 @@ class TestVanderpolExampleMPI(unittest.TestCase):
         """
         p = vanderpol(transcription='gauss-lobatto', num_segments=75, delay=True,
                       use_pyoptsparse=True, optimizer='IPOPT')
-        dm.run_problem(p)  # find optimal control solution to stop oscillation
+        p.run_driver()  # find optimal control solution to stop oscillation
 
         if SHOW_PLOTS:
             vanderpol_dymos_plots(p)

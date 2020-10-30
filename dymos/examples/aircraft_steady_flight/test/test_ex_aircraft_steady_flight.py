@@ -3,6 +3,7 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.general_utils import set_pyoptsparse_opt
+from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.assert_utils import assert_near_equal
 
 import dymos as dm
@@ -108,6 +109,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
     return p
 
 
+@use_tempdirs
 class TestExSteadyAircraftFlight(unittest.TestCase):
 
     @classmethod

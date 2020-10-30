@@ -5,9 +5,11 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
+from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.doc_utils import save_for_docs
 
 
+@use_tempdirs
 class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
     @classmethod
@@ -31,7 +33,8 @@ class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
+        _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+        p.driver.options['optimizer'] = optimizer
         p.driver.declare_coloring()
 
         num_seg = 15

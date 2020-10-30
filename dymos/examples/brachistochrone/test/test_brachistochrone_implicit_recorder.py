@@ -3,6 +3,7 @@ import unittest
 from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class TestBrachistochroneRecordingExample(unittest.TestCase):
 
     @classmethod
@@ -11,7 +12,6 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @use_tempdirs
     def test_brachistochrone_recording(self):
         import matplotlib
         matplotlib.use('Agg')
