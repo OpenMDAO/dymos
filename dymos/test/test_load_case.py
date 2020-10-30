@@ -131,7 +131,7 @@ class TestLoadCase(unittest.TestCase):
         dm.load_case(p, case)
 
         # Run the model to ensure we find the same output values as those that we recorded
-        p.run_driver()
+        p.run_model()
 
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
@@ -162,7 +162,7 @@ class TestLoadCase(unittest.TestCase):
         dm.load_case(q, case)
 
         # Run the model to ensure we find the same output values as those that we recorded
-        q.run_driver()
+        q.run_model()
 
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
@@ -196,7 +196,7 @@ class TestLoadCase(unittest.TestCase):
         dm.load_case(q, case)
 
         # Run the model to ensure we find the same output values as those that we recorded
-        q.run_driver()
+        q.run_model()
 
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
@@ -230,7 +230,7 @@ class TestLoadCase(unittest.TestCase):
         dm.load_case(q, case)
 
         # Run the model to ensure we find the same output values as those that we recorded
-        q.run_driver()
+        q.run_model()
 
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
@@ -266,7 +266,7 @@ class TestLoadCase(unittest.TestCase):
         dm.load_case(q, case)
 
         # Run the model to ensure we find the same output values as those that we recorded
-        q.run_driver()
+        q.run_model()
 
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
