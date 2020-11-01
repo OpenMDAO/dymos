@@ -9,12 +9,14 @@ from dymos.examples.brachistochrone.test.ex_brachistochrone import brachistochro
 class TestOptions(unittest.TestCase):
 
     def test_include_check_partials_false_radau(self):
+        dm.options['include_check_partials'] = False
         p = brachistochrone_min_time(transcription='radau-ps', compressed=False,
                                      run_driver=False, force_alloc_complex=True)
         cpd = p.check_partials(out_stream=None)
         self.assertSetEqual(set(cpd.keys()), {'traj0.phases.phase0.rhs_all'})
 
     def test_include_check_partials_false_gl(self):
+        dm.options['include_check_partials'] = False
         p = brachistochrone_min_time(transcription='gauss-lobatto', compressed=False,
                                      run_driver=False, force_alloc_complex=True)
         cpd = p.check_partials(out_stream=None, method='fd')
@@ -22,6 +24,7 @@ class TestOptions(unittest.TestCase):
                                               'traj0.phases.phase0.rhs_col'})
 
     def test_include_check_partials_false_rk(self):
+        dm.options['include_check_partials'] = False
         p = brachistochrone_min_time(transcription='runge-kutta', compressed=False,
                                      run_driver=False, force_alloc_complex=True)
         cpd = p.check_partials(out_stream=None, method='fd')
