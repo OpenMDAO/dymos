@@ -3,12 +3,16 @@ import openmdao.api as om
 
 from ..grid_data import GridData
 from ...utils.misc import get_rate_units
+from ...options import options as dymos_options
 
 
 class ContinuityCompBase(om.ExplicitComponent):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
 

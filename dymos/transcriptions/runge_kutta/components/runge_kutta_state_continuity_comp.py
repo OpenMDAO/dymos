@@ -3,6 +3,7 @@
 import numpy as np
 
 from openmdao.core.implicitcomponent import ImplicitComponent
+from ....options import options as dymos_options
 
 
 class RungeKuttaStateContinuityComp(ImplicitComponent):
@@ -15,6 +16,9 @@ class RungeKuttaStateContinuityComp(ImplicitComponent):
     _var_names : dict
         Cache the data provided during `add_balance` so everything can be saved until setup is called.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
 

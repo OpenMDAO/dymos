@@ -2,8 +2,9 @@ import numpy as np
 import openmdao.api as om
 from scipy.linalg import block_diag
 
-from dymos.transcriptions.grid_data import GridData
-from dymos.utils.lagrange import lagrange_matrices
+from ...transcriptions.grid_data import GridData
+from ...utils.lagrange import lagrange_matrices
+from ...options import options as dymos_options
 
 
 class TimeseriesOutputCompBase(om.ExplicitComponent):
@@ -15,6 +16,9 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
     need to be interleaved to provide a time series.  Pseudospectral techniques provide timeseries
     data at 'all' nodes, while ExplicitPhase provides values at the step boundaries.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
 

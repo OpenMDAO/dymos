@@ -1,5 +1,6 @@
 import numpy as np
-from dymos.utils.misc import get_rate_units
+from ....utils.misc import get_rate_units
+from ....options import options as dymos_options
 import openmdao.api as om
 
 
@@ -20,6 +21,8 @@ class StateRateCollectorComp(om.ExplicitComponent):
         # Save the names of the dynamic controls/parameters
         self._input_names = {}
         self._output_names = {}
+
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def setup(self):
         state_options = self.options['state_options']

@@ -2,10 +2,14 @@ import numpy as np
 
 import openmdao.api as om
 
-from dymos.utils.constants import INF_BOUND
+from ...utils.constants import INF_BOUND
+from ...options import options as dymos_options
 
 
 class BoundaryConstraintComp(om.ExplicitComponent):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
         self.options.declare('loc', values=('initial', 'final'),

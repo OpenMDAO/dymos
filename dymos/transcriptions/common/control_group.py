@@ -8,6 +8,7 @@ import openmdao.api as om
 from ..grid_data import GridData
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.constants import INF_BOUND
+from ...options import options as dymos_options
 
 
 class ControlInterpComp(om.ExplicitComponent):
@@ -35,6 +36,9 @@ class ControlInterpComp(om.ExplicitComponent):
     and :math:`\\frac{d\\tau_s}{dt}` is the ratio of segment duration in segment tau space
     [-1 1] to segment duration in time.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
         self.options.declare(
