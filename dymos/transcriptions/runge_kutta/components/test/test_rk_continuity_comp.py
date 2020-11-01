@@ -5,12 +5,17 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 
+import dymos as dm
 from dymos.transcriptions.runge_kutta.components.runge_kutta_state_continuity_comp import \
     RungeKuttaStateContinuityComp
+from dymos.utils.testing_utils import assert_check_partials
 
 # Modify class so we can run it standalone.
 from dymos.utils.misc import CompWrapperConfig
 RungeKuttaStateContinuityComp = CompWrapperConfig(RungeKuttaStateContinuityComp)
+
+
+dm.options['include_check_partials'] = True
 
 
 class TestRungeKuttaContinuityComp(unittest.TestCase):
@@ -130,16 +135,7 @@ class TestRungeKuttaContinuityComp(unittest.TestCase):
 
         # Test the partials
         cpd = p.check_partials(method='cs')
-
-        J_fwd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fwd']
-        J_fd = cpd['continuity_comp']['states:y', 'state_integrals:y']['J_fd']
-
-        J_fwd = cpd['continuity_comp']['states:y', 'states:y']['J_fwd']
-        J_fd = cpd['continuity_comp']['states:y', 'states:y']['J_fd']
-
-        J_fd[0, 0] = -1.0
-
-        assert_near_equal(J_fwd, J_fd)
+        assert_check_partials(cpd)
 
     def test_continuity_comp_scalar_nonlinearblockgs_fwd(self):
         num_seg = 4

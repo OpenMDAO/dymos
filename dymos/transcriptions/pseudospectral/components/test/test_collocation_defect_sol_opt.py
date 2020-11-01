@@ -5,9 +5,11 @@ from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
 
+import dymos as dm
 from dymos.transcriptions.grid_data import GridData
 from dymos.transcriptions.pseudospectral.components import CollocationComp
 from dymos.transcriptions.pseudospectral.components.state_independents import StateIndependentsComp
+from dymos.utils.testing_utils import assert_check_partials
 
 # Modify class so we can run it standalone.
 from dymos.utils.misc import CompWrapperConfig
@@ -112,39 +114,27 @@ class TestCollocationCompSolOpt(unittest.TestCase):
                             (p['f_approx:v']-p['f_computed:v']))
 
     def test_partials(self):
-        def assert_partials(data):
-            # assert_check_partials(cpd) # can't use this here, cause of indepvarcomp weirdness
-            for of, wrt in data:
-                if of == wrt:
-                    # IndepVarComp like outputs have correct derivs, but FD is wrong so we
-                    # skip them (should be some form of -I)
-                    continue
-                check_data = data[(of, wrt)]
-                self.assertLess(check_data['abs error'].forward, 1e-8)
-
-            # print((self.p['f_approx:v']-self.p['f_computed:v']).ravel())
-
         np.set_printoptions(linewidth=1024, edgeitems=1e1000)
 
         p = self.make_prob('radau-ps', n_segs=2, order=5, compressed=False)
         cpd = p.check_partials(compact_print=True, method='fd')
-        data = cpd['defect_comp']
-        assert_partials(data)
+        del cpd['state_indep']
+        assert_check_partials(cpd)
 
         p = self.make_prob('radau-ps', n_segs=2, order=5, compressed=True)
         cpd = p.check_partials(compact_print=True, method='fd')
-        data = cpd['defect_comp']
-        assert_partials(data)
+        del cpd['state_indep']
+        assert_check_partials(cpd)
 
         p = self.make_prob('gauss-lobatto', n_segs=3, order=5, compressed=False)
         cpd = p.check_partials(compact_print=True, method='fd')
-        data = cpd['defect_comp']
-        assert_partials(data)
+        del cpd['state_indep']
+        assert_check_partials(cpd)
 
         p = self.make_prob('gauss-lobatto', n_segs=4, order=3, compressed=True)
         cpd = p.check_partials(compact_print=True, method='fd')
-        data = cpd['defect_comp']
-        assert_partials(data)
+        del cpd['state_indep']
+        assert_check_partials(cpd)
 
 
 if __name__ == '__main__':  # pragma: no cover

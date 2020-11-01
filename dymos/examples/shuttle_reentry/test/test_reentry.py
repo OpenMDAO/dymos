@@ -1,6 +1,7 @@
 import unittest
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal
+from dymos.utils.testing_utils import assert_check_partials
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.shuttle_reentry.shuttle_ode import ShuttleODE
