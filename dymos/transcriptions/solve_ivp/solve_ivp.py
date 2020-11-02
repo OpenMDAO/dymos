@@ -328,6 +328,7 @@ class SolveIVP(TranscriptionBase):
         segs = phase._get_subsystem('segments')
 
         for name, options in phase.parameter_options.items():
+            prom_name = f'parameters:{name}'
             shape, units = get_target_metadata(phase.ode, name=name,
                                                user_targets=options['targets'],
                                                user_shape=options['shape'],
@@ -337,8 +338,9 @@ class SolveIVP(TranscriptionBase):
 
             for i in range(gd.num_segments):
                 seg_comp = segs._get_subsystem(f'segment_{i}')
-                seg_comp.add_input(name=f'parameters:{name}', val=np.ones(shape), units=units,
+                seg_comp.add_input(name=prom_name, val=np.ones(shape), units=units,
                                    desc=f'values of parameter {name}.')
+                segs.promotes(f'segment_{i}', inputs=[prom_name])
 
     def setup_defects(self, phase):
         """
@@ -481,10 +483,6 @@ class SolveIVP(TranscriptionBase):
 
         for name, options in phase.parameter_options.items():
             prom_name = f'parameters:{name}'
-
-            for iseg in range(num_seg):
-                target_name = f'segment_{iseg}.parameters:{name}'
-                phase.promotes('segments', inputs=[(target_name, prom_name)])
 
             if options['include_timeseries']:
                 phase.timeseries._add_output_configure(prom_name,

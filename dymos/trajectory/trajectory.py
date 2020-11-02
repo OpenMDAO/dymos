@@ -349,8 +349,7 @@ class Trajectory(om.Group):
         if self.parameter_options:
             self._setup_parameters()
 
-        phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup(), promotes_inputs=['*'],
-                                          promotes_outputs=['*'])
+        phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup())
 
         for name, phs in self._phases.items():
             g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
@@ -366,6 +365,7 @@ class Trajectory(om.Group):
         in each phase.
         """
         parameter_options = self.parameter_options
+        promoted_inputs = []
 
         for name, options in parameter_options.items():
             prom_name = f'parameters:{name}'
@@ -404,7 +404,9 @@ class Trajectory(om.Group):
                     raise ValueError(f'Unhandled parameter target in '
                                      f'phase {phase_name}')
 
+                promoted_inputs.append(tgt)
                 self.promotes('phases', inputs=[(tgt, prom_name)])
+        return promoted_inputs
 
     def _configure_phase_options_dicts(self):
         """
@@ -644,12 +646,18 @@ class Trajectory(om.Group):
         setup has already been called on all children of the Trajectory, we can query them for
         variables at this point.
         """
-        if self.parameter_options:
-            self._configure_parameters()
+        promoted_parameter_inputs = self._configure_parameters() if self.parameter_options else []
+
         if self._linkages:
             if MPI:
                 self._configure_phase_options_dicts()
             self._configure_linkages()
+        # promote everything else out of phases that wasn't promoted as a parameter
+        phases_group = self._get_subsystem('phases')
+        inputs_set = {opts['prom_name'] for (k, opts) in
+                      phases_group.get_io_metadata(iotypes=('input',), get_remote=True).items()}
+        inputs_to_promote = inputs_set - set(promoted_parameter_inputs)
+        self.promotes('phases', inputs=list(inputs_to_promote), outputs=['*'])
 
     def add_linkage_constraint(self, phase_a, phase_b, var_a, var_b, loc_a='final', loc_b='initial',
                                sign_a=1.0, sign_b=-1.0, units=_unspecified, lower=None, upper=None,

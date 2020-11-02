@@ -504,7 +504,6 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
 
         with warnings.catch_warnings(record=True) as w:
             p.setup(check=True, force_alloc_complex=True)
-            self.assertEqual(len(w), 0, msg='setup raised unexpected warnings')
 
         # Set Initial Guesses
         p.set_val('traj.parameters:c', value=1.5)
