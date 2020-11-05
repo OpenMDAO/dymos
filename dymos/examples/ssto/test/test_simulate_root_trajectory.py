@@ -4,8 +4,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class TestSSTOSimulateRootTrajectory(unittest.TestCase):
 
     def test_ssto_simulate_root_trajectory(self):

@@ -52,15 +52,6 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=Fal
 
     p.model.linear_solver = om.DirectSolver()
 
-    # Recording
-    rec = om.SqliteRecorder('brachistochrone_solution.db')
-    p.driver.recording_options['record_desvars'] = True
-    p.driver.recording_options['record_responses'] = True
-    p.driver.recording_options['record_objectives'] = True
-    p.driver.recording_options['record_constraints'] = True
-    p.model.recording_options['record_metadata'] = True
-    p.model.add_recorder(rec)
-
     p.setup()
 
     p['phase0.t_initial'] = 0.0
@@ -94,12 +85,10 @@ class TestLoadCase(unittest.TestCase):
         p = setup_problem(dm.GaussLobatto(num_segments=10))
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        dm.run_problem(p)
 
         # Load the solution
-        cr = om.CaseReader('brachistochrone_solution.db')
-        system_cases = cr.list_cases('root')
-        case = cr.get_case(system_cases[-1])
+        case = om.CaseReader('dymos_solution.db').get_case('final')
 
         # Initialize the system with values from the case.
         # We unnecessarily call setup again just to make sure we obliterate the previous solution
@@ -125,12 +114,10 @@ class TestLoadCase(unittest.TestCase):
         p = setup_problem(dm.GaussLobatto(num_segments=10), polynomial_control=True)
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        dm.run_problem(p)
 
         # Load the solution
-        cr = om.CaseReader('brachistochrone_solution.db')
-        system_cases = cr.list_cases('root')
-        case = cr.get_case(system_cases[-1])
+        case = om.CaseReader('dymos_solution.db').get_case('final')
 
         # Initialize the system with values from the case.
         # We unnecessarily call setup again just to make sure we obliterate the previous solution
@@ -157,12 +144,10 @@ class TestLoadCase(unittest.TestCase):
         p = setup_problem(dm.GaussLobatto(num_segments=10))
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        dm.run_problem(p)
 
         # Load the solution
-        cr = om.CaseReader('brachistochrone_solution.db')
-        system_cases = cr.list_cases('root')
-        case = cr.get_case(system_cases[-1])
+        case = om.CaseReader('dymos_solution.db').get_case('final')
 
         # create a problem with a different transcription with a different number of variables
         q = setup_problem(dm.Radau(num_segments=20))
@@ -191,12 +176,10 @@ class TestLoadCase(unittest.TestCase):
         p = setup_problem(dm.Radau(num_segments=20))
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        dm.run_problem(p)
 
         # Load the solution
-        cr = om.CaseReader('brachistochrone_solution.db')
-        system_cases = cr.list_cases('root')
-        case = cr.get_case(system_cases[-1])
+        case = om.CaseReader('dymos_solution.db').get_case('final')
 
         # create a problem with a different transcription with a different number of variables
         q = setup_problem(dm.GaussLobatto(num_segments=50))
@@ -225,12 +208,10 @@ class TestLoadCase(unittest.TestCase):
         p = setup_problem(dm.RungeKutta(num_segments=50))
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        dm.run_problem(p)
 
         # Load the solution
-        cr = om.CaseReader('brachistochrone_solution.db')
-        system_cases = cr.list_cases('root')
-        case = cr.get_case(system_cases[-1])
+        case = om.CaseReader('dymos_solution.db').get_case('final')
 
         # create a problem with a different transcription with a different number of variables
         q = setup_problem(dm.GaussLobatto(num_segments=10))
@@ -261,12 +242,10 @@ class TestLoadCase(unittest.TestCase):
         p = setup_problem(dm.GaussLobatto(num_segments=20))
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        dm.run_problem(p)
 
         # Load the solution
-        cr = om.CaseReader('brachistochrone_solution.db')
-        system_cases = cr.list_cases('root')
-        case = cr.get_case(system_cases[-1])
+        case = om.CaseReader('dymos_solution.db').get_case('final')
 
         # create a problem with a different transcription with a different number of variables
         q = setup_problem(dm.RungeKutta(num_segments=50))
