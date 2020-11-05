@@ -14,17 +14,15 @@ from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 @use_tempdirs
 class TestTrajectory(unittest.TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(self):
         for filename in ['test_trajectory_rec.db', 'total_coloring.pkl']:
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
 
-        cls.traj = dm.Trajectory()
-        p = cls.p = om.Problem(model=cls.traj)
+        self.traj = dm.Trajectory()
+        p = self.p = om.Problem(model=self.traj)
 
         # Since we're only testing features like get_values that don't rely on a converged
         # solution, no driver is attached.  We'll just invoke run_model.
@@ -33,7 +31,7 @@ class TestTrajectory(unittest.TestCase):
 
         burn1 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=4, order=3))
 
-        cls.traj.add_phase('burn1', burn1)
+        self.traj.add_phase('burn1', burn1)
 
         burn1.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='TU')
         burn1.add_state('r', fix_initial=True, fix_final=False,
@@ -56,7 +54,7 @@ class TestTrajectory(unittest.TestCase):
 
         coast = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=10, order=3))
 
-        cls.traj.add_phase('coast', coast)
+        self.traj.add_phase('coast', coast)
 
         coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10, units='TU')
         coast.add_state('r', fix_initial=False, fix_final=False, defect_scaler=100.0,
@@ -78,7 +76,7 @@ class TestTrajectory(unittest.TestCase):
 
         burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=3, order=3))
 
-        cls.traj.add_phase('burn2', burn2)
+        self.traj.add_phase('burn2', burn2)
 
         burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), initial_ref=10, units='TU')
         burn2.add_state('r', fix_initial=False, fix_final=True,
@@ -100,14 +98,12 @@ class TestTrajectory(unittest.TestCase):
         burn2.add_objective('deltav', loc='final')
 
         # Link Phases
-        cls.traj.link_phases(phases=['burn1', 'coast', 'burn2'],
-                             vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
-        cls.traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
+        self.traj.link_phases(phases=['burn1', 'coast', 'burn2'],
+                              vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
+        self.traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
-
-        p.model.add_recorder(om.SqliteRecorder('test_trajectory_rec.db'))
 
         p.setup(check=True)
 
@@ -343,8 +339,6 @@ class TestInvalidLinkages(unittest.TestCase):
 
         # Finish Problem Setup
         p.model.linear_solver = om.DirectSolver()
-
-        p.model.add_recorder(om.SqliteRecorder('test_trajectory_rec.db'))
 
         with self.assertRaises(ValueError) as e:
             p.setup(check=True)
