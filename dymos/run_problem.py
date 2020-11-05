@@ -30,7 +30,7 @@ def modify_problem(problem, restart=None, reset_grid=False):
     """
     # record variables to database when running driver under hook
     # pre-hook is important, because recording initialization is skipped if final_setup has run once
-    save_db = os.getcwd() + '/dymos_solution.db'
+    save_db = 'dymos_solution.db'
 
     try:
         os.remove(save_db)
@@ -39,8 +39,6 @@ def modify_problem(problem, restart=None, reset_grid=False):
 
     print('adding recorder at:', save_db)
     problem.add_recorder(om.SqliteRecorder(save_db))
-    problem.recording_options['includes'] = ['*']
-    problem.recording_options['record_inputs'] = True
 
     # if opts.get('reset_grid'):  # TODO: implement this option
     #     pass
@@ -100,12 +98,13 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         If True, perform a simulation of Trajectories found in the Problem after the driver
         has been run and grid refinement is complete.
     """
+    if 'dymos_solution.db' not in [rec._filepath for rec in iter(problem._rec_mgr)]:
+        problem.add_recorder(om.SqliteRecorder('dymos_solution.db'))
+
     problem.final_setup()  # make sure command line option hook has a chance to run
 
     if restart is not None:
-        cr = om.CaseReader(restart)
-        system_cases = cr.list_cases('root')
-        case = cr.get_case(system_cases[-1])
+        case = om.CaseReader(restart).get_case('final')
         load_case(problem, case)
 
     if run_driver:
@@ -117,6 +116,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
             warnings.warn("Refinement not performed. Set run_driver to True to perform refinement.")
 
     problem.record('final')  # save case for potential restart
+    problem.cleanup()
 
     if simulate:
         for subsys in problem.model.system_iter(include_self=True, recurse=True):

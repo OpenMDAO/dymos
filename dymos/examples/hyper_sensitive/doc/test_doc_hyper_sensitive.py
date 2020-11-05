@@ -10,6 +10,7 @@ matplotlib.use('Agg')
 plt.style.use('ggplot')
 
 from dymos.utils.doc_utils import save_for_docs
+from openmdao.utils.testing_utils import use_tempdirs
 
 
 tf = np.float128(10)
@@ -28,6 +29,7 @@ def solution():
     return ui, uf, J
 
 
+@use_tempdirs
 class TestHyperSensitive(unittest.TestCase):
 
     @classmethod
