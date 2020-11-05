@@ -1,6 +1,7 @@
 from fnmatch import filter
 
 import numpy as np
+import openmdao.api as om
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPSContinuityComp
@@ -107,26 +108,15 @@ class Radau(PseudospectralBase):
         super(Radau, self).configure_ode(phase)
 
         grid_data = self.grid_data
-        num_input_nodes = grid_data.subset_num_nodes['state_input']
         map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
 
         for name, options in phase.state_options.items():
-            size = np.prod(options['shape'])
-
-            src_idxs_mat = np.reshape(np.arange(size * num_input_nodes, dtype=int),
-                                      (num_input_nodes, size), order='C')
-
-            src_idxs = src_idxs_mat[map_input_indices_to_disc, :]
-
-            if options['shape'] == (1,):
-                """ Flat state variable is passed as 1D data."""
-                src_idxs = src_idxs.ravel()
 
             targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
             if targets:
                 phase.connect('states:{0}'.format(name),
                               ['rhs_all.{0}'.format(tgt) for tgt in targets],
-                              src_indices=src_idxs, flat_src_indices=True)
+                              src_indices=om.slicer[map_input_indices_to_disc, ...])
 
     def setup_defects(self, phase):
         super(Radau, self).setup_defects(phase)

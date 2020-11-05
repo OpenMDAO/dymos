@@ -223,7 +223,6 @@ class PseudospectralBase(TranscriptionBase):
     def configure_ode(self, phase):
         grid_data = self.grid_data
         map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
-        num_input_nodes = grid_data.subset_num_nodes['state_input']
 
         phase.state_interp.configure_io()
 
@@ -233,14 +232,9 @@ class PseudospectralBase(TranscriptionBase):
         for name, options in phase.state_options.items():
             size = np.prod(options['shape'])
 
-            src_idxs_mat = np.reshape(np.arange(size * num_input_nodes, dtype=int),
-                                      (num_input_nodes, size), order='C')
-
-            src_idxs = src_idxs_mat[map_input_indices_to_disc, :]
-
             phase.connect('states:{0}'.format(name),
                           'state_interp.state_disc:{0}'.format(name),
-                          src_indices=src_idxs, flat_src_indices=True)
+                          src_indices=om.slicer[map_input_indices_to_disc, ...])
 
     def setup_defects(self, phase):
         """
