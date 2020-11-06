@@ -6,8 +6,9 @@ from parameterized import parameterized
 import numpy as np
 from numpy.testing import assert_almost_equal
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials
+from dymos.utils.testing_utils import assert_check_partials
 
+import dymos as dm
 from dymos.transcriptions.common import TimeComp
 from dymos.transcriptions.common.control_group import ControlInterpComp
 from dymos.transcriptions.grid_data import GridData
@@ -77,7 +78,7 @@ class TestControlRateComp(unittest.TestCase):
             ['test_control_interp_scalar', p.args[0], str(p.args[1])])
     )
     def test_control_interp_scalar(self, transcription='gauss-lobatto', compressed=True):
-
+        dm.options['include_check_partials'] = True
         segends = np.array([0.0, 3.0, 10.0])
 
         gd = GridData(num_segments=2,
@@ -169,6 +170,7 @@ class TestControlRateComp(unittest.TestCase):
             ['test_control_interp_scalar_RK4', str(p.args[0])]))
     def test_control_interp_scalar_rk4(self, compressed=False):
 
+        dm.options['include_check_partials'] = True
         segends = np.array([0.0, 3.0, 9.0])
 
         gd = GridData(num_segments=2,
@@ -355,6 +357,7 @@ class TestControlRateComp(unittest.TestCase):
     )
     def test_control_interp_matrix_3x1(self, transcription='gauss-lobatto', compressed=True):
 
+        dm.options['include_check_partials'] = True
         segends = np.array([0.0, 3.0, 10.0])
 
         gd = GridData(num_segments=2,
@@ -456,6 +459,7 @@ class TestControlRateComp(unittest.TestCase):
     )
     def test_control_interp_matrix_2x2(self, transcription='gauss-lobatto', compressed=True):
 
+        dm.options['include_check_partials'] = True
         segends = np.array([0.0, 3.0, 10.0])
 
         gd = GridData(num_segments=2,

@@ -3,16 +3,18 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials
 
+import dymos as dm
 from dymos.transcriptions.common import PathConstraintComp
 from dymos.transcriptions.grid_data import GridData
 from dymos.phase.options import ControlOptionsDictionary
+from dymos.utils.testing_utils import assert_check_partials
 
 
 class TestPathConstraintComp(unittest.TestCase):
 
     def setUp(self):
+        dm.options['include_check_partials'] = True
 
         transcription = 'radau-ps'
 

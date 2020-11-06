@@ -6,7 +6,9 @@ from parameterized import parameterized
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
+import dymos as dm
+from openmdao.utils.assert_utils import assert_near_equal
+from dymos.utils.testing_utils import assert_check_partials
 
 from dymos.transcriptions.grid_data import GridData
 from dymos.transcriptions.common import GaussLobattoContinuityComp, RadauPSContinuityComp
@@ -29,6 +31,7 @@ class TestContinuityComp(unittest.TestCase):
     )
     def test_continuity_comp(self, transcription='gauss-lobatto', compressed='compressed'):
 
+        dm.options['include_check_partials'] = True
         num_seg = 3
 
         gd = GridData(num_segments=num_seg,

@@ -2,6 +2,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.general_utils import warn_deprecation
 from .options import LinkageOptionsDictionary
+from ..options import options as dymos_options
 
 
 class PhaseLinkageComp(om.ExplicitComponent):
@@ -13,6 +14,10 @@ class PhaseLinkageComp(om.ExplicitComponent):
     Conceptually, each linkage can be thought of as a set of compatibility constraints involving
     one or more variables.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
+
     def initialize(self):
         self.options.declare('linkages', default=[])
         self._io_names = {}
