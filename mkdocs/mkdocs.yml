@@ -6,7 +6,7 @@
 # - mkdocs-bibtex
 
 
-site_name: Dymos 0.16.0-dev
+site_name: Dymos version = u'site_name: Dymos 0.16.0'
 
 theme:
   name: material
