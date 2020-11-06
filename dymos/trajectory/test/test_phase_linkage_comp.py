@@ -6,6 +6,7 @@ from numpy.testing import assert_almost_equal
 import openmdao.api as om
 from dymos.utils.testing_utils import assert_check_partials
 
+import dymos as dm
 from dymos.trajectory.phase_linkage_comp import PhaseLinkageComp
 from dymos.trajectory.options import LinkageOptionsDictionary
 
@@ -14,6 +15,7 @@ class TestPhaseLinkageComp(unittest.TestCase):
 
     def setUp(self):
 
+        dm.options['include_check_partials'] = True
         self.p = om.Problem(model=om.Group())
 
         ivp = self.p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
