@@ -61,7 +61,7 @@ class TestCannonballMatrixState(unittest.TestCase):
         tx = dm.Radau(num_segments=10, order=3, solve_segments=False)
 
         p = self._make_problem(tx)
-        
+
         dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
