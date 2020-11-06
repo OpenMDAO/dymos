@@ -46,20 +46,6 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
 
         p.model.linear_solver = om.DirectSolver()
 
-        # Recording
-        rec = om.SqliteRecorder('brachistochrone_solution.db')
-
-        p.driver.recording_options['record_desvars'] = True
-        p.driver.recording_options['record_responses'] = True
-        p.driver.recording_options['record_objectives'] = True
-        p.driver.recording_options['record_constraints'] = True
-
-        p.model.recording_options['record_metadata'] = True
-
-        p.driver.add_recorder(rec)
-        p.model.add_recorder(rec)
-        phase.add_recorder(rec)
-
         p.setup()
 
         p['phase0.t_initial'] = 0.0
@@ -71,14 +57,12 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
         p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        dm.run_problem(p)
 
         # Test the results
         assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
-        cr = om.CaseReader('brachistochrone_solution.db')
-        system_cases = cr.list_cases('root')
-        case = cr.get_case(system_cases[-1])
+        case = om.CaseReader('dymos_solution.db').get_case('final')
 
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])

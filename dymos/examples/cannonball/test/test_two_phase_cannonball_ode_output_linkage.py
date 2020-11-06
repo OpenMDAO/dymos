@@ -2,8 +2,10 @@ import unittest
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
 
     def test_two_phase_cannonball_ode_output_linkage(self):
