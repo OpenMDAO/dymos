@@ -6,6 +6,7 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
@@ -14,6 +15,7 @@ from dymos.utils.lgl import lgl
 optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
 
 
+@use_tempdirs
 class TestBatteryBranchingPhases(unittest.TestCase):
 
     def test_optimizer_defects(self):
@@ -371,6 +373,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         assert_near_equal(soc1m[-1], 0.18625395, 1e-6)
 
 
+@use_tempdirs
 class TestBatteryBranchingPhasesRungeKutta(unittest.TestCase):
 
     def test_constraint_linkages_rk(self):

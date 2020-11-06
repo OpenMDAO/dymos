@@ -1,7 +1,9 @@
 import unittest
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal
-from dymos.utils.testing_utils import assert_check_partials
+
+from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
+from openmdao.utils.testing_utils import use_tempdirs
+
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.shuttle_reentry.shuttle_ode import ShuttleODE
@@ -12,6 +14,7 @@ expected_results = {'constrained': {'time': 2198.67, 'theta': 30.6255},
                     'unconstrained': {'time': 2008.59, 'theta': 34.1412}}
 
 
+@use_tempdirs
 class TestReentry(unittest.TestCase):
 
     def make_problem(self, constrained=True, transcription=GaussLobatto, optimizer='SLSQP',

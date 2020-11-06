@@ -5,8 +5,10 @@ import openmdao.api as om
 import dymos as dm
 
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class TestUpgrade_0_16_0(unittest.TestCase):
 
     def test_parameters(self):
