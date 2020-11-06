@@ -6,7 +6,7 @@
 # - mkdocs-bibtex
 
 
-site_name: Dymos
+site_name: Dymos 0.16.0-dev
 
 theme:
   name: material
