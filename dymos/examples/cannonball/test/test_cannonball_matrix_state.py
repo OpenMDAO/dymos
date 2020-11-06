@@ -1,9 +1,9 @@
-import numpy as np
 import openmdao.api as om
 import dymos as dm
 
 import unittest
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 
 class ODEComp(om.ExplicitComponent):
@@ -27,6 +27,7 @@ class ODEComp(om.ExplicitComponent):
         outputs['zdot'][:, 1, 1] = -9.81
 
 
+@use_tempdirs
 class TestCannonballMatrixState(unittest.TestCase):
     """ Tests to verify that dymos can use matrix-states"""
     def _make_problem(self, tx):
@@ -113,7 +114,7 @@ class TestCannonballMatrixState(unittest.TestCase):
 
         p = self._make_problem(tx)
 
-        p.run_driver()
+        dm.run_problem(p, simulate=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
         assert_near_equal(p.get_val('traj.phase.timeseries.states:z')[-1, 0, 1], 0.0, tolerance=1E-5)
