@@ -90,7 +90,7 @@ nav:
     - 'Command Line Interface':
         - 'command_line/command_line.md'
     - 'Release Notes':
-        - 'release_notes/version_version = u'0.16.1-dev'.md'
+        - 'release_notes/version_0.16.0.md'
     - 'Contributing':
         - 'contributing/contributing.md'
 
