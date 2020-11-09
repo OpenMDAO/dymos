@@ -3,10 +3,15 @@ from scipy.linalg import block_diag
 
 import openmdao.api as om
 
-from dymos.utils.rk_methods import rk_methods
+from ....utils.rk_methods import rk_methods
+from ....options import options as dymos_options
 
 
 class RungeKuttaStatePredictComp(om.ExplicitComponent):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
         self.options.declare('num_segments', types=int,

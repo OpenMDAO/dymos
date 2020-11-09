@@ -529,10 +529,12 @@ def _function_doc_markdown(func, reference, outstream=sys.stdout, indent='', met
     print('', file=outstream)
 
     if doc['Summary']:
-        print(indent + ' '.join(doc['Summary']), file=outstream)
+        txt = textwrap.indent('\n'.join(doc['Summary']), indent) + '\n'
+        print(txt, file=outstream)
 
     if doc['Extended Summary']:
-        print(indent + ' '.join(doc['Extended Summary']) + '\n', file=outstream)
+        txt = textwrap.indent('\n'.join(doc['Extended Summary']), indent) + '\n'
+        print(txt, file=outstream)
 
     print('', file=outstream)
 
@@ -650,14 +652,13 @@ def _upgrade_doc_markdown(test_reference, feature, outstream=sys.stdout,
     body_match = re_feature.search(func_body)
 
     try:
-        old_way = textwrap.dedent(doc_match.groups()[0].strip())
+        old_way = textwrap.dedent(doc_match.groups()[0])
     except AttributeError:
         warnings.warn(f'Unable to find feature label {feature} in the doc string of {test_reference}')
         old_way = None
     try:
-        new_way = textwrap.dedent(body_match.groups()[0].strip())
+        new_way = textwrap.dedent(body_match.groups()[0])
     except AttributeError:
-        print(func_body)
         raise ValueError(f'Unable to find feature label {feature} in the body of {test_reference}')
 
     indent = '    '

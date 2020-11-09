@@ -142,7 +142,7 @@ class vanderpol_ode_delay(om.ExplicitComponent):
     """
 
     def __init__(self, *args, **kwargs):
-        self.delay_time = 0.01
+        self.delay_time = 0.005
         self.progress_prints = False
         super().__init__(*args, **kwargs)
 

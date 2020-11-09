@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from collections.abc import Sequence
+from copy import deepcopy
 import itertools
 import warnings
 try:
@@ -11,14 +12,15 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.general_utils import warn_deprecation
+from openmdao.utils.mpi import MPI
 
 from ..utils.constants import INF_BOUND
 
-from ..transcriptions.common import PhaseLinkageComp
+from .options import LinkageOptionsDictionary
+from .phase_linkage_comp import PhaseLinkageComp
 from ..phase.options import TrajParameterOptionsDictionary
-
-
-_unspecified = object()
+from ..utils.misc import get_rate_units, get_source_metadata, _unspecified
+from ..utils.indexing import get_src_indices_by_row
 
 
 class Trajectory(om.Group):
@@ -264,7 +266,6 @@ class Trajectory(om.Group):
         """
         if self.parameter_options:
             for name, options in self.parameter_options.items():
-                src_name = f'parameters:{name}'
 
                 if options['opt']:
                     lb = -INF_BOUND if options['lower'] is None else options['lower']
@@ -311,45 +312,33 @@ class Trajectory(om.Group):
                             phs.add_parameter(name, **kwargs)
 
     def _setup_linkages(self):
-        link_comp = None
-
-        for pair, vars in self._linkages.items():
-            phase_name1, phase_name2 = pair
+        has_linkage_constraints = False
+        for pair, var_dict in self._linkages.items():
 
             for name in pair:
                 if name not in self._phases:
-                    raise ValueError('Invalid linkage.  Phase \'{0}\' does not exist in '
-                                     'trajectory \'{1}\'.'.format(name, self.pathname))
+                    raise ValueError(f'Invalid linkage.  Phase \'{name}\' does not exist in '
+                                     f'trajectory \'{self.pathname}\'.')
 
-            p1 = self._phases[phase_name1]
-            p2 = self._phases[phase_name2]
+            phase2 = self._phases[pair[1]]
 
-            p2_states = set([key for key in p2.state_options])
+            for var_pair, options in var_dict.items():
+                var1, var2 = var_pair
 
-            # Dict of vars that expands '*' to include time and states
-            _vars = {}
-            for var in sorted(vars.keys()):
-                if var == '*':
-                    names = ['time']
-                    for state in p2_states:
-                        names.append(state)
-                    # sort to make converged solutions repeatable
-                    for n in sorted(names):
-                        _vars[n] = vars[var].copy()
-                else:
-                    _vars[var] = vars[var].copy()
-
-            for var, options in _vars.items():
                 if options['connected']:
-                    # If this is a state, and we are linking it, we need to do some checks.
-                    if var in p2_states:
-                        # Trajectory linkage modifies these options in connected states.
-                        p2.add_state(var, connected_initial=True)
-                    elif var == 'time':
-                        p2.set_time_options(input_initial=True)
+                    if var2 == 'time':
+                        phase2.set_time_options(input_initial=True)
+                    elif var2 == '*':
+                        phase2.set_time_options(input_initial=True)
+                        for state_name in phase2.state_options:
+                            phase2.set_state_options(state_name, conected_initial=True)
+                    elif var2 in phase2.state_options:
+                        phase2.set_state_options(var2, connected_initial=True)
+                else:
+                    has_linkage_constraints = True
 
-                elif not link_comp:
-                    link_comp = self.add_subsystem('linkages', PhaseLinkageComp())
+        if has_linkage_constraints:
+            self.add_subsystem('linkages', PhaseLinkageComp())
 
     def setup(self):
         """
@@ -360,8 +349,7 @@ class Trajectory(om.Group):
         if self.parameter_options:
             self._setup_parameters()
 
-        phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup(), promotes_inputs=['*'],
-                                          promotes_outputs=['*'])
+        phases_group = self.add_subsystem('phases', subsys=om.ParallelGroup())
 
         for name, phs in self._phases.items():
             g = phases_group.add_subsystem(name, phs, **self._phase_add_kwargs[name])
@@ -377,6 +365,7 @@ class Trajectory(om.Group):
         in each phase.
         """
         parameter_options = self.parameter_options
+        promoted_inputs = []
 
         for name, options in parameter_options.items():
             prom_name = f'parameters:{name}'
@@ -415,131 +404,239 @@ class Trajectory(om.Group):
                     raise ValueError(f'Unhandled parameter target in '
                                      f'phase {phase_name}')
 
+                promoted_inputs.append(tgt)
                 self.promotes('phases', inputs=[(tgt, prom_name)])
+        return promoted_inputs
+
+    def _configure_phase_options_dicts(self):
+        """
+        Called during configure if we are under MPI. Loops over all phases and broacasts the shape
+        and units options to all procs for all dymos variables.
+        """
+        for name, phase in self._phases.items():
+            all_dicts = [phase.state_options, phase.control_options, phase.parameter_options,
+                         phase.polynomial_control_options]
+
+            for opt_dict in all_dicts:
+                for options in opt_dict.values():
+
+                    all_ranks = self.comm.allgather(options['shape'])
+                    for item in all_ranks:
+                        if item not in [None, _unspecified]:
+                            options['shape'] = item
+                            break
+                    else:
+                        raise RuntimeError('Unexpectedly found no valid shape.')
+
+                    all_ranks = self.comm.allgather(options['units'])
+                    for item in all_ranks:
+                        if item is not _unspecified:
+                            options['units'] = item
+                            break
+                    else:
+                        raise RuntimeError('Unexpectedly found no valid units.')
+
+    def _update_linkage_options_configure(self, linkage_options):
+        """
+        Called during configure to return the source paths, units, and shapes of variables
+        in linkages.
+
+        Parameters
+        ----------
+        phases : Sequence of (str, str)
+            The names of the phases involved in the linkage.
+        vars : Sequence of (str, str)
+            The paths of the variables involved in the linkage.
+        options : dict
+            The linkage options set during `add_linkage_constraint`.
+
+        Returns
+        -------
+
+        """
+        phase_name_a = linkage_options['phase_a']
+        phase_name_b = linkage_options['phase_b']
+        var_a = linkage_options['var_a']
+        var_b = linkage_options['var_b']
+        loc_a = linkage_options['loc_a']
+        loc_b = linkage_options['loc_b']
+
+        info_str = f'Error in linking {var_a} from {phase_name_a} to {var_b} in {phase_name_b}'
+
+        phase_a = self._get_subsystem(f'phases.{phase_name_a}')
+        phase_b = self._get_subsystem(f'phases.{phase_name_b}')
+
+        phases = {'a': phase_a, 'b': phase_b}
+
+        classes = {'a': phase_a.classify_var(var_a),
+                   'b': phase_b.classify_var(var_b)}
+
+        sources = {'a': None, 'b': None}
+        vars = {'a': var_a, 'b': var_b}
+        units = {'a': _unspecified, 'b': _unspecified}
+        shapes = {'a': _unspecified, 'b': _unspecified}
+
+        for i in ('a', 'b'):
+            num_nodes = phases[i].options['transcription'].grid_data.num_nodes
+
+            if classes[i] == 'time':
+                sources[i] = 'timeseries.time'
+                shapes[i] = (1,)
+                units[i] = phases[i].time_options['units']
+            elif classes[i] == 'time_phase':
+                sources[i] = 'timeseries.time_phase'
+                units[i] = phases[i].time_options['units']
+                shapes[i] = (1,)
+            elif classes[i] == 'state':
+                sources[i] = f'timeseries.states:{vars[i]}'
+                units[i] = phases[i].state_options[vars[i]]['units']
+                shapes[i] = phases[i].state_options[vars[i]]['shape']
+            elif classes[i] in {'indep_control', 'input_control'}:
+                sources[i] = f'timeseries.controls:{vars[i]}'
+                units[i] = phases[i].control_options[vars[i]]['units']
+                shapes[i] = phases[i].control_options[vars[i]]['shape']
+            elif classes[i] in {'control_rate', 'control_rate2'}:
+                sources[i] = f'timeseries.control_rates:{vars[i]}'
+                control_name = vars[i][:-5] if classes[i] == 'control_rate' else vars[i][:-6]
+                units[i] = phases[i].control_options[control_name]['units']
+                deriv = 1 if classes[i] == 'control_rate' else 2
+                units[i] = get_rate_units(units[i], phases[i].time_options['units'], deriv=deriv)
+                shapes[i] = phases[i].control_options[control_name]['shape']
+            elif classes[i] == 'polynomial_control':
+                sources[i] = f'timeseries.polynomial_controls:{vars[i]}'
+                units[i] = phases[i].polynomial_control_options[vars[i]]['units']
+                shapes[i] = phases[i].polynomial_control_options[vars[i]]['shape']
+            elif classes[i] in {'polynomial_control_rate', 'polynomial_control_rate2'}:
+                sources[i] = f'timeseries.polynomial_control_rates:{vars[i]}'
+                control_name = vars[i][:-5] if classes[i] == 'polynomial_control_rate' else vars[i][:-6]
+                control_units = phases[i].polynomial_control_options[control_name]['units']
+                time_units = phases[i].time_options['units']
+                deriv = 1 if classes[i] == 'control_rate' else 2
+                units[i] = get_rate_units(control_units, time_units, deriv=deriv)
+                shapes[i] = phases[i].polynomial_control_options[control_name]['shape']
+            elif classes[i] == 'parameter':
+                sources[i] = f'timeseries.parameters:{vars[i]}'
+                units[i] = phases[i].parameter_options[vars[i]]['units']
+                shapes[i] = phases[i].parameter_options[vars[i]]['shape']
+            else:
+                rhs_source = phases[i].options['transcription']._rhs_source
+                num_ode_nodes = phases[i]._get_subsystem(rhs_source).options['num_nodes']
+                sources[i] = f'{rhs_source}.{vars[i]}'
+                try:
+                    shapes[i], units[i] = get_source_metadata(phases[i]._get_subsystem(rhs_source),
+                                                              vars[i], user_units=units[i],
+                                                              user_shape=_unspecified)
+                except ValueError as e:
+                    raise ValueError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
+                                     f'phase \'{phases[i].pathname}\' or its ODE.')
+
+        linkage_options._src_a = sources['a']
+        linkage_options._src_b = sources['b']
+        linkage_options['shape'] = shapes['b']
+
+        if linkage_options['units'] is _unspecified:
+            if units['a'] != units['b']:
+                raise ValueError(f'{info_str}: Linkage units were not specified but the units of '
+                                 f'var_a ({units["a"]}) and var_b ({units["b"]}) are not the same. '
+                                 f'Units for this linkage constraint must be specified explicitly.')
+            else:
+                linkage_options['units'] = units['b']
+
+    def _expand_star_linkage_configure(self):
+        """
+        Finds the variable pair ('*', '*') and expands it out to time and all states if found.
+
+        Returns
+        -------
+        dict
+            The updated dictionary of linkages with '*' expanded to match time and all states at
+            a phase boundary.
+
+        """
+        linkages_copy = deepcopy(self._linkages)
+        for phase_pair, var_dict in linkages_copy.items():
+            phase_name_a, phase_name_b = phase_pair
+
+            phase_b = self._get_subsystem(f'phases.{phase_name_b}')
+
+            for var_pair in var_dict.keys():
+                if tuple(var_pair) == ('*', '*'):
+                    options = var_dict[var_pair]
+                    self.add_linkage_constraint(phase_name_a, phase_name_b, var_a='time',
+                                                var_b='time', loc_a=options['loc_a'],
+                                                loc_b=options['loc_b'], sign_a=options['sign_a'],
+                                                sign_b=options['sign_b'])
+                    for state_name, state_options in phase_b.state_options.items():
+                        self.add_linkage_constraint(phase_name_a, phase_name_b, var_a=state_name,
+                                                    var_b=state_name, loc_a=options['loc_a'],
+                                                    loc_b=options['loc_b'],
+                                                    sign_a=options['sign_a'],
+                                                    sign_b=options['sign_b'])
+                    self._linkages[phase_pair].pop(var_pair)
 
     def _configure_linkages(self):
+        connected_linkage_inputs = []
 
-        print('--- Linkage Report [{0}] ---'.format(self.pathname))
+        # First, if the user requested all states and time be continuous ('*', '*'), then
+        # expand it out.
+        self._expand_star_linkage_configure()
+
+        print(f'--- Linkage Report [{self.pathname}] ---')
 
         indent = '    '
 
-        for pair, vars in self._linkages.items():
-            phase_name1, phase_name2 = pair
+        linkage_comp = self._get_subsystem('linkages')
 
-            p1 = self._phases[phase_name1]
-            p2 = self._phases[phase_name2]
+        for phase_pair, var_dict in self._linkages.items():
+            phase_name_a, phase_name_b = phase_pair
+            print(f'{indent}--- {phase_name_a} - {phase_name_b} ---')
 
-            print(indent * 1, phase_name1, '    ', phase_name2)
+            phase_b = self._get_subsystem(f'phases.{phase_name_b}')
 
-            p1_states = set([key for key in p1.state_options])
-            p2_states = set([key for key in p2.state_options])
+            # Pull out the maximum variable name length of all variables to make the print nicer.
+            var_len = [(len(var_pair[0]), len(var_pair[1])) for var_pair in var_dict]
+            max_varname_length = max(itertools.chain(*var_len))
+            padding = max_varname_length + 1
 
-            p1_controls = set([key for key in p1.control_options])
-            p2_controls = set([key for key in p2.control_options])
+            for var_pair, options in var_dict.items():
+                var_a, var_b = var_pair
+                loc_a = 'initial' if options['loc_a'] in {'initial', '--', '-+'} else 'final'
+                loc_b = 'initial' if options['loc_b'] in {'initial', '--', '-+'} else 'final'
 
-            p1_parameters = set([key for key in p1.parameter_options])
-            p2_parameters = set([key for key in p2.parameter_options])
+                self._update_linkage_options_configure(options)
 
-            # Dict of vars that expands '*' to include time and states
-            _vars = {}
-            for var in sorted(vars.keys()):
-                if var == '*':
-                    _vars['time'] = vars[var].copy()
-                    for state in p2_states:
-                        _vars[state] = vars[var].copy()
-                else:
-                    _vars[var] = vars[var].copy()
-
-            max_varname_length = max(len(name) for name in _vars.keys())
-
-            units_map = {}
-            shape_map = {}
-            vars_to_constrain = []
-
-            for var, options in _vars.items():
-                if not options['connected']:
-                    vars_to_constrain.append(var)
-                    if var in p1.state_options:
-                        units_map[var] = p1.state_options[var]['units']
-                        shape_map[var] = p1.state_options[var]['shape']
-                    elif var in p1.control_options:
-                        units_map[var] = p1.control_options[var]['units']
-                        shape_map[var] = p1.control_options[var]['shape']
-                    elif var in p1.polynomial_control_options:
-                        units_map[var] = p1.polynomial_control_options[var]['units']
-                        shape_map[var] = p1.polynomial_control_options[var]['shape']
-                    elif var in p1.parameter_options:
-                        units_map[var] = p1.parameter_options[var]['units']
-                        shape_map[var] = p1.parameter_options[var]['shape']
-                    elif var == 'time':
-                        units_map[var] = p1.time_options['units']
-                        shape_map[var] = (1,)
-                    else:
-                        units_map[var] = None
-                        shape_map[var] = (1,)
-
-            if vars_to_constrain:
-
-                linkage_name = '{0}|{1}'.format(phase_name1, phase_name2)
-                self.linkages.add_linkage(name=linkage_name,
-                                          vars=vars_to_constrain,
-                                          shape=shape_map,
-                                          units=units_map)
-
-            for var, options in _vars.items():
-                loc1, loc2 = options['locs']
-
-                if var in p1_states:
-                    source1 = 'states:{0}{1}'.format(var, loc1)
-                elif var in p1_controls:
-                    source1 = 'controls:{0}{1}'.format(var, loc1)
-                elif var == 'time':
-                    source1 = '{0}{1}'.format(var, loc1)
-                elif var in p1_parameters:
-                    source1 = 'parameters:{0}'.format(var)
-                else:
-                    raise ValueError('Cannot find linkage variable \'{0}\' in '
-                                     'phase \'{1}\'.  Only states, time, controls, or parameters '
-                                     'may be linked via link_phases.'.format(var, pair[0]))
-
-                if var in p2_states:
-                    source2 = 'states:{0}{1}'.format(var, loc2)
-                elif var in p2_controls:
-                    source2 = 'controls:{0}{1}'.format(var, loc2)
-                elif var == 'time':
-                    source2 = '{0}{1}'.format(var, loc2)
-                elif var in p2_parameters:
-                    source2 = 'parameters:{0}'.format(var)
-                else:
-                    raise ValueError('Cannot find linkage variable \'{0}\' in '
-                                     'phase \'{1}\'.  Only states, time, controls, or parameters '
-                                     'may be linked via link_phases.'.format(var, pair[1]))
+                src_a = options._src_a
+                src_b = options._src_b
 
                 if options['connected']:
-                    if var == 'time':
-                        src = '{0}.{1}'.format(phase_name1, source1)
-                        path = 't_initial'
-                        self.connect(src, '{0}.{1}'.format(phase_name2, path))
-                    else:
-                        path = 'initial_states:{0}'.format(var)
-                        self.connect('{0}.{1}'.format(phase_name1, source1),
-                                     '{0}.{1}'.format(phase_name2, path))
-                    print('{3}{0:<{2}s} --> {1:<{2}s}'.format(source1, source2,
-                                                              max_varname_length + 9,
-                                                              indent*2))
+                    if phase_b.classify_var(var_b) == 'time':
+                        self.connect(f'{phase_name_a}.{src_a}',
+                                     f'{phase_name_b}.t_initial',
+                                     src_indices=[-1])
+                    elif phase_b.classify_var(var_b) == 'state':
+                        tgt_b = f'initial_states:{var_b}'
+                        self.connect(f'{phase_name_a}.{src_a}',
+                                     f'{phase_name_b}.{tgt_b}',
+                                     src_indices=om.slicer[-1, ...])
+                    print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ->  {var_b:<{padding}s}[{loc_b}]')
                 else:
+                    linkage_comp.add_linkage_configure(options)
 
-                    self.connect('{0}.{1}'.format(phase_name1, source1),
-                                 'linkages.{0}_{1}:lhs'.format(linkage_name, var))
+                    if options._input_a not in connected_linkage_inputs:
+                        self.connect(f'{phase_name_a}.{src_a}',
+                                     f'linkages.{options._input_a}',
+                                     src_indices=om.slicer[[0, -1], ...])
+                        connected_linkage_inputs.append(options._input_a)
 
-                    self.connect('{0}.{1}'.format(phase_name2, source2),
-                                 'linkages.{0}_{1}:rhs'.format(linkage_name, var))
+                    if options._input_b not in connected_linkage_inputs:
+                        self.connect(f'{phase_name_b}.{src_b}',
+                                     f'linkages.{options._input_b}',
+                                     src_indices=om.slicer[[0, -1], ...])
+                        connected_linkage_inputs.append(options._input_b)
 
-                    print('{3}{0:<{2}s}  =  {1:<{2}s}'.format(source1, source2,
-                                                              max_varname_length + 9,
-                                                              indent*2))
+                    print(f'{indent * 2}{var_a:<{padding}s}[{loc_a}]  ==  {var_b:<{padding}s}[{loc_b}]')
 
-        print('----------------------------')
+            print('----------------------------')
 
     def configure(self):
         """
@@ -549,12 +646,151 @@ class Trajectory(om.Group):
         setup has already been called on all children of the Trajectory, we can query them for
         variables at this point.
         """
-        if self.parameter_options:
-            self._configure_parameters()
-        if self._linkages:
-            self._configure_linkages()
+        promoted_parameter_inputs = self._configure_parameters() if self.parameter_options else []
 
-    def link_phases(self, phases, vars=None, locs=('++', '--'), connected=False):
+        if self._linkages:
+            if MPI:
+                self._configure_phase_options_dicts()
+            self._configure_linkages()
+        # promote everything else out of phases that wasn't promoted as a parameter
+        phases_group = self._get_subsystem('phases')
+        inputs_set = {opts['prom_name'] for (k, opts) in
+                      phases_group.get_io_metadata(iotypes=('input',), get_remote=True).items()}
+        inputs_to_promote = inputs_set - set(promoted_parameter_inputs)
+        self.promotes('phases', inputs=list(inputs_to_promote), outputs=['*'])
+
+    def add_linkage_constraint(self, phase_a, phase_b, var_a, var_b, loc_a='final', loc_b='initial',
+                               sign_a=1.0, sign_b=-1.0, units=_unspecified, lower=None, upper=None,
+                               equals=None, scaler=None, adder=None, ref0=None, ref=None,
+                               linear=False, connected=False):
+        """
+        Explicitly add a single phase linkage constraint.
+
+        Phase linkage constraints are enforced by constraining the following equation:
+
+        sign_a * var_a + sign_b * var_b
+
+        The resulting value of this equation is constrained.  This can satisfy 'coupling' or
+        'linkage' conditions across phase boundaries:  enforcing continuity,
+        common initial conditions, or common final conditions.
+
+        With default values, this equation can be used to enforce variable continuity at phase
+        boundaries.  For instance, constraining some variable `x` (either a state, control,
+        parameter, or output of the ODE) to have the same value at the final point of phase 'foo'
+        and the initial point of phase 'bar' is accomplished by:
+
+        ```
+        add_linkage_constraint('foo', 'bar', 'x', 'x')
+        ```
+
+        We may sometimes want two phases to have the same value of some variable at the start of
+        each phase:
+
+        ```
+        add_linkage_constraint('foo', 'bar', 'x', 'x', loc_a='initial', loc_b='initial')
+        ```
+
+        (Here the specification of loc_b is unnecessary but helps in the clarity of whats going on.)
+
+        Or perhaps a phase has cyclic behavior.  We may not know the exact value of some variable
+        `x` at the start and end of the phase `foo`, but it must be the same value at each point.
+
+        ```
+        add_linkage_constraint('foo', 'foo', 'x', 'x')
+        ```
+
+        If `lower`, `upper`, and `equals` are all `None`, then dymos will use `equals=0` by default.
+        If the continuity condition is limited by some bounds instead, lower and upper can be used.
+        For instance, perhaps the velocity ('vel') is allowed to have an impulsive change within
+        a certain magnitude between two phases:
+
+        ```
+        add_linkage_constraint('foo', 'bar', 'vel', 'vel', lower=-100, upper=100, units='m/s')
+        ```
+
+        Parameters
+        ----------
+        phase_a : str
+            The first phase in the linkage constraint.
+        phase_b : str
+        var_a : str
+            The linked variable from the first phase in the linkage constraint.
+        var_b : str
+            The linked variable from the second phase in the linkage constraint.
+        loc_a : str
+            The location of the variable in the first phase of the linkage constraint (one of
+            'initial' or 'final'.)
+        loc_b : str
+            The location of the variable in the second phase of the linkage constraint (one of
+            'initial' or 'final'.)
+        sign_a
+            The sign applied to the variable from the first phase in the linkage constraint.
+        sign_b
+            The sign applied to the variable from the second phase in the linkage constraint.
+        units : str or None or _unspecified
+            Units of the linkage.  If _unspecified, dymos will use the units from the variable
+            in the first phase of the linkage.  Units of the two specified variables must be
+            compatible.
+        lower : float or array or None
+            The lower bound applied as a constraint on the linkage equation.
+        upper : float or array or None
+            The upper bound applied as a constraint on the linkage equation.
+        equals : float or array or None
+            Specifies a targeted value for an equality constraint on the linkage equation.
+        scaler : float or array or None
+            The scaler of the linkage constraint.
+        adder : float or array or None
+            The adder of the linkage constraint.
+        ref0 : float or array or None
+            The zero-reference value of the linkage constraint.
+        ref : float or array or None
+            The unit-reference value of the linkage constraint.
+        linear : bool
+            If True, treat this variable as a linear constraint, otherwise False.  Linear
+            constraints should only be applied if the variable on each end of the linkage is a
+            design variable or a linear function of one.
+        connected : bool
+            If True, this constraint is enforced by direct connection rather than a constraint
+            for the optimizer.  This is only valid for states and time.
+        """
+        if connected:
+            invalid_options = []
+            for arg in ['lower', 'upper', 'equals', 'scaler', 'adder', 'ref0', 'ref']:
+                if locals()[arg] is not None:
+                    invalid_options.append(arg)
+            if locals()['linear']:
+                invalid_options.append('linear')
+            if invalid_options:
+                msg = f'Invalid option in linkage between {phase_a}:{var_a} and {phase_b}:{var_b} ' \
+                      f'in trajectory {self.pathname}. The following options for ' \
+                      f'add_linkage_constraint were specified but not valid when ' \
+                      f'option \'connected\' is True: ' + ' '.join(invalid_options)
+                warnings.warn(msg)
+
+        if (phase_a, phase_b) not in self._linkages:
+            self._linkages[phase_a, phase_b] = OrderedDict()
+
+        self._linkages[phase_a, phase_b][var_a, var_b] = d = LinkageOptionsDictionary()
+        d['phase_a'] = phase_a
+        d['phase_b'] = phase_b
+        d['var_a'] = var_a
+        d['var_b'] = var_b
+        d['loc_a'] = loc_a
+        d['loc_b'] = loc_b
+        d['sign_a'] = sign_a
+        d['sign_b'] = sign_b
+        d['units'] = units
+        d['lower'] = lower
+        d['upper'] = upper
+        d['equals'] = equals
+        d['scaler'] = scaler
+        d['adder'] = adder
+        d['ref0'] = ref0
+        d['ref'] = ref
+        d['linear'] = linear
+        d['connected'] = connected
+
+    def link_phases(self, phases, vars=None, locs=('final', 'initial'), connected=False):
         """
         Specifies that phases in the given sequence are to be assume continuity of the given
         variables.
@@ -565,10 +801,8 @@ class Trajectory(om.Group):
         The location at which the variables should be coupled in the two phases are provided
         with a two character string:
 
-        - '--' specifies the value at the start of the phase before an initial state or control jump
-        - '-+' specifies the value at the start of the phase after an initial state or control jump
-        - '+-' specifies the value at the end of the phase before a final state or control jump
-        - '++' specifies the value at the end of the phase after a final state or control jump
+        - 'final' specifies the value at the end of the phase (at time t_initial + t_duration)
+        - 'initial' specifies the value at the start of the phase (at time t_initial)
 
         Parameters
         ----------
@@ -588,7 +822,7 @@ class Trajectory(om.Group):
             determine the units of each variable in the linkage if possible.  Those that cannot
             be determined to be a time, state, control, design parameter, or control rate will
             be assumed to have units None.  If given as a dict, it should map the name of each
-            variable in vars to the approprite units.
+            variable in vars to the appropriate units.
         connected : bool
             Set to True to directly connect the phases being linked. Otherwise, create constraints
             for the optimizer to solve.
@@ -622,15 +856,15 @@ class Trajectory(om.Group):
 
         **Specifying Linkage Locations**
 
-        Phase linkages assume that, for each pair, the state/control values after any discontinuous
-        jump in the first phase ('++') are linked to the state/control values before any
-        discontinuous jump in the second phase ('--').  The user can override this behavior, but
+        Phase linkages assume that, for each pair, the state/control values at the end ('final')
+        of the first phase are linked to the state/control values at the start of the second phase
+        ('initial').  The user can override this behavior, but
         they must specify a pair of location strings for each pair given in `phases`.  For instance,
         in the following example phases 'a' and 'b' have the same initial time and state, but
         phase 'c' follows phase 'b'.  Note since there are three phases provided, there are two
         linkages and thus two pairs of location specifiers given.
 
-        >>> t.link_phases(['a', 'b', 'c'], locs=[('--', '--'), ('++', '--')])
+        >>> t.link_phases(['a', 'b', 'c'], locs=[('initial', 'initial'), ('final', 'initial')])
 
         """
         num_links = len(phases) - 1
@@ -646,15 +880,26 @@ class Trajectory(om.Group):
         # Resolve linkage pairs from the phases sequence
         a, b = itertools.tee(phases)
         next(b, None)
-        phase_pairs = zip(a, b)
+        phase_pairs = list(zip(a, b))
 
-        for phase1_name, phase2_name in phase_pairs:
-            if (phase1_name, phase2_name) not in self._linkages:
-                self._linkages[phase1_name, phase2_name] = OrderedDict()
+        if len(locs) == 1:
+            _locs = num_links * locs
+        elif len(locs) == 2:
+            _locs = num_links * [locs]
+        elif len(locs) == num_links:
+            _locs = locs
+        else:
+            raise ValueError('The number of location tuples, if provided, must be one less than '
+                             f'the number of phases specified.  There are {num_links} phase pairs '
+                             f'but {len(locs)} location tuples specified.')
 
+        for i in range(len(phase_pairs)):
+            phase_name_a, phase_name_b = phase_pairs[i]
+            loc_a, loc_b = _locs[i]
             for var in _vars:
-                self._linkages[phase1_name, phase2_name][var] = {'locs': locs, 'units': None,
-                                                                 'connected': connected}
+                self.add_linkage_constraint(phase_a=phase_name_a, phase_b=phase_name_b,
+                                            var_a=var, var_b=var, loc_a=loc_a, loc_b=loc_b,
+                                            connected=connected)
 
     def simulate(self, times_per_seg=10, method='RK45', atol=1.0E-9, rtol=1.0E-9, record_file=None):
         """
@@ -698,13 +943,9 @@ class Trajectory(om.Group):
 
         if record_file is not None:
             rec = om.SqliteRecorder(record_file)
-            sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
-            sim_prob.model.add_recorder(rec)
+            sim_prob.add_recorder(rec)
 
         sim_prob.setup()
-
-        traj_op_dict = dict([(name, opts) for (name, opts) in self.list_outputs(units=True,
-                                                                                out_stream=None)])
 
         # Assign trajectory parameter values
         param_names = [key for key in self.parameter_options.keys()]
@@ -735,5 +976,8 @@ class Trajectory(om.Group):
         print('\nSimulating trajectory {0}'.format(self.pathname))
         sim_prob.run_model()
         print('Done simulating trajectory {0}'.format(self.pathname))
+        if record_file:
+            sim_prob.record('final')
+        sim_prob.cleanup()
 
         return sim_prob

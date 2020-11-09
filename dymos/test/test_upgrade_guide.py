@@ -5,8 +5,10 @@ import openmdao.api as om
 import dymos as dm
 
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class TestUpgrade_0_16_0(unittest.TestCase):
 
     def test_parameters(self):
@@ -381,6 +383,10 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         phase.add_timeseries_output('aero.f_drag', shape=(1,), units='N')
         phase.add_timeseries_output('prop.thrust', shape=(1,), units='lbf')
         # upgrade_doc: end sequence_timeseries_outputs
+        # upgrade_doc: begin state_endpoint_values
+        final_range = p.get_val('traj.phase0.final_conditions.states:x0++')
+        final_alpha = p.get_val('traj.phase0.final_conditions.controls:alpha++')
+        # upgrade_doc: end state_endpoint_values
         """
         from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 
@@ -459,6 +465,13 @@ class TestUpgrade_0_16_0(unittest.TestCase):
         p['traj.phase0.controls:alpha'] = phase.interpolate(ys=[0.0, 0.0], nodes='control_input')
 
         p.run_model()
+
+        # upgrade_doc: begin state_endpoint_values
+        final_range = p.get_val('traj.phase0.timeseries.states:r')[-1, ...]
+        final_alpha = p.get_val('traj.phase0.timeseries.controls:alpha')[-1, ...]
+        # upgrade_doc: end state_endpoint_values
+        self.assertEqual(final_range, 50000.0)
+        self.assertEqual(final_alpha, 0.0)
 
         outputs = p.model.list_outputs(units=True, out_stream=None, prom_name=True)
         op_dict = {options['prom_name']: options['units'] for abs_name, options in outputs}

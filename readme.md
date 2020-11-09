@@ -53,11 +53,47 @@ tell Dymos how the value of each should be connected to the ODE system, and tell
 the variable paths in the system that contain the rates of our state variables that are to be
 integrated.
 
-```python
-    import numpy as np
-    from openmdao.api import ExplicitComponent
+Integrating Ordinary Differential Equations
+-------------------------------------------
 
-    class BrachistochroneEOM(ExplicitComponent):
+Dymos's solver-based pseudspectral transcriptions
+provide the ability to numerically integrate the ODE system it is given.
+Used in an optimal control context, these provide a shooting method in
+which each iteration provides a physically viable trajectory.
+
+Pseudospectral Methods
+----------------------
+
+Dymos currently supports the Radau Pseudospectral Method and high-order
+Gauss-Lobatto transcriptions.  These implicit techniques rely on the
+optimizer to impose "defect" constraints which enforce the physical
+accuracy of the resulting trajectories.  To verify the physical
+accuracy of the solutions, Dymos can explicitly integrate them using
+variable-step methods.
+
+Solving Optimal Control Problems
+--------------------------------
+
+Dymos uses the concept of _Phases_ to support optimal control of dynamical systems.
+Users connect one or more Phases to construct trajectories.
+Each Phase can have its own:
+
+-   Optimal Control Transcription (Gauss-Lobatto or Radau Pseudospectral)
+-   Equations of motion
+-   Boundary and path constraints
+
+Dymos Phases and Trajectories are ultimately just OpenMDAO Groups that can exist in
+a problem along with numerous other models, allowing for the simultaneous
+optimization of systems and dynamics.
+
+```python
+import numpy as np
+import openmdao.api as om
+import dymos as dm
+import matplotlib.pyplot as plt
+
+
+    class BrachistochroneEOM(om.ExplicitComponent):
         def initialize(self):
             self.options.declare('num_nodes', types=int)
 
@@ -145,103 +181,6 @@ integrated.
 
             jacobian['check', 'v'] = 1/sin_theta
             jacobian['check', 'theta'] = -v*cos_theta/sin_theta**2
-```
-
-Integrating Ordinary Differential Equations
--------------------------------------------
-
-Dymos's `RungeKutta` and solver-based pseudspectral transcriptions
-provide the ability to numerically integrate the ODE system it is given.
-Used in an optimal control context, these provide a shooting method in
-which each iteration provides a physically viable trajectory.
-
-Pseudospectral Methods
-----------------------
-
-Dymos currently supports the Radau Pseudospectral Method and high-order
-Gauss-Lobatto transcriptions.  These implicit techniques rely on the
-optimizer to impose "defect" constraints which enforce the physical
-accuracy of the resulting trajectories.  To verify the physical
-accuracy of the solutions, Dymos can explicitly integrate them using
-variable-step methods.
-
-Solving Optimal Control Problems
---------------------------------
-
-Dymos uses the concept of _Phases_ to support optimal control of dynamical systems.
-Users connect one or more Phases to construct trajectories.
-Each Phase can have its own:
-
--   Optimal Control Transcription (Gauss-Lobatto, Radau Pseudospectral, or RungeKutta)
--   Equations of motion
--   Boundary and path constraints
-
-Dymos Phases and Trajectories are ultimately just OpenMDAO Groups that can exist in
-a problem along with numerous other models, allowing for the simultaneous
-optimization of systems and dynamics.
-
-Here is a Dymos solution for the Brachistochrone example shown above:
-
-```
-import numpy as np
-import openmdao.api as om
-import dymos as dm
-import matplotlib.pyplot as plt
-
-
-# First define a system which computes the equations of motion
-class BrachistochroneEOM(om.ExplicitComponent):
-    def initialize(self):
-        self.options.declare('num_nodes', types=int)
-
-    def setup(self):
-        nn = self.options['num_nodes']
-
-        # Inputs
-        self.add_input('v', val=np.zeros(nn), units='m/s',
-                       desc='velocity')
-
-        self.add_input('theta', val=np.zeros(nn), units='rad',
-                       desc='angle of wire')
-
-        self.add_output('xdot', val=np.zeros(nn), units='m/s',
-                        desc='velocity component in x')
-
-        self.add_output('ydot', val=np.zeros(nn), units='m/s',
-                        desc='velocity component in y')
-
-        self.add_output('vdot', val=np.zeros(nn), units='m/s**2',
-                        desc='acceleration magnitude')
-
-        # Setup partials for the analytic derivatives
-        # These all have diagonal partial-derivative jacobians
-        ar = np.arange(self.options['num_nodes'])
-
-        self.declare_partials(of='vdot', wrt='theta', rows=ar, cols=ar)
-        self.declare_partials(of='xdot', wrt='*', rows=ar, cols=ar)
-        self.declare_partials(of='ydot', wrt='*', rows=ar, cols=ar)
-
-    def compute(self, inputs, outputs):
-        v, theta = inputs.values()
-
-        outputs['vdot'] = 9.80665 * np.cos(theta)
-        outputs['xdot'] = v * np.sin(theta)
-        outputs['ydot'] = -v * np.cos(theta)
-
-    def compute_partials(self, inputs, jacobian):
-        v, theta = inputs.values()
-
-        cos_theta = np.cos(theta)
-        sin_theta = np.sin(theta)
-
-        jacobian['vdot', 'theta'] = -9.80665 * sin_theta
-
-        jacobian['xdot', 'v'] = sin_theta
-        jacobian['xdot', 'theta'] = v * cos_theta
-
-        jacobian['ydot', 'v'] = -cos_theta
-        jacobian['ydot', 'theta'] = v * sin_theta
-
 
 # Define the OpenMDAO problem
 p = om.Problem(model=om.Group())

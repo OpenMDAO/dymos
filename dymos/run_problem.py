@@ -30,17 +30,18 @@ def modify_problem(problem, restart=None, reset_grid=False):
     """
     # record variables to database when running driver under hook
     # pre-hook is important, because recording initialization is skipped if final_setup has run once
-    save_db = os.getcwd() + '/dymos_solution.db'
+    save_db = 'dymos_solution.db'
 
     try:
         os.remove(save_db)
     except FileNotFoundError:
         pass  # OK if old database is not present to be deleted
 
-    # print('adding recorder at:', save_db)
-    # problem.add_recorder(om.SqliteRecorder(save_db))
     # problem.recording_options['includes'] = ['*']
     # problem.recording_options['record_inputs'] = True
+    # qqq I commented these out for some reason before ???
+    print('adding recorder at:', save_db)
+    problem.add_recorder(om.SqliteRecorder(save_db))
 
     # if opts.get('reset_grid'):  # TODO: implement this option
     #     pass
@@ -110,26 +111,28 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     simulation_record_file : String
         Path to case recorder file use to store results from simulation.
     """
-    # Herb added
-    print('adding recorder at:', solution_record_file)
-    recorder = om.SqliteRecorder(solution_record_file)
-    problem.add_recorder(recorder)
-    problem.recording_options['includes'] = ['*']
-    problem.recording_options['record_inputs'] = True
+    # qqq Herb added these next 5 lines but commenting them out for now
+    # print('adding recorder at:', solution_record_file)
+    # recorder = om.SqliteRecorder(solution_record_file)
+    # problem.add_recorder(recorder)
+    # problem.recording_options['includes'] = ['*']
+    # problem.recording_options['record_inputs'] = True
+
+    if 'dymos_solution.db' not in [rec._filepath for rec in iter(problem._rec_mgr)]:
+        problem.add_recorder(om.SqliteRecorder('dymos_solution.db'))
 
     problem.final_setup()  # make sure command line option hook has a chance to run
 
     if restart is not None:
-        cr = om.CaseReader(restart)
-        system_cases = cr.list_cases('root')
-        case = cr.get_case(system_cases[-1])
+        case = om.CaseReader(restart).get_case('final')
         load_case(problem, case)
 
-    recorder.startup(problem) # Herb added. Need to start separately
-    from openmdao.recorders.recording_manager import RecordingManager, record_viewer_data, \
-        record_system_options
-    record_viewer_data(problem)
-    record_system_options(problem)
+    # qqq Herb added. Need to start separately
+    # recorder.startup(problem)
+    # from openmdao.recorders.recording_manager import RecordingManager, record_viewer_data, \
+    #     record_system_options
+    # record_viewer_data(problem)
+    # record_system_options(problem)
 
     if run_driver:
         problem.run_driver()
@@ -140,12 +143,14 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
             warnings.warn("Refinement not performed. Set run_driver to True to perform refinement.")
 
     problem.record('final')  # save case for potential restart
+    problem.cleanup()
 
     if simulate:
         for subsys in problem.model.system_iter(include_self=True, recurse=True):
             if isinstance(subsys, Trajectory):
                 subsys.simulate(record_file=simulation_record_file)
 
+    # qqq Herb added
     if make_plots:
         from dymos.visualization.timeseries_plots import timeseries_plots
         timeseries_plots(solution_record_file, plot_simulation=simulate,

@@ -3,6 +3,7 @@ import unittest
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
@@ -15,6 +16,7 @@ except:
     MBI = None
 
 
+@use_tempdirs
 class TestAircraftCruise(unittest.TestCase):
 
     def test_cruise_results_gl(self):

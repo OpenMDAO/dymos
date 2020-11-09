@@ -27,30 +27,11 @@ class TestVanderpolExample(unittest.TestCase):
         if SHOW_PLOTS:
             vanderpol_dymos_plots(p)
 
-        print('Objective function minimized to', p['traj.phases.phase0.final_conditions.states:J++'])
+        print('Objective function minimized to', p.get_val('traj.phase0.states:J')[-1, ...])
         # check that ODE states (excluding J) and control are driven to near zero
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x0++'], np.zeros(1))
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x1++'], np.zeros(1))
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.controls:u++'], np.zeros(1), decimal=3)
-
-    @unittest.skipUnless(MPI, 'the test runs without MPI, but is very slow')
-    def test_vanderpol_optimal_slow(self):
-        """to test with MPI:
-           OPENMDAO_REQUIRE_MPI=1 mpirun -n 4 python
-               dymos/examples/vanderpol/test/test_vanderpol.py TestVanderpolExample.test_vanderpol_optimal_slow
-           (using varying values for n should give the same answer)
-        """
-        p = vanderpol(transcription='gauss-lobatto', num_segments=75, delay=True)
-        dm.run_problem(p)  # find optimal control solution to stop oscillation
-
-        if SHOW_PLOTS:
-            vanderpol_dymos_plots(p)
-
-        print('Objective function minimized to', p['traj.phases.phase0.final_conditions.states:J++'])
-        # check that ODE states (excluding J) and control are driven to near zero
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x0++'], np.zeros(1))
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x1++'], np.zeros(1))
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.controls:u++'], np.zeros(1), decimal=3)
+        assert_almost_equal(p.get_val('traj.phase0.states:x0')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.states:x1')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.controls:u')[-1, ...], np.zeros(1), decimal=3)
 
     def test_vanderpol_optimal_grid_refinement(self):
         # enabling grid refinement gives a faster and better solution with fewer segments
@@ -62,12 +43,37 @@ class TestVanderpolExample(unittest.TestCase):
         if SHOW_PLOTS:
             vanderpol_dymos_plots(p)
 
-        print('Objective function minimized to', p['traj.phases.phase0.final_conditions.states:J++'])
+        print('Objective function minimized to', p.get_val('traj.phase0.timeseries.states:J')[-1, ...])
         # check that ODE states (excluding J) and control are driven to near zero
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x0++'], np.zeros(1))
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.states:x1++'], np.zeros(1))
-        assert_almost_equal(p['traj.phases.phase0.final_conditions.controls:u++'], np.zeros(1), decimal=4)
+        assert_almost_equal(p.get_val('traj.phase0.timeseries.states:x0')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.timeseries.states:x1')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.timeseries.controls:u')[-1, ...], np.zeros(1), decimal=4)
 
+
+@use_tempdirs
+class TestVanderpolExampleMPI(unittest.TestCase):
+
+    N_PROCS = 4
+
+    @unittest.skipUnless(MPI, 'this test is only run under MPI')
+    def test_vanderpol_optimal_mpi(self):
+        """to test with MPI:
+           OPENMDAO_REQUIRE_MPI=1 mpirun -n 4 python
+               dymos/examples/vanderpol/test/test_vanderpol.py TestVanderpolExampleMPI.test_vanderpol_optimal_mpi
+           (using varying values for n should give the same answer)
+        """
+        p = vanderpol(transcription='gauss-lobatto', num_segments=75, delay=True,
+                      use_pyoptsparse=True, optimizer='IPOPT')
+        p.run_driver()  # find optimal control solution to stop oscillation
+
+        if SHOW_PLOTS:
+            vanderpol_dymos_plots(p)
+
+        print('Objective function minimized to', p.get_val('traj.phase0.states:J')[-1, ...])
+        # check that ODE states (excluding J) and control are driven to near zero
+        assert_almost_equal(p.get_val('traj.phase0.states:x0')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.states:x1')[-1, ...], np.zeros(1))
+        assert_almost_equal(p.get_val('traj.phase0.controls:u')[-1, ...], np.zeros(1), decimal=3)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

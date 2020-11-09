@@ -43,7 +43,7 @@ class TestRunProblem(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
-                                                   transcription=dm.Radau(num_segments=30, order=3)))
+                                                   transcription=dm.Radau(num_segments=10, order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
@@ -57,7 +57,7 @@ class TestRunProblem(unittest.TestCase):
 
         p.setup(check=True)
 
-        tf = np.float128(100)
+        tf = np.float128(20)
 
         p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[1.5, 1], nodes='state_input'))
         p.set_val('traj.phase0.states:xL', phase0.interpolate(ys=[0, 1], nodes='state_input'))
@@ -108,7 +108,7 @@ class TestRunProblem(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
-                                                   transcription=dm.GaussLobatto(num_segments=30, order=3)))
+                                                   transcription=dm.GaussLobatto(num_segments=20, order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
@@ -118,11 +118,11 @@ class TestRunProblem(unittest.TestCase):
 
         phase0.add_objective('xL', loc='final')
 
-        phase0.set_refine_options(refine=True)
+        phase0.set_refine_options(refine=True, tol=1.0E-5)
 
         p.setup(check=True)
 
-        tf = 100
+        tf = 20
 
         p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[1.5, 1], nodes='state_input'))
         p.set_val('traj.phase0.states:xL', phase0.interpolate(ys=[0, 1], nodes='state_input'))

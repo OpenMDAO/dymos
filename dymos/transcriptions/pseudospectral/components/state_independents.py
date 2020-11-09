@@ -4,7 +4,8 @@ import numpy as np
 
 import openmdao.api as om
 
-from dymos.transcriptions.grid_data import GridData
+from ....transcriptions.grid_data import GridData
+from ....options import options as dymos_options
 
 
 class StateIndependentsComp(om.ImplicitComponent):
@@ -12,6 +13,9 @@ class StateIndependentsComp(om.ImplicitComponent):
     A simple component that replaces the state indepvarcomps whenver the solver needs to solve for
     the state or whenever the initial state is connected to an external source.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
 

@@ -1,11 +1,16 @@
 import numpy as np
 
 import openmdao.api as om
-from dymos.utils.rk_methods import rk_methods
-from dymos.utils.misc import get_rate_units
+from ....utils.rk_methods import rk_methods
+from ....utils.misc import get_rate_units
+from ....options import options as dymos_options
 
 
 class RungeKuttaKComp(om.ExplicitComponent):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
         self.options.declare('num_segments', types=int,

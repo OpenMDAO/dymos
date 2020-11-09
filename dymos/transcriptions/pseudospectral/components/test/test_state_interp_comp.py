@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials
+from dymos.utils.testing_utils import assert_check_partials
 
 from dymos.transcriptions.pseudospectral.components import StateInterpComp
 from dymos.transcriptions.grid_data import GridData

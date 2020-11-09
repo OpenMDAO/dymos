@@ -9,7 +9,6 @@ class MaxThrustComp(om.ExplicitComponent):
     """
     def initialize(self):
         self.options.declare('num_nodes', types=int)
-        self.options.declare('max_thrust_sl', types=float, desc='maximum thrust at sea-level (N)')
 
     def setup(self):
         nn = self.options['num_nodes']

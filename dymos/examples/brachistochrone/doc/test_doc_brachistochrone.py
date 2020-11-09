@@ -9,9 +9,11 @@ plt.style.use('ggplot')
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
+from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.doc_utils import save_for_docs
 
 
+@use_tempdirs
 class TestBrachistochroneForDocs(unittest.TestCase):
 
     def tearDown(self):
@@ -23,7 +25,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
     def test_brachistochrone_partials(self):
         import numpy as np
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_check_partials
+        from dymos.utils.testing_utils import assert_check_partials
         from dymos.examples.brachistochrone.doc.brachistochrone_ode import BrachistochroneODE
 
         num_nodes = 5

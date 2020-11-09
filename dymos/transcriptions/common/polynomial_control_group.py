@@ -8,6 +8,8 @@ from ...utils.lagrange import lagrange_matrices
 from ...utils.misc import get_rate_units
 from ...utils.constants import INF_BOUND
 
+from ...options import options as dymos_options
+
 
 class LGLPolynomialControlComp(om.ExplicitComponent):
     """
@@ -22,6 +24,8 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
                              desc='Dictionary of options for the polynomial controls')
 
         self._matrices = {}
+
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def configure_io(self):
         """

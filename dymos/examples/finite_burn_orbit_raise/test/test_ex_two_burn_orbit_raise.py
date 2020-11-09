@@ -132,12 +132,12 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         # No direct connections to the end of a phase.
         traj.link_phases(phases=['burn2', 'coast'],
                          vars=['r', 'theta', 'vr', 'vt', 'deltav'],
-                         locs=('++', '++'))
+                         locs=('final', 'final'))
         traj.link_phases(phases=['burn2', 'coast'],
-                         vars=['time'], locs=('++', '++'))
+                         vars=['time'], locs=('final', 'final'))
 
         traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'],
-                         locs=('++', '++'))
+                         locs=('final', 'final'))
 
     else:
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],
@@ -175,12 +175,8 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
                      compressed=compressed, connected=connected)
     p.model.add_subsystem('traj', subsys=traj)
 
-    # Finish Problem Setup
-
     # Needed to move the direct solver down into the phases for use with MPI.
     #  - After moving down, used fewer iterations (about 30 less)
-
-    p.driver.add_recorder(om.SqliteRecorder('two_burn_orbit_raise_example.db'))
 
     p.setup(check=True)
 

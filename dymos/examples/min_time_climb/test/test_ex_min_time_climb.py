@@ -105,9 +105,9 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     return p
 
 
+@use_tempdirs
 class TestMinTimeClimb(unittest.TestCase):
 
-    @use_tempdirs
     def test_results_gauss_lobatto(self):
         p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
                            transcription='gauss-lobatto')
@@ -129,7 +129,6 @@ class TestMinTimeClimb(unittest.TestCase):
         assert(output_dict['traj.phases.phase0.timeseries.f_drag']['units'] == 'N')    # wildcard, from ODE
         assert(output_dict['traj.phases.phase0.timeseries.f_lift']['units'] == 'lbf')  # wildcard, from units dict
 
-    @use_tempdirs
     def test_results_radau(self):
         p = min_time_climb(optimizer='SLSQP', num_seg=12, transcription_order=3,
                            transcription='radau-ps')

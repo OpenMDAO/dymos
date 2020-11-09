@@ -6,6 +6,8 @@
 
 - [x] Bug
 - [ ] Enhancement
+- [ ] Docs
+- [ ] Miscellaneous
 
 ### Description
 

@@ -37,7 +37,7 @@ To specify a release, add it after an @ at the end of the URL.
 python -m pip install git+https://github.com/OpenMDAO/dymos.git@0.15.0
 ~~~
 
-If you intend to hack on the internals of Dymos, it is recommeneded that
+If you intend to hack on the internals of Dymos, it is recommended that
 you install it in developer mode.  This removes the need to reinstall
 Dymos after changes are made.
 

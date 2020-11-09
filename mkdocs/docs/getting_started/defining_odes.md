@@ -11,7 +11,7 @@ In other fields they are sometimes referred to as *process equations*.
 
 To represent EOM, Dymos uses a standard OpenMDAO System (a Group or Component).
 This System takes some set of variables as input and computes outputs that include the time-derivatives of the state variables $\bar{x}$.
-The ODE may also be a function of the the current time $t$.
+The ODE may also be a function of the current time $t$.
 
 Finally, the dynamics may be subject to some set of controllable parameters.
 In Dymos these are broken into the dynamic controls $\bar{u}$ and the static parameters $\bar{d}$.

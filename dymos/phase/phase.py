@@ -1618,7 +1618,6 @@ class Phase(om.Group):
         transcription.setup_boundary_constraints('initial', self)
         transcription.setup_boundary_constraints('final', self)
         transcription.setup_path_constraints(self)
-        transcription.setup_endpoint_conditions(self)
         transcription.setup_objective(self)
         transcription.setup_timeseries_outputs(self)
         transcription.setup_solvers(self)
@@ -1646,7 +1645,6 @@ class Phase(om.Group):
         transcription.configure_boundary_constraints('initial', self)
         transcription.configure_boundary_constraints('final', self)
         transcription.configure_path_constraints(self)
-        transcription.configure_endpoint_conditions(self)
         transcription.configure_objective(self)
         transcription.configure_timeseries_outputs(self)
         transcription.configure_solvers(self)
@@ -1969,9 +1967,7 @@ class Phase(om.Group):
 
         if record_file is not None:
             rec = om.SqliteRecorder(record_file)
-            sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
-
-            sim_prob.model.add_recorder(rec)
+            sim_prob.add_recorder(rec)
 
         sim_prob.setup(check=True)
         sim_phase.initialize_values_from_phase(sim_prob, self)
@@ -1979,6 +1975,7 @@ class Phase(om.Group):
         print('\nSimulating phase {0}'.format(self.pathname))
         sim_prob.run_model()
         print('Done simulating phase {0}'.format(self.pathname))
+        sim_prob.record('final')
 
         sim_prob.cleanup()
 
