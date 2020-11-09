@@ -198,6 +198,7 @@ class TestRunProblem(unittest.TestCase):
 
         dm.run_problem(p)
 
+
     def test_modify_problem(self):
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
         from dymos.examples.vanderpol.vanderpol_dymos_plots import vanderpol_dymos_plots
@@ -253,6 +254,99 @@ class TestRunProblem(unittest.TestCase):
             assert_almost_equal(x1q, fx1s(tq), decimal=2)
             assert_almost_equal(x0q, fx0s(tq), decimal=2)
             assert_almost_equal(uq, fus(tq), decimal=5)
+
+@use_tempdirs
+class TestRunProblemPlotting(unittest.TestCase):
+    def setUp(self):
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
+        p.driver.options['optimizer'] = 'SLSQP'
+
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneODE,
+                                                   transcription=dm.Radau(num_segments=10, order=3)))
+        phase0.set_time_options(fix_initial=True, fix_duration=True)
+        phase0.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                         units=BrachistochroneODE.states['x']['units'],
+                         fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                         units=BrachistochroneODE.states['y']['units'],
+                         fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                         units=BrachistochroneODE.states['v']['units'],
+                         fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_control('theta', continuity=True, rate_continuity=True,
+                           units='deg', lower=0.01, upper=179.9)
+        phase0.add_parameter('g', units='m/s**2', val=9.80665)
+
+        phase0.add_boundary_constraint('x', loc='final', equals=10)
+        phase0.add_boundary_constraint('y', loc='final', equals=5)
+        # Minimize time at the end of the phase
+        phase0.add_objective('time_phase', loc='final', scaler=10)
+
+        phase0.set_refine_options(refine=True)
+
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=True)
+
+        p.set_val('traj.phase0.t_initial', 0.0)
+        p.set_val('traj.phase0.t_duration', 2.0)
+
+        p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[0, 10], nodes='state_input'))
+        p.set_val('traj.phase0.states:y', phase0.interpolate(ys=[10, 5], nodes='state_input'))
+        p.set_val('traj.phase0.states:v', phase0.interpolate(ys=[0, 9.9], nodes='state_input'))
+        p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100], nodes='control_input'))
+        p.set_val('traj.phase0.parameters:g', 9.80665)
+
+        self.p = p
+
+    def tearDown(self):
+        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
+            if os.path.exists(filename):
+                os.remove(filename)
+
+    def test_run_brachistochrone_problem_make_plots(self):
+        dm.run_problem(self.p, make_plots=True)
+
+        self.assertTrue(os.path.exists('plots/test_x.png'))
+        self.assertTrue(os.path.exists('plots/test_y.png'))
+        self.assertTrue(os.path.exists('plots/test_v.png'))
+
+    def test_run_brachistochrone_problem_do_not_make_plots(self):
+        dm.run_problem(self.p, make_plots=False)
+
+        self.assertTrue(not os.path.exists('plots/test_x.png'))
+        self.assertTrue(not os.path.exists('plots/test_y.png'))
+        self.assertTrue(not os.path.exists('plots/test_v.png'))
+
+    def test_run_brachistochrone_problem_set_simulation_record_file(self):
+        simulation_record_file = 'simulation_record_file.db'
+        dm.run_problem(self.p, simulate=True, simulation_record_file=simulation_record_file)
+
+        self.assertTrue(os.path.exists(simulation_record_file))
+        os.remove(simulation_record_file)
+
+    def test_run_brachistochrone_problem_set_solution_record_file(self):
+        solution_record_file = 'solution_record_file.db'
+        dm.run_problem(self.p, solution_record_file=solution_record_file)
+
+        self.assertTrue(os.path.exists(solution_record_file))
+        os.remove(solution_record_file)
+
+    def test_run_brachistochrone_problem_plot_simulation(self):
+        simulation_record_file = 'simulation_record_file.db'
+        dm.run_problem(self.p, make_plots=True, simulate=True, simulation_record_file=simulation_record_file)
+
+        self.assertTrue(os.path.exists('plots/test_x.png'))
+        self.assertTrue(os.path.exists('plots/test_y.png'))
+        self.assertTrue(os.path.exists('plots/test_v.png'))
+
+    def test_run_brachistochrone_problem_plot_no_simulation_record_file_given(self):
+        with self.assertRaises(ValueError) as e:
+            dm.run_problem(self.p, make_plots=True, simulate=True)
+        expected = 'If plot_simulation is True, simulation_record_file must be path to simulation case recorder file, not None'
+        self.assertEqual(str(e.exception), expected)
 
 
 if __name__ == '__main__':  # pragma: no cover

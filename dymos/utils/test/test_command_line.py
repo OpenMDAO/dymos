@@ -95,6 +95,29 @@ class TestCommandLine(unittest.TestCase):
 
         self._assert_correct_solution()
 
+    def test_ex_brachistochrone_simulate_set_simulation_record_file(self):
+        print('test_ex_brachistochrone_simulate')
+        with patch.object(sys, 'argv', self.base_args + ['--simulate'] + ['--record_file=record_file.db']):
+            command_line.dymos_cmd()
+
+        self.assertTrue(os.path.exists('record_file.db'))
+
+        self._assert_correct_solution()
+
+    def test_ex_brachistochrone_make_plots(self):
+        print('test_ex_brachistochrone_make_plots')
+
+        # qqq ??? Do I need to make test where user can set plots directory?
+        with patch.object(sys, 'argv', self.base_args + ['--simulate'] + ['--make_plots']):
+            command_line.dymos_cmd()
+
+
+        qqq = os.getcwd()
+        self.assertTrue(os.path.exists('plots/test_x.png'))
+        self.assertTrue(os.path.exists('plots/test_y.png'))
+        self.assertTrue(os.path.exists('plots/test_v.png'))
+        # probably need more
+
     @unittest.skipIf(True, reason='grid resetting not yet implemented')
     def test_ex_brachistochrone_reset_grid(self):
         print('test_ex_brachistochrone_reset_grid')

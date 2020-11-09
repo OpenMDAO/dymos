@@ -37,10 +37,10 @@ def modify_problem(problem, restart=None, reset_grid=False):
     except FileNotFoundError:
         pass  # OK if old database is not present to be deleted
 
-    print('adding recorder at:', save_db)
-    problem.add_recorder(om.SqliteRecorder(save_db))
-    problem.recording_options['includes'] = ['*']
-    problem.recording_options['record_inputs'] = True
+    # print('adding recorder at:', save_db)
+    # problem.add_recorder(om.SqliteRecorder(save_db))
+    # problem.recording_options['includes'] = ['*']
+    # problem.recording_options['record_inputs'] = True
 
     # if opts.get('reset_grid'):  # TODO: implement this option
     #     pass
@@ -76,7 +76,11 @@ def modify_problem(problem, restart=None, reset_grid=False):
 
 
 def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_driver=True,
-                simulate=False, restart=None):
+                simulate=False, restart=None,
+                solution_record_file='dymos_solution.db',
+                simulation_record_file=None,
+                make_plots=False,
+                ):
     """
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
     Phases.  This function can iteratively call run_driver to perform grid refinement, and automatically
@@ -99,7 +103,20 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     simulate : bool
         If True, perform a simulation of Trajectories found in the Problem after the driver
         has been run and grid refinement is complete.
+    make_plots : bool
+        If True, automatically generate plots of all timeseries outputs.
+    solution_record_file : String
+        Path to case recorder file use to store results from simulation.
+    simulation_record_file : String
+        Path to case recorder file use to store results from simulation.
     """
+    # Herb added
+    print('adding recorder at:', solution_record_file)
+    recorder = om.SqliteRecorder(solution_record_file)
+    problem.add_recorder(recorder)
+    problem.recording_options['includes'] = ['*']
+    problem.recording_options['record_inputs'] = True
+
     problem.final_setup()  # make sure command line option hook has a chance to run
 
     if restart is not None:
@@ -107,6 +124,12 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         system_cases = cr.list_cases('root')
         case = cr.get_case(system_cases[-1])
         load_case(problem, case)
+
+    recorder.startup(problem) # Herb added. Need to start separately
+    from openmdao.recorders.recording_manager import RecordingManager, record_viewer_data, \
+        record_system_options
+    record_viewer_data(problem)
+    record_system_options(problem)
 
     if run_driver:
         problem.run_driver()
@@ -121,4 +144,10 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     if simulate:
         for subsys in problem.model.system_iter(include_self=True, recurse=True):
             if isinstance(subsys, Trajectory):
-                subsys.simulate(record_file='dymos_simulation.db')
+                subsys.simulate(record_file=simulation_record_file)
+
+    if make_plots:
+        from dymos.visualization.timeseries_plots import timeseries_plots
+        timeseries_plots(solution_record_file, plot_simulation=simulate,
+                         simulation_record_file=simulation_record_file,
+                         plot_dir="plots")
