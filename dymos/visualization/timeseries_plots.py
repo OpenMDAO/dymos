@@ -108,7 +108,8 @@ def timeseries_plots(recorder_filename, plot_simulation=False, simulation_record
             ax.set_xlabel(time_label)
             ax.set_ylabel(var_label)
             fig.suptitle(title)
-            fig.legend(bbox_to_anchor=(0, 1), loc='upper left', ncol=1, shadow=True)
+            fig.legend(loc='lower center', ncol=2, shadow=True)
+            plt.subplots_adjust(bottom=0.17, top=0.9)
 
             # save to file
             plot_file_path = os.path.join(plot_dir_path, f'test_{varname}.png' )
