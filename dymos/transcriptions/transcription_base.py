@@ -242,7 +242,7 @@ class TranscriptionBase(object):
                                        src_indices=src_idxs, flat_src_indices=True)
 
                 val = options['val']
-                _shape = (1,) + options['shape']
+                _shape = options['shape']
                 shaped_val = np.broadcast_to(val, _shape)
                 phase.set_input_defaults(name=src_name,
                                          val=shaped_val,
