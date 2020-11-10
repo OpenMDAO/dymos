@@ -372,7 +372,7 @@ class Trajectory(om.Group):
             targets = options['targets']
 
             val = options['val']
-            _shape = (1,) + options['shape']
+            _shape = options['shape']
             shaped_val = np.broadcast_to(val, _shape)
 
             self.set_input_defaults(name=prom_name,

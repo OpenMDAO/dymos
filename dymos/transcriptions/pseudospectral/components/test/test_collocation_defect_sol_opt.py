@@ -19,7 +19,12 @@ StateIndependentsComp = CompWrapperConfig(StateIndependentsComp)
 
 class TestCollocationCompSolOpt(unittest.TestCase):
 
-    # def setUp(self):
+    def setUp(self):
+        dm.options['include_check_partials'] = True
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
+
     def make_prob(self, transcription, n_segs, order, compressed):
 
         p = om.Problem(model=om.Group())
@@ -99,8 +104,6 @@ class TestCollocationCompSolOpt(unittest.TestCase):
                             dt_dstau[:, np.newaxis, np.newaxis] *
                             (p['f_approx:v']-p['f_computed:v']))
 
-        #################################################################################
-        #################################################################################
         p = self.make_prob('gauss-lobatto', n_segs=4, order=3, compressed=True)
 
         dt_dstau = p['dt_dstau']

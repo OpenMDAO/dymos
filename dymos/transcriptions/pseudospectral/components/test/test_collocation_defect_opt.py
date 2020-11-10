@@ -78,6 +78,9 @@ class TestCollocationComp(unittest.TestCase):
 
         self.p.run_model()
 
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
+
     def test_results(self):
         dt_dstau = self.p['dt_dstau']
 

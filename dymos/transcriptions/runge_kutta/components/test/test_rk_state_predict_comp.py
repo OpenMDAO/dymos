@@ -8,6 +8,7 @@ from dymos.utils.testing_utils import assert_check_partials
 
 from dymos.transcriptions.runge_kutta.components.runge_kutta_state_predict_comp import \
     RungeKuttaStatePredictComp
+import dymos as dm
 
 # Modify class so we can run it standalone.
 from dymos.utils.misc import CompWrapperConfig
@@ -15,6 +16,12 @@ RungeKuttaStatePredictComp = CompWrapperConfig(RungeKuttaStatePredictComp)
 
 
 class TestRKStatePredictComp(unittest.TestCase):
+
+    def setUp(self) -> None:
+        dm.options['include_check_partials'] = True
+
+    def tearDown(self) -> None:
+        dm.options['include_check_partials'] = False
 
     def test_rk_state_predict_comp_rk4(self):
         num_seg = 4
@@ -82,7 +89,6 @@ class TestRKStatePredictComp(unittest.TestCase):
                              [5.308168919136127]])
 
         assert_near_equal(p.get_val('c.predicted_states:y'), expected)
-
         cpd = p.check_partials(method='cs', out_stream=None)
         assert_check_partials(cpd)
 

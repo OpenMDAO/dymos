@@ -62,6 +62,9 @@ class TestPathConstraintComp(unittest.TestCase):
 
         self.p.run_model()
 
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
+
     def test_results(self):
         p = self.p
         gd = self.gd
