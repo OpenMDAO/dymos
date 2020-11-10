@@ -4,9 +4,14 @@
 # - pymdown-extensions
 # - mkdocs-macros-plugin
 # - mkdocs-bibtex
+# - mike
 
 
-site_name: Dymos [0.16.0]
+site_name: Dymos
+
+extra:
+  version:
+    method: mike
 
 theme:
   name: material

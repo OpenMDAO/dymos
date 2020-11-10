@@ -95,6 +95,13 @@ install:
     python -m pip install pyyaml;
     python -m pip install coveralls;
 
+    python -m pip install mkdocs
+    python -m pip install mkdocs-material
+    python -m pip install pymdown-extensions
+    python -m pip install mkdocs-macros-plugin
+    python -m pip install mkdocs-bibtex
+    python -m pip install mike
+
     echo "Clone the build_pyoptsparse script";
     echo $PWD;
     git clone https://github.com/OpenMDAO/build_pyoptsparse;
