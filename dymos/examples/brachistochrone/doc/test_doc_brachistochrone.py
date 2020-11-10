@@ -57,6 +57,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.brachistochrone import BrachistochroneODE
+        import matplotlib.pyplot as plt
 
         #
         # Initialize the Problem and the optimization driver
