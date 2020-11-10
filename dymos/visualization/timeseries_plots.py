@@ -65,8 +65,6 @@ def timeseries_plots(recorder_filename, plot_simulation=False, simulation_record
     if plot_simulation and simulation_record_file is None:
         raise ValueError('If plot_simulation is True, simulation_record_file must be path to simulation case recorder file, not None')
 
-    figsize = (10, 8)
-
     cr = om.CaseReader(recorder_filename)
 
     # qqq why did Rob use "final" to get the case ?

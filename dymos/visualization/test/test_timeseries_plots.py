@@ -75,8 +75,8 @@ class TestSimpleTimeSeriesPlots(unittest.TestCase):
         p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
         p['traj0.phase0.parameters:g'] = 9.80665
 
-        solution_record_file = 'test_timeseries_plots.db'
-        simulation_record_file = 'dymos_solution.db'
+        # solution_record_file = 'test_timeseries_plots.db'
+        # simulation_record_file = 'dymos_solution.db'
 
         # self.recorder = om.SqliteRecorder(solution_record_file)
 
@@ -99,17 +99,23 @@ class TestSimpleTimeSeriesPlots(unittest.TestCase):
         self.assertTrue(os.path.exists('plots/test_y.png'))
         self.assertTrue(os.path.exists('plots/test_v.png'))
 
-    def test_brachistochrone_timeseries_plots_solution_and_simulation(self):
-        dm.run_problem(self.p,simulate=True, make_plots=False, # will plot with timeseries_plots function
-                       simulation_record_file='simulation_record_file.db') # records to the hardcode file 'dymos_simulation.db'
-
-        timeseries_plots('dymos_solution.db', plot_simulation=True, simulation_record_file='simulation_record_file.db')
-
-    def test_brachistochrone_timeseries_plots_solution_only(self):
-        dm.run_problem(self.p,make_plots=False, # will plot with timeseries_plots function
+    def test_brachistochrone_timeseries_plots_solution_only_set_solution_record_file(self):
+        dm.run_problem(self.p,make_plots=False, solution_record_file='solution_record_file.db' # will plot with timeseries_plots function
                        ) # records to the hardcode file 'dymos_simulation.db'
 
-        timeseries_plots('dymos_solution.db', plot_simulation=False)
+        timeseries_plots('solution_record_file.db')
+        self.assertTrue(os.path.exists('plots/test_x.png'))
+        self.assertTrue(os.path.exists('plots/test_y.png'))
+        self.assertTrue(os.path.exists('plots/test_v.png'))
+
+    def test_brachistochrone_timeseries_plots_solution_and_simulation(self):
+        dm.run_problem(self.p, simulate=True, make_plots=False, # will plot with timeseries_plots function
+                       simulation_record_file='simulation_record_file.db') # records to the hardcode file 'dymos_simulation.db'
+
+        timeseries_plots('dymos_solution.db', plot_simulation=True,
+                         simulation_record_file='simulation_record_file.db')
+
+
 
     def test_brachistochrone_timeseries_plots_plot_simulation_true_but_no_path_given(self):
         dm.run_problem(self.p, make_plots=False)
@@ -128,6 +134,17 @@ class TestSimpleTimeSeriesPlots(unittest.TestCase):
         expected = 'Setting simulation_record_file but not setting plot_simulation will not result in plotting simulation data'
 
         self.assertIn(expected, [str(ww.message) for ww in w])
+
+    def test_brachistochrone_timeseries_plots_set_plot_dir(self):
+        dm.run_problem(self.p, make_plots=False)
+
+        plot_dir = "test_plot_dir"
+        timeseries_plots('dymos_solution.db',plot_dir=plot_dir)
+
+        self.assertTrue(os.path.exists(os.path.join(plot_dir,'test_x.png')))
+        self.assertTrue(os.path.exists(os.path.join(plot_dir,'test_y.png')))
+        self.assertTrue(os.path.exists(os.path.join(plot_dir,'test_v.png')))
+
 
 class TestTimeSeriesPlots(unittest.TestCase):
 
@@ -271,15 +288,15 @@ class TestTimeSeriesPlots(unittest.TestCase):
 
         p.run_model()
 
-    def test_timeseries_plots(self):
-        burn1_accel = self.p.get_val('burn1.states:accel')
-        burn2_accel = self.p.get_val('burn2.states:accel')
-        accel_link_error = self.p.get_val('linkages.burn1|burn2_accel')
-        assert_near_equal(accel_link_error, burn2_accel[0]-burn1_accel[-1])
-
-        from dymos.visualization.timeseries_plots import timeseries_plots
-
-        timeseries_plots('test_timeseries_plots.db')
+    # def test_timeseries_plots(self):
+    #     burn1_accel = self.p.get_val('burn1.states:accel')
+    #     burn2_accel = self.p.get_val('burn2.states:accel')
+    #     accel_link_error = self.p.get_val('linkages.burn1|burn2_accel')
+    #     assert_near_equal(accel_link_error, burn2_accel[0]-burn1_accel[-1])
+    #
+    #     from dymos.visualization.timeseries_plots import timeseries_plots
+    #
+    #     timeseries_plots('test_timeseries_plots.db')
 
     def test_timeseries_from_case_recorder_with_simulate(self):
         pass

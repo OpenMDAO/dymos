@@ -313,6 +313,14 @@ class TestRunProblemPlotting(unittest.TestCase):
         self.assertTrue(os.path.exists('plots/test_y.png'))
         self.assertTrue(os.path.exists('plots/test_v.png'))
 
+    def test_run_brachistochrone_problem_make_plots_set_plot_dir(self):
+        plot_dir = "test_plot_dir"
+        dm.run_problem(self.p, make_plots=True,plot_dir=plot_dir)
+
+        self.assertTrue(os.path.exists(os.path.join(plot_dir,'test_x.png')))
+        self.assertTrue(os.path.exists(os.path.join(plot_dir,'test_y.png')))
+        self.assertTrue(os.path.exists(os.path.join(plot_dir,'test_v.png')))
+
     def test_run_brachistochrone_problem_do_not_make_plots(self):
         dm.run_problem(self.p, make_plots=False)
 
@@ -336,7 +344,8 @@ class TestRunProblemPlotting(unittest.TestCase):
 
     def test_run_brachistochrone_problem_plot_simulation(self):
         simulation_record_file = 'simulation_record_file.db'
-        dm.run_problem(self.p, make_plots=True, simulate=True, simulation_record_file=simulation_record_file)
+        dm.run_problem(self.p, make_plots=True, simulate=True,
+                       simulation_record_file=simulation_record_file)
 
         self.assertTrue(os.path.exists('plots/test_x.png'))
         self.assertTrue(os.path.exists('plots/test_y.png'))

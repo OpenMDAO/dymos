@@ -81,6 +81,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
                 solution_record_file='dymos_solution.db',
                 simulation_record_file=None,
                 make_plots=False,
+                plot_dir="plots"
                 ):
     """
     A Dymos-specific interface to execute an OpenMDAO problem containing Dymos Trajectories or
@@ -110,6 +111,8 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         Path to case recorder file use to store results from simulation.
     simulation_record_file : String
         Path to case recorder file use to store results from simulation.
+    plot_dir : String
+        Path to directory for plot files.
     """
     # qqq Herb added these next 5 lines but commenting them out for now
     # print('adding recorder at:', solution_record_file)
@@ -118,8 +121,8 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     # problem.recording_options['includes'] = ['*']
     # problem.recording_options['record_inputs'] = True
 
-    if 'dymos_solution.db' not in [rec._filepath for rec in iter(problem._rec_mgr)]:
-        problem.add_recorder(om.SqliteRecorder('dymos_solution.db'))
+    if solution_record_file not in [rec._filepath for rec in iter(problem._rec_mgr)]:
+        problem.add_recorder(om.SqliteRecorder(solution_record_file))
 
     problem.final_setup()  # make sure command line option hook has a chance to run
 
@@ -155,4 +158,4 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         from dymos.visualization.timeseries_plots import timeseries_plots
         timeseries_plots(solution_record_file, plot_simulation=simulate,
                          simulation_record_file=simulation_record_file,
-                         plot_dir="plots")
+                         plot_dir=plot_dir)
