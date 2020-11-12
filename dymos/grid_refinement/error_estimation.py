@@ -6,7 +6,8 @@ import openmdao.api as om
 
 from ..phase.phase import Phase
 from ..utils.lagrange import lagrange_matrices
-from ..utils.misc import get_rate_units, get_targets
+from ..utils.misc import get_rate_units
+from ..utils.introspection import get_targets
 
 from scipy.linalg import block_diag
 
