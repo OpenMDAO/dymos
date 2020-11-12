@@ -6,7 +6,7 @@ import openmdao.api as om
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, PseudospectralTimeseriesOutputComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
-from ...utils.misc import CoerceDesvar, get_rate_units, get_target_metadata, _unspecified
+from ...utils.misc import CoerceDesvar, get_rate_units, get_target_metadata, get_source_metadata, _unspecified
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 
@@ -63,56 +63,87 @@ class PseudospectralBase(TranscriptionBase):
         phase.add_subsystem('indep_states', indep, promotes_inputs=prom_inputs,
                             promotes_outputs=['*'])
 
+    def _configure_state_introspection(self, state_name, phase):
+        options = phase.state_options[state_name]
+        time_units = phase.time_options['units']
+        user_units = options['units']
+        user_shape = options['shape']
+
+        need_units = user_units is _unspecified
+        need_shape = user_shape in {None, _unspecified}
+
+        if not(need_shape or need_units):
+            return user_shape, user_units
+
+        if options['targets']:
+
+
+        rate_src = options['rate_source']
+        rate_src_type = phase.classify_var(rate_src)
+        rate_src_path, _ = self.get_rate_source_path(state_name, 'col', phase)
+
+        if rate_src_type in ['time', 'time_phase']:
+            rate_src_units = phase.time_options['units']
+            shape = (1,)
+        elif rate_src_type == 'state':
+            rate_src_units = phase.state_options[rate_src]['units']
+            shape = phase.state_options[rate_src]['shape']
+        elif rate_src_type in ['input_control', 'indep_control']:
+            rate_src_units = phase.control_options[rate_src]['units']
+            shape = phase.control_options[rate_src]['shape']
+        elif rate_src_type in ['input_polynomial_control', 'indep_polynomial_control']:
+            rate_src_units = phase.polynomial_control_options[rate_src]['units']
+            shape = phase.polynomial_control_options[rate_src]['shape']
+        elif rate_src_type == 'parameter':
+            rate_src_units = phase.parameter_options[rate_src]['units']
+            shape = phase.parameter_options[rate_src]['shape']
+        elif rate_src_type == 'control_rate':
+            control_name = rate_src[:-5]
+            rate_src_units = phase.control_options[control_name]['units']
+            shape = phase.control_options[control_name]['shape']
+        elif rate_src_type == 'control_rate2':
+            control_name = rate_src[:-6]
+            rate_src_units = phase.control_options[control_name]['units']
+            shape = phase.control_options[control_name]['shape']
+        elif rate_src_type == 'polynomial_control_rate':
+            control_name = rate_src[:-5]
+            rate_src_units = phase.polynomial_control_options[control_name]['units']
+            shape = phase.polynomial_control_options[control_name]['shape']
+        elif rate_src_type == 'polynomial_control_rate2':
+            control_name = rate_src[:-6]
+            rate_src_units = phase.polynomial_control_options[control_name]['units']
+            shape = phase.polynomial_control_options[control_name]['shape']
+        elif rate_src_type == 'ode':
+            ode = phase._get_subsystem(self._rhs_source)
+            shape, rate_src_units = get_source_metadata(ode,
+                                                        src=rate_src,
+                                                        user_units=options['units'],
+                                                        user_shape=options['shape'])
+
+        ret_shape = shape if need_shape else user_shape
+        if ret_shape is None:
+            ret_shape = (1,)
+
+        if need_units:
+            if rate_src_units is None:
+                ret_units = None
+            else:
+                ret_units = f'{rate_src_units}*{time_units}'
+        else:
+            ret_units = user_units
+
+        return ret_shape, ret_units
+
     def configure_states(self, phase):
         grid_data = self.grid_data
         num_state_input_nodes = grid_data.subset_num_nodes['state_input']
         indep = phase.indep_states
-        time_units = phase.time_options['units']
-        ode = phase._get_subsystem(self._rhs_source)
 
         # add all the des-vars (either from the IndepVarComp or from the indep-var-like
         # outputs of the collocation comp)
         for name, options in phase.state_options.items():
 
-            rate_src = options['rate_source']
-
-            # Handle states that point to a control.
-            # This feels a little hackish
-            if rate_src in phase.control_options:
-                targets = phase.control_options[rate_src]['targets']
-                shape = phase.control_options[rate_src]['shape']
-                units = phase.control_options[rate_src]['units']
-                if targets is not _unspecified:
-                    rate_src = targets[0]
-                else:
-                    if units is not _unspecified and options['units'] in (_unspecified, None):
-                        options['units'] = f'{units}*{time_units}'
-                    if shape is not _unspecified and options['shape'] in (_unspecified, None):
-                        options['shape'] = shape
-
-            # Handle states that point to another state. States must be declared in the right
-            # order.
-            # This feels a little hackish
-            elif rate_src in phase.state_options and options['shape'] in (_unspecified, None):
-                options['shape'] = phase.state_options[rate_src]['shape']
-
-            full_shape, units = get_target_metadata(ode, name=name,
-                                                    user_targets=rate_src,
-                                                    user_units=options['units'],
-                                                    user_shape=options['shape'])
-
-            if options['units'] is _unspecified:
-                # Units are from the rate source and should be converted.
-                if units is not None:
-                    units = f'{units}*{time_units}'
-            options['units'] = units
-
-            # Determine and store the pre-discretized state shape for use by other components.
-            if len(full_shape) < 2:
-                if options['shape'] in (_unspecified, None):
-                    options['shape'] = (1, )
-            else:
-                options['shape'] = full_shape[1:]
+            options['shape'], options['units'] = self._configure_state_introspection(name, phase)
 
             size = np.prod(options['shape'])
             # In certain cases, we put an output on the IVC.
@@ -120,7 +151,7 @@ class PseudospectralBase(TranscriptionBase):
                 if not options['solve_segments'] and not options['connected_initial']:
                     indep.add_output(name='states:{0}'.format(name),
                                      shape=(num_state_input_nodes, size),
-                                     units=units)
+                                     units=options['units'])
 
             if options['opt']:
                 if options['solve_segments']:

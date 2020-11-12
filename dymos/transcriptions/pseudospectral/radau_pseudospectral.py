@@ -411,7 +411,6 @@ class Radau(PseudospectralBase):
                              'rate_source'.format(state_name, phase.name))
 
         # Note the rate source must be shape-compatible with the state
-        shape = phase.state_options[state_name]['shape']
         var_type = phase.classify_var(var)
 
         # Determine the path to the variable
