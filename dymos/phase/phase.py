@@ -1541,7 +1541,7 @@ class Phase(om.Group):
         -------
         str
             The classification of the given variable, which is one of
-            'time', 'state', 'input_control', 'indep_control', 'control_rate',
+            'time', 'time_phase', 'state', 'input_control', 'indep_control', 'control_rate',
             'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             or 'ode'.

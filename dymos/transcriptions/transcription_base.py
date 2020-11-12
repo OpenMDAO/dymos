@@ -6,7 +6,7 @@ import openmdao.api as om
 
 from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
 from ..utils.constants import INF_BOUND
-from ..utils.misc import get_rate_units, _unspecified, get_target_metadata
+from ..utils.misc import get_rate_units, _unspecified, get_target_metadata, get_source_metadata
 
 
 class TranscriptionBase(object):
@@ -131,6 +131,112 @@ class TranscriptionBase(object):
 
             phase.add_subsystem('control_group',
                                 subsys=control_group)
+
+    def _configure_state_introspection(self, state_name, options, phase):
+        """
+        Modifies state options in-place, automatically determining 'targets', 'units', and 'shape'
+        if necessary.
+        The precedence rules for the state shape and units are as follows:
+        1. If the user has specified units and shape in the state options, use those.
+        2a. If the user has not specified shape, and targets exist, then pull the shape from the targets.
+        2b. If the user has not specified shape and no targets exist, then pull the shape from the rate source.
+        2c. If shape cannot be inferred, assume (1,)
+        3a. If the user has not specified units, first try to pull units from a target
+        3b. If there are no targets, pull units from the rate source and multiply by time units.
+        For units, specifically, option 3b can lead to ugly behavior.  If the state rate has units
+        of 'm/s', then the state units will be inferred as 'm/s*s'.  While mathematically correct,
+        OpenMDAO does not currently simplify unit strings.
+        Parameters
+        ----------
+        state_name : str
+            The name of the state variable of interest.
+        state_options: OptionsDictionary
+            The options dictionary for the state variable of interest.
+        phase
+            The phase associated with the transcription.
+        """
+        time_units = phase.time_options['units']
+        user_targets = options['targets']
+        user_units = options['units']
+        user_shape = options['shape']
+
+        need_units = user_units is _unspecified
+        need_shape = user_shape in {None, _unspecified}
+
+        ode = phase._get_subsystem(self._rhs_source)
+
+        # Automatically determine targets of state if left _unspecified
+        if user_targets is _unspecified:
+            from dymos.utils.introspection import get_targets
+            options['targets'] = get_targets(ode, state_name, user_targets)
+
+        # 1. No introspection necessary
+        if not(need_shape or need_units):
+            return
+
+        # 2. Attempt target introspection
+        if options['targets']:
+            try:
+                from dymos.utils.introspection import get_state_target_metadata
+                tgt_shape, tgt_units = get_state_target_metadata(ode, state_name, options['targets'],
+                                                                 options['units'], options['shape'])
+                options['shape'] = tgt_shape
+                options['units'] = tgt_units
+                return
+            except ValueError:
+                pass
+
+        # 3. Attempt rate-source introspection
+        rate_src = options['rate_source']
+        rate_src_type = phase.classify_var(rate_src)
+
+        if rate_src_type in ['time', 'time_phase']:
+            rate_src_units = phase.time_options['units']
+            rate_src_shape = (1,)
+        elif rate_src_type == 'state':
+            rate_src_units = phase.state_options[rate_src]['units']
+            rate_src_shape = phase.state_options[rate_src]['shape']
+        elif rate_src_type in ['input_control', 'indep_control']:
+            rate_src_units = phase.control_options[rate_src]['units']
+            rate_src_shape = phase.control_options[rate_src]['shape']
+        elif rate_src_type in ['input_polynomial_control', 'indep_polynomial_control']:
+            rate_src_units = phase.polynomial_control_options[rate_src]['units']
+            rate_src_shape = phase.polynomial_control_options[rate_src]['shape']
+        elif rate_src_type == 'parameter':
+            rate_src_units = phase.parameter_options[rate_src]['units']
+            rate_src_shape = phase.parameter_options[rate_src]['shape']
+        elif rate_src_type == 'control_rate':
+            control_name = rate_src[:-5]
+            rate_src_units = phase.control_options[control_name]['units']
+            rate_src_shape = phase.control_options[control_name]['shape']
+        elif rate_src_type == 'control_rate2':
+            control_name = rate_src[:-6]
+            rate_src_units = phase.control_options[control_name]['units']
+            rate_src_shape = phase.control_options[control_name]['shape']
+        elif rate_src_type == 'polynomial_control_rate':
+            control_name = rate_src[:-5]
+            rate_src_units = phase.polynomial_control_options[control_name]['units']
+            rate_src_shape = phase.polynomial_control_options[control_name]['shape']
+        elif rate_src_type == 'polynomial_control_rate2':
+            control_name = rate_src[:-6]
+            rate_src_units = phase.polynomial_control_options[control_name]['units']
+            rate_src_shape = phase.polynomial_control_options[control_name]['shape']
+        elif rate_src_type == 'ode':
+            rate_src_shape, rate_src_units = get_source_metadata(ode,
+                                                                 src=rate_src,
+                                                                 user_units=options['units'],
+                                                                 user_shape=options['shape'])
+        else:
+            rate_src_shape = (1,)
+            rate_src_units = None
+
+        if need_shape:
+            options['shape'] = rate_src_shape
+
+        if need_units:
+            options['units'] = rate_src_units if rate_src_units is None else f'{rate_src_units}*{time_units}'
+
+        return
 
     def configure_controls(self, phase):
         ode = phase._get_subsystem(self._rhs_source)
