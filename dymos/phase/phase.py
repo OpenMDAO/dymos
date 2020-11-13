@@ -1189,7 +1189,7 @@ class Phase(om.Group):
         bc_dict[name]['indices'] = indices
         bc_dict[name]['lower'] = lower
         bc_dict[name]['upper'] = upper
-        bc_dict[name]['equals'] = list(equals) if type(equals) is np.ndarray else equals
+        bc_dict[name]['equals'] = equals
         bc_dict[name]['scaler'] = scaler
         bc_dict[name]['adder'] = adder
         bc_dict[name]['ref0'] = ref0
