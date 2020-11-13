@@ -6,6 +6,7 @@ import numpy as np
 
 from scipy import interpolate
 
+import openmdao
 import openmdao.api as om
 from openmdao.core.system import System
 from openmdao.utils.general_utils import warn_deprecation
@@ -17,6 +18,10 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.misc import _unspecified
+
+
+om_dev_version = openmdao.__version__.endswith('dev')
+om_version = tuple(int(s) for s in openmdao.__version__.split('-')[0].split('.'))
 
 
 class Phase(om.Group):
@@ -1919,7 +1924,11 @@ class Phase(om.Group):
 
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
-            val = phs.get_val(f'parameters:{name}')
+            if om_version < (3, 4, 1):
+                val = phs.get_val(f'parameters:{name}')[0, ...]
+            else:
+                val = phs.get_val(f'parameters:{name}')
+
             if phase_path:
                 prob_path = '{0}.{1}.parameters:{2}'.format(phase_path, self.name, name)
             else:

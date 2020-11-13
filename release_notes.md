@@ -6,7 +6,8 @@ November 13, 2020
 This release of Dymos fixes an issue that now allows portions of an array
 output to be connected to a parameter.
 
-This version requires OpenMDAO 3.4.1.
+This version works with OpenMDAO 3.3.0 but version 3.4.1 offers some
+improved handling of parameters.
 
 ## Backwards Incompatible API Changes & Deprecations
 
