@@ -2,7 +2,8 @@ import numpy as np
 import openmdao.api as om
 
 from ..phase.options import TimeOptionsDictionary
-from ..utils.misc import get_targets, get_rate_units
+from ..utils.misc import get_rate_units
+from ..utils.introspection import get_targets
 from ..transcriptions.grid_data import GridData
 
 

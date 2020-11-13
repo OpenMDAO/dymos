@@ -4,7 +4,8 @@ import openmdao.api as om
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
 from ..common import GaussLobattoContinuityComp
-from ...utils.misc import get_rate_units, get_targets, get_source_metadata
+from ...utils.misc import get_rate_units, get_source_metadata
+from ...utils.introspection import get_targets
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
 from fnmatch import filter

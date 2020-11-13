@@ -1541,7 +1541,7 @@ class Phase(om.Group):
         -------
         str
             The classification of the given variable, which is one of
-            'time', 'state', 'input_control', 'indep_control', 'control_rate',
+            'time', 'time_phase', 'state', 'input_control', 'indep_control', 'control_rate',
             'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             or 'ode'.
@@ -1912,18 +1912,14 @@ class Phase(om.Group):
                 prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
 
         # Assign parameter values
-        pname = '{0}parameters:{1}'
         for name in phs.parameter_options:
 
             if skip_params and name in skip_params:
                 continue
 
-            prom_phs_path = pname.format(phs_path.replace('.phases.', '.'), name)
-            src = phs.get_source(prom_phs_path)
-
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
-            val = phs._abs_get_val(src, False, None, 'nonlinear', 'output', False, from_root=True)
+            val = phs.get_val(f'parameters:{name}')
             if phase_path:
                 prob_path = '{0}.{1}.parameters:{2}'.format(phase_path, self.name, name)
             else:

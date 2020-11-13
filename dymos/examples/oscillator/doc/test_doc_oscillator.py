@@ -28,8 +28,8 @@ class TestDocOscillator(unittest.TestCase):
         traj.add_phase('phase0', phase)
 
         # Tell Dymos the states to be propagated using the given ODE.
-        phase.add_state('x', rate_source='v', targets=['x'], units='m')
         phase.add_state('v', rate_source='v_dot', targets=['v'], units='m/s')
+        phase.add_state('x', rate_source='v', targets=['x'], units='m')
 
         # The spring constant, damping coefficient, and mass are inputs to the system
         # that are constant throughout the phase.

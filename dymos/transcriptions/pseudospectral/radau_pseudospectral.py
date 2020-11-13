@@ -5,7 +5,8 @@ import openmdao.api as om
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPSContinuityComp
-from ...utils.misc import get_rate_units, get_targets, get_source_metadata
+from ...utils.misc import get_rate_units, get_source_metadata
+from ...utils.introspection import get_targets
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 
@@ -411,7 +412,6 @@ class Radau(PseudospectralBase):
                              'rate_source'.format(state_name, phase.name))
 
         # Note the rate source must be shape-compatible with the state
-        shape = phase.state_options[state_name]['shape']
         var_type = phase.classify_var(var)
 
         # Determine the path to the variable

@@ -2,7 +2,8 @@ import numpy as np
 from .odeint_control_interpolation_comp import ODEIntControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from ....phase.options import TimeOptionsDictionary
-from ....utils.misc import get_targets, get_target_metadata
+from ....utils.misc import get_target_metadata
+from ....utils.introspection import get_targets
 import openmdao.api as om
 
 

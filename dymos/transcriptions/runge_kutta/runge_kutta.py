@@ -8,8 +8,9 @@ from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGro
     RungeKuttaTimeseriesOutputComp, RungeKuttaControlContinuityComp
 from ..common import TimeComp, PathConstraintComp
 from ...utils.rk_methods import rk_methods
-from ...utils.misc import CoerceDesvar, get_rate_units, get_targets, get_target_metadata,\
+from ...utils.misc import CoerceDesvar, get_rate_units, get_target_metadata,\
     get_source_metadata, _unspecified
+from ...utils.introspection import get_targets
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
@@ -228,51 +229,12 @@ class RungeKutta(TranscriptionBase):
         pass
 
     def configure_states(self, phase):
-        time_units = phase.time_options['units']
         num_seg = self.options['num_segments']
         num_state_input_nodes = num_seg + 1
 
         for state_name, options in phase.state_options.items():
 
-            rate_src = options['rate_source']
-
-            # Handle states that point to a control.
-            # This feels a little hackish
-            if rate_src in phase.control_options:
-                targets = phase.control_options[rate_src]['targets']
-                shape = phase.control_options[rate_src]['shape']
-                units = phase.control_options[rate_src]['units']
-                if targets is not _unspecified:
-                    rate_src = targets[0]
-                else:
-                    if units is not _unspecified and options['units'] in (_unspecified, None):
-                        options['units'] = f'{units}*{time_units}'
-                    if shape is not _unspecified and options['shape'] in (_unspecified, None):
-                        options['shape'] = shape
-
-            # Handle states that point to another state. States must be declared in the right
-            # order.
-            # This feels a little hackish
-            elif rate_src in phase.state_options and options['shape'] in (_unspecified, None):
-                options['shape'] = phase.state_options[rate_src]['shape']
-
-            full_shape, units = get_target_metadata(phase.ode, name=state_name,
-                                                    user_targets=rate_src,
-                                                    user_units=options['units'],
-                                                    user_shape=options['shape'])
-
-            if options['units'] is _unspecified:
-                # Units are from the rate source and should be converted.
-                if units is not None:
-                    units = f'{units}*{time_units}'
-            options['units'] = units
-
-            # Determine and store the pre-discretized state shape for use by other components.
-            if len(full_shape) < 2:
-                if options['shape'] in (_unspecified, None):
-                    options['shape'] = (1, )
-            else:
-                options['shape'] = full_shape[1:]
+            self._configure_state_introspection(state_name, options, phase)
 
             size = np.prod(options['shape'])
 
