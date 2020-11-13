@@ -49,7 +49,7 @@ setup(name='dymos',
     packages=find_packages(),
     python_requires=">=3.6",
     install_requires=[
-        'openmdao>=3.3.0',
+        'openmdao>=3.4.1',
         'numpy>=1.14.1',
         'scipy>=1.0.0'
     ],
