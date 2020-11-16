@@ -33,7 +33,7 @@ setup(name='dymos',
     description='Open-Source Optimization of Dynamic Multidisciplinary Systems',
     url='https://github.com/OpenMDAO/dymos',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: Apache 2.0',
         'Natural Language :: English',
