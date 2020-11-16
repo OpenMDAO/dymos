@@ -47,11 +47,7 @@ class BrachistochroneVectorStatesODE(om.ExplicitComponent):
 p = om.Problem(model=om.Group())
 
 p.driver = om.pyOptSparseDriver()
-p.driver.options['optimizer'] = 'SNOPT'
-p.driver.opt_settings['Major iterations limit'] = 100
-p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
-p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-p.driver.opt_settings['iSumm'] = 6
+p.driver.options['optimizer'] = 'SLSQP'
 
 p.driver.declare_coloring()
 
