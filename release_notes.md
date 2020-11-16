@@ -1,7 +1,7 @@
 ********************************
 # Release Notes for Dymos 0.16.1
 
-November 13, 2020
+November 16, 2020
 
 This release of Dymos fixes an issue that now allows portions of an array
 output to be connected to a parameter.
@@ -26,10 +26,6 @@ improved handling of parameters.
 ## Miscellaneous
 
 * Added test to verify functionality of OpenMDAO 3.4.1 that allows the final value of a control (or a partial portion of any output) to be connected to a parameter. [#445](https://github.com/OpenMDAO/dymos/pull/445)
-
-
-None
-
 
 ********************************
 # Release Notes for Dymos 0.16.0
