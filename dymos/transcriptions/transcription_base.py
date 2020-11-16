@@ -451,19 +451,22 @@ class TranscriptionBase(object):
                         not np.isscalar(options['lower']) and np.asarray(options['lower']).shape != shape:
                     raise ValueError('The lower bounds of boundary constraint on {0} are not '
                                      'compatible with its shape, and no indices were '
-                                     'provided.'.format(var))
+                                     'provided. Expected a shape of {1} but given shape '
+                                     'is {2}'.format(var, shape, np.asarray(options['lower']).shape))
 
                 if 'upper' in options and options['upper'] is not None and \
                         not np.isscalar(options['upper']) and np.asarray(options['upper']).shape != shape:
                     raise ValueError('The upper bounds of boundary constraint on {0} are not '
                                      'compatible with its shape, and no indices were '
-                                     'provided.'.format(var))
+                                     'provided. Expected a shape of {1} but given shape '
+                                     'is {2}'.format(var, shape, np.asarray(options['upper']).shape))
 
                 if 'equals' in options and options['equals'] is not None and \
                         not np.isscalar(options['equals']) and np.asarray(options['equals']).shape != shape:
                     raise ValueError('The equality boundary constraint value on {0} is not '
                                      'compatible with its shape, and no indices were '
-                                     'provided.'.format(var))
+                                     'provided. Expected a shape of {1} but given shape '
+                                     'is {2}'.format(var, shape, np.asarray(options['equals']).shape))
                 con_shape = (np.prod(shape),)
 
             size = np.prod(shape)

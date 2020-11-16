@@ -72,7 +72,7 @@ phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10), units='s')
 # can't fix final position if you're solving the segments
 phase.add_state('pos',
                 rate_source='pos_dot', units='m',
-                fix_initial=True, shape=(2, 2))
+                fix_initial=True)
 
 # test add_boundary_constraint with arrays:
 expected = np.array([10, 5])
