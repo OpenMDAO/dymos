@@ -1,4 +1,35 @@
 ********************************
+# Release Notes for Dymos 0.16.1
+
+November 13, 2020
+
+This release of Dymos fixes an issue that now allows portions of an array
+output to be connected to a parameter.
+
+This version works with OpenMDAO 3.3.0 but version 3.4.1 offers some
+improved handling of parameters.
+
+## Backwards Incompatible API Changes & Deprecations
+
+* Parameter shapes in 0.16.1 were stored as (1,) + the shape of the parameter.  Now they are shaped as expected. [#444](https://github.com/OpenMDAO/dymos/pull/444)
+
+## Enhancements
+
+* State shapes and units, if not explicitly given, are now pulled from targets (if present and uniquely defined), or from the rate source variable. [#449](https://github.com/OpenMDAO/dymos/pull/449)
+
+## Bug Fixes
+
+* Fixes a bug where user-defined shapes of states were colliding with those found during introspection, and other state introspection updates. [#449](https://github.com/OpenMDAO/dymos/pull/449)
+
+## Miscellaneous
+
+* Added test to verify functionality of OpenMDAO 3.4.1 that allows the final value of a control (or a partial portion of any output) to be connected to a parameter. [#445](https://github.com/OpenMDAO/dymos/pull/445)
+
+
+None
+
+
+********************************
 # Release Notes for Dymos 0.16.0
 
 October 23, 2020
