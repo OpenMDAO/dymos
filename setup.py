@@ -35,7 +35,7 @@ setup(name='dymos',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: Apache 2.0',
+        'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: POSIX :: Linux',
