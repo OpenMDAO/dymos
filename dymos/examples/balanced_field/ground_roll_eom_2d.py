@@ -5,16 +5,19 @@ import openmdao.api as om
 
 class GroundRollEOM2D(om.ExplicitComponent):
     """
+    Computes the acceleration of an aircraft on a runway, per Raymer Eq. 17.97 _[1]
     Computes the position and velocity equations of motion using a modification of the 2D flight
     path parameterization of states per equations 4.42 - 4.46 of _[1].  Flight path angle
     and altitude are static quantities during the ground roll and are not integrated as states.
 
     References
     ----------
-    .. [1] Bryson, Arthur Earl. Dynamic optimization. Vol. 1. Prentice Hall, p.172, 1999.
+    .. [1] Raymer, Daniel. Aircraft design: a conceptual approach. American Institute of
+    Aeronautics and Astronautics, Inc., 2012.
     """
     def initialize(self):
         self.options.declare('num_nodes', types=int)
+        self.options.declare('g', type=float, default=9.80665, desc='gravitational acceleration in m/s**2)')
 
     def setup(self):
         g = 9.80665
