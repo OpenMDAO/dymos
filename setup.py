@@ -31,6 +31,14 @@ optional_dependencies['all'] = sorted([
 setup(name='dymos',
     version='0.16.2-dev',
     description='Open-Source Optimization of Dynamic Multidisciplinary Systems',
+    long_description='''
+Dymos is a framework for the simulation and optimization of dynamical systems within the OpenMDAO Multidisciplinary Analysis and Optimization environment.
+Dymos leverages implicit and explicit simulation techniques to simulate generic dynamic systems of arbitary complexity.
+
+The software has two primary objectives:
+-   Provide a generic ODE integration interface that allows for the analysis of dynamical systems.
+-   Allow the user to solve optimal control problems involving dynamical multidisciplinary systems.''',
+    long_description_content_type='text/markdown',
     url='https://github.com/OpenMDAO/dymos',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
