@@ -477,8 +477,6 @@ class Trajectory(om.Group):
         shapes = {'a': _unspecified, 'b': _unspecified}
 
         for i in ('a', 'b'):
-            num_nodes = phases[i].options['transcription'].grid_data.num_nodes
-
             if classes[i] == 'time':
                 sources[i] = 'timeseries.time'
                 shapes[i] = (1,)
@@ -499,10 +497,10 @@ class Trajectory(om.Group):
                 sources[i] = f'timeseries.control_rates:{vars[i]}'
                 control_name = vars[i][:-5] if classes[i] == 'control_rate' else vars[i][:-6]
                 units[i] = phases[i].control_options[control_name]['units']
-                deriv = 1 if classes[i] == 'control_rate' else 2
+                deriv = 1 if classes[i].endswith('rate') else 2
                 units[i] = get_rate_units(units[i], phases[i].time_options['units'], deriv=deriv)
                 shapes[i] = phases[i].control_options[control_name]['shape']
-            elif classes[i] == 'polynomial_control':
+            elif classes[i] in {'indep_polynomial_control', 'input_polynomial_control'}:
                 sources[i] = f'timeseries.polynomial_controls:{vars[i]}'
                 units[i] = phases[i].polynomial_control_options[vars[i]]['units']
                 shapes[i] = phases[i].polynomial_control_options[vars[i]]['shape']
@@ -511,7 +509,7 @@ class Trajectory(om.Group):
                 control_name = vars[i][:-5] if classes[i] == 'polynomial_control_rate' else vars[i][:-6]
                 control_units = phases[i].polynomial_control_options[control_name]['units']
                 time_units = phases[i].time_options['units']
-                deriv = 1 if classes[i] == 'control_rate' else 2
+                deriv = 1 if classes[i].endswith('rate') else 2
                 units[i] = get_rate_units(control_units, time_units, deriv=deriv)
                 shapes[i] = phases[i].polynomial_control_options[control_name]['shape']
             elif classes[i] == 'parameter':
@@ -520,7 +518,6 @@ class Trajectory(om.Group):
                 shapes[i] = phases[i].parameter_options[vars[i]]['shape']
             else:
                 rhs_source = phases[i].options['transcription']._rhs_source
-                num_ode_nodes = phases[i]._get_subsystem(rhs_source).options['num_nodes']
                 sources[i] = f'{rhs_source}.{vars[i]}'
                 try:
                     shapes[i], units[i] = get_source_metadata(phases[i]._get_subsystem(rhs_source),
