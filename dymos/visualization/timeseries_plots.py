@@ -248,11 +248,15 @@ def timeseries_plots(recorder_filename, plot_simulation=False, simulation_record
 
         # Plot each phase
         for iphase, phase_name in enumerate(phase_names):
-            var_name_full = f'{phases_node_path}.{phase_name}.timeseries.states:{var_name}'
+            if phases_node_path:
+                var_name_full = f'{phases_node_path}.{phase_name}.timeseries.states:{var_name}'
+                time_name = f'{phases_node_path}.{phase_name}.timeseries.time'
+            else:
+                var_name_full = f'{phase_name}.timeseries.states:{var_name}'
+                time_name = f'{phase_name}.timeseries.time'
 
             # Get values
             # time_name = ".".join(var_name_full.split(".")[:-1])+".time"
-            time_name = f'{phases_node_path}.{phase_name}.timeseries.time'
             var_val = last_solution_case.outputs[var_name_full]
             time_val = last_solution_case.outputs[time_name]
 
@@ -273,9 +277,13 @@ def timeseries_plots(recorder_filename, plot_simulation=False, simulation_record
 
         # Create two legends
         # Solution/Simulation legend
-        solution_line = mlines.Line2D([], [], color='black', marker='o', label='Solution')
-        simulation_line = mlines.Line2D([], [], color='black', linestyle='--', label='Simulation')
-        sol_sim_legend = plt.legend(handles=[solution_line, simulation_line], loc='upper center', bbox_to_anchor=(0.,-0.12), shadow=True)
+        solution_line = mlines.Line2D([], [], color='black', marker='o', linestyle='None', label='Solution')
+        if plot_simulation:
+            simulation_line = mlines.Line2D([], [], color='black', linestyle='--', label='Simulation')
+            sol_sim_legend = plt.legend(handles=[solution_line, simulation_line], loc='upper center', bbox_to_anchor=(0.,-0.12), shadow=True)
+        else:
+            sol_sim_legend = plt.legend(handles=[solution_line],
+                                        loc='upper center', bbox_to_anchor=(0., -0.12), shadow=True)
         plt.gca().add_artist(sol_sim_legend)
 
         # Phases legend
