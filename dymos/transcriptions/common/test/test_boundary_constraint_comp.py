@@ -4,8 +4,9 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials
+from dymos.utils.testing_utils import assert_check_partials
 
+import dymos as dm
 from dymos.transcriptions.common.boundary_constraint_comp import BoundaryConstraintComp
 
 # Modify class so we can run it standalone.
@@ -16,6 +17,7 @@ BoundaryConstraintComp = CompWrapperConfig(BoundaryConstraintComp)
 class TestInitialScalarBoundaryValue(unittest.TestCase):
 
     def setUp(self):
+        dm.options['include_check_partials'] = True
 
         self.p = om.Problem(model=om.Group())
 
@@ -32,6 +34,9 @@ class TestInitialScalarBoundaryValue(unittest.TestCase):
         self.p.setup(force_alloc_complex=True)
         self.p.run_model()
 
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
+
     def test_results(self):
 
         self.assertAlmostEqual(self.p['bv_comp.initial_value_in:x'][0], self.p['x'][0])
@@ -45,6 +50,7 @@ class TestInitialScalarBoundaryValue(unittest.TestCase):
 class TestFinalScalarBoundaryValue(unittest.TestCase):
 
     def setUp(self):
+        dm.options['include_check_partials'] = True
 
         self.p = om.Problem(model=om.Group())
 
@@ -61,6 +67,9 @@ class TestFinalScalarBoundaryValue(unittest.TestCase):
         self.p.setup(force_alloc_complex=True)
         self.p.run_model()
 
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
+
     def test_results(self):
 
         self.assertAlmostEqual(self.p['bv_comp.final_value_in:x'][0], self.p['x'][-1])
@@ -74,6 +83,7 @@ class TestFinalScalarBoundaryValue(unittest.TestCase):
 class TestVectorInitialBoundaryValue(unittest.TestCase):
 
     def setUp(self):
+        dm.options['include_check_partials'] = True
 
         self.p = om.Problem(model=om.Group())
 
@@ -98,6 +108,9 @@ class TestVectorInitialBoundaryValue(unittest.TestCase):
 
         self.p.run_model()
 
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
+
     def test_results(self):
         assert_almost_equal(self.p['bv_comp.initial_value_in:pos'], self.p['pos'][0, :])
         assert_almost_equal(self.p['bv_comp.initial_value:pos'], self.p['pos'][0, :])
@@ -110,6 +123,7 @@ class TestVectorInitialBoundaryValue(unittest.TestCase):
 class TestVectorFinalBoundaryValue(unittest.TestCase):
 
     def setUp(self):
+        dm.options['include_check_partials'] = True
 
         self.p = om.Problem(model=om.Group())
 
@@ -134,6 +148,9 @@ class TestVectorFinalBoundaryValue(unittest.TestCase):
 
         self.p.run_model()
 
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
+
     def test_results(self):
 
         assert_almost_equal(self.p['bv_comp.final_value_in:pos'], self.p['pos'][-1, :])
@@ -147,6 +164,7 @@ class TestVectorFinalBoundaryValue(unittest.TestCase):
 class TestMatrixInitialBoundaryValue(unittest.TestCase):
 
     def setUp(self):
+        dm.options['include_check_partials'] = True
 
         self.p = om.Problem(model=om.Group())
 
@@ -179,6 +197,9 @@ class TestMatrixInitialBoundaryValue(unittest.TestCase):
 
         self.p.run_model()
 
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
+
     def test_results(self):
 
         assert_almost_equal(self.p['bv_comp.initial_value_in:M'], self.p['M'][0, ...])
@@ -192,6 +213,7 @@ class TestMatrixInitialBoundaryValue(unittest.TestCase):
 class TestMatrixFinalBoundaryValue(unittest.TestCase):
 
     def setUp(self):
+        dm.options['include_check_partials'] = True
 
         self.p = om.Problem(model=om.Group())
 
@@ -224,6 +246,9 @@ class TestMatrixFinalBoundaryValue(unittest.TestCase):
 
         self.p.run_model()
 
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
+
     def test_results(self):
 
         assert_almost_equal(self.p['bv_comp.final_value_in:M'], self.p['M'][-1, ...])
@@ -237,6 +262,7 @@ class TestMatrixFinalBoundaryValue(unittest.TestCase):
 class TestMultipleConstraints(unittest.TestCase):
 
     def setUp(self):
+        dm.options['include_check_partials'] = True
 
         self.p = om.Problem(model=om.Group())
 
@@ -292,6 +318,9 @@ class TestMultipleConstraints(unittest.TestCase):
         self.p['pos'][:, 2] = 100000 + 200 + np.arange(100)
 
         self.p.run_model()
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def test_results(self):
 

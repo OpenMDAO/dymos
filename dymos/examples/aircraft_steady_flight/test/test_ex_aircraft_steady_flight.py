@@ -4,6 +4,7 @@ import unittest
 import openmdao.api as om
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.utils.lgl import lgl
@@ -72,7 +73,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
                       targets=['gam_comp.climb_rate'],
                       rate_continuity=True, rate2_continuity=False)
 
-    phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], units=None, opt=False)
+    phase.add_control('mach', targets=['tas_comp.mach', 'aero.mach'], opt=False)
 
     phase.add_parameter('S',
                         targets=['aero.S', 'flight_equilibrium.S', 'propulsion.S'],
@@ -108,6 +109,7 @@ def ex_aircraft_steady_flight(optimizer='SLSQP', solve_segments=False,
     return p
 
 
+@use_tempdirs
 class TestExSteadyAircraftFlight(unittest.TestCase):
 
     @classmethod

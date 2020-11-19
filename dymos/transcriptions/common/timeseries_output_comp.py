@@ -2,8 +2,9 @@ import numpy as np
 import openmdao.api as om
 from scipy.linalg import block_diag
 
-from dymos.transcriptions.grid_data import GridData
-from dymos.utils.lagrange import lagrange_matrices
+from ...transcriptions.grid_data import GridData
+from ...utils.lagrange import lagrange_matrices
+from ...options import options as dymos_options
 
 
 class TimeseriesOutputCompBase(om.ExplicitComponent):
@@ -15,6 +16,9 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
     need to be interleaved to provide a time series.  Pseudospectral techniques provide timeseries
     data at 'all' nodes, while ExplicitPhase provides values at the step boundaries.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
 
@@ -36,38 +40,6 @@ class TimeseriesOutputCompBase(om.ExplicitComponent):
                              types=str,
                              default='all',
                              desc='Name of the node subset at which outputs are desired.')
-
-    # def _add_timeseries_output(self, name, var_class, shape=(1,), units=None, desc='',
-    #                            distributed=False):
-    #     """
-    #     Add a final constraint to this component
-    #
-    #     Parameters
-    #     ----------
-    #     name : str
-    #         name of the variable in this component's namespace.
-    #     var_class : str
-    #         The 'class' of the variable as given by phase.classify_var.  One of 'time', 'state',
-    #         'indep_control', 'input_control', 'parameter',
-    #         'control_rate', 'control_rate2', or 'ode'.
-    #     shape : int or tuple or list or None
-    #         Shape of this variable, only required if val is not an array.
-    #         Default is None.
-    #     units : str or None
-    #         Units in which the output variables will be provided to the component during execution.
-    #         Default is None, which means it has no units.
-    #     desc : str
-    #         description of the timeseries output variable.
-    #     distributed : bool
-    #         If True, this variable is distributed across multiple processes.
-    #     """
-    #     src_all = var_class in ['time', 'time_phase', 'indep_control', 'input_control',
-    #                             'control_rate', 'control_rate2', 'indep_polynomial_control',
-    #                             'input_polynomial_control', 'polynomial_control_rate',
-    #                             'polynomial_control_rate2', 'parameter']
-    #     kwargs = {'shape': shape, 'units': units, 'desc': desc, 'src_all': src_all,
-    #               'distributed': distributed}
-    #     self._timeseries_outputs.append((name, kwargs))
 
 
 class PseudospectralTimeseriesOutputComp(TimeseriesOutputCompBase):

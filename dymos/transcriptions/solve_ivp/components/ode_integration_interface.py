@@ -68,38 +68,6 @@ class ODEIntegrationInterface(object):
                                                                    parameter_options=parameter_options,
                                                                    ode_init_kwargs=ode_init_kwargs))
 
-    def _get_rate_source_path(self, state_var):
-        var = self.state_options[state_var]['rate_source']
-
-        if var == 'time':
-            rate_path = 'time'
-        elif var == 'time_phase':
-            rate_path = 'time_phase'
-        elif self.state_options is not None and var in self.state_options:
-            rate_path = 'states:{0}'.format(var)
-        elif self.control_options is not None and var in self.control_options:
-            rate_path = 'controls:{0}'.format(var)
-        elif self.polynomial_control_options is not None and var in self.polynomial_control_options:
-            rate_path = 'polynomial_controls:{0}'.format(var)
-        elif self.parameter_options is not None and var in self.parameter_options:
-            rate_path = 'parameters:{0}'.format(var)
-        elif var.endswith('_rate') and self.control_options is not None and \
-                var[:-5] in self.control_options:
-            rate_path = 'control_rates:{0}'.format(var)
-        elif var.endswith('_rate2') and self.control_options is not None and \
-                var[:-6] in self.control_options:
-            rate_path = 'control_rates:{0}'.format(var)
-        elif var.endswith('_rate') and self.polynomial_control_options is not None and \
-                var[:-5] in self.polynomial_control_options:
-            rate_path = 'polynomial_control_rates:{0}'.format(var)
-        elif var.endswith('_rate2') and self.polynomial_control_options is not None and \
-                var[:-6] in self.polynomial_control_options:
-            rate_path = 'polynomial_control_rates:{0}'.format(var)
-        else:
-            rate_path = 'ode.{0}'.format(var)
-
-        return rate_path
-
     def _unpack_state_vec(self, x):
         """
         Given the state vector in 1D, extract the values corresponding to

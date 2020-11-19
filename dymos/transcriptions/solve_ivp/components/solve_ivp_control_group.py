@@ -53,7 +53,7 @@ class SolveIVPControlInterpComp(om.ExplicitComponent):
         self._output_rate_names = {}
         self._output_rate2_names = {}
 
-    def _setup_controls(self):
+    def _configure_controls(self):
         control_options = self.options['control_options']
         num_nodes_all = self.num_nodes_all
         num_nodes_output = self.num_nodes_output
@@ -88,7 +88,11 @@ class SolveIVPControlInterpComp(om.ExplicitComponent):
             self.add_output(self._output_rate2_names[name], shape=output_shape,
                             units=rate2_units)
 
-    def setup(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         output_nodes_per_seg = self.options['output_nodes_per_seg']
         time_units = self.options['time_units']
         gd = self.options['grid_data']
@@ -162,7 +166,7 @@ class SolveIVPControlInterpComp(om.ExplicitComponent):
         # Matrix D2 provides second derivatives at output nodes given values at input nodes.
         self.D2 = np.dot(D_do, np.dot(D_dd, L_id))
 
-        self._setup_controls()
+        self._configure_controls()
 
         self.set_check_partial_options('*', method='cs')
 
@@ -197,7 +201,6 @@ class SolveIVPControlGroup(om.Group):
                                   'equally distributed points in time within each segment.')
 
     def setup(self):
-
         gd = self.options['grid_data']
         control_options = self.options['control_options']
         time_units = self.options['time_units']
@@ -208,8 +211,8 @@ class SolveIVPControlGroup(om.Group):
         opt_controls = [name for (name, opts) in control_options.items() if opts['opt']]
 
         if len(opt_controls) > 0:
-            ivc = self.add_subsystem('indep_controls', subsys=om.IndepVarComp(),
-                                     promotes_outputs=['*'])
+            self.add_subsystem('indep_controls', subsys=om.IndepVarComp(),
+                               promotes_outputs=['*'])
 
         self.add_subsystem(
             'control_interp_comp',
@@ -219,11 +222,21 @@ class SolveIVPControlGroup(om.Group):
             promotes_inputs=['*'],
             promotes_outputs=['*'])
 
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
+        gd = self.options['grid_data']
+        control_options = self.options['control_options']
+
+        self.control_interp_comp.configure_io()
+
         for name, options in control_options.items():
             if options['opt']:
                 num_input_nodes = gd.subset_num_nodes['control_input']
 
-                ivc.add_output(name='controls:{0}'.format(name),
-                               val=options['val'],
-                               shape=(num_input_nodes, np.prod(options['shape'])),
-                               units=options['units'])
+                self.indep_controls.add_output(name='controls:{0}'.format(name),
+                                               val=options['val'],
+                                               shape=(num_input_nodes, np.prod(options['shape'])),
+                                               units=options['units'])

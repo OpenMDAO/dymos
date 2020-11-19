@@ -8,6 +8,8 @@ from ...utils.lagrange import lagrange_matrices
 from ...utils.misc import get_rate_units
 from ...utils.constants import INF_BOUND
 
+from ...options import options as dymos_options
+
 
 class LGLPolynomialControlComp(om.ExplicitComponent):
     """
@@ -23,12 +25,13 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
 
         self._matrices = {}
 
-    def setup(self):
+        self._no_check_partials = not dymos_options['include_check_partials']
 
-        gd = self.options['grid_data']
-        num_nodes = gd.subset_num_nodes['all']
-        eval_nodes = gd.node_ptau
-
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         self._input_names = {}
         self._output_val_names = {}
         self._output_rate_names = {}
@@ -47,6 +50,10 @@ class LGLPolynomialControlComp(om.ExplicitComponent):
         self.add_input('t_duration', val=1.0, units=self.options['time_units'],
                        desc='duration of the phase to which this interpolated control group '
                             'belongs')
+
+        gd = self.options['grid_data']
+        num_nodes = gd.subset_num_nodes['all']
+        eval_nodes = gd.node_ptau
 
         for name, options in self.options['polynomial_control_options'].items():
             disc_nodes, _ = lgl(options['order'] + 1)
@@ -187,9 +194,6 @@ class PolynomialControlGroup(om.Group):
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
     def setup(self):
-
-        ivc = om.IndepVarComp()
-
         opts = self.options
 
         # Pull out the interpolated controls
@@ -201,7 +205,8 @@ class PolynomialControlGroup(om.Group):
                 num_opt += 1
 
         if num_opt > 0:
-            ivc = self.add_subsystem('indep_polynomial_controls', subsys=ivc, promotes_outputs=['*'])
+            self.add_subsystem('indep_polynomial_controls', subsys=om.IndepVarComp(),
+                               promotes_outputs=['*'])
 
         self.add_subsystem(
             'interp_comp',
@@ -212,15 +217,22 @@ class PolynomialControlGroup(om.Group):
             promotes_inputs=['*'],
             promotes_outputs=['*'])
 
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
+        self.interp_comp.configure_io()
+
         # For any interpolated control with `opt=True`, add an indep var comp output and
         # setup the design variable for optimization.
         for name, options in self.options['polynomial_control_options'].items():
             num_input_nodes = options['order'] + 1
             shape = options['shape']
             if options['opt']:
-                ivc.add_output('polynomial_controls:{0}'.format(name),
-                               val=np.ones((num_input_nodes,) + shape),
-                               units=options['units'])
+                self.indep_polynomial_controls.add_output('polynomial_controls:{0}'.format(name),
+                                                          val=np.ones((num_input_nodes,) + shape),
+                                                          units=options['units'])
 
                 desvar_indices = list(range(num_input_nodes))
                 if options['fix_initial']:

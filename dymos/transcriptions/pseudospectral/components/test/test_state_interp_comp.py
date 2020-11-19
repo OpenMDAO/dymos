@@ -3,13 +3,14 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials
+from dymos.utils.testing_utils import assert_check_partials
 
 from dymos.transcriptions.pseudospectral.components import StateInterpComp
 from dymos.transcriptions.grid_data import GridData
 from dymos.utils.lgr import lgr
 
 # Modify class so we can run it standalone.
+import dymos as dm
 from dymos.utils.misc import CompWrapperConfig
 StateInterpComp = CompWrapperConfig(StateInterpComp)
 
@@ -38,6 +39,12 @@ def f_v(t):
 
 
 class TestStateInterpComp(unittest.TestCase):
+
+    def setUp(self):
+        dm.options['include_check_partials'] = True
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def test_state_interp_comp_lobatto(self):
 

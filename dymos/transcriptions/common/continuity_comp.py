@@ -3,12 +3,16 @@ import openmdao.api as om
 
 from ..grid_data import GridData
 from ...utils.misc import get_rate_units
+from ...options import options as dymos_options
 
 
 class ContinuityCompBase(om.ExplicitComponent):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
 
@@ -24,7 +28,7 @@ class ContinuityCompBase(om.ExplicitComponent):
         self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of the integration variable')
 
-    def _setup_state_continuity(self):
+    def _configure_state_continuity(self):
         state_options = self.options['state_options']
         num_segend_nodes = self.options['grid_data'].subset_num_nodes['segment_ends']
         num_segments = self.options['grid_data'].num_segments
@@ -74,7 +78,7 @@ class ContinuityCompBase(om.ExplicitComponent):
                 val=vals, rows=rs, cols=cs,
             )
 
-    def _setup_control_continuity(self):
+    def _configure_control_continuity(self):
         control_options = self.options['control_options']
         num_segend_nodes = self.options['grid_data'].subset_num_nodes['segment_ends']
         num_segments = self.options['grid_data'].num_segments
@@ -209,8 +213,8 @@ class ContinuityCompBase(om.ExplicitComponent):
         self.rate_jac_templates = {}
         self.name_maps = {}
 
-        self._setup_state_continuity()
-        self._setup_control_continuity()
+        self._configure_state_continuity()
+        self._configure_control_continuity()
 
     def _compute_state_continuity(self, inputs, outputs):
         state_options = self.options['state_options']
@@ -280,7 +284,7 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
     """
-    def _setup_state_continuity(self):
+    def _configure_state_continuity(self):
         state_options = self.options['state_options']
         num_segments = self.options['grid_data'].num_segments
         compressed = self.options['grid_data'].compressed
@@ -288,7 +292,7 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
         if num_segments <= 1:
             return
 
-        super(GaussLobattoContinuityComp, self)._setup_state_continuity()
+        super(GaussLobattoContinuityComp, self)._configure_state_continuity()
 
         for state_name, options in state_options.items():
             if options['continuity'] and not compressed:
@@ -299,7 +303,7 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
                 self.add_constraint(name='defect_states:{0}'.format(state_name),
                                     equals=0.0, scaler=1.0, linear=is_linear)
 
-    def _setup_control_continuity(self):
+    def _configure_control_continuity(self):
         control_options = self.options['control_options']
         num_segments = self.options['grid_data'].num_segments
         compressed = self.options['grid_data'].compressed
@@ -308,7 +312,7 @@ class GaussLobattoContinuityComp(ContinuityCompBase):
             # Control value and rate continuity is enforced even with compressed transcription
             return
 
-        super(GaussLobattoContinuityComp, self)._setup_control_continuity()
+        super(GaussLobattoContinuityComp, self)._configure_control_continuity()
 
         for control_name, options in control_options.items():
 
@@ -339,7 +343,7 @@ class RadauPSContinuityComp(ContinuityCompBase):
     """
     ContinuityComp defines constraints to ensure continuity between adjacent segments.
     """
-    def _setup_state_continuity(self):
+    def _configure_state_continuity(self):
         state_options = self.options['state_options']
         num_segments = self.options['grid_data'].num_segments
         compressed = self.options['grid_data'].compressed
@@ -347,7 +351,7 @@ class RadauPSContinuityComp(ContinuityCompBase):
         if num_segments <= 1:
             return
 
-        super(RadauPSContinuityComp, self)._setup_state_continuity()
+        super(RadauPSContinuityComp, self)._configure_state_continuity()
 
         for state_name, options in state_options.items():
             if options['continuity'] and not compressed:
@@ -358,7 +362,7 @@ class RadauPSContinuityComp(ContinuityCompBase):
                 self.add_constraint(name='defect_states:{0}'.format(state_name),
                                     equals=0.0, scaler=1.0, linear=is_linear)
 
-    def _setup_control_continuity(self):
+    def _configure_control_continuity(self):
         control_options = self.options['control_options']
         num_segments = self.options['grid_data'].num_segments
 
@@ -366,7 +370,7 @@ class RadauPSContinuityComp(ContinuityCompBase):
             # Control value and rate continuity is enforced even with compressed transcription
             return
 
-        super(RadauPSContinuityComp, self)._setup_control_continuity()
+        super(RadauPSContinuityComp, self)._configure_control_continuity()
 
         for control_name, options in control_options.items():
             if options['continuity']:

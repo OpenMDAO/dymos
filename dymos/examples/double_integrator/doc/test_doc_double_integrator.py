@@ -7,8 +7,10 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 from dymos.utils.doc_utils import save_for_docs
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class TestDoubleIntegratorForDocs(unittest.TestCase):
 
     @classmethod
@@ -44,12 +46,11 @@ class TestDoubleIntegratorForDocs(unittest.TestCase):
         # Set the options for our variables.
         #
         phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
-        phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s',
-                        shape=(1, ))
+        phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s')
         phase.add_state('x', fix_initial=True, rate_source='v', units='m')
 
         phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
-                          rate2_continuity=False, lower=-1.0, upper=1.0)
+                          rate2_continuity=False, shape=(1, ), lower=-1.0, upper=1.0)
 
         #
         # Maximize distance travelled.

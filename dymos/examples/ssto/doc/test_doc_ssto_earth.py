@@ -4,16 +4,18 @@ import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 plt.style.use('ggplot')
 
+from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.doc_utils import save_for_docs
 
 
+@use_tempdirs
 class TestDocSSTOEarth(unittest.TestCase):
 
     @save_for_docs
     def test_doc_ssto_earth(self):
         import matplotlib.pyplot as plt
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
 
         #
@@ -72,29 +74,27 @@ class TestDocSSTOEarth(unittest.TestCase):
         #
         p.setup(check=True)
 
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = 150.0
-        p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 1.15E5], nodes='state_input')
-        p['traj.phase0.states:y'] = phase.interpolate(ys=[0, 1.85E5], nodes='state_input')
-        p['traj.phase0.states:vx'] = phase.interpolate(ys=[0, 7796.6961], nodes='state_input')
-        p['traj.phase0.states:vy'] = phase.interpolate(ys=[1.0E-6, 0], nodes='state_input')
-        p['traj.phase0.states:m'] = phase.interpolate(ys=[117000, 1163], nodes='state_input')
-        p['traj.phase0.controls:theta'] = phase.interpolate(ys=[1.5, -0.76], nodes='control_input')
+        p.set_val('traj.phase0.t_initial', 0.0)
+        p.set_val('traj.phase0.t_duration', 150.0)
+        p.set_val('traj.phase0.states:x', phase.interpolate(ys=[0, 1.15E5], nodes='state_input'))
+        p.set_val('traj.phase0.states:y', phase.interpolate(ys=[0, 1.85E5], nodes='state_input'))
+        p.set_val('traj.phase0.states:vx', phase.interpolate(ys=[0, 7796.6961], nodes='state_input'))
+        p.set_val('traj.phase0.states:vy', phase.interpolate(ys=[1.0E-6, 0], nodes='state_input'))
+        p.set_val('traj.phase0.states:m', phase.interpolate(ys=[117000, 1163], nodes='state_input'))
+        p.set_val('traj.phase0.controls:theta', phase.interpolate(ys=[1.5, -0.76], nodes='control_input'))
+        p.set_val('traj.phase0.parameters:thrust', 2.1, units='MN')
 
         #
         # Solve the Problem
         #
         dm.run_problem(p)
 
-        #
-        # Check the results.
-        #
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 143, tolerance=0.05)
         assert_near_equal(p.get_val('traj.phase0.timeseries.states:y')[-1], 1.85E5, 1e-4)
         assert_near_equal(p.get_val('traj.phase0.timeseries.states:vx')[-1], 7796.6961, 1e-4)
         assert_near_equal(p.get_val('traj.phase0.timeseries.states:vy')[-1], 0, 1e-4)
         #
-        # Get the explitly simulated results
+        # Get the explicitly simulated results
         #
         exp_out = traj.simulate()
 

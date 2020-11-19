@@ -1,10 +1,12 @@
 from fnmatch import filter
 
 import numpy as np
+import openmdao.api as om
 
 from .pseudospectral_base import PseudospectralBase
 from ..common import RadauPSContinuityComp
-from ...utils.misc import get_rate_units, get_targets, get_source_metadata
+from ...utils.misc import get_rate_units, get_source_metadata
+from ...utils.introspection import get_targets
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData
 
@@ -34,6 +36,7 @@ class Radau(PseudospectralBase):
         super(Radau, self).setup_time(phase)
 
     def configure_time(self, phase):
+        super(Radau, self).configure_time(phase)
         options = phase.time_options
 
         # The tuples here are (name, user_specified_targets, dynamic)
@@ -106,26 +109,15 @@ class Radau(PseudospectralBase):
         super(Radau, self).configure_ode(phase)
 
         grid_data = self.grid_data
-        num_input_nodes = grid_data.subset_num_nodes['state_input']
         map_input_indices_to_disc = grid_data.input_maps['state_input_to_disc']
 
         for name, options in phase.state_options.items():
-            size = np.prod(options['shape'])
-
-            src_idxs_mat = np.reshape(np.arange(size * num_input_nodes, dtype=int),
-                                      (num_input_nodes, size), order='C')
-
-            src_idxs = src_idxs_mat[map_input_indices_to_disc, :]
-
-            if options['shape'] == (1,):
-                """ Flat state variable is passed as 1D data."""
-                src_idxs = src_idxs.ravel()
 
             targets = get_targets(ode=phase.rhs_all, name=name, user_targets=options['targets'])
             if targets:
                 phase.connect('states:{0}'.format(name),
                               ['rhs_all.{0}'.format(tgt) for tgt in targets],
-                              src_indices=src_idxs, flat_src_indices=True)
+                              src_indices=om.slicer[map_input_indices_to_disc, ...])
 
     def setup_defects(self, phase):
         super(Radau, self).setup_defects(phase)
@@ -154,7 +146,7 @@ class Radau(PseudospectralBase):
 
             phase.connect(rate_src,
                           'collocation_constraint.f_computed:{0}'.format(name),
-                          src_indices=src_idxs, flat_src_indices=True)
+                          src_indices=src_idxs)
 
     def configure_path_constraints(self, phase):
         super(Radau, self).configure_path_constraints(phase)
@@ -236,7 +228,7 @@ class Radau(PseudospectralBase):
         gd = self.grid_data
         time_units = phase.time_options['units']
 
-        for timeseries_name, timeseries_options in phase._timeseries.items():
+        for timeseries_name in phase._timeseries:
             timeseries_comp = phase._get_subsystem(timeseries_name)
 
             phase.connect(src_name='time', tgt_name=f'{timeseries_name}.input_values:time')
@@ -264,15 +256,14 @@ class Radau(PseudospectralBase):
                                                       desc=f'rate of state {state_name}')
 
                 src_rows = gd.input_maps['state_input_to_disc']
-                src_idxs = get_src_indices_by_row(src_rows, options['shape'])
                 phase.connect(src_name=f'states:{state_name}',
                               tgt_name=f'{timeseries_name}.input_values:states:{state_name}',
-                              src_indices=src_idxs, flat_src_indices=True)
+                              src_indices=om.slicer[src_rows, ...])
 
                 rate_src, src_idxs = self.get_rate_source_path(state_name, 'all', phase)
                 phase.connect(src_name=rate_src,
                               tgt_name=f'{timeseries_name}.input_values:state_rates:{state_name}',
-                              src_indices=src_idxs, flat_src_indices=True)
+                              src_indices=src_idxs)
 
             for control_name, options in phase.control_options.items():
                 control_units = options['units']
@@ -421,7 +412,6 @@ class Radau(PseudospectralBase):
                              'rate_source'.format(state_name, phase.name))
 
         # Note the rate source must be shape-compatible with the state
-        shape = phase.state_options[state_name]['shape']
         var_type = phase.classify_var(var)
 
         # Determine the path to the variable
@@ -489,7 +479,7 @@ class Radau(PseudospectralBase):
             rate_path = 'rhs_all.{0}'.format(var)
             node_idxs = gd.subset_node_indices[nodes]
 
-        src_idxs = get_src_indices_by_row(node_idxs, shape=shape)
+        src_idxs = om.slicer[node_idxs, ...]
 
         return rate_path, src_idxs
 

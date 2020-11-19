@@ -10,12 +10,19 @@ from dymos.transcriptions.pseudospectral.components.collocation_comp import Coll
 from dymos.transcriptions.pseudospectral.components.state_independents import StateIndependentsComp
 
 # Modify class so we can run it standalone.
+import dymos as dm
 from dymos.utils.misc import CompWrapperConfig
 CollocationComp = CompWrapperConfig(CollocationComp)
 StateIndependentsComp = CompWrapperConfig(StateIndependentsComp)
 
 
 class TestCollocationBalanceIndex(unittest.TestCase):
+
+    def setUp(self):
+        dm.options['include_check_partials'] = True
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def make_prob(self, transcription, n_segs, order, compressed):
 
@@ -112,6 +119,12 @@ class TestCollocationBalanceIndex(unittest.TestCase):
 
 
 class TestCollocationBalanceApplyNL(unittest.TestCase):
+
+    def setUp(self):
+        dm.options['include_check_partials'] = True
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def make_prob(self, transcription, n_segs, order, compressed):
 

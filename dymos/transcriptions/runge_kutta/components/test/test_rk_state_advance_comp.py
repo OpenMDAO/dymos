@@ -3,8 +3,10 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal
+from dymos.utils.testing_utils import assert_check_partials
 
+import dymos as dm
 from dymos.transcriptions.runge_kutta.components.runge_kutta_state_advance_comp import \
     RungeKuttaStateAdvanceComp
 
@@ -14,6 +16,12 @@ RungeKuttaStateAdvanceComp = CompWrapperConfig(RungeKuttaStateAdvanceComp)
 
 
 class TestRKStateAdvanceComp(unittest.TestCase):
+
+    def setUp(self):
+        dm.options['include_check_partials'] = True
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def test_rk_state_advance_comp_rk4_scalar(self):
         state_options = {'y': {'shape': (1,), 'units': 'm'}}

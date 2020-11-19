@@ -7,8 +7,10 @@ plt.style.use('ggplot')
 import numpy as np
 
 from dymos.utils.doc_utils import save_for_docs
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class TestReentryForDocs(unittest.TestCase):
 
     def tearDown(self):

@@ -5,11 +5,13 @@ in a simple electrical system.
 import unittest
 
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
 
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
 
 
+@use_tempdirs
 class TestBatteryRKIVP(unittest.TestCase):
 
     def test_dynamic_params(self):

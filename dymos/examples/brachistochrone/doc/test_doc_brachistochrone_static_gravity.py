@@ -7,8 +7,10 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 from dymos.utils.doc_utils import save_for_docs
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class TestBrachistochroneStaticGravity(unittest.TestCase):
 
     def tearDown(self):
@@ -19,7 +21,7 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
     def test_brachistochrone_partials(self):
         import numpy as np
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_check_partials
+        from dymos.utils.testing_utils import assert_check_partials
         from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
         num_nodes = 5
@@ -131,14 +133,14 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         #
         # Solve for the optimal trajectory
         #
-        dm.run_problem(p)
+        dm.run_problem(p, simulate=True)
 
         # Test the results
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
                           tolerance=1.0E-3)
 
         # Generate the explicitly simulated trajectory
-        exp_out = traj.simulate()
+        exp_out = om.CaseReader('dymos_simulation.db').get_case('final')
 
         # Extract the timeseries from the implicit solution and the explicit simulation
         x = p.get_val('traj.phase0.timeseries.states:x')

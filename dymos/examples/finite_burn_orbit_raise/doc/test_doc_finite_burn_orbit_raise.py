@@ -4,11 +4,18 @@ import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 plt.style.use('ggplot')
 
+from openmdao.utils.general_utils import set_pyoptsparse_opt
 from dymos.utils.doc_utils import save_for_docs
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+
+
+@use_tempdirs
 class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     @save_for_docs
     def test_finite_burn_orbit_raise(self):
         import numpy as np
@@ -22,7 +29,7 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.pyOptSparseDriver()
-        p.driver.options['optimizer'] = 'SLSQP'
+        p.driver.options['optimizer'] = 'IPOPT'
         p.driver.declare_coloring()
 
         traj = dm.Trajectory()

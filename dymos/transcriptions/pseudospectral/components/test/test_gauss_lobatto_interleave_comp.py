@@ -3,8 +3,10 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
+from openmdao.utils.assert_utils import assert_near_equal
+from dymos.utils.testing_utils import assert_check_partials
 
+import dymos as dm
 from dymos.transcriptions.pseudospectral.components import GaussLobattoInterleaveComp
 from dymos.transcriptions.grid_data import GridData
 
@@ -12,6 +14,8 @@ from dymos.transcriptions.grid_data import GridData
 class TestGaussLobattoInterleaveComp(unittest.TestCase):
 
     def setUp(self):
+        dm.options['include_check_partials'] = True
+
         self.grid_data = gd = GridData(num_segments=3, segment_ends=np.array([0., 2., 4., 10.0]),
                                        transcription='gauss-lobatto', transcription_order=[3, 3, 3])
 
@@ -69,6 +73,9 @@ class TestGaussLobattoInterleaveComp(unittest.TestCase):
         self.p['state_col:v'] = np.random.random((num_col_nodes, 3, 2))
 
         self.p.run_model()
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def test_results(self):
 

@@ -8,11 +8,12 @@ optional_dependencies = {
         'mkdocs-material',
         'pymdown-extensions',
         'mkdocs-macros-plugin',
-        'mkdocs-bibtex'
+        'mkdocs-bibtex',
+        'numpydoc>=0.9.1',
+        'redbaron'
     ],
     'test': [
         'pep8',
-        'numpydoc>=0.9.1',
         'parameterized',
         'testflo>=1.3.6',
         'matplotlib'
@@ -28,13 +29,21 @@ optional_dependencies['all'] = sorted([
 
 
 setup(name='dymos',
-    version='0.16.0-dev',
+    version='0.16.2-dev',
     description='Open-Source Optimization of Dynamic Multidisciplinary Systems',
+    long_description='''
+Dymos is a framework for the simulation and optimization of dynamical systems within the OpenMDAO Multidisciplinary Analysis and Optimization environment.
+Dymos leverages implicit and explicit simulation techniques to simulate generic dynamic systems of arbitary complexity.
+
+The software has two primary objectives:
+-   Provide a generic ODE integration interface that allows for the analysis of dynamical systems.
+-   Allow the user to solve optimal control problems involving dynamical multidisciplinary systems.''',
+    long_description_content_type='text/markdown',
     url='https://github.com/OpenMDAO/dymos',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: Apache 2.0',
+        'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: POSIX :: Linux',
@@ -48,7 +57,7 @@ setup(name='dymos',
     packages=find_packages(),
     python_requires=">=3.6",
     install_requires=[
-        'openmdao>=3.2.1',
+        'openmdao>=3.3.0',
         'numpy>=1.14.1',
         'scipy>=1.0.0'
     ],

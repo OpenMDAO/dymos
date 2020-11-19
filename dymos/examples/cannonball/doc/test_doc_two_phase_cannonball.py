@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
 
 from dymos.utils.doc_utils import save_for_docs
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
     @save_for_docs
@@ -107,11 +109,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.model.connect('size_comp.mass', 'traj.parameters:m')
         p.model.connect('size_comp.S', 'traj.parameters:S')
 
-        # Finish Problem Setup
+        # A linear solver at the top level can improve performance.
         p.model.linear_solver = om.DirectSolver()
 
-        p.driver.add_recorder(om.SqliteRecorder('ex_two_phase_cannonball.db'))
-
+        # Finish Problem Setup
         p.setup()
 
         # Set Initial Guesses

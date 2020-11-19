@@ -5,11 +5,18 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 
+import dymos as dm
 from dymos.transcriptions.runge_kutta.components import RungeKuttaStateContinuityIterGroup
 from dymos.transcriptions.runge_kutta.test.rk_test_ode import TestODE
 
 
 class TestRungeKuttaContinuityIterGroup(unittest.TestCase):
+
+    def setUp(self):
+        dm.options['include_check_partials'] = True
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def test_continuity_comp_no_iteration(self):
         num_seg = 4

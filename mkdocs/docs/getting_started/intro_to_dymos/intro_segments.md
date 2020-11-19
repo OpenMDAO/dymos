@@ -21,7 +21,7 @@ In Dymos, segments must have an order of **at least 3**.  That is also the defau
 
 Obviously, a single third-order polynomial won't be able to fit highly oscillator behavior.
 In this case, our guess of using four segments (equally spaced) in the phase wasn't quite sufficient.
-Lets try increasing that number to ten third-order segments.
+Let's try increasing that number to ten third-order segments.
 
 {{ embed_test('dymos.examples.oscillator.doc.test_doc_oscillator.TestDocOscillator.test_ivp_driver_10_segs') }}
 

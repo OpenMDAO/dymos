@@ -8,6 +8,7 @@ import openmdao.api as om
 from ..grid_data import GridData
 from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.constants import INF_BOUND
+from ...options import options as dymos_options
 
 
 class ControlInterpComp(om.ExplicitComponent):
@@ -35,6 +36,9 @@ class ControlInterpComp(om.ExplicitComponent):
     and :math:`\\frac{d\\tau_s}{dt}` is the ratio of segment duration in segment tau space
     [-1 1] to segment duration in time.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
         self.options.declare(
@@ -54,7 +58,7 @@ class ControlInterpComp(om.ExplicitComponent):
         self._output_rate_names = {}
         self._output_rate2_names = {}
 
-    def _setup_controls(self):
+    def _configure_controls(self):
         control_options = self.options['control_options']
         num_nodes = self.options['grid_data'].num_nodes
         num_control_input_nodes = self.options['grid_data'].subset_num_nodes['control_input']
@@ -125,7 +129,11 @@ class ControlInterpComp(om.ExplicitComponent):
                                   wrt=self._input_names[name],
                                   rows=rs, cols=cs)
 
-    def setup(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         num_nodes = self.options['grid_data'].num_nodes
         time_units = self.options['time_units']
         gd = self.options['grid_data']
@@ -159,7 +167,7 @@ class ControlInterpComp(om.ExplicitComponent):
         # Matrix D2 provides second derivatives at all nodes given values at input nodes.
         self.D2 = D_da.dot(D_dd.dot(L_id))
 
-        self._setup_controls()
+        self._configure_controls()
 
         self.set_check_partial_options('*', method='cs')
 
@@ -228,10 +236,6 @@ class ControlGroup(om.Group):
         self.options.declare('grid_data', types=GridData, desc='Container object for grid info')
 
     def setup(self):
-
-        ivc = om.IndepVarComp()
-
-        # opts = self.options
         gd = self.options['grid_data']
         control_options = self.options['control_options']
         time_units = self.options['time_units']
@@ -251,6 +255,15 @@ class ControlGroup(om.Group):
                                      control_options=control_options),
             promotes_inputs=['*'],
             promotes_outputs=['*'])
+
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
+        control_options = self.options['control_options']
+        gd = self.options['grid_data']
+        self.control_interp_comp.configure_io()
 
         for name, options in control_options.items():
             size = np.prod(options['shape'])
@@ -295,7 +308,7 @@ class ControlGroup(om.Group):
                                         ref=coerce_desvar_option('ref'),
                                         indices=desvar_indices)
 
-                ivc.add_output(name='controls:{0}'.format(name),
-                               val=options['val'],
-                               shape=(num_input_nodes, np.prod(options['shape'])),
-                               units=options['units'])
+                self.indep_controls.add_output(name='controls:{0}'.format(name),
+                                               val=options['val'],
+                                               shape=(num_input_nodes, np.prod(options['shape'])),
+                                               units=options['units'])

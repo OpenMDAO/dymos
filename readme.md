@@ -53,11 +53,47 @@ tell Dymos how the value of each should be connected to the ODE system, and tell
 the variable paths in the system that contain the rates of our state variables that are to be
 integrated.
 
-```python
-    import numpy as np
-    from openmdao.api import ExplicitComponent
+Integrating Ordinary Differential Equations
+-------------------------------------------
 
-    class BrachistochroneEOM(ExplicitComponent):
+Dymos's solver-based pseudspectral transcriptions
+provide the ability to numerically integrate the ODE system it is given.
+Used in an optimal control context, these provide a shooting method in
+which each iteration provides a physically viable trajectory.
+
+Pseudospectral Methods
+----------------------
+
+Dymos currently supports the Radau Pseudospectral Method and high-order
+Gauss-Lobatto transcriptions.  These implicit techniques rely on the
+optimizer to impose "defect" constraints which enforce the physical
+accuracy of the resulting trajectories.  To verify the physical
+accuracy of the solutions, Dymos can explicitly integrate them using
+variable-step methods.
+
+Solving Optimal Control Problems
+--------------------------------
+
+Dymos uses the concept of _Phases_ to support optimal control of dynamical systems.
+Users connect one or more Phases to construct trajectories.
+Each Phase can have its own:
+
+-   Optimal Control Transcription (Gauss-Lobatto or Radau Pseudospectral)
+-   Equations of motion
+-   Boundary and path constraints
+
+Dymos Phases and Trajectories are ultimately just OpenMDAO Groups that can exist in
+a problem along with numerous other models, allowing for the simultaneous
+optimization of systems and dynamics.
+
+```python
+import numpy as np
+import openmdao.api as om
+import dymos as dm
+import matplotlib.pyplot as plt
+
+
+    class BrachistochroneEOM(om.ExplicitComponent):
         def initialize(self):
             self.options.declare('num_nodes', types=int)
 
@@ -145,48 +181,6 @@ integrated.
 
             jacobian['check', 'v'] = 1/sin_theta
             jacobian['check', 'theta'] = -v*cos_theta/sin_theta**2
-```
-
-Integrating Ordinary Differential Equations
--------------------------------------------
-
-Dymos's `RungeKutta` and solver-based pseudspectral transcriptions
-provide the ability to numerically integrate the ODE system it is given.
-Used in an optimal control context, these provide a shooting method in
-which each iteration provides a physically viable trajectory.
-
-Pseudospectral Methods
-----------------------
-
-Dymos currently supports the Radau Pseudospectral Method and high-order
-Gauss-Lobatto transcriptions.  These implicit techniques rely on the
-optimizer to impose "defect" constraints which enforce the physical
-accuracy of the resulting trajectories.  To verify the physical
-accuracy of the solutions, Dymos can explicitly integrate them using
-variable-step methods.
-
-Solving Optimal Control Problems
---------------------------------
-
-Dymos uses the concept of _Phases_ to support optimal control of dynamical systems.
-Users connect one or more Phases to construct trajectories.
-Each Phase can have its own:
-
--   Optimal Control Transcription (Gauss-Lobatto, Radau Pseudospectral, or RungeKutta)
--   Equations of motion
--   Boundary and path constraints
-
-Dymos Phases and Trajectories are ultimately just OpenMDAO Groups that can exist in
-a problem along with numerous other models, allowing for the simultaneous
-optimization of systems and dynamics.
-
-Here is a Dymos solution for the Brachistochrone example shown above:
-
-```python
-import numpy as np
-import openmdao.api as om
-import dymos as dm
-import matplotlib.pyplot as plt
 
 # Define the OpenMDAO problem
 p = om.Problem(model=om.Group())
@@ -196,29 +190,25 @@ traj = dm.Trajectory()
 p.model.add_subsystem('traj', subsys=traj)
 
 # Define a Dymos Phase object with GaussLobatto Transcription
-phase = dm.Phase(ode_class=BrachistochroneODE,
-                 transcription=dm.GaussLobatto(num_segments=10, order=3))
-
+phase = dm.Phase(ode_class=BrachistochroneEOM,
+                 transcription=dm.Radau(num_segments=10, order=3))
 traj.add_phase(name='phase0', phase=phase)
 
 # Set the time options
-# Time has no targets in our ODE.
-# We fix the initial time so that the it is not a design variable in the optimization.
-# The duration of the phase is allowed to be optimized, but is bounded on [0.5, 10].
-phase.set_time_options(fix_initial=True, duration_bounds=(0.5, 10.0), units='s')
+phase.set_time_options(fix_initial=True,
+                       duration_bounds=(0.5, 10.0))
 
-# Set the time options
-# Initial values of positions and velocity are all fixed.
-# The final value of position are fixed, but the final velocity is a free variable.
-# The equations of motion are not functions of position, so 'x' and 'y' have no targets.
-# The target of 'v' will be automatically found by Dymos since `v` is an input at the top-level of the ODE.
-# The rate source points to the output in the ODE which provides the time derivative of the given state.
-phase.add_state('x', fix_initial=True, fix_final=True, units='m', rate_source='xdot')
-phase.add_state('y', fix_initial=True, fix_final=True, units='m', rate_source='ydot')
-phase.add_state('v', fix_initial=True, fix_final=False, units='m/s', rate_source='vdot')
+# Set the state options
+phase.add_state('x', rate_source='xdot',
+                fix_initial=True, fix_final=True)
+phase.add_state('y', rate_source='ydot',
+                fix_initial=True, fix_final=True)
+phase.add_state('v', rate_source='vdot',
+                fix_initial=True, fix_final=False)
 
 # Define theta as a control.
-phase.add_control(name='theta', units='rad', lower=0, upper=np.pi, targets=['theta'])
+phase.add_control(name='theta', units='rad',
+                  lower=0, upper=np.pi)
 
 # Minimize final time.
 phase.add_objective('time', loc='final')
@@ -227,13 +217,18 @@ phase.add_objective('time', loc='final')
 p.driver = om.ScipyOptimizeDriver()
 
 # Allow OpenMDAO to automatically determine our sparsity pattern.
-# Doing so can significant speed up the execution of Dymos.
+# Doing so can significant speed up the execution of dymos.
 p.driver.declare_coloring()
 
 # Setup the problem
-p.setup(check=True)
+p.setup()
 
-# Now that the OpenMDAO problem is setup, we can set the values of the states.
+# Now that the OpenMDAO problem is setup, we can guess the
+# values of time, states, and controls.
+p.set_val('traj.phase0.t_duration', 2.0)
+
+# States and controls here use a linearly interpolated
+# initial guess along the trajectory.
 p.set_val('traj.phase0.states:x',
           phase.interpolate(ys=[0, 10], nodes='state_input'),
           units='m')
@@ -253,7 +248,8 @@ p.set_val('traj.phase0.controls:theta',
 # Run the driver to solve the problem
 p.run_driver()
 
-# Check the validity of our results by using scipy.integrate.solve_ivp to integrate the solution.
+# Check the validity of our results by using
+# scipy.integrate.solve_ivp to integrate the solution.
 sim_out = traj.simulate()
 
 # Plot the results
@@ -273,11 +269,13 @@ axes[0].legend()
 axes[0].grid()
 
 axes[1].plot(p.get_val('traj.phase0.timeseries.time'),
-             p.get_val('traj.phase0.timeseries.controls:theta', units='deg'),
+             p.get_val('traj.phase0.timeseries.controls:theta',
+                       units='deg'),
              'ro', label='solution')
 
 axes[1].plot(sim_out.get_val('traj.phase0.timeseries.time'),
-             sim_out.get_val('traj.phase0.timeseries.controls:theta', units='deg'),
+             sim_out.get_val('traj.phase0.timeseries.controls:theta',
+                             units='deg'),
              'b-', label='simulation')
 
 axes[1].set_xlabel('time (s)')
@@ -288,4 +286,4 @@ axes[1].grid()
 plt.show()
 ```
 
-![alt text](brachistochroneSolution.png "Brachistochrone Solution")
+![Brachistochrone Solution](brachistochroneSolution.png "Brachistochrone Solution")

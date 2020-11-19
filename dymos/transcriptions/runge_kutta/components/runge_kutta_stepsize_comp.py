@@ -2,6 +2,7 @@ from collections.abc import Sequence
 import numpy as np
 
 import openmdao.api as om
+from ....options import options as dymos_options
 
 
 class RungeKuttaStepsizeComp(om.ExplicitComponent):
@@ -9,6 +10,9 @@ class RungeKuttaStepsizeComp(om.ExplicitComponent):
     Given the duration of the phase and the segment relative lengths, compute the duration of
     each segment (the step size) for each segment (step).
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
         self.options.declare('num_segments', types=int,
@@ -20,8 +24,11 @@ class RungeKuttaStepsizeComp(om.ExplicitComponent):
         self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of the integration variable')
 
-    def setup(self):
-
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         self._var_names = {}
 
         num_seg = self.options['num_segments']

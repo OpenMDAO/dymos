@@ -2,7 +2,8 @@ import numpy as np
 from .odeint_control_interpolation_comp import ODEIntControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from ....phase.options import TimeOptionsDictionary
-from ....utils.misc import get_targets, get_target_metadata
+from ....utils.misc import get_target_metadata
+from ....utils.introspection import get_targets
 import openmdao.api as om
 
 
@@ -76,8 +77,10 @@ class ODEIntegrationInterfaceSystem(om.Group):
 
         # Configure states
         for name, options in self.options['state_options'].items():
+            ndim = len(options['shape'])
+            size = np.prod(options['shape'])
             ivc.add_output(f'states:{name}',
-                           shape=(1, np.prod(options['shape'])),
+                           shape=(1, size),
                            units=options['units'])
 
             rate_src = self._get_rate_source_path(name)
@@ -85,9 +88,12 @@ class ODEIntegrationInterfaceSystem(om.Group):
             self.connect(rate_src, f'state_rate_collector.state_rates_in:{name}_rate')
 
             targets = get_targets(ode=ode, name=name, user_targets=options['targets'])
-
             if targets:
-                self.connect(f'states:{name}', [f'ode.{tgt}' for tgt in targets])
+                for tgt in targets:
+                    tgt_shape, _ = get_target_metadata(ode=ode, name=name, user_targets=tgt)
+                    src_idxs = np.arange(size, dtype=int).reshape(tgt_shape)
+                    self.connect(f'states:{name}', f'ode.{tgt}',
+                                 src_indices=src_idxs, flat_src_indices=True)
 
         # Configure controls
         if self.options['control_options']:

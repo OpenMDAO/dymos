@@ -6,6 +6,7 @@ import numpy as np
 
 from scipy import interpolate
 
+import openmdao
 import openmdao.api as om
 from openmdao.core.system import System
 from openmdao.utils.general_utils import warn_deprecation
@@ -17,6 +18,10 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.misc import _unspecified
+
+
+om_dev_version = openmdao.__version__.endswith('dev')
+om_version = tuple(int(s) for s in openmdao.__version__.split('-')[0].split('.'))
 
 
 class Phase(om.Group):
@@ -366,7 +371,8 @@ class Phase(om.Group):
         val : float
             The default value of the control variable at the control input nodes.
         shape : Sequence of int
-            The shape of the control variable at each point in time.
+            The shape of the control variable at each point in time. Only needed for controls that don't
+            have a target in the ode.
         lower : Sequence of Number or None
             The lower bound of the control variable at the nodes.
             This option is invalid if opt=False.
@@ -463,7 +469,8 @@ class Phase(om.Group):
         val : float
             The default value of the control variable at the control input nodes.
         shape : Sequence of int
-            The shape of the control variable at each point in time.
+            The shape of the control variable at each point in time. Only needed for controls that don't
+            have a target in the ode.
         lower : Sequence of Number or None
             The lower bound of the control variable at the nodes.
             This option is invalid if opt=False.
@@ -1539,7 +1546,7 @@ class Phase(om.Group):
         -------
         str
             The classification of the given variable, which is one of
-            'time', 'state', 'input_control', 'indep_control', 'control_rate',
+            'time', 'time_phase', 'state', 'input_control', 'indep_control', 'control_rate',
             'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             or 'ode'.
@@ -1616,7 +1623,6 @@ class Phase(om.Group):
         transcription.setup_boundary_constraints('initial', self)
         transcription.setup_boundary_constraints('final', self)
         transcription.setup_path_constraints(self)
-        transcription.setup_endpoint_conditions(self)
         transcription.setup_objective(self)
         transcription.setup_timeseries_outputs(self)
         transcription.setup_solvers(self)
@@ -1644,7 +1650,6 @@ class Phase(om.Group):
         transcription.configure_boundary_constraints('initial', self)
         transcription.configure_boundary_constraints('final', self)
         transcription.configure_path_constraints(self)
-        transcription.configure_endpoint_conditions(self)
         transcription.configure_objective(self)
         transcription.configure_timeseries_outputs(self)
         transcription.configure_solvers(self)
@@ -1912,18 +1917,18 @@ class Phase(om.Group):
                 prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
 
         # Assign parameter values
-        pname = '{0}parameters:{1}'
         for name in phs.parameter_options:
 
             if skip_params and name in skip_params:
                 continue
 
-            prom_phs_path = pname.format(phs_path.replace('.phases.', '.'), name)
-            src = phs.get_source(prom_phs_path)
-
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
-            val = phs._abs_get_val(src, False, None, 'nonlinear', 'output', False, from_root=True)
+            if om_version < (3, 4, 1):
+                val = phs.get_val(f'parameters:{name}')[0, ...]
+            else:
+                val = phs.get_val(f'parameters:{name}')
+
             if phase_path:
                 prob_path = '{0}.{1}.parameters:{2}'.format(phase_path, self.name, name)
             else:
@@ -1967,9 +1972,7 @@ class Phase(om.Group):
 
         if record_file is not None:
             rec = om.SqliteRecorder(record_file)
-            sim_prob.model.recording_options['includes'] = ['*.timeseries.*']
-
-            sim_prob.model.add_recorder(rec)
+            sim_prob.add_recorder(rec)
 
         sim_prob.setup(check=True)
         sim_phase.initialize_values_from_phase(sim_prob, self)
@@ -1977,6 +1980,7 @@ class Phase(om.Group):
         print('\nSimulating phase {0}'.format(self.pathname))
         sim_prob.run_model()
         print('Done simulating phase {0}'.format(self.pathname))
+        sim_prob.record('final')
 
         sim_prob.cleanup()
 
@@ -1992,13 +1996,13 @@ class Phase(om.Group):
         refine : bool
             If True, this Phase will undergo refinement during the grid refinement procedure.
         tol : float
-            The error tolerance for the ph grid refinement algorithm.
+            The error tolerance used by all grid-refinement algorithms.
         min_order : int
-            The minimum allowable transcription order for segments in the phase.
+            The minimum allowable transcription order for segments in the phase (hp and ph refinement methods)
         max_order : int
-            The maximum allowable transcription order for segments in the phase.
+            The maximum allowable transcription order for segments in the phase (hp and ph refinement methods)
         smoothness_factor: float
-            The maximum allowable ratio of state second derivatives. If exceeded the segment must be split
+            The maximum allowable ratio of state second derivatives. If exceeded the segment must be split. (hp refinement method)
         """
         if refine is not _unspecified:
             self.refine_options['refine'] = refine

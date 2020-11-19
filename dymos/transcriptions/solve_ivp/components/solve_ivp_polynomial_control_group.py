@@ -25,7 +25,11 @@ class SolveIVPLGLPolynomialControlComp(om.ExplicitComponent):
 
         self._matrices = {}
 
-    def setup(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         output_nodes_per_seg = self.options['output_nodes_per_seg']
         gd = self.options['grid_data']
         num_seg = gd.num_segments
@@ -233,6 +237,14 @@ class SolveIVPPolynomialControlGroup(om.Group):
                                                     output_nodes_per_seg=output_nodes_per_seg),
             promotes_inputs=['*'],
             promotes_outputs=['*'])
+
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
+        ivc = self.control_inputs
+        self.control_comp.configure_io()
 
         # For any interpolated control with `opt=True`, add an indep var comp output and
         # setup the design variable for optimization.

@@ -2,12 +2,16 @@ import numpy as np
 import openmdao.api as om
 
 from ...grid_data import GridData
+from ....options import options as dymos_options
 
 
 class GaussLobattoInterleaveComp(om.ExplicitComponent):
     r""" Provides a contiguous output at all nodes for inputs which are only known at
     state discretiation or collocation nodes.
     """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
 

@@ -1,4 +1,5 @@
 import unittest
+import warnings
 
 
 class TestBrachistochroneRK4Example(unittest.TestCase):
@@ -13,8 +14,18 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
         p.driver = om.ScipyOptimizeDriver()
         p.driver.declare_coloring()
 
-        phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=dm.RungeKutta(num_segments=20))
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+            # Trigger a warning.
+            phase = dm.Phase(ode_class=BrachistochroneODE,
+                             transcription=dm.RungeKutta(num_segments=20))
+            assert issubclass(w[-1].category, DeprecationWarning)
+            expected_msg = 'The RungeKutta transcription is deprecated and ' \
+                           'will be removed in Dymos v1.0.0.\nFor equivalent behavior, users ' \
+                           'should switch to GaussLobatto(order=3, solve_segments=True)'
+
+            self.assertEqual(str(w[-1].message), expected_msg)
 
         p.model.add_subsystem('phase0', phase)
 
@@ -667,3 +678,7 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
                           tolerance=1.0E-3)
         assert_near_equal(exp_out.get_val('phase0.timeseries.states:y')[-1, 0], 5,
                           tolerance=1.0E-3)
+
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()

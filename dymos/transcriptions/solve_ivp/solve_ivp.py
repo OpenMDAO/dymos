@@ -1,13 +1,17 @@
+from fnmatch import filter
+
 import numpy as np
 
 import openmdao.api as om
+
 from ..transcription_base import TranscriptionBase
 from .components import SegmentSimulationComp, SegmentStateMuxComp, \
     SolveIVPControlGroup, SolveIVPPolynomialControlGroup, SolveIVPTimeseriesOutputComp
 from ..common import TimeComp
-from ...utils.misc import get_rate_units, get_targets, get_target_metadata, get_source_metadata
+from ...utils.misc import get_rate_units, get_target_metadata, get_source_metadata, \
+    _unspecified
+from ...utils.introspection import get_targets
 from ...utils.indexing import get_src_indices_by_row
-from fnmatch import filter
 
 
 class SolveIVP(TranscriptionBase):
@@ -83,10 +87,12 @@ class SolveIVP(TranscriptionBase):
         phase.add_subsystem('time', time_comp, promotes=['*'])
 
     def configure_time(self, phase):
-        time_options = phase.time_options
+        super(SolveIVP, self).configure_time(phase)
         num_seg = self.grid_data.num_segments
         grid_data = self.grid_data
         output_nodes_per_seg = self.options['output_nodes_per_seg']
+
+        phase.time.configure_io()
 
         for i in range(num_seg):
             phase.connect('t_initial', f'segment_{i}.t_initial')
@@ -116,17 +122,16 @@ class SolveIVP(TranscriptionBase):
         """
         Add an IndepVarComp for the states and setup the states as design variables.
         """
-        indep_states_ivc = phase.add_subsystem('indep_states', om.IndepVarComp(),
-                                               promotes_outputs=['*'])
-
-        for state_name, options in phase.state_options.items():
-            indep_states_ivc.add_output(f'initial_states:{state_name}',
-                                        val=np.ones(((1,) + options['shape'])),
-                                        units=options['units'])
+        phase.add_subsystem('indep_states', om.IndepVarComp(),
+                            promotes_outputs=['*'])
 
     def configure_states(self, phase):
         num_seg = self.grid_data.num_segments
-        ode_inputs = phase.ode.list_inputs(out_stream=None, units=True, shape=True, values=False)
+
+        for state_name, options in phase.state_options.items():
+            phase.indep_states.add_output(f'initial_states:{state_name}',
+                                          val=np.ones(((1,) + options['shape'])),
+                                          units=options['units'])
 
         for state_name, options in phase.state_options.items():
             # Connect the initial state to the first segment
@@ -202,7 +207,12 @@ class SolveIVP(TranscriptionBase):
                                                               **phase.options['ode_init_kwargs']))
 
     def configure_ode(self, phase):
-        pass
+        gd = self.grid_data
+        num_seg = gd.num_segments
+
+        for i in range(num_seg):
+            seg_comp = phase.segments._get_subsystem(f'segment_{i}')
+            seg_comp.configure_io()
 
     def setup_controls(self, phase):
         output_nodes_per_seg = self.options['output_nodes_per_seg']
@@ -221,9 +231,31 @@ class SolveIVP(TranscriptionBase):
                                           'control_rates:*'])
 
     def configure_controls(self, phase):
+        ode = phase._get_subsystem(self._rhs_source)
+
+        # Interrogate shapes and units.
+        for name, options in phase.control_options.items():
+
+            full_shape, units = get_target_metadata(ode, name=name,
+                                                    user_targets=options['targets'],
+                                                    user_units=options['units'],
+                                                    user_shape=options['shape'],
+                                                    control_rate=True)
+
+            if options['units'] is None:
+                options['units'] = units
+
+            # Determine and store the pre-discretized state shape for use by other components.
+            if len(full_shape) < 2:
+                if options['shape'] in (_unspecified, None):
+                    options['shape'] = (1, )
+            else:
+                options['shape'] = full_shape[1:]
+
         grid_data = self.grid_data
 
         if phase.control_options:
+            phase.control_group.configure_io()
             phase.connect('dt_dstau', 'control_group.dt_dstau')
 
         for name, options in phase.control_options.items():
@@ -261,7 +293,11 @@ class SolveIVP(TranscriptionBase):
                                 promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_polynomial_controls(self, phase):
+        # In transcription_base, we get the control units/shape from the target, and then call
+        # configure on the control_group.
+        super(SolveIVP, self).configure_polynomial_controls(phase)
 
+        # Additional connections.
         for name, options in phase.polynomial_control_options.items():
 
             for iseg in range(self.grid_data.num_segments):
@@ -293,6 +329,7 @@ class SolveIVP(TranscriptionBase):
         segs = phase._get_subsystem('segments')
 
         for name, options in phase.parameter_options.items():
+            prom_name = f'parameters:{name}'
             shape, units = get_target_metadata(phase.ode, name=name,
                                                user_targets=options['targets'],
                                                user_shape=options['shape'],
@@ -302,8 +339,9 @@ class SolveIVP(TranscriptionBase):
 
             for i in range(gd.num_segments):
                 seg_comp = segs._get_subsystem(f'segment_{i}')
-                seg_comp.add_input(name=f'parameters:{name}', val=np.ones(shape), units=units,
+                seg_comp.add_input(name=prom_name, val=np.ones(shape), units=units,
                                    desc=f'values of parameter {name}.')
+                segs.promotes(f'segment_{i}', inputs=[prom_name])
 
     def setup_defects(self, phase):
         """
@@ -318,12 +356,6 @@ class SolveIVP(TranscriptionBase):
         pass
 
     def configure_objective(self, phase):
-        pass
-
-    def setup_endpoint_conditions(self, phase):
-        pass
-
-    def configure_endpoint_conditions(self, phase):
         pass
 
     def setup_path_constraints(self, phase):
@@ -452,10 +484,6 @@ class SolveIVP(TranscriptionBase):
 
         for name, options in phase.parameter_options.items():
             prom_name = f'parameters:{name}'
-
-            for iseg in range(num_seg):
-                target_name = f'segment_{iseg}.parameters:{name}'
-                phase.promotes('segments', inputs=[(target_name, prom_name)])
 
             if options['include_timeseries']:
                 phase.timeseries._add_output_configure(prom_name,

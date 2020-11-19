@@ -1,13 +1,16 @@
 from __future__ import print_function, division, absolute_import
-
 import os
 import unittest
+
+import numpy as np
+
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
-import dymos as dm
-import numpy as np
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
+import dymos as dm
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -20,11 +23,11 @@ class TestRunProblem(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_run_HS_problem_radau(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
-        optimizer = 'IPOPT'
         p.driver.options['optimizer'] = optimizer
 
         if optimizer == 'SNOPT':
@@ -40,7 +43,7 @@ class TestRunProblem(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
-                                                   transcription=dm.Radau(num_segments=30, order=3)))
+                                                   transcription=dm.Radau(num_segments=10, order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
@@ -54,7 +57,7 @@ class TestRunProblem(unittest.TestCase):
 
         p.setup(check=True)
 
-        tf = np.float128(100)
+        tf = np.float128(20)
 
         p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[1.5, 1], nodes='state_input'))
         p.set_val('traj.phase0.states:xL', phase0.interpolate(ys=[0, 1], nodes='state_input'))
@@ -86,11 +89,11 @@ class TestRunProblem(unittest.TestCase):
                           J,
                           tolerance=5e-4)
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_run_HS_problem_gl(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
         p.driver.declare_coloring()
-        optimizer = 'IPOPT'
         p.driver.options['optimizer'] = optimizer
 
         if optimizer == 'SNOPT':
@@ -105,7 +108,7 @@ class TestRunProblem(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
-                                                   transcription=dm.GaussLobatto(num_segments=30, order=3)))
+                                                   transcription=dm.GaussLobatto(num_segments=20, order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
@@ -115,11 +118,11 @@ class TestRunProblem(unittest.TestCase):
 
         phase0.add_objective('xL', loc='final')
 
-        phase0.set_refine_options(refine=True)
+        phase0.set_refine_options(refine=True, tol=1.0E-5)
 
         p.setup(check=True)
 
-        tf = 100
+        tf = 20
 
         p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[1.5, 1], nodes='state_input'))
         p.set_val('traj.phase0.states:xL', phase0.interpolate(ys=[0, 1], nodes='state_input'))

@@ -5,6 +5,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.general_utils import set_pyoptsparse_opt
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
@@ -131,12 +132,12 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
         # No direct connections to the end of a phase.
         traj.link_phases(phases=['burn2', 'coast'],
                          vars=['r', 'theta', 'vr', 'vt', 'deltav'],
-                         locs=('++', '++'))
+                         locs=('final', 'final'))
         traj.link_phases(phases=['burn2', 'coast'],
-                         vars=['time'], locs=('++', '++'))
+                         vars=['time'], locs=('final', 'final'))
 
         traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'],
-                         locs=('++', '++'))
+                         locs=('final', 'final'))
 
     else:
         traj.link_phases(phases=['burn1', 'coast', 'burn2'],
@@ -174,12 +175,8 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
                      compressed=compressed, connected=connected)
     p.model.add_subsystem('traj', subsys=traj)
 
-    # Finish Problem Setup
-
     # Needed to move the direct solver down into the phases for use with MPI.
     #  - After moving down, used fewer iterations (about 30 less)
-
-    p.driver.add_recorder(om.SqliteRecorder('two_burn_orbit_raise_example.db'))
 
     p.setup(check=True)
 
@@ -272,8 +269,8 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_ex_two_burn_orbit_raise(self):
-        # _, optimizer = set_pyoptsparse_opt('SNOPT', fallback=False)
         optimizer = 'IPOPT'
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
@@ -289,8 +286,8 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 @use_tempdirs
 class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_ex_two_burn_orbit_raise_connected(self):
-        # _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
         optimizer = 'IPOPT'
 
         p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,

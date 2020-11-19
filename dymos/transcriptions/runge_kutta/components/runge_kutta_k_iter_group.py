@@ -1,7 +1,7 @@
 import openmdao.api as om
 
 from ....utils.rk_methods import rk_methods
-from ....utils.misc import get_targets
+from ....utils.introspection import get_targets
 
 from .runge_kutta_state_predict_comp import RungeKuttaStatePredictComp
 from .runge_kutta_k_comp import RungeKuttaKComp

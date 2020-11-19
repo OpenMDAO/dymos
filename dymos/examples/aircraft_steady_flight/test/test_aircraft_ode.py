@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
@@ -14,6 +15,7 @@ except:
 
 
 @unittest.skipIf(MBI is None, 'MBI not available')
+@use_tempdirs
 class TestAircraftODEGroup(unittest.TestCase):
 
     @classmethod

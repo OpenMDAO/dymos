@@ -79,7 +79,7 @@ class RungeKuttaTimeseriesOutputComp(TimeseriesOutputCompBase):
                        units=units,
                        desc=desc)
 
-        self.add_output(name, shape=(output_num_nodes,) + shape, desc=desc)
+        self.add_output(name, shape=(output_num_nodes,) + shape, units=units, desc=desc)
 
         self._vars.append((input_name, name, shape))
 

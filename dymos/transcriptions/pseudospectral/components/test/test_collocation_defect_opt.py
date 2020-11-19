@@ -4,8 +4,9 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_check_partials
+from dymos.utils.testing_utils import assert_check_partials
 
+import dymos as dm
 from dymos.transcriptions.pseudospectral.components import CollocationComp
 from dymos.transcriptions.grid_data import GridData
 
@@ -17,6 +18,7 @@ CollocationComp = CompWrapperConfig(CollocationComp)
 class TestCollocationComp(unittest.TestCase):
 
     def setUp(self):
+        dm.options['include_check_partials'] = True
         transcription = 'gauss-lobatto'
 
         gd = GridData(
@@ -75,6 +77,9 @@ class TestCollocationComp(unittest.TestCase):
         self.p['f_computed:v'] = np.random.random((gd.subset_num_nodes['col'], 3, 2))
 
         self.p.run_model()
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def test_results(self):
         dt_dstau = self.p['dt_dstau']

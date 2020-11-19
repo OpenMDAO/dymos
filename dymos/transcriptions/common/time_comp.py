@@ -1,8 +1,13 @@
 import numpy as np
 import openmdao.api as om
+from ...options import options as dymos_options
 
 
 class TimeComp(om.ExplicitComponent):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
         # Required
@@ -21,7 +26,11 @@ class TimeComp(om.ExplicitComponent):
         self.options.declare('units', default=None, allow_none=True, types=str,
                              desc='Units of time (or the integration variable)')
 
-    def setup(self):
+    def configure_io(self):
+        """
+        I/O creation is delayed until configure so that we can determine the shape and units for
+        the states.
+        """
         time_units = self.options['units']
         num_nodes = self.options['num_nodes']
 

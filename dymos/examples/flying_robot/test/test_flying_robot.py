@@ -6,6 +6,7 @@ from parameterized import parameterized
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.flying_robot.flying_robot_ode import FlyingRobotODE
@@ -58,6 +59,7 @@ def flying_robot_direct_collocation(transcription='gauss-lobatto', compressed=Tr
     return p
 
 
+@use_tempdirs
 class TestFlyingRobot(unittest.TestCase):
 
     @classmethod

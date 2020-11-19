@@ -6,8 +6,10 @@ plt.style.use('ggplot')
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 from dymos.utils.doc_utils import save_for_docs
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class TestSteadyAircraftFlightForDocs(unittest.TestCase):
 
     @classmethod

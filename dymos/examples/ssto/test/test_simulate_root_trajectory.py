@@ -4,8 +4,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
+from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class TestSSTOSimulateRootTrajectory(unittest.TestCase):
 
     def test_ssto_simulate_root_trajectory(self):
@@ -185,8 +187,8 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
         # Set the state options.  We include rate_source, units, and targets here since the ODE
         # is not decorated with their default values.
         #
-        phase.add_state('x', fix_initial=True, lower=0, rate_source='eom.xdot', units='m')
-        phase.add_state('y', fix_initial=True, lower=0, rate_source='eom.ydot', units='m')
+        phase.add_state('x', fix_initial=True, lower=0, rate_source='eom.xdot')
+        phase.add_state('y', fix_initial=True, lower=0, rate_source='eom.ydot')
         phase.add_state('vx', fix_initial=True, lower=0, rate_source='eom.vxdot',
                         units='m/s', targets=['eom.vx'])
         phase.add_state('vy', fix_initial=True, rate_source='eom.vydot',

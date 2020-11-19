@@ -3,12 +3,23 @@ import unittest
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal
+from dymos.utils.testing_utils import assert_check_partials
 
+import dymos as dm
 from dymos.transcriptions.runge_kutta.components.runge_kutta_stepsize_comp import RungeKuttaStepsizeComp
+
+from dymos.utils.misc import CompWrapperConfig
+RungeKuttaStepsizeComp = CompWrapperConfig(RungeKuttaStepsizeComp)
 
 
 class TestRKStepsizeComp(unittest.TestCase):
+
+    def setUp(self):
+        dm.options['include_check_partials'] = True
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def test_rk_stepsize_comp(self):
         p = om.Problem(model=om.Group())

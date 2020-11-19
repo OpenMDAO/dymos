@@ -6,6 +6,7 @@ from parameterized import parameterized
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
@@ -30,11 +31,11 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
 
     phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
 
-    phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s', shape=(1, ))
+    phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s')
     phase.add_state('x', fix_initial=True, rate_source='v', units='m', shape=(1, ))
 
     phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
-                      rate2_continuity=False, lower=-1.0, upper=1.0)
+                      rate2_continuity=False, shape=(1, ), lower=-1.0, upper=1.0)
 
     # Maximize distance travelled in one second.
     phase.add_objective('x', loc='final', scaler=-1)
@@ -55,6 +56,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
     return p
 
 
+@use_tempdirs
 class TestDoubleIntegratorExample(unittest.TestCase):
 
     @classmethod
@@ -152,11 +154,11 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         phase.set_time_options(input_initial=True, input_duration=True, units='s')
 
-        phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s', shape=(0, 1))
+        phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s')
         phase.add_state('x', fix_initial=True, rate_source='v', units='m')
 
         phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
-                          rate2_continuity=False, lower=-1.0, upper=1.0)
+                          rate2_continuity=False, shape=(0, 1), lower=-1.0, upper=1.0)
 
         # Maximize distance travelled in one second.
         phase.add_objective('x', loc='final', scaler=-1)
@@ -201,11 +203,11 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         phase.set_time_options(input_initial=True, input_duration=True, units='s')
 
-        phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s', shape=(1, ))
+        phase.add_state('v', fix_initial=True, fix_final=True, rate_source='u', units='m/s')
         phase.add_state('x', fix_initial=True, rate_source='v', units='m')
 
         phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
-                          rate2_continuity=False, lower=-1.0, upper=1.0)
+                          rate2_continuity=False, shape=(1, ), lower=-1.0, upper=1.0)
 
         # Maximize distance travelled in one second.
         phase.add_objective('x', loc='final', scaler=-1)
@@ -237,11 +239,11 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
 
-        phase.add_state('v', fix_initial=True, fix_final=False, rate_source='u', units='m/s', shape=(1, ))
+        phase.add_state('v', fix_initial=True, fix_final=False, rate_source='u', shape=(1, ), units='m/s')
         phase.add_state('x', fix_initial=True, rate_source='v', units='m')
 
         phase.add_control('u', units='m/s**2', scaler=0.01, continuity=False, rate_continuity=False,
-                          rate2_continuity=False, lower=-1.0, upper=1.0)
+                          rate2_continuity=False, shape=(1, ), lower=-1.0, upper=1.0)
 
         phase.add_boundary_constraint(name='v', loc='final', equals=0, units='m/s')
 

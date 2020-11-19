@@ -6,9 +6,14 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
+
+from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.doc_utils import save_for_docs
 
 
+@use_tempdirs
 class TestBrachistochroneForDocs(unittest.TestCase):
 
     def tearDown(self):
@@ -20,7 +25,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
     def test_brachistochrone_partials(self):
         import numpy as np
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_check_partials
+        from dymos.utils.testing_utils import assert_check_partials
         from dymos.examples.brachistochrone.doc.brachistochrone_ode import BrachistochroneODE
 
         num_nodes = 5
@@ -52,6 +57,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         import dymos as dm
         from dymos.examples.plotting import plot_results
         from dymos.examples.brachistochrone import BrachistochroneODE
+        import matplotlib.pyplot as plt
 
         #
         # Initialize the Problem and the optimization driver
@@ -75,15 +81,12 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
         phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        units=BrachistochroneODE.states['x']['units'],
                         fix_initial=True, fix_final=True, solve_segments=False)
 
         phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        units=BrachistochroneODE.states['y']['units'],
                         fix_initial=True, fix_final=True, solve_segments=False)
 
         phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        units=BrachistochroneODE.states['v']['units'],
                         fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
@@ -417,6 +420,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_brachistochrone_for_docs_coloring_demo(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -511,6 +515,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
+    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
     def test_brachistochrone_for_docs_coloring_demo_solve_segments(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

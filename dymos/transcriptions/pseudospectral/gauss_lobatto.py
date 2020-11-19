@@ -1,9 +1,11 @@
 import numpy as np
+import openmdao.api as om
 
 from .pseudospectral_base import PseudospectralBase
 from .components import GaussLobattoInterleaveComp
 from ..common import GaussLobattoContinuityComp
-from ...utils.misc import get_rate_units, get_targets, get_source_metadata
+from ...utils.misc import get_rate_units, get_source_metadata
+from ...utils.introspection import get_targets
 from ...utils.indexing import get_src_indices_by_row
 from ..grid_data import GridData, make_subset_map
 from fnmatch import filter
@@ -34,6 +36,7 @@ class GaussLobatto(PseudospectralBase):
         super(GaussLobatto, self).setup_time(phase)
 
     def configure_time(self, phase):
+        super(GaussLobatto, self).configure_time(phase)
         options = phase.time_options
 
         # The tuples here are (name, user_specified_targets, dynamic)
@@ -180,20 +183,21 @@ class GaussLobatto(PseudospectralBase):
         for name, options in phase.state_options.items():
             size = np.prod(options['shape'])
 
-            src_idxs_mat = np.reshape(np.arange(size * num_input_nodes, dtype=int),
-                                      (num_input_nodes, size), order='C')
-            src_idxs = src_idxs_mat[map_input_indices_to_disc, :]
+            # src_idxs_mat = np.reshape(np.arange(size * num_input_nodes, dtype=int),
+            #                           (num_input_nodes, size), order='C')
+            # src_idxs = src_idxs_mat[map_input_indices_to_disc, :]
+            src_idxs = om.slicer[map_input_indices_to_disc, ...]
 
-            if size == 1:
-                """ Flat state variable is passed as 1D data."""
-                src_idxs = src_idxs.ravel()
+            # if size == 1:
+            #     """ Flat state variable is passed as 1D data."""
+            #     src_idxs = src_idxs.ravel()
 
             targets = get_targets(ode=phase.rhs_disc, name=name, user_targets=options['targets'])
 
             if targets:
                 phase.connect('states:{0}'.format(name),
                               ['rhs_disc.{0}'.format(tgt) for tgt in targets],
-                              src_indices=src_idxs, flat_src_indices=True)
+                              src_indices=src_idxs)
                 phase.connect('state_interp.state_col:{0}'.format(name),
                               ['rhs_col.{0}'.format(tgt) for tgt in targets])
 
@@ -201,23 +205,21 @@ class GaussLobatto(PseudospectralBase):
 
             phase.connect(rate_path,
                           'state_interp.staterate_disc:{0}'.format(name),
-                          src_indices=disc_src_idxs, flat_src_indices=True)
+                          src_indices=disc_src_idxs)
 
             phase.connect(rate_path,
                           'interleave_comp.disc_values:state_rates:{0}'.format(name),
-                          src_indices=disc_src_idxs, flat_src_indices=True)
+                          src_indices=disc_src_idxs)
 
             rate_path, col_src_idxs = self.get_rate_source_path(name, nodes='col', phase=phase)
 
             phase.connect(rate_path,
                           'interleave_comp.col_values:state_rates:{0}'.format(name),
-                          src_indices=col_src_idxs, flat_src_indices=True)
+                          src_indices=col_src_idxs)
 
         self.configure_interleave_comp(phase)
 
     def configure_interleave_comp(self, phase):
-
-        num_input_nodes = self.grid_data.subset_num_nodes['state_input']
 
         map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
 
@@ -228,7 +230,6 @@ class GaussLobatto(PseudospectralBase):
         for state_name, options in phase.state_options.items():
             shape = options['shape']
             units = options['units']
-            rate_source = options['rate_source']
 
             interleave_comp = phase._get_subsystem('interleave_comp')
 
@@ -236,14 +237,9 @@ class GaussLobatto(PseudospectralBase):
             interleave_comp.add_var('state_rates:{0}'.format(state_name), shape,
                                     get_rate_units(options['units'], time_units))
 
-            size = np.prod(options['shape'])
-            src_idxs_mat = np.reshape(np.arange(size * num_input_nodes, dtype=int),
-                                      (num_input_nodes, size), order='C')
-            src_idxs = src_idxs_mat[map_input_indices_to_disc, :]
-
             phase.connect('states:{0}'.format(state_name),
                           'interleave_comp.disc_values:states:{0}'.format(state_name),
-                          src_indices=src_idxs, flat_src_indices=True)
+                          src_indices=om.slicer[map_input_indices_to_disc, ...])
 
             phase.connect('state_interp.state_col:{0}'.format(state_name),
                           'interleave_comp.col_values:states:{0}'.format(state_name))
@@ -274,7 +270,7 @@ class GaussLobatto(PseudospectralBase):
             rate_path, src_idxs = self.get_rate_source_path(name, nodes='col', phase=phase)
             phase.connect(rate_path,
                           'collocation_constraint.f_computed:{0}'.format(name),
-                          src_indices=src_idxs, flat_src_indices=True)
+                          src_indices=src_idxs)
 
     def configure_path_constraints(self, phase):
         super(GaussLobatto, self).configure_path_constraints(phase)
@@ -595,7 +591,7 @@ class GaussLobatto(PseudospectralBase):
             else:
                 raise ValueError('Unabled to find rate path for variable {0} at '
                                  'node subset {1}'.format(var, nodes))
-        src_idxs = get_src_indices_by_row(node_idxs, shape=shape)
+        src_idxs = om.slicer[node_idxs, ...]
 
         return rate_path, src_idxs
 

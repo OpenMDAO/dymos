@@ -1,5 +1,3 @@
-from __future__ import print_function, division, absolute_import
-
 import os
 import unittest
 from openmdao.api import Problem, Group, pyOptSparseDriver
@@ -10,6 +8,10 @@ from dymos import Trajectory, GaussLobatto, Phase, Radau
 from dymos.examples.robot_arm.robot_arm_ode import RobotArmODE
 import numpy as np
 import dymos as dm
+import matplotlib.pyplot as plt
+plt.switch_backend('Agg')
+
+show_plots = True
 
 
 @use_tempdirs
@@ -83,7 +85,6 @@ class TestRobotArm(unittest.TestCase):
     def test_robot_arm_radau(self):
         p = self.make_problem(transcription=Radau, optimizer='IPOPT', numseg=12)
         dm.run_problem(p)
-        show_plots = False
 
         t = p.get_val('traj.phase.timeseries.time')
         rho = p.get_val('traj.phase.timeseries.states:x0')
@@ -103,7 +104,6 @@ class TestRobotArm(unittest.TestCase):
         u2_exp = exp_out.get_val('traj.phase.timeseries.controls:u2')
 
         if show_plots:
-            import matplotlib.pyplot as plt
             fig, axs = plt.subplots(2, 3)
             axs[0, 0].plot(t, rho, marker='o', linestyle='')
             axs[0, 1].plot(t, theta, marker='o', linestyle='')
@@ -125,7 +125,6 @@ class TestRobotArm(unittest.TestCase):
     def test_robot_arm_gl(self):
         p = self.make_problem(transcription=GaussLobatto, optimizer='IPOPT', numseg=20)
         dm.run_problem(p)
-        show_plots = False
 
         t = p.get_val('traj.phase.timeseries.time')
         rho = p.get_val('traj.phase.timeseries.states:x0')
@@ -136,7 +135,6 @@ class TestRobotArm(unittest.TestCase):
         u2 = p.get_val('traj.phase.timeseries.controls:u2')
 
         if show_plots:
-            import matplotlib.pyplot as plt
             fig, axs = plt.subplots(2, 3)
             axs[0, 0].plot(t, rho)
             axs[0, 1].plot(t, theta)

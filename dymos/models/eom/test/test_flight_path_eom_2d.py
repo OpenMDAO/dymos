@@ -1,10 +1,10 @@
 import unittest
 
 import numpy as np
-from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
+from openmdao.utils.assert_utils import assert_near_equal
+from dymos.utils.testing_utils import assert_check_partials
 
 import dymos as dm
 from dymos.models.eom import FlightPathEOM2D

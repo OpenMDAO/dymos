@@ -31,7 +31,7 @@ the first is the location in time where the objective is to be measured, and the
 vector valued variable that is to be considered the objective value, which must be scalar.
 
 To remove this ambiguity, the `add_objective` method on phase has an argument `loc`, which may
-have value `initial` or `final`, specifying whether the objectve is to be quantified at the
+have value `initial` or `final`, specifying whether the objective is to be quantified at the
 start or end of the phase.  The `index` option gives the index into a non-scalar variable value
 to be used as the objective, which must be scalar.
 

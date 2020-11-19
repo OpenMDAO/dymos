@@ -5,7 +5,7 @@ import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as e
 from openmdao.utils.testing_utils import use_tempdirs
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
-from openmdao.utils.assert_utils import assert_check_partials
+from dymos.utils.testing_utils import assert_check_partials
 
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 

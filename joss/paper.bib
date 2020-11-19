@@ -119,17 +119,20 @@ eprint = {https://arc.aiaa.org/doi/pdf/10.2514/6.2018-3884},
 year = {2018}
 }
 
-@article{Perez2012a,
-	Author = {Ruben E. Perez and Peter W. Jansen and Joaquim R. R. A. Martins},
-	Doi = {10.1007/s00158-011-0666-3},
-	Journal = {Structural and Multidisciplinary Optimization},
-	Month = {January},
-	Number = {1},
-	Pages = {101--118},
-	Title = {{pyOpt}: A {Python}-Based Object-Oriented Framework for Nonlinear Constrained Optimization},
-	Volume = {45},
-	Year = {2012},
-	Annote = {10.1007/s00158-011-0666-3}}
+@article{Wu_pyoptsparse_2020,
+    author = {Neil Wu and Gaetan Kenway and Charles A. Mader and John Jasa and
+     Joaquim R. R. A. Martins},
+    title = {{pyOptSparse:} A {Python} framework for large-scale constrained
+     nonlinear optimization of sparse systems},
+    journal = {Journal of Open Source Software},
+    volume = {5},
+    number = {54},
+    month = {October},
+    year = {2020},
+    pages = {2564},
+    doi = {10.21105/joss.02564},
+    publisher = {The Open Journal},
+}
 
 @article {GilMS05,
  AUTHOR = {Gill, Philip E. and Murray, Walter and Saunders, Michael A.},
@@ -180,4 +183,150 @@ keywords = {49M37, Line search, Nonlinear programming, 90C30, Barrier method, 65
       pages={261--272},
       adsurl = {https://rdcu.be/b08Wh},
       doi = {https://doi.org/10.1038/s41592-019-0686-2},
+}
+
+@Article{Andersson2018,
+  Author = {Joel A E Andersson and Joris Gillis and Greg Horn
+            and James B Rawlings and Moritz Diehl},
+  Title = {{CasADi} -- {A} software framework for nonlinear optimization
+           and optimal control},
+  Journal = {Mathematical Programming Computation},
+  volume={11},
+  pages={1--36},
+  Year = {2019},
+}
+
+@article{Patterson2014GPOPSII,
+author = {Patterson, Michael A. and Rao, Anil V.},
+title = {GPOPS-II: A MATLAB Software for Solving Multiple-Phase Optimal Control Problems Using Hp-Adaptive Gaussian Quadrature Collocation Methods and Sparse Nonlinear Programming},
+year = {2014},
+issue_date = {October 2014},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {41},
+number = {1},
+issn = {0098-3500},
+url = {https://doi.org/10.1145/2558904},
+doi = {10.1145/2558904},
+abstract = {A general-purpose MATLAB software program called GPOPS--II is described for solving multiple-phase optimal control problems using variable-order Gaussian quadrature collocation methods. The software employs a Legendre-Gauss-Radau quadrature orthogonal collocation method where the continuous-time optimal control problem is transcribed to a large sparse nonlinear programming problem (NLP). An adaptive mesh refinement method is implemented that determines the number of mesh intervals and the degree of the approximating polynomial within each mesh interval to achieve a specified accuracy. The software can be interfaced with either quasi-Newton (first derivative) or Newton (second derivative) NLP solvers, and all derivatives required by the NLP solver are approximated using sparse finite-differencing of the optimal control problem functions. The key components of the software are described in detail and the utility of the software is demonstrated on five optimal control problems of varying complexity. The software described in this article provides researchers a useful platform upon which to solve a wide variety of complex constrained optimal control problems.},
+journal = {ACM Trans. Math. Softw.},
+month = oct,
+articleno = {1},
+numpages = {37},
+keywords = {Optimal control, direct collocation, applied mathematics, hp--adaptive methods, scientific computation, numerical methods, Gaussian quadrature, MATLAB}
+}
+
+@inbook{Paris2006,
+author = {Stephen Paris and John Riehl and Waldy Sjauw},
+title = {Enhanced Procedures for Direct Trajectory Optimization Using Nonlinear Programming and Implicit Integration},
+booktitle = {AIAA/AAS Astrodynamics Specialist Conference and Exhibit},
+doi = {10.2514/6.2006-6309},
+URL = {https://arc.aiaa.org/doi/abs/10.2514/6.2006-6309},
+eprint = {https://arc.aiaa.org/doi/pdf/10.2514/6.2006-6309}
+}
+
+@article{Martins2003CS,
+author = {Martins, Joaquim R. R. A. and Sturdza, Peter and Alonso, Juan J.},
+title = {The Complex-Step Derivative Approximation},
+year = {2003},
+issue_date = {September 2003},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {29},
+number = {3},
+issn = {0098-3500},
+url = {https://doi.org/10.1145/838250.838251},
+doi = {10.1145/838250.838251},
+abstract = {The complex-step derivative approximation and its application to numerical algorithms are presented. Improvements to the basic method are suggested that further increase its accuracy and robustness and unveil the connection to algorithmic differentiation theory. A general procedure for the implementation of the complex-step method is described in detail and a script is developed that automates its implementation. Automatic implementations of the complex-step method for Fortran and C/C++ are presented and compared to existing algorithmic differentiation tools. The complex-step method is tested in two large multidisciplinary solvers and the resulting sensitivities are compared to results given by finite differences. The resulting sensitivities are shown to be as accurate as the analyses. Accuracy, robustness, ease of implementation and maintainability make these complex-step derivative approximation tools very attractive options for sensitivity analysis.},
+journal = {ACM Trans. Math. Softw.},
+month = sep,
+pages = {245–262},
+numpages = {18},
+keywords = {sensitivities, overloading, forward mode, gradients, complex-step derivative approximation, Automatic differentiation}
+}
+
+@article{MartinsHwang2013Unification,
+author = {Martins, Joaquim R. R. A. and Hwang, John T.},
+title = {Review and Unification of Methods for Computing Derivatives of Multidisciplinary Computational Models},
+journal = {AIAA Journal},
+volume = {51},
+number = {11},
+pages = {2582-2599},
+year = {2013},
+doi = {10.2514/1.J052184},
+
+URL = {
+        https://doi.org/10.2514/1.J052184
+
+},
+eprint = {
+        https://doi.org/10.2514/1.J052184
+
+}
+,
+    abstract = { This paper presents a review of all existing discrete methods for computing the derivatives of computational models within a unified mathematical framework. This framework hinges on a new equation, the unifying chain rule, from which all the methods can be derived. The computation of derivatives is described as a two-step process: the evaluation of the partial derivatives and the computation of the total derivatives, which are dependent on the partial derivatives. Finite differences, the complex-step method, and symbolic differentiation are discussed as options for computing the partial derivatives. It is shown that these are building blocks with which the total derivatives can be assembled using algorithmic differentiation, the direct and adjoint methods, and coupled analytic methods for multidisciplinary systems. Each of these methods is presented and applied to a common numerical example to demonstrate and compare the various approaches. The paper ends with a discussion of current challenges and possible future research directions in this field. }
+}
+
+@article{griewank2003mathematical,
+  title={A mathematical view of automatic differentiation},
+  author={Griewank, Andreas},
+  journal={Acta Numerica},
+  volume={12},
+  number={1},
+  pages={321--398},
+  year={2003}
+}
+
+@article{martins2005coupled,
+  title={A coupled-adjoint sensitivity analysis method for high-fidelity aero-structural design},
+  author={Martins, Joaquim RRA and Alonso, Juan J and Reuther, James J},
+  journal={Optimization and Engineering},
+  volume={6},
+  number={1},
+  pages={33--62},
+  year={2005},
+  publisher={Springer}
+}
+
+@article{mader2008adjoint,
+  title={ADjoint: An approach for the rapid development of discrete adjoint solvers},
+  author={Mader, Charles A and Martins, Joaquim RRA and Alonso, Juan J and Van Der Weide, Edwin},
+  journal={AIAA journal},
+  volume={46},
+  number={4},
+  pages={863--873},
+  year={2008}
+}
+
+@article{kenway2019effective,
+  title={Effective adjoint approaches for computational fluid dynamics},
+  author={Kenway, Gaetan KW and Mader, Charles A and He, Ping and Martins, Joaquim RRA},
+  journal={Progress in Aerospace Sciences},
+  volume={110},
+  pages={100542},
+  year={2019},
+  publisher={Elsevier}
+}
+
+@article{garciasans2019,
+author = {Garcia-Sanz, Mario},
+title = {Control Co-Design: An engineering game changer},
+journal = {Advanced Control for Applications},
+volume = {1},
+number = {1},
+pages = {e18},
+keywords = {concurrent engineering, control, control co-design, design, systems engineering},
+doi = {10.1002/adc2.18},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/adc2.18},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/adc2.18},
+note = {e18 ADC2-19-0039},
+abstract = {Abstract Over the last few decades, control engineers have focused on developing innovative control theories and algorithms to regulate systems. These control efforts are usually at the last stage of a sequential strategy that allows engineering departments to work independently and consecutively toward the design of new products and systems. Control algorithms are usually developed at the end of that sequential process, once the mechanical, electrical, and other subsystems are completely defined. This paper discusses a different approach, named Control Co-Design (CCD). Following a concurrent engineering strategy that considers multidisciplinary subsystem interactions from the beginning of the design process, CCD applies control concepts to design the entire system and reach optimal solutions that are not achievable otherwise. This approach is a game changer for the control engineer, who will be not only the designer of advanced control algorithms but also the natural leader of the design of new products and systems. This paper describes some historic engineering breakthroughs achieved by applying CCD and explores some relevant application areas. It also presents three complementary CCD methodologies that include control-inspired paradigms, formal mathematical co-optimization techniques, and co-simulation campaigns to enhance engineering creativity and achieve radically new optimal designs.},
+year = {2019}
+}
+
+@misc{allison2004complex,
+  title={Complex system optimization: A review of analytical target cascading, collaborative optimization, and other formulations},
+  author={Allison, J},
+  year={2004},
+  publisher={A master’s thesis submitted in partial fulfillment of the requirements for~…}
 }
