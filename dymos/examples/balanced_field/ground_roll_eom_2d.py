@@ -17,14 +17,14 @@ class GroundRollEOM2D(om.ExplicitComponent):
     """
     def initialize(self):
         self.options.declare('num_nodes', types=int)
-        self.options.declare('g', type=float, default=9.80665, desc='gravitational acceleration in m/s**2)')
+        self.options.declare('g', types=(float, int), default=9.80665, desc='gravitational acceleration in m/s**2)')
 
     def setup(self):
         g = 9.80665
         nn = self.options['num_nodes']
 
         self.add_input(name='m',
-                       val=np.ones(nn),
+                       val=79016 * np.ones(nn),  # MTOW of 174200 lb
                        desc='aircraft mass',
                        units='kg')
 
@@ -34,7 +34,7 @@ class GroundRollEOM2D(om.ExplicitComponent):
                        units='m/s')
 
         self.add_input(name='T',
-                       val=np.ones(nn),
+                       val=120101.98 * np.ones(nn),  # 27000 lbf
                        desc='thrust',
                        units='N')
 
@@ -54,7 +54,7 @@ class GroundRollEOM2D(om.ExplicitComponent):
                        units='N')
 
         self.add_input(name='mu_r',
-                       val=0.15 * np.ones(nn),
+                       val=0.05 * np.ones(nn),
                        desc='runway friction coefficient',
                        units=None)
 
@@ -84,6 +84,7 @@ class GroundRollEOM2D(om.ExplicitComponent):
         self.declare_partials('v_dot', 'D', rows=ar, cols=ar)
         self.declare_partials('v_dot', 'm', rows=ar, cols=ar)
         self.declare_partials('v_dot', 'alpha', rows=ar, cols=ar)
+        self.declare_partials('v_dot', 'mu_r', rows=ar, cols=ar)
 
         self.declare_partials('r_dot', 'v', rows=ar, cols=ar, val=1.0)
 
@@ -111,6 +112,8 @@ class GroundRollEOM2D(om.ExplicitComponent):
         outputs['v_dot'] = (T * calpha - D - outputs['F_r'] * mu_r) / m
 
         outputs['r_dot'] = v
+
+        outputs['W'] = m * g
 
     def compute_partials(self, inputs, partials):
         m = inputs['m']

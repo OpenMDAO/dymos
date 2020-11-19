@@ -1,8 +1,10 @@
 import openmdao.api as om
 from ...models.atmosphere import USatm1976Comp
-from ..min_time_climb.aero import AeroGroup
-from ..min_time_climb.prop import PropGroup
+from .k_comp import KComp
+from .aero_forces_comp import AeroForcesComp
+from .lift_coef_comp import LiftCoefComp
 from .ground_roll_eom_2d import GroundRollEOM2D
+from .stall_speed_comp import StallSpeedComp
 
 
 class GroundRollODE(om.Group):
@@ -17,24 +19,35 @@ class GroundRollODE(om.Group):
                            subsys=USatm1976Comp(num_nodes=nn),
                            promotes_inputs=['h'])
 
-        self.add_subsystem(name='aero',
-                           subsys=AeroGroup(num_nodes=nn),
-                           promotes_inputs=['v', 'alpha', 'S'])
+        self.add_subsystem(name='k_comp',
+                           subsys=KComp(num_nodes=nn),
+                           promotes_inputs=['AR', 'span', 'e', 'h', 'h_w'],
+                           promotes_outputs=['K'])
 
-        self.connect('atmos.sos', 'aero.sos')
-        self.connect('atmos.rho', 'aero.rho')
+        self.add_subsystem(name='lift_coef_comp',
+                           subsys=LiftCoefComp(num_nodes=nn),
+                           promotes_inputs=['alpha', 'alpha_max', 'CL0', 'CL_max'],
+                           promotes_outputs=['CL'])
 
-        self.add_subsystem(name='prop',
-                           subsys=PropGroup(num_nodes=nn),
-                           promotes_inputs=['h', 'Isp', 'throttle'])
+        self.add_subsystem(name='aero_force_comp',
+                           subsys=AeroForcesComp(num_nodes=nn),
+                           promotes_inputs=['rho', 'v', 'S', 'CL', 'CD0', 'K'],
+                           promotes_outputs=['q', 'L', 'D'])
 
-        self.connect('aero.mach', 'prop.mach')
+        # Note: Typically a propulsion subsystem would go here, and provide thrust and mass
+        # flow rate of the aircraft (for integrating mass).
+        # In this simple demonstration, we're assuming the thrust of the aircraft is constant
+        # and that the aircraft mass doesn't change (fuel burn during takeoff is negligible).
 
         self.add_subsystem(name='dynamics',
                            subsys=GroundRollEOM2D(num_nodes=nn),
-                           promotes_inputs=['m', 'v', 'alpha'],
-                           promotes_outputs=['F_r', 'W'])
+                           promotes_inputs=['m', 'L', 'D', 'T', 'v', 'alpha'],
+                           promotes_outputs=['F_r', 'W', 'v_dot', 'r_dot'])
 
-        self.connect('aero.f_drag', 'dynamics.D')
-        self.connect('aero.f_lift', 'dynamics.L')
-        self.connect('prop.thrust', 'dynamics.T')
+        self.add_subsystem(name='stall_speed_comp',
+                           subsys=StallSpeedComp(num_nodes=nn),
+                           promotes_inputs=['v', 'W', 'rho', 'CL_max', 'S'],
+                           promotes_outputs=['v_stall', 'v_over_v_stall'])
+
+        self.set_input_defaults('CL_max', val=2.0)
+        self.set_input_defaults('alpha_max', val=10.0, units='deg')
