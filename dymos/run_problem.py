@@ -108,7 +108,7 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     make_plots : bool
         If True, automatically generate plots of all timeseries outputs.
     solution_record_file : String
-        Path to case recorder file use to store results from simulation.
+        Path to case recorder file use to store results from solution.
     simulation_record_file : String
         Path to case recorder file use to store results from simulation.
     plot_dir : String
@@ -122,7 +122,14 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
     # problem.recording_options['record_inputs'] = True
 
     if solution_record_file not in [rec._filepath for rec in iter(problem._rec_mgr)]:
-        problem.add_recorder(om.SqliteRecorder(solution_record_file))
+        recorder = om.SqliteRecorder(solution_record_file)
+        problem.add_recorder(recorder)
+        # qqq Herb added. Need to start separately. What happens if we do the startup twice?
+        # recorder.startup(problem)
+        # from openmdao.recorders.recording_manager import RecordingManager, record_viewer_data, \
+        #     record_system_options
+        # record_viewer_data(problem)
+        # record_system_options(problem)
 
     problem.final_setup()  # make sure command line option hook has a chance to run
 
@@ -130,12 +137,6 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         case = om.CaseReader(restart).get_case('final')
         load_case(problem, case)
 
-    # qqq Herb added. Need to start separately
-    # recorder.startup(problem)
-    # from openmdao.recorders.recording_manager import RecordingManager, record_viewer_data, \
-    #     record_system_options
-    # record_viewer_data(problem)
-    # record_system_options(problem)
 
     if run_driver:
         problem.run_driver()

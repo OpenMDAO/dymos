@@ -71,6 +71,8 @@ def dymos_cmd(argv=None):
                         help='Set the name of the case recorder file for solution results. (default: dymos_solution.db)')
     parser.add_argument('-i', '--simulation_record_file', default='dymos_simulation.db',
                         help='Set the name of the case recorder file for simulation results. (default: dymos_simulation.db)')
+    parser.add_argument('-e', '--plot_dir', default='plots',
+                        help='Set the name of the directory to store the timeseries plots. (default: plots)')
 
     args = parser.parse_args(argv)  # sys.argv is used if argv parameter is None
 
@@ -88,6 +90,7 @@ def dymos_cmd(argv=None):
         'make_plots': args.make_plots,
         'solution_record_file': args.solution_record_file,
         'simulation_record_file': args.simulation_record_file,
+        'plot_dir': args.plot_dir,
     }
 
     class DymosHooks:
@@ -121,10 +124,11 @@ def dymos_cmd(argv=None):
             refine_iterations = opts.get('refine_iteration_limit')
             run_problem(prob, refine_iteration_limit=refine_iterations,
                         run_driver=not opts['no_solve'],
+                        simulate=opts['simulate'],
                         make_plots = opts['make_plots'],
                         solution_record_file=opts['solution_record_file'],
-                        simulate=opts['simulate'],
-                        simulation_record_file = opts['simulation_record_file']
+                        simulation_record_file = opts['simulation_record_file'],
+                        plot_dir = opts['plot_dir']
                         )
 
     dymos_hooks = DymosHooks()

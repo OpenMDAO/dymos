@@ -86,6 +86,35 @@ class TestCommandLine(unittest.TestCase):
         cr = om.CaseReader('dymos_solution.db')
         self.assertTrue(len(cr.list_cases()) == 1)
 
+    def test_ex_brachistochrone_make_plots(self):
+        print('test_ex_brachistochrone_make_plots')
+
+        with patch.object(sys, 'argv', self.base_args + ['--make_plots']):
+            command_line.dymos_cmd()
+
+        self.assertTrue(os.path.exists('plots/test_x.png'))
+        self.assertTrue(os.path.exists('plots/test_y.png'))
+        self.assertTrue(os.path.exists('plots/test_v.png'))
+
+    def test_ex_brachistochrone_make_no_plots(self):
+        print('test_ex_brachistochrone_make_no_plots')
+
+        with patch.object(sys, 'argv', self.base_args):
+            command_line.dymos_cmd()
+
+        self.assertFalse(os.path.exists('plots/test_x.png'))
+        self.assertFalse(os.path.exists('plots/test_y.png'))
+        self.assertFalse(os.path.exists('plots/test_v.png'))
+
+    def test_ex_brachistochrone_set_solution_record_file(self):
+        print('test_ex_brachistochrone_set_solution_record_file')
+        with patch.object(sys, 'argv', self.base_args + ['--solution_record_file=solution_record_file.db']):
+        # with patch.object(sys, 'argv', self.base_args):
+            command_line.dymos_cmd()
+
+        self.assertTrue(os.path.exists('dymos_solution.db'))
+        self.assertTrue(os.path.exists('solution_record_file.db'))
+
     def test_ex_brachistochrone_simulate(self):
         print('test_ex_brachistochrone_simulate')
         with patch.object(sys, 'argv', self.base_args + ['--simulate']):
@@ -93,30 +122,12 @@ class TestCommandLine(unittest.TestCase):
 
         self.assertTrue(os.path.exists('dymos_simulation.db'))
 
-        self._assert_correct_solution()
-
     def test_ex_brachistochrone_simulate_set_simulation_record_file(self):
         print('test_ex_brachistochrone_simulate')
-        with patch.object(sys, 'argv', self.base_args + ['--simulate'] + ['--record_file=record_file.db']):
+        with patch.object(sys, 'argv', self.base_args + ['--simulate'] + ['--simulation_record_file=simulation_record_file.db']):
             command_line.dymos_cmd()
 
-        self.assertTrue(os.path.exists('record_file.db'))
-
-        self._assert_correct_solution()
-
-    def test_ex_brachistochrone_make_plots(self):
-        print('test_ex_brachistochrone_make_plots')
-
-        # qqq ??? Do I need to make test where user can set plots directory?
-        with patch.object(sys, 'argv', self.base_args + ['--simulate'] + ['--make_plots']):
-            command_line.dymos_cmd()
-
-
-        qqq = os.getcwd()
-        self.assertTrue(os.path.exists('plots/test_x.png'))
-        self.assertTrue(os.path.exists('plots/test_y.png'))
-        self.assertTrue(os.path.exists('plots/test_v.png'))
-        # probably need more
+        self.assertTrue(os.path.exists('simulation_record_file.db'))
 
     @unittest.skipIf(True, reason='grid resetting not yet implemented')
     def test_ex_brachistochrone_reset_grid(self):
