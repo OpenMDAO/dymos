@@ -208,10 +208,19 @@ def eval_ode_on_grid(phase, transcription):
     # Assign the state rates on the new grid to f
     for name, options in phase.state_options.items():
         rate_source = options['rate_source']
-        rate_units = get_rate_units(options['units'], phase.time_options['units'])
-        f[name] = np.atleast_2d(p_refine.get_val(f'ode.{rate_source}', units=rate_units))
-        if options['shape'] == (1,):
-            f[name] = f[name].T
+        rate_source_class = phase.classify_var(rate_source)
+        print(name, rate_source, rate_source_class, rate_source_class == 'parameter')
+        if rate_source_class == 'parameter':
+            print(p_refine.model.list_inputs())
+            print(p_refine.model.list_outputs())
+            # print(p_refine.get_val(f'parameters:{rate_source}'))
+            exit(0)
+        else:
+            rate_source_path = transcription.get_rate_source_path(name, nodes='all', phase=phase)
+            rate_units = get_rate_units(options['units'], phase.time_options['units'])
+            f[name] = np.atleast_2d(p_refine.get_val(f'ode.{rate_source}', units=rate_units))
+            if options['shape'] == (1,):
+                f[name] = f[name].T
 
     return x, u, p, f
 

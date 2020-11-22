@@ -418,8 +418,19 @@ class SolveIVP(TranscriptionBase):
             phase.connect(src_name=f'state_mux_comp.states:{name}',
                           tgt_name=f'timeseries.all_values:states:{name}')
 
-            phase.connect(src_name=self.get_rate_source_path(name, phase),
-                          tgt_name=f'timeseries.all_values:state_rates:{name}')
+            rate_src = phase.state_options[name]['rate_source']
+            if rate_src in phase.parameter_options:
+                nn = num_seg * output_nodes_per_seg
+                shape = phase.parameter_options[rate_src]['shape']
+                param_size = np.prod(shape)
+                src_idxs = np.tile(np.arange(0, param_size, dtype=int), nn)
+                src_idxs = np.reshape(src_idxs, (nn,) + shape)
+                phase.promotes('timeseries', inputs=[(f'all_values:state_rates:{name}',
+                                                      f'parameters:{rate_src}')],
+                               src_indices=src_idxs, src_shape=shape)
+            else:
+                phase.connect(src_name=self.get_rate_source_path(name, phase),
+                              tgt_name=f'timeseries.all_values:state_rates:{name}')
 
         for name, options in phase.control_options.items():
             control_units = options['units']

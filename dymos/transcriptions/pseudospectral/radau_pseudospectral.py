@@ -142,11 +142,22 @@ class Radau(PseudospectralBase):
             phase.connect('state_interp.staterate_col:{0}'.format(name),
                           'collocation_constraint.f_approx:{0}'.format(name))
 
-            rate_src, src_idxs = self.get_rate_source_path(name, 'col', phase)
-
-            phase.connect(rate_src,
-                          'collocation_constraint.f_computed:{0}'.format(name),
-                          src_indices=src_idxs)
+            rate_src = options['rate_source']
+            ncn = self.grid_data.subset_num_nodes['col']
+            if rate_src in phase.parameter_options:
+                # If the rate source is a parameter, which is an input, we need to promote
+                # f_computed to the parameter name instead of connecting to it.
+                shape = phase.parameter_options[rate_src]['shape']
+                param_size = np.prod(shape)
+                src_idxs = np.tile(np.arange(0, param_size, dtype=int), ncn)
+                src_idxs = np.reshape(src_idxs, (ncn,) + shape)
+                phase.promotes('collocation_constraint', inputs=[(f'f_computed:{name}', f'parameters:{rate_src}')],
+                               src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
+            else:
+                rate_src_path, src_idxs = self.get_rate_source_path(name, 'col', phase)
+                phase.connect(rate_src_path,
+                              'collocation_constraint.f_computed:{0}'.format(name),
+                              src_indices=src_idxs)
 
     def configure_path_constraints(self, phase):
         super(Radau, self).configure_path_constraints(phase)
@@ -260,10 +271,24 @@ class Radau(PseudospectralBase):
                               tgt_name=f'{timeseries_name}.input_values:states:{state_name}',
                               src_indices=om.slicer[src_rows, ...])
 
-                rate_src, src_idxs = self.get_rate_source_path(state_name, 'all', phase)
-                phase.connect(src_name=rate_src,
-                              tgt_name=f'{timeseries_name}.input_values:state_rates:{state_name}',
-                              src_indices=src_idxs)
+                rate_src = options['rate_source']
+                if rate_src in phase.parameter_options:
+                    # If the rate source is a parameter, which is an input, we need to promote
+                    # the state rates input value to the parameter name instead of connecting to it.
+                    nn = self.grid_data.subset_num_nodes['all']
+                    shape = phase.parameter_options[rate_src]['shape']
+                    param_size = np.prod(shape)
+                    src_idxs = np.tile(np.arange(0, param_size, dtype=int), nn)
+                    src_idxs = np.reshape(src_idxs, (nn,) + shape)
+                    phase.promotes(f'{timeseries_name}',
+                                   inputs=[(f'input_values:state_rates:{state_name}',
+                                            f'parameters:{rate_src}')],
+                                   src_indices=src_idxs, flat_src_indices=True, src_shape=shape)
+                else:
+                    rate_src_path, src_idxs = self.get_rate_source_path(state_name, 'all', phase)
+                    phase.connect(src_name=rate_src_path,
+                                  tgt_name=f'{timeseries_name}.input_values:state_rates:{state_name}',
+                                  src_indices=src_idxs)
 
             for control_name, options in phase.control_options.items():
                 control_units = options['units']
