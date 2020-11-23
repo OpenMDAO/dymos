@@ -917,8 +917,6 @@ class Phase(om.Group):
                 self.parameter_options[name]['shape'] = (1,)
             else:
                 self.parameter_options[name]['shape'] = tuple(np.asarray(val).shape)
-        else:
-            self.parameter_options[name]['shape'] = (1,)  # TODO need to interrogate to find shape
 
         if dynamic is not _unspecified:
             self.parameter_options[name]['dynamic'] = dynamic

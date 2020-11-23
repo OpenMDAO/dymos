@@ -69,5 +69,5 @@ class TestParameterTypes(unittest.TestCase):
     def test_scaler(self):
         add_parameter_test(3)
 
-    def test_nothing(self): # doesn't work, but should ? maybe? seems like you could interrogate
+    def test_nothing(self):
         add_parameter_test()
