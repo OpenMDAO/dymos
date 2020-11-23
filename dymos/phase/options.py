@@ -206,11 +206,16 @@ class PolynomialControlOptionsDictionary(om.OptionsDictionary):
                           'to the default value of True.')
 
 
+def check_valid_shape(name, value):
+    if name == 'shape':
+        if value is not _unspecified and not isinstance(value, (Iterable, Number, list, tuple)):
+            raise ValueError(f"Option '{name}' with value {value} is not valid.")
+
+
 class ParameterOptionsDictionary(om.OptionsDictionary):
     """
     An OptionsDictionary specific to parameters.
     """
-
     def __init__(self, read_only=False):
         super(ParameterOptionsDictionary, self).__init__(read_only)
 
@@ -237,7 +242,7 @@ class ParameterOptionsDictionary(om.OptionsDictionary):
         self.declare(name='val', types=(Iterable, np.ndarray, Number), default=np.zeros(1),
                      desc='The default value of the parameter in the phase.')
 
-        self.declare(name='shape', types=Iterable, default=(1,),
+        self.declare(name='shape',  check_valid=check_valid_shape, default=_unspecified,
                      desc='The shape of the parameter.')
 
         self.declare(name='lower', types=(Iterable, Number), default=None,
