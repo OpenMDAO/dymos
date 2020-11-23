@@ -2,6 +2,7 @@ import unittest
 import openmdao.api as om
 import dymos as dm
 
+
 class ODEComp(om.ExplicitComponent):
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -23,6 +24,7 @@ class ODEComp(om.ExplicitComponent):
         outputs['zdot'][:, 1, 0] = 0.0
         outputs['zdot'][:, 1, 1] = -9.81
 
+
 def add_parameter_test(testShape=None):
     p = om.Problem()
 
@@ -31,7 +33,7 @@ def add_parameter_test(testShape=None):
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=ODEComp, transcription=tx)
 
-    if testShape==None:
+    if testShape is None:
         phase.add_parameter('param', dynamic=False)
     else:
         phase.add_parameter('param', shape=testShape, dynamic=False)
@@ -59,12 +61,13 @@ def add_parameter_test(testShape=None):
 
     p.run_driver()
 
+
 class TestParameterTypes(unittest.TestCase):
     def test_tuple(self):
-        add_parameter_test((3,))
+        add_parameter_test((3, ))
 
     def test_list(self):
-        add_parameter_test([3,])
+        add_parameter_test([3, ])
 
     def test_scaler(self):
         add_parameter_test(3)
