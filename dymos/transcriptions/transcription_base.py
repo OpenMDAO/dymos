@@ -344,8 +344,12 @@ class TranscriptionBase(object):
                         parts = pathname.split('.')
                         sub_sys = parts[0]
                         tgt_var = '.'.join(parts[1:])
-                        phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
-                                       src_indices=src_idxs, flat_src_indices=True)
+                        if options['dynamic']:
+                            phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
+                                           src_indices=src_idxs, flat_src_indices=True)
+                        else:
+                            phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
+                                           flat_src_indices=True)
 
                 val = options['val']
                 _shape = options['shape']
