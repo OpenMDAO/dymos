@@ -906,14 +906,19 @@ class Phase(om.Group):
             self.parameter_options[name]['val'] = val
 
         if shape is not _unspecified:
-            self.parameter_options[name]['shape'] = shape
+            if np.isscalar(shape):
+                self.parameter_options[name]['shape'] = (shape,)
+            elif isinstance(shape, list):
+                self.parameter_options[name]['shape'] = tuple(shape)
+            else:
+                self.parameter_options[name]['shape'] = shape
         elif val is not _unspecified:
             if isinstance(val, float):
                 self.parameter_options[name]['shape'] = (1,)
             else:
-                self.parameter_options[name]['shape'] = np.asarray(val).shape
+                self.parameter_options[name]['shape'] = tuple(np.asarray(val).shape)
         else:
-            self.parameter_options[name]['shape'] = (1,)
+            self.parameter_options[name]['shape'] = (1,)  # TODO need to interrogate to find shape
 
         if dynamic is not _unspecified:
             self.parameter_options[name]['dynamic'] = dynamic
