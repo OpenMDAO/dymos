@@ -143,12 +143,12 @@ class Radau(PseudospectralBase):
                           'collocation_constraint.f_approx:{0}'.format(name))
 
             rate_src = options['rate_source']
-            ncn = self.grid_data.subset_num_nodes['col']
             if rate_src in phase.parameter_options:
                 # If the rate source is a parameter, which is an input, we need to promote
                 # f_computed to the parameter name instead of connecting to it.
                 shape = phase.parameter_options[rate_src]['shape']
                 param_size = np.prod(shape)
+                ncn = self.grid_data.subset_num_nodes['col']
                 src_idxs = np.tile(np.arange(0, param_size, dtype=int), ncn)
                 src_idxs = np.reshape(src_idxs, (ncn,) + shape)
                 phase.promotes('collocation_constraint', inputs=[(f'f_computed:{name}', f'parameters:{rate_src}')],

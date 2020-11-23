@@ -14,7 +14,7 @@ def assert_check_partials(data, atol=1.0E-6, rtol=1.0E-6):
     _om_assert_utils.assert_check_partials(data, atol, rtol)
 
 
-def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6, num_points=10):
+def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6, num_points=20):
     """
     Assert that two timeseries of data are approximately equal.
     This is done by fitting a 1D interpolant to each index of each timeseries, and then comparing
@@ -63,12 +63,12 @@ def assert_timeseries_near_equal(t1, x1, t2, x2, tolerance=1.0E-6, num_points=10
     a2 = np.reshape(x2, newshape=(nn2, size))
     t2_unique, idxs2 = np.unique(t2.ravel(), return_index=True)
 
-    interp1 = interp1d(x=t1_unique, y=a1[idxs1, ...], kind='cubic', axis=0)
-    interp2 = interp1d(x=t2_unique, y=a2[idxs2, ...], kind='cubic', axis=0)
+    interp1 = interp1d(x=t1_unique, y=a1[idxs1, ...], kind='slinear', axis=0)
+    interp2 = interp1d(x=t2_unique, y=a2[idxs2, ...], kind='slinear', axis=0)
 
     t_interp = np.linspace(t1[0], t1[-1], num_points)
 
-    y1 = interp1(t_interp)
-    y2 = interp2(t_interp)
+    y1 = np.reshape(interp1(t_interp), newshape=(num_points,) + shape1)
+    y2 = np.reshape(interp2(t_interp), newshape=(num_points,) + shape2)
 
     _om_assert_utils.assert_near_equal(y1, y2, tolerance=tolerance)

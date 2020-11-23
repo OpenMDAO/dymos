@@ -95,20 +95,24 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         import dymos as dm
 
         p = om.Problem(model=om.Group())
-        p.driver = om.ScipyOptimizeDriver()
+        p.driver = om.pyOptSparseDriver()
+        p.driver.options['optimizer'] = 'SNOPT'
+        p.driver.opt_settings['iSumm'] = 6
+        p.driver.declare_coloring()
 
-        phase = dm.Phase(ode_class=BrachistochroneODE, transcription=dm.GaussLobatto(num_segments=10))
+        phase = dm.Phase(ode_class=BrachistochroneODE,
+                         transcription=dm.GaussLobatto(num_segments=10))
 
         p.model.add_subsystem('phase0', phase)
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10), units='s')
 
-        phase.add_state('x', fix_initial=True, fix_final=False, rate_source='xdot', units='m')
-        phase.add_state('y', fix_initial=True, fix_final=False, rate_source='ydot', units='m')
+        phase.add_state('x', fix_initial=True, fix_final=True, rate_source='xdot', units='m')
+        phase.add_state('y', fix_initial=True, fix_final=True, rate_source='ydot', units='m')
         phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s')
-        phase.add_state('theta', targets='theta', fix_initial=False, rate_source='theta_dot', units='rad')
+        phase.add_state('theta', fix_initial=False, rate_source='theta_dot', lower=1E-3)
 
-        phase.add_parameter('theta_dot', units='rad/s', opt=True, lower=0, upper=1)
+        phase.add_parameter('theta_dot', units='deg/s', opt=True, lower=0, upper=100)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -125,43 +129,35 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         p['phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
         p['phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
         p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['phase0.states:theta'] = np.radians(phase.interpolate(ys=[0.05, 100.0],
-                                                                nodes='state_input'))
-        p['phase0.parameters:theta_dot'] = 1.0
+        p['phase0.states:theta'] = np.radians(phase.interpolate(ys=[0.05, 100.0], nodes='state_input'))
+        p['phase0.parameters:theta_dot'] = 60.0
 
         # Solve for the optimal trajectory
-        p.run_driver()
+        dm.run_problem(p, refine_iteration_limit=5)
 
         # Test the results
         assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
         sim_out = phase.simulate(times_per_seg=20)
 
+        t_sol = p.get_val('phase0.timeseries.time')
         x_sol = p.get_val('phase0.timeseries.states:x')
         y_sol = p.get_val('phase0.timeseries.states:y')
         v_sol = p.get_val('phase0.timeseries.states:v')
         theta_sol = p.get_val('phase0.timeseries.states:theta')
         theta_dot_sol = p.get_val('phase0.timeseries.parameters:theta_dot')
-        time_sol = p.get_val('phase0.timeseries.time')
 
+        t_sim = sim_out.get_val('phase0.timeseries.time')
         x_sim = sim_out.get_val('phase0.timeseries.states:x')
         y_sim = sim_out.get_val('phase0.timeseries.states:y')
         v_sim = sim_out.get_val('phase0.timeseries.states:v')
         theta_sim = sim_out.get_val('phase0.timeseries.states:theta')
         theta_dot_sim = sim_out.get_val('phase0.timeseries.parameters:theta_dot')
-        time_sim = sim_out.get_val('phase0.timeseries.time')
 
-        x_interp = interp1d(time_sim[:, 0], x_sim[:, 0])
-        y_interp = interp1d(time_sim[:, 0], y_sim[:, 0])
-        v_interp = interp1d(time_sim[:, 0], v_sim[:, 0])
-        theta_interp = interp1d(time_sim[:, 0], theta_sim[:, 0])
-        theta_dot_interp = interp1d(time_sim[:, 0], theta_dot_sim[:, 0])
-
-        assert_near_equal(x_interp(time_sol), x_sol, tolerance=1.0E-5)
-        assert_near_equal(y_interp(time_sol), y_sol, tolerance=1.0E-5)
-        assert_near_equal(v_interp(time_sol), v_sol, tolerance=1.0E-5)
-        assert_near_equal(theta_interp(time_sol), theta_sol, tolerance=1.0E-5)
-        assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-5)
+        assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, tolerance=5.0E-3)
+        assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, tolerance=5.0E-3)
+        assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, tolerance=5.0E-3)
+        assert_timeseries_near_equal(t_sol, theta_sol, t_sim, theta_sim, tolerance=5.0E-3)
 
     def test_brachistochrone_integrated_control_radau_ps(self):
         import numpy as np
@@ -239,26 +235,6 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, tolerance=1.0E-3, num_points=10)
         assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, tolerance=1.0E-3, num_points=10)
         assert_timeseries_near_equal(t_sol, theta_sol, t_sim, theta_sim, tolerance=1.0E-3, num_points=10)
-
-        # print(theta_sol.T)
-        # print(theta_dot_sol.T)
-        # import matplotlib.pyplot as plt
-        # plt.plot(x_sol, y_sol, 'o')
-        # plt.plot(x_sim, y_sim, '-')
-        # plt.show()
-
-
-        # x_interp = interp1d(time_sim[:, 0], x_sim[:, 0])
-        # y_interp = interp1d(time_sim[:, 0], y_sim[:, 0])
-        # v_interp = interp1d(time_sim[:, 0], v_sim[:, 0])
-        # theta_interp = interp1d(time_sim[:, 0], theta_sim[:, 0])
-        # theta_dot_interp = interp1d(time_sim[:, 0], theta_dot_sim[:, 0])
-
-        # assert_near_equal(x_interp(time_sol), x_sol, tolerance=1.0E-5)
-        # assert_near_equal(y_interp(time_sol), y_sol, tolerance=1.0E-5)
-        # assert_near_equal(v_interp(time_sol), v_sol, tolerance=1.0E-5)
-        # assert_near_equal(theta_interp(time_sol), theta_sol, tolerance=1.0E-5)
-        # assert_near_equal(theta_dot_interp(time_sol), theta_dot_sol, tolerance=1.0E-5)
 
 
 if __name__ == '__main__':  # pragma: no cover
