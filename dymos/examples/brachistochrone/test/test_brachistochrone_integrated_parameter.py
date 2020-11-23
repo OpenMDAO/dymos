@@ -80,7 +80,7 @@ class BrachistochroneODE(om.ExplicitComponent):
         jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
 
 
-class TestBrachistochroneIntegratedControl(unittest.TestCase):
+class TestBrachistochroneIntegratedParameter(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
@@ -144,21 +144,19 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         y_sol = p.get_val('phase0.timeseries.states:y')
         v_sol = p.get_val('phase0.timeseries.states:v')
         theta_sol = p.get_val('phase0.timeseries.states:theta')
-        theta_dot_sol = p.get_val('phase0.timeseries.parameters:theta_dot')
 
         t_sim = sim_out.get_val('phase0.timeseries.time')
         x_sim = sim_out.get_val('phase0.timeseries.states:x')
         y_sim = sim_out.get_val('phase0.timeseries.states:y')
         v_sim = sim_out.get_val('phase0.timeseries.states:v')
         theta_sim = sim_out.get_val('phase0.timeseries.states:theta')
-        theta_dot_sim = sim_out.get_val('phase0.timeseries.parameters:theta_dot')
 
         assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, tolerance=5.0E-3)
         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, tolerance=5.0E-3)
         assert_timeseries_near_equal(t_sol, v_sol, t_sim, v_sim, tolerance=5.0E-3)
         assert_timeseries_near_equal(t_sol, theta_sol, t_sim, theta_sim, tolerance=5.0E-3)
 
-    def test_brachistochrone_integrated_control_radau_ps(self):
+    def test_brachistochrone_integrated_parameter_radau_ps(self):
         import numpy as np
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -214,20 +212,12 @@ class TestBrachistochroneIntegratedControl(unittest.TestCase):
         y_sol = p.get_val('phase0.timeseries.states:y')
         v_sol = p.get_val('phase0.timeseries.states:v')
         theta_sol = p.get_val('phase0.timeseries.states:theta')
-        theta_dot_sol = p.get_val('phase0.timeseries.parameters:theta_dot')
-        time_sol = p.get_val('phase0.timeseries.time')
-        #
-        # p.model.list_inputs(print_arrays=True)
-        # p.model.list_outputs(print_arrays=True)
-        # om.n2(p.model)
 
         t_sim = sim_out.get_val('phase0.timeseries.time')
         x_sim = sim_out.get_val('phase0.timeseries.states:x')
         y_sim = sim_out.get_val('phase0.timeseries.states:y')
         v_sim = sim_out.get_val('phase0.timeseries.states:v')
         theta_sim = sim_out.get_val('phase0.timeseries.states:theta')
-        theta_dot_sim = sim_out.get_val('phase0.timeseries.parameters:theta_dot')
-        time_sim = sim_out.get_val('phase0.timeseries.time')
 
         assert_timeseries_near_equal(t_sol, x_sol, t_sim, x_sim, tolerance=1.0E-3, num_points=10)
         assert_timeseries_near_equal(t_sol, y_sol, t_sim, y_sim, tolerance=1.0E-3, num_points=10)
