@@ -6,9 +6,7 @@ import openmdao.api as om
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, PseudospectralTimeseriesOutputComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
-from ...utils.misc import CoerceDesvar, get_rate_units, _unspecified, \
-    get_target_metadata, get_source_metadata
-from ...utils.introspection import get_targets, get_state_target_metadata
+from ...utils.misc import CoerceDesvar, get_rate_units
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 
