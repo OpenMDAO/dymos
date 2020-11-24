@@ -371,13 +371,11 @@ class Trajectory(om.Group):
             prom_name = f'parameters:{name}'
             targets = options['targets']
 
-            val = options['val']
-            _shape = options['shape']
-            shaped_val = np.broadcast_to(val, _shape)
-
-            self.set_input_defaults(name=prom_name,
-                                    val=shaped_val,
-                                    units=options['units'])
+            # For each phase, use introspection to get the units and shape.
+            # If units do not match across all phases, require user to set them.
+            # If shapes do not match across all phases, this is an error.
+            tgt_units = {}
+            tgt_shapes = {}
 
             for phase_name, phs in self._phases.items():
 
@@ -386,6 +384,8 @@ class Trajectory(om.Group):
                     # it exists.
                     if name in phs.parameter_options:
                         tgt = f'{phase_name}.parameters:{name}'
+                        tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
+                        tgt_units[phs.name] = phs.parameter_options[name]['units']
                     else:
                         continue
                 elif targets[phase_name] is None:
@@ -395,17 +395,44 @@ class Trajectory(om.Group):
                         targets[phase_name] in phs.parameter_options:
                     # Connect to an input parameter with a different name in this phase
                     tgt = '{0}.parameters:{1}'.format(phase_name, targets[phase_name])
+                    tgt_shapes[phs.name] = phs.parameter_options[targets[phase_name]]['shape']
+                    tgt_units[phs.name] = phs.parameter_options[targets[phase_name]]['units']
                 elif isinstance(targets[phase_name], Sequence) and \
                         name in phs.parameter_options:
                     # User gave a list of ODE targets which were passed to the creation of a
                     # new input parameter in setup, just connect to that new input parameter
                     tgt = f'{phase_name}.parameters:{name}'
+                    tgt_shapes[phs.name] = phs.parameter_options[name]['shape']
+                    tgt_units[phs.name] = phs.parameter_options[name]['units']
                 else:
                     raise ValueError(f'Unhandled parameter target in '
                                      f'phase {phase_name}')
 
                 promoted_inputs.append(tgt)
                 self.promotes('phases', inputs=[(tgt, prom_name)])
+
+            if len(set(tgt_shapes.values())) == 1:
+                options['shape'] = next(iter(tgt_shapes.values()))
+            else:
+                raise ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
+                                 f'targets in multiple phases that have different shapes.')
+
+            if len(set(tgt_units.values())) != 1:
+                options['units'] = next(iter(tgt_units))
+            else:
+                ValueError(f'Parameter {name} in Trajectory {self.pathname} is connected to '
+                           f'targets in multiple phases that have different units. You must '
+                           f'explicitly provide units for the parameter since they cannot be '
+                           f'inferred.')
+
+            val = options['val']
+            _shape = options['shape']
+            shaped_val = np.broadcast_to(val, _shape)
+
+            self.set_input_defaults(name=prom_name,
+                                    val=shaped_val,
+                                    units=options['units'])
+
         return promoted_inputs
 
     def _configure_phase_options_dicts(self):

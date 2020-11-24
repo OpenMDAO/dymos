@@ -906,14 +906,17 @@ class Phase(om.Group):
             self.parameter_options[name]['val'] = val
 
         if shape is not _unspecified:
-            self.parameter_options[name]['shape'] = shape
+            if np.isscalar(shape):
+                self.parameter_options[name]['shape'] = (shape,)
+            elif isinstance(shape, list):
+                self.parameter_options[name]['shape'] = tuple(shape)
+            else:
+                self.parameter_options[name]['shape'] = shape
         elif val is not _unspecified:
             if isinstance(val, float):
                 self.parameter_options[name]['shape'] = (1,)
             else:
-                self.parameter_options[name]['shape'] = np.asarray(val).shape
-        else:
-            self.parameter_options[name]['shape'] = (1,)
+                self.parameter_options[name]['shape'] = tuple(np.asarray(val).shape)
 
         if dynamic is not _unspecified:
             self.parameter_options[name]['dynamic'] = dynamic
@@ -1623,7 +1626,6 @@ class Phase(om.Group):
         transcription.setup_boundary_constraints('initial', self)
         transcription.setup_boundary_constraints('final', self)
         transcription.setup_path_constraints(self)
-        transcription.setup_objective(self)
         transcription.setup_timeseries_outputs(self)
         transcription.setup_solvers(self)
 

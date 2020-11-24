@@ -236,21 +236,14 @@ class SolveIVP(TranscriptionBase):
         # Interrogate shapes and units.
         for name, options in phase.control_options.items():
 
-            full_shape, units = get_target_metadata(ode, name=name,
-                                                    user_targets=options['targets'],
-                                                    user_units=options['units'],
-                                                    user_shape=options['shape'],
-                                                    control_rate=True)
+            shape, units = get_target_metadata(ode, name=name,
+                                               user_targets=options['targets'],
+                                               user_units=options['units'],
+                                               user_shape=options['shape'],
+                                               control_rate=True)
 
-            if options['units'] is None:
-                options['units'] = units
-
-            # Determine and store the pre-discretized state shape for use by other components.
-            if len(full_shape) < 2:
-                if options['shape'] in (_unspecified, None):
-                    options['shape'] = (1, )
-            else:
-                options['shape'] = full_shape[1:]
+            options['units'] = units
+            options['shape'] = shape
 
         grid_data = self.grid_data
 
@@ -350,9 +343,6 @@ class SolveIVP(TranscriptionBase):
         pass
 
     def configure_defects(self, phase):
-        pass
-
-    def setup_objective(self, phase):
         pass
 
     def configure_objective(self, phase):
