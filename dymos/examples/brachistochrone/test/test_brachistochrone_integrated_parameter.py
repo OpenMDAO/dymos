@@ -111,7 +111,8 @@ class TestBrachistochroneIntegratedParameter(unittest.TestCase):
         phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s')
         phase.add_state('theta', fix_initial=False, rate_source='theta_dot', lower=1E-3)
 
-        phase.add_parameter('theta_dot', units='deg/s', opt=True, lower=0, upper=100)
+        # theta_dot has no target, therefore we need to explicitly set the units and shape.
+        phase.add_parameter('theta_dot', units='deg/s', shape=(1,), opt=True, lower=0, upper=100)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -179,7 +180,8 @@ class TestBrachistochroneIntegratedParameter(unittest.TestCase):
         phase.add_state('v', fix_initial=True, rate_source='vdot', units='m/s')
         phase.add_state('theta', fix_initial=False, rate_source='theta_dot', lower=1E-3)
 
-        phase.add_parameter('theta_dot', units='deg/s', opt=True, lower=0, upper=100)
+        # theta_dot has no target, therefore we need to explicitly set the units and shape.
+        phase.add_parameter('theta_dot', units='deg/s', shape=(1,), opt=True, lower=0, upper=100)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
