@@ -72,7 +72,7 @@ class TranscriptionBase(object):
             if time_options['targets']:
                 ode = phase._get_subsystem(self._rhs_source)
 
-                _, time_options['units'] = get_target_metadata(ode, name=name,
+                _, time_options['units'] = get_target_metadata(ode, name='time',
                                                                user_targets=time_options['targets'],
                                                                user_units=time_options['units'],
                                                                user_shape='')
@@ -244,20 +244,14 @@ class TranscriptionBase(object):
         # Interrogate shapes and units.
         for name, options in phase.control_options.items():
 
-            full_shape, units = get_target_metadata(ode, name=name,
-                                                    user_targets=options['targets'],
-                                                    user_units=options['units'],
-                                                    user_shape=options['shape'],
-                                                    control_rate=True)
+            shape, units = get_target_metadata(ode, name=name,
+                                               user_targets=options['targets'],
+                                               user_units=options['units'],
+                                               user_shape=options['shape'],
+                                               control_rate=True)
 
             options['units'] = units
-
-            # Determine and store the pre-discretized state shape for use by other components.
-            if len(full_shape) < 2:
-                if options['shape'] in (_unspecified, None):
-                    options['shape'] = (1, )
-            else:
-                options['shape'] = full_shape[1:]
+            options['shape'] = shape
 
         if phase.control_options:
             phase.control_group.configure_io()
@@ -283,20 +277,14 @@ class TranscriptionBase(object):
         # Interrogate shapes and units.
         for name, options in phase.polynomial_control_options.items():
 
-            full_shape, units = get_target_metadata(ode, name=name,
-                                                    user_targets=options['targets'],
-                                                    user_units=options['units'],
-                                                    user_shape=options['shape'],
-                                                    control_rate=True)
+            shape, units = get_target_metadata(ode, name=name,
+                                               user_targets=options['targets'],
+                                               user_units=options['units'],
+                                               user_shape=options['shape'],
+                                               control_rate=True)
 
             options['units'] = units
-
-            # Determine and store the pre-discretized state shape for use by other components.
-            if len(full_shape) < 2:
-                if options['shape'] in (_unspecified, None):
-                    options['shape'] = (1, )
-            else:
-                options['shape'] = full_shape[1:]
+            options['shape'] = shape
 
         if phase.polynomial_control_options:
             phase.polynomial_control_group.configure_io()
@@ -334,7 +322,8 @@ class TranscriptionBase(object):
                 shape, units = get_target_metadata(ode, name=name,
                                                    user_targets=options['targets'],
                                                    user_shape=options['shape'],
-                                                   user_units=options['units'])
+                                                   user_units=options['units'],
+                                                   dynamic=options['dynamic'])
                 options['units'] = units
                 options['shape'] = shape
 
@@ -348,8 +337,7 @@ class TranscriptionBase(object):
                             phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
                                            src_indices=src_idxs, flat_src_indices=True)
                         else:
-                            phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
-                                           flat_src_indices=True)
+                            phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)])
 
                 val = options['val']
                 _shape = options['shape']
@@ -635,7 +623,7 @@ class TranscriptionBase(object):
             constraint_kwargs.pop('constraint_name', None)
             phase._get_subsystem('path_constraints')._add_path_constraint_configure(con_name, **constraint_kwargs)
 
-    def setup_objective(self, phase):
+    def configure_objective(self, phase):
         """
         Find the path of the objective(s) and add the objective using the standard OpenMDAO method.
         """
@@ -675,9 +663,6 @@ class TranscriptionBase(object):
                                               scaler=options['scaler'],
                                               parallel_deriv_color=options['parallel_deriv_color'],
                                               vectorize_derivs=options['vectorize_derivs'])
-
-    def configure_objective(self, phase):
-        pass
 
     def _get_boundary_constraint_src(self, name, loc, phase):
         raise NotImplementedError('Transcription {0} does not implement method'

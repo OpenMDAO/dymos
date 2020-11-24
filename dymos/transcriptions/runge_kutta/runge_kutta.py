@@ -8,8 +8,7 @@ from .components import RungeKuttaStepsizeComp, RungeKuttaStateContinuityIterGro
     RungeKuttaTimeseriesOutputComp, RungeKuttaControlContinuityComp
 from ..common import TimeComp, PathConstraintComp
 from ...utils.rk_methods import rk_methods
-from ...utils.misc import CoerceDesvar, get_rate_units, get_target_metadata,\
-    get_source_metadata, _unspecified
+from ...utils.misc import CoerceDesvar, get_rate_units, get_source_metadata
 from ...utils.introspection import get_targets
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row

@@ -1626,7 +1626,6 @@ class Phase(om.Group):
         transcription.setup_boundary_constraints('initial', self)
         transcription.setup_boundary_constraints('final', self)
         transcription.setup_path_constraints(self)
-        transcription.setup_objective(self)
         transcription.setup_timeseries_outputs(self)
         transcription.setup_solvers(self)
 
