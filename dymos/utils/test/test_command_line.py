@@ -13,7 +13,8 @@ import openmdao.api as om
 class TestCommandLine(unittest.TestCase):
     def setUp(self):
         self.test_dir = os.path.dirname(os.path.abspath(__file__))
-        self.base_args = ['dymos_testing', os.path.join(self.test_dir, 'brachistochrone_for_command_line.py')]
+        self.base_args = ['dymos_testing', os.path.join(self.test_dir,
+                                                        'brachistochrone_for_command_line.py')]
 
         print('Removing the stale test databases before running.')
         for filename in ['dymos_solution.db', 'old_dymos_solution.db', 'grid_refinement.out']:
@@ -75,7 +76,8 @@ class TestCommandLine(unittest.TestCase):
             command_line.dymos_cmd()
 
         self._assert_correct_solution()
-        self.assertTrue(os.path.exists('old_dymos_solution.db'))  # old database renamed when used as input
+        # old database renamed when used as input
+        self.assertTrue(os.path.exists('old_dymos_solution.db'))
 
     def test_ex_brachistochrone_no_solve(self):
         print('test_ex_brachistochrone_no_solve')
@@ -108,26 +110,37 @@ class TestCommandLine(unittest.TestCase):
 
     def test_ex_brachistochrone_set_solution_record_file(self):
         print('test_ex_brachistochrone_set_solution_record_file')
-        with patch.object(sys, 'argv', self.base_args + ['--solution_record_file=solution_record_file.db']):
-        # with patch.object(sys, 'argv', self.base_args):
+        with patch.object(sys, 'argv', self.base_args +
+                          ['--solution_record_file=solution_record_file.db']):
             command_line.dymos_cmd()
 
-        self.assertTrue(os.path.exists('dymos_solution.db'))
         self.assertTrue(os.path.exists('solution_record_file.db'))
+        cr = om.CaseReader('solution_record_file.db')
+        self.assertListEqual(['final'], cr.list_cases())
 
     def test_ex_brachistochrone_simulate(self):
         print('test_ex_brachistochrone_simulate')
         with patch.object(sys, 'argv', self.base_args + ['--simulate']):
             command_line.dymos_cmd()
 
+        self.assertTrue(os.path.exists('dymos_solution.db'))
         self.assertTrue(os.path.exists('dymos_simulation.db'))
+        cr = om.CaseReader('dymos_simulation.db')
+        self.assertListEqual(['final'], cr.list_cases())
+        case = cr.get_case('final')
+        self.assertEqual(57, len(case.outputs))
 
     def test_ex_brachistochrone_simulate_set_simulation_record_file(self):
         print('test_ex_brachistochrone_simulate')
-        with patch.object(sys, 'argv', self.base_args + ['--simulate'] + ['--simulation_record_file=simulation_record_file.db']):
+        with patch.object(sys, 'argv', self.base_args + ['--simulate'] +
+                          ['--simulation_record_file=simulation_record_file.db']):
             command_line.dymos_cmd()
 
         self.assertTrue(os.path.exists('simulation_record_file.db'))
+        cr = om.CaseReader('simulation_record_file.db')
+        self.assertListEqual(['final'], cr.list_cases())
+        case = cr.get_case('final')
+        self.assertEqual(57, len(case.outputs))
 
     @unittest.skipIf(True, reason='grid resetting not yet implemented')
     def test_ex_brachistochrone_reset_grid(self):
@@ -142,7 +155,9 @@ class TestCommandLine(unittest.TestCase):
         from numpy.testing import assert_almost_equal
         from dymos.examples.vanderpol.vanderpol_dymos_plots import vanderpol_dymos_plots
 
-        self.base_args = ['dymos_testing', os.path.join(self.test_dir, '../../examples/vanderpol/vanderpol_dymos.py')]
+        self.base_args = ['dymos_testing',
+                          os.path.join(self.test_dir,
+                                       '../../examples/vanderpol/vanderpol_dymos.py')]
 
         # run simulation first to record the output database
         print('test_vanderpol_simulation_restart first run')
@@ -151,7 +166,8 @@ class TestCommandLine(unittest.TestCase):
 
         # run problem again loading the output simulation database, but not solving
         print('test_vanderpol_simulation_restart second run')
-        # TODO: need this to match test_modify_problem:test_modify_problem?   q.driver.opt_settings['maxiter'] = 0
+        # TODO: need this to match test_modify_problem:test_modify_problem?
+        #        q.driver.opt_settings['maxiter'] = 0
         with patch.object(sys, 'argv', self.base_args + ['--solution=dymos_simulation.db']):
             q = command_line.dymos_cmd()
 

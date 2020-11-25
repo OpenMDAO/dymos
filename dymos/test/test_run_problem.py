@@ -23,7 +23,7 @@ class TestRunProblem(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_run_HS_problem_radau(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -43,7 +43,8 @@ class TestRunProblem(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
-                                                   transcription=dm.Radau(num_segments=10, order=3)))
+                                                   transcription=dm.Radau(num_segments=10,
+                                                                          order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
@@ -74,8 +75,8 @@ class TestRunProblem(unittest.TestCase):
 
         ui = c1 * (1 + sqrt_two) + c2 * (1 - sqrt_two)
         uf = c1 * (1 + sqrt_two) * np.exp(val) + c2 * (1 - sqrt_two) * np.exp(-val)
-        J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) * np.exp(-2 * val) -
-                   (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
+        J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) *
+                   np.exp(-2 * val) - (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
                           ui,
@@ -89,7 +90,7 @@ class TestRunProblem(unittest.TestCase):
                           J,
                           tolerance=5e-4)
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_run_HS_problem_gl(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -108,7 +109,8 @@ class TestRunProblem(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
-                                                   transcription=dm.GaussLobatto(num_segments=20, order=3)))
+                                                   transcription=dm.GaussLobatto(num_segments=20,
+                                                                                 order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
@@ -139,8 +141,8 @@ class TestRunProblem(unittest.TestCase):
 
         ui = c1 * (1 + sqrt_two) + c2 * (1 - sqrt_two)
         uf = c1 * (1 + sqrt_two) * np.exp(val) + c2 * (1 - sqrt_two) * np.exp(-val)
-        J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) * np.exp(-2 * val) -
-                   (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
+        J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) *
+                   np.exp(-2 * val) - (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
                           ui,
@@ -162,7 +164,8 @@ class TestRunProblem(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneODE,
-                                                   transcription=dm.Radau(num_segments=10, order=3)))
+                                                   transcription=dm.Radau(num_segments=10,
+                                                                          order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
                          units=BrachistochroneODE.states['x']['units'],
@@ -193,11 +196,11 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[0, 10], nodes='state_input'))
         p.set_val('traj.phase0.states:y', phase0.interpolate(ys=[10, 5], nodes='state_input'))
         p.set_val('traj.phase0.states:v', phase0.interpolate(ys=[0, 9.9], nodes='state_input'))
-        p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100], nodes='control_input'))
+        p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100],
+                                                                   nodes='control_input'))
         p.set_val('traj.phase0.parameters:g', 9.80665)
 
         dm.run_problem(p)
-
 
     def test_modify_problem(self):
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
@@ -255,6 +258,7 @@ class TestRunProblem(unittest.TestCase):
             assert_almost_equal(x0q, fx0s(tq), decimal=2)
             assert_almost_equal(uq, fus(tq), decimal=5)
 
+
 @use_tempdirs
 class TestRunProblemPlotting(unittest.TestCase):
     def setUp(self):
@@ -265,7 +269,8 @@ class TestRunProblemPlotting(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneODE,
-                                                   transcription=dm.Radau(num_segments=10, order=3)))
+                                                   transcription=dm.Radau(num_segments=10,
+                                                                          order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
                          units=BrachistochroneODE.states['x']['units'],
@@ -296,7 +301,8 @@ class TestRunProblemPlotting(unittest.TestCase):
         p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[0, 10], nodes='state_input'))
         p.set_val('traj.phase0.states:y', phase0.interpolate(ys=[10, 5], nodes='state_input'))
         p.set_val('traj.phase0.states:v', phase0.interpolate(ys=[0, 9.9], nodes='state_input'))
-        p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100], nodes='control_input'))
+        p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100],
+                                                                   nodes='control_input'))
         p.set_val('traj.phase0.parameters:g', 9.80665)
 
         self.p = p
@@ -315,11 +321,11 @@ class TestRunProblemPlotting(unittest.TestCase):
 
     def test_run_brachistochrone_problem_make_plots_set_plot_dir(self):
         plot_dir = "test_plot_dir"
-        dm.run_problem(self.p, make_plots=True,plot_dir=plot_dir)
+        dm.run_problem(self.p, make_plots=True, plot_dir=plot_dir)
 
-        self.assertTrue(os.path.exists(os.path.join(plot_dir,'test_x.png')))
-        self.assertTrue(os.path.exists(os.path.join(plot_dir,'test_y.png')))
-        self.assertTrue(os.path.exists(os.path.join(plot_dir,'test_v.png')))
+        self.assertTrue(os.path.exists(os.path.join(plot_dir, 'test_x.png')))
+        self.assertTrue(os.path.exists(os.path.join(plot_dir, 'test_y.png')))
+        self.assertTrue(os.path.exists(os.path.join(plot_dir, 'test_v.png')))
 
     def test_run_brachistochrone_problem_do_not_make_plots(self):
         dm.run_problem(self.p, make_plots=False)
@@ -352,10 +358,10 @@ class TestRunProblemPlotting(unittest.TestCase):
         self.assertTrue(os.path.exists('plots/test_v.png'))
 
     def test_run_brachistochrone_problem_plot_no_simulation_record_file_given(self):
-        with self.assertRaises(ValueError) as e:
-            dm.run_problem(self.p, make_plots=True, simulate=True)
-        expected = 'If plot_simulation is True, simulation_record_file must be path to simulation case recorder file, not None'
-        self.assertEqual(str(e.exception), expected)
+        dm.run_problem(self.p, make_plots=True, simulate=True)
+        self.assertTrue(os.path.exists('plots/test_x.png'))
+        self.assertTrue(os.path.exists('plots/test_y.png'))
+        self.assertTrue(os.path.exists('plots/test_v.png'))
 
 
 if __name__ == '__main__':  # pragma: no cover

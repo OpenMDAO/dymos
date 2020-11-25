@@ -1,11 +1,9 @@
 import os
 import unittest
-import warnings
 
 import numpy as np
 
 import openmdao.api as om
-from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
@@ -14,7 +12,7 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 from dymos.visualization.timeseries_plots import timeseries_plots
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestSimpleTimeSeriesPlots(unittest.TestCase):
     def setUp(self):
         optimizer = 'SLSQP'
@@ -102,8 +100,8 @@ class TestSimpleTimeSeriesPlots(unittest.TestCase):
         self.assertTrue(os.path.exists('plots/test_v.png'))
 
     def test_brachistochrone_timeseries_plots_solution_only_set_solution_record_file(self):
-        dm.run_problem(self.p,make_plots=False, solution_record_file='solution_record_file.db' # will plot with timeseries_plots function
-                       ) # records to the hardcode file 'dymos_simulation.db'
+        # records to the default file 'dymos_simulation.db'
+        dm.run_problem(self.p, make_plots=False, solution_record_file='solution_record_file.db')
 
         timeseries_plots('solution_record_file.db')
         self.assertTrue(os.path.exists('plots/test_x.png'))
@@ -111,44 +109,23 @@ class TestSimpleTimeSeriesPlots(unittest.TestCase):
         self.assertTrue(os.path.exists('plots/test_v.png'))
 
     def test_brachistochrone_timeseries_plots_solution_and_simulation(self):
-        dm.run_problem(self.p, simulate=True, make_plots=False, # will plot with timeseries_plots function
-                       simulation_record_file='simulation_record_file.db') # records to the hardcode file 'dymos_simulation.db'
+        dm.run_problem(self.p, simulate=True, make_plots=False,
+                       simulation_record_file='simulation_record_file.db')
 
-        timeseries_plots('dymos_solution.db', plot_simulation=True,
-                         simulation_record_file='simulation_record_file.db')
-
-
-
-    def test_brachistochrone_timeseries_plots_plot_simulation_true_but_no_path_given(self):
-        dm.run_problem(self.p, make_plots=False)
-        with self.assertRaises(ValueError) as e:
-            timeseries_plots('dymos_solution.db', plot_simulation=True)
-        expected = 'If plot_simulation is True, simulation_record_file must be path to simulation case recorder file, not None'
-        self.assertEqual(str(e.exception), expected)
-
-    def test_brachistochrone_timeseries_plots_plot_simulation_false_but_path_given(self):
-        dm.run_problem(self.p, make_plots=False)
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
-            timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db')
-
-        expected = 'Setting simulation_record_file but not setting plot_simulation will not result in plotting simulation data'
-
-        self.assertIn(expected, [str(ww.message) for ww in w])
+        timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db')
 
     def test_brachistochrone_timeseries_plots_set_plot_dir(self):
         dm.run_problem(self.p, make_plots=False)
 
         plot_dir = "test_plot_dir"
-        timeseries_plots('dymos_solution.db',plot_dir=plot_dir)
+        timeseries_plots('dymos_solution.db', plot_dir=plot_dir)
 
-        self.assertTrue(os.path.exists(os.path.join(plot_dir,'test_x.png')))
-        self.assertTrue(os.path.exists(os.path.join(plot_dir,'test_y.png')))
-        self.assertTrue(os.path.exists(os.path.join(plot_dir,'test_v.png')))
+        self.assertTrue(os.path.exists(os.path.join(plot_dir, 'test_x.png')))
+        self.assertTrue(os.path.exists(os.path.join(plot_dir, 'test_y.png')))
+        self.assertTrue(os.path.exists(os.path.join(plot_dir, 'test_v.png')))
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestTimeSeriesPlots(unittest.TestCase):
 
     def tearDown(self):
@@ -166,7 +143,8 @@ class TestTimeSeriesPlots(unittest.TestCase):
 
         # First Phase (burn)
 
-        burn1 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=4, order=3))
+        burn1 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=4,
+                                                                                order=3))
 
         self.traj.add_phase('burn1', burn1)
 
@@ -189,11 +167,13 @@ class TestTimeSeriesPlots(unittest.TestCase):
 
         # Second Phase (Coast)
 
-        coast = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=10, order=3))
+        coast = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=10,
+                                                                                order=3))
 
         self.traj.add_phase('coast', coast)
 
-        coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10, units='TU')
+        coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10,
+                               units='TU')
         coast.add_state('r', fix_initial=False, fix_final=False, defect_scaler=100.0,
                         rate_source='r_dot', targets=['r'], units='DU')
         coast.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
@@ -211,11 +191,13 @@ class TestTimeSeriesPlots(unittest.TestCase):
 
         # Third Phase (burn)
 
-        burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=3, order=3))
+        burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=3,
+                                                                                order=3))
 
         self.traj.add_phase('burn2', burn2)
 
-        burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), initial_ref=10, units='TU')
+        burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), initial_ref=10,
+                               units='TU')
         burn2.add_state('r', fix_initial=False, fix_final=True,
                         rate_source='r_dot', targets=['r'], units='DU')
         burn2.add_state('theta', fix_initial=False, fix_final=False,
@@ -236,7 +218,7 @@ class TestTimeSeriesPlots(unittest.TestCase):
 
         # Link Phases
         self.traj.link_phases(phases=['burn1', 'coast', 'burn2'],
-                             vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
+                              vars=['time', 'r', 'theta', 'vr', 'vt', 'deltav'])
         self.traj.link_phases(phases=['burn1', 'burn2'], vars=['accel'])
 
         # Finish Problem Setup
@@ -312,12 +294,12 @@ class TestTimeSeriesPlots(unittest.TestCase):
         # include the following variables for every problem.
         #
 
-# @use_tempdirs
+
+@use_tempdirs
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
     def test_two_phase_cannonball_make_plot(self):
         import openmdao.api as om
-        from openmdao.utils.assert_utils import assert_near_equal
 
         import dymos as dm
         from dymos.examples.cannonball.size_comp import CannonballSizeComp
@@ -347,7 +329,8 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         # All initial states except flight path angle are fixed
         # Final flight path angle is fixed (we will set it to zero so that the phase ends at apogee)
-        ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100), duration_ref=100, units='s')
+        ascent.set_time_options(fix_initial=True, duration_bounds=(1, 100), duration_ref=100,
+                                units='s')
         ascent.set_state_options('r', fix_initial=True, fix_final=False)
         ascent.set_state_options('h', fix_initial=True, fix_final=False)
         ascent.set_state_options('gam', fix_initial=False, fix_final=True)
@@ -445,108 +428,23 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.set_val('traj.descent.states:gam', descent.interpolate(ys=[0, -45], nodes='state_input'),
                   units='deg')
 
-        # dm.run_problem(p)
-        #
-        # timeseries_plots('dymos_solution.db')
+        dm.run_problem(p, simulate=True, make_plots=False,
+                       simulation_record_file='simulation_record_file.db')
 
-        dm.run_problem(p, simulate=True, make_plots=False, # will plot with timeseries_plots function
-                       simulation_record_file='simulation_record_file.db') # records to the hardcode file 'dymos_simulation.db'
-
-        timeseries_plots('dymos_solution.db', plot_simulation=True,
-                         simulation_record_file='simulation_record_file.db')
-
-
-        # exp_out = traj.simulate()
-        #
-        # import matplotlib.pyplot as plt
-        # # plt.switch_backend('Agg')
-        # fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
-        #
-        # time_imp = {'ascent': p.get_val('traj.ascent.timeseries.time'),
-        #             'descent': p.get_val('traj.descent.timeseries.time')}
-        #
-        # time_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.time'),
-        #             'descent': exp_out.get_val('traj.descent.timeseries.time')}
-        #
-        # r_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:r'),
-        #          'descent': p.get_val('traj.descent.timeseries.states:r')}
-        #
-        # r_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:r'),
-        #          'descent': exp_out.get_val('traj.descent.timeseries.states:r')}
-        #
-        # h_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:h'),
-        #          'descent': p.get_val('traj.descent.timeseries.states:h')}
-        #
-        # h_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:h'),
-        #          'descent': exp_out.get_val('traj.descent.timeseries.states:h')}
-        #
-        # axes.plot(r_imp['ascent'], h_imp['ascent'], 'bo')
-        #
-        # axes.plot(r_imp['descent'], h_imp['descent'], 'ro')
-        #
-        # axes.plot(r_exp['ascent'], h_exp['ascent'], 'b--')
-        #
-        # axes.plot(r_exp['descent'], h_exp['descent'], 'r--')
-        #
-        # axes.set_xlabel('range (m)')
-        # axes.set_ylabel('altitude (m)')
-        #
-        # fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 6))
-        # states = ['r', 'h', 'v', 'gam']
-        # for i, state in enumerate(states):
-        #     x_imp = {'ascent': p.get_val('traj.ascent.timeseries.states:{0}'.format(state)),
-        #              'descent': p.get_val('traj.descent.timeseries.states:{0}'.format(state))}
-        #
-        #     x_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.states:{0}'.format(state)),
-        #              'descent': exp_out.get_val('traj.descent.timeseries.states:{0}'.format(state))}
-        #
-        #     axes[i].set_ylabel(state)
-        #
-        #     axes[i].plot(time_imp['ascent'], x_imp['ascent'], 'bo')
-        #     axes[i].plot(time_imp['descent'], x_imp['descent'], 'ro')
-        #     axes[i].plot(time_exp['ascent'], x_exp['ascent'], 'b--')
-        #     axes[i].plot(time_exp['descent'], x_exp['descent'], 'r--')
-        #
-        # params = ['CL', 'CD', 'T', 'alpha', 'mass', 'S']
-        # fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(12, 6))
-        # for i, param in enumerate(params):
-        #     p_imp = {
-        #         'ascent': p.get_val('traj.ascent.timeseries.parameters:{0}'.format(param)),
-        #         'descent': p.get_val('traj.descent.timeseries.parameters:{0}'.format(param))}
-        #
-        #     p_exp = {'ascent': exp_out.get_val('traj.ascent.timeseries.'
-        #                                        'parameters:{0}'.format(param)),
-        #              'descent': exp_out.get_val('traj.descent.timeseries.'
-        #                                         'parameters:{0}'.format(param))}
-        #
-        #     axes[i].set_ylabel(param)
-        #
-        #     axes[i].plot(time_imp['ascent'], p_imp['ascent'], 'bo')
-        #     axes[i].plot(time_imp['descent'], p_imp['descent'], 'ro')
-        #     axes[i].plot(time_exp['ascent'], p_exp['ascent'], 'b--')
-        #     axes[i].plot(time_exp['descent'], p_exp['descent'], 'r--')
-        #
-        # plt.show()
+        timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db')
 
     def test_trajectory_linked_phases_make_plot(self):
 
         self.traj = dm.Trajectory()
         p = self.p = om.Problem(model=self.traj)
 
-        # p = self.p = om.Problem(model=om.Group())
-        # self.traj = p.model.add_subsystem('traj', dm.Trajectory())
-
-
-        # Since we're only testing features like get_values that don't rely on a converged
-        # solution, no driver is attached.  We'll just invoke run_model.
-
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'IPOPT'
         p.driver.declare_coloring()
 
         # First Phase (burn)
-
-        burn1 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=4, order=3))
+        burn1 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=4,
+                                                                                order=3))
 
         self.traj.add_phase('burn1', burn1)
 
@@ -569,11 +467,13 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         # Second Phase (Coast)
 
-        coast = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=10, order=3))
+        coast = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=10,
+                                                                                order=3))
 
         self.traj.add_phase('coast', coast)
 
-        coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10, units='TU')
+        coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), duration_ref=10,
+                               units='TU')
         coast.add_state('r', fix_initial=False, fix_final=False, defect_scaler=100.0,
                         rate_source='r_dot', targets=['r'], units='DU')
         coast.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=100.0,
@@ -591,11 +491,13 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
         # Third Phase (burn)
 
-        burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=3, order=3))
+        burn2 = dm.Phase(ode_class=FiniteBurnODE, transcription=dm.GaussLobatto(num_segments=3,
+                                                                                order=3))
 
         self.traj.add_phase('burn2', burn2)
 
-        burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), initial_ref=10, units='TU')
+        burn2.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 10), initial_ref=10,
+                               units='TU')
         burn2.add_state('r', fix_initial=False, fix_final=True,
                         rate_source='r_dot', targets=['r'], units='DU')
         burn2.add_state('theta', fix_initial=False, fix_final=False,
@@ -665,13 +567,10 @@ class TestTwoPhaseCannonballForDocs(unittest.TestCase):
         p.set_val('burn2.controls:u1', value=burn2.interpolate(ys=[1, 1], nodes='control_input'))
         p.set_val('burn2.parameters:c', value=1.5)
 
-        # p.run_model()
-        dm.run_problem(p, simulate=True, make_plots=False, # will plot with timeseries_plots function
-                       simulation_record_file='simulation_record_file.db') # records to the hardcode file 'dymos_simulation.db'
+        dm.run_problem(p, simulate=True, make_plots=False,
+                       simulation_record_file='simulation_record_file.db')
 
-        timeseries_plots('dymos_solution.db', plot_simulation=True,
-                         simulation_record_file='simulation_record_file.db')
-
+        timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db')
 
 
 if __name__ == '__main__':  # pragma: no cover
