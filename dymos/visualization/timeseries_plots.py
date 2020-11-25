@@ -47,8 +47,7 @@ def _get_phases_node_in_problem_metadata(node, path=""):
     return None, None
 
 
-def timeseries_plots(solution_recorder_filename, simulation_record_file=None,
-                     plot_dir="plots"):
+def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots"):
     """
     Given timeseries data from case recorder files, make separate plots of each variable
     and store the plot files in the directory indicated by the variable plot_dir
