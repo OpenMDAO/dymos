@@ -6,7 +6,7 @@ import openmdao.api as om
 
 from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
 from ..utils.constants import INF_BOUND
-from ..utils.misc import get_rate_units, _unspecified, get_target_metadata
+from ..utils.misc import get_rate_units, _unspecified, get_target_metadata, get_source_metadata
 
 
 class TranscriptionBase(object):
@@ -72,7 +72,7 @@ class TranscriptionBase(object):
             if time_options['targets']:
                 ode = phase._get_subsystem(self._rhs_source)
 
-                _, time_options['units'] = get_target_metadata(ode, name=name,
+                _, time_options['units'] = get_target_metadata(ode, name='time',
                                                                user_targets=time_options['targets'],
                                                                user_units=time_options['units'],
                                                                user_shape='')
@@ -132,26 +132,126 @@ class TranscriptionBase(object):
             phase.add_subsystem('control_group',
                                 subsys=control_group)
 
+    def _configure_state_introspection(self, state_name, options, phase):
+        """
+        Modifies state options in-place, automatically determining 'targets', 'units', and 'shape'
+        if necessary.
+        The precedence rules for the state shape and units are as follows:
+        1. If the user has specified units and shape in the state options, use those.
+        2a. If the user has not specified shape, and targets exist, then pull the shape from the targets.
+        2b. If the user has not specified shape and no targets exist, then pull the shape from the rate source.
+        2c. If shape cannot be inferred, assume (1,)
+        3a. If the user has not specified units, first try to pull units from a target
+        3b. If there are no targets, pull units from the rate source and multiply by time units.
+        For units, specifically, option 3b can lead to ugly behavior.  If the state rate has units
+        of 'm/s', then the state units will be inferred as 'm/s*s'.  While mathematically correct,
+        OpenMDAO does not currently simplify unit strings.
+        Parameters
+        ----------
+        state_name : str
+            The name of the state variable of interest.
+        state_options: OptionsDictionary
+            The options dictionary for the state variable of interest.
+        phase
+            The phase associated with the transcription.
+        """
+        time_units = phase.time_options['units']
+        user_targets = options['targets']
+        user_units = options['units']
+        user_shape = options['shape']
+
+        need_units = user_units is _unspecified
+        need_shape = user_shape in {None, _unspecified}
+
+        ode = phase._get_subsystem(self._rhs_source)
+
+        # Automatically determine targets of state if left _unspecified
+        if user_targets is _unspecified:
+            from dymos.utils.introspection import get_targets
+            options['targets'] = get_targets(ode, state_name, user_targets)
+
+        # 1. No introspection necessary
+        if not(need_shape or need_units):
+            return
+
+        # 2. Attempt target introspection
+        if options['targets']:
+            try:
+                from dymos.utils.introspection import get_state_target_metadata
+                tgt_shape, tgt_units = get_state_target_metadata(ode, state_name, options['targets'],
+                                                                 options['units'], options['shape'])
+                options['shape'] = tgt_shape
+                options['units'] = tgt_units
+                return
+            except ValueError:
+                pass
+
+        # 3. Attempt rate-source introspection
+        rate_src = options['rate_source']
+        rate_src_type = phase.classify_var(rate_src)
+
+        if rate_src_type in ['time', 'time_phase']:
+            rate_src_units = phase.time_options['units']
+            rate_src_shape = (1,)
+        elif rate_src_type == 'state':
+            rate_src_units = phase.state_options[rate_src]['units']
+            rate_src_shape = phase.state_options[rate_src]['shape']
+        elif rate_src_type in ['input_control', 'indep_control']:
+            rate_src_units = phase.control_options[rate_src]['units']
+            rate_src_shape = phase.control_options[rate_src]['shape']
+        elif rate_src_type in ['input_polynomial_control', 'indep_polynomial_control']:
+            rate_src_units = phase.polynomial_control_options[rate_src]['units']
+            rate_src_shape = phase.polynomial_control_options[rate_src]['shape']
+        elif rate_src_type == 'parameter':
+            rate_src_units = phase.parameter_options[rate_src]['units']
+            rate_src_shape = phase.parameter_options[rate_src]['shape']
+        elif rate_src_type == 'control_rate':
+            control_name = rate_src[:-5]
+            rate_src_units = phase.control_options[control_name]['units']
+            rate_src_shape = phase.control_options[control_name]['shape']
+        elif rate_src_type == 'control_rate2':
+            control_name = rate_src[:-6]
+            rate_src_units = phase.control_options[control_name]['units']
+            rate_src_shape = phase.control_options[control_name]['shape']
+        elif rate_src_type == 'polynomial_control_rate':
+            control_name = rate_src[:-5]
+            rate_src_units = phase.polynomial_control_options[control_name]['units']
+            rate_src_shape = phase.polynomial_control_options[control_name]['shape']
+        elif rate_src_type == 'polynomial_control_rate2':
+            control_name = rate_src[:-6]
+            rate_src_units = phase.polynomial_control_options[control_name]['units']
+            rate_src_shape = phase.polynomial_control_options[control_name]['shape']
+        elif rate_src_type == 'ode':
+            rate_src_shape, rate_src_units = get_source_metadata(ode,
+                                                                 src=rate_src,
+                                                                 user_units=options['units'],
+                                                                 user_shape=options['shape'])
+        else:
+            rate_src_shape = (1,)
+            rate_src_units = None
+
+        if need_shape:
+            options['shape'] = rate_src_shape
+
+        if need_units:
+            options['units'] = rate_src_units if rate_src_units is None else f'{rate_src_units}*{time_units}'
+
+        return
+
     def configure_controls(self, phase):
         ode = phase._get_subsystem(self._rhs_source)
 
         # Interrogate shapes and units.
         for name, options in phase.control_options.items():
 
-            full_shape, units = get_target_metadata(ode, name=name,
-                                                    user_targets=options['targets'],
-                                                    user_units=options['units'],
-                                                    user_shape=options['shape'],
-                                                    control_rate=True)
+            shape, units = get_target_metadata(ode, name=name,
+                                               user_targets=options['targets'],
+                                               user_units=options['units'],
+                                               user_shape=options['shape'],
+                                               control_rate=True)
 
             options['units'] = units
-
-            # Determine and store the pre-discretized state shape for use by other components.
-            if len(full_shape) < 2:
-                if options['shape'] in (_unspecified, None):
-                    options['shape'] = (1, )
-            else:
-                options['shape'] = full_shape[1:]
+            options['shape'] = shape
 
         if phase.control_options:
             phase.control_group.configure_io()
@@ -177,20 +277,14 @@ class TranscriptionBase(object):
         # Interrogate shapes and units.
         for name, options in phase.polynomial_control_options.items():
 
-            full_shape, units = get_target_metadata(ode, name=name,
-                                                    user_targets=options['targets'],
-                                                    user_units=options['units'],
-                                                    user_shape=options['shape'],
-                                                    control_rate=True)
+            shape, units = get_target_metadata(ode, name=name,
+                                               user_targets=options['targets'],
+                                               user_units=options['units'],
+                                               user_shape=options['shape'],
+                                               control_rate=True)
 
             options['units'] = units
-
-            # Determine and store the pre-discretized state shape for use by other components.
-            if len(full_shape) < 2:
-                if options['shape'] in (_unspecified, None):
-                    options['shape'] = (1, )
-            else:
-                options['shape'] = full_shape[1:]
+            options['shape'] = shape
 
         if phase.polynomial_control_options:
             phase.polynomial_control_group.configure_io()
@@ -228,7 +322,8 @@ class TranscriptionBase(object):
                 shape, units = get_target_metadata(ode, name=name,
                                                    user_targets=options['targets'],
                                                    user_shape=options['shape'],
-                                                   user_units=options['units'])
+                                                   user_units=options['units'],
+                                                   dynamic=options['dynamic'])
                 options['units'] = units
                 options['shape'] = shape
 
@@ -238,11 +333,14 @@ class TranscriptionBase(object):
                         parts = pathname.split('.')
                         sub_sys = parts[0]
                         tgt_var = '.'.join(parts[1:])
-                        phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
-                                       src_indices=src_idxs, flat_src_indices=True)
+                        if options['dynamic']:
+                            phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)],
+                                           src_indices=src_idxs, flat_src_indices=True)
+                        else:
+                            phase.promotes(sub_sys, inputs=[(tgt_var, prom_name)])
 
                 val = options['val']
-                _shape = (1,) + options['shape']
+                _shape = options['shape']
                 shaped_val = np.broadcast_to(val, _shape)
                 phase.set_input_defaults(name=src_name,
                                          val=shaped_val,
@@ -339,25 +437,28 @@ class TranscriptionBase(object):
                                      'compatible the provided indices. Provide them as a '
                                      'flat array with the same size as indices.'.format(var))
 
-            elif options['lower'] or options['upper'] or options['equals']:
+            elif 'lower' in options or 'upper' in options or 'equals' in options:
                 # Indices not provided, make sure lower/upper/equals have shape of source.
-                if options['lower'] and not np.isscalar(options['lower']) and \
-                        np.asarray(options['lower']).shape != shape:
+                if 'lower' in options and options['lower'] is not None and \
+                        not np.isscalar(options['lower']) and np.asarray(options['lower']).shape != shape:
                     raise ValueError('The lower bounds of boundary constraint on {0} are not '
                                      'compatible with its shape, and no indices were '
-                                     'provided.'.format(var))
+                                     'provided. Expected a shape of {1} but given shape '
+                                     'is {2}'.format(var, shape, np.asarray(options['lower']).shape))
 
-                if options['upper'] and not np.isscalar(options['upper']) and \
-                        np.asarray(options['upper']).shape != shape:
+                if 'upper' in options and options['upper'] is not None and \
+                        not np.isscalar(options['upper']) and np.asarray(options['upper']).shape != shape:
                     raise ValueError('The upper bounds of boundary constraint on {0} are not '
                                      'compatible with its shape, and no indices were '
-                                     'provided.'.format(var))
+                                     'provided. Expected a shape of {1} but given shape '
+                                     'is {2}'.format(var, shape, np.asarray(options['upper']).shape))
 
-                if options['equals'] and not np.isscalar(options['equals']) \
-                        and np.asarray(options['equals']).shape != shape:
+                if 'equals' in options and options['equals'] is not None and \
+                        not np.isscalar(options['equals']) and np.asarray(options['equals']).shape != shape:
                     raise ValueError('The equality boundary constraint value on {0} is not '
                                      'compatible with its shape, and no indices were '
-                                     'provided.'.format(var))
+                                     'provided. Expected a shape of {1} but given shape '
+                                     'is {2}'.format(var, shape, np.asarray(options['equals']).shape))
                 con_shape = (np.prod(shape),)
 
             size = np.prod(shape)
@@ -522,7 +623,7 @@ class TranscriptionBase(object):
             constraint_kwargs.pop('constraint_name', None)
             phase._get_subsystem('path_constraints')._add_path_constraint_configure(con_name, **constraint_kwargs)
 
-    def setup_objective(self, phase):
+    def configure_objective(self, phase):
         """
         Find the path of the objective(s) and add the objective using the standard OpenMDAO method.
         """
@@ -562,9 +663,6 @@ class TranscriptionBase(object):
                                               scaler=options['scaler'],
                                               parallel_deriv_color=options['parallel_deriv_color'],
                                               vectorize_derivs=options['vectorize_derivs'])
-
-    def configure_objective(self, phase):
-        pass
 
     def _get_boundary_constraint_src(self, name, loc, phase):
         raise NotImplementedError('Transcription {0} does not implement method'

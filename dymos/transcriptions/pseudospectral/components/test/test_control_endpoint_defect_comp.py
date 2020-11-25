@@ -6,6 +6,7 @@ import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from dymos.utils.testing_utils import assert_check_partials
 
+import dymos as dm
 from dymos.transcriptions.pseudospectral.components import ControlEndpointDefectComp
 from dymos.transcriptions.grid_data import GridData
 
@@ -13,6 +14,7 @@ from dymos.transcriptions.grid_data import GridData
 class TestControlEndpointDefectComp(unittest.TestCase):
 
     def setUp(self):
+        dm.options['include_check_partials'] = True
         gd = GridData(num_segments=2, segment_ends=np.array([0., 2., 4.]),
                       transcription='radau-ps', transcription_order=3)
 
@@ -45,6 +47,9 @@ class TestControlEndpointDefectComp(unittest.TestCase):
         self.p['controls:v'] = np.random.random((gd.subset_num_nodes['all'], 3, 2))
 
         self.p.run_model()
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def test_results(self):
 

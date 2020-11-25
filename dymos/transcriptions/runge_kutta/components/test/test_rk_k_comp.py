@@ -6,6 +6,7 @@ import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from dymos.utils.testing_utils import assert_check_partials
 
+import dymos as dm
 from dymos.transcriptions.runge_kutta.components.runge_kutta_k_comp import RungeKuttaKComp
 
 # Modify class so we can run it standalone.
@@ -14,6 +15,12 @@ RungeKuttaKComp = CompWrapperConfig(RungeKuttaKComp)
 
 
 class TestRKKComp(unittest.TestCase):
+
+    def setUp(self):
+        dm.options['include_check_partials'] = True
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def test_rk_k_comp_rk4_scalar(self):
         state_options = {'y': {'shape': (1,), 'units': 'm'}}

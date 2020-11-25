@@ -71,6 +71,12 @@ def f2_d(t):
 
 class TestControlRateComp(unittest.TestCase):
 
+    def setUp(self):
+        dm.options['include_check_partials'] = True
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
+
     @parameterized.expand(
         itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                           [True, False],  # compressed
@@ -78,7 +84,6 @@ class TestControlRateComp(unittest.TestCase):
             ['test_control_interp_scalar', p.args[0], str(p.args[1])])
     )
     def test_control_interp_scalar(self, transcription='gauss-lobatto', compressed=True):
-        dm.options['include_check_partials'] = True
         segends = np.array([0.0, 3.0, 10.0])
 
         gd = GridData(num_segments=2,
@@ -170,7 +175,6 @@ class TestControlRateComp(unittest.TestCase):
             ['test_control_interp_scalar_RK4', str(p.args[0])]))
     def test_control_interp_scalar_rk4(self, compressed=False):
 
-        dm.options['include_check_partials'] = True
         segends = np.array([0.0, 3.0, 9.0])
 
         gd = GridData(num_segments=2,
@@ -357,7 +361,6 @@ class TestControlRateComp(unittest.TestCase):
     )
     def test_control_interp_matrix_3x1(self, transcription='gauss-lobatto', compressed=True):
 
-        dm.options['include_check_partials'] = True
         segends = np.array([0.0, 3.0, 10.0])
 
         gd = GridData(num_segments=2,
@@ -459,7 +462,6 @@ class TestControlRateComp(unittest.TestCase):
     )
     def test_control_interp_matrix_2x2(self, transcription='gauss-lobatto', compressed=True):
 
-        dm.options['include_check_partials'] = True
         segends = np.array([0.0, 3.0, 10.0])
 
         gd = GridData(num_segments=2,

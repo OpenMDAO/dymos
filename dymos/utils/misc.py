@@ -1,5 +1,3 @@
-import sys
-
 import numpy as np
 
 
@@ -79,55 +77,8 @@ def get_rate_units(units, time_units, deriv=1):
     return rate_units
 
 
-def get_targets(ode, name, user_targets):
-    """
-    Return the targets of a state variable in a given ODE system.
-    If the targets of the state is _unspecified, and the state name is a top level input name
-    in the ODE, then the state values are automatically connected to that top-level input.
-    If _unspecified and not a top-level input of the ODE, no connection is made.
-    If targets is explicitly None, then no connection is made.
-    Otherwise, if the user specified some other string or sequence of strings as targets, then
-    those are returned.
-    Parameters
-    ----------
-    ode : om.System
-        The OpenMDAO system which serves as the ODE for dymos.  This system should already have
-        had its setup and configure methods called.
-    name : str
-        The name of the state variable whose targets are desired.
-    user_targets : str or None or Sequence or _unspecified
-        Targets for the variable as given by the user.
-    Returns
-    -------
-    list
-        The target inputs of the state variable in the ODE, as a list.
-    Notes
-    -----
-    This method requires that the ODE has run its setup and configure methods.  Thus,
-    this method should be called from configure of some parent Group, and the ODE should
-    be a system within that Group.
-    """
-    ode_inputs = {opts['prom_name']: opts for (k, opts) in
-                  ode.get_io_metadata(iotypes=('input',), get_remote=True).items()}
-
-    if user_targets is _unspecified:
-        if name in ode_inputs:
-            targets = [name]
-        else:
-            targets = []
-    elif user_targets:
-        if isinstance(user_targets, str):
-            targets = [user_targets]
-        else:
-            targets = user_targets
-    else:
-        targets = []
-
-    return targets
-
-
 def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,
-                        user_shape=_unspecified, control_rate=False):
+                        user_shape=_unspecified, control_rate=False, dynamic=True):
     """
     Return the targets of a state variable in a given ODE system.
     If the targets of the state is _unspecified, and the state name is a top level input name
@@ -151,6 +102,9 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         Shape for the variable as given by the user.
     control_rate : bool
         When True, check for the control rate if the name is not in the ODE.
+    dynamic : bool
+        When True, assume the shape of the target in the ODE includes the number of nodes as the
+        first dimension.
 
     Returns
     -------
@@ -202,9 +156,16 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         target_shape_set = {ode_inputs[tgt]['shape'] for tgt in targets}
         if len(target_shape_set) == 1:
             shape = next(iter(target_shape_set))
+            if dynamic:
+                if len(shape) == 1:
+                    shape = (1,)
+                else:
+                    shape = shape[1:]
         elif len(target_shape_set) == 0:
-            raise ValueError(f'Unable to automatically assign a shape to {name}. '
-                             'Independent controls need to declare a shape.')
+            raise ValueError(f'Unable to automatically assign a shape to {name}.\n'
+                             'Targets for this variable either do not exist or have no shape set.\n'
+                             'The shape for this variable must be set explicitly via the '
+                             '`shape=<tuple>` argument.')
         else:
             raise ValueError(f'Unable to automatically assign a shape to {name} based on targets. '
                              f'Targets have multiple shapes assigned: {target_shape_set}. '

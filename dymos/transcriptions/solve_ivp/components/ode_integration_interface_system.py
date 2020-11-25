@@ -2,7 +2,8 @@ import numpy as np
 from .odeint_control_interpolation_comp import ODEIntControlInterpolationComp
 from .state_rate_collector_comp import StateRateCollectorComp
 from ....phase.options import TimeOptionsDictionary
-from ....utils.misc import get_targets, get_target_metadata
+from ....utils.misc import get_target_metadata
+from ....utils.introspection import get_targets
 import openmdao.api as om
 
 
@@ -90,7 +91,10 @@ class ODEIntegrationInterfaceSystem(om.Group):
             if targets:
                 for tgt in targets:
                     tgt_shape, _ = get_target_metadata(ode=ode, name=name, user_targets=tgt)
-                    src_idxs = np.arange(size, dtype=int).reshape(tgt_shape)
+                    if len(tgt_shape) == 1 and tgt_shape[0] == 1:
+                        src_idxs = np.arange(size, dtype=int).reshape(tgt_shape)
+                    else:
+                        src_idxs = np.arange(size, dtype=int).reshape((1,) + tgt_shape)
                     self.connect(f'states:{name}', f'ode.{tgt}',
                                  src_indices=src_idxs, flat_src_indices=True)
 

@@ -6,6 +6,7 @@ import numpy as np
 
 from scipy import interpolate
 
+import openmdao
 import openmdao.api as om
 from openmdao.core.system import System
 from openmdao.utils.general_utils import warn_deprecation
@@ -17,6 +18,10 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
 
 from ..transcriptions.transcription_base import TranscriptionBase
 from ..utils.misc import _unspecified
+
+
+om_dev_version = openmdao.__version__.endswith('dev')
+om_version = tuple(int(s) for s in openmdao.__version__.split('-')[0].split('.'))
 
 
 class Phase(om.Group):
@@ -901,14 +906,17 @@ class Phase(om.Group):
             self.parameter_options[name]['val'] = val
 
         if shape is not _unspecified:
-            self.parameter_options[name]['shape'] = shape
+            if np.isscalar(shape):
+                self.parameter_options[name]['shape'] = (shape,)
+            elif isinstance(shape, list):
+                self.parameter_options[name]['shape'] = tuple(shape)
+            else:
+                self.parameter_options[name]['shape'] = shape
         elif val is not _unspecified:
             if isinstance(val, float):
                 self.parameter_options[name]['shape'] = (1,)
             else:
-                self.parameter_options[name]['shape'] = np.asarray(val).shape
-        else:
-            self.parameter_options[name]['shape'] = (1,)
+                self.parameter_options[name]['shape'] = tuple(np.asarray(val).shape)
 
         if dynamic is not _unspecified:
             self.parameter_options[name]['dynamic'] = dynamic
@@ -1541,7 +1549,7 @@ class Phase(om.Group):
         -------
         str
             The classification of the given variable, which is one of
-            'time', 'state', 'input_control', 'indep_control', 'control_rate',
+            'time', 'time_phase', 'state', 'input_control', 'indep_control', 'control_rate',
             'control_rate2', 'input_polynomial_control', 'indep_polynomial_control',
             'polynomial_control_rate', 'polynomial_control_rate2', 'parameter',
             or 'ode'.
@@ -1618,7 +1626,6 @@ class Phase(om.Group):
         transcription.setup_boundary_constraints('initial', self)
         transcription.setup_boundary_constraints('final', self)
         transcription.setup_path_constraints(self)
-        transcription.setup_objective(self)
         transcription.setup_timeseries_outputs(self)
         transcription.setup_solvers(self)
 
@@ -1912,18 +1919,18 @@ class Phase(om.Group):
                 prob['{0}polynomial_controls:{1}'.format(self_path, name)][...] = ip['value']
 
         # Assign parameter values
-        pname = '{0}parameters:{1}'
         for name in phs.parameter_options:
 
             if skip_params and name in skip_params:
                 continue
 
-            prom_phs_path = pname.format(phs_path.replace('.phases.', '.'), name)
-            src = phs.get_source(prom_phs_path)
-
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
-            val = phs._abs_get_val(src, False, None, 'nonlinear', 'output', False, from_root=True)
+            if om_version < (3, 4, 1):
+                val = phs.get_val(f'parameters:{name}')[0, ...]
+            else:
+                val = phs.get_val(f'parameters:{name}')
+
             if phase_path:
                 prob_path = '{0}.{1}.parameters:{2}'.format(phase_path, self.name, name)
             else:

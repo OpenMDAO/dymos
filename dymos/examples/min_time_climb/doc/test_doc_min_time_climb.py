@@ -38,7 +38,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         traj = dm.Trajectory()
 
         phase = dm.Phase(ode_class=MinTimeClimbODE,
-                         transcription=dm.GaussLobatto(num_segments=15, compressed=True))
+                         transcription=dm.GaussLobatto(num_segments=15, compressed=False))
 
         traj.add_phase('phase0', phase)
 
@@ -46,27 +46,29 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
 
         #
         # Set the options on the optimization variables
+        # Note the use of explicit state units here since much of the ODE uses imperial units
+        # and we prefer to solve this problem using metric units.
         #
         phase.set_time_options(fix_initial=True, duration_bounds=(50, 400),
                                duration_ref=100.0)
 
-        phase.add_state('r', fix_initial=True, lower=0, upper=1.0E6,
+        phase.add_state('r', fix_initial=True, lower=0, upper=1.0E6, units='m',
                         ref=1.0E3, defect_ref=1.0E3,
                         rate_source='flight_dynamics.r_dot')
 
-        phase.add_state('h', fix_initial=True, lower=0, upper=20000.0,
+        phase.add_state('h', fix_initial=True, lower=0, upper=20000.0, units='m',
                         ref=1.0E2, defect_ref=1.0E2,
                         rate_source='flight_dynamics.h_dot')
 
-        phase.add_state('v', fix_initial=True, lower=10.0,
+        phase.add_state('v', fix_initial=True, lower=10.0, units='m/s',
                         ref=1.0E2, defect_ref=1.0E2,
                         rate_source='flight_dynamics.v_dot')
 
-        phase.add_state('gam', fix_initial=True, lower=-1.5, upper=1.5,
+        phase.add_state('gam', fix_initial=True, lower=-1.5, upper=1.5, units='rad',
                         ref=1.0, defect_ref=1.0,
                         rate_source='flight_dynamics.gam_dot')
 
-        phase.add_state('m', fix_initial=True, lower=10.0, upper=1.0E5,
+        phase.add_state('m', fix_initial=True, lower=10.0, upper=1.0E5, units='kg',
                         ref=1.0E3, defect_ref=1.0E3,
                         rate_source='prop.m_dot')
 

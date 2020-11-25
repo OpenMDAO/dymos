@@ -6,7 +6,8 @@ import openmdao.api as om
 
 from ..phase.phase import Phase
 from ..utils.lagrange import lagrange_matrices
-from ..utils.misc import get_rate_units, get_targets
+from ..utils.misc import get_rate_units
+from ..utils.introspection import get_targets
 
 from scipy.linalg import block_diag
 
@@ -116,7 +117,12 @@ def eval_ode_on_grid(phase, transcription):
     """
     x = {}
     u = {}
+    u_rate = {}
+    u_rate2 = {}
     p = {}
+    p_rate = {}
+    p_rate2 = {}
+    param = {}
     f = {}
 
     # Build the interpolation matrix which interpolates from all nodes on the old grid to
@@ -143,72 +149,131 @@ def eval_ode_on_grid(phase, transcription):
     # Set the values in the refinement problem using the outputs from the first
     ode = p_refine.model.grid_refinement_system.ode
 
+    t_prev = phase.get_val('timeseries.time', units=phase.time_options['units'])
+    t_phase_prev = phase.get_val('timeseries.time_phase', units=phase.time_options['units'])
+    t_initial = np.repeat(t_prev[0, 0], repeats=transcription.grid_data.num_nodes, axis=0)
+    t_duration = np.repeat(t_prev[-1, 0], repeats=transcription.grid_data.num_nodes, axis=0)
+    t = np.dot(L, t_prev)
+    t_phase = np.dot(L, t_phase_prev)
+    targets = get_targets(ode, 'time', phase.time_options['targets'])
+    time_phase_targets = get_targets(ode, 'time_phase', phase.time_options['time_phase_targets'])
+    t_initial_targets = get_targets(ode, 't_initial', phase.time_options['t_initial_targets'])
+    t_duration_targets = get_targets(ode, 't_duration', phase.time_options['t_duration_targets'])
+    if targets:
+        p_refine.set_val(f'time', t)
+    if time_phase_targets:
+        p_refine.set_val(f'time_phase', t_phase)
+    if t_initial_targets:
+        p_refine.set_val(f't_initial', t_initial)
+    if t_duration_targets:
+        p_refine.set_val(f't_duration', t_duration)
+
     for name, options in phase.state_options.items():
         x_prev = phase.get_val(f'timeseries.states:{name}', units=options['units'])
         x[name] = np.dot(L, x_prev)
         targets = get_targets(ode, name, options['targets'])
-        if not targets:
-            continue
-        p_refine.set_val(f'states:{name}', x[name])
+        if targets:
+            p_refine.set_val(f'states:{name}', x[name])
 
     for name, options in phase.control_options.items():
         targets = get_targets(ode, name, options['targets'])
         rate_targets = get_targets(ode, f'{name}_rate', options['rate_targets'])
         rate2_targets = get_targets(ode, f'{name}_rate12', options['rate2_targets'])
 
+        u_prev = phase.get_val(f'timeseries.controls:{name}', units=options['units'])
+        u[name] = np.dot(L, u_prev)
         if targets:
-            u_prev = phase.get_val(f'timeseries.controls:{name}', units=options['units'])
-            u[name] = np.dot(L, u_prev)
             p_refine.set_val(f'controls:{name}', u[name])
 
+        u_rate_prev = phase.get_val(f'timeseries.control_rates:{name}_rate')
+        u_rate[name] = np.dot(L, u_rate_prev)
         if rate_targets:
-            u_rate_prev = phase.get_val(f'timeseries.control_rates:{name}_rate')
-            u_rate_hat = np.dot(L, u_rate_prev)
-            p_refine.set_val(f'control_rates:{name}_rate', u_rate_hat)
+            p_refine.set_val(f'control_rates:{name}_rate', u_rate[name])
 
+        u_rate2_prev = phase.get_val(f'timeseries.control_rates:{name}_rate2')
+        u_rate2[name] = np.dot(L, u_rate2_prev)
         if rate2_targets:
-            u_rate2_prev = phase.get_val(f'timeseries.control_rates:{name}_rate2')
-            u_rate2_hat = np.dot(L, u_rate2_prev)
-            p_refine.set_val(f'control_rates:{name}_rate2', u_rate2_hat)
+            p_refine.set_val(f'control_rates:{name}_rate2', u_rate2[name])
 
     for name, options in phase.polynomial_control_options.items():
         targets = get_targets(ode, name, options['targets'])
         rate_targets = get_targets(ode, f'{name}_rate', options['rate_targets'])
         rate2_targets = get_targets(ode, f'{name}_rate2', options['rate2_targets'])
 
+        p_prev = phase.get_val(f'timeseries.polynomial_controls:{name}', units=options['units'])
+        p[name] = np.dot(L, p_prev)
         if targets:
-            p_prev = phase.get_val(f'timeseries.polynomial_controls:{name}', units=options['units'])
-            p[name] = np.dot(L, p_prev)
             p_refine.set_val(f'polynomial_controls:{name}', p[name])
 
+        p_rate_prev = phase.get_val(f'timeseries.polynomial_control_rates:{name}_rate')
+        p_rate[name] = np.dot(L, p_rate_prev)
         if rate_targets:
-            u_rate_prev = phase.get_val(f'timeseries.polynomial_control_rates:{name}_rate')
-            u_rate_hat = np.dot(L, u_rate_prev)
-            p_refine.set_val(f'polynomial_control_rates:{name}_rate', u_rate_hat)
+            p_refine.set_val(f'polynomial_control_rates:{name}_rate', p_rate[name])
 
+        p_rate2_prev = phase.get_val(f'timeseries.polynomial_control_rates:{name}_rate2')
+        p_rate2[name] = np.dot(L, p_rate2_prev)
         if rate2_targets:
-            u_rate2_prev = phase.get_val(f'timeseries.polynomial_control_rates:{name}_rate2')
-            u_rate2_hat = np.dot(L, u_rate2_prev)
-            p_refine.set_val(f'polynomial_control_rates:{name}_rate2', u_rate2_hat)
+            p_refine.set_val(f'polynomial_control_rates:{name}_rate2', p_rate2[name])
 
     # Configure the parameters
     for name, options in phase.parameter_options.items():
         targets = get_targets(ode, name, options['targets'])
+        # The value of the parameter at one node
+        d = phase.get_val(f'timeseries.parameters:{name}', units=options['units'])[0, ...]
+        # Duplicate along the first axis by the number of nodes in the new transcription
+        param[name] = np.atleast_2d(np.repeat(d, repeats=transcription.grid_data.num_nodes, axis=0))
         if targets:
-            # The value of the parameter at one node
-            d = phase.get_val(f'timeseries.parameters:{name}', units=options['units'])[0, ...]
-            # Duplicate along the first axis by the number of nodes in the new transcription
-            d = np.repeat(d, repeats=transcription.grid_data.num_nodes, axis=0)
-            p_refine.set_val(f'parameters:{name}', d, units=options['units'])
+            p_refine.set_val(f'parameters:{name}', param[name], units=options['units'])
 
     # Execute the model
     p_refine.run_model()
 
     # Assign the state rates on the new grid to f
     for name, options in phase.state_options.items():
-        rate_source = options['rate_source']
         rate_units = get_rate_units(options['units'], phase.time_options['units'])
-        f[name] = np.atleast_2d(p_refine.get_val(f'ode.{rate_source}', units=rate_units))
+        rate_source = options['rate_source']
+        rate_source_class = phase.classify_var(rate_source)
+        if rate_source_class in {'time'}:
+            src_units = phase.time_options['units']
+            f[name] = om.convert_units(t, src_units, rate_units)
+        elif rate_source_class in {'time_phase'}:
+            src_units = phase.time_options['units']
+            f[name] = om.convert_units(t_phase, src_units, rate_units)
+        elif rate_source_class in {'state'}:
+            src_units = phase.state_options[rate_source]['units']
+            f[name] = om.convert_units(x[rate_source], src_units, rate_units)
+        elif rate_source_class in {'input_control', 'indep_control'}:
+            src_units = phase.control_options[rate_source]['units']
+            f[name] = om.convert_units(u[rate_source], src_units, rate_units)
+        elif rate_source_class in {'control_rate'}:
+            u_name = rate_source[:-5]
+            u_units = phase.control_options[u_name]['units']
+            src_units = get_rate_units(u_units, phase.time_options['units'], deriv=1)
+            f[name] = om.convert_units(u_rate[rate_source], src_units, rate_units)
+        elif rate_source_class in {'control_rate2'}:
+            u_name = rate_source[:-6]
+            u_units = phase.control_options[u_name]['units']
+            src_units = get_rate_units(u_units, phase.time_options['units'], deriv=2)
+            f[name] = om.convert_units(u_rate2[rate_source], src_units, rate_units)
+        elif rate_source_class in {'input_polynomial_control', 'indep_polynomial_control'}:
+            src_units = phase.polynomial_control_options[rate_source]['units']
+            f[name] = om.convert_units(p[rate_source], src_units, rate_units)
+        elif rate_source_class in {'polynomial_control_rate'}:
+            pc_name = rate_source[:-5]
+            pc_units = phase.polynomial_control_options[pc_name]['units']
+            src_units = get_rate_units(pc_units, phase.time_options['units'], deriv=1)
+            f[name] = om.convert_units(p_rate[rate_source], src_units, rate_units)
+        elif rate_source_class in {'polynomial_control_rate2'}:
+            pc_name = rate_source[:-6]
+            pc_units = phase.polynomial_control_options[pc_name]['units']
+            src_units = get_rate_units(pc_units, phase.time_options['units'], deriv=2)
+            f[name] = om.convert_units(p_rate2[rate_source], src_units, rate_units)
+        elif rate_source_class in {'parameter'}:
+            src_units = phase.parameter_options[rate_source]['units']
+            f[name] = om.convert_units(param[rate_source], src_units, rate_units)
+        elif rate_source_class in {'ode'}:
+            f[name] = np.atleast_2d(p_refine.get_val(f'ode.{rate_source}', units=rate_units))
+
         if options['shape'] == (1,):
             f[name] = f[name].T
 

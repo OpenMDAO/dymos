@@ -14,7 +14,6 @@ from dymos.trajectory.options import LinkageOptionsDictionary
 class TestPhaseLinkageComp(unittest.TestCase):
 
     def setUp(self):
-
         dm.options['include_check_partials'] = True
         self.p = om.Problem(model=om.Group())
 
@@ -101,6 +100,9 @@ class TestPhaseLinkageComp(unittest.TestCase):
         self.p['phase1:v'] = np.random.rand(*self.p['phase1:v'].shape)
 
         self.p.run_model()
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def test_results(self):
 
