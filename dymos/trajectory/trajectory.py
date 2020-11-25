@@ -20,7 +20,6 @@ from .options import LinkageOptionsDictionary
 from .phase_linkage_comp import PhaseLinkageComp
 from ..phase.options import TrajParameterOptionsDictionary
 from ..utils.misc import get_rate_units, get_source_metadata, _unspecified
-from ..utils.indexing import get_src_indices_by_row
 
 
 class Trajectory(om.Group):
