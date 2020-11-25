@@ -46,57 +46,59 @@ def _get_phases_node_in_problem_metadata(node, path=""):
                     return phases_node, phase_node_path
     return None, None
 
+#
+# def _get_timeseries_units(cr, varname):
+#     """
+#     Get the units for a timeseries variable and also the time associated with that variable.
+#
+#     Parameters
+#     ----------
+#     cr : CaseRecorder
+#         The CaseRecorder that contains the problem metadata
+#     varname : str
+#         The CaseRecorder that contains the problem metadata
+#
+#     Returns
+#     -------
+#     units : tuple of two strings
+#         The units for the requested timeseries variable and also the time associated with that
+#         variable. Returned in the format: (time_units, var_units)
+#     """
+#     # Need to use the problem hierarchy info from the metadata
+#     root_children = cr.problem_metadata['tree']['children']
+#
+#     # The `phases` node can be anywhere in the hierarchy so need to recurse
+#     phases_node = _get_phases_node_in_problem_metadata(root_children)
+#
+#     time_units, var_units = None, None
+#
+#     # get the phase child
+#     phase_name = varname.split('.')[0]
+#     for item in phases_node['children']:
+#         if item['name'] == phase_name:
+#             phase_dict = item
+#             break
+#
+#     # get the timeseries child
+#     for item in phase_dict['children']:
+#         if item['name'] == 'timeseries':
+#             timeseries_dict = item
+#             break
+#
+#     # get the variable child
+#     for item in timeseries_dict['children']:
+#         if item['name'] == 'states:' + varname.split(':')[-1]:
+#             var_units = item['units']
+#         if item['name'] == 'time':
+#             time_units = item['units']
+#
+#     if var_units is None:
+#         raise RuntimeError(f'Units not found for variable: {varname}')
+#     if time_units is None:
+#         raise RuntimeError(f'Time units not found for variable: {varname}')
+#
+#     return time_units, var_units
 
-def _get_timeseries_units(cr, varname):
-    """
-    Get the units for a timeseries variable and also the time associated with that variable.
-
-    Parameters
-    ----------
-    cr : CaseRecorder
-        The CaseRecorder that contains the problem metadata
-    varname : str
-        The CaseRecorder that contains the problem metadata
-
-    Returns
-    -------
-    units : tuple of two strings
-        The units for the requested timeseries variable and also the time associated with that
-        variable
-    """
-    root_children = cr.problem_metadata['tree']['children']
-
-    # The `phases` node can be anywhere in the hierarchy so need to recurse
-    phases_node = _get_phases_node_in_problem_metadata(root_children)
-
-    time_units, var_units = None, None
-
-    # get the phase child
-    phase_name = varname.split('.')[0]
-    for item in phases_node['children']:
-        if item['name'] == phase_name:
-            phase_dict = item
-            break
-
-    # get the timeseries child
-    for item in phase_dict['children']:
-        if item['name'] == 'timeseries':
-            timeseries_dict = item
-            break
-
-    # get the variable child
-    for item in timeseries_dict['children']:
-        if item['name'] == 'states:' + varname.split(':')[-1]:
-            var_units = item['units']
-        if item['name'] == 'time':
-            time_units = item['units']
-
-    if var_units is None:
-        raise RuntimeError(f'Units not found for variable: {varname}')
-    if time_units is None:
-        raise RuntimeError(f'Time units not found for variable: {varname}')
-
-    return time_units, var_units
 
 def timeseries_plots(solution_recorder_filename, simulation_record_file=None,
                      plot_dir="plots"):
@@ -122,6 +124,7 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None,
 
     cr = om.CaseReader(solution_recorder_filename)
 
+    # get outputs from the solution
     solution_cases = cr.list_cases('problem')
     last_solution_case = cr.get_case(solution_cases[-1])
 

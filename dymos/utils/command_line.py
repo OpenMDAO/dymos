@@ -89,9 +89,9 @@ def dymos_cmd(argv=None):
         'simulate': args.simulate,
         'no_solve': args.no_solve,
         'reset_grid': args.reset_grid,
-        'make_plots': args.make_plots,
         'solution_record_file': args.solution_record_file,
         'simulation_record_file': args.simulation_record_file,
+        'make_plots': args.make_plots,
         'plot_dir': args.plot_dir,
     }
 

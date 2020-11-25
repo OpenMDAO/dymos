@@ -11,6 +11,7 @@ import dymos as dm
 import numpy as np
 from dymos.trajectory.trajectory import Trajectory
 from dymos.load_case import load_case, find_phases
+from dymos.visualization.timeseries_plots import timeseries_plots
 from dymos.grid_refinement.error_estimation import check_error
 import os
 import sys
@@ -138,7 +139,6 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
                 subsys.simulate(record_file=simulation_record_file)
 
     if make_plots:
-        from dymos.visualization.timeseries_plots import timeseries_plots
         if simulate:
             timeseries_plots(solution_record_file, simulation_record_file=simulation_record_file,
                              plot_dir=plot_dir)

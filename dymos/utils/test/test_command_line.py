@@ -96,6 +96,7 @@ class TestCommandLine(unittest.TestCase):
         self._assert_correct_solution()
         self.assertTrue(os.path.exists('dymos_solution.db'))
         self.assertTrue(os.path.exists('dymos_simulation.db'))
+
         cr = om.CaseReader('dymos_simulation.db')
         self.assertListEqual(['final'], cr.list_cases())
         case = cr.get_case('final')
@@ -103,7 +104,6 @@ class TestCommandLine(unittest.TestCase):
 
     def test_ex_brachistochrone_make_plots(self):
         print('test_ex_brachistochrone_make_plots')
-
         with patch.object(sys, 'argv', self.base_args + ['--make_plots']):
             command_line.dymos_cmd()
 
@@ -113,7 +113,6 @@ class TestCommandLine(unittest.TestCase):
 
     def test_ex_brachistochrone_make_no_plots(self):
         print('test_ex_brachistochrone_make_no_plots')
-
         with patch.object(sys, 'argv', self.base_args):
             command_line.dymos_cmd()
 
