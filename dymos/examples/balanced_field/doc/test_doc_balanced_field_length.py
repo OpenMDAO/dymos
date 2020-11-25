@@ -43,6 +43,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         #
         # First Phase - Brake Release to V1
+        # Operating with two engines
         # We don't know what V1 is a priori, we're going to use this model to determine it.
         #
 
@@ -53,7 +54,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         #
         # Set the options on the optimization variables
         #
-        p1.set_time_options(fix_initial=True, duration_bounds=(40, 100), duration_ref=10.0)
+        p1.set_time_options(fix_initial=True, duration_bounds=(1, 200), duration_ref=10.0)
 
         p1.add_state('r', fix_initial=True, lower=0, ref=1000.0, defect_ref=1000.0,
                      rate_source='r_dot')
@@ -61,12 +62,13 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p1.add_state('v', fix_initial=True, lower=0.0, ref=100.0, defect_ref=100.0, rate_source='v_dot')
 
         p1.add_parameter('h', opt=False, units='m')
-        p1.add_parameter('T', val=120101.98, opt=False, units='N')
+        p1.add_parameter('T', val=27000 * 2, opt=False, units='lbf')
         p1.add_parameter('alpha', val=0.0, opt=False, units='deg')
 
         p1.add_timeseries_output('*')
         
         # Second Phase - V1 to Vr
+        # Operating with one engine
         # Vr is taken to be 1.2 * the stall speed (v_stall)
         #
 
@@ -87,12 +89,12 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
                      rate_source='v_dot')
 
         p2.add_parameter('h', val=0.0, opt=False, units='m')
-        p2.add_parameter('T', val=120101.98/2, opt=False, units='N')
+        p2.add_parameter('T', val=27000, opt=False, units='lbf')
         p2.add_parameter('alpha', val=0.0, opt=False, units='deg')
 
         p2.add_timeseries_output('*')
 
-        p2.add_boundary_constraint('v_over_v_stall', loc='final', lower=1.2)
+        # p2.add_boundary_constraint('v_over_v_stall', loc='final', lower=1.2)
 
         # Minimize time at the end of the phase
         # p2.add_objective('time', loc='final', ref=1.0)
@@ -126,11 +128,11 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p3.add_boundary_constraint('v', loc='final', equals=0, ref=100)
 
         # Minimize range at the end of the phase
-        p3.add_objective('time', loc='final', ref=100.0)
+        # p3.add_objective('r', loc='final', ref=100.0)
         
 
-        # Third Phase - Rejected Takeoff
-        # V1 to Zero speed with no propulsion and braking.
+        # Fourth Phase - Rotate for single engine takeoff
+        # v_rotate to runway normal force = 0
         #
 
         p4 = dm.Phase(ode_class=GroundRollODE, transcription=dm.Radau(num_segments=10))
@@ -149,10 +151,10 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
                      rate_source='v_dot')
 
         p4.add_parameter('h', val=0.0, opt=False, units='m')
-        p4.add_parameter('T', val=120101.98/2, opt=False, units='N')
+        p4.add_parameter('T', val=27000, opt=False, units='lbf')
         p4.add_parameter('mu_r', val=0.03, opt=False, units=None)
 
-        p4.add_polynomial_control('alpha', order=1, opt=True, units='deg', shape=(1,), lower=0, upper=10, ref=10)
+        p4.add_polynomial_control('alpha', order=1, opt=True, units='deg', lower=0, upper=10, ref=10)
 
         # p4.add_control('alpha', val=0.0, opt=True, lower=0, upper=10, units='deg')
 
@@ -162,6 +164,8 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         # p4.add_boundary_constraint('alpha', loc='final', equals=10, units='deg')
 
         # p4.add_path_constraint('alpha_rate', lower=0, upper=3, units='deg/s')
+
+        p3.add_objective('r', loc='final', ref=1000.0)
 
         p.model.linear_solver = om.DirectSolver()
         
@@ -219,7 +223,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.rotate.states:r', p1.interpolate(ys=[5000, 5500.0], nodes='state_input'))
         p.set_val('traj.rotate.states:v', p1.interpolate(ys=[160, 170.0], nodes='state_input'))
 
-        p.set_val('traj.rotate.controls:alpha', 0.0, units='deg')
+        p.set_val('traj.rotate.polynomial_controls:alpha', 0.0, units='deg')
 
         p.set_val('traj.rotate.parameters:h', 0.0)
 
