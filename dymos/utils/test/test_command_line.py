@@ -88,6 +88,19 @@ class TestCommandLine(unittest.TestCase):
         cr = om.CaseReader('dymos_solution.db')
         self.assertTrue(len(cr.list_cases()) == 1)
 
+    def test_ex_brachistochrone_simulate(self):
+        print('test_ex_brachistochrone_simulate')
+        with patch.object(sys, 'argv', self.base_args + ['--simulate']):
+            command_line.dymos_cmd()
+
+        self._assert_correct_solution()
+        self.assertTrue(os.path.exists('dymos_solution.db'))
+        self.assertTrue(os.path.exists('dymos_simulation.db'))
+        cr = om.CaseReader('dymos_simulation.db')
+        self.assertListEqual(['final'], cr.list_cases())
+        case = cr.get_case('final')
+        self.assertEqual(57, len(case.outputs))
+
     def test_ex_brachistochrone_make_plots(self):
         print('test_ex_brachistochrone_make_plots')
 
@@ -117,18 +130,6 @@ class TestCommandLine(unittest.TestCase):
         self.assertTrue(os.path.exists('solution_record_file.db'))
         cr = om.CaseReader('solution_record_file.db')
         self.assertListEqual(['final'], cr.list_cases())
-
-    def test_ex_brachistochrone_simulate(self):
-        print('test_ex_brachistochrone_simulate')
-        with patch.object(sys, 'argv', self.base_args + ['--simulate']):
-            command_line.dymos_cmd()
-
-        self.assertTrue(os.path.exists('dymos_solution.db'))
-        self.assertTrue(os.path.exists('dymos_simulation.db'))
-        cr = om.CaseReader('dymos_simulation.db')
-        self.assertListEqual(['final'], cr.list_cases())
-        case = cr.get_case('final')
-        self.assertEqual(57, len(case.outputs))
 
     def test_ex_brachistochrone_simulate_set_simulation_record_file(self):
         print('test_ex_brachistochrone_simulate')

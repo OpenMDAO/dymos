@@ -63,16 +63,14 @@ def dymos_cmd(argv=None):
     parser.add_argument('-l', '--refine_limit', default=0,
                         help='The number of passes through the grid refinement algorithm'
                              ' to use. (default: 0)')
-
-    # NEW
-    parser.add_argument('-p', '--make_plots', action='store_true',
-                        help='If given, automatically generate plots of all timeseries outputs.')
     parser.add_argument('-o', '--solution_record_file', default='dymos_solution.db',
                         help='Set the name of the case recorder file for solution results. '
                         '(default: dymos_solution.db)')
     parser.add_argument('-i', '--simulation_record_file', default='dymos_simulation.db',
                         help='Set the name of the case recorder file for simulation results. '
                         '(default: dymos_simulation.db)')
+    parser.add_argument('-p', '--make_plots', action='store_true',
+                        help='If given, automatically generate plots of all timeseries outputs.')
     parser.add_argument('-e', '--plot_dir', default='plots',
                         help='Set the name of the directory to store the timeseries plots. '
                         '(default: plots)')
@@ -84,12 +82,6 @@ def dymos_cmd(argv=None):
         db_copy = 'old_' + args.solution
         os.rename(args.solution, db_copy)
         args.solution = db_copy
-
-    # if args.solution == 'dymos_solution.db':  # make sure the loaded db is not being
-    # overwritten by the new db
-    #     db_copy = 'old_dymos_solution.db'
-    #     os.rename('dymos_solution.db', db_copy)
-    #     args.solution = db_copy
 
     opts = {
         'refine_iteration_limit': int(args.refine_limit),

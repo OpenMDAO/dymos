@@ -38,9 +38,6 @@ def modify_problem(problem, restart=None, reset_grid=False,
     except FileNotFoundError:
         pass  # OK if old database is not present to be deleted
 
-    # problem.recording_options['includes'] = ['*']
-    # problem.recording_options['record_inputs'] = True
-    # qqq I commented these out for some reason before ???
     print('adding recorder at:', solution_record_file)
     problem.add_recorder(om.SqliteRecorder(solution_record_file))
 
@@ -81,7 +78,6 @@ def modify_problem(problem, restart=None, reset_grid=False,
 def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_driver=True,
                 simulate=False, restart=None,
                 solution_record_file='dymos_solution.db',
-                # simulation_record_file=None,
                 simulation_record_file='dymos_simulation.db',
                 make_plots=False,
                 plot_dir="plots"
@@ -112,16 +108,9 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         Path to case recorder file use to store results from solution.
     simulation_record_file : String
         Path to case recorder file use to store results from simulation.
-    plot_dir : String
+    plot_dir : str
         Path to directory for plot files.
     """
-    # qqq Herb added these next 5 lines but commenting them out for now
-    # print('adding recorder at:', solution_record_file)
-    # recorder = om.SqliteRecorder(solution_record_file)
-    # problem.add_recorder(recorder)
-    # problem.recording_options['includes'] = ['*']
-    # problem.recording_options['record_inputs'] = True
-
     if solution_record_file not in [rec._filepath for rec in iter(problem._rec_mgr)]:
         recorder = om.SqliteRecorder(solution_record_file)
         problem.add_recorder(recorder)

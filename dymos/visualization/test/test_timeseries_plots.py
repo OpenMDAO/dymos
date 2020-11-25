@@ -295,7 +295,7 @@ class TestTimeSeriesPlots(unittest.TestCase):
         #
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestTwoPhaseCannonballForDocs(unittest.TestCase):
 
     def test_two_phase_cannonball_make_plot(self):

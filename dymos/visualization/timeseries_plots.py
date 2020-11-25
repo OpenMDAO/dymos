@@ -98,39 +98,18 @@ def _get_timeseries_units(cr, varname):
 
     return time_units, var_units
 
-# def _print_metadata_names(node):
-#     # Could be list or dict
-#     if isinstance(node,list):
-#         for item in node:
-#             if isinstance(item,dict) and 'class' in item:
-#                 print(item['class'])
-#                 if 'children' in item:
-#                     for subitem in item['children']:
-#                         _print_metadata_names(subitem)
-#             elif isinstance(item,list):
-#                 for subitem in item:
-#                     _print_metadata_names(subitem)
-#         pass
-#     elif isinstance(node,dict):
-#         if 'class' in node:
-#             print(node['class'])
-#         if 'children' in node:
-#             for subitem in node['children']:
-#                 _print_metadata_names(subitem)
-
-
 def timeseries_plots(solution_recorder_filename, simulation_record_file=None,
                      plot_dir="plots"):
     """
-    Get the units for a timeseries variable and also the time associated with that variable.
-    This code assumes only one trajectory
+    Given timeseries data from case recorder files, make separate plots of each variable
+    and store the plot files in the directory indicated by the variable plot_dir
 
     Parameters
     ----------
     solution_recorder_filename : str
-        The path to the CaseRecorder file containing solution data
+        The path to the case recorder file containing solution data
     simulation_record_file : str or None (default:None)
-        The path to the CaseRecorder file containing simulation data. If not None,
+        The path to the case recorder file containing simulation data. If not None,
         this implies that the data from it should be plotted
     plot_dir : str
         The path to the directory to which the plot files will be written
@@ -143,16 +122,8 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None,
 
     cr = om.CaseReader(solution_recorder_filename)
 
-    # qqq why did Rob use "final" to get the case ?
-    system_solution_cases = cr.list_cases('problem')
-    last_solution_case = cr.get_case(system_solution_cases[-1])
-
-    root_children = cr.problem_metadata['tree']['children']
-
-    # We have to key off of the phases node. It will tell us
-    #  what the prefix is for the variable names before the phases part of the variables
-    #  and also let us know what the phase names are
-    phases_node, phases_node_path = _get_phases_node_in_problem_metadata(root_children)
+    solution_cases = cr.list_cases('problem')
+    last_solution_case = cr.get_case(solution_cases[-1])
 
     # If plotting simulation results, get the values for those variables
     if simulation_record_file:
@@ -160,10 +131,16 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None,
         system_simulation_cases = cr_simulate.list_cases('problem')
         last_simulation_case = cr_simulate.get_case(system_simulation_cases[-1])
 
+    # we will use the problem metadata to get information about the phases and units
+    root_children = cr.problem_metadata['tree']['children']
+
+    # We have to key off the phases node. It will tell us
+    #  what the prefix is for the variable names before the phases part of the variables
+    #  and also let us know what the phase names are
+    phases_node, phases_node_path = _get_phases_node_in_problem_metadata(root_children)
+
     # get phase names
-    phase_names = []
-    for phase in phases_node['children']:
-        phase_names.append(phase['name'])
+    phase_names = [phase['name'] for phase in phases_node['children']]
 
     # Get the units and var names along the way
     var_units = {}
@@ -200,10 +177,8 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None,
         fig, ax = plt.subplots()
 
         # Get the labels
-        v_units = var_units[var_name]
-        t_units = time_units[var_name]
-        time_label = f'time ({t_units})'
-        var_label = f'{var_name} ({v_units})'
+        time_label = f'time ({time_units[var_name]})'
+        var_label = f'{var_name} ({var_units[var_name]})'
         title = f'Timeseries: timeseries.states:{var_name}'
 
         # add labels, title, and legend
@@ -225,6 +200,10 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None,
             time_val = last_solution_case.outputs[time_name]
 
             # Plot the data
+            color = cm.colors[iphase % 20]
+
+            ax.plot(time_val, var_val, marker='o', linestyle='None', label='solution', color=color)
+
             # get simulation values, if plotting simulation
             if simulation_record_file:
                 # if the phases_node_path is empty, need to pre-pend names with "sim_traj."
@@ -233,10 +212,7 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None,
                 var_val_simulate = last_simulation_case.outputs[sim_prefix + var_name_full]
                 time_val_simulate = last_simulation_case.outputs[sim_prefix + time_name]
                 ax.plot(time_val_simulate, var_val_simulate, linestyle='--', label='simulation',
-                        color=cm.colors[iphase])
-
-            ax.plot(time_val, var_val, marker='o', linestyle='None', label='solution',
-                    color=cm.colors[iphase])
+                        color=color)
 
         # Create two legends
         #   Solution/Simulation legend
@@ -253,7 +229,7 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None,
                                         shadow=True)
         plt.gca().add_artist(sol_sim_legend)
 
-        #  Phases legend
+        #   Phases legend
         handles = []
         for iphase, phase_name in enumerate(phase_names):
             patch = mpatches.Patch(color=cm.colors[iphase], label=phase_name)
