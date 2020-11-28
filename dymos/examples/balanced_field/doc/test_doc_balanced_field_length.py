@@ -19,6 +19,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         import dymos as dm
         from dymos.examples.balanced_field.ground_roll_ode import GroundRollODE
+        from dymos.examples.balanced_field.takeoff_ode import TakeoffODE
 
         #
         # Instantiate the problem and configure the optimization driver
@@ -31,7 +32,8 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.driver.opt_settings['Verify level'] = 3
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-        p.driver.opt_settings['Major iterations limit'] = 20
+        p.driver.opt_settings['Major iterations limit'] = 50
+        p.driver.opt_settings['Minor iterations limit'] = 100000
         p.driver.declare_coloring()
 
         #
@@ -54,7 +56,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         #
         # Set the options on the optimization variables
         #
-        p1.set_time_options(fix_initial=True, duration_bounds=(1, 200), duration_ref=10.0)
+        p1.set_time_options(fix_initial=True, duration_bounds=(1, 1000), duration_ref=10.0)
 
         p1.add_state('r', fix_initial=True, lower=0, ref=1000.0, defect_ref=1000.0,
                      rate_source='r_dot')
@@ -63,7 +65,9 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         p1.add_parameter('h', opt=False, units='m')
         p1.add_parameter('T', val=27000 * 2, opt=False, units='lbf')
+        p1.add_parameter('m', val=174200, opt=False, units='lbm')
         p1.add_parameter('alpha', val=0.0, opt=False, units='deg')
+        p1.add_parameter('mu_r', val=0.03, opt=False, units=None)
 
         p1.add_timeseries_output('*')
         
@@ -90,15 +94,17 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         p2.add_parameter('h', val=0.0, opt=False, units='m')
         p2.add_parameter('T', val=27000, opt=False, units='lbf')
+        p2.add_parameter('m', val=174200, opt=False, units='lbm')
+        p2.add_parameter('mu_r', val=0.03, opt=False, units=None)
         p2.add_parameter('alpha', val=0.0, opt=False, units='deg')
 
         p2.add_timeseries_output('*')
 
-        # p2.add_boundary_constraint('v_over_v_stall', loc='final', lower=1.2)
+        # p2.add_boundary_constraint('v_over_v_stall', loc='final', equals=1.2)
 
         # Minimize time at the end of the phase
         # p2.add_objective('time', loc='final', ref=1.0)
-        
+
         # Third Phase - Rejected Takeoff
         # V1 to Zero speed with no propulsion and braking.
         #
@@ -120,16 +126,17 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         p3.add_parameter('h', val=0.0, opt=False, units='m')
         p3.add_parameter('T', val=0.0, opt=False, units='N')
+        p3.add_parameter('m', val=174200, opt=False, units='lbm')
         p3.add_parameter('mu_r', val=0.3, opt=False, units=None)
         p3.add_parameter('alpha', val=0.0, opt=False, units='deg')
 
         p3.add_timeseries_output('*')
 
-        p3.add_boundary_constraint('v', loc='final', equals=0, ref=100)
+        p3.add_boundary_constraint('v', loc='final', equals=0, ref=100, linear=True)
 
         # Minimize range at the end of the phase
         # p3.add_objective('r', loc='final', ref=100.0)
-        
+
 
         # Fourth Phase - Rotate for single engine takeoff
         # v_rotate to runway normal force = 0
@@ -142,7 +149,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         #
         # Set the options on the optimization variables
         #
-        p4.set_time_options(fix_initial=False, duration_bounds=(0.1, 20), duration_ref=1.0)
+        p4.set_time_options(fix_initial=False, duration_bounds=(0.1, 100), duration_ref=1.0)
 
         p4.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
                      rate_source='r_dot')
@@ -152,7 +159,8 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         p4.add_parameter('h', val=0.0, opt=False, units='m')
         p4.add_parameter('T', val=27000, opt=False, units='lbf')
-        p4.add_parameter('mu_r', val=0.03, opt=False, units=None)
+        p4.add_parameter('m', val=174200, opt=False, units='lbm')
+        p4.add_parameter('mu_r', val=0.05, opt=False, units=None)
 
         p4.add_polynomial_control('alpha', order=1, opt=True, units='deg', lower=0, upper=10, ref=10)
 
@@ -165,16 +173,60 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         # p4.add_path_constraint('alpha_rate', lower=0, upper=3, units='deg/s')
 
-        p3.add_objective('r', loc='final', ref=1000.0)
+        # p4.add_objective('r', loc='final', ref=10000.0)
+
+        # Fourth Phase - Rotate for single engine takeoff
+        # liftoff until v2 (1.2 * v_stall) at 35 ft
+        #
+
+        p5 = dm.Phase(ode_class=TakeoffODE, transcription=dm.Radau(num_segments=10))
+
+        traj.add_phase('climb', p5)
+
+        #
+        # Set the options on the optimization variables
+        #
+        p5.set_time_options(fix_initial=False, duration_bounds=(0.1, 100), duration_ref=1.0)
+
+        p5.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
+                     rate_source='r_dot')
+
+        p5.add_state('h', fix_initial=True, lower=0.0, ref=1.0, defect_ref=1.0,
+                     rate_source='h_dot')
+
+        p5.add_state('v', fix_initial=False, lower=0.01, ref=100.0, defect_ref=100.0,
+                     rate_source='v_dot')
+
+        p5.add_state('gam', fix_initial=True, lower=0.0, ref=1.0, defect_ref=1.0,
+                     rate_source='gam_dot')
+
+        p5.add_parameter('T', val=27000, opt=False, units='lbf')
+        p5.add_parameter('m', val=174200, opt=False, units='lbm')
+
+        p5.add_polynomial_control('alpha', order=1, opt=True, units='deg', lower=0, upper=15, ref=10)
+
+        p5.add_timeseries_output('*')
+
+        p5.add_boundary_constraint('h', loc='final', equals=35, ref=35)
+        p5.add_boundary_constraint('v_over_v_stall', loc='final', equals=1.2, ref=1.2)
+
+        p5.add_objective('r', loc='final', ref=1000.0)
 
         p.model.linear_solver = om.DirectSolver()
         
         #
         # Link the phases
         #
+
+        # Standard "end of first phase to beginning of second phase" linkages
         traj.link_phases(['brake_release_to_v1', 'v1_to_vr'], vars=['time', 'r', 'v', 'alpha'])
         traj.link_phases(['v1_to_vr', 'rotate'], vars=['time', 'r', 'v', 'alpha'])
+        traj.link_phases(['rotate', 'climb'], vars=['time', 'r', 'v', 'alpha'])
         traj.link_phases(['brake_release_to_v1', 'rto'], vars=['time', 'r', 'v', 'alpha'])
+
+        # # Less common "final value of r must be the match at ends of two phases".
+        # traj.add_linkage_constraint(phase_a='rto', var_a='r', loc_a='final',
+        #                             phase_b='climb', var_b='r', loc_b='final')
 
         #
         # Setup the problem and set the initial guess
@@ -228,6 +280,20 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.rotate.parameters:h', 0.0)
 
         #
+
+        p.set_val('traj.climb.t_initial', 50)
+        p.set_val('traj.climb.t_duration', 20)
+
+        p.set_val('traj.climb.states:r', p1.interpolate(ys=[5000, 5500.0], nodes='state_input'), units='ft')
+        p.set_val('traj.climb.states:v', p1.interpolate(ys=[160, 170.0], nodes='state_input'), units='kn')
+        p.set_val('traj.climb.states:h', p1.interpolate(ys=[0, 35.0], nodes='state_input'), units='ft')
+        p.set_val('traj.climb.states:gam', p1.interpolate(ys=[0, 5.0], nodes='state_input'), units='deg')
+
+        p.set_val('traj.climb.polynomial_controls:alpha', 10.0, units='deg')
+
+        p.set_val('traj.climb.parameters:T', 27000.0, units='lbf')
+
+        #
         # Solve for the optimal trajectory
         #
         p.run_driver()
@@ -240,7 +306,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         fig, axes = plt.subplots(3, 1)
 
-        for phase_name in ['brake_release_to_v1', 'v1_to_vr', 'rotate', 'rto']:
+        for phase_name in ['brake_release_to_v1', 'v1_to_vr', 'rotate', 'rto', 'climb']:
 
             axes[0].plot(p.get_val(f'traj.{phase_name}.timeseries.time'),
                          p.get_val(f'traj.{phase_name}.timeseries.states:r', units='ft'), 'o')
@@ -254,13 +320,14 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
             axes[1].plot(exp_out.get_val(f'traj.{phase_name}.timeseries.time'),
                          exp_out.get_val(f'traj.{phase_name}.timeseries.states:v', units='kn'), '-')
 
-            axes[2].plot(p.get_val(f'traj.{phase_name}.timeseries.time'),
-                         p.get_val(f'traj.{phase_name}.timeseries.F_r', units='N'), 'o')
+            try:
+                axes[2].plot(p.get_val(f'traj.{phase_name}.timeseries.time'),
+                             p.get_val(f'traj.{phase_name}.timeseries.F_r', units='N'), 'o')
 
-            axes[2].plot(exp_out.get_val(f'traj.{phase_name}.timeseries.time'),
-                         exp_out.get_val(f'traj.{phase_name}.timeseries.F_r', units='N'), '-')
-
-        print(p.get_val('traj.v1_to_vr.timeseries.v_over_v_stall'))
+                axes[2].plot(exp_out.get_val(f'traj.{phase_name}.timeseries.time'),
+                             exp_out.get_val(f'traj.{phase_name}.timeseries.F_r', units='N'), '-')
+            except KeyError:
+                pass
 
         plt.show()
 
