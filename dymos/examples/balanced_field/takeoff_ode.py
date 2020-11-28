@@ -3,11 +3,12 @@ from ...models.atmosphere import USatm1976Comp
 from .k_comp import KComp
 from .aero_forces_comp import AeroForcesComp
 from .lift_coef_comp import LiftCoefComp
-from .ground_roll_eom_2d import GroundRollEOM2D
+from dymos.models.eom import FlightPathEOM2D
 from .stall_speed_comp import StallSpeedComp
 
 
-class GroundRollODE(om.Group):
+
+class TakeoffODE(om.Group):
 
     def initialize(self):
         self.options.declare('num_nodes', types=int)
@@ -40,9 +41,9 @@ class GroundRollODE(om.Group):
         # and that the aircraft mass doesn't change (fuel burn during takeoff is negligible).
 
         self.add_subsystem(name='dynamics',
-                           subsys=GroundRollEOM2D(num_nodes=nn),
-                           promotes_inputs=['m', 'L', 'D', 'T', 'v', 'alpha', 'mu_r'],
-                           promotes_outputs=['F_r', 'W', 'v_dot', 'r_dot'])
+                           subsys=FlightPathEOM2D(num_nodes=nn),
+                           promotes_inputs=['m', 'v', 'gam', 'alpha', 'L', 'D', 'T'],
+                           promotes_outputs=['h_dot', 'r_dot', 'v_dot', 'gam_dot'])
 
         self.add_subsystem(name='stall_speed_comp',
                            subsys=StallSpeedComp(num_nodes=nn),
