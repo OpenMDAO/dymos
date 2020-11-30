@@ -78,7 +78,7 @@ def get_rate_units(units, time_units, deriv=1):
 
 
 def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspecified,
-                        user_shape=_unspecified, control_rate=False):
+                        user_shape=_unspecified, control_rate=False, dynamic=True):
     """
     Return the targets of a state variable in a given ODE system.
     If the targets of the state is _unspecified, and the state name is a top level input name
@@ -102,6 +102,9 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         Shape for the variable as given by the user.
     control_rate : bool
         When True, check for the control rate if the name is not in the ODE.
+    dynamic : bool
+        When True, assume the shape of the target in the ODE includes the number of nodes as the
+        first dimension.
 
     Returns
     -------
@@ -153,9 +156,16 @@ def get_target_metadata(ode, name, user_targets=_unspecified, user_units=_unspec
         target_shape_set = {ode_inputs[tgt]['shape'] for tgt in targets}
         if len(target_shape_set) == 1:
             shape = next(iter(target_shape_set))
+            if dynamic:
+                if len(shape) == 1:
+                    shape = (1,)
+                else:
+                    shape = shape[1:]
         elif len(target_shape_set) == 0:
-            raise ValueError(f'Unable to automatically assign a shape to {name}. '
-                             'Independent controls need to declare a shape.')
+            raise ValueError(f'Unable to automatically assign a shape to {name}.\n'
+                             'Targets for this variable either do not exist or have no shape set.\n'
+                             'The shape for this variable must be set explicitly via the '
+                             '`shape=<tuple>` argument.')
         else:
             raise ValueError(f'Unable to automatically assign a shape to {name} based on targets. '
                              f'Targets have multiple shapes assigned: {target_shape_set}. '
