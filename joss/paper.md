@@ -29,7 +29,7 @@ bibliography: paper.bib
 # Summary
 
 Dymos is a library for optimizing control schedules for dynamic systems --- sometimes referred to as trajectory optimization.
-There are a number of other optimal control libraries that tackle a similar kind of problem, such as OTIS4 [@Paris2006], GPOPS-II [@Patterson2014GPOPSII],and CASADI [@Andersson2018].
+There are a number of other optimal control libraries that tackle a similar kinds of problems, such as OTIS4 [@Paris2006], GPOPS-II [@Patterson2014GPOPSII],and CASADI [@Andersson2018].
 Dymos can operate in a similar manner to these codes where it is focused purely on the optimal control problem, 
 but it is unique in that it can also support broader cases where trajectory optimization is just one component in a larger physical model. 
 This allows Dymos to play a critical role in solving problems where the physical design of a system is optimized simultaneously with control schedule governing its transient performance. 

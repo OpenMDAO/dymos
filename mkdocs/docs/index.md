@@ -23,32 +23,40 @@ While normally this would significantly impair performance, Dymos can optimize s
 -   Single and multiple shooting within the same interface.
 -   Leverage multiprocessing capabilities to improve performance
 
-## Installation
+## Why Dymos?
 
-The cutting-edge development version of Dymos may be installed with
+There is no shortage of optimal control software based on pseudospectral approaches.
+There are a number of other optimal control libraries that tackle a similar kinds of problems, such as OTIS4 [@paris_riehl_sjauw_2006], GPOPS-II [@patterson2014gpops],and CASADI [@Andersson2018].
 
-~~~bash
-python -m pip install git+https://github.com/OpenMDAO/dymos.git
-~~~
+Given the amount of software existing in this space, why did we develop Dymos?
 
-To specify a release, add it after an @ at the end of the URL.
+We wanted to use optimal control in the context of multidisciplinary optimization.
+With existing state-of-the-art tools, this would mean wrapping one of these existing tools and passing between different disciplines.
+But for performance reasons, we also wanted to be able to pass derivatives between our different disciplines, including trajectory design.
+This approach us drives us towards a "monolithic" optimization problem, where a single objective is optimized that encompasses information from all of the subsystems.
+The "collaborative" optimization approach that optimizes each subsystem with a minimal amount of information passing our subsystem boundaries is generally slower and fails to find solutions as good as the monolithic approach.
+The first objective, therefore, was to develop optimal control software that has the capability to provide accurate, analytic derivatives.
 
-~~~bash
-python -m pip install git+https://github.com/OpenMDAO/dymos.git@0.15.0
-~~~
+Many state-of-the-art optimal control software packages rely on finite-differencing to estimate derivatives needed by the optimizer to solve the problem, although that is beginning to change.
+This inherently couples the accuracy of the derivatives to the scaling of the problem.
+We'd like to use analytic derivative calculations to better decouple this interaction.
+Even those software packages which employ analytic derivatives generally use a forward-differentiation approach.
+The work of Hwang and Martins [@hwang2018b] demonstrated how to develop a framework for accurate derivative calculation, including analytic derivatives and both complex-step and finite-difference approximations as fallbacks.
+Their approach gives us a few key capabilities:
 
-If you intend to hack on the internals of Dymos, it is recommended that
-you install it in developer mode.  This removes the need to reinstall
-Dymos after changes are made.
+- Adjoint differentiation which can be more efficient for pure shooting-methods in optimal control, where the number of constraints/objectives is far fewer than the number of design variables.
+- The ability to compute derivatives across complex iterative systems _without the need to reconverge the system_.
+- The ability to provide a general, bidirectional derivative coloring system [@gray2019coloring] which can minimize the computational effort required to compute the sensitivies of the outputs with respect to the inputs.
 
-In terminal, clone the repository using git.
+In addition to making optimal control more performant for use in multidisciplinary optimization, we were keen to study what sort of work these capabilities could enable.
+Embedding iterative systems within the optimization, in particular, is generally avoided for performance reasons.
+But with the state-of-the-art differentiation approach of OpenMDAO, built upon the work of Martins and Hwang, we can embed complex implicit systems with minimal impact on performance.
+This enables more efficient optimization via differential inclusion [@Seywald1994], and allows us to employ shooting methods within the pseudospectral framework.
 
-Go into the Dymos directory and use the command pip install -e . to install dymos.
-
-~~~bash
-git clone https://github.com/OpenMDAO/dymos.git ./dymos.git
-python -m pip install -e dymos.git
-~~~
+Some developers involved in Dymos are involved with NASA's legacy optimal control software, OTIS.
+The general approach used by Dymos is similar to that of OTIS (trajectories divided into time portions called Phases, dynamic controls and static parameters, and both bound constraints as well as nonlinear boundary constraints and path constraints are all notions carried over from OTIS.
+OTIS was pioneering software and offers some great capabilities, but it also lacks a lot of desirable modern features that have been developed by the community since its inception over thirty years ago.
+Dymos features a more modular way for users to define their dynamics, additional pseudospectral methods, and better differentiation approaches for more reliable convergence.
 
 ## Citation
 
