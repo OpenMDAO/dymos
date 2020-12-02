@@ -53,10 +53,9 @@ Together, `mpi4py` and `petsc4py` enable parallel processing in Dymos via MPI.
 The easiest way to install `mpi4py` is to use the [anaconda](https://www.anaconda.com/products/individual) python environment.
 
 ```
-    conda create --yes -n PY$PY python=$PY;
-    conda activate PY$PY;
+    conda create -n py38 python=3.8;
+    conda activate py38;
     conda config --add channels conda-forge;
-
     conda install mpi4py
     conda install petsc4py
 ```
