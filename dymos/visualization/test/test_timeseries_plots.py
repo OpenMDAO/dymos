@@ -9,6 +9,8 @@ from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
+from dymos.utils.lgl import lgl
 from dymos.visualization.timeseries_plots import timeseries_plots
 
 
@@ -88,18 +90,24 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         dm.run_problem(self.p, make_plots=False)
 
         timeseries_plots('dymos_solution.db')
-        self.assertTrue(os.path.exists('plots/test_x.png'))
-        self.assertTrue(os.path.exists('plots/test_y.png'))
-        self.assertTrue(os.path.exists('plots/test_v.png'))
+        self.assertTrue(os.path.exists('plots/states_x.png'))
+        self.assertTrue(os.path.exists('plots/states_y.png'))
+        self.assertTrue(os.path.exists('plots/states_v.png'))
+        self.assertTrue(os.path.exists('plots/controls_theta.png'))
+        self.assertTrue(os.path.exists('plots/control_rates_theta_rate.png'))
+        self.assertTrue(os.path.exists('plots/control_rates_theta_rate2.png'))
 
     def test_brachistochrone_timeseries_plots_solution_only_set_solution_record_file(self):
         # records to the default file 'dymos_simulation.db'
         dm.run_problem(self.p, make_plots=False, solution_record_file='solution_record_file.db')
 
         timeseries_plots('solution_record_file.db')
-        self.assertTrue(os.path.exists('plots/test_x.png'))
-        self.assertTrue(os.path.exists('plots/test_y.png'))
-        self.assertTrue(os.path.exists('plots/test_v.png'))
+        self.assertTrue(os.path.exists('plots/states_x.png'))
+        self.assertTrue(os.path.exists('plots/states_y.png'))
+        self.assertTrue(os.path.exists('plots/states_v.png'))
+        self.assertTrue(os.path.exists('plots/controls_theta.png'))
+        self.assertTrue(os.path.exists('plots/control_rates_theta_rate.png'))
+        self.assertTrue(os.path.exists('plots/control_rates_theta_rate2.png'))
 
     def test_brachistochrone_timeseries_plots_solution_and_simulation(self):
         dm.run_problem(self.p, simulate=True, make_plots=False,
@@ -113,12 +121,15 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         plot_dir = "test_plot_dir"
         timeseries_plots('dymos_solution.db', plot_dir=plot_dir)
 
-        self.assertTrue(os.path.exists(os.path.join(plot_dir, 'test_x.png')))
-        self.assertTrue(os.path.exists(os.path.join(plot_dir, 'test_y.png')))
-        self.assertTrue(os.path.exists(os.path.join(plot_dir, 'test_v.png')))
+        self.assertTrue(os.path.exists('test_plot_dir/states_x.png'))
+        self.assertTrue(os.path.exists('test_plot_dir/states_y.png'))
+        self.assertTrue(os.path.exists('test_plot_dir/states_v.png'))
+        self.assertTrue(os.path.exists('test_plot_dir/controls_theta.png'))
+        self.assertTrue(os.path.exists('test_plot_dir/control_rates_theta_rate.png'))
+        self.assertTrue(os.path.exists('test_plot_dir/control_rates_theta_rate2.png'))
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
     def test_trajectory_linked_phases_make_plot(self):
@@ -259,6 +270,98 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
                        simulation_record_file='simulation_record_file.db')
 
         timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db')
+
+        for varname in ['time_phase', 'states:r', 'state_rates:r', 'states:theta',
+                        'state_rates:theta', 'states:vr', 'state_rates:vr', 'states:vt',
+                        'state_rates:vt', 'states:accel',
+                        'state_rates:accel', 'states:deltav', 'state_rates:deltav',
+                        'controls:u1', 'control_rates:u1_rate', 'control_rates:u1_rate2',
+                        'parameters:c']:
+            self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
+
+    def test_overlapping_phases_make_plot(self):
+
+        prob = om.Problem()
+
+        opt = prob.driver = om.ScipyOptimizeDriver()
+        opt.declare_coloring()
+        opt.options['optimizer'] = 'SLSQP'
+
+        num_seg = 5
+        seg_ends, _ = lgl(num_seg + 1)
+
+        traj = prob.model.add_subsystem('traj', dm.Trajectory())
+
+        # First phase: normal operation.
+        transcription = dm.Radau(num_segments=num_seg, order=5, segment_ends=seg_ends,
+                                 compressed=False)
+        phase0 = dm.Phase(ode_class=BatteryODE, transcription=transcription)
+        traj_p0 = traj.add_phase('phase0', phase0)
+
+        traj_p0.set_time_options(fix_initial=True, fix_duration=True)
+        traj_p0.add_state('state_of_charge', fix_initial=True, fix_final=False,
+                          targets=['SOC'], rate_source='dXdt:SOC')
+
+        # Second phase: normal operation.
+
+        phase1 = dm.Phase(ode_class=BatteryODE, transcription=transcription)
+        traj_p1 = traj.add_phase('phase1', phase1)
+
+        traj_p1.set_time_options(fix_initial=False, fix_duration=True)
+        traj_p1.add_state('state_of_charge', fix_initial=False, fix_final=False,
+                          targets=['SOC'], rate_source='dXdt:SOC')
+        traj_p1.add_objective('time', loc='final')
+
+        # Second phase, but with battery failure.
+
+        phase1_bfail = dm.Phase(ode_class=BatteryODE, ode_init_kwargs={'num_battery': 2},
+                                transcription=transcription)
+        traj_p1_bfail = traj.add_phase('phase1_bfail', phase1_bfail)
+
+        traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
+        traj_p1_bfail.add_state('state_of_charge', fix_initial=False, fix_final=False,
+                                targets=['SOC'], rate_source='dXdt:SOC')
+
+        # Second phase, but with motor failure.
+
+        phase1_mfail = dm.Phase(ode_class=BatteryODE, ode_init_kwargs={'num_motor': 2},
+                                transcription=transcription)
+        traj_p1_mfail = traj.add_phase('phase1_mfail', phase1_mfail)
+
+        traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
+        traj_p1_mfail.add_state('state_of_charge', fix_initial=False, fix_final=False,
+                                targets=['SOC'], rate_source='dXdt:SOC')
+
+        traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'])
+        traj.link_phases(phases=['phase0', 'phase1_bfail'], vars=['state_of_charge', 'time'])
+        traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'])
+
+        prob.model.options['assembled_jac_type'] = 'csc'
+        prob.model.linear_solver = om.DirectSolver(assemble_jac=True)
+
+        prob.setup()
+
+        prob['traj.phase0.t_initial'] = 0
+        prob['traj.phase0.t_duration'] = 1.0*3600
+
+        prob['traj.phase1.t_initial'] = 1.0*3600
+        prob['traj.phase1.t_duration'] = 1.0*3600
+
+        prob['traj.phase1_bfail.t_initial'] = 1.0*3600
+        prob['traj.phase1_bfail.t_duration'] = 1.0*3600
+
+        prob['traj.phase1_mfail.t_initial'] = 1.0*3600
+        prob['traj.phase1_mfail.t_duration'] = 1.0*3600
+
+        prob.set_solver_print(level=0)
+        dm.run_problem(prob, simulate=True, make_plots=False,
+                       simulation_record_file='simulation_record_file.db')
+
+        timeseries_plots('dymos_solution.db', simulation_record_file='simulation_record_file.db')
+
+        self.assertTrue(os.path.exists('plots/time_phase.png'))
+        self.assertTrue(os.path.exists('plots/states_state_of_charge.png'))
+        self.assertTrue(os.path.exists('plots/state_rates_state_of_charge.png'))
 
 
 if __name__ == '__main__':  # pragma: no cover

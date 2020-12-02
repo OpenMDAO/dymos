@@ -264,7 +264,7 @@ class TestRunProblem(unittest.TestCase):
     def test_modify_problem(self):
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
         from dymos.examples.vanderpol.vanderpol_dymos_plots import vanderpol_dymos_plots
-        from dymos.run_problem import modify_problem, run_problem
+        from dymos.run_problem import run_problem
         from scipy.interpolate import interp1d
         from numpy.testing import assert_almost_equal
 
@@ -374,24 +374,30 @@ class TestRunProblemPlotting(unittest.TestCase):
     def test_run_brachistochrone_problem_make_plots(self):
         dm.run_problem(self.p, make_plots=True)
 
-        self.assertTrue(os.path.exists('plots/test_x.png'))
-        self.assertTrue(os.path.exists('plots/test_y.png'))
-        self.assertTrue(os.path.exists('plots/test_v.png'))
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
 
     def test_run_brachistochrone_problem_make_plots_set_plot_dir(self):
         plot_dir = "test_plot_dir"
         dm.run_problem(self.p, make_plots=True, plot_dir=plot_dir)
 
-        self.assertTrue(os.path.exists(os.path.join(plot_dir, 'test_x.png')))
-        self.assertTrue(os.path.exists(os.path.join(plot_dir, 'test_y.png')))
-        self.assertTrue(os.path.exists(os.path.join(plot_dir, 'test_v.png')))
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertTrue(os.path.exists(f'test_plot_dir/{varname.replace(":","_")}.png'))
 
     def test_run_brachistochrone_problem_do_not_make_plots(self):
         dm.run_problem(self.p, make_plots=False)
 
-        self.assertTrue(not os.path.exists('plots/test_x.png'))
-        self.assertTrue(not os.path.exists('plots/test_y.png'))
-        self.assertTrue(not os.path.exists('plots/test_v.png'))
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertFalse(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
 
     def test_run_brachistochrone_problem_set_simulation_record_file(self):
         simulation_record_file = 'simulation_record_file.db'
@@ -408,15 +414,20 @@ class TestRunProblemPlotting(unittest.TestCase):
     def test_run_brachistochrone_problem_plot_simulation(self):
         dm.run_problem(self.p, make_plots=True, simulate=True)
 
-        self.assertTrue(os.path.exists('plots/test_x.png'))
-        self.assertTrue(os.path.exists('plots/test_y.png'))
-        self.assertTrue(os.path.exists('plots/test_v.png'))
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
 
     def test_run_brachistochrone_problem_plot_no_simulation_record_file_given(self):
         dm.run_problem(self.p, make_plots=True, simulate=True)
-        self.assertTrue(os.path.exists('plots/test_x.png'))
-        self.assertTrue(os.path.exists('plots/test_y.png'))
-        self.assertTrue(os.path.exists('plots/test_v.png'))
+
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
 
 
 if __name__ == '__main__':  # pragma: no cover

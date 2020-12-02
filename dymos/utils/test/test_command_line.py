@@ -102,46 +102,6 @@ class TestCommandLine(unittest.TestCase):
         case = cr.get_case('final')
         self.assertEqual(57, len(case.outputs))
 
-    def test_ex_brachistochrone_make_plots(self):
-        print('test_ex_brachistochrone_make_plots')
-        with patch.object(sys, 'argv', self.base_args + ['--make_plots']):
-            command_line.dymos_cmd()
-
-        self.assertTrue(os.path.exists('plots/test_x.png'))
-        self.assertTrue(os.path.exists('plots/test_y.png'))
-        self.assertTrue(os.path.exists('plots/test_v.png'))
-
-    def test_ex_brachistochrone_make_no_plots(self):
-        print('test_ex_brachistochrone_make_no_plots')
-        with patch.object(sys, 'argv', self.base_args):
-            command_line.dymos_cmd()
-
-        self.assertFalse(os.path.exists('plots/test_x.png'))
-        self.assertFalse(os.path.exists('plots/test_y.png'))
-        self.assertFalse(os.path.exists('plots/test_v.png'))
-
-    def test_ex_brachistochrone_set_solution_record_file(self):
-        print('test_ex_brachistochrone_set_solution_record_file')
-        with patch.object(sys, 'argv', self.base_args +
-                          ['--solution_record_file=solution_record_file.db']):
-            command_line.dymos_cmd()
-
-        self.assertTrue(os.path.exists('solution_record_file.db'))
-        cr = om.CaseReader('solution_record_file.db')
-        self.assertListEqual(['final'], cr.list_cases())
-
-    def test_ex_brachistochrone_simulate_set_simulation_record_file(self):
-        print('test_ex_brachistochrone_simulate')
-        with patch.object(sys, 'argv', self.base_args + ['--simulate'] +
-                          ['--simulation_record_file=simulation_record_file.db']):
-            command_line.dymos_cmd()
-
-        self.assertTrue(os.path.exists('simulation_record_file.db'))
-        cr = om.CaseReader('simulation_record_file.db')
-        self.assertListEqual(['final'], cr.list_cases())
-        case = cr.get_case('final')
-        self.assertEqual(57, len(case.outputs))
-
     @unittest.skipIf(True, reason='grid resetting not yet implemented')
     def test_ex_brachistochrone_reset_grid(self):
         print('test_ex_brachistochrone_reset_grid')
@@ -200,6 +160,63 @@ class TestCommandLine(unittest.TestCase):
             assert_almost_equal(x1q, fx1s(tq), decimal=2)
             assert_almost_equal(x0q, fx0s(tq), decimal=2)
             assert_almost_equal(uq, fus(tq), decimal=5)
+
+    def test_ex_brachistochrone_make_plots(self):
+        print('test_ex_brachistochrone_make_plots')
+        with patch.object(sys, 'argv', self.base_args + ['--make_plots']):
+            command_line.dymos_cmd()
+
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
+
+    def test_ex_brachistochrone_make_plots_set_plot_dir(self):
+        print('test_ex_brachistochrone_make_plots')
+        plot_dir = 'plot_dir'
+        with patch.object(sys, 'argv', self.base_args + ['--make_plots'] +
+                          [f'--plot_dir={plot_dir}']):
+            command_line.dymos_cmd()
+
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertTrue(os.path.exists(f'{plot_dir}/{varname.replace(":","_")}.png'))
+
+    def test_ex_brachistochrone_make_no_plots(self):
+        print('test_ex_brachistochrone_make_no_plots')
+        with patch.object(sys, 'argv', self.base_args):
+            command_line.dymos_cmd()
+
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertFalse(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
+
+    def test_ex_brachistochrone_set_solution_record_file(self):
+        print('test_ex_brachistochrone_set_solution_record_file')
+        with patch.object(sys, 'argv', self.base_args +
+                          ['--solution_record_file=solution_record_file.db']):
+            command_line.dymos_cmd()
+
+        self.assertTrue(os.path.exists('solution_record_file.db'))
+        cr = om.CaseReader('solution_record_file.db')
+        self.assertListEqual(['final'], cr.list_cases())
+
+    def test_ex_brachistochrone_simulate_set_simulation_record_file(self):
+        print('test_ex_brachistochrone_simulate')
+        with patch.object(sys, 'argv', self.base_args + ['--simulate'] +
+                          ['--simulation_record_file=simulation_record_file.db']):
+            command_line.dymos_cmd()
+
+        self.assertTrue(os.path.exists('simulation_record_file.db'))
+        cr = om.CaseReader('simulation_record_file.db')
+        self.assertListEqual(['final'], cr.list_cases())
+        case = cr.get_case('final')
+        self.assertEqual(57, len(case.outputs))
 
 
 if __name__ == '__main__':  # pragma: no cover

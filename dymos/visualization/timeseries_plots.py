@@ -105,8 +105,11 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
                 units_for_time = timeseries_node_child['units']
                 break
         for timeseries_node_child in timeseries_node['children']:
-            varname = timeseries_node_child['name'][len('states:'):]
-            if timeseries_node_child['name'].startswith("states:"):
+            # plot everything in the timeseries except input_values. Also not time since that
+            #   is the independent variable in these plot
+            if not timeseries_node_child['name'].startswith("input_values:")\
+                    and not timeseries_node_child['name'] == 'time':
+                varname = timeseries_node_child['name']
                 var_units[varname] = timeseries_node_child['units']
                 time_units[varname] = units_for_time
     varnames = list(var_units.keys())
@@ -128,7 +131,7 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
         # Get the labels
         time_label = f'time ({time_units[var_name]})'
         var_label = f'{var_name} ({var_units[var_name]})'
-        title = f'Timeseries: timeseries.states:{var_name}'
+        title = f'timeseries.{var_name}'
 
         # add labels, title, and legend
         ax.set_xlabel(time_label)
@@ -138,10 +141,10 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
         # Plot each phase
         for iphase, phase_name in enumerate(phase_names):
             if phases_node_path:
-                var_name_full = f'{phases_node_path}.{phase_name}.timeseries.states:{var_name}'
+                var_name_full = f'{phases_node_path}.{phase_name}.timeseries.{var_name}'
                 time_name = f'{phases_node_path}.{phase_name}.timeseries.time'
             else:
-                var_name_full = f'{phase_name}.timeseries.states:{var_name}'
+                var_name_full = f'{phase_name}.timeseries.{var_name}'
                 time_name = f'{phase_name}.timeseries.time'
 
             # Get values
@@ -171,10 +174,10 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
             simulation_line = mlines.Line2D([], [], color='black', linestyle='--',
                                             label='Simulation')
             sol_sim_legend = plt.legend(handles=[solution_line, simulation_line],
-                                        loc='upper center', bbox_to_anchor=(0., -0.12), shadow=True)
+                                        loc='upper left', bbox_to_anchor=(-0.3, -0.12), shadow=True)
         else:
             sol_sim_legend = plt.legend(handles=[solution_line],
-                                        loc='upper center', bbox_to_anchor=(0., -0.12),
+                                        loc='upper left', bbox_to_anchor=(-0.3, -0.12),
                                         shadow=True)
         plt.gca().add_artist(sol_sim_legend)
 
@@ -184,10 +187,10 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
             patch = mpatches.Patch(color=cm.colors[iphase], label=phase_name)
             handles.append(patch)
         plt.legend(handles=handles, loc='upper right', ncol=len(phase_names), shadow=True,
-                   bbox_to_anchor=(1.1, -0.12), title='Phases')
+                   bbox_to_anchor=(1.15, -0.12), title='Phases')
 
-        plt.subplots_adjust(bottom=0.23, top=0.9)
+        plt.subplots_adjust(bottom=0.23, top=0.9, left=0.2)
 
         # save to file
-        plot_file_path = os.path.join(plot_dir_path, f'test_{var_name}.png')
+        plot_file_path = os.path.join(plot_dir_path, f'{var_name.replace(":","_")}.png')
         plt.savefig(plot_file_path)
