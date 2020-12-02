@@ -26,14 +26,14 @@ While normally this would significantly impair performance, Dymos can optimize s
 ## Why Dymos?
 
 There is no shortage of optimal control software based on pseudospectral approaches.
-There are a number of other optimal control libraries that tackle a similar kinds of problems, such as OTIS4 [@paris_riehl_sjauw_2006], GPOPS-II [@patterson2014gpops],and CASADI [@Andersson2018].
+There are a number of other optimal control libraries that tackle similar kinds of problems, such as OTIS4 [@paris_riehl_sjauw_2006], GPOPS-II [@patterson2014gpops],and CASADI [@Andersson2018].
 
 Given the amount of software existing in this space, why did we develop Dymos?
 
 We wanted to use optimal control in the context of multidisciplinary optimization.
 With existing state-of-the-art tools, this would mean wrapping one of these existing tools and passing between different disciplines.
 But for performance reasons, we also wanted to be able to pass derivatives between our different disciplines, including trajectory design.
-This approach us drives us towards a "monolithic" optimization problem, where a single objective is optimized that encompasses information from all of the subsystems.
+This approach drives us towards a "monolithic" optimization problem, where a single objective is optimized that encompasses information from all of the subsystems.
 The "collaborative" optimization approach that optimizes each subsystem with a minimal amount of information passing our subsystem boundaries is generally slower and fails to find solutions as good as the monolithic approach.
 The first objective, therefore, was to develop optimal control software that has the capability to provide accurate, analytic derivatives.
 
