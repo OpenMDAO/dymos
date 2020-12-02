@@ -375,7 +375,7 @@ class TranscriptionBase(object):
                         state_options[state] = StateOptionsDictionary()
                         state_options[state]['name'] = state
 
-                    if state_options[state]._dict['rate_source']['value'] is not _UNDEFINED:
+                    if state_options[state]['rate_source'] is not None:
                         raise ValueError(f"rate_source has been declared twice for state "
                                          f"'{state}' which is tagged on '{name}'.")
 
@@ -390,7 +390,7 @@ class TranscriptionBase(object):
 
         # Check over all existing states and make sure we aren't missing any rate sources.
         for name, options in state_options.items():
-            if options._dict['rate_source']['value'] is _UNDEFINED:
+            if options['rate_source'] is None:
                 raise ValueError(f"State '{name}' is missing a rate_source.")
 
     def setup_states(self, phase):
