@@ -37,11 +37,11 @@ In general, using a high number of low-order segments is preferable to using few
 
 In addition to the number and order of the segments, the user can also provide the transcription the argument `segment_ends`.
 If `None`, the segments are equally distributed in time throughout the phase.
-Otherwise, `semgent_ends` should be a monotonically increasing sequence of length `num_segments + 1`.
+Otherwise, `segment_ends` should be a monotonically increasing sequence of length `num_segments + 1`.
 
 Each element in the sequence provides the location of a segment boundary in the phase.
 The items in `segment_ends` are normalized by Dymos, so feel free to provide them in whatever scale makes sense.
-That is, `semgent_ends=[0, 1, 2, 5]` is equivalent to `segent_ends=[10, 20, 30, 60]`.
+That is, `segment_ends=[0, 1, 2, 5]` is equivalent to `segment_ends=[10, 20, 30, 60]`.
 
 ## Letting Dymos automatically find the right segmentation of the phase
 

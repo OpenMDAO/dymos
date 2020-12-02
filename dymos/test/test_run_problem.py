@@ -3,16 +3,17 @@ import os
 import unittest
 
 import numpy as np
+from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
-from openmdao.utils.general_utils import set_pyoptsparse_opt
-_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 import dymos as dm
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+from openmdao.utils.general_utils import set_pyoptsparse_opt
+_, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
 
 @use_tempdirs
@@ -23,7 +24,7 @@ class TestRunProblem(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_run_HS_problem_radau(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -43,7 +44,8 @@ class TestRunProblem(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
-                                                   transcription=dm.Radau(num_segments=10, order=3)))
+                                                   transcription=dm.Radau(num_segments=10,
+                                                                          order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
@@ -74,8 +76,8 @@ class TestRunProblem(unittest.TestCase):
 
         ui = c1 * (1 + sqrt_two) + c2 * (1 - sqrt_two)
         uf = c1 * (1 + sqrt_two) * np.exp(val) + c2 * (1 - sqrt_two) * np.exp(-val)
-        J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) * np.exp(-2 * val) -
-                   (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
+        J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) *
+                   np.exp(-2 * val) - (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
                           ui,
@@ -89,7 +91,7 @@ class TestRunProblem(unittest.TestCase):
                           J,
                           tolerance=5e-4)
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_run_HS_problem_gl(self):
         p = om.Problem(model=om.Group())
         p.driver = om.pyOptSparseDriver()
@@ -108,7 +110,8 @@ class TestRunProblem(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=HyperSensitiveODE,
-                                                   transcription=dm.GaussLobatto(num_segments=20, order=3)))
+                                                   transcription=dm.GaussLobatto(num_segments=20,
+                                                                                 order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='x_dot', targets=['x'])
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L', targets=['xL'])
@@ -139,8 +142,8 @@ class TestRunProblem(unittest.TestCase):
 
         ui = c1 * (1 + sqrt_two) + c2 * (1 - sqrt_two)
         uf = c1 * (1 + sqrt_two) * np.exp(val) + c2 * (1 - sqrt_two) * np.exp(-val)
-        J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) * np.exp(-2 * val) -
-                   (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
+        J = 0.5 * (c1 ** 2 * (1 + sqrt_two) * np.exp(2 * val) + c2 ** 2 * (1 - sqrt_two) *
+                   np.exp(-2 * val) - (1 + sqrt_two) * c1 ** 2 - (1 - sqrt_two) * c2 ** 2)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.controls:u')[0],
                           ui,
@@ -162,8 +165,9 @@ class TestRunProblem(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneODE,
-                                                   transcription=dm.Radau(num_segments=10, order=3)))
-        phase0.set_time_options(fix_initial=True, fix_duration=True)
+                                                   transcription=dm.Radau(num_segments=10,
+                                                                          order=3)))
+        phase0.set_time_options(fix_initial=True, fix_duration=False)
         phase0.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
                          units=BrachistochroneODE.states['x']['units'],
                          fix_initial=True, fix_final=False, solve_segments=False)
@@ -193,15 +197,74 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[0, 10], nodes='state_input'))
         p.set_val('traj.phase0.states:y', phase0.interpolate(ys=[10, 5], nodes='state_input'))
         p.set_val('traj.phase0.states:v', phase0.interpolate(ys=[0, 9.9], nodes='state_input'))
-        p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100], nodes='control_input'))
+        p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100],
+                                                                   nodes='control_input'))
         p.set_val('traj.phase0.parameters:g', 9.80665)
 
         dm.run_problem(p)
 
+        self.assertTrue(os.path.exists('dymos_solution.db'))
+        # Assert the results are what we expect.
+        cr = om.CaseReader('dymos_solution.db')
+        case = cr.get_case('final')
+        assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
+
+    def test_run_brachistochrone_problem_with_simulate(self):
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
+        p.driver.options['optimizer'] = 'SLSQP'
+
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneODE,
+                                                   transcription=dm.Radau(num_segments=10,
+                                                                          order=3)))
+        phase0.set_time_options(fix_initial=True, fix_duration=False)
+        phase0.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                         units=BrachistochroneODE.states['x']['units'],
+                         fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                         units=BrachistochroneODE.states['y']['units'],
+                         fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                         units=BrachistochroneODE.states['v']['units'],
+                         fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_control('theta', continuity=True, rate_continuity=True,
+                           units='deg', lower=0.01, upper=179.9)
+        phase0.add_parameter('g', units='m/s**2', val=9.80665)
+
+        phase0.add_boundary_constraint('x', loc='final', equals=10)
+        phase0.add_boundary_constraint('y', loc='final', equals=5)
+        # Minimize time at the end of the phase
+        phase0.add_objective('time_phase', loc='final', scaler=10)
+
+        phase0.set_refine_options(refine=True)
+
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=True)
+
+        p.set_val('traj.phase0.t_initial', 0.0)
+        p.set_val('traj.phase0.t_duration', 2.0)
+
+        p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[0, 10], nodes='state_input'))
+        p.set_val('traj.phase0.states:y', phase0.interpolate(ys=[10, 5], nodes='state_input'))
+        p.set_val('traj.phase0.states:v', phase0.interpolate(ys=[0, 9.9], nodes='state_input'))
+        p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100],
+                                                                   nodes='control_input'))
+        p.set_val('traj.phase0.parameters:g', 9.80665)
+
+        dm.run_problem(p, simulate=True)
+
+        self.assertTrue(os.path.exists('dymos_solution.db'))
+        # Assert the results are what we expect.
+        cr = om.CaseReader('dymos_solution.db')
+        case = cr.get_case('final')
+        assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
+
     def test_modify_problem(self):
         from dymos.examples.vanderpol.vanderpol_dymos import vanderpol
         from dymos.examples.vanderpol.vanderpol_dymos_plots import vanderpol_dymos_plots
-        from dymos.run_problem import modify_problem, run_problem
+        from dymos.run_problem import run_problem
         from scipy.interpolate import interp1d
         from numpy.testing import assert_almost_equal
 
@@ -253,6 +316,118 @@ class TestRunProblem(unittest.TestCase):
             assert_almost_equal(x1q, fx1s(tq), decimal=2)
             assert_almost_equal(x0q, fx0s(tq), decimal=2)
             assert_almost_equal(uq, fus(tq), decimal=5)
+
+
+@use_tempdirs
+class TestRunProblemPlotting(unittest.TestCase):
+    def setUp(self):
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
+        p.driver.options['optimizer'] = 'SLSQP'
+
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneODE,
+                                                   transcription=dm.Radau(num_segments=10,
+                                                                          order=3)))
+        phase0.set_time_options(fix_initial=True, fix_duration=True)
+        phase0.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                         units=BrachistochroneODE.states['x']['units'],
+                         fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                         units=BrachistochroneODE.states['y']['units'],
+                         fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                         units=BrachistochroneODE.states['v']['units'],
+                         fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_control('theta', continuity=True, rate_continuity=True,
+                           units='deg', lower=0.01, upper=179.9)
+        phase0.add_parameter('g', units='m/s**2', val=9.80665)
+
+        phase0.add_boundary_constraint('x', loc='final', equals=10)
+        phase0.add_boundary_constraint('y', loc='final', equals=5)
+        # Minimize time at the end of the phase
+        phase0.add_objective('time_phase', loc='final', scaler=10)
+
+        phase0.set_refine_options(refine=True)
+
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=True)
+
+        p.set_val('traj.phase0.t_initial', 0.0)
+        p.set_val('traj.phase0.t_duration', 2.0)
+
+        p.set_val('traj.phase0.states:x', phase0.interpolate(ys=[0, 10], nodes='state_input'))
+        p.set_val('traj.phase0.states:y', phase0.interpolate(ys=[10, 5], nodes='state_input'))
+        p.set_val('traj.phase0.states:v', phase0.interpolate(ys=[0, 9.9], nodes='state_input'))
+        p.set_val('traj.phase0.controls:theta', phase0.interpolate(ys=[5, 100],
+                                                                   nodes='control_input'))
+        p.set_val('traj.phase0.parameters:g', 9.80665)
+
+        self.p = p
+
+    def tearDown(self):
+        for filename in ['total_coloring.pkl', 'SLSQP.out', 'SNOPT_print.out']:
+            if os.path.exists(filename):
+                os.remove(filename)
+
+    def test_run_brachistochrone_problem_make_plots(self):
+        dm.run_problem(self.p, make_plots=True)
+
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
+
+    def test_run_brachistochrone_problem_make_plots_set_plot_dir(self):
+        plot_dir = "test_plot_dir"
+        dm.run_problem(self.p, make_plots=True, plot_dir=plot_dir)
+
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertTrue(os.path.exists(f'test_plot_dir/{varname.replace(":","_")}.png'))
+
+    def test_run_brachistochrone_problem_do_not_make_plots(self):
+        dm.run_problem(self.p, make_plots=False)
+
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertFalse(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
+
+    def test_run_brachistochrone_problem_set_simulation_record_file(self):
+        simulation_record_file = 'simulation_record_file.db'
+        dm.run_problem(self.p, simulate=True, simulation_record_file=simulation_record_file)
+
+        self.assertTrue(os.path.exists(simulation_record_file))
+
+    def test_run_brachistochrone_problem_set_solution_record_file(self):
+        solution_record_file = 'solution_record_file.db'
+        dm.run_problem(self.p, solution_record_file=solution_record_file)
+
+        self.assertTrue(os.path.exists(solution_record_file))
+
+    def test_run_brachistochrone_problem_plot_simulation(self):
+        dm.run_problem(self.p, make_plots=True, simulate=True)
+
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
+
+    def test_run_brachistochrone_problem_plot_no_simulation_record_file_given(self):
+        dm.run_problem(self.p, make_plots=True, simulate=True)
+
+        for varname in ['time_phase', 'states:x', 'state_rates:x', 'states:y',
+                        'state_rates:y', 'states:v',
+                        'state_rates:v', 'controls:theta', 'control_rates:theta_rate',
+                        'control_rates:theta_rate2', 'parameters:g']:
+            self.assertTrue(os.path.exists(f'plots/{varname.replace(":","_")}.png'))
 
 
 if __name__ == '__main__':  # pragma: no cover

@@ -420,7 +420,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_brachistochrone_for_docs_coloring_demo(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -515,7 +515,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_brachistochrone_for_docs_coloring_demo_solve_segments(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal

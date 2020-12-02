@@ -75,6 +75,7 @@ nav:
         - 'Trajectories':
             - 'features/trajectories/trajectories.md'
         - 'features/exploiting_sparsity.md'
+        - 'features/plotting.md'
     - 'Frequently Asked Questions':
         - 'faq/add_ode_output_to_timeseries.md'
         - 'faq/connect_scalar_parameters_to_ode.md'

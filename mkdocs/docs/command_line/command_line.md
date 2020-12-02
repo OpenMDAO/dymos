@@ -7,7 +7,7 @@ You can see all the possible Dymos command line options by running `dymos --help
 
 ```
 dymos --help
-usage: dymos [-h] [-s] [-n] [-i] [-t SOLUTION] [-r] [-l REFINE_LIMIT] script
+usage: dymos [-h] [-s] [-n] [-t SOLUTION] [-r] [-l REFINE_LIMIT] [-o SOLUTION_RECORD_FILE] [-i SIMULATION_RECORD_FILE] [-p] [-e PLOT_DIR] script
 
 Dymos Command Line Tool
 
@@ -16,23 +16,21 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -s, --simulate        If given, perform simulation after solving the
-                        problem.
-  -n, --no_solve        If given, do not run the driver on the problem
-                        (simulate only)
-  -i, --no_iterate      If given, do not iterate the driver on the problem)
+  -s, --simulate        If given, perform simulation after solving the problem.
+  -n, --no_solve        If given, do not run the driver on the problem (simulate only)
   -t SOLUTION, --solution SOLUTION
-                        A previous solution record file (or explicit
-                        simulation record file) from which the initial guess
-                        should be loaded. (default: None)
-  -r, --reset_grid      If given, reset the grid to the specs given in the
-                        problem definition instead of the grid associated with
-                        the loaded solution.
+                        A previous solution record file (or explicit simulation record file) from which the initial guess should be loaded. (default: None)
+  -r, --reset_grid      If given, reset the grid to the specs given in the problem definition instead of the grid associated with the loaded solution.
   -l REFINE_LIMIT, --refine_limit REFINE_LIMIT
-                        The number of passes through the grid refinement
-                        algorithm to use. (default: 0)
+                        The number of passes through the grid refinement algorithm to use. (default: 0)
+  -o SOLUTION_RECORD_FILE, --solution_record_file SOLUTION_RECORD_FILE
+                        Set the name of the case recorder file for solution results. (default: dymos_solution.db)
+  -i SIMULATION_RECORD_FILE, --simulation_record_file SIMULATION_RECORD_FILE
+                        Set the name of the case recorder file for simulation results. (default: dymos_simulation.db)
+  -p, --make_plots      If given, automatically generate plots of all timeseries outputs.
+  -e PLOT_DIR, --plot_dir PLOT_DIR
+                        Set the name of the directory to store the timeseries plots. (default: plots)
 ```
-
 The only non-optional argument to a `dymos` command line invocation is the name of a script that
 creates an instance of a Dymos Problem. For example:
 
@@ -57,8 +55,9 @@ Dymos will run the optimizer to solve the problem created by the script and show
 
 ## Loading an existing trajectory as an initial guess
 
-You will see a message before the run about a recorder being added. This is a database file called
-`dymos_solution.db` (automaticaly created in your current working directory) that will allow restarting
+You will see a message before the run about a recorder being added. This is a database file that by default
+is called named `dymos_solution.db` but can be set using the --solution_record_file option. 
+The file is automaticaly created in your current working directory. It will allow restarting
 work on the Dymos problem from where it left off. The `-t` or `--solution` command line option is used
 to tell `dymos` to restart from the specified recorded solution:
 
@@ -69,9 +68,10 @@ If you run the two commands above, the second command will report that the solut
 This option is useful for combining with other command line options to continue simulating or refining a
 solution from a previous command line involcation.
 
-The name of the automatially created recorder database is always `dymos_solution.db`. If you restart
-using a database with that name (as above), the database being read will be renamed to `old_dymos_solution.db`
-before the run to avoid overwriting the input.
+The name of the automatially created recorder database is `dymos_solution.db` unless set by the optional
+argument --solution_record_file option. If you restart
+using a database with that same name, the database being read will be renamed to `old_` followed by the name of the
+recorder database before the run to avoid overwriting the input.
 
 ## Simulating a trajectory
 
@@ -103,3 +103,19 @@ given in the problem definition, ignoring any grid that would have been loaded f
 like this:
 
 ```dymos -r -t dymos_solution.db dymos/utils/test/brachistochrone_for_command_line.py```
+
+## Setting file paths to database recorder files
+
+The `-o` or `--solution_record_file` optional argument can be used to set the name of database recorder file used for recording
+the solution results. 
+
+The `-i` or `--simulation_record_file` optional argumentcan be used to set the name of database recorder file used for recording
+the simulation results. 
+
+## Plotting timeseries
+
+The `-p` or `--make_plots` optional argument is used to indicate that plot files should be made of all timeseries
+variables. The files will by default be put into the `plots` directory. The directory can be changed by using the 
+optional argument `-e` or `--plot_dir`. The plots will be saved and not displayed.
+The user has to manually open the plot files for them to be displayed.
+
