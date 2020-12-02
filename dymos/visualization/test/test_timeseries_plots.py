@@ -129,7 +129,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         self.assertTrue(os.path.exists('test_plot_dir/control_rates_theta_rate2.png'))
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
     def test_trajectory_linked_phases_make_plot(self):
