@@ -14,7 +14,6 @@ optional_dependencies = {
     ],
     'test': [
         'pep8',
-        'parameterized',
         'testflo>=1.3.6',
         'matplotlib'
     ]
