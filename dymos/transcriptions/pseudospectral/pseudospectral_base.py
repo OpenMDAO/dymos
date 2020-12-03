@@ -68,11 +68,15 @@ class PseudospectralBase(TranscriptionBase):
         num_state_input_nodes = grid_data.subset_num_nodes['state_input']
         indep = phase.indep_states
 
+        # state_idx_map holds the node indices provided by the solver (solver) and those 
+        # that are independent variables (indep)
+        self.state_idx_map = {}
+
         # add all the des-vars (either from the IndepVarComp or from the indep-var-like
         # outputs of the collocation comp)
         for name, options in phase.state_options.items():
-
             self._configure_state_introspection(name, options, phase)
+            self._configure_solve_segments(name, options, phase)
 
             size = np.prod(options['shape'])
             # In certain cases, we put an output on the IVC.
@@ -91,7 +95,7 @@ class PseudospectralBase(TranscriptionBase):
                     # at each node.  For instance, with n=2, the desvar indices are [0, 1, 12, 13]
                     num_seg = grid_data.num_segments
                     # Get the desvar node indices
-                    desvar_node_idxs = np.asarray(indep.state_idx_map[name]['indep'])
+                    desvar_node_idxs = np.asarray(self.state_idx_map[name]['indep'])
                     # In compressed transcription, the desvar indices are just the first
                     # index for each element in the state shape
                     if self.options['compressed']:
@@ -161,7 +165,7 @@ class PseudospectralBase(TranscriptionBase):
                                      indices=desvar_indices)
 
         if not isinstance(indep, om.IndepVarComp):
-            indep.configure_io()
+            indep.configure_io(self.state_idx_map)
 
         if self.any_solved_segs or self.any_connected_opt_segs:
             for name, options in phase.state_options.items():
@@ -209,6 +213,85 @@ class PseudospectralBase(TranscriptionBase):
                                             state_options=phase.state_options,
                                             time_units=time_units))
 
+    def _configure_solve_segments(self, state_name, options, phase):
+        """
+        Provides error checking for solve_segments and establishes necessary data structures.
+
+        Parameters
+        ----------
+        state_name : str
+            The name of the state being configured.
+        options : StateOptionsDictionary
+            The StateOptionsDictionary for the state being configured.
+        phase : Phase
+            The Dymos Phase associated with this transcription instance.
+        """
+        self.state_idx_map[state_name] = {'solver': None, 'indep': None}
+
+        state_input = self.grid_data.subset_node_indices['state_input']
+
+        # indicies into all_nodes that correspond to the solved and indep vars
+        # (not accounting for fix_initial or fix_final)
+        solver_solved = self.grid_data.subset_node_indices['solver_solved']
+        solver_indep = self.grid_data.subset_node_indices['solver_indep']
+
+        # numpy magic to find the locations in state_input that match the index-values
+        # specified in solver_solved
+        solver_node_idxs = list(np.where(np.in1d(state_input, solver_solved))[0])
+        indep_node_idxs = list(np.where(np.in1d(state_input, solver_indep))[0])
+
+        # Transcription solve_segments overrides state solve_segments if its not set
+        if options['solve_segments'] is None:
+            options['solve_segments'] = self.options['solve_segments']
+
+        # Sanity-checks for solve segments
+        # If solve_segments is used at all, we cannot fix the state at both ends of the phase.
+        if options['solve_segments']:
+            if options['fix_initial'] and options['fix_final']:
+                raise ValueError(f'Can not use solve_segments for state ({state_name}) '
+                                 f'in phase ({phase.name}) with both "fix_initial" and '
+                                 '"fix_final" set to True.')
+            if options['connected_initial'] and options['fix_final']:
+                raise ValueError(f'Can not use solve_segments for state ({state_name}) '
+                                 f'in phase ({phase.name}) with both "connected_initial" '
+                                 f'and "fix_final" set to True .')
+
+            # If solve_segments is 'forward', 'fix_final' may not be True
+            if options['solve_segments'] in {'forward', True}:
+                if options['fix_final']:
+                    raise ValueError(f'Cannot use solve_segments in phase ({phase.name}) for state '
+                                     f'({state_name}) with forward propagation when fix_final=True.'
+                                     f' Either set fix_final=False or set solve_segments=\'reverse\'')
+
+            # If solve_segments is 'backward', neither 'fix_initial' nor 'connected_initial' may be True.
+            if options['solve_segments'] == 'backward':
+                if options['fix_initial']:
+                    raise ValueError(f'Cannot use solve_segments in phase ({phase.name}) with '
+                                     f'backward propagation when fix_initial=True. Either set '
+                                     f'fix_final=False or set solve_segments=\'reverse\'')
+                elif options['connected_initial']:
+                    raise ValueError(f'Cannot use solve_segments in phase ({phase.name}) with '
+                                     f'backward propagation when connected_initial=True. Either set '
+                                     f'connected_initial=False or set solve_segments=\'forward\'')
+
+            # Forward propagation
+            # if options['fix_initial'] or options['connected_initial']:
+            #     self.state_idx_map[state_name]['solver'] = solver_node_idxs[1:]
+            #     self.state_idx_map[state_name]['indep'] = [solver_node_idxs[0]] + indep_node_idxs
+            if options['solve_segments'] in {True, 'forward'}:
+                self.state_idx_map[state_name]['solver'] = solver_node_idxs[1:]
+                self.state_idx_map[state_name]['indep'] = [solver_node_idxs[0]] + indep_node_idxs
+
+            # Backward propagation
+            elif options['solve_segments'] in {'backward'}:
+                self.state_idx_map[state_name]['solver'] = solver_node_idxs[:-1]
+                self.state_idx_map[state_name]['indep'] = indep_node_idxs + [solver_node_idxs[-1]]
+
+        else:
+            # No solver used to solve these nodes.  All state input nodes are the indep nodes.
+            self.state_idx_map[state_name]['solver'] = []
+            self.state_idx_map[state_name]['indep'] = state_input
+
     def configure_defects(self, phase):
         grid_data = self.grid_data
         num_seg = grid_data.num_segments
@@ -254,6 +337,9 @@ class PseudospectralBase(TranscriptionBase):
                               src_indices=src_idxs, flat_src_indices=True)
 
     def setup_solvers(self, phase):
+        pass
+
+    def configure_solvers(self, phase):
         if self.any_solved_segs:
             newton = phase.nonlinear_solver = om.NewtonSolver()
             newton.options['solve_subsystems'] = True
@@ -261,9 +347,6 @@ class PseudospectralBase(TranscriptionBase):
             newton.options['iprint'] = -1
             newton.linesearch = om.BoundsEnforceLS()
             phase.linear_solver = om.DirectSolver()
-
-    def configure_solvers(self, phase):
-        pass
 
     def setup_timeseries_outputs(self, phase):
         gd = self.grid_data

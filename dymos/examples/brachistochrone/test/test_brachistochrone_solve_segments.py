@@ -157,17 +157,27 @@ class TestBrachistochroneExampleSolveSegments(unittest.TestCase):
 
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
-    def test_ex_brachistochrone_vs_radau_compressed(self):
+    def test_ex_brachistochrone_radau_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
         p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
                                                         compressed=True,
                                                         force_alloc_complex=True,
-                                                        solve_segments=True,
+                                                        solve_segments=False,
                                                         num_segments=10,
                                                         transcription_order=3)
         self.assert_results(p)
 
-    def test_ex_brachistochrone_vs_gl_compressed(self):
+    def test_ex_brachistochrone_radau_uncompressed(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
+                                                        compressed=False,
+                                                        force_alloc_complex=True,
+                                                        solve_segments='forward',
+                                                        num_segments=10,
+                                                        transcription_order=3)
+        self.assert_results(p)
+
+    def test_ex_brachistochrone_gl_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
                                                         compressed=True,
@@ -177,17 +187,7 @@ class TestBrachistochroneExampleSolveSegments(unittest.TestCase):
                                                         transcription_order=3)
         self.assert_results(p)
 
-    def test_ex_brachistochrone_vs_radau_uncompressed(self):
-        ex_brachistochrone_vs.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        compressed=False,
-                                                        force_alloc_complex=True,
-                                                        solve_segments=True,
-                                                        num_segments=10,
-                                                        transcription_order=3)
-        self.assert_results(p)
-
-    def test_ex_brachistochrone_vs_gl_uncompressed(self):
+    def test_ex_brachistochrone_gl_uncompressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
         p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
                                                         compressed=False,
