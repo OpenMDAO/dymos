@@ -13,6 +13,7 @@ from dymos.transcriptions.grid_data import GridData
 
 # Modify class so we can run it standalone.
 from dymos.utils.misc import CompWrapperConfig
+
 TimeComp = CompWrapperConfig(TimeComp)
 ControlInterpComp = CompWrapperConfig(ControlInterpComp)
 
@@ -77,7 +78,7 @@ class TestControlRateComp(unittest.TestCase):
 
     def test_control_interp_scalar(self):
         param_list = itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                                        [True, False],  # compressed
+                                       [True, False],  # compressed
                                        )
         for transcription, compressed in param_list:
             with self.subTest():

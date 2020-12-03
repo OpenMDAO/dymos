@@ -146,7 +146,7 @@ class TestContinuityComp(unittest.TestCase):
                 if compressed != 'compressed':
                     for state in ('x', 'y'):
                         xpectd = self.p[state][segment_end_idxs, ...][2::2, ...] - \
-                                 self.p[state][segment_end_idxs, ...][1:-1:2, ...]
+                            self.p[state][segment_end_idxs, ...][1:-1:2, ...]
 
                         assert_near_equal(self.p['cnty_comp.defect_states:{0}'.format(state)],
                                           xpectd.reshape((num_seg - 1,) + state_options[state]['shape']))
@@ -154,7 +154,7 @@ class TestContinuityComp(unittest.TestCase):
                 for ctrl in ('u', 'v'):
 
                     xpectd = self.p[ctrl][segment_end_idxs, ...][2::2, ...] - \
-                             self.p[ctrl][segment_end_idxs, ...][1:-1:2, ...]
+                        self.p[ctrl][segment_end_idxs, ...][1:-1:2, ...]
 
                     if compressed != 'compressed':
                         assert_near_equal(self.p['cnty_comp.defect_controls:{0}'.format(ctrl)],
