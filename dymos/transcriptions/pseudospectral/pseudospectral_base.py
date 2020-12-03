@@ -52,11 +52,8 @@ class PseudospectralBase(TranscriptionBase):
             elif options['connected_initial']:
                 self.any_connected_opt_segs = True
 
-        if self.any_solved_segs or self.any_connected_opt_segs:
-            indep = StateIndependentsComp(grid_data=grid_data,
-                                          state_options=phase.state_options)
-        else:
-            indep = om.IndepVarComp()
+        indep = StateIndependentsComp(grid_data=grid_data,
+                                      state_options=phase.state_options)
 
         num_connected = len([s for (s, opts) in phase.state_options.items() if opts['connected_initial']])
         prom_inputs = ['initial_states:*'] if num_connected > 0 else None
@@ -164,8 +161,7 @@ class PseudospectralBase(TranscriptionBase):
                                      ref=coerce_desvar_option('ref'),
                                      indices=desvar_indices)
 
-        if not isinstance(indep, om.IndepVarComp):
-            indep.configure_io(self.state_idx_map)
+        indep.configure_io(self.state_idx_map)
 
         if self.any_solved_segs or self.any_connected_opt_segs:
             for name, options in phase.state_options.items():
@@ -292,6 +288,13 @@ class PseudospectralBase(TranscriptionBase):
             self.state_idx_map[state_name]['solver'] = []
             self.state_idx_map[state_name]['indep'] = state_input
 
+        with np.printoptions(linewidth=1024):
+            print(state_name)
+            print(state_input)
+            print(solver_indep)
+            print(self.state_idx_map[state_name]['solver'])
+            print(self.state_idx_map[state_name]['indep'])
+
     def configure_defects(self, phase):
         grid_data = self.grid_data
         num_seg = grid_data.num_segments
@@ -344,7 +347,7 @@ class PseudospectralBase(TranscriptionBase):
             newton = phase.nonlinear_solver = om.NewtonSolver()
             newton.options['solve_subsystems'] = True
             newton.options['maxiter'] = 100
-            newton.options['iprint'] = -1
+            newton.options['iprint'] = 2
             newton.linesearch = om.BoundsEnforceLS()
             phase.linear_solver = om.DirectSolver()
 

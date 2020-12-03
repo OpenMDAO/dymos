@@ -1,13 +1,94 @@
 import unittest
 from numpy.testing import assert_almost_equal
+import openmdao.api as om
+import dymos as dm
 
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
 import dymos.examples.brachistochrone.test.ex_brachistochrone as ex_brachistochrone
+from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from openmdao.utils.testing_utils import use_tempdirs
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 
 OPT, OPTIMIZER = set_pyoptsparse_opt('SLSQP')
+
+
+def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_order=3,
+                  compressed=True, optimizer='SLSQP', run_driver=True, force_alloc_complex=False,
+                  solve_segments=False):
+    p = om.Problem(model=om.Group())
+
+    p.driver = om.pyOptSparseDriver()
+    p.driver.options['optimizer'] = optimizer
+    if optimizer == 'SNOPT':
+        p.driver.opt_settings['iSumm'] = 6
+        p.driver.opt_settings['Verify level'] = 3
+    p.driver.declare_coloring(tol=1.0E-12)
+
+    if transcription == 'gauss-lobatto':
+        t = dm.GaussLobatto(num_segments=num_segments,
+                            order=transcription_order,
+                            compressed=compressed)
+    elif transcription == 'radau-ps':
+        t = dm.Radau(num_segments=num_segments,
+                     order=transcription_order,
+                     compressed=compressed)
+    elif transcription == 'runge-kutta':
+        t = dm.RungeKutta(num_segments=num_segments,
+                          order=transcription_order,
+                          compressed=compressed)
+    traj = dm.Trajectory()
+    phase = dm.Phase(ode_class=BrachistochroneODE, transcription=t)
+    p.model.add_subsystem('traj0', traj)
+    traj.add_phase('phase0', phase)
+
+    phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+    phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
+                    fix_initial=False, fix_final=False, solve_segments=solve_segments)
+    phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
+                    fix_initial=False, fix_final=False, solve_segments=solve_segments)
+
+    # Note that by omitting the targets here Dymos will automatically attempt to connect
+    # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
+    phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
+                    fix_initial=False, fix_final=False, solve_segments=solve_segments)
+
+    phase.add_control('theta',
+                      continuity=True, rate_continuity=True,
+                      units='deg', lower=0.01, upper=179.9)
+
+    phase.add_parameter('g', targets=['g'], units='m/s**2')
+
+    phase.add_timeseries('timeseries2',
+                         transcription=dm.Radau(num_segments=num_segments*5,
+                                                order=transcription_order,
+                                                compressed=compressed),
+                         subset='control_input')
+
+    phase.add_boundary_constraint('x', loc='initial', equals=0)
+    phase.add_boundary_constraint('y', loc='initial', equals=10)
+    phase.add_boundary_constraint('v', loc='initial', equals=0)
+
+    phase.add_boundary_constraint('x', loc='final', equals=10)
+    phase.add_boundary_constraint('y', loc='final', equals=5)
+    # Minimize time at the end of the phase
+    phase.add_objective('time_phase', loc='final', scaler=10)
+
+    p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
+
+    p['traj0.phase0.t_initial'] = 0.0
+    p['traj0.phase0.t_duration'] = 2.0
+
+    p['traj0.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+    p['traj0.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+    p['traj0.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+    p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+    p['traj0.phase0.parameters:g'] = 9.80665
+
+    dm.run_problem(p, run_driver=run_driver, make_plots=True)
+
+    return p
 
 
 @use_tempdirs
@@ -123,9 +204,9 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                                                            transcription_order=11)
         self.assert_results(p)
 
-
-@use_tempdirs
-class TestBrachistochroneExampleSolveSegments(unittest.TestCase):
+#
+# @use_tempdirs
+class TestBrachistochroneSolveSegments(unittest.TestCase):
 
     def assert_results(self, p):
         t_initial = p.get_val('traj0.phase0.time')[0]
@@ -157,82 +238,35 @@ class TestBrachistochroneExampleSolveSegments(unittest.TestCase):
 
         assert_almost_equal(thetaf, 100.12, decimal=0)
 
-    def test_ex_brachistochrone_radau_compressed(self):
-        ex_brachistochrone_vs.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        compressed=True,
-                                                        force_alloc_complex=True,
-                                                        solve_segments=False,
-                                                        num_segments=10,
-                                                        transcription_order=3)
-        self.assert_results(p)
+    def test_brachistochrone_solve_segments(self):
 
-    def test_ex_brachistochrone_radau_uncompressed(self):
-        ex_brachistochrone_vs.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        compressed=False,
-                                                        force_alloc_complex=True,
-                                                        solve_segments='forward',
-                                                        num_segments=10,
-                                                        transcription_order=3)
-        self.assert_results(p)
+        for tx in ('radau-ps', 'gauss-lobatto'):
+            for solve_segs in (True, False, 'forward', 'backward', None):
+                for compressed in (True, False):
+                    with self.subTest(f'transcription: {tx}  solve_segments: {solve_segs}  '
+                                      f'compressed: {compressed}'):
+                        p = _make_problem(transcription=tx,
+                                          compressed=compressed,
+                                          force_alloc_complex=True,
+                                          solve_segments=solve_segs,
+                                          num_segments=10,
+                                          transcription_order=3)
+                        self.assert_results(p)
 
-    def test_ex_brachistochrone_gl_compressed(self):
-        ex_brachistochrone_vs.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        compressed=True,
-                                                        force_alloc_complex=True,
-                                                        solve_segments=True,
-                                                        num_segments=10,
-                                                        transcription_order=3)
-        self.assert_results(p)
+    def test_brachistochrone_solve_segments2(self):
 
-    def test_ex_brachistochrone_gl_uncompressed(self):
-        ex_brachistochrone_vs.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        compressed=False,
-                                                        force_alloc_complex=True,
-                                                        solve_segments=True,
-                                                        num_segments=10,
-                                                        transcription_order=3)
-        self.assert_results(p)
+        p = _make_problem(transcription='radau-ps',
+                          optimizer='SLSQP',
+                          compressed=True,
+                          force_alloc_complex=True,
+                          solve_segments='backward',
+                          num_segments=10,
+                          transcription_order=3,
+                          run_driver=True)
 
-    def test_ex_brachistochrone_vs_radau_single_segment(self):
-        ex_brachistochrone_vs.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        compressed=True,
-                                                        force_alloc_complex=True,
-                                                        solve_segments=True,
-                                                        num_segments=1,
-                                                        transcription_order=11)
-        self.assert_results(p)
+        # p.model.list_outputs(residuals=True, print_arrays=True)
+        # p.list_problem_vars(print_arrays=True)
+        om.view_connections(p)
 
-    def test_ex_brachistochrone_vs_gl_single_segment(self):
-        ex_brachistochrone_vs.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        compressed=True,
-                                                        force_alloc_complex=True,
-                                                        solve_segments=True,
-                                                        num_segments=1,
-                                                        transcription_order=11)
-        self.assert_results(p)
-
-    def test_ex_brachistochrone_vs_radau_single_segment(self):
-        ex_brachistochrone_vs.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='radau-ps',
-                                                        compressed=False,
-                                                        force_alloc_complex=True,
-                                                        solve_segments=True,
-                                                        num_segments=1,
-                                                        transcription_order=11)
-        self.assert_results(p)
-
-    def test_ex_brachistochrone_vs_gl_single_segment(self):
-        ex_brachistochrone_vs.SHOW_PLOTS = False
-        p = ex_brachistochrone.brachistochrone_min_time(transcription='gauss-lobatto',
-                                                        compressed=False,
-                                                        force_alloc_complex=True,
-                                                        solve_segments=True,
-                                                        num_segments=1,
-                                                        transcription_order=11)
-        self.assert_results(p)
+        #
+        # self.assert_results(p)
