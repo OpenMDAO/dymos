@@ -84,82 +84,77 @@ class PseudospectralBase(TranscriptionBase):
                                      units=options['units'])
 
             if options['opt']:
-                if options['solve_segments']:
-                    # If we are using a solver on the defects, then our design variables
-                    # are the first nodes in each segment.
-                    # For instance, for two 5th order radau segments, the indep indices are [0, 6].
-                    # If we have vectorized states of size n, then there are n design variables
-                    # at each node.  For instance, with n=2, the desvar indices are [0, 1, 12, 13]
-                    num_seg = grid_data.num_segments
-                    # Get the desvar node indices
-                    desvar_node_idxs = np.asarray(self.state_idx_map[name]['indep'])
-                    # In compressed transcription, the desvar indices are just the first
-                    # index for each element in the state shape
-                    if self.options['compressed']:
-                        desvar_indices = np.arange(size, dtype=int)
-                    else:
-                        # In uncompressed transcription, we need desvar_indices repeated
-                        # once for each segment, with the number of nodes in all but the
-                        # last segments added to it
-                        desvar_indices = size * np.repeat(desvar_node_idxs, size) + \
-                            np.tile(np.arange(size, dtype=int), num_seg)
-                    desvar_indices = list(desvar_indices)
-                else:
-                    desvar_indices = list(range(size * num_state_input_nodes))
+                # Add the states as design variables.
+                #
+                # In the case of optimizer-driven collocation, this includes the values at all
+                # nodes (excluding initial and/or final if fix_initial and/or fix_final is specified).
+                #
+                # In the case of solve_segments == 'forward', the design var nodes are the first
+                # node in the  phase (when compressed) or the first node in each each segment
+                # (when not compressed).
+                #
+                # When fix_initial is True, the first node in the phase is then removed from the
+                # design variable node indices. (So when compressed, there is no design variable).
+                #
+                # In the case of solve_segments == 'backward', the design var nodes are the last
+                # node in the phase (when compressed) or the last node in each segment (when not
+                # compressed).
+                #
+                # When fix_final is True, the last node in the phase is then removed from the design
+                # variable node indices.
+                #
+                print(num_state_input_nodes)
+                desvar_node_idxs = np.asarray(self.state_idx_map[name]['indep'])
 
-            if options['fix_initial']:
-                if options['initial_bounds'] is not None:
-                    raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                                     'initial_bounds for state {0}'.format(name))
-                if isinstance(options['fix_initial'], Iterable):
-                    idxs_to_fix = np.where(np.asarray(options['fix_initial']))[0]
-                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                        del desvar_indices[idx_to_fix]
-                else:
-                    del desvar_indices[:size]
+                # This matrix will contain 1's for every index that is to be a design variable,
+                # otherwise the value will be zero
+                state_input_shape = (num_state_input_nodes,) + options['shape']
+                idx_mask = np.zeros(state_input_shape, dtype=int)
+                idx_mask[desvar_node_idxs, ...] = 1
 
-            elif options['connected_initial'] and not options['solve_segments']:
-                del desvar_indices[:size]
+                if options['fix_initial']:
+                    if options['initial_bounds'] is not None:
+                        raise ValueError('Cannot specify \'fix_initial=True\' and specify '
+                                         f'initial_bounds for state {name}')
+                    idx_mask[0, ...] = np.asarray(options['fix_initial'], dtype=int)
 
-            if options['fix_final']:
-                if options['final_bounds'] is not None:
-                    raise ValueError('Cannot specify \'fix_final=True\' and specify '
-                                     'final_bounds for state {0}'.format(name))
-                if isinstance(options['fix_final'], Iterable):
-                    idxs_to_fix = np.where(np.asarray(options['fix_final']))[0]
-                    for idx_to_fix in reversed(sorted(idxs_to_fix)):
-                        del desvar_indices[-size + idx_to_fix]
-                else:
-                    del desvar_indices[-size:]
+                if options['fix_final']:
+                    if options['final_bounds'] is not None:
+                        raise ValueError('Cannot specify \'fix_final=True\' and specify '
+                                         f'final_bounds for state {name}')
+                    idx_mask[-1, ...] = np.asarray(options['fix_initial'], dtype=int)
 
-            if len(desvar_indices) > 0:
-                coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
-                                                    options)
+                # Now convert the masked array into actual flat indices
+                desvar_indices = np.arange(idx_mask.size, dtype=int).reshape(state_input_shape)[idx_mask.nonzero()]
 
-                lb = np.zeros_like(desvar_indices, dtype=float)
-                lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
-                    coerce_desvar_option('lower')
+                if len(desvar_indices) > 0:
+                    coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
+                                                        options)
 
-                ub = np.zeros_like(desvar_indices, dtype=float)
-                ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
-                    coerce_desvar_option('upper')
+                    lb = np.zeros_like(desvar_indices, dtype=float)
+                    lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                        coerce_desvar_option('lower')
 
-                if options['initial_bounds'] is not None:
-                    lb[0] = options['initial_bounds'][0]
-                    ub[0] = options['initial_bounds'][-1]
+                    ub = np.zeros_like(desvar_indices, dtype=float)
+                    ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                        coerce_desvar_option('upper')
 
-                if options['final_bounds'] is not None:
-                    lb[-1] = options['final_bounds'][0]
-                    ub[-1] = options['final_bounds'][-1]
+                    if options['initial_bounds'] is not None:
+                        lb[0] = options['initial_bounds'][0]
+                        ub[0] = options['initial_bounds'][-1]
 
-                phase.add_design_var(name='states:{0}'.format(name),
-                                     lower=lb,
-                                     upper=ub,
-                                     scaler=coerce_desvar_option('scaler'),
-                                     adder=coerce_desvar_option('adder'),
-                                     ref0=coerce_desvar_option('ref0'),
-                                     ref=coerce_desvar_option('ref'),
-                                     indices=desvar_indices)
+                    if options['final_bounds'] is not None:
+                        lb[-1] = options['final_bounds'][0]
+                        ub[-1] = options['final_bounds'][-1]
+
+                    phase.add_design_var(name='states:{0}'.format(name),
+                                         lower=lb,
+                                         upper=ub,
+                                         scaler=coerce_desvar_option('scaler'),
+                                         adder=coerce_desvar_option('adder'),
+                                         ref0=coerce_desvar_option('ref0'),
+                                         ref=coerce_desvar_option('ref'),
+                                         indices=desvar_indices)
 
         indep.configure_io(self.state_idx_map)
 
@@ -271,9 +266,6 @@ class PseudospectralBase(TranscriptionBase):
                                      f'connected_initial=False or set solve_segments=\'forward\'')
 
             # Forward propagation
-            # if options['fix_initial'] or options['connected_initial']:
-            #     self.state_idx_map[state_name]['solver'] = solver_node_idxs[1:]
-            #     self.state_idx_map[state_name]['indep'] = [solver_node_idxs[0]] + indep_node_idxs
             if options['solve_segments'] in {True, 'forward'}:
                 self.state_idx_map[state_name]['solver'] = solver_node_idxs[1:]
                 self.state_idx_map[state_name]['indep'] = [solver_node_idxs[0]] + indep_node_idxs
@@ -287,13 +279,13 @@ class PseudospectralBase(TranscriptionBase):
             # No solver used to solve these nodes.  All state input nodes are the indep nodes.
             self.state_idx_map[state_name]['solver'] = []
             self.state_idx_map[state_name]['indep'] = state_input
-
-        with np.printoptions(linewidth=1024):
-            print(state_name)
-            print(state_input)
-            print(solver_indep)
-            print(self.state_idx_map[state_name]['solver'])
-            print(self.state_idx_map[state_name]['indep'])
+        #
+        # with np.printoptions(linewidth=1024):
+        #     print(state_name)
+        #     print(state_input)
+        #     print(solver_indep)
+        #     print(self.state_idx_map[state_name]['solver'])
+        #     print(self.state_idx_map[state_name]['indep'])
 
     def configure_defects(self, phase):
         grid_data = self.grid_data
@@ -347,7 +339,7 @@ class PseudospectralBase(TranscriptionBase):
             newton = phase.nonlinear_solver = om.NewtonSolver()
             newton.options['solve_subsystems'] = True
             newton.options['maxiter'] = 100
-            newton.options['iprint'] = 2
+            newton.options['iprint'] = -1
             newton.linesearch = om.BoundsEnforceLS()
             phase.linear_solver = om.DirectSolver()
 
@@ -385,9 +377,17 @@ class PseudospectralBase(TranscriptionBase):
             state_units = phase.state_options[var]['units']
             shape = state_shape
             units = state_units
-            linear = True if loc == 'initial' and not phase.state_options[var]['connected_initial'] \
-                or loc == 'final' and not phase.state_options[var]['solve_segments'] else False
-            constraint_path = 'states:{0}'.format(var)
+            solve_segments = phase.state_options[var]['solve_segments']
+            connected_initial = phase.state_options[var]['connected_initial']
+            if not solve_segments and not connected_initial:
+                linear = True
+            elif solve_segments in {True, 'forward'} and not connected_initial and loc == 'initial':
+                linear = True
+            elif solve_segments == 'backward' and loc == 'final':
+                linear = True
+            else:
+                linear = False
+            constraint_path = f'states:{var}'
         elif var_type in 'indep_control':
             control_shape = phase.control_options[var]['shape']
             control_units = phase.control_options[var]['units']

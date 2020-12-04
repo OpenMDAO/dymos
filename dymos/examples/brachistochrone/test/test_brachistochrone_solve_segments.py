@@ -45,9 +45,9 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
     phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                    fix_initial=False, fix_final=False, solve_segments=solve_segments)
+                    fix_initial=False, fix_final=False, solve_segments=solve_segments, lower=0, upper=10)
     phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                    fix_initial=False, fix_final=False, solve_segments=solve_segments)
+                    fix_initial=False, fix_final=False, solve_segments=solve_segments, lower=0, upper=10)
 
     # Note that by omitting the targets here Dymos will automatically attempt to connect
     # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
@@ -247,6 +247,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                                       f'compressed: {compressed}'):
                         p = _make_problem(transcription=tx,
                                           compressed=compressed,
+                                          optimizer='IPOPT',
                                           force_alloc_complex=True,
                                           solve_segments=solve_segs,
                                           num_segments=10,
@@ -259,14 +260,18 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           optimizer='SLSQP',
                           compressed=True,
                           force_alloc_complex=True,
-                          solve_segments='backward',
+                          solve_segments=False,
                           num_segments=10,
                           transcription_order=3,
                           run_driver=True)
 
-        # p.model.list_outputs(residuals=True, print_arrays=True)
+        self.assert_results(p)
+        # print(p.get_val('traj0.phase0.states:x'))
+        # p.model.list_outputs(residuals=False, print_arrays=True)
+
+
         # p.list_problem_vars(print_arrays=True)
-        om.view_connections(p)
+        # om.view_connections(p)
 
         #
         # self.assert_results(p)

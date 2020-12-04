@@ -397,7 +397,7 @@ class TranscriptionBase(object):
         bc_dict = phase._initial_boundary_constraints \
             if loc == 'initial' else phase._final_boundary_constraints
 
-        sys_name = '{0}_boundary_constraints'.format(loc)
+        sys_name = f'{loc}_boundary_constraints'
         bc_comp = phase._get_subsystem(sys_name)
 
         for var, options in bc_dict.items():

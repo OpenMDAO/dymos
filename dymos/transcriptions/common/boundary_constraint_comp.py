@@ -67,7 +67,7 @@ class BoundaryConstraintComp(om.ExplicitComponent):
                         scaler=None, adder=None, ref=1.0, ref0=0.0,
                         linear=False, res_ref=1.0, distributed=False):
         """
-        Add an initial constraint to this component
+        Add a constraint to this component
 
         Parameters
         ----------
