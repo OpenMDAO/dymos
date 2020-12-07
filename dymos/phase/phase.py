@@ -1649,7 +1649,6 @@ class Phase(om.Group):
         transcription.configure_ode(self)
         transcription.configure_defects(self)
 
-        print('configuring phase')
         transcription.configure_boundary_constraints('initial', self)
         transcription.configure_boundary_constraints('final', self)
         transcription.configure_path_constraints(self)

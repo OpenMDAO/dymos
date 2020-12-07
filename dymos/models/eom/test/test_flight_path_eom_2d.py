@@ -9,7 +9,7 @@ from dymos.utils.testing_utils import assert_check_partials
 import dymos as dm
 from dymos.models.eom import FlightPathEOM2D
 
-OPTIMIZER = 'SLSQP'
+OPTIMIZER = 'SNOPT'
 SHOW_PLOTS = False
 
 
@@ -30,7 +30,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
             self.p.driver.opt_settings['Verify level'] = 3
 
         phase = dm.Phase(ode_class=_CannonballODE,
-                         transcription=dm.GaussLobatto(num_segments=15, order=3, compressed=False))
+                         transcription=dm.GaussLobatto(num_segments=5, order=3, compressed=False))
 
         self.p.model.add_subsystem('phase0', phase)
 
@@ -86,7 +86,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
                           tolerance=0.001)
 
     def test_cannonball_max_range(self):
-        self.p.setup()
+        self.p.setup(force_alloc_complex=True)
 
         v0 = 100.0
         gam0 = np.radians(45.0)
@@ -105,6 +105,11 @@ class TestFlightPathEOM2D(unittest.TestCase):
         self.p['phase0.states:gam'] = phase.interpolate(ys=[gam0, -gam0], nodes='state_input')
 
         self.p.run_driver()
+
+        with np.printoptions(linewidth=1024):
+            dm.options['include_check_partials'] = True
+            self.p.check_partials(method='cs')
+
 
         exp_out = phase.simulate(times_per_seg=None)
 

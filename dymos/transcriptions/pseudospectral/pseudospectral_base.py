@@ -103,7 +103,6 @@ class PseudospectralBase(TranscriptionBase):
                 # When fix_final is True, the last node in the phase is then removed from the design
                 # variable node indices.
                 #
-                print(num_state_input_nodes)
                 desvar_node_idxs = np.asarray(self.state_idx_map[name]['indep'])
 
                 # This matrix will contain 1's for every index that is to be a design variable,
@@ -116,13 +115,13 @@ class PseudospectralBase(TranscriptionBase):
                     if options['initial_bounds'] is not None:
                         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
                                          f'initial_bounds for state {name}')
-                    idx_mask[0, ...] = np.asarray(options['fix_initial'], dtype=int)
+                    idx_mask[0, ...] = np.asarray(not options['fix_initial'], dtype=int)
 
                 if options['fix_final']:
                     if options['final_bounds'] is not None:
                         raise ValueError('Cannot specify \'fix_final=True\' and specify '
                                          f'final_bounds for state {name}')
-                    idx_mask[-1, ...] = np.asarray(options['fix_initial'], dtype=int)
+                    idx_mask[-1, ...] = np.asarray(not options['fix_initial'], dtype=int)
 
                 # Now convert the masked array into actual flat indices
                 desvar_indices = np.arange(idx_mask.size, dtype=int).reshape(state_input_shape)[idx_mask.nonzero()]
@@ -219,17 +218,31 @@ class PseudospectralBase(TranscriptionBase):
         """
         self.state_idx_map[state_name] = {'solver': None, 'indep': None}
 
-        state_input = self.grid_data.subset_node_indices['state_input']
+        state_input_idxs = self.grid_data.subset_node_indices['state_input']
+        num_state_input_nodes = self.grid_data.subset_num_nodes['state_input']
+        compressed = self.options['compressed']
 
         # indicies into all_nodes that correspond to the solved and indep vars
         # (not accounting for fix_initial or fix_final)
-        solver_solved = self.grid_data.subset_node_indices['solver_solved']
-        solver_indep = self.grid_data.subset_node_indices['solver_indep']
+
+        # subsets['solver_solved'] = subsets['state_input'] if compressed or \
+        #                                                      seg_idx == 0 else subsets[
+        #                                                                            'state_input'][
+        #                                                                        1::]
+        #
+        # idxs_not_in_solved = np.where(np.in1d(subsets['state_input'],
+        #                                       subsets['solver_solved'],
+        #                                       invert=True))[0]
+        # subsets['solver_indep'] = subsets['state_input'][idxs_not_in_solved]
+
+
+        # solver_solved = self.grid_data.subset_node_indices['solver_solved']
+        # solver_indep = self.grid_data.subset_node_indices['solver_indep']
 
         # numpy magic to find the locations in state_input that match the index-values
         # specified in solver_solved
-        solver_node_idxs = list(np.where(np.in1d(state_input, solver_solved))[0])
-        indep_node_idxs = list(np.where(np.in1d(state_input, solver_indep))[0])
+        # solver_node_idxs = list(np.where(np.in1d(state_input_idxs, solver_solved))[0])
+        # indep_node_idxs = list(np.where(np.in1d(state_input_idxs, solver_indep))[0])
 
         # Transcription solve_segments overrides state solve_segments if its not set
         if options['solve_segments'] is None:
@@ -267,25 +280,34 @@ class PseudospectralBase(TranscriptionBase):
 
             # Forward propagation
             if options['solve_segments'] in {True, 'forward'}:
-                self.state_idx_map[state_name]['solver'] = solver_node_idxs[1:]
-                self.state_idx_map[state_name]['indep'] = [solver_node_idxs[0]] + indep_node_idxs
+                if compressed:
+                    self.state_idx_map[state_name]['solver'] = np.arange(1, num_state_input_nodes, dtype=int)
+                    self.state_idx_map[state_name]['indep'] = np.zeros((1,), dtype=int)
+                else:
+                    left_idxs = self.grid_data.subset_node_indices['segment_ends'][0::2]
+                    self.state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes)
+                                                                if state_input_idxs[i] not in left_idxs]
+                    self.state_idx_map[state_name]['indep'] = [i for i in range(num_state_input_nodes)
+                                                               if state_input_idxs[i] in left_idxs]
 
             # Backward propagation
             elif options['solve_segments'] in {'backward'}:
-                self.state_idx_map[state_name]['solver'] = solver_node_idxs[:-1]
-                self.state_idx_map[state_name]['indep'] = indep_node_idxs + [solver_node_idxs[-1]]
-
+                if compressed:
+                    # The optimizer controls the last state input node, all others are solver-controlled
+                    self.state_idx_map[state_name]['indep'] = np.array([num_state_input_nodes - 1], dtype=int)
+                    self.state_idx_map[state_name]['solver'] = np.arange(num_state_input_nodes - 1, dtype=int)
+                else:
+                    # The optimizer controls the last state input node in each segment, all others are solver_controlled
+                    right_idxs = self.grid_data.subset_node_indices['segment_ends'][1::2]
+                    self.state_idx_map[state_name]['indep'] = [i for i in range(num_state_input_nodes)
+                                                                if state_input_idxs[i] in right_idxs]
+                    self.state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes)
+                                                                if state_input_idxs[i] not in right_idxs]
         else:
             # No solver used to solve these nodes.  All state input nodes are the indep nodes.
             self.state_idx_map[state_name]['solver'] = []
-            self.state_idx_map[state_name]['indep'] = state_input
-        #
-        # with np.printoptions(linewidth=1024):
-        #     print(state_name)
-        #     print(state_input)
-        #     print(solver_indep)
-        #     print(self.state_idx_map[state_name]['solver'])
-        #     print(self.state_idx_map[state_name]['indep'])
+            self.state_idx_map[state_name]['indep'] = np.arange(len(state_input_idxs), dtype=int)
+        pass
 
     def configure_defects(self, phase):
         grid_data = self.grid_data

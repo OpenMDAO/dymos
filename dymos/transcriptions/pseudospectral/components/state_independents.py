@@ -27,54 +27,6 @@ class StateIndependentsComp(om.ImplicitComponent):
             'state_options', types=dict,
             desc='Dictionary of state names/options for the phase')
 
-    # def __init__(self, **kwargs):
-    #     super(StateIndependentsComp, self).__init__(**kwargs)
-    # 
-    #     self.state_idx_map = {}  # keyed by state_name, contains solver and optimizer index lists
-    # 
-    #     state_options = self.options['state_options']
-    #     grid_data = self.options['grid_data']
-    # 
-    #     state_input = grid_data.subset_node_indices['state_input']
-    # 
-    #     # indicies into all_nodes that correspond to the solved and indep vars
-    #     # (not accouting for fix_initial or fix_final)
-    #     solver_solved = grid_data.subset_node_indices['solver_solved']
-    #     solver_indep = grid_data.subset_node_indices['solver_indep']
-    # 
-    #     # numpy magic to find the locations in state_input that match the index-values
-    #     # specified in solver_solved
-    #     solver_node_idx = list(np.where(np.in1d(state_input, solver_solved))[0])
-    #     indep_node_idx = list(np.where(np.in1d(state_input, solver_indep))[0])
-    # 
-    #     for state_name, options in state_options.items():
-    #         self.state_idx_map[state_name] = {'solver': None, 'indep': None}
-    # 
-    #         if options['solve_segments']:
-    #             if options['fix_initial'] and options['fix_final']:
-    #                 raise ValueError('Can not use solver based collocation defects '
-    #                                  'with both "fix_initial" and "fix_final" turned on.')
-    # 
-    #             if not options['fix_initial'] and not options['fix_final'] and \
-    #                not options['connected_initial']:
-    #                 raise ValueError('Must have either "fix_initial" or "fix_final" turned on '
-    #                                  'with solver base collocation')
-    # 
-    #             if options['fix_initial'] or options['connected_initial']:
-    #                 self.state_idx_map[state_name]['solver'] = solver_node_idx[1:]
-    #                 self.state_idx_map[state_name]['indep'] = [solver_node_idx[0]] + indep_node_idx
-    # 
-    #             elif options['fix_final']:
-    #                 self.state_idx_map[state_name]['solver'] = solver_node_idx[:-1]
-    #                 self.state_idx_map[state_name]['indep'] = indep_node_idx + [solver_node_idx[-1]]
-    # 
-    #         else:
-    #             self.state_idx_map[state_name]['solver'] = solver_node_idx[1:]
-    #             self.state_idx_map[state_name]['indep'] = [solver_node_idx[0]] + indep_node_idx
-    # 
-    #     # NOTE: num_col_nodes MUST equal len(self.solver_node_idx) - 1 in order to ensure
-    #     # you get a well defined problem; if that doesn't happen, something is wrong
-
     def configure_io(self, state_idx_map):
         """
         I/O creation is delayed until configure so that we can determine the shape and units for

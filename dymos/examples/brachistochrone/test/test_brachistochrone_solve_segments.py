@@ -23,6 +23,8 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
     if optimizer == 'SNOPT':
         p.driver.opt_settings['iSumm'] = 6
         p.driver.opt_settings['Verify level'] = 3
+    elif optimizer == 'IPOPT':
+        p.driver.opt_settings['print_level'] = 5
     p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':
@@ -60,12 +62,6 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
 
     phase.add_parameter('g', targets=['g'], units='m/s**2')
 
-    phase.add_timeseries('timeseries2',
-                         transcription=dm.Radau(num_segments=num_segments*5,
-                                                order=transcription_order,
-                                                compressed=compressed),
-                         subset='control_input')
-
     phase.add_boundary_constraint('x', loc='initial', equals=0)
     phase.add_boundary_constraint('y', loc='initial', equals=10)
     phase.add_boundary_constraint('v', loc='initial', equals=0)
@@ -86,7 +82,7 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
     p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
     p['traj0.phase0.parameters:g'] = 9.80665
 
-    dm.run_problem(p, run_driver=run_driver, make_plots=True)
+    dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=False)
 
     return p
 
@@ -243,35 +239,26 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
         for tx in ('radau-ps', 'gauss-lobatto'):
             for solve_segs in (True, False, 'forward', 'backward', None):
                 for compressed in (True, False):
+                    print(f'transcription: {tx}  solve_segments: {solve_segs}  compressed: {compressed}')
                     with self.subTest(f'transcription: {tx}  solve_segments: {solve_segs}  '
                                       f'compressed: {compressed}'):
                         p = _make_problem(transcription=tx,
                                           compressed=compressed,
-                                          optimizer='IPOPT',
+                                          optimizer='SLSQP',
                                           force_alloc_complex=True,
                                           solve_segments=solve_segs,
-                                          num_segments=10,
+                                          num_segments=20,
                                           transcription_order=3)
                         self.assert_results(p)
 
     def test_brachistochrone_solve_segments2(self):
 
         p = _make_problem(transcription='radau-ps',
-                          optimizer='SLSQP',
                           compressed=True,
+                          optimizer='SLSQP',
                           force_alloc_complex=True,
                           solve_segments=False,
-                          num_segments=10,
-                          transcription_order=3,
-                          run_driver=True)
-
+                          num_segments=20,
+                          transcription_order=3)
+        p.check_totals(compact_print=True, method='cs')
         self.assert_results(p)
-        # print(p.get_val('traj0.phase0.states:x'))
-        # p.model.list_outputs(residuals=False, print_arrays=True)
-
-
-        # p.list_problem_vars(print_arrays=True)
-        # om.view_connections(p)
-
-        #
-        # self.assert_results(p)
