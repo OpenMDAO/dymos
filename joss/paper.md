@@ -45,7 +45,7 @@ While effective, the monolithic nature is both less efficient[@mader2008adjoint;
 
 Instead, Dymos uses a modular approach that allows users to select any combination of finite-difference, complex-step [@Martins2003CS], algorithmic differentiation, and hand differentiation that suits their modeling needs.
 This flexibility is achieved by leveraging the data passing and efficient differentiation features of NASA's OpenMDAO framework[@Gray2019a].
-OpenMDAO is a Python-based implementation of a framework for evaluating derivatives across complex, coupled multidisciplinary models developed by Hwang and Martins [@hwang2018b].
+OpenMDAO efficiently computes derivatives for multidisciplinary optimization using techniques based on the research of Hwang and Martins [@hwang2018b].
 Dymos extends OpenMDAO by adding differentiated time-integration schemes along with the necessary APIs for users to plug their ODEs and DAEs into those schemes.
 It also provides further APIs to enable the input and output of information from the optimal control problem, in order to couple with the physical design models.
 Some of the original methods and use-cases which drove the development of Dymos were first published by Falck and Gray in 2019[@falck2019].
