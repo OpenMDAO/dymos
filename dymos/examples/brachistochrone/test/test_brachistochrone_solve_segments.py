@@ -257,7 +257,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                           compressed=True,
                           optimizer='SLSQP',
                           force_alloc_complex=True,
-                          solve_segments=False,
+                          solve_segments=True,
                           num_segments=20,
                           transcription_order=3)
         p.check_totals(compact_print=True, method='cs')

@@ -137,22 +137,21 @@ class StateIndependentsComp(om.ImplicitComponent):
 
             state_var_name = 'states:{0}'.format(state_name)
 
-            if options['solve_segments']:
-                solve_idx = self.state_idx_map[state_name]['solver']
-                indep_idx = self.state_idx_map[state_name]['indep']
+            solve_idx = self.state_idx_map[state_name]['solver']
+            indep_idx = self.state_idx_map[state_name]['indep']
 
-                var_names = self.var_names[state_name]
-                defect = inputs[var_names['defect']]
+            var_names = self.var_names[state_name]
+            defect = inputs[var_names['defect']]
 
-                residuals[state_var_name][solve_idx, ...] = defect
+            residuals[state_var_name][solve_idx, ...] = defect
 
-                # really is: <idep_val> - \outputs[state_name][indep_idx] but OpenMDAO
-                # implementation details mean we just set it to 0
-                # but derivatives are still based on (<idep_val> - \outputs[state_name][indep_idx]),
-                # so you get -1 wrt state var
-                # NOTE: check_partials will report wrong derivs for the indep vars,
-                #       but don't believe it!
-                residuals[state_var_name][indep_idx, ...] = 0.0
+            # really is: <idep_val> - \outputs[state_name][indep_idx] but OpenMDAO
+            # implementation details mean we just set it to 0
+            # but derivatives are still based on (<idep_val> - \outputs[state_name][indep_idx]),
+            # so you get -1 wrt state var
+            # NOTE: check_partials will report wrong derivs for the indep vars,
+            #       but don't believe it!
+            residuals[state_var_name][indep_idx, ...] = 0.0
 
             if options['connected_initial']:
                 ic_state_name = 'initial_states:{0}'.format(state_name)
