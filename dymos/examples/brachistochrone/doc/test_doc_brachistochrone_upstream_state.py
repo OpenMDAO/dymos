@@ -88,6 +88,8 @@ class TestBrachistochroneUpstreamState(unittest.TestCase):
 
         # Set the driver.
         p.driver = om.ScipyOptimizeDriver()
+        p.driver = om.pyOptSparseDriver(optimizer='SNOPT')
+        p.driver.opt_settings['iSumm'] = 6
 
         # Allow OpenMDAO to automatically determine our sparsity pattern.
         # Doing so can significant speed up the execution of Dymos.
@@ -118,7 +120,7 @@ class TestBrachistochroneUpstreamState(unittest.TestCase):
                   units='deg')
 
         # Run the driver to solve the problem
-        p.run_driver()
+        dm.run_problem(p, make_plots=True)
 
         # Test the results
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,

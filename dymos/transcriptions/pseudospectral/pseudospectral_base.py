@@ -118,13 +118,13 @@ class PseudospectralBase(TranscriptionBase):
                     if options['initial_bounds'] is not None:
                         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
                                          f'initial_bounds for state {name}')
-                    idx_mask[0, ...] = np.asarray(not options['fix_initial'], dtype=int)
+                    idx_mask[0, ...] = np.asarray(np.logical_not(options['fix_initial']), dtype=int)
 
                 if options['fix_final']:
                     if options['final_bounds'] is not None:
                         raise ValueError('Cannot specify \'fix_final=True\' and specify '
                                          f'final_bounds for state {name}')
-                    idx_mask[-1, ...] = np.asarray(not options['fix_initial'], dtype=int)
+                    idx_mask[-1, ...] = np.asarray(np.logical_not(options['fix_final']), dtype=int)
 
                 # Now convert the masked array into actual flat indices
                 desvar_indices = np.arange(idx_mask.size, dtype=int).reshape(state_input_shape)[idx_mask.nonzero()]
