@@ -2,11 +2,10 @@ import os
 import unittest
 
 import numpy as np
-from scipy.interpolate import interp1d
 
 import openmdao.api as om
-import dymos as dm
 from dymos.utils.testing_utils import assert_timeseries_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 
 class BrachistochroneODE(om.ExplicitComponent):
@@ -80,6 +79,7 @@ class BrachistochroneODE(om.ExplicitComponent):
         jacobian['check', 'theta'] = -v * cos_theta / sin_theta**2
 
 
+@use_tempdirs
 class TestBrachistochroneIntegratedParameter(unittest.TestCase):
 
     @classmethod

@@ -52,8 +52,11 @@ class PseudospectralBase(TranscriptionBase):
             elif options['connected_initial']:
                 self.any_connected_opt_segs = True
 
-        indep = StateIndependentsComp(grid_data=grid_data,
-                                      state_options=phase.state_options)
+        if self.any_solved_segs or self.any_connected_opt_segs:
+            indep = StateIndependentsComp(grid_data=grid_data,
+                                          state_options=phase.state_options)
+        else:
+            indep = om.IndepVarComp()
 
         num_connected = len([s for (s, opts) in phase.state_options.items() if opts['connected_initial']])
         prom_inputs = ['initial_states:*'] if num_connected > 0 else None
@@ -65,7 +68,7 @@ class PseudospectralBase(TranscriptionBase):
         num_state_input_nodes = grid_data.subset_num_nodes['state_input']
         indep = phase.indep_states
 
-        # state_idx_map holds the node indices provided by the solver (solver) and those 
+        # state_idx_map holds the node indices provided by the solver (solver) and those
         # that are independent variables (indep)
         self.state_idx_map = {}
 
@@ -155,7 +158,8 @@ class PseudospectralBase(TranscriptionBase):
                                          ref=coerce_desvar_option('ref'),
                                          indices=desvar_indices)
 
-        indep.configure_io(self.state_idx_map)
+        if isinstance(indep, StateIndependentsComp):
+            indep.configure_io(self.state_idx_map)
 
         if self.any_solved_segs or self.any_connected_opt_segs:
             for name, options in phase.state_options.items():
@@ -222,28 +226,6 @@ class PseudospectralBase(TranscriptionBase):
         num_state_input_nodes = self.grid_data.subset_num_nodes['state_input']
         compressed = self.options['compressed']
 
-        # indicies into all_nodes that correspond to the solved and indep vars
-        # (not accounting for fix_initial or fix_final)
-
-        # subsets['solver_solved'] = subsets['state_input'] if compressed or \
-        #                                                      seg_idx == 0 else subsets[
-        #                                                                            'state_input'][
-        #                                                                        1::]
-        #
-        # idxs_not_in_solved = np.where(np.in1d(subsets['state_input'],
-        #                                       subsets['solver_solved'],
-        #                                       invert=True))[0]
-        # subsets['solver_indep'] = subsets['state_input'][idxs_not_in_solved]
-
-
-        # solver_solved = self.grid_data.subset_node_indices['solver_solved']
-        # solver_indep = self.grid_data.subset_node_indices['solver_indep']
-
-        # numpy magic to find the locations in state_input that match the index-values
-        # specified in solver_solved
-        # solver_node_idxs = list(np.where(np.in1d(state_input_idxs, solver_solved))[0])
-        # indep_node_idxs = list(np.where(np.in1d(state_input_idxs, solver_indep))[0])
-
         # Transcription solve_segments overrides state solve_segments if its not set
         if options['solve_segments'] is None:
             options['solve_segments'] = self.options['solve_segments']
@@ -300,7 +282,7 @@ class PseudospectralBase(TranscriptionBase):
                     # The optimizer controls the last state input node in each segment, all others are solver_controlled
                     right_idxs = self.grid_data.subset_node_indices['segment_ends'][1::2]
                     self.state_idx_map[state_name]['indep'] = [i for i in range(num_state_input_nodes)
-                                                                if state_input_idxs[i] in right_idxs]
+                                                               if state_input_idxs[i] in right_idxs]
                     self.state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes)
                                                                 if state_input_idxs[i] not in right_idxs]
         else:

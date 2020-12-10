@@ -4,6 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.testing_utils import assert_check_partials
 
 import dymos as dm
@@ -17,6 +18,7 @@ class _CannonballODE(FlightPathEOM2D):
     pass
 
 
+@use_tempdirs
 class TestFlightPathEOM2D(unittest.TestCase):
 
     def setUp(self):
@@ -109,7 +111,6 @@ class TestFlightPathEOM2D(unittest.TestCase):
         with np.printoptions(linewidth=1024):
             dm.options['include_check_partials'] = True
             self.p.check_partials(method='cs')
-
 
         exp_out = phase.simulate(times_per_seg=None)
 

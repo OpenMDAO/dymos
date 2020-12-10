@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 from numpy.testing import assert_almost_equal
 import openmdao.api as om
 import dymos as dm
@@ -47,9 +48,9 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
     phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                    fix_initial=False, fix_final=False, solve_segments=solve_segments, lower=0, upper=10)
+                    fix_initial=False, fix_final=False, solve_segments=solve_segments)
     phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                    fix_initial=False, fix_final=False, solve_segments=solve_segments, lower=0, upper=10)
+                    fix_initial=False, fix_final=False, solve_segments=solve_segments)
 
     # Note that by omitting the targets here Dymos will automatically attempt to connect
     # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
@@ -82,7 +83,7 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
     p['traj0.phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
     p['traj0.phase0.parameters:g'] = 9.80665
 
-    dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=False)
+    # dm.run_problem(p, run_driver=run_driver, simulate=True, make_plots=False)
 
     return p
 
@@ -200,8 +201,8 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                                                            transcription_order=11)
         self.assert_results(p)
 
-#
-# @use_tempdirs
+
+@use_tempdirs
 class TestBrachistochroneSolveSegments(unittest.TestCase):
 
     def assert_results(self, p):
@@ -222,9 +223,9 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
         thetaf = p.get_val('traj0.phase0.timeseries.controls:theta')[-1, 0]
 
         assert_almost_equal(t_initial, 0.0)
-        assert_almost_equal(x0, 0.0)
-        assert_almost_equal(y0, 10.0)
-        assert_almost_equal(v0, 0.0)
+        assert_almost_equal(x0, 0.0, decimal=4)
+        assert_almost_equal(y0, 10.0, decimal=4)
+        assert_almost_equal(v0, 0.0, decimal=4)
 
         assert_almost_equal(t_final, 1.8016, decimal=4)
         assert_almost_equal(xf, 10.0, decimal=3)
@@ -249,16 +250,50 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                                           solve_segments=solve_segs,
                                           num_segments=20,
                                           transcription_order=3)
+                        dm.run_problem(p)
                         self.assert_results(p)
+
+    def _print_states(self, solve_segments, output_dict, state_idx_map):
+        for state in ['x', 'y', 'v']:
+            print(state)
+            vals = output_dict[f'states:{state}']['value']
+            resids = output_dict[f'states:{state}']['resids']
+            defects = output_dict[f'collocation_constraint.defects:{state}']['value']
+            out = np.zeros((len(vals), 4))
+            out[:, 0] = vals[:, 0]
+            out[:, 1] = resids[:, 0]
+            # if solve_segments in {True, 'forward'}:
+            #     out[1:, 2] = defects[:, 0]
+            # elif solve_segments == 'backward':
+            #     out[:-1, 2] = defects[:, 0]
+            out[state_idx_map[state]['solver'], 2] = defects[:, 0]
+            out[:, 3] = out[:, 2] - out[:, 1]
+            print(out)
 
     def test_brachistochrone_solve_segments2(self):
 
+        ss = 'backward'
+
         p = _make_problem(transcription='radau-ps',
-                          compressed=True,
+                          compressed=False,
                           optimizer='SLSQP',
                           force_alloc_complex=True,
-                          solve_segments=True,
-                          num_segments=20,
-                          transcription_order=3)
-        p.check_totals(compact_print=True, method='cs')
+                          solve_segments=ss,
+                          num_segments=5,
+                          transcription_order=3,)
+        p.model.traj0.phases.phase0.nonlinear_solver.options['maxiter'] = 0
+        state_idx_map = p.model.traj0.phases.phase0.options['transcription'].state_idx_map
+        p.run_model()
+        # p.model.traj0.phases.phase0.collocation_constraint.list_outputs(print_arrays=True)
+        # p.model.traj0.phases.phase0.indep_states.list_outputs(residuals=True, print_arrays=True)
+        outputs = p.model.traj0.phases.phase0.list_outputs(residuals=True, print_arrays=True, prom_name=True, out_stream=None)
+        output_dict = {d['prom_name']: {'value': d['value'], 'resids': d['resids']} for path, d in outputs}
+        self._print_states(ss, output_dict, state_idx_map)
+
+        p.model.traj0.phases.phase0.nonlinear_solver.options['maxiter'] = 100
+        p.run_driver()
         self.assert_results(p)
+
+        outputs = p.model.traj0.phases.phase0.list_outputs(residuals=True, print_arrays=True, prom_name=True, out_stream=None)
+        output_dict = {d['prom_name']: {'value': d['value'], 'resids': d['resids']} for path, d in outputs}
+        self._print_states(ss, output_dict, state_idx_map)

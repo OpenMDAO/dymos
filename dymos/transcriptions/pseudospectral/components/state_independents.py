@@ -42,7 +42,7 @@ class StateIndependentsComp(om.ImplicitComponent):
         self.var_names = {}
         for state_name in state_options:
             self.var_names[state_name] = {
-                'defect': 'defects:{0}'.format(state_name),
+                'defect': f'defects:{state_name}',
             }
 
         for state_name, options in state_options.items():
@@ -54,13 +54,13 @@ class StateIndependentsComp(om.ImplicitComponent):
 
             # only need the implicit variable if this state is solved.
             # Note: we don't add scaling and bounds here. This may be revisited.
-            self.add_output(name='states:{0}'.format(state_name),
+            self.add_output(name=f'states:{state_name}',
                             shape=(num_state_input_nodes, ) + shape,
                             units=units)
 
             # Input for continuity, which can come from an external source.
             if options['connected_initial']:
-                input_name = 'initial_states:{0}'.format(state_name)
+                input_name = f'initial_states:{state_name}',
                 self.add_input(name=input_name, shape=(1, ) + shape, units=units)
 
             # compute an output contraint value since the optimizer needs it
@@ -68,7 +68,7 @@ class StateIndependentsComp(om.ImplicitComponent):
                 self.add_input(
                     name=var_names['defect'],
                     shape=(num_col_nodes, ) + shape,
-                    desc='Constraint value for interior defects of state {0}'.format(state_name),
+                    desc=f'Constraint value for interior defects of state {state_name}',
                     units=units)
 
         # Setup partials
@@ -76,7 +76,7 @@ class StateIndependentsComp(om.ImplicitComponent):
             shape = options['shape']
             size = np.prod(shape)
             solved = options['solve_segments']
-            state_var_name = 'states:{0}'.format(state_name)
+            state_var_name = f'states:{state_name}'
 
             if solved:  # only need this deriv if its solved
                 solve_idx = np.array(state_idx_map[state_name]['solver'])
@@ -93,7 +93,7 @@ class StateIndependentsComp(om.ImplicitComponent):
                                       rows=row, cols=row, val=-1.0)
 
                 if options['connected_initial']:
-                    wrt = 'initial_states:{0}'.format(state_name)
+                    wrt = f'initial_states:{state_name}'
                     row_col = np.arange(np.prod(shape))
                     self.declare_partials(of=state_var_name, wrt=wrt, rows=row_col, cols=row_col,
                                           val=1.0)
@@ -113,7 +113,7 @@ class StateIndependentsComp(om.ImplicitComponent):
                                       rows=row_col, cols=row_col, val=-1.0)
 
                 if options['connected_initial']:
-                    wrt = 'initial_states:{0}'.format(state_name)
+                    wrt = f'initial_states:{state_name}'
                     row_col = np.arange(np.prod(shape))
                     self.declare_partials(of=state_var_name, wrt=wrt, rows=row_col, cols=row_col,
                                           val=1.0)
@@ -135,7 +135,7 @@ class StateIndependentsComp(om.ImplicitComponent):
 
         for state_name, options in state_options.items():
 
-            state_var_name = 'states:{0}'.format(state_name)
+            state_var_name = f'states:{state_name}'
 
             solve_idx = self.state_idx_map[state_name]['solver']
             indep_idx = self.state_idx_map[state_name]['indep']
@@ -154,7 +154,7 @@ class StateIndependentsComp(om.ImplicitComponent):
             residuals[state_var_name][indep_idx, ...] = 0.0
 
             if options['connected_initial']:
-                ic_state_name = 'initial_states:{0}'.format(state_name)
+                ic_state_name = f'initial_states:{state_name}'
 
                 residuals[state_var_name][0, ...] = \
                     inputs[ic_state_name][0, ...] - \
@@ -165,6 +165,6 @@ class StateIndependentsComp(om.ImplicitComponent):
 
         for state_name, options in state_options.items():
             if options['connected_initial']:
-                output_name = 'states:{0}'.format(state_name)
-                input_name = 'initial_states:{0}'.format(state_name)
+                output_name = f'states:{state_name}'
+                input_name = f'initial_states:{state_name}'
                 outputs[output_name][0, ...] = inputs[input_name]

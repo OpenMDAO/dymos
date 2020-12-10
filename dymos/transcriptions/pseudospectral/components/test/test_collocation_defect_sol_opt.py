@@ -4,6 +4,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.transcriptions.grid_data import GridData
@@ -17,6 +18,7 @@ CollocationComp = CompWrapperConfig(CollocationComp)
 StateIndependentsComp = CompWrapperConfig(StateIndependentsComp)
 
 
+@use_tempdirs
 class TestCollocationCompSolOpt(unittest.TestCase):
 
     def setUp(self):
@@ -86,8 +88,6 @@ class TestCollocationCompSolOpt(unittest.TestCase):
 
         p.run_model()
         p.model.run_apply_nonlinear()
-
-        # p.model.list_outputs(residuals=True, print_arrays=True)
 
         return p
 
