@@ -71,7 +71,7 @@ class StateIndependentsComp(om.ImplicitComponent):
 
             # Input for continuity, which can come from an external source.
             if options['connected_initial']:
-                input_name = f'initial_states:{state_name}',
+                input_name = f'initial_states:{state_name}'
                 self.add_input(name=input_name, shape=(1, ) + shape, units=units)
 
             # compute an output constraint value since the optimizer needs it
@@ -119,7 +119,7 @@ class StateIndependentsComp(om.ImplicitComponent):
                                       rows=row, cols=col, val=1.0)
 
             else:
-                row_col = np.arange(num_state_input_nodes*np.prod(shape))
+                row_col = np.arange(num_state_input_nodes*np.prod(shape), dtype=int)
                 self.declare_partials(of=state_var_name, wrt=state_var_name,
                                       rows=row_col, cols=row_col, val=-1.0)
 

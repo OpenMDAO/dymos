@@ -22,8 +22,6 @@ class TestBatteryRKIVP(unittest.TestCase):
         # First phase: normal operation.
         # NOTE: using RK4 integration here
 
-        P_DEMAND = 2.0
-
         phase0 = dm.Phase(ode_class=BatteryODE, transcription=dm.RungeKutta(num_segments=200))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('state_of_charge', fix_initial=True, fix_final=False,

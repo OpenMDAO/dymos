@@ -338,7 +338,7 @@ class PseudospectralBase(TranscriptionBase):
         pass
 
     def configure_solvers(self, phase):
-        if self.any_solved_segs:
+        if self.any_solved_segs or self.any_connected_opt_segs:
             newton = phase.nonlinear_solver = om.NewtonSolver()
             newton.options['solve_subsystems'] = True
             newton.options['maxiter'] = 100

@@ -26,7 +26,7 @@ class TestCollocationCompSolOpt(unittest.TestCase):
 
     def tearDown(self):
         dm.options['include_check_partials'] = False
-        
+
     def _make_state_idx_map(self, state_name, options, grid_data, state_idx_map):
             """
             Provides error checking for solve_segments and establishes necessary data structures.
@@ -61,8 +61,10 @@ class TestCollocationCompSolOpt(unittest.TestCase):
                         state_idx_map[state_name]['indep'] = np.zeros((1,), dtype=int)
                     else:
                         left_idxs = grid_data.subset_node_indices['segment_ends'][0::2]
-                        state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes) if state_input_idxs[i] not in left_idxs]
-                        state_idx_map[state_name]['indep'] = [i for i in range(num_state_input_nodes) if state_input_idxs[i] in left_idxs]
+                        state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes)
+                                                               if state_input_idxs[i] not in left_idxs]
+                        state_idx_map[state_name]['indep'] = [i for i in range(num_state_input_nodes)
+                                                              if state_input_idxs[i] in left_idxs]
 
                 # Backward propagation
                 elif options['solve_segments'] in {'backward'}:
@@ -73,8 +75,10 @@ class TestCollocationCompSolOpt(unittest.TestCase):
                     else:
                         # The optimizer controls the last state input node in each segment, all others are solver_controlled
                         right_idxs = grid_data.subset_node_indices['segment_ends'][1::2]
-                        state_idx_map[state_name]['indep'] = [i for i in range(num_state_input_nodes) if state_input_idxs[i] in right_idxs]
-                        state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes) if state_input_idxs[i] not in right_idxs]
+                        state_idx_map[state_name]['indep'] = [i for i in range(num_state_input_nodes)
+                                                              if state_input_idxs[i] in right_idxs]
+                        state_idx_map[state_name]['solver'] = [i for i in range(num_state_input_nodes)
+                                                               if state_input_idxs[i] not in right_idxs]
             else:
                 # No solver used to solve these nodes.  All state input nodes are the indep nodes.
                 state_idx_map[state_name]['solver'] = []
@@ -157,7 +161,8 @@ class TestCollocationCompSolOpt(unittest.TestCase):
         assert_almost_equal(p['defect_comp.defects:x'],
                             dt_dstau[:, np.newaxis] * (p['f_approx:x']-p['f_computed:x']))
 
-        solver_nodes = p.model.state_indep.solver_node_idx[:-1]  # fix_final
+        # solver_nodes = p.model.state_indep.solver_node_idx[:-1]  # fix_final
+        solver_nodes = self.state_idx_map['v']['solver']
         assert_almost_equal(p.model._residuals['state_indep.states:v'][solver_nodes],
                             dt_dstau[:, np.newaxis, np.newaxis] *
                             (p['f_approx:v']-p['f_computed:v']))
@@ -169,7 +174,7 @@ class TestCollocationCompSolOpt(unittest.TestCase):
         assert_almost_equal(p['defect_comp.defects:x'],
                             dt_dstau[:, np.newaxis] * (p['f_approx:x']-p['f_computed:x']))
 
-        solver_nodes = p.model.state_indep.solver_node_idx[:-1]  # fix_final
+        solver_nodes = self.state_idx_map['v']['solver']
         assert_almost_equal(p.model._residuals['state_indep.states:v'][solver_nodes],
                             dt_dstau[:, np.newaxis, np.newaxis] *
                             (p['f_approx:v']-p['f_computed:v']))

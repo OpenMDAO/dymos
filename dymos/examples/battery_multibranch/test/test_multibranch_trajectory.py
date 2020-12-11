@@ -17,25 +17,26 @@ optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
 
 @use_tempdirs
 class TestBatteryBranchingPhases(unittest.TestCase):
+    def setUp(self):
+        dm.options['include_check_partials'] = True
+
+    def tearDown(self):
+        dm.options['include_check_partials'] = False
 
     def test_optimizer_defects(self):
 
         prob = om.Problem()
 
-        if optimizer == 'SNOPT':
-            opt = prob.driver = om.pyOptSparseDriver()
-            opt.options['optimizer'] = optimizer
-            opt.declare_coloring()
+        opt = prob.driver = om.pyOptSparseDriver()
+        opt.declare_coloring()
 
+        if optimizer == 'SNOPT':
+            opt.options['optimizer'] = optimizer
             opt.opt_settings['Major iterations limit'] = 1000
             opt.opt_settings['Major feasibility tolerance'] = 1.0E-6
             opt.opt_settings['Major optimality tolerance'] = 1.0E-6
             opt.opt_settings["Linesearch tolerance"] = 0.10
             opt.opt_settings['iSumm'] = 6
-
-        else:
-            opt = prob.driver = om.ScipyOptimizeDriver()
-            opt.declare_coloring()
 
         num_seg = 5
         seg_ends, _ = lgl(num_seg + 1)
@@ -280,6 +281,8 @@ class TestBatteryBranchingPhases(unittest.TestCase):
     def test_optimizer_segments_direct_connections(self):
         prob = om.Problem()
 
+        optimizer = 'SNOPT'
+
         if optimizer == 'SNOPT':
             opt = prob.driver = om.pyOptSparseDriver()
             opt.options['optimizer'] = optimizer
@@ -289,6 +292,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
             opt.opt_settings['Major feasibility tolerance'] = 1.0E-6
             opt.opt_settings['Major optimality tolerance'] = 1.0E-6
             opt.opt_settings["Linesearch tolerance"] = 0.10
+            opt.opt_settings["Verify level"] = 3
             opt.opt_settings['iSumm'] = 6
 
         else:
@@ -341,10 +345,9 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         traj.link_phases(phases=['phase0', 'phase1_mfail'], vars=['state_of_charge', 'time'],
                          connected=True)
 
-        prob.model.options['assembled_jac_type'] = 'csc'
         prob.model.linear_solver = om.DirectSolver(assemble_jac=True)
 
-        prob.setup()
+        prob.setup(force_alloc_complex=True)
 
         prob['traj.phase0.t_initial'] = 0
         prob['traj.phase0.t_duration'] = 1.0*3600
@@ -358,7 +361,15 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         prob['traj.phase1_mfail.t_initial'] = 1.0*3600
         prob['traj.phase1_mfail.t_duration'] = 1.0*3600
 
-        prob.set_solver_print(level=0)
+        prob.set_solver_print(level=2)
+
+        prob.run_model()
+
+        # TODO: Remove
+        import numpy as np
+        with np.printoptions(linewidth=1024):
+            prob.check_partials(method='cs', compact_print=False)
+
         dm.run_problem(prob)
 
         soc0 = prob['traj.phase0.states:state_of_charge']
