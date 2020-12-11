@@ -129,17 +129,11 @@ class TestUpgrade_0_16_0(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        units=BrachistochroneODE.states['x']['units'],
-                        fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('x', fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        units=BrachistochroneODE.states['y']['units'],
-                        fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('y', fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        units=BrachistochroneODE.states['v']['units'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
@@ -481,6 +475,7 @@ class TestUpgrade_0_16_0(unittest.TestCase):
                             ('f_drag', 'N'), ('thrust', 'lbf')]:
             self.assertEqual(op_dict[f'traj.phase0.timeseries.{name}'], units)
 
+
 @use_tempdirs
 class TestUpgrade_0_17_0(unittest.TestCase):
 
@@ -583,11 +578,9 @@ class TestUpgrade_0_17_0(unittest.TestCase):
                 partials['check', 'v'] = 1 / sin_theta
                 partials['check', 'theta'] = -v * cos_theta / sin_theta ** 2
 
-
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
-        import matplotlib.pyplot as plt
 
         #
         # Initialize the Problem and the optimization driver

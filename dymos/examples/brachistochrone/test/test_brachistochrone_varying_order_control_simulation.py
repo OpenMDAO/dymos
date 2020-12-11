@@ -28,12 +28,9 @@ class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
-        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
-        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('x', fix_initial=True, fix_final=False)
+        phase.add_state('y', fix_initial=True, fix_final=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
@@ -107,12 +104,9 @@ class TestBrachistochroneVaryingOrderControlSimulation(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
-        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
-        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('x', fix_initial=True, fix_final=False)
+        phase.add_state('y', fix_initial=True, fix_final=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)

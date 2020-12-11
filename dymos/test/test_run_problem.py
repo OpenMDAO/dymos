@@ -168,15 +168,9 @@ class TestRunProblem(unittest.TestCase):
                                                    transcription=dm.Radau(num_segments=10,
                                                                           order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=False)
-        phase0.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                         units=BrachistochroneODE.states['x']['units'],
-                         fix_initial=True, fix_final=False, solve_segments=False)
-        phase0.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                         units=BrachistochroneODE.states['y']['units'],
-                         fix_initial=True, fix_final=False, solve_segments=False)
-        phase0.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                         units=BrachistochroneODE.states['v']['units'],
-                         fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_state('x', fix_initial=True, fix_final=False)
+        phase0.add_state('y', fix_initial=True, fix_final=False)
+        phase0.add_state('v', fix_initial=True, fix_final=False)
         phase0.add_control('theta', continuity=True, rate_continuity=True,
                            units='deg', lower=0.01, upper=179.9)
         phase0.add_parameter('g', units='m/s**2', val=9.80665)
@@ -220,15 +214,9 @@ class TestRunProblem(unittest.TestCase):
                                                    transcription=dm.Radau(num_segments=10,
                                                                           order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=False)
-        phase0.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                         units=BrachistochroneODE.states['x']['units'],
-                         fix_initial=True, fix_final=False, solve_segments=False)
-        phase0.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                         units=BrachistochroneODE.states['y']['units'],
-                         fix_initial=True, fix_final=False, solve_segments=False)
-        phase0.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                         units=BrachistochroneODE.states['v']['units'],
-                         fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_state('x', fix_initial=True, fix_final=False)
+        phase0.add_state('y', fix_initial=True, fix_final=False)
+        phase0.add_state('v', fix_initial=True, fix_final=False)
         phase0.add_control('theta', continuity=True, rate_continuity=True,
                            units='deg', lower=0.01, upper=179.9)
         phase0.add_parameter('g', units='m/s**2', val=9.80665)
@@ -331,15 +319,9 @@ class TestRunProblemPlotting(unittest.TestCase):
                                                    transcription=dm.Radau(num_segments=10,
                                                                           order=3)))
         phase0.set_time_options(fix_initial=True, fix_duration=True)
-        phase0.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                         units=BrachistochroneODE.states['x']['units'],
-                         fix_initial=True, fix_final=False, solve_segments=False)
-        phase0.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                         units=BrachistochroneODE.states['y']['units'],
-                         fix_initial=True, fix_final=False, solve_segments=False)
-        phase0.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                         units=BrachistochroneODE.states['v']['units'],
-                         fix_initial=True, fix_final=False, solve_segments=False)
+        phase0.add_state('x', fix_initial=True, fix_final=False)
+        phase0.add_state('y', fix_initial=True, fix_final=False)
+        phase0.add_state('v', fix_initial=True, fix_final=False)
         phase0.add_control('theta', continuity=True, rate_continuity=True,
                            units='deg', lower=0.01, upper=179.9)
         phase0.add_parameter('g', units='m/s**2', val=9.80665)

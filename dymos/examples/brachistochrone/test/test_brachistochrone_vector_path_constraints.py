@@ -7,6 +7,7 @@ plt.switch_backend('Agg')
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
@@ -15,6 +16,7 @@ from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
 SHOW_PLOTS = True
 
 
+@use_tempdirs
 class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
     def test_brachistochrone_vector_state_path_constraints_radau_partial_indices(self):
@@ -31,12 +33,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('pos',
-                        rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        fix_initial=True, fix_final=True)
-        phase.add_state('v',
-                        rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('pos', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
 
@@ -149,12 +147,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('pos',
-                        rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        fix_initial=True, fix_final=True)
-        phase.add_state('v',
-                        rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('pos', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
 
@@ -267,12 +261,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('pos',
-                        rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        fix_initial=True, fix_final=True)
-        phase.add_state('v',
-                        rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('pos', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
 
@@ -385,12 +375,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('pos',
-                        rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        fix_initial=True, fix_final=True)
-        phase.add_state('v',
-                        rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('pos', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
 
@@ -502,12 +488,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('pos',
-                        rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        fix_initial=True, fix_final=True)
-        phase.add_state('v',
-                        rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('pos', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg',
                           rate_continuity=True, lower=0.01, upper=179.9)
@@ -622,12 +604,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('pos',
-                        rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        fix_initial=True, fix_final=True)
-        phase.add_state('v',
-                        rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('pos', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg',
                           rate_continuity=False, lower=0.01, upper=179.9)
@@ -740,12 +718,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('pos',
-                        rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        fix_initial=True, fix_final=False)
-        phase.add_state('v',
-                        rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('pos', fix_initial=True, fix_final=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
 
@@ -857,12 +831,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('pos',
-                        rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        fix_initial=True, fix_final=False)
-        phase.add_state('v',
-                        rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('pos', fix_initial=True, fix_final=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
 
@@ -977,12 +947,8 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('pos',
-                        rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        fix_initial=True, fix_final=False)
-        phase.add_state('v',
-                        rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('pos', fix_initial=True, fix_final=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg', rate_continuity=True, lower=0.01, upper=179.9)
 
