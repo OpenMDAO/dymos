@@ -289,7 +289,6 @@ class PseudospectralBase(TranscriptionBase):
             # No solver used to solve these nodes.  All state input nodes are the indep nodes.
             self.state_idx_map[state_name]['solver'] = []
             self.state_idx_map[state_name]['indep'] = np.arange(len(state_input_idxs), dtype=int)
-        pass
 
     def configure_defects(self, phase):
         grid_data = self.grid_data
