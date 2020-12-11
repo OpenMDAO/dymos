@@ -737,6 +737,7 @@ class Trajectory(om.Group):
         phase_a : str
             The first phase in the linkage constraint.
         phase_b : str
+            The second phase in the linkage constraint.
         var_a : str
             The linked variable from the first phase in the linkage constraint.
         var_b : str
