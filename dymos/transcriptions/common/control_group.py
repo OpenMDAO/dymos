@@ -245,6 +245,9 @@ class ControlGroup(om.Group):
 
         opt_controls = [name for (name, opts) in control_options.items() if opts['opt']]
 
+        if len(opt_controls) > 0:
+            self.add_subsystem('indep_controls', subsys=om.IndepVarComp(), promotes_outputs=['*'])
+
         self.add_subsystem(
             'control_interp_comp',
             subsys=ControlInterpComp(time_units=time_units, grid_data=gd,
