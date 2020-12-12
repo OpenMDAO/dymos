@@ -1,7 +1,7 @@
 ********************************
 # Release Notes for Dymos 0.17.0
 
-December 11, 2020
+December 14, 2020
 
 This release of Dymos adds a few important features:
 - Dymos can now automatically generate plots of all timeseries outputs
