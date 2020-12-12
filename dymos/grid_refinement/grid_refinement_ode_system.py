@@ -53,7 +53,6 @@ class GridRefinementODESystem(om.Group):
                              desc='Keyword arguments provided when initializing the ODE System')
 
     def setup(self):
-        time_units = self.options['time']['units']
         grid_data = self.options['grid_data']
         num_nodes = grid_data.num_nodes
         ode_class = self.options['ode_class']
