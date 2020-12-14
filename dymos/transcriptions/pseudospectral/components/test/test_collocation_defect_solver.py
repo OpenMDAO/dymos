@@ -316,15 +316,12 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        fix_initial=True, fix_final=False, solve_segments=True)
-        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        fix_initial=True, fix_final=False, solve_segments=True)
+        phase.add_state('x', fix_initial=True, fix_final=False, solve_segments='forward')
+        phase.add_state('y', fix_initial=True, fix_final=False, solve_segments='forward')
 
         # Note that by omitting the targets here Dymos will automatically attempt to connect
         # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
-        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False, solve_segments=True)
+        phase.add_state('v', fix_initial=True, fix_final=False, solve_segments='forward')
 
         phase.add_control('theta',
                           continuity=True, rate_continuity=True,

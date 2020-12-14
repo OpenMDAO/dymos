@@ -417,7 +417,7 @@ class StateOptionsDictionary(om.OptionsDictionary):
         self.declare(name='solve_segments', default=None, allow_none=True,
                      values=(True, False, 'forward', 'backward'),
                      desc='If True (deprecated) or \'forward\', collocation defects within each'
-                          'segment are solved with a newton solver by fixing the initial value in the'
+                          'segment are solved with a Newton solver by fixing the initial value in the'
                           'phase (if using compressed transcription) or segment (if not using '
                           'compressed transcription). This provides a forward shooting (or multiple shooting)'
                           'method.  If \'backward\', the final value in the phase or segment is fixed'

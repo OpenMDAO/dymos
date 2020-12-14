@@ -93,7 +93,7 @@ class TestCannonballMatrixState(unittest.TestCase):
 
     def test_cannonball_matrix_state_radau_solve_segments(self):
 
-        tx = dm.Radau(num_segments=10, order=3, solve_segments=True)
+        tx = dm.Radau(num_segments=10, order=3, solve_segments='forward')
 
         p = self._make_problem(tx)
 
@@ -110,7 +110,7 @@ class TestCannonballMatrixState(unittest.TestCase):
         assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
     def test_cannonball_matrix_state_gl_solve_segments(self):
-        tx = dm.GaussLobatto(num_segments=10, order=3, solve_segments=True)
+        tx = dm.GaussLobatto(num_segments=10, order=3, solve_segments='forward')
 
         p = self._make_problem(tx)
 
@@ -193,7 +193,7 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
 
     def test_cannonball_matrix_state_radau_solve_segments(self):
 
-        tx = dm.Radau(num_segments=10, order=3, solve_segments=True)
+        tx = dm.Radau(num_segments=10, order=3, solve_segments='forward')
 
         p = self._make_problem(tx)
 
@@ -210,7 +210,7 @@ class TestCannonballMatrixStateExplicitShape(unittest.TestCase):
         assert_near_equal(c.get_val('traj.phase.timeseries.states:z')[-1, 0, 0], 20.3873598, tolerance=1E-5)
 
     def test_cannonball_matrix_state_gl_solve_segments(self):
-        tx = dm.GaussLobatto(num_segments=10, order=3, solve_segments=True)
+        tx = dm.GaussLobatto(num_segments=10, order=3, solve_segments='forward')
 
         p = self._make_problem(tx)
 

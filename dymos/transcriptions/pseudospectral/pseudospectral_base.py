@@ -17,8 +17,17 @@ class PseudospectralBase(TranscriptionBase):
     Base class for the pseudospectral transcriptions.
     """
     def initialize(self):
-        self.options.declare(name='solve_segments', default=False, types=bool,
-                             desc='default value for solve_segments for all states in the phase')
+        self.options.declare(name='solve_segments', default=False,
+                             values=(True, False, 'forward', 'backward'),
+                             desc='Applies \'solve_segments\' behavior to _all_ states in the Phase. '
+                                  'If True (deprecated) or \'forward\', collocation defects within each '
+                                  'segment are solved with a Newton solver by fixing the initial value in the '
+                                  'phase (if using compressed transcription) or segment (if not using '
+                                  'compressed transcription). This provides a forward shooting (or multiple shooting) '
+                                  'method.  If \'backward\', the final value in the phase or segment is fixed '
+                                  'and a solver finds the other ones to mimic reverse propagation. Set '
+                                  'to False (the default) to explicitly disable the use of a solver to '
+                                  'converge the state time history.')
 
     def setup_time(self, phase):
         time_units = phase.time_options['units']

@@ -47,15 +47,12 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
 
     phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-    phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                    fix_initial=False, fix_final=False, solve_segments=solve_segments)
-    phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                    fix_initial=False, fix_final=False, solve_segments=solve_segments)
+    phase.add_state('x', fix_initial=False, fix_final=False, solve_segments=solve_segments)
+    phase.add_state('y', fix_initial=False, fix_final=False, solve_segments=solve_segments)
 
     # Note that by omitting the targets here Dymos will automatically attempt to connect
     # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
-    phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                    fix_initial=False, fix_final=False, solve_segments=solve_segments)
+    phase.add_state('v', fix_initial=False, fix_final=False, solve_segments=solve_segments)
 
     phase.add_control('theta',
                       continuity=True, rate_continuity=True,
@@ -186,7 +183,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
                                                            compressed=False,
                                                            force_alloc_complex=True,
-                                                           solve_segments=True,
+                                                           solve_segments='forward',
                                                            num_segments=1,
                                                            transcription_order=11)
         self.assert_results(p)
@@ -196,7 +193,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
                                                            compressed=False,
                                                            force_alloc_complex=True,
-                                                           solve_segments=True,
+                                                           solve_segments='forward',
                                                            num_segments=1,
                                                            transcription_order=11)
         self.assert_results(p)
