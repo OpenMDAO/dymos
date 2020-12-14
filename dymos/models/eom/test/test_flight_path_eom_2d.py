@@ -10,7 +10,7 @@ from dymos.utils.testing_utils import assert_check_partials
 import dymos as dm
 from dymos.models.eom import FlightPathEOM2D
 
-OPTIMIZER = 'SNOPT'
+OPTIMIZER = 'SLSQP'
 SHOW_PLOTS = False
 
 
