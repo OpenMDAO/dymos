@@ -381,26 +381,6 @@ def define_env(env):
         return ss.getvalue()
 
 
-def _sub_unspecified_in_signature(signature):
-    """
-    Returns the function signature with all instances of '<object object at (hexcode)>' removed and
-    replaced with 'unspecified'.
-
-    Parameters
-    ----------
-    signature : str
-        The default function signature.
-
-    Returns
-    -------
-    str
-        The signature with object instances replaced with the 'unspecified' keyword.
-
-    """
-    return signature
-    return re.sub(r'\<object.+?\>', 'unspecified', signature)
-
-
 def get_object_from_reference(reference):
     split = reference.split('.')
     right = []
@@ -517,7 +497,8 @@ def _function_doc_markdown(func, reference, outstream=sys.stdout, indent='', met
         The markdown representation of the function documentation.
     """
     doc = FunctionDoc(func)
-    sig = _sub_unspecified_in_signature(doc['Signature'])
+
+    sig = func.__name__ + str(inspect.signature(func))
 
     if not method:
         print(f'{indent}!!! abstract "{reference}"\n', file=outstream)

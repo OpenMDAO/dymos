@@ -129,17 +129,11 @@ class TestUpgrade_0_16_0(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        units=BrachistochroneODE.states['x']['units'],
-                        fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('x', fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        units=BrachistochroneODE.states['y']['units'],
-                        fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('y', fix_initial=True, fix_final=True, solve_segments=False)
 
-        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        units=BrachistochroneODE.states['v']['units'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True, opt=True,
                           units='deg', lower=0.01, upper=179.9, ref=1, ref0=0)
@@ -480,3 +474,172 @@ class TestUpgrade_0_16_0(unittest.TestCase):
                             ('CL', None), ('CD', None), ('q', 'N/m**2'), ('f_lift', 'lbf'),
                             ('f_drag', 'N'), ('thrust', 'lbf')]:
             self.assertEqual(op_dict[f'traj.phase0.timeseries.{name}'], units)
+
+
+@use_tempdirs
+class TestUpgrade_0_17_0(unittest.TestCase):
+
+    def test_tags(self):
+        """
+        # upgrade_doc: begin tag_rate_source
+        self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s')
+        self.add_output('ydot', val=np.zeros(nn), desc='velocity component in y', units='m/s')
+        self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2')
+        # upgrade_doc: end tag_rate_source
+        # upgrade_doc: begin declare_rate_source
+        phase.add_state('x', rate_source='xdot', fix_initial=True, fix_final=True)
+        phase.add_state('y', rate_source='ydot', fix_initial=True, fix_final=True)
+        phase.add_state('v', rate_source='vdot', fix_initial=True, fix_final=False)
+        # upgrade_doc: end declare_rate_source
+        """
+        import numpy as np
+        import openmdao.api as om
+
+        class BrachistochroneODE(om.ExplicitComponent):
+
+            def initialize(self):
+                self.options.declare('num_nodes', types=int)
+                self.options.declare('static_gravity', types=(bool,), default=False,
+                                     desc='If True, treat gravity as a static (scalar) input, rather than '
+                                          'having different values at each node.')
+
+            def setup(self):
+                nn = self.options['num_nodes']
+                g_default_val = 9.80665 if self.options['static_gravity'] else 9.80665 * np.ones(nn)
+
+                # Inputs
+                self.add_input('v', val=np.zeros(nn), desc='velocity', units='m/s')
+
+                self.add_input('g', val=g_default_val, desc='grav. acceleration', units='m/s/s')
+
+                self.add_input('theta', val=np.ones(nn), desc='angle of wire', units='rad')
+
+                # upgrade_doc: begin tag_rate_source
+                self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s',
+                                tags=['state_rate_source:x', 'state_units:m'])
+
+                self.add_output('ydot', val=np.zeros(nn), desc='velocity component in y', units='m/s',
+                                tags=['state_rate_source:y', 'state_units:m'])
+
+                self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2',
+                                tags=['state_rate_source:v', 'state_units:m/s'])
+                # upgrade_doc: end tag_rate_source
+
+                self.add_output('check', val=np.zeros(nn), desc='check solution: v/sin(theta) = constant',
+                                units='m/s')
+
+                # Setup partials
+                arange = np.arange(self.options['num_nodes'])
+                self.declare_partials(of='vdot', wrt='theta', rows=arange, cols=arange)
+
+                self.declare_partials(of='xdot', wrt='v', rows=arange, cols=arange)
+                self.declare_partials(of='xdot', wrt='theta', rows=arange, cols=arange)
+
+                self.declare_partials(of='ydot', wrt='v', rows=arange, cols=arange)
+                self.declare_partials(of='ydot', wrt='theta', rows=arange, cols=arange)
+
+                self.declare_partials(of='check', wrt='v', rows=arange, cols=arange)
+                self.declare_partials(of='check', wrt='theta', rows=arange, cols=arange)
+
+                if self.options['static_gravity']:
+                    c = np.zeros(self.options['num_nodes'])
+                    self.declare_partials(of='vdot', wrt='g', rows=arange, cols=c)
+                else:
+                    self.declare_partials(of='vdot', wrt='g', rows=arange, cols=arange)
+
+            def compute(self, inputs, outputs):
+                theta = inputs['theta']
+                cos_theta = np.cos(theta)
+                sin_theta = np.sin(theta)
+                g = inputs['g']
+                v = inputs['v']
+
+                outputs['vdot'] = g * cos_theta
+                outputs['xdot'] = v * sin_theta
+                outputs['ydot'] = -v * cos_theta
+                outputs['check'] = v / sin_theta
+
+            def compute_partials(self, inputs, partials):
+                theta = inputs['theta']
+                cos_theta = np.cos(theta)
+                sin_theta = np.sin(theta)
+                g = inputs['g']
+                v = inputs['v']
+
+                partials['vdot', 'g'] = cos_theta
+                partials['vdot', 'theta'] = -g * sin_theta
+
+                partials['xdot', 'v'] = sin_theta
+                partials['xdot', 'theta'] = v * cos_theta
+
+                partials['ydot', 'v'] = -cos_theta
+                partials['ydot', 'theta'] = v * sin_theta
+
+                partials['check', 'v'] = 1 / sin_theta
+                partials['check', 'theta'] = -v * cos_theta / sin_theta ** 2
+
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_near_equal
+        import dymos as dm
+
+        #
+        # Initialize the Problem and the optimization driver
+        #
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
+
+        #
+        # Create a trajectory and add a phase to it
+        #
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        phase = traj.add_phase('phase0',
+                               dm.Phase(ode_class=BrachistochroneODE,
+                                        transcription=dm.GaussLobatto(num_segments=10)))
+
+        #
+        # Set the variables
+        #
+        phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
+
+        # upgrade_doc: begin declare_rate_source
+        phase.add_state('x', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True, fix_final=False)
+        # upgrade_doc: end declare_rate_source
+
+        phase.add_control('theta', continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        phase.add_parameter('g', units='m/s**2', val=9.80665)
+        #
+        # Minimize time at the end of the phase
+        #
+        phase.add_objective('time', loc='final', scaler=10)
+
+        p.model.linear_solver = om.DirectSolver()
+
+        #
+        # Setup the Problem
+        #
+        p.setup()
+
+        #
+        # Set the initial values
+        #
+        p['traj.phase0.t_initial'] = 0.0
+        p['traj.phase0.t_duration'] = 2.0
+
+        p['traj.phase0.states:x'] = phase.interpolate(ys=[0, 10], nodes='state_input')
+        p['traj.phase0.states:y'] = phase.interpolate(ys=[10, 5], nodes='state_input')
+        p['traj.phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['traj.phase0.controls:theta'] = phase.interpolate(ys=[5, 100.5], nodes='control_input')
+
+        #
+        # Solve for the optimal trajectory
+        #
+        dm.run_problem(p)
+
+        # Test the results
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)

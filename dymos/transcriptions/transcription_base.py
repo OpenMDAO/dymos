@@ -3,8 +3,10 @@ from collections.abc import Sequence
 import numpy as np
 
 import openmdao.api as om
+from openmdao.core.constants import _UNDEFINED
 
 from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
+from ..phase.options import StateOptionsDictionary
 from ..utils.constants import INF_BOUND
 from ..utils.misc import get_rate_units, _unspecified, get_target_metadata, get_source_metadata
 
@@ -345,6 +347,52 @@ class TranscriptionBase(object):
                 phase.set_input_defaults(name=src_name,
                                          val=shaped_val,
                                          units=options['units'])
+
+    def configure_state_discovery(self, phase):
+        """
+        Searches phase output metadata for any declared states and adds them.
+
+        Parameters
+        ----------
+        phase
+            The phase object to which this transcription instance applies.
+        """
+        state_options = phase.state_options
+        ode = phase._get_subsystem(self._rhs_source)
+        out_meta = ode.get_io_metadata(iotypes='output', metadata_keys=['tags'],
+                                       get_remote=True)
+
+        for name, meta in out_meta.items():
+            tags = meta['tags']
+            prom_name = meta['prom_name']
+            state = None
+            for tag in sorted(tags):
+
+                # Declared as rate_source.
+                if tag.startswith('state_rate_source:'):
+                    state = tag[18:]
+                    if state not in state_options:
+                        state_options[state] = StateOptionsDictionary()
+                        state_options[state]['name'] = state
+
+                    if state_options[state]['rate_source'] is not None:
+                        if state_options[state]['rate_source'] != prom_name:
+                            raise ValueError(f"rate_source has been declared twice for state "
+                                             f"'{state}' which is tagged on '{name}'.")
+
+                    state_options[state]['rate_source'] = prom_name
+
+                # Declares units for state.
+                if tag.startswith('state_units:'):
+                    if state is None:
+                        raise ValueError(f"'state_units:' tag declared on '{name}' also requires "
+                                         f"that the 'state_rate_source:' tag be declared.")
+                    state_options[state]['units'] = tag[12:]
+
+        # Check over all existing states and make sure we aren't missing any rate sources.
+        for name, options in state_options.items():
+            if options['rate_source'] is None:
+                raise ValueError(f"State '{name}' is missing a rate_source.")
 
     def setup_states(self, phase):
         raise NotImplementedError('Transcription {0} does not implement method '

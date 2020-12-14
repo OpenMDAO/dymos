@@ -113,16 +113,11 @@ class TestTandemPhases(unittest.TestCase):
 
         phase0.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase0.add_state('x', fix_initial=True, fix_final=False,
-                         rate_source=BrachistochroneODE.states['x']['rate_source'])
-        phase0.add_state('y', fix_initial=True, fix_final=False,
-                         rate_source=BrachistochroneODE.states['y']['rate_source'])
-        phase0.add_state('v', fix_initial=True,
-                         rate_source=BrachistochroneODE.states['v']['rate_source'])
+        phase0.add_state('x', fix_initial=True, fix_final=False)
+        phase0.add_state('y', fix_initial=True, fix_final=False)
+        phase0.add_state('v', fix_initial=True)
 
-        phase0.add_parameter('g',
-                             units=BrachistochroneODE.parameters['g']['units'],
-                             val=9.80665)
+        phase0.add_parameter('g', units='m/s**2', val=9.80665)
 
         phase0.add_control('theta', units='deg',
                            rate_continuity=False, lower=0.01, upper=179.9)

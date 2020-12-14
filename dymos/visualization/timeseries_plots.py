@@ -148,6 +148,9 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
                 time_name = f'{phase_name}.timeseries.time'
 
             # Get values
+            if var_name_full not in last_solution_case.outputs:
+                continue
+
             var_val = last_solution_case.outputs[var_name_full]
             time_val = last_solution_case.outputs[time_name]
 

@@ -230,12 +230,12 @@ def make_subset_map(from_subset_idxs, to_subset_idxs):
 
     """
     offset = 0
-    map = []
+    subset_map = []
     for i in range(len(to_subset_idxs)):
         if to_subset_idxs[i] not in from_subset_idxs:
             offset += 1
-        map.append(i - offset)
-    return np.array(map)
+        subset_map.append(i - offset)
+    return np.array(subset_map)
 
 
 class GridData(object):

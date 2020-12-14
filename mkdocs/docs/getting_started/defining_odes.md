@@ -41,6 +41,24 @@ States have the following options set via the `add_state` and `set_state_options
 
 {{ embed_options('dymos.phase.options.StateOptionsDictionary', '###Options for States') }}
 
+### State Discovery
+
+Dymos will also automatically find and add any states that have been declared in components in the ODE. The syntax
+for declaring them is as follows.
+
+```python3
+
+        self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2',
+                        tags=['state_rate_source:v', 'state_units:m/s'])
+
+```
+
+The state is defined by adding tags to the state rate's output. The tag 'state_rate_source:v' declares that
+'v' is the state for which this output ('vdot') is the rate source.  You can also optionally use a tag
+in the format 'state_units:m/s' to define units for that state.  If you need to set any other options, then
+use `set_state_options` at the phase level.
+
+
 ###  Controls
 
 Inputs to the ODE which are to be dynamic controls are added via the `add_control` and `set_control_options` methods of Phase.
