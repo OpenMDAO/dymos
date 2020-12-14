@@ -133,7 +133,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
         traj_p0.add_state('state_of_charge', fix_initial=True, fix_final=False,
-                          solve_segments=True,
+                          solve_segments='forward',
                           targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase: normal operation.
@@ -142,7 +142,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1.add_state('state_of_charge', fix_initial=False, fix_final=False,
-                          solve_segments=True,
+                          solve_segments='forward',
                           targets=['SOC'], rate_source='dXdt:SOC')
         traj_p1.add_objective('time', loc='final')
 
@@ -153,7 +153,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p1_bfail.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1_bfail.add_state('state_of_charge', fix_initial=False, fix_final=False,
-                                solve_segments=True,
+                                solve_segments='forward',
                                 targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase, but with motor failure.
@@ -163,7 +163,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p1_mfail.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1_mfail.add_state('state_of_charge', fix_initial=False, fix_final=False,
-                                solve_segments=True,
+                                solve_segments='forward',
                                 targets=['SOC'], rate_source='dXdt:SOC')
 
         traj.link_phases(phases=['phase0', 'phase1'], vars=['state_of_charge', 'time'],
@@ -217,7 +217,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
         traj_p0.add_state('state_of_charge', fix_initial=True, fix_final=False,
-                          solve_segments=True,
+                          solve_segments='forward',
                           targets=['SOC'], rate_source='dXdt:SOC')
 
         prob.setup()
@@ -247,7 +247,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p0.set_time_options(fix_initial=True, fix_duration=True)
         traj_p0.add_state('state_of_charge', fix_initial=True, fix_final=False,
-                          solve_segments=True,
+                          solve_segments='forward',
                           targets=['SOC'], rate_source='dXdt:SOC')
 
         # Second phase: normal operation.
@@ -256,7 +256,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
 
         traj_p1.set_time_options(fix_initial=False, fix_duration=True)
         traj_p1.add_state('state_of_charge', fix_initial=False, fix_final=False,
-                          solve_segments=True,
+                          solve_segments='forward',
                           targets=['SOC'], rate_source='dXdt:SOC')
         traj_p1.add_objective('time', loc='final')
 

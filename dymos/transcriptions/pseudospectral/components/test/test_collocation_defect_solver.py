@@ -66,7 +66,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         The indep node is just the first one: {0}
         """
         p = brach(transcription='gauss-lobatto', num_segments=1, transcription_order=3,
-                  compressed=True, solve_segments=True, run_driver=True)
+                  compressed=True, solve_segments='forward', run_driver=True)
 
         state_indeps_comp = p.model.traj0.phases.phase0.indep_states
 
@@ -84,7 +84,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         The indep node is just the first one: {0}
         """
         p = brach(transcription='gauss-lobatto', num_segments=1, transcription_order=5,
-                  compressed=True, solve_segments=True, run_driver=True)
+                  compressed=True, solve_segments='forward', run_driver=True)
 
         state_indeps_comp = p.model.traj0.phases.phase0.indep_states
 
@@ -103,7 +103,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         The indep node is just the first one: {0}
         """
         p = brach(transcription='gauss-lobatto', num_segments=2, transcription_order=3,
-                  compressed=True, solve_segments=True, run_driver=True)
+                  compressed=True, solve_segments='forward', run_driver=True)
 
         state_indeps_comp = p.model.traj0.phases.phase0.indep_states
 
@@ -122,7 +122,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         The indep node is just the first one: {0}
         """
         p = brach(transcription='gauss-lobatto', num_segments=2, transcription_order=5,
-                  compressed=True, solve_segments=True, run_driver=True)
+                  compressed=True, solve_segments='forward', run_driver=True)
 
         state_indeps_comp = p.model.traj0.phases.phase0.indep_states
 
@@ -141,7 +141,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         The indep node is just the first one: {0, 2}
         """
         p = brach(transcription='gauss-lobatto', num_segments=2, transcription_order=3,
-                  compressed=False, solve_segments=True, run_driver=True)
+                  compressed=False, solve_segments='forward', run_driver=True)
 
         state_indeps_comp = p.model.traj0.phases.phase0.indep_states
 
@@ -160,7 +160,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         The indep node is just the first one in each segment: {0, 3}
         """
         p = brach(transcription='gauss-lobatto', num_segments=2, transcription_order=5,
-                  compressed=False, solve_segments=True, run_driver=True)
+                  compressed=False, solve_segments='forward', run_driver=True)
 
         state_indeps_comp = p.model.traj0.phases.phase0.indep_states
 
@@ -179,7 +179,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         The indep node is just the first one: {0}
         """
         p = brach(transcription='radau-ps', num_segments=1, transcription_order=3,
-                  compressed=True, solve_segments=True, run_driver=True)
+                  compressed=True, solve_segments='forward', run_driver=True)
 
         state_indeps_comp = p.model.traj0.phases.phase0.indep_states
 
@@ -198,7 +198,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         The indep node is just the first one: {0}
         """
         p = brach(transcription='radau-ps', num_segments=1, transcription_order=5,
-                  compressed=True, solve_segments=True, run_driver=True)
+                  compressed=True, solve_segments='forward', run_driver=True)
 
         state_indeps_comp = p.model.traj0.phases.phase0.indep_states
 
@@ -217,7 +217,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         The indep node is just the first one: {0}
         """
         p = brach(transcription='radau-ps', num_segments=2, transcription_order=3,
-                  compressed=True, solve_segments=True, run_driver=True)
+                  compressed=True, solve_segments='forward', run_driver=True)
 
         state_indeps_comp = p.model.traj0.phases.phase0.indep_states
 
@@ -236,7 +236,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         The indep node is just the first one: {0}
         """
         p = brach(transcription='radau-ps', num_segments=2, transcription_order=5,
-                  compressed=True, solve_segments=True, run_driver=True)
+                  compressed=True, solve_segments='forward', run_driver=True)
 
         state_indeps_comp = p.model.traj0.phases.phase0.indep_states
 
@@ -255,7 +255,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         The indep node is just the first one: {0, 4}
         """
         p = brach(transcription='radau-ps', num_segments=2, transcription_order=3,
-                  compressed=False, solve_segments=True, run_driver=True)
+                  compressed=False, solve_segments='forward', run_driver=True)
 
         state_indeps_comp = p.model.traj0.phases.phase0.indep_states
 
@@ -274,7 +274,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         The indep node is just the first one: {0, 6}
         """
         p = brach(transcription='radau-ps', num_segments=2, transcription_order=5,
-                  compressed=False, solve_segments=True, run_driver=True)
+                  compressed=False, solve_segments='forward', run_driver=True)
 
         state_indeps_comp = p.model.traj0.phases.phase0.indep_states
 

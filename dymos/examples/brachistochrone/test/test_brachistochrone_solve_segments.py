@@ -126,7 +126,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
                                                            compressed=True,
                                                            force_alloc_complex=True,
-                                                           solve_segments=True,
+                                                           solve_segments='forward',
                                                            num_segments=10,
                                                            transcription_order=3)
         self.assert_results(p)
@@ -136,7 +136,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
                                                            compressed=True,
                                                            force_alloc_complex=True,
-                                                           solve_segments=True,
+                                                           solve_segments='forward',
                                                            num_segments=10,
                                                            transcription_order=3)
         self.assert_results(p)
@@ -146,7 +146,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
                                                            compressed=False,
                                                            force_alloc_complex=True,
-                                                           solve_segments=True,
+                                                           solve_segments='forward',
                                                            num_segments=10,
                                                            transcription_order=3)
         self.assert_results(p)
@@ -156,7 +156,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
                                                            compressed=False,
                                                            force_alloc_complex=True,
-                                                           solve_segments=True,
+                                                           solve_segments='forward',
                                                            num_segments=10,
                                                            transcription_order=3)
         self.assert_results(p)
@@ -166,7 +166,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
                                                            compressed=True,
                                                            force_alloc_complex=True,
-                                                           solve_segments=True,
+                                                           solve_segments='forward',
                                                            num_segments=1,
                                                            transcription_order=11)
         self.assert_results(p)
@@ -176,7 +176,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
         p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='gauss-lobatto',
                                                            compressed=True,
                                                            force_alloc_complex=True,
-                                                           solve_segments=True,
+                                                           solve_segments='forward',
                                                            num_segments=1,
                                                            transcription_order=11)
         self.assert_results(p)

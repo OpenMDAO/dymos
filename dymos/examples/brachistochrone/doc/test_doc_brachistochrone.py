@@ -544,7 +544,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         phase = traj.add_phase('phase0',
                                dm.Phase(ode_class=BrachistochroneODE,
                                         transcription=dm.Radau(num_segments=100,
-                                                               solve_segments=True)))
+                                                               solve_segments='forward')))
 
         #
         # Set the variables

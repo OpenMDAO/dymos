@@ -23,7 +23,8 @@ class TestBrachistochroneRK4Example(unittest.TestCase):
             assert issubclass(w[-1].category, DeprecationWarning)
             expected_msg = 'The RungeKutta transcription is deprecated and ' \
                            'will be removed in Dymos v1.0.0.\nFor equivalent behavior, users ' \
-                           'should switch to GaussLobatto(order=3, solve_segments=True)'
+                           'should switch to GaussLobatto(order=3, solve_segments=\'forward\') or' \
+                           'GaussLobatto(order=3, solve_segments=\'reverse\')'
 
             self.assertEqual(str(w[-1].message), expected_msg)
 
