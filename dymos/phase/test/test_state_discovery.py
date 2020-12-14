@@ -183,7 +183,7 @@ class TestStateDiscovery(unittest.TestCase):
 
         phase = dm.Phase(ode_class=BadComp,
                          transcription=dm.GaussLobatto(num_segments=2))
-        phase.set_state_options('x', rate_source='xdot')
+        phase.set_state_options('x', rate_source='foo')
 
         p.model.add_subsystem('phase', phase)
 

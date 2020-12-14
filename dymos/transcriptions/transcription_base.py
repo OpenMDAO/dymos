@@ -376,8 +376,9 @@ class TranscriptionBase(object):
                         state_options[state]['name'] = state
 
                     if state_options[state]['rate_source'] is not None:
-                        raise ValueError(f"rate_source has been declared twice for state "
-                                         f"'{state}' which is tagged on '{name}'.")
+                        if state_options[state]['rate_source'] != prom_name:
+                            raise ValueError(f"rate_source has been declared twice for state "
+                                             f"'{state}' which is tagged on '{name}'.")
 
                     state_options[state]['rate_source'] = prom_name
 

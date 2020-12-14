@@ -33,18 +33,12 @@ class TestBrachistochroneExample(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        units=BrachistochroneODE.states['x']['units'],
-                        fix_initial=True, fix_final=True, solve_segments=False)
-        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        units=BrachistochroneODE.states['y']['units'],
-                        fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('x', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=True)
 
         # Note that by omitting the targets here Dymos will automatically attempt to connect
         # to a top-level input named 'v' in the ODE, and connect to nothing if it's not found.
-        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        units=BrachistochroneODE.states['v']['units'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         if control_type == 'control':
             phase.add_control('theta', continuity=True, rate_continuity=True,

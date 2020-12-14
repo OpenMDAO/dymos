@@ -1,4 +1,38 @@
 ********************************
+# Release Notes for Dymos 0.17.0
+
+December 14, 2020
+
+This release of Dymos adds a few important features:
+- Dymos can now automatically generate plots of all timeseries outputs
+- State rates may now be tagged in the ODE
+
+There are also several bug fixes.
+
+## Backwards Incompatible API Changes & Deprecations
+
+* None
+
+## Enhancements
+
+* Dymos can now automatically generate plots of all timeseries outputs. [#469](https://github.com/OpenMDAO/dymos/pull/469)
+* States can now be discovered automatically by tagging their rate variables in the ODE. [#477](https://github.com/OpenMDAO/dymos/pull/477) [#481](https://github.com/OpenMDAO/dymos/pull/481) [#484](https://github.com/OpenMDAO/dymos/pull/484)
+
+## Bug Fixes
+
+* Fixed issue where polynomial controls were not able to be linked across phases. [#462](https://github.com/OpenMDAO/dymos/pull/462)
+* Fixed a bug that was preventing parameters from being state rate sources. [#466](https://github.com/OpenMDAO/dymos/pull/466)
+* Users may now specify parameter shapes as integers or iterables other than tuples. [#467](https://github.com/OpenMDAO/dymos/pull/467)
+
+## Miscellaneous
+
+* Fix for apache license string in setup.py classifiers since it was not recognized by PyPI. [#458](https://github.com/OpenMDAO/dymos/pull/458)
+* Added a long description for PyPI. [#460](https://github.com/OpenMDAO/dymos/pull/460)
+* Some documentation cleanup for the JOSS review  [#474](https://github.com/OpenMDAO/dymos/pull/474) [#488](https://github.com/OpenMDAO/dymos/pull/488)
+* Dropped the dependency on the parameterized package with the intent to utilize subTest in the future.  [#479](https://github.com/OpenMDAO/dymos/pull/479)
+
+
+********************************
 # Release Notes for Dymos 0.16.1
 
 November 16, 2020
