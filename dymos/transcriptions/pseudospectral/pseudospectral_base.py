@@ -252,9 +252,9 @@ class PseudospectralBase(TranscriptionBase):
         if options['solve_segments'] in {True, False}:
             ss = options['solve_segments']
             warn_deprecation(f'State {state_name} in phase {phase.name} has option '
-                             f'\'solve_segments={ss}\'.  Option \'True\' now gives forward '
-                             f'propagation. In Dymos 1.0 and later, only options \'forward\' and'
-                             f'\'backward\' will be valid.')
+                             f'\'solve_segments={ss}\'. Setting \'solve_segments=True\' now gives '
+                             f'forward propagation. In Dymos 1.0 and later, only options '
+                             f'\'forward\' and \'backward\' will be valid.')
 
         # Sanity-checks for solve segments
         # If solve_segments is used at all, we cannot fix the state at both ends of the phase.

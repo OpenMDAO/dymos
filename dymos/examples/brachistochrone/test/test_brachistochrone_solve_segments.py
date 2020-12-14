@@ -250,47 +250,24 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
                         dm.run_problem(p)
                         self.assert_results(p)
 
-    def _print_states(self, solve_segments, output_dict, state_idx_map):
-        for state in ['x', 'y', 'v']:
-            print(state)
-            vals = output_dict[f'states:{state}']['value']
-            resids = output_dict[f'states:{state}']['resids']
-            defects = output_dict[f'collocation_constraint.defects:{state}']['value']
-            out = np.zeros((len(vals), 4))
-            out[:, 0] = vals[:, 0]
-            out[:, 1] = resids[:, 0]
-            # if solve_segments in {True, 'forward'}:
-            #     out[1:, 2] = defects[:, 0]
-            # elif solve_segments == 'backward':
-            #     out[:-1, 2] = defects[:, 0]
-            out[state_idx_map[state]['solver'], 2] = defects[:, 0]
-            out[:, 3] = out[:, 2] - out[:, 1]
-            print(out)
+    def test_solve_segments_deprecation(self):
+        import warnings
 
-    def test_brachistochrone_solve_segments2(self):
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+            # Trigger a warning.
+            _make_problem(transcription='radau-ps', compressed=False, optimizer='SLSQP',
+                          force_alloc_complex=True, solve_segments=True, num_segments=5,
+                          transcription_order=3, )
+            # Verify some things
+            assert len(w) == 3
+            assert issubclass(w[-1].category, DeprecationWarning)
 
-        ss = 'backward'
+            messages = [str(w[i].message) for i in range(len(w))]
 
-        p = _make_problem(transcription='radau-ps',
-                          compressed=False,
-                          optimizer='SLSQP',
-                          force_alloc_complex=True,
-                          solve_segments=ss,
-                          num_segments=5,
-                          transcription_order=3,)
-        p.model.traj0.phases.phase0.nonlinear_solver.options['maxiter'] = 0
-        state_idx_map = p.model.traj0.phases.phase0.options['transcription'].state_idx_map
-        p.run_model()
-        # p.model.traj0.phases.phase0.collocation_constraint.list_outputs(print_arrays=True)
-        # p.model.traj0.phases.phase0.indep_states.list_outputs(residuals=True, print_arrays=True)
-        outputs = p.model.traj0.phases.phase0.list_outputs(residuals=True, print_arrays=True, prom_name=True, out_stream=None)
-        output_dict = {d['prom_name']: {'value': d['value'], 'resids': d['resids']} for path, d in outputs}
-        self._print_states(ss, output_dict, state_idx_map)
-
-        p.model.traj0.phases.phase0.nonlinear_solver.options['maxiter'] = 100
-        p.run_driver()
-        self.assert_results(p)
-
-        outputs = p.model.traj0.phases.phase0.list_outputs(residuals=True, print_arrays=True, prom_name=True, out_stream=None)
-        output_dict = {d['prom_name']: {'value': d['value'], 'resids': d['resids']} for path, d in outputs}
-        self._print_states(ss, output_dict, state_idx_map)
+            for var in ['x', 'y', 'v']:
+                expected = f'State {var} in phase phase0 has option \'solve_segments=True\'. ' \
+                           'Setting \'solve_segments=True\' now gives forward propagation. In ' \
+                           'Dymos 1.0 and later, only options \'forward\' and \'backward\' will be valid.'
+                assert expected in messages
