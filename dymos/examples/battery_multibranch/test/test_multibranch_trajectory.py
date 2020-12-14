@@ -281,8 +281,6 @@ class TestBatteryBranchingPhases(unittest.TestCase):
     def test_optimizer_segments_direct_connections(self):
         prob = om.Problem()
 
-        optimizer = 'SNOPT'
-
         if optimizer == 'SNOPT':
             opt = prob.driver = om.pyOptSparseDriver()
             opt.options['optimizer'] = optimizer
@@ -361,14 +359,7 @@ class TestBatteryBranchingPhases(unittest.TestCase):
         prob['traj.phase1_mfail.t_initial'] = 1.0*3600
         prob['traj.phase1_mfail.t_duration'] = 1.0*3600
 
-        prob.set_solver_print(level=2)
-
         prob.run_model()
-
-        # TODO: Remove
-        import numpy as np
-        with np.printoptions(linewidth=1024):
-            prob.check_partials(method='cs', compact_print=False)
 
         dm.run_problem(prob)
 

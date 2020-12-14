@@ -81,10 +81,9 @@ class PseudospectralBase(TranscriptionBase):
             size = np.prod(options['shape'])
             # In certain cases, we put an output on the IVC.
             if isinstance(indep, om.IndepVarComp):
-                if not options['solve_segments'] and not options['connected_initial']:
-                    indep.add_output(name='states:{0}'.format(name),
-                                     shape=(num_state_input_nodes, size),
-                                     units=options['units'])
+                indep.add_output(name='states:{0}'.format(name),
+                                 shape=(num_state_input_nodes, size),
+                                 units=options['units'])
 
             if options['opt']:
                 # Add the states as design variables.
@@ -117,8 +116,17 @@ class PseudospectralBase(TranscriptionBase):
                 if options['fix_initial']:
                     if options['initial_bounds'] is not None:
                         raise ValueError('Cannot specify \'fix_initial=True\' and specify '
-                                         f'initial_bounds for state {name}')
+                                         f'initial_bounds for state {name} in phase {phase.name}')
+                    if options['connected_initial']:
+                        raise ValueError('Cannot specify \'fix_initial=True\' and specify '
+                                         f'\'connected_initial=True\' for state {name} '
+                                         f'in phase {phase.name}')
                     idx_mask[0, ...] = np.asarray(np.logical_not(options['fix_initial']), dtype=int)
+                elif options['connected_initial']:
+                    if options['initial_bounds'] is not None:
+                        raise ValueError('Cannot specify \'connected_initial=True\' and specify '
+                                         f'initial_bounds for state {name} in phase {phase.name}')
+                    idx_mask[0, ...] = np.asarray(np.logical_not(options['connected_initial']), dtype=int)
 
                 if options['fix_final']:
                     if options['final_bounds'] is not None:
