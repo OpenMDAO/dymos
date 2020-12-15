@@ -25,7 +25,7 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
         p.driver.opt_settings['iSumm'] = 6
         p.driver.opt_settings['Verify level'] = 3
     elif optimizer == 'IPOPT':
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 4
     p.driver.declare_coloring(tol=1.0E-12)
 
     if transcription == 'gauss-lobatto':

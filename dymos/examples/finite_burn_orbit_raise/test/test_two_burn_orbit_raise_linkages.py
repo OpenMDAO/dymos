@@ -403,7 +403,7 @@ class TestTwoBurnOrbitRaiseLinkages(unittest.TestCase):
         _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=False)
         p.driver.options['optimizer'] = optimizer
         p.driver.opt_settings['max_iter'] = 500
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 4
 
         p.driver.declare_coloring()
 
