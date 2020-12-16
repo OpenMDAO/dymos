@@ -38,7 +38,7 @@ class TestRunProblem(unittest.TestCase):
         elif optimizer == 'IPOPT':
             p.driver.opt_settings['hessian_approximation'] = 'limited-memory'
             # p.driver.opt_settings['nlp_scaling_method'] = 'user-scaling'
-            p.driver.opt_settings['print_level'] = 5
+            p.driver.opt_settings['print_level'] = 4
             p.driver.opt_settings['max_iter'] = 200
             p.driver.opt_settings['linear_solver'] = 'mumps'
 
@@ -105,7 +105,7 @@ class TestRunProblem(unittest.TestCase):
         elif optimizer == 'IPOPT':
             p.driver.opt_settings['hessian_approximation'] = 'limited-memory'
             # p.driver.opt_settings['nlp_scaling_method'] = 'user-scaling'
-            p.driver.opt_settings['print_level'] = 5
+            p.driver.opt_settings['print_level'] = 4
             p.driver.opt_settings['linear_solver'] = 'mumps'
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())

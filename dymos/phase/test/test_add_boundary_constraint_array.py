@@ -53,7 +53,7 @@ p.driver.declare_coloring()
 
 transcription = dm.GaussLobatto(num_segments=3,
                                 order=3,
-                                compressed=True, solve_segments=True)
+                                compressed=True, solve_segments='forward')
 fix_final = True
 
 traj = dm.Trajectory()

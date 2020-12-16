@@ -2,11 +2,10 @@ import os
 import unittest
 
 import numpy as np
-from scipy.interpolate import interp1d
 
 import openmdao.api as om
-from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.testing_utils import assert_timeseries_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 
 class BrachistochroneODE(om.ExplicitComponent):

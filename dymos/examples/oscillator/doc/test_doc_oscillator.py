@@ -89,7 +89,7 @@ class TestDocOscillator(unittest.TestCase):
         prob.model.add_subsystem('traj', traj)
 
         # Instantiate a Phase and add it to the Trajectory.
-        phase = dm.Phase(ode_class=OscillatorODE, transcription=dm.Radau(num_segments=4, solve_segments=True))
+        phase = dm.Phase(ode_class=OscillatorODE, transcription=dm.Radau(num_segments=4, solve_segments='forward'))
         traj.add_phase('phase0', phase)
 
         # Tell Dymos the states to be propagated using the given ODE.

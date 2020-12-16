@@ -58,14 +58,6 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
         'solution': np.arange(n, dtype=int),
     }
 
-    subsets['solver_solved'] = subsets['state_input'] if compressed or \
-        seg_idx == 0 else subsets['state_input'][1::]
-
-    idxs_not_in_solved = np.where(np.in1d(subsets['state_input'],
-                                          subsets['solver_solved'],
-                                          invert=True))[0]
-    subsets['solver_indep'] = subsets['state_input'][idxs_not_in_solved]
-
     return subsets, lgl(n)[0]
 
 
@@ -113,14 +105,6 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
         'all': np.arange(n + 1, dtype=int),
         'solution': np.arange(n + 1, dtype=int),
     }
-
-    subsets['solver_solved'] = subsets['state_input'] if compressed or \
-        seg_idx == 0 else subsets['state_input'][1::]
-
-    idxs_not_in_solved = np.where(np.in1d(subsets['state_input'],
-                                          subsets['solver_solved'],
-                                          invert=True))[0]
-    subsets['solver_indep'] = subsets['state_input'][idxs_not_in_solved]
 
     return subsets, lgr(n, include_endpoint=True)[0]
 

@@ -414,10 +414,17 @@ class StateOptionsDictionary(om.OptionsDictionary):
                      desc='Enforce continuity of state values at segment boundaries. This '
                           'option is invalid if opt=False.')
 
-        self.declare(name='solve_segments', default=None, types=bool, allow_none=True,
-                     desc='If true, collocation defects within each segment are '
-                          'solved with a newton solver.  If None, use the value of solve_segments '
-                          'in the transcription.')
+        self.declare(name='solve_segments', default=None, allow_none=True,
+                     values=(True, False, 'forward', 'backward'),
+                     desc='If True (deprecated) or \'forward\', collocation defects within each'
+                          'segment are solved with a Newton solver by fixing the initial value in the'
+                          'phase (if using compressed transcription) or segment (if not using '
+                          'compressed transcription). This provides a forward shooting (or multiple shooting)'
+                          'method.  If \'backward\', the final value in the phase or segment is fixed'
+                          'and a solver finds the other ones to mimic reverse propagation. If None, '
+                          '(the default) use the value of solve_segments in the transcription. Set '
+                          'to False to explicitly disable the use of a solver to converge the state'
+                          'time history.')
 
         self.declare(name='connected_initial', default=False, types=bool,
                      desc='Whether an input is created to pass in the initial state. This may be '

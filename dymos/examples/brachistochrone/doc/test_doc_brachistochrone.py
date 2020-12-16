@@ -501,7 +501,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         p = om.Problem(model=om.Group())
         _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
         p.driver = om.pyOptSparseDriver(optimizer=optimizer)
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 4
         # p.driver.declare_coloring()
 
         #
@@ -515,7 +515,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         phase = traj.add_phase('phase0',
                                dm.Phase(ode_class=BrachistochroneODE,
                                         transcription=dm.Radau(num_segments=100,
-                                                               solve_segments=True)))
+                                                               solve_segments='forward')))
 
         #
         # Set the variables
