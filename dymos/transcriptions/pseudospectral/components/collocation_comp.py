@@ -83,12 +83,12 @@ class CollocationComp(om.ExplicitComponent):
             if 'defect_ref' in options and options['defect_ref'] is not None:
                 defect_ref = options['defect_ref']
             elif 'defect_scaler' in options and options['defect_scaler'] is not None:
-                defect_ref = 1.0 / options['defect_scaler']
+                defect_ref = np.divide(1.0, options['defect_scaler'])
             else:
                 if 'ref' in options and options['ref'] is not None:
                     defect_ref = options['ref']
                 elif 'scaler' in options and options['scaler'] is not None:
-                    defect_ref = 1.0 / options['scaler']
+                    defect_ref = np.divide(1.0, options['scaler'])
                 else:
                     defect_ref = 1.0
 
