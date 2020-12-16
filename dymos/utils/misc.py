@@ -262,11 +262,14 @@ class CoerceDesvar(object):
         val = self.options[option]
         if val is None or np.isscalar(val):
             return val
+        # Handle value for vector/matrix valued variables
+        if isinstance(val, list):
+            val = np.asarray(val)
+        if val.shape == self.options['shape']:
+            return np.tile(val.flatten(), int(len(self.desvar_indices)/val.size))
         else:
-            if len(val) != self.num_input_nodes:
-                raise ValueError('array-valued option {0} must have length '
-                                 'num_input_nodes ({1})'.format(option, val))
-            return val[self.desvar_indices]
+            raise ValueError('array-valued option {0} must have same shape '
+                             'as states ({1})'.format(option, self.options['shape']))
 
 
 def CompWrapperConfig(comp_class):

@@ -92,6 +92,13 @@ class CollocationComp(om.ExplicitComponent):
                 else:
                     defect_ref = 1.0
 
+            if not np.isscalar(defect_ref):
+                defect_ref = np.asarray(defect_ref)
+                if defect_ref.shape == shape:
+                    defect_ref = np.tile(defect_ref.flatten(), num_col_nodes)
+                else:
+                    raise ValueError('array-valued scaler/ref must length equal to state-size')
+
             if not options['solve_segments']:
                 self.add_constraint(name=var_names['defect'],
                                     equals=0.0,
