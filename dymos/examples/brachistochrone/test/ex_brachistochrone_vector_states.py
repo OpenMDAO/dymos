@@ -48,7 +48,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     # can't fix final position if you're solving the segments
 
-    phase.add_state('pos', fix_initial=True, fix_final=fix_final, solve_segments=solve_segments)
+    phase.add_state('pos', fix_initial=True, fix_final=fix_final, solve_segments=solve_segments, ref=[1, 1])
     #
     phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=solve_segments)
     #
@@ -87,5 +87,5 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 if __name__ == '__main__':
     p = brachistochrone_min_time(transcription='radau-ps', num_segments=5, run_driver=True,
-                                 transcription_order=5, compressed=False, optimizer='SNOPT',
+                                 transcription_order=5, compressed=False, optimizer='SLSQP',
                                  solve_segments=False, force_alloc_complex=True, dynamic_simul_derivs=True)
