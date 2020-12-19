@@ -133,11 +133,11 @@ def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_n
 
 
 def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
-                            last_solution_case, last_simulation_case, plot_dir_path, num_cols=4,
-                            page_width=1080):
+                            last_solution_case, last_simulation_case, plot_dir_path, num_cols=2,
+                            page_width=1080, bg_fill_color='#282828'):
     from bokeh.io import output_file, show
-    from bokeh.layouts import gridplot, column
-    from bokeh.models import Legend, Circle, Line, Square, ColumnDataSource, Label
+    from bokeh.layouts import gridplot, column, row, grid, layout
+    from bokeh.models import Legend, LegendItem
     from bokeh.plotting import figure
     import bokeh.palettes as bp
 
@@ -148,6 +148,7 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
     # Prune the edges from the color map
     cmap = bp.turbo(len(phase_names) + 2)[1:-1]
     figures = []
+    colors = {}
 
     # Get the minimum and maximum times in any phase, so when we plot a variable that only exists
     # in a few phases, it is plotted against the entire time range.
@@ -163,7 +164,7 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
             time_name = f'{phase_name}.timeseries.time'
         min_time = min(min_time, np.min(last_solution_case.outputs[time_name]))
         max_time = max(max_time, np.max(last_solution_case.outputs[time_name]))
-    #     color = cmap[iphase]
+        colors[phase_name] = cmap[iphase]
     #     legend_fig = figure(title='', x_range=(0, 50), y_range=(-25, 25))
     #     legend_fig.axis.visible = False
     #     legend_fig.xgrid.visible = False
@@ -185,8 +186,9 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
 
         # add labels, title, and legend
         padding = 0.05 * (max_time - min_time)
-        fig = figure(title=title, background_fill_color="#282828",
-                     x_range=(min_time - padding, max_time + padding))
+        fig = figure(title=title, background_fill_color=bg_fill_color,
+                     x_range=(min_time - padding, max_time + padding), plot_width=180,
+                     plot_height=180)
         fig.xaxis.axis_label = time_label
         fig.yaxis.axis_label = var_label
         fig.xgrid.grid_line_color = '#666666'
@@ -210,8 +212,6 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
 
             var_val = last_solution_case.outputs[var_name_full]
             time_val = last_solution_case.outputs[time_name]
-            mean_time = np.mean(time_val)
-            mean_val = np.mean(var_val)
 
             # Plot the data
             # color = cm.colors[iphase % 20]
@@ -219,7 +219,7 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
             for idxs, i in np.ndenumerate(np.zeros(var_val.shape[1:])):
                 var_val_i = var_val[:, idxs].ravel()
                 sol_plots[phase_name] = fig.circle(time_val.ravel(), var_val_i, size=5,
-                                                   color=sol_color)
+                                                   color=sol_color, name='sol:' + phase_name)
 
             # get simulation values, if plotting simulation
             if last_simulation_case:
@@ -231,7 +231,8 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
                 for idxs, i in np.ndenumerate(np.zeros(var_val_simulate.shape[1:])):
                     var_val_i = var_val_simulate[:, idxs].ravel()
                     sim_plots[phase_name] = fig.line(time_val_simulate.ravel(), var_val_i,
-                                                     line_dash='solid', line_width=0.5, color=sim_color)
+                                                     line_dash='solid', line_width=0.5, color=sim_color,
+                                                     name='sim:' + phase_name)
 
             # phase_label = Label(x=mean_time, y=mean_val, x_units='data', y_units='data',
             #                     text=phase_name, render_mode='css', text_color=sol_color,
@@ -240,71 +241,61 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
             #
             # fig.add_layout(phase_label)
 
-        for key, plt in sol_plots.items():
-            pass
-
         # legend = Legend(items=[('foo', [sol_plots['coast']])],
         #                 location='top_left', orientation='horizontal')
         #
         # fig.add_layout(legend, 'above')
 
-        print(dir(fig))
-        print(fig.renderers)
-        print(fig.legend)
-        exit(0)
-
+        # print(dir(fig))
+        # print(fig.renderers)
+        # print(fig.legend)
+        # print(dir(fig.renderers[0]))
+        # print(fig.renderers[0].id, fig.renderers[0].name)
         figures.append(fig)
 
+    # Implement a single legend for all figures using the example here:
+    # https://stackoverflow.com/a/56825812/754536
+
     # ## Use a dummy figure for the LEGEND
-    # dum_fig = figure(plot_width=300, plot_height=600, outline_line_alpha=0, toolbar_location=None)
-    # # set the components of the figure invisible
-    # for fig_component in [dum_fig.grid[0], dum_fig.ygrid[0], dum_fig.xaxis[0], dum_fig.yaxis[0]]:
-    #     fig_component.visible = False
-    # # The glyphs referred by the legend need to be present in the figure that holds the legend, so we must add them to the figure renderers
-    # dum_fig.renderers += renderer_list
+    dum_fig = figure(outline_line_alpha=0, toolbar_location=None,
+                     background_fill_color=bg_fill_color, plot_width=250, max_width=250)
+
+    # set the components of the figure invisible
+    for fig_component in [dum_fig.grid, dum_fig.ygrid, dum_fig.xaxis, dum_fig.yaxis]:
+        fig_component.visible = False
+    # The glyphs referred by the legend need to be present in the figure that holds the legend, so we must add them to the figure renderers
+    # dum_fig.renderers += [renderer for renderer in sol_plots.values()]
+    sol_legend_items = [(phase_name + ' solution', [dum_fig.circle([0], [0], size=5, color=colors[phase_name], tags=['sol:' + phase_name])]) for phase_name in phase_names]
+    sim_legend_items = [(phase_name + ' simulation', [dum_fig.line([0], [0], line_dash='solid', line_width=0.5, color=colors[phase_name], tags=['sim:' + phase_name])]) for phase_name in phase_names]
+    legend_items = [j for i in zip(sol_legend_items, sim_legend_items) for j in i]
+
     # # set the figure range outside of the range of all glyphs
-    # dum_fig.x_range.end = 1005
-    # dum_fig.x_range.start = 1000
+    dum_fig.x_range.end = 1005
+    dum_fig.x_range.start = 1000
     # # add the legend
-    # dum_fig.add_layout(
-    #     Legend(click_policy='hide', location='top_left', border_line_alpha=0, items=legend_items))
-    #
-    # figrid = gridplot(fig_list, ncols=2, toolbar_location='left')
-    # final = gridplot([[figrid, dum_fig]], toolbar_location=None)
-    # show(final)
 
-    grid = gridplot(figures, ncols=num_cols,
-                    plot_width=page_width//num_cols, plot_height=min(400, page_width//num_cols))
-    show(grid)
+    sol_legend = Legend(click_policy='hide', location='top_left', border_line_alpha=0, items=sol_legend_items,
+                        background_fill_alpha=0.0, label_text_color='white', label_width=120)
 
-        # # Create two legends
-        # #   Solution/Simulation legend
-        # solution_line = mlines.Line2D([], [], color='black', marker='o', linestyle='None',
-        #                               label='Solution')
-        # if last_simulation_case:
-        #     simulation_line = mlines.Line2D([], [], color='black', linestyle='--',
-        #                                     label='Simulation')
-        #     sol_sim_legend = plt.legend(handles=[solution_line, simulation_line],
-        #                                 loc='upper left', bbox_to_anchor=(-0.3, -0.12), shadow=True)
-        # else:
-        #     sol_sim_legend = plt.legend(handles=[solution_line],
-        #                                 loc='upper left', bbox_to_anchor=(-0.3, -0.12),
-        #                                 shadow=True)
-        # plt.gca().add_artist(sol_sim_legend)
-        #
-        # #   Phases legend
-        # handles = []
-        # for iphase, phase_name in enumerate(phase_names):
-        #     patch = mpatches.Patch(color=cm.colors[iphase], label=phase_name)
-        #     handles.append(patch)
-        # plt.legend(handles=handles, loc='upper right', ncol=len(phase_names), shadow=True,
-        #            bbox_to_anchor=(1.15, -0.12), title='Phases')
+    sim_legend = Legend(click_policy='hide', location='bottom_left', border_line_alpha=0, items=sim_legend_items,
+                        background_fill_alpha=0.0, label_text_color='white', label_width=120)
 
-        # plt.subplots_adjust(bottom=0.23, top=0.9, left=0.2)
+    legend = Legend(click_policy='hide', location='top_left', border_line_alpha=0, items=legend_items,
+                    background_fill_alpha=0.0, label_text_color='white', label_width=120, spacing=10)
 
-        # save to file
-        # plot_file_path = os.path.join(plot_dir_path, f'{var_name.replace(":","_")}.png')
-        # plt.savefig(plot_file_path)
+    # dum_fig.add_layout(sol_legend, place='center')
+    # dum_fig.add_layout(sim_legend, place='center')
+    dum_fig.add_layout(legend, place='center')
+
+    sol_legend.orientation = 'horizontal'
+    sim_legend.orientation = 'horizontal'
+    legend.orientation = 'vertical'
+
+    gd = grid(figures, ncols=num_cols, nrows=len(figures)//num_cols+1, sizing_mode='scale_both')
+    gd = gridplot(figures, ncols=num_cols, sizing_mode='scale_both')
+
+    plots = gridplot([[gd, column(dum_fig, sizing_mode='stretch_height')]], toolbar_location=None, sizing_mode='scale_both')
+    show(plots)
 
 
 def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots"):
