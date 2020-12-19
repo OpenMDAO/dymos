@@ -135,13 +135,16 @@ def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_n
 def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
                             last_solution_case, last_simulation_case, plot_dir_path, num_cols=2,
                             bg_fill_color='#282828', grid_line_color='#666666'):
-    from bokeh.io import output_file, show
+    from bokeh.io import output_notebook, output_file, show
     from bokeh.layouts import gridplot, column, row, grid, layout
     from bokeh.models import Legend, LegendItem
     from bokeh.plotting import figure
     import bokeh.palettes as bp
 
-    output_file(os.path.join(plot_dir_path, 'plots.html')) # f'{var_name.replace(":", "_")}.png')
+    if dymos_options['notebook_mode']:
+        output_notebook()
+    else:
+        output_file(os.path.join(plot_dir_path, 'plots.html')) # f'{var_name.replace(":", "_")}.png')
 
     # Prune the edges from the color map
     cmap = bp.turbo(len(phase_names) + 2)[1:-1]
