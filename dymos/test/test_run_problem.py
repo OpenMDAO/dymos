@@ -210,42 +210,42 @@ class TestRunProblem(unittest.TestCase):
         p.driver.declare_coloring()
         p.driver.options['optimizer'] = 'SLSQP'
 
-        traj = p.model.add_subsystem('traj', dm.Trajectory())
-        phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneVectorStatesODE,
-                                                   transcription=dm.Radau(num_segments=3,
-                                                                          order=3)))
-        phase0.set_time_options(fix_initial=True, fix_duration=False)
-        phase0.add_state('pos', fix_initial=True, fix_final=False)
-        phase0.add_state('v', fix_initial=True, fix_final=False)
-        phase0.add_control('theta', continuity=True, rate_continuity=True,
-                           units='deg', lower=0.01, upper=179.9)
-        phase0.add_parameter('g', units='m/s**2', val=9.80665)
+        phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
+                         transcription=dm.Radau(num_segments=1, order=3))
 
-        phase0.add_objective('time_phase', loc='final', scaler=10)
+        p.model.add_subsystem('phase0', phase)
 
-        phase0.set_refine_options(refine=True)
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.add_state('pos', fix_initial=True, fix_final=[True, False])
+        phase.add_state('v', fix_initial=True, fix_final=False)
+
+        phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
+
+        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
+
+        phase.add_boundary_constraint('pos', loc='final', equals=5, indices=[1])
+
+        # Minimize time at the end of the phase
+        phase.add_objective('time', loc='final', scaler=10)
 
         p.model.linear_solver = om.DirectSolver()
-        p.setup(check=True)
+        p.setup(check=True, force_alloc_complex=True)
 
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = 1.8016
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 2.0
 
         pos0 = [0, 10]
         posf = [10, 5]
 
-        p['traj.phase0.states:pos'] = phase0.interpolate(ys=[pos0, posf], nodes='state_input')
-        p['traj.phase0.states:v'] = phase0.interpolate(ys=[0, 9.9], nodes='state_input')
-        p['traj.phase0.controls:theta'] = phase0.interpolate(ys=[5, 100], nodes='control_input')
-        p['traj.phase0.parameters:g'] = 9.80665
+        p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.parameters:g'] = 9.80665
 
         dm.run_problem(p, refine_iteration_limit=5)
 
-        self.assertTrue(os.path.exists('dymos_solution.db'))
-        # Assert the results are what we expect.
-        cr = om.CaseReader('dymos_solution.db')
-        case = cr.get_case('final')
-        assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
+        assert_near_equal(p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
 
     def test_run_brachistochrone_problem_with_simulate(self):
         p = om.Problem(model=om.Group())
