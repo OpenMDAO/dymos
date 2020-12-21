@@ -346,7 +346,6 @@ class HPAdaptive:
 
             # compute curvature
             L, D = interpolation_lagrange_matrix(gd, gd)
-            t = phase.get_val(f'timeseries.time')
             x, _, _, x_d = eval_ode_on_grid(phase=phase, transcription=tx)
             x_dd[phase_path] = {}
             P = {}
@@ -371,10 +370,10 @@ class HPAdaptive:
                                      old_left_end_idxs[self.parent_seg_map[phase_path][k]]:old_left_end_idxs[
                                          self.parent_seg_map[phase_path][k] + 1]])
                     P[state_name][k] = np.max(
-                        np.absolute(x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))
-                    xdd_max_time = gd.node_stau[left_end_idxs[k] + np.argmax(
-                        np.absolute(x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))]
-                    P_hat[state_name][k] = abs(interp.eval(xdd_max_time))
+                        np.fabs(x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]]))
+                    xdd_max_time = gd.node_stau[left_end_idxs[k] + np.argmax(np.amax(
+                        np.fabs(x_dd[phase_path][state_name][left_end_idxs[k]:left_end_idxs[k + 1]]), axis=1), axis=0)]
+                    P_hat[state_name][k] = np.amax(np.fabs(interp.eval(xdd_max_time)))
                     if P[state_name][k] / P_hat[state_name][k] > R[k]:
                         R[k] = P[state_name][k] / P_hat[state_name][k]
             non_smooth_idxs = np.where(R > phase.refine_options['smoothness_factor'])[0]
@@ -469,7 +468,7 @@ class HPAdaptive:
                         b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
 
                         for i in range(seg_size[gd.transcription] - 1, phase.refine_options['min_order'], -1):
-                            if np.abs(b[i]) / beta[state_name] < phase.refine_options['tolerance']/10 and \
+                            if np.min(np.abs(b[i])) / beta[state_name] < phase.refine_options['tolerance']/10 and \
                                     i - 1 < new_order_state[state_name]:
                                 new_order_state[state_name] = i - 1
                             else:
