@@ -12,6 +12,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import BrachistochroneVectorStatesODE
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
@@ -196,6 +197,49 @@ class TestRunProblem(unittest.TestCase):
         p.set_val('traj.phase0.parameters:g', 9.80665)
 
         dm.run_problem(p)
+
+        self.assertTrue(os.path.exists('dymos_solution.db'))
+        # Assert the results are what we expect.
+        cr = om.CaseReader('dymos_solution.db')
+        case = cr.get_case('final')
+        assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
+
+    def test_run_brachistochrone_vector_states_problem(self):
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
+        p.driver.options['optimizer'] = 'SLSQP'
+
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+        phase0 = traj.add_phase('phase0', dm.Phase(ode_class=BrachistochroneVectorStatesODE,
+                                                   transcription=dm.Radau(num_segments=3,
+                                                                          order=3)))
+        phase0.set_time_options(fix_initial=True, fix_duration=False)
+        phase0.add_state('pos', fix_initial=True, fix_final=False)
+        phase0.add_state('v', fix_initial=True, fix_final=False)
+        phase0.add_control('theta', continuity=True, rate_continuity=True,
+                           units='deg', lower=0.01, upper=179.9)
+        phase0.add_parameter('g', units='m/s**2', val=9.80665)
+
+        phase0.add_objective('time_phase', loc='final', scaler=10)
+
+        phase0.set_refine_options(refine=True)
+
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=True)
+
+        p['traj.phase0.t_initial'] = 0.0
+        p['traj.phase0.t_duration'] = 1.8016
+
+        pos0 = [0, 10]
+        posf = [10, 5]
+
+        p['traj.phase0.states:pos'] = phase0.interpolate(ys=[pos0, posf], nodes='state_input')
+        p['traj.phase0.states:v'] = phase0.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['traj.phase0.controls:theta'] = phase0.interpolate(ys=[5, 100], nodes='control_input')
+        p['traj.phase0.parameters:g'] = 9.80665
+
+        dm.run_problem(p, refine_iteration_limit=5)
 
         self.assertTrue(os.path.exists('dymos_solution.db'))
         # Assert the results are what we expect.
