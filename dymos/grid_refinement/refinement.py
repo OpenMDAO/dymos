@@ -60,9 +60,9 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp'):
 
                 problem.run_driver()
 
-                for stream in [f, sys.stdout]:
-                    if i == refine_iteration_limit-1:
-                        print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
-                    else:
-                        print('Successfully completed grid refinement.', file=stream)
-                print(50 * '=')
+            for stream in [f, sys.stdout]:
+                if i == refine_iteration_limit-1:
+                    print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
+                else:
+                    print('Successfully completed grid refinement.', file=stream)
+            print(50 * '=')
