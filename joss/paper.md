@@ -55,9 +55,7 @@ A general problem formulation will look like this:
 \mathrm{Design , Parameters:}& \qquad \bar{d}{lb} \leq \bar{d} \leq \bar{d}{ub} \\ 
 \mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}{0,lb} \leq g_{0}(\bar{x}0,t_0,\bar{u}0, \bar{d}) \leq \bar{g}{0,ub} \\
 \mathrm{Final , Boundary , Constraints:}& \qquad \bar{g}{f,lb} \leq g_{f}(\bar{x}f,t_f,\bar{u}f, \bar{d}) \leq \bar{g}{f,ub} \\ 
-<!-- \mathrm{Path , Constraints:}& \qquad \bar{p}{f,lb} \leq p_{f}(\bar{x},t,\bar{u},\bar{d}) \leq \bar{p}_{f,ub} 
- -->
- \end{align*}
+\end{align*}
 
 In the mathematical sense what distinguishes optimal-control from co-design is the particulars of which design variables and constraints are actually considered. 
 Pure optimal control problems deal with an already designed system and seek to maximize performance by adjusting dynamic quantities ($t, \bar{x}, \bar{u}$) such as position, speed, fuel-burned, battery state of charge, etc. 
@@ -68,7 +66,7 @@ In practice, the difference between optimal-control and co-design is not mathema
 For very simple physical design parameters (e.g. the radius of a cannon ball, spring constants, linkage lengths, etc) it is common to integrate the design calculations directly into the ODE.
 Even though the calculations are static in nature, they can easily be coded as part of the ODE and still fits well into the optimal-control paradigm. 
 The optimization structure thus looks like this: 
-![optimal control diagram](images/opt_control.png)
+![optimal control diagram](images/opt_control.png =250x)
 
 
 However, not all calculations are can be handled in this way. 
