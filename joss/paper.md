@@ -42,7 +42,17 @@ Dymos provides specific APIs and features that make it possible to integrate tra
 # Difference between optimal-control and co-design
 In the most general sense, optimal-control problems are numerically valid ways of transcribing a dynamic control problem in a nonlinear programming problem that is solved like this: 
 
-\begin{align*} \mathrm{Minimize}& \qquad \mathrm{J} = f_{obj}(\bar{x},t,\bar{u},\bar{d}) \ \mathrm{Subject , to:}& \ \mathrm{Dynamic , Constraints:}& \qquad \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d}) \ \mathrm{Time:}& \qquad {t}{lb} \leq t \leq {t}{ub} \ \mathrm{State , Variables:}& \qquad \bar{x}{lb} \leq \bar{x} \leq \bar{x}{ub} \ \mathrm{Dynamic , Controls:}& \qquad \bar{u}{lb} \leq \bar{u} \leq \bar{u}{ub} \ \mathrm{Design , Parameters:}& \qquad \bar{d}{lb} \leq \bar{d} \leq \bar{d}{ub} \ \mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}{0,lb} \leq g{0}(\bar{x}0,t_0,\bar{u}0, \bar{d}) \leq \bar{g}{0,ub} \ \mathrm{Final , Boundary , Constraints:}& \qquad \bar{g}{f,lb} \leq g_{f}(\bar{x}f,t_f,\bar{u}f, \bar{d}) \leq \bar{g}{f,ub} \ \mathrm{Path , Constraints:}& \qquad \bar{p}{f,lb} \leq p_{f}(\bar{x},t,\bar{u},\bar{d}) \leq \bar{p}_{f,ub} \end{align*}
+\begin{align*} 
+\mathrm{Minimize}& \qquad \mathrm{J} = f_{obj}(\bar{x},t,\bar{u},\bar{d}) \\
+\mathrm{Subject , to:}& \ \mathrm{Dynamic , Constraints:}& \qquad \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d}) \\
+\mathrm{Time:}& \qquad {t}{lb} \leq t \leq {t}{ub} \\
+\mathrm{State , Variables:}& \qquad \bar{x}{lb} \leq \bar{x} \leq \bar{x}{ub} \\
+\mathrm{Dynamic , Controls:}& \qquad \bar{u}{lb} \leq \bar{u} \leq \bar{u}{ub} \\ 
+\mathrm{Design , Parameters:}& \qquad \bar{d}{lb} \leq \bar{d} \leq \bar{d}{ub} \\ 
+\mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}{0,lb} \leq g{0}(\bar{x}0,t_0,\bar{u}0, \bar{d}) \leq \bar{g}{0,ub} \\
+\mathrm{Final , Boundary , Constraints:}& \qquad \bar{g}{f,lb} \leq g_{f}(\bar{x}f,t_f,\bar{u}f, \bar{d}) \leq \bar{g}{f,ub} \\ 
+\mathrm{Path , Constraints:}& \qquad \bar{p}{f,lb} \leq p_{f}(\bar{x},t,\bar{u},\bar{d}) \leq \bar{p}_{f,ub} 
+\end{align*}
 
 
 Optimization problems that combine physical design and dynamic control are often referred to as 
