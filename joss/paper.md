@@ -28,13 +28,34 @@ bibliography: paper.bib
 
 # Summary
 
-Dymos is a library for optimizing control schedules for dynamic systems --- sometimes referred to as trajectory optimization.
+Dymos is a library for optimizing control schedules for dynamic systems --- sometimes referred to as  optimal control or trajectory optimization.
 There are a number of other optimal control libraries that tackle similar kinds of problems, such as OTIS4 [@Paris2006], GPOPS-II [@Patterson2014GPOPSII],and CASADI [@Andersson2018].
-Dymos can operate in a similar manner to these codes where it is focused purely on the optimal control problem, 
-but it is unique in that it can also support broader cases where trajectory optimization is just one component in a larger physical model. 
-This allows Dymos to play a critical role in solving problems where the physical design of a system is optimized simultaneously with control schedule governing its transient performance. 
-This kind of problem is often referred to as co-design, controls-co-design, or multidisciplinary design optimization.
-Clear examples of Dymos used in this context are demonstrated in the coupled trajectory-thermal design of electric aircraft [@Hariton2020a].
+These tools all rely on gradient based optimization to solve optimal control problems, though their methods of computing the gradients vary. 
+Dymos is built on top of the OpenMDAO framework[@Gray2019a] and supports its modular derivative system which allows users to mix-and-match from finite-differencing, complex-step, hand-differentiated, and algorithmic differentiation. 
+This flexibility allows Dymos to efficiently solve optimal control problems constructed with both ordinary differential equations (ODE) and differential algebraic equations (DAE). 
+
+Dymos can also help solve more general optimization problems where dynamics are only one part in a larger system level model with additional --- potentially computationally expensive --- calculations that come before and after the dynamic calculations.  
+These broader problems are commonly referred to co-design, controls-co-design, and multidisciplinary design optimization.
+Dymos provides specific APIs and features that make it possible to integrate traditional optimal-control models into a co-design context, while still supporting analytic derivatives that are necessary for computational efficiency in these complex use cases. 
+
+
+# Difference between optimal-control and co-design
+In the most general sense, optimal-control problems are numerically valid ways of transcribing a dynamic control problem in a nonlinear programming problem that is solved like this: 
+
+\begin{align*} \mathrm{Minimize}& \qquad \mathrm{J} = f_{obj}(\bar{x},t,\bar{u},\bar{d}) \ \mathrm{Subject , to:}& \ \mathrm{Dynamic , Constraints:}& \qquad \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d}) \ \mathrm{Time:}& \qquad {t}{lb} \leq t \leq {t}{ub} \ \mathrm{State , Variables:}& \qquad \bar{x}{lb} \leq \bar{x} \leq \bar{x}{ub} \ \mathrm{Dynamic , Controls:}& \qquad \bar{u}{lb} \leq \bar{u} \leq \bar{u}{ub} \ \mathrm{Design , Parameters:}& \qquad \bar{d}{lb} \leq \bar{d} \leq \bar{d}{ub} \ \mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}{0,lb} \leq g{0}(\bar{x}0,t_0,\bar{u}0, \bar{d}) \leq \bar{g}{0,ub} \ \mathrm{Final , Boundary , Constraints:}& \qquad \bar{g}{f,lb} \leq g_{f}(\bar{x}f,t_f,\bar{u}f, \bar{d}) \leq \bar{g}{f,ub} \ \mathrm{Path , Constraints:}& \qquad \bar{p}{f,lb} \leq p_{f}(\bar{x},t,\bar{u},\bar{d}) \leq \bar{p}_{f,ub} \end{align*}
+
+
+Optimization problems that combine physical design and dynamic control are often referred to as 
+
+We can use an electric aircraft example to clarify the difference between traditional optimal control and broader co-design problems.
+One of the primary challenges for electric aircraft is keeping their battery and electric motors cool. 
+Given a pre-designed aircraft, a traditional optimal control problem would seek to fly a fixed distance most efficiently, without overheating anything, by adjusting the schedule of throttle setting and flight path angle. These are purely time-varying controls akin to what the pilot would change in flight, and hence don't change the physical design of the aircraft at all. 
+A co-design version of this problem would allow the aircraft design itself to change (e.g. the wing span, radiator size, propeller diameter), along with the trajectory, in order to find a better overall approach. 
+It's possible that a slightly larger radiator would provide more cooling, allowing the aircraft to fly at a faster but more efficient speed and hence use less power to go the same distance. 
+An example of solving this exact kind of problem for an electric vertical take off and landing aircraft with Dymos is given by Hariton et al.[@Hariton2020a] .
+
+
+
 
 Optimal control software typically requires that the dynamics of the system be defined as a set of ordinary differential equations (ODE) that use explicit functions to compute the rates of the state variables to be time-integrated.
 Sometimes the dynamics are instead posed as a set of differential algebraic equations (DAE), where some residual equations need to be satisfied implicitly in order to solve ODE.
