@@ -37,10 +37,12 @@ This flexibility allows Dymos to efficiently solve optimal control problems cons
 Dymos can also help solve more general optimization problems where dynamics are only one part in a larger system level model with additional --- potentially computationally expensive --- calculations that come before and after the dynamic calculations.  
 These broader problems are commonly referred to co-design, controls-co-design, and multidisciplinary design optimization.
 Dymos provides specific APIs and features that make it possible to integrate traditional optimal-control models into a co-design context, while still supporting analytic derivatives that are necessary for computational efficiency in these complex use cases. 
+An example of a co-design problem that was solved with Dymos is the coupled trajectory-thermal design of an electric vertical takeoff and landing aircraft where the thermal management and propulsion systems were designed simultaneously with the flight trajectories to ensure no components overheated[@Hariton2020a].
 
 
 # Difference between optimal-control and co-design
-In the most general sense, optimal-control problems are numerically valid ways of transcribing a dynamic control problem into a nonlinear programming problem like this: 
+In the most general sense, both optimal-control and co-design problems are both are numerically valid ways of optimizations problems involving ordinary differential equations (ODE) or differential algebraic equations (DAE).  
+A general problem formulation will look like this:  
 
 \begin{align*} 
 \mathrm{Minimize}& \qquad \mathrm{J} = f_{obj}(\bar{x},t,\bar{u},\bar{d}) \\
@@ -51,26 +53,42 @@ In the most general sense, optimal-control problems are numerically valid ways o
 \mathrm{State , Variables:}& \qquad \bar{x}{lb} \leq \bar{x} \leq \bar{x}{ub} \\
 \mathrm{Dynamic , Controls:}& \qquad \bar{u}{lb} \leq \bar{u} \leq \bar{u}{ub} \\ 
 \mathrm{Design , Parameters:}& \qquad \bar{d}{lb} \leq \bar{d} \leq \bar{d}{ub} \\ 
-\mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}{0,lb} \leq g{0}(\bar{x}0,t_0,\bar{u}0, \bar{d}) \leq \bar{g}{0,ub} \\
+\mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}{0,lb} \leq g_{0}(\bar{x}0,t_0,\bar{u}0, \bar{d}) \leq \bar{g}{0,ub} \\
 \mathrm{Final , Boundary , Constraints:}& \qquad \bar{g}{f,lb} \leq g_{f}(\bar{x}f,t_f,\bar{u}f, \bar{d}) \leq \bar{g}{f,ub} \\ 
 <!-- \mathrm{Path , Constraints:}& \qquad \bar{p}{f,lb} \leq p_{f}(\bar{x},t,\bar{u},\bar{d}) \leq \bar{p}_{f,ub} 
  -->
  \end{align*}
 
-
-Optimization problems that combine physical design and dynamic control are often referred to as 
-
-We can use an electric aircraft example to clarify the difference between traditional optimal control and broader co-design problems.
-One of the primary challenges for electric aircraft is keeping their battery and electric motors cool. 
-Given a pre-designed aircraft, a traditional optimal control problem would seek to fly a fixed distance most efficiently, without overheating anything, by adjusting the schedule of throttle setting and flight path angle. These are purely time-varying controls akin to what the pilot would change in flight, and hence don't change the physical design of the aircraft at all. 
-A co-design version of this problem would allow the aircraft design itself to change (e.g. the wing span, radiator size, propeller diameter), along with the trajectory, in order to find a better overall approach. 
-It's possible that a slightly larger radiator would provide more cooling, allowing the aircraft to fly at a faster but more efficient speed and hence use less power to go the same distance. 
-An example of solving this exact kind of problem for an electric vertical take off and landing aircraft with Dymos is given by Hariton et al.[@Hariton2020a] .
+In the mathematical sense what distinguishes optimal-control from co-design is the particulars of which design variables and constraints are actually considered. 
+Pure optimal control problems deal with an already designed system and seek to maximize performance by adjusting dynamic quantities ($t, \bar{x}, \bar{u}$) such as position, speed, fuel-burned, battery state of charge, etc. 
+Co-design problems simultaneously vary the design parameters of a system ($\bar{d}$) and its dynamic behavior ($t, \bar{x}, \bar{u}$) to reach maximum performance. 
 
 
+In practice, the difference between optimal-control and co-design is not mathematical but instead more related to how the static and dymamic calculations are implemented and how complex each of them are. 
+For very simple physical design parameters (e.g. the radius of a cannon ball, spring constants, linkage lengths, etc) it is common to integrate the design calculations directly into the ODE.
+Even though the calculations are static in nature, they can easily be coded as part of the ODE and still fits well into the optimal-control paradigm. 
+The optimization structure thus looks like this: 
+![optimal control diagram](images/opt_control.png)
 
 
-Optimal control software typically requires that the dynamics of the system be defined as a set of ordinary differential equations (ODE) that use explicit functions to compute the rates of the state variables to be time-integrated.
+However, not all calculations are can be handled in this way. 
+When you need to split calculations up into a static component and a dynamic component, this would typically be called co-design. 
+For example if the physical design problem included shaping of an airfoil using expensive numerical solutions to partial differential equations to predict drag, then you would not want to embed that PDE solver into the dynamic model. 
+Instead you could set up a coupled model with the PDE solver going first, and passing a table of data to be interpolated to the dynamic model. 
+Traditionally, this kind of co-design process would be done via sequential optimization with an manual outer design iteration between teams. 
+One group would come up with a physical design, using their own internal optimization setup and then a second would take that and generate optimal control profiles for it. 
+This kind of iterative sequential optimization look like this: 
+![optimal control diagram](images/sequential_co_design.png)
+
+Dymos can support sequential co-design, but its unique value is that it also enables a more tightly coupled co-design process with a single top level optimizer handling both parts of the problem simultaneously. 
+Coupled co-design is particularly challenging because it requires propagating derivative information from the static analysis to the dynamic analysis in an efficient way. 
+![optimal control diagram](images/coupled_co_design.png)
+
+
+
+
+
+<!-- Optimal control software typically requires that the dynamics of the system be defined as a set of ordinary differential equations (ODE) that use explicit functions to compute the rates of the state variables to be time-integrated.
 Sometimes the dynamics are instead posed as a set of differential algebraic equations (DAE), where some residual equations need to be satisfied implicitly in order to solve ODE.
 One application of this approach is the method of differential inclusions, in which the state time-history is posed as a dynamic control, and the traditional control variables needed to achieve that trajectory are found using a nonlinear solver within the ODE [@Seywald1994].
 Support for implicit calculations gives users more freedom to pose dynamics in more natural ways, but typically causes numerical and computational cost challenges in an optimization context, especially when finite-differences are used to compute derivatives for the optimizer.
@@ -83,7 +101,7 @@ OpenMDAO efficiently computes derivatives for multidisciplinary optimization usi
 Dymos extends OpenMDAO by adding differentiated time-integration schemes along with the necessary APIs for users to plug their ODEs and DAEs into those schemes.
 It also provides further APIs to enable the input and output of information from the optimal control problem, in order to couple with the physical design models.
 Some of the original methods and use-cases which drove the development of Dymos were first published by Falck and Gray in 2019[@falck2019].
-
+ -->
 
 ## The dymos perspective on optimal control
 
