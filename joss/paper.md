@@ -66,7 +66,7 @@ In practice, the difference between optimal-control and co-design is not mathema
 For very simple physical design parameters (e.g. the radius of a cannon ball, spring constants, linkage lengths, etc) it is common to integrate the design calculations directly into the ODE.
 Even though the calculations are static in nature, they can easily be coded as part of the ODE and still fits well into the optimal-control paradigm. 
 The optimization structure thus looks like this: 
-![optimal control diagram](images/opt_control.png =250x)
+![optimal control diagram](images/opt_control.png){width=250px}
 
 
 However, not all calculations are can be handled in this way. 
