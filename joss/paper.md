@@ -69,7 +69,6 @@ The optimization structure thus looks like this:
 
 ![optimal control diagram](images/opt_control.png){width=50%}
 
-
 However, not all calculations are can be handled in this way. 
 When you need to split calculations up into a static component and a dynamic component, this would typically be called co-design. 
 For example if the physical design problem included shaping of an airfoil using expensive numerical solutions to partial differential equations to predict drag, then you would not want to embed that PDE solver into the dynamic model. 
@@ -86,23 +85,26 @@ Coupled co-design is particularly challenging because it requires propagating de
 ![optimal control diagram](images/coupled_co_design.png){width=100%}
 
 
+# ODE versus DAE
 
+Optimal control software typically requires that the dynamics of the system be defined as a set of ordinary differential equations (ODE) that use explicit functions to compute the rates of the state variables to be time-integrated.
+Sometimes the dynamics are instead posed as a set of differential algebraic equations (DAE), where some residual equations need to be satisfied implicitly in order to solve for the state rates. 
+From the perspective of an optimal-control or co-design problem both ODE and DAE formulations provide state rates that need to be integrated over time. 
+The difference is that ODEs are explicit functions which are relatively easy to differentiate, but DAEs are implicit functions which are much more difficult to differentiate. 
+Since the derivatives are needed to perform optimization, DAEs are more challenging to optimize. 
 
-
-<!-- Optimal control software typically requires that the dynamics of the system be defined as a set of ordinary differential equations (ODE) that use explicit functions to compute the rates of the state variables to be time-integrated.
-Sometimes the dynamics are instead posed as a set of differential algebraic equations (DAE), where some residual equations need to be satisfied implicitly in order to solve ODE.
-One application of this approach is the method of differential inclusions, in which the state time-history is posed as a dynamic control, and the traditional control variables needed to achieve that trajectory are found using a nonlinear solver within the ODE [@Seywald1994].
-Support for implicit calculations gives users more freedom to pose dynamics in more natural ways, but typically causes numerical and computational cost challenges in an optimization context, especially when finite-differences are used to compute derivatives for the optimizer.
+One relatively common use case for DAEs is differential inclusions, in which the state time-history is posed as a dynamic control and the traditional control schedule needed to achieve that time-history is found using a nonlinear solver within the dynamic model [@Seywald1994].
+For some problems differential inclusion provides a more natural and numerical beneficial design space for the optimizer to traverse,
+but the nonlinear solver causes difficulties when computing derivatives, 
+especially when finite-differences are used to compute derivatives for the optimizer.
 Some optimal control libraries tackle this numerical challenge with a monolithic algorithmic differentiation[@griewank2003mathematical] approach.
 While effective, the monolithic nature is both less efficient[@mader2008adjoint; @kenway2019effective] and less flexible.
 
-Instead, Dymos uses a modular approach that allows users to select any combination of finite-difference, complex-step [@Martins2003CS], algorithmic differentiation, and hand differentiation that suits their modeling needs.
-This flexibility is achieved by leveraging the data passing and efficient differentiation features of NASA's OpenMDAO framework[@Gray2019a].
-OpenMDAO efficiently computes derivatives for multidisciplinary optimization using techniques based on the research of Hwang and Martins [@hwang2018b].
-Dymos extends OpenMDAO by adding differentiated time-integration schemes along with the necessary APIs for users to plug their ODEs and DAEs into those schemes.
-It also provides further APIs to enable the input and output of information from the optimal control problem, in order to couple with the physical design models.
-Some of the original methods and use-cases which drove the development of Dymos were first published by Falck and Gray in 2019[@falck2019].
- -->
+Instead, Dymos adopts the analytic derivative approach[@hwang2018b] which uses a linear solver to compute total derivatives needed by the optimizer using only partial derivatives of the residual equations in the DAE.
+This approach offers two key advantages. 
+First partial derivatives of the DAE residual equations are much less computationally expensive to compute. 
+Second, using the OpenMDAO underpinnings of Dymos users can construct their DAE in a modular fashion and combine various methods of computing the partial derivatives via finite-difference, complex-step [@Martins2003CS], algorithmic differentiation, or hand differentiation as needed. 
+
 
 ## The dymos perspective on optimal control
 
