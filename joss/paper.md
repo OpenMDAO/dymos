@@ -49,12 +49,12 @@ A general problem formulation will look like this:
 \mathrm{With Respect To:} & t, \bar{x}, \bar{u}, \bar{d}
 \mathrm{Subject , to:}& \\
 \mathrm{Dynamic , Constraints:}& \qquad \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d}) \\
-\mathrm{Time:}& \qquad {t}{lb} \leq t \leq {t}{ub} \\
-\mathrm{State , Variables:}& \qquad \bar{x}{lb} \leq \bar{x} \leq \bar{x}{ub} \\
-\mathrm{Dynamic , Controls:}& \qquad \bar{u}{lb} \leq \bar{u} \leq \bar{u}{ub} \\ 
-\mathrm{Design , Parameters:}& \qquad \bar{d}{lb} \leq \bar{d} \leq \bar{d}{ub} \\ 
-\mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}{0,lb} \leq g_{0}(\bar{x}0,t_0,\bar{u}0, \bar{d}) \leq \bar{g}{0,ub} \\
-\mathrm{Final , Boundary , Constraints:}& \qquad \bar{g}{f,lb} \leq g_{f}(\bar{x}f,t_f,\bar{u}f, \bar{d}) \leq \bar{g}{f,ub} \\ 
+\mathrm{Time:}& \qquad {t}_{lb} \leq t \leq {t}{ub} \\
+\mathrm{State , Variables:}& \qquad \bar{x}_{lb} \leq \bar{x} \leq \bar{x}{ub} \\
+\mathrm{Dynamic , Controls:}& \qquad \bar{u}_{lb} \leq \bar{u} \leq \bar{u}{ub} \\ 
+\mathrm{Design , Parameters:}& \qquad \bar{d}_{lb} \leq \bar{d} \leq \bar{d}{ub} \\ 
+\mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}_{0,lb} \leq g_{0}(\bar{x}_0,t_0,\bar{u}_0, \bar{d}) \leq \bar{g}_{0,ub} \\
+\mathrm{Final , Boundary , Constraints:}& \qquad \bar{g}_{f,lb} \leq g_{f}(\bar{x}_f,t_f,\bar{u}_f, \bar{d}) \leq \bar{g}_{f,ub} \\ 
 \end{align*}
 
 In the mathematical sense what distinguishes optimal-control from co-design is the particulars of which design variables and constraints are actually considered. 
@@ -67,7 +67,7 @@ For very simple physical design parameters (e.g. the radius of a cannon ball, sp
 Even though the calculations are static in nature, they can easily be coded as part of the ODE and still fits well into the optimal-control paradigm. 
 The optimization structure thus looks like this: 
 
-![optimal control diagram](images/opt_control.png){width=50%}
+![optimal control diagram](images/opt_control.png){width=45%}
 
 However, not all calculations are can be handled in this way. 
 When you need to split calculations up into a static component and a dynamic component, this would typically be called co-design. 
