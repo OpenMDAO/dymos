@@ -7,7 +7,7 @@ x.add_system('OPT', OPT, r"\text{Optimizer}")
 x.add_system('ODE', GROUP, r"\text{ODE or DAE}")
 
 x.connect('ODE', 'OPT', ["J", "g_0", "g_f"],  label_width=3)
-x.connect('OPT', 'ODE', ["t", r"\bar{x}", r"\bar{u}", r"\bar{d}"],  label_width=3)
+x.connect('OPT', 'ODE', ["t", r"\bar{x}", r"\bar{u}", r"\bar{d}"],  label_width=4)
 
 x.write('opt_control')
 
@@ -34,7 +34,7 @@ x.write('sequential_co_design')
 
 x = XDSM()
 
-x.add_system('OPT', OPT, r"\text{Static Optimizer}")
+x.add_system('OPT', OPT, r"\text{Optimizer}")
 x.add_system('static', GROUP, r"\text{Static System Model}")
 x.add_system('dynamic', GROUP, r"\text{ODE or DAE}")
 
