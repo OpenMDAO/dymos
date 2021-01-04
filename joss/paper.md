@@ -53,6 +53,7 @@ A general problem formulation will look like this:
 \mathrm{State , Variables:}& \qquad \bar{x}_{lb} \leq \bar{x} \leq \bar{x}{ub} \\
 \mathrm{Dynamic , Controls:}& \qquad \bar{u}_{lb} \leq \bar{u} \leq \bar{u}{ub} \\ 
 \mathrm{Design , Parameters:}& \qquad \bar{d}_{lb} \leq \bar{d} \leq \bar{d}{ub} \\ 
+\mathrm{State Defect Constraints:}& g_d(\bar{x}_0,t_0, \bar{u}, \bar{d}) = 0 \\
 \mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}_{0,lb} \leq g_{0}(\bar{x}_0,t_0,\bar{u}_0, \bar{d}) \leq \bar{g}_{0,ub} \\
 \mathrm{Final , Boundary , Constraints:}& \qquad \bar{g}_{f,lb} \leq g_{f}(\bar{x}_f,t_f,\bar{u}_f, \bar{d}) \leq \bar{g}_{f,ub} \\ 
 \end{align*}
@@ -107,7 +108,7 @@ First partial derivatives of the DAE residual equations are much less computatio
 Second, using the OpenMDAO underpinnings of Dymos users can construct their DAE in a modular fashion and combine various methods of computing the partial derivatives via finite-difference, complex-step [@Martins2003CS], algorithmic differentiation, or hand differentiation as needed. 
 
 
-## The dymos perspective on optimal control
+## The Dymos perspective on optimal control
 
 Dymos breaks the trajectory into chunks of time called _phases_.
 Breaking the trajectory into phases provides several capabilities.
@@ -123,20 +124,40 @@ To use separate ODE's in separate phases, the user provides different OpenMDAO m
 
 Every phase uses its own specific time discretization tailored to the dynamics in that chunk of the time-history. 
 If one part of a trajectory has fast dynamics and another has slow dynamics,
-the time history can be broken into two phases with separate time discritizations.
+the time history can be broken into two phases with separate time discretizations.
 
-In the optimal-control community, there are a number of different techniques for discriminating the time integration problem. 
-These are techniques are called transcriptions. 
-Some transcriptions are widely used throughout the engineering community, such as simple euler integration or Runge-Kutta based integrations. 
-While these are used in some cases, most practitioners favor a more specialized class of transcriptions called direct collocation --- based on a class of pseudospectral methods. 
+In the optimal-control community, there are a number of different techniques for discretizing the time integration, each one is called a transcription. 
+Some transcriptions are widely used, such as Euler or Runge-Kutta based transcriptions. 
+While these common ones are used in some cases, most optimal-control practitioners favor a more specialized class of transcriptions called direct collocation --- based on a class of pseudospectral methods. 
 Dymos supports two different collocation transcriptions: high-order Gauss-Lobatto [@Herman1996] and Radau [@Garg2009].
+Both of these represent time-histories as piece-wise polynomials of at least 3rd order and are formulated in a way that makes it possible to efficiently compute the needed quantities to perform integration in a numerically rigorous fashion. 
 
 
-Both implicit and explicit forms of these transcriptions are supported.
-The explicit forms can be used to build single or multiple-shooting style problem formulations.
-The implicit forms can be used to construct two point boundary value problems.
-Transcriptions are built to be totally independent of the ODE implementation, and nearly transparent to the user. 
-This means that switching transcriptions requires very minor code changes - typically a single line in the run-script.
+In addition to choosing a transcription, each phase can be computed using an explicit or implicit form. 
+Some caution must be taken here because the term "implicit" can be used to describe some time integration schemes (e.g. backwards Euler), but that is not what is meant in an optimal-control context. 
+In optimal-control, an explicit phases is one where the full time history is computed starting from the initial value and propagating forwards or from the final value and propagating backwards. 
+From the optimizers perspective it will set values for the design parameters ($\bar{d}$) and the controls ($\bar{u}$) and can expect to be given a physically valid time history as the output.
+Wrapping an optimizer around an explicit phase gives what is traditionally called a "shooting method" in the optimal-control world.  
+In contrast, implicit phases don't provide valid time histories on their own. 
+Instead, they provide a set of defect constraints at specific discretization points which the optimizer must drive to 0 in order to converge the problem. 
+In this case, the optimizer sees design parameters ($\bar{d}$), controls ($\bar{u}$), and the state time history ($\bar{x}$) as its design variables, and also gains the extra defect constraints ($g_d$) to keep the problem well posed. 
+In the context of the multidisciplinary design optimization field, explicit phases are similar to the multidisciplinary design feasible (MDF) optimization architecture and implicit phases are similar to the simultaneous analysis and design (SAND) optimization architecture[@Martins2013]. 
+
+Both implicit and explicit phases are useful in different circumstances. 
+The explicit phases are more natural ways to formulate the problem to many because the match the way you would use time-integration without optimization.
+However when used with optimization they are also more computationally expensive, 
+sensitive to singularities in the ODE, 
+and potentially unable to converge to a valid solution. 
+Implicit phases tend to be less intuitive, since they don't provide valid time histories without a converged optimization. 
+Their advantages are tend to be faster, more numerically stable, and more scalable --- though they are also highly sensitive to initial conditions and optimization scaling. 
+
+Dymos supports both explicit and implicit phases for both its transcriptions, 
+and even allows mixtures of implicit and explicit states within a phase. 
+This flexibility is valuable because it allows users to tailor their optimization to suit their needs. 
+Switching transcriptions and changing from implicit to explicit requires very minor code changes - typically a single line in the run-script.
+As the given example shows, not every combination will work for a given problem but Dymos intentionally makes it easy to experiment with different combinations. 
+
+# Choice of optimization algorithm 
 
 Dymos does not ship with its own built in optimizer. 
 It relies on whatever optimizers you have available in your OpenMDAO installation. 
