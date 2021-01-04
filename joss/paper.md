@@ -46,7 +46,7 @@ A general problem formulation will look like this:
 
 \begin{align*} 
 \mathrm{Minimize}& \qquad \mathrm{J} = f_{obj}(\bar{x},t,\bar{u},\bar{d}) \\
-\mathrm{With Respect To:} & t, \bar{x}, \bar{u}, \bar{d}
+\mathrm{With Respect To:} & t, \bar{x}, \bar{u}, \bar{d} \\
 \mathrm{Subject , to:}& \\
 \mathrm{Dynamic , Constraints:}& \qquad \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d}) \\
 \mathrm{Time:}& \qquad {t}_{lb} \leq t \leq {t}{ub} \\
@@ -109,7 +109,7 @@ Second, using the OpenMDAO underpinnings of Dymos users can construct their DAE 
 
 ## The dymos perspective on optimal control
 
-Dymos breaks the trajectory of a system into chunks of time called _phases_.
+Dymos breaks the trajectory into chunks of time called _phases_.
 Breaking the trajectory into phases provides several capabilities.
 Intermediate constraints along a trajectory can be enforced by applying boundary constraint to a phase that begins or ends at the time of interest.
 For instance, the optimal trajectory of a launch vehicle may be required to ascend vertically to clear a launch tower before it pitches over on its way to orbit.
@@ -119,12 +119,19 @@ For example, reentry vehicles may need to adjust their trajectory to limit aerod
 Each phase in a trajectory can also use its own separate ODE.
 For instance, an aircraft with vertical takeoff and landing capability may use different ODEs for vertical flight and horizontal flight.
 ODE's are implemented as standard OpenMDAO models which are passed to phases at instantiation time with some additional annotations to identify the states, state-rates, and control inputs.
-To use separate ODE's in separate phases, the user simply provides different OpenMDAO models to each phase. 
+To use separate ODE's in separate phases, the user provides different OpenMDAO models to each phase. 
 
 Every phase uses its own specific time discretization tailored to the dynamics in that chunk of the time-history. 
-If one part of a trajectory has fast dynamics and another has slow dynamics, the time history can be broken into two phases with separate time discritizations.
-The available time discretization schemes in Dymos are based on pseudospectral methods, using two common direct collocation transcriptions:
-the high-order Gauss-Lobatto transcription [@Herman1996] and the Radau pseudospectral method [@Garg2009].
+If one part of a trajectory has fast dynamics and another has slow dynamics,
+the time history can be broken into two phases with separate time discritizations.
+
+In the optimal-control community, there are a number of different techniques for discriminating the time integration problem. 
+These are techniques are called transcriptions. 
+Some transcriptions are widely used throughout the engineering community, such as simple euler integration or Runge-Kutta based integrations. 
+While these are used in some cases, most practitioners favor a more specialized class of transcriptions called direct collocation --- based on a class of pseudospectral methods. 
+Dymos supports two different collocation transcriptions: high-order Gauss-Lobatto [@Herman1996] and Radau [@Garg2009].
+
+
 Both implicit and explicit forms of these transcriptions are supported.
 The explicit forms can be used to build single or multiple-shooting style problem formulations.
 The implicit forms can be used to construct two point boundary value problems.
