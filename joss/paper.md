@@ -82,7 +82,7 @@ This kind of iterative sequential optimization look like this:
 Dymos can support sequential co-design, but its unique value is that it also enables a more tightly coupled co-design process with a single top level optimizer handling both parts of the problem simultaneously. 
 Coupled co-design is particularly challenging because it requires propagating derivative information from the static analysis to the dynamic analysis in an efficient way. 
 
-![optimal control diagram](images/coupled_co_design.png){width=100%}
+![optimal control diagram](images/coupled_co_design.png){width=75%}
 
 
 # ODE versus DAE
@@ -95,14 +95,15 @@ Since the derivatives are needed to perform optimization, DAEs are more challeng
 
 One relatively common use case for DAEs is differential inclusions, in which the state time-history is posed as a dynamic control and the traditional control schedule needed to achieve that time-history is found using a nonlinear solver within the dynamic model [@Seywald1994].
 For some problems differential inclusion provides a more natural and numerical beneficial design space for the optimizer to traverse,
-but the nonlinear solver causes difficulties when computing derivatives, 
-especially when finite-differences are used to compute derivatives for the optimizer.
-Some optimal control libraries tackle this numerical challenge with a monolithic algorithmic differentiation[@griewank2003mathematical] approach.
-While effective, the monolithic nature is both less efficient[@mader2008adjoint; @kenway2019effective] and less flexible.
+but the nonlinear solver poses numerical challenges for computing derivatives for the optimizer.
+A simple approach to this is to just finite-difference across the nonlinear solver, but this is has been shown to be expensive and numerically unstable[@gray2014derivatives]. 
+Another option, taken by some optimal control libraries, is to apply monolithic algorithmic differentiation[@griewank2003mathematical] across the nonlinear solver.
+While it does provide accurate derivatives, the monolithic approach is expensive and uses a lot of memory[@mader2008adjoint; @kenway2019effective]. 
+The most efficient approach is to use a pair of analytic derivative approachs called the direct and adjoint methods, which were unified into a single unified derivative equation (UDE) by Hwang and Martins[@hwang2018b]. 
 
-Instead, Dymos adopts the analytic derivative approach[@hwang2018b] which uses a linear solver to compute total derivatives needed by the optimizer using only partial derivatives of the residual equations in the DAE.
+Dymos adopts the UDE approach which uses a linear solver to compute total derivatives needed by the optimizer using only partial derivatives of the residual equations in the DAE.
 This approach offers two key advantages. 
-First partial derivatives of the DAE residual equations are much less computationally expensive to compute. 
+First partial derivatives of the DAE residual equations are much less computationally challenging to compute. 
 Second, using the OpenMDAO underpinnings of Dymos users can construct their DAE in a modular fashion and combine various methods of computing the partial derivatives via finite-difference, complex-step [@Martins2003CS], algorithmic differentiation, or hand differentiation as needed. 
 
 
@@ -140,33 +141,33 @@ On more challenging optimal-control problems, higher quality optimizers are impo
 
 ## Statement of Need
 
-When dealing with the design of complex systems, there are two approaches: collaborative optimization or coupled co-design [@allison2004complex].
+When dealing with the design of complex systems that include transient behavior, co-design becomes critical[@garciasans2019].
+Broadly there are two approaches: sequential co-design or coupled co-design [@allison2004complex].
 The best choice depends on the degree of interaction, or coupling, between various sub-systems. 
-In the case where you have a system where performance is heavily influenced by its transient behavior, then the dynamic behavior becomes a critical subsystem. 
-If the coupling is strong in this case, a co-design (a.k.a. controls-co-design; a.k.a. multidisciplinary design optimization) approach is necessary to achieve the best performance [@garciasans2019].
+If the coupling is strong a coupled co-design approach is necessary to achieve the best performance.
 
-Though there are a number of effective optimal control libraries, they tend to assume that they are on top of the modeling stack. 
-Hence, they frame every optimization problem as if it was a pure optimal-control problem. 
-This poses large challenges when expanding to co-design type problems, which often do not fit well within the pure optimal-control paradigm. 
+Though there are a number of effective optimal control libraries, they tend to assume that they are on top of the modeling stack.
+They frame every optimization problem as if it was a pure optimal-control problem, and hence are best suited to be used in a sequential co-design style. 
+This poses large challenges when expanding to tightly coupled problems, where the interactions between the static and dynamic systems are very strong. 
 
-Dymos provides a set of unique capabilities that make co-design possible via efficient gradient-based optimization methods.
+Dymos provides a set of unique capabilities that make coupled co-design possible via efficient gradient-based optimization methods.
 It provides differentiated time-integration schemes that can generate transient models from user provided ODEs, 
 along with APIs that enable users to couple these transient models with other models to form the co-design system while carrying the differentiation through that coupling.
-It also supports efficient differentiation of complex ODE's that include implicit relationships, such as differential algebraic equations. 
-These two features combined make Dymos capable of handling co-design problems in a manner that is more efficient than a pure optimal-control approach. 
+It also supports efficient differentiation of DAE's that include implicit relationships, which allows for a much broader set of possible ways to pose transient models. 
+These two features combined make Dymos capable of handling coupled co-design problems in a manner that is more efficient than a pure optimal-control approach. 
 
 
-## Selected applications of dymos
+## Selected applications of Dymos
 
 Dymos has been used to demonstrate the coupling of flight dynamics and subsystem thermal constraints in electrical aircraft applications [@Falck2017a; @Hariton2020a].
-NASA's X-57 "Maxwell" is using dymos for mission planning to maximize data collection while abiding the limits of battery storage capacity and subsystem temperatures [@Schnulo2018a; @Schnulo2019a].
-Other authors have used dymos to perform studies of aircraft acoustics [@Ingraham2020a] and the the design of supersonic aircraft with thermal fuel management systems [@Jasa2018a].
+NASA's X-57 "Maxwell" is using Dymos for mission planning to maximize data collection while abiding the limits of battery storage capacity and subsystem temperatures [@Schnulo2018a; @Schnulo2019a].
+Other authors have used Dymos to perform studies of aircraft acoustics [@Ingraham2020a] and the the design of supersonic aircraft with thermal fuel management systems [@Jasa2018a].
 
-## Example usage of dymos
+## Example usage of Dymos
 
-As a simple use-case of dymos, consider the classic brachistochrone optimal control problem.
+As a simple use-case of Dymos, consider the classic brachistochrone optimal control problem.
 In this problem, we seek the shape of a frictionless wire strung between two points of different heights such that a bead sliding along the wire moves from the first point to the second point in minimum time.
-To find the solution in dymos, we first define the ordinary differential equations that govern the motion of the bead.
+To find the solution in Dymos, we first define the ordinary differential equations that govern the motion of the bead.
 
 ```python
 import numpy as np
