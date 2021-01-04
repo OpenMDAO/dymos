@@ -44,7 +44,8 @@ In the most general sense, optimal-control problems are numerically valid ways o
 
 \begin{align*} 
 \mathrm{Minimize}& \qquad \mathrm{J} = f_{obj}(\bar{x},t,\bar{u},\bar{d}) \\
-\mathrm{Subject , to:}& \ \mathrm{Dynamic , Constraints:}& \qquad \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d}) \\
+\mathrm{Subject , to:}& \\
+\mathrm{Dynamic , Constraints:}& \qquad \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d}) \\
 \mathrm{Time:}& \qquad {t}{lb} \leq t \leq {t}{ub} \\
 \mathrm{State , Variables:}& \qquad \bar{x}{lb} \leq \bar{x} \leq \bar{x}{ub} \\
 \mathrm{Dynamic , Controls:}& \qquad \bar{u}{lb} \leq \bar{u} \leq \bar{u}{ub} \\ 
