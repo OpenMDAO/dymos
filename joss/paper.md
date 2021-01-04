@@ -66,6 +66,7 @@ In practice, the difference between optimal-control and co-design is not mathema
 For very simple physical design parameters (e.g. the radius of a cannon ball, spring constants, linkage lengths, etc) it is common to integrate the design calculations directly into the ODE.
 Even though the calculations are static in nature, they can easily be coded as part of the ODE and still fits well into the optimal-control paradigm. 
 The optimization structure thus looks like this: 
+
 ![optimal control diagram](images/opt_control.png){width=50%}
 
 
@@ -76,10 +77,12 @@ Instead you could set up a coupled model with the PDE solver going first, and pa
 Traditionally, this kind of co-design process would be done via sequential optimization with an manual outer design iteration between teams. 
 One group would come up with a physical design, using their own internal optimization setup and then a second would take that and generate optimal control profiles for it. 
 This kind of iterative sequential optimization look like this: 
+
 ![optimal control diagram](images/sequential_co_design.png){width=100%}
 
 Dymos can support sequential co-design, but its unique value is that it also enables a more tightly coupled co-design process with a single top level optimizer handling both parts of the problem simultaneously. 
 Coupled co-design is particularly challenging because it requires propagating derivative information from the static analysis to the dynamic analysis in an efficient way. 
+
 ![optimal control diagram](images/coupled_co_design.png){width=100%}
 
 
