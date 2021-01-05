@@ -148,14 +148,15 @@ Dymos supports two different collocation transcriptions: high-order Gauss-Lobatt
 Both of these represent time-histories as piece-wise polynomials of at least 3rd order and are formulated in a way that makes it possible to efficiently compute the needed quantities to perform integration in a numerically rigorous fashion. 
 
 
-In addition to choosing a transcription, each phase can be computed using an explicit or implicit form. 
-Some caution must be taken here because the term "implicit" can be used to describe some time integration schemes (e.g. backwards Euler), but that is not what is meant in an optimal-control context. 
-In optimal-control, an explicit phases is one where the full time history is computed starting from the initial value and propagating forwards or from the final value and propagating backwards. 
+In addition to choosing a transcription, each phase can be configured to be solved in an explicit or implicit manner. 
+Some caution with terminology must be taken here because the term "implicit" is often used to describe time integration schemes (e.g. backwards Euler), 
+but that is not what is meant in an optimal-control context. 
+Here, an explicit phases is one where the full time history is computed starting from the initial value and propagating forwards or from the final value and propagating backwards. 
 From the optimizers perspective it will set values for the design parameters ($\bar{d}$) and the controls ($\bar{u}$) and can expect to be given a physically valid time history as the output.
 Wrapping an optimizer around an explicit phase gives what is traditionally called a "shooting method" in the optimal-control world.  
 In contrast, implicit phases don't provide valid time histories on their own. 
-Instead, they provide a set of defect constraints at specific discretization points which the optimizer must drive to 0 in order to converge the problem. 
-In this case, the optimizer sees design parameters ($\bar{d}$), controls ($\bar{u}$), and the state time history ($\bar{x}$) as its design variables, and also gains the extra defect constraints ($g_d$) to keep the problem well posed. 
+Instead, they add the state vector ($\bar{x}$) as an additional design variable to the optimizer and add an associated set of additional defect constraints that must be driven to 0 to enforce physics at the discrete time points of the time integration. 
+The net effect is that the full time history is only known once the optimization is fully converged. 
 In the context of the multidisciplinary design optimization field, explicit phases are similar to the multidisciplinary design feasible (MDF) optimization architecture and implicit phases are similar to the simultaneous analysis and design (SAND) optimization architecture[@Martins2013]. 
 
 Both implicit and explicit phases are useful in different circumstances. 
@@ -163,24 +164,29 @@ The explicit phases are more natural ways to formulate the problem to many becau
 However when used with optimization they are also more computationally expensive, 
 sensitive to singularities in the ODE, 
 and potentially unable to converge to a valid solution. 
-Implicit phases tend to be less intuitive, since they don't provide valid time histories without a converged optimization. 
-Their advantages are tend to be faster, more numerically stable, and more scalable --- though they are also highly sensitive to initial conditions and optimization scaling. 
+Implicit phases tend to be less intuitive computationally, since they don't provide valid time histories without a converged optimization. 
+Their advantages are that they tend to be faster, more numerically stable, and more scalable --- though they are also highly sensitive to initial conditions and optimization scaling. 
 
 Dymos supports both explicit and implicit phases for both its transcriptions, 
 and even allows mixtures of implicit and explicit states within a phase. 
 This flexibility is valuable because it allows users to tailor their optimization to suit their needs. 
 Switching transcriptions and changing from implicit to explicit requires very minor code changes - typically a single line in the run-script.
-As the given example shows, not every combination will work for a given problem but Dymos intentionally makes it easy to experiment with different combinations. 
+Examples of how to swap between them are given in the code sample below. 
 
 # Choice of optimization algorithm 
 
-Dymos does not ship with its own built in optimizer. 
-It relies on whatever optimizers you have available in your OpenMDAO installation. 
+Dymos does not shipt with its own optimizer, but relies on the optimizers that are available in your OpenMDAO installation. 
 OpenMDAO ships with an interface to the optimizers in SciPy [@2020SciPy-NMeth], 
 and an additional wrapper for the pyoptsparse [@Wu_pyoptsparse_2020] library which has more powerful optimizer options such as SNOPT [@GilMS05] and IPOPT [@wachter2006].
 OpenMDAO also allows users to integrate their own optimizer of choice, which Dymos can then seamlessly use with without any additional modifications.
 For simple problems, Scipy's SLSQP optimizer generally works fine.
 On more challenging optimal-control problems, higher quality optimizers are important for getting good performance.
+
+Though you could technically choose any optimization algorithm, Dymos is designed to work primarily with gradient based algorithms. 
+In general, optimal-control and co-design problems will have both a very large number of design variables and a very large number of constraints. 
+Both of these issues make gradient based methods the strongly preferred choice. 
+Gradient free methods could potentially be used in certain narrow circumstances with problems built using purely explicit phases and set up intentionally to have a small set of design variables and constraints. 
+
 
 ## Statement of Need
 
