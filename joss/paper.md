@@ -74,7 +74,7 @@ For very simple physical design parameters (e.g. the radius of a cannon ball, sp
 Even though the calculations are static in nature, they can easily be coded as part of the ODE and still fits well into the optimal-control paradigm. 
 The optimization structure thus looks like this: 
 
-![optimal control diagram](images/opt_control.png){width=45%}
+![Model structure for a traditional optimal control problem](images/opt_control.png){width=45%}
 
 However, not all problems are can be handled in with such a compact implementation. 
 For example if the physical design problem included shaping of an airfoil using expensive numerical solutions to partial differential equations (PDE) to predict drag, then you would not want to embed that PDE solver into the dynamic model. 
@@ -89,12 +89,12 @@ Of course, the iterations don't need to be manual.
 It is also possible to set up an iterative loop around static and dynamic models to converge the problem numerically. 
 A sequential co-design implementation looks like this
 
-![optimal control diagram](images/sequential_co_design.png){width=100%}
+![Model structure for a sequential co-design problem](images/sequential_co_design.png){width=100%}
 
 Dymos can support sequential co-design, 
 but its unique value is that it also enables a more tightly coupled co-design process with a single top level optimizer handling both parts of the problem simultaneously. 
 
-![optimal control diagram](images/coupled_co_design.png){width=75%}
+![Model structure for a coupled co-design problem](images/coupled_co_design.png){width=75%}
 
 Compared to sequential co-design, coupled co-design offers the potential to find better designs with much lower computational cost. 
 However, it is also more challenging to implement because the top level optimizer requires derivatives propagated between the static and dynamic parts of the model. 
