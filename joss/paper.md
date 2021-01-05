@@ -76,20 +76,30 @@ The optimization structure thus looks like this:
 
 ![optimal control diagram](images/opt_control.png){width=45%}
 
-However, not all calculations are can be handled in this way. 
-When you need to split calculations up into a static component and a dynamic component, this would typically be called co-design. 
-For example if the physical design problem included shaping of an airfoil using expensive numerical solutions to partial differential equations to predict drag, then you would not want to embed that PDE solver into the dynamic model. 
-Instead you could set up a coupled model with the PDE solver going first, and passing a table of data to be interpolated to the dynamic model. 
-Traditionally, this kind of co-design process would be done via sequential optimization with an manual outer design iteration between teams. 
-One group would come up with a physical design, using their own internal optimization setup and then a second would take that and generate optimal control profiles for it. 
-This kind of iterative sequential optimization look like this: 
+However, not all problems are can be handled in with such a compact implementation. 
+For example if the physical design problem included shaping of an airfoil using expensive numerical solutions to partial differential equations (PDE) to predict drag, then you would not want to embed that PDE solver into the dynamic model. 
+Instead you could set up a coupled model with the PDE solver going first performing, and passing a table of data to be interpolated to the dynamic model. 
+This effectively splits calculations up into static and a dynamic components. 
+This implementation structure is called co-design. 
+
+Traditionally, this a co-design implementation would be done via sequential optimization with a manual outer design iteration between the static and dynamic models, potentially with different teams of people working on each one. 
+One team would come up with a physical design using their own internal optimization setup. 
+A second team takes the design and generates optimal control profiles for it. 
+Of course, the iterations don't need to be manual.
+It is also possible to set up an iterative loop around static and dynamic models to converge the problem numerically. 
+A sequential co-design implementation looks like this
 
 ![optimal control diagram](images/sequential_co_design.png){width=100%}
 
-Dymos can support sequential co-design, but its unique value is that it also enables a more tightly coupled co-design process with a single top level optimizer handling both parts of the problem simultaneously. 
-Coupled co-design is particularly challenging because it requires propagating derivative information from the static analysis to the dynamic analysis in an efficient way. 
+Dymos can support sequential co-design, 
+but its unique value is that it also enables a more tightly coupled co-design process with a single top level optimizer handling both parts of the problem simultaneously. 
 
 ![optimal control diagram](images/coupled_co_design.png){width=75%}
+
+Compared to sequential co-design, coupled co-design offers the potential to find better designs with much lower computational cost. 
+However, it is also more challenging to implement because the top level optimizer requires derivatives propagated between the static and dynamic parts of the model. 
+Dymos overcomes this difficulty by providing APIs to exploit OpenMDAO's analytic derivative functionality at the model level. 
+Data can be passed from the static model to the dynamic model and vice versa, allowing the construction of the coupled model for optimization. 
 
 
 # ODE versus DAE
