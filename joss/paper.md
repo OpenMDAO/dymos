@@ -117,10 +117,9 @@ For instance, the optimal trajectory of a launch vehicle may be required to asce
 Path constraints can be applied within each phase to bound some performance parameter within that phase.
 For example, reentry vehicles may need to adjust their trajectory to limit aerodynamic heating.
 
-Each phase in a trajectory can also use its own separate ODE.
+Each phase in a trajectory can use its own separate ODE .
 For instance, an aircraft with vertical takeoff and landing capability may use different ODEs for vertical flight and horizontal flight.
 ODE's are implemented as standard OpenMDAO models which are passed to phases at instantiation time with some additional annotations to identify the states, state-rates, and control inputs.
-To use separate ODE's in separate phases, the user provides different OpenMDAO models to each phase. 
 
 Every phase uses its own specific time discretization tailored to the dynamics in that chunk of the time-history. 
 If one part of a trajectory has fast dynamics and another has slow dynamics,
