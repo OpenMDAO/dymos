@@ -45,15 +45,16 @@ In the most general sense, both optimal-control and co-design problems are both 
 A general problem formulation will look like this:  
 
 \begin{align*} 
-\mathrm{Minimize}& \qquad \mathrm{J} = f_{obj}(\bar{x},t,\bar{u},\bar{d}) \\
+\mathrm{Minimize}& \qquad \mathrm{J} = f_{obj}(\bar{x}\, t,\bar{u}, \bar{d}) \\
 \mathrm{With Respect To:} & t, \bar{x}, \bar{u}, \bar{d} \\
 \mathrm{Subject , to:}& \\
-\mathrm{Dynamic , Constraints:}& \qquad \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d}) \\
+\mathrm{Dynamic , Constraints:}& \qquad \dot{\bar{x}} = f_{ode}(\bar{x}, t, \bar{u}, \bar{d}) \\
 \mathrm{Time:}& \qquad {t}_{lb} \leq t \leq {t}{ub} \\
 \mathrm{State , Variables:}& \qquad \bar{x}_{lb} \leq \bar{x} \leq \bar{x}{ub} \\
 \mathrm{Dynamic , Controls:}& \qquad \bar{u}_{lb} \leq \bar{u} \leq \bar{u}{ub} \\ 
 \mathrm{Design , Parameters:}& \qquad \bar{d}_{lb} \leq \bar{d} \leq \bar{d}{ub} \\ 
-\mathrm{State Defect Constraints:}& g_d(\bar{x}_0,t_0, \bar{u}, \bar{d}) = 0 \\
+\mathrm{State Defect Constraints:}& \qquad g_\Delta(\bar{x}_0,t_0, \bar{u}, \bar{d}) = 0 \\
+\mathrm{Path Constraints:}& \qquad  g_\mathrm{path}(\bar{x}_0,t_0, \bar{u}, \bar{d}) = 0 \\
 \mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}_{0,lb} \leq g_{0}(\bar{x}_0,t_0,\bar{u}_0, \bar{d}) \leq \bar{g}_{0,ub} \\
 \mathrm{Final , Boundary , Constraints:}& \qquad \bar{g}_{f,lb} \leq g_{f}(\bar{x}_f,t_f,\bar{u}_f, \bar{d}) \leq \bar{g}_{f,ub} \\ 
 \end{align*}
