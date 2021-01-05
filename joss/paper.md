@@ -41,7 +41,14 @@ An example of a co-design problem that was solved with Dymos is the coupled traj
 
 
 # Difference between optimal-control and co-design
-In the most general sense, both optimal-control and co-design problems are both are numerically valid ways of optimizations problems involving ordinary differential equations (ODE) or differential algebraic equations (DAE).  
+In the most general sense, both optimal-control and co-design problems are both are numerically valid ways of optimizing dynamic systems. 
+There a vector of time varying state variables ($\bar{x}$) who's behavior is affected by time ($t$), a vector of dynamic controls ($\bar{u)}$), and a vector of static design parameters ($\bar{d}$). 
+The evolution of the states over time is governed by an ordinary differential equation (ODE) or differential algebraic equation (DAE):
+\begin{align}
+  \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d})
+\end{align}
+
+
 A general problem formulation will look like this:  
 
 \begin{align*} 
@@ -53,10 +60,10 @@ A general problem formulation will look like this:
 \mathrm{State , Variables:}& \qquad \bar{x}_{lb} \leq \bar{x} \leq \bar{x}{ub} \\
 \mathrm{Dynamic , Controls:}& \qquad \bar{u}_{lb} \leq \bar{u} \leq \bar{u}{ub} \\ 
 \mathrm{Design , Parameters:}& \qquad \bar{d}_{lb} \leq \bar{d} \leq \bar{d}{ub} \\ 
-\mathrm{State Defect Constraints:}& \qquad g_\Delta(\bar{x}_0,t_0, \bar{u}, \bar{d}) = 0 \\
-\mathrm{Path Constraints:}& \qquad  g_\mathrm{path}(\bar{x}_0,t_0, \bar{u}, \bar{d}) = 0 \\
-\mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}_{0,lb} \leq g_{0}(\bar{x}_0,t_0,\bar{u}_0, \bar{d}) \leq \bar{g}_{0,ub} \\
-\mathrm{Final , Boundary , Constraints:}& \qquad \bar{g}_{f,lb} \leq g_{f}(\bar{x}_f,t_f,\bar{u}_f, \bar{d}) \leq \bar{g}_{f,ub} \\ 
+\mathrm{State Defect Constraints:}& \qquad g_\Delta(\bar{x}_0, t_0, \bar{u}, \bar{d}) = 0 \\
+\mathrm{Path Constraints:}& \qquad  g_\mathrm{path}(\bar{x}_0, t_0, \bar{u}, \bar{d}) = 0 \\
+\mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}_{0, lb} \leq g_{0}(\bar{x}_0, t_0, \bar{u}_0, \bar{d}) \leq \bar{g}_{0, ub} \\
+\mathrm{Final , Boundary , Constraints:}& \qquad \bar{g}_{f, lb} \leq g_{f}(\bar{x}_f, t_f, \bar{u}_f, \bar{d}) \leq \bar{g}_{f, ub} \\ 
 \end{align*}
 
 In the mathematical sense what distinguishes optimal-control from co-design is the particulars of which design variables and constraints are actually considered. 
