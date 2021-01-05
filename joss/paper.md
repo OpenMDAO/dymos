@@ -41,7 +41,7 @@ An example of a co-design problem that was solved with Dymos is the coupled traj
 
 
 # Difference between optimal-control and co-design
-In the most general sense, both optimal-control and co-design problems deal with dynamic systems. 
+Optimal-control and co-design problems deal with dynamic systems. 
 There a vector of time varying state variables ($\bar{x}$) who's behavior is affected by time ($t$), a vector of dynamic controls ($\bar{u)}$), and a vector of static design parameters ($\bar{d}$). 
 The evolution of the states over time is governed by an ordinary differential equation (ODE) or differential algebraic equation (DAE):
 \begin{align}
@@ -63,29 +63,13 @@ In addition, there are constraints that typically need to be enforced.
   \mathrm{Path \, Constraints:}& \qquad \bar{p}_{f,lb} \leq p_{f}(\bar{x},t,\bar{u},\bar{d}) \leq \bar{p}_{f,ub} \\
 \end{align}
 
-A general problem formulation will look like this:  
 
-\begin{align*} 
-\mathrm{Minimize}& \qquad \mathrm{J} = f_{obj}(\bar{x}\, t,\bar{u}, \bar{d}) \\
-\mathrm{With Respect To:} & t, \bar{x}, \bar{u}, \bar{d} \\
-\mathrm{Subject , to:}& \\
-\mathrm{Dynamic , Constraints:}& \qquad \dot{\bar{x}} = f_{ode}(\bar{x}, t, \bar{u}, \bar{d}) \\
-\mathrm{Time:}& \qquad {t}_{lb} \leq t \leq {t}{ub} \\
-\mathrm{State , Variables:}& \qquad \bar{x}_{lb} \leq \bar{x} \leq \bar{x}{ub} \\
-\mathrm{Dynamic , Controls:}& \qquad \bar{u}_{lb} \leq \bar{u} \leq \bar{u}{ub} \\ 
-\mathrm{Design , Parameters:}& \qquad \bar{d}_{lb} \leq \bar{d} \leq \bar{d}{ub} \\ 
-\mathrm{State Defect Constraints:}& \qquad g_\Delta(\bar{x}_0, t_0, \bar{u}, \bar{d}) = 0 \\
-\mathrm{Path Constraints:}& \qquad  g_\mathrm{path}(\bar{x}_0, t_0, \bar{u}, \bar{d}) = 0 \\
-\mathrm{Initial , Boundary , Constraints:}& \qquad \bar{g}_{0, lb} \leq g_{0}(\bar{x}_0, t_0, \bar{u}_0, \bar{d}) \leq \bar{g}_{0, ub} \\
-\mathrm{Final , Boundary , Constraints:}& \qquad \bar{g}_{f, lb} \leq g_{f}(\bar{x}_f, t_f, \bar{u}_f, \bar{d}) \leq \bar{g}_{f, ub} \\ 
-\end{align*}
-
-In the mathematical sense what distinguishes optimal-control from co-design is the particulars of which design variables and constraints are actually considered. 
+In the mathematical sense what distinguishes optimal-control from co-design is the particulars of which design variables and constraints are actually considered by the optimization.  
 Pure optimal control problems deal with an already designed system and seek to maximize performance by adjusting dynamic quantities ($t, \bar{x}, \bar{u}$) such as position, speed, fuel-burned, battery state of charge, etc. 
-Co-design problems simultaneously vary the design parameters of a system ($\bar{d}$) and its dynamic behavior ($t, \bar{x}, \bar{u}$) to reach maximum performance. 
+Co-design problems simultaneously vary the static design parameters of a system ($\bar{d}$) and its dynamic behavior ($t, \bar{x}, \bar{u}$) to reach maximum performance. 
 
 
-In practice, the difference between optimal-control and co-design is not mathematical but instead more related to how the static and dymamic calculations are implemented and how complex each of them are. 
+In practice, the mathematical distinction is too rigid and a more practical distinction is made based on the where the static and dymamic calculations are implemented and how complex each of them are. 
 For very simple physical design parameters (e.g. the radius of a cannon ball, spring constants, linkage lengths, etc) it is common to integrate the design calculations directly into the ODE.
 Even though the calculations are static in nature, they can easily be coded as part of the ODE and still fits well into the optimal-control paradigm. 
 The optimization structure thus looks like this: 
