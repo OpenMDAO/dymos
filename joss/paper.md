@@ -44,16 +44,16 @@ An example of a co-design problem that was solved with Dymos is the coupled traj
 Optimal-control and co-design problems deal with dynamic systems. 
 There a vector of time varying state variables ($\bar{x}$) who's behavior is affected by time ($t$), a vector of dynamic controls ($\bar{u)}$), and a vector of static design parameters ($\bar{d}$). 
 The evolution of the states over time is governed by an ordinary differential equation (ODE) or differential algebraic equation (DAE):
-\begin{align}
+\begin{align*}
   \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d})
-\end{align}
+\end{align*}
 
 To optimize a dynamic system we also need to account for the objective function ($J$)
-\begin{align}
+\begin{align*}
   \mathrm{J} = f_{obj}(\bar{x},t,\bar{u},\bar{d})
-\end{align}
+\end{align*}
 In addition, there are constraints that typically need to be enforced. 
-\begin{align}
+\begin{align*}
   \mathrm{Time:}& \qquad {t}_{lb} \leq t \leq {t}_{ub} \\
   \mathrm{State \, Variables:}& \qquad \bar{x}_{lb} \leq \bar{x} \leq \bar{x}_{ub} \\
   \mathrm{Dynamic \, Controls:}& \qquad \bar{u}_{lb} \leq \bar{u} \leq \bar{u}_{ub} \\
@@ -61,7 +61,7 @@ In addition, there are constraints that typically need to be enforced.
   \mathrm{Initial \, Boundary \, Constraints:}& \qquad \bar{g}_{0,lb} \leq g_{0}(\bar{x}_0,t_0,\bar{u}_0, \bar{d}) \leq \bar{g}_{0,ub} \\
   \mathrm{Final \, Boundary \, Constraints:}& \qquad \bar{g}_{f,lb} \leq g_{f}(\bar{x}_f,t_f,\bar{u}_f, \bar{d}) \leq \bar{g}_{f,ub} \\
   \mathrm{Path \, Constraints:}& \qquad \bar{p}_{f,lb} \leq p_{f}(\bar{x},t,\bar{u},\bar{d}) \leq \bar{p}_{f,ub} \\
-\end{align}
+\end{align*}
 
 
 In the mathematical sense what distinguishes optimal-control from co-design is the particulars of which design variables and constraints are actually considered by the optimization.  
