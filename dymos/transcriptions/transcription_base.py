@@ -509,16 +509,13 @@ class TranscriptionBase(object):
                                      'is {2}'.format(var, shape, np.asarray(options['equals']).shape))
                 con_shape = (np.prod(shape),)
 
-            size = np.prod(shape)
-            con_options['shape'] = shape if shape is not None else con_shape
+            if con_shape in {None, _unspecified}:
+                con_options['shape'] = (1,) if len(shape) == 1 else shape[1:]
+            else:
+                con_options['shape'] = con_shape
+
             con_options['units'] = units if con_units is None else con_units
             con_options['linear'] = linear
-
-            # Build the correct src_indices regardless of shape
-            if loc == 'initial':
-                src_idxs = np.arange(size, dtype=int).reshape(shape)
-            else:
-                src_idxs = np.arange(-size, 0, dtype=int).reshape(shape)
 
             bc_comp._add_constraint(con_name, **con_options)
 
@@ -550,7 +547,7 @@ class TranscriptionBase(object):
 
             else:
                 phase.connect(src,
-                              '{0}_boundary_constraints.{0}_value_in:{1}'.format(loc, con_name),
+                              f'{loc}_boundary_constraints.{loc}_value_in:{con_name}',
                               src_indices=src_idxs,
                               flat_src_indices=True)
 
