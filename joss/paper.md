@@ -342,7 +342,7 @@ The build in plotting utility in Dymos will plot all relevant quantities vs time
 
 The more traditional way to view the brachistochrone solution is to view the actual shape of the wire (i.e. y vs x)
 
-![Brachistochrone Solution: y as a function of x](brachistochrone_yx.png)
+![Brachistochrone Solution: y as a function of x](brachistochone_yx.png)
 
 
 ## Coupled co-design example: Designing a cannonball
@@ -588,13 +588,13 @@ if __name__ == "__main__":
 The built in plotting in Dymos will give time histories of all the time varying quantities. 
 For example, these are the time histories for the range and height: 
 
-![Cannonball Solution: height vs time](cannonball_states_h.png)
+<!-- ![Cannonball Solution: height vs time](cannonball_states_h.png) -->
 
-![Cannonball Solution: range vs time](cannonball_states_r.png)
+<!-- ![Cannonball Solution: range vs time](cannonball_states_r.png) -->
 
 A more natural way to view the solution is to consider height vs range: 
 
-![Cannonball Solution: height vs time](cannonball_hr.png)
+<!-- ![Cannonball Solution: height vs time](cannonball_hr.png) -->
 
 The parabolic trajectory is slightly skewed due to the effect of air resistance slowing down the cannonball so it is moving slower during the descent than the ascent. 
 
