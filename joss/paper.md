@@ -24,6 +24,8 @@ affiliations:
     index: 2
 date: 26 June 2020
 bibliography: paper.bib
+header-includes:
+    - \usepackage{setspace}
 ---
 
 # Summary
