@@ -1,3 +1,5 @@
+import os
+import shutil
 import unittest
 
 import numpy as np
@@ -10,8 +12,6 @@ _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 from openmdao.utils.testing_utils import use_tempdirs
-
-dm.options['plots'] = 'bokeh'
 
 
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
@@ -263,46 +263,40 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
         p.set_val('traj.burn2.controls:u1', value=burn2.interpolate(ys=[0, 0],
                   nodes='control_input'))
 
-    dm.run_problem(p, simulate=True, make_plots=True)
+    dm.run_problem(p, run_driver=False, simulate=True, make_plots=True)
 
     return p
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
-    def test_ex_two_burn_orbit_raise(self):
-        optimizer = 'IPOPT'
+    def tearDown(self):
+        if os.path.isdir('plots'):
+            shutil.rmtree('plots')
 
-        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer=optimizer,
-                                         show_output=False)
+    def test_bokeh_plots(self):
+        dm.options['plots'] = 'bokeh'
 
-        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
-                              tolerance=2.0E-3)
+        two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                     compressed=False, optimizer='SLSQP', show_output=False)
 
+        self.assertSetEqual({'plots.html'}, set(os.listdir('plots')))
 
-# This test is separate because connected phases aren't directly parallelizable.
-@use_tempdirs
-class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
+    def test_mpl_plots(self):
+        dm.options['plots'] = 'matplotlib'
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
-    def test_ex_two_burn_orbit_raise_connected(self):
-        optimizer = 'IPOPT'
+        two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
+                                     compressed=False, optimizer='SLSQP', show_output=False)
 
-        p = two_burn_orbit_raise_problem(transcription='gauss-lobatto', transcription_order=3,
-                                         compressed=False, optimizer=optimizer,
-                                         show_output=False, connected=True)
+        expected_files = {'control_rates_u1_rate.png', 'state_rates_r.png', 'states_deltav.png',
+                          'states_r.png', 'state_rates_accel.png', 'state_rates_deltav.png',
+                          'states_accel.png', 'controls_u1.png', 'states_vr.png', 'pos_x.png',
+                          'states_vt.png', 'pos_y.png', 'parameters_u1.png', 'states_theta.png',
+                          'control_rates_u1_rate2.png', 'state_rates_vt.png', 'time_phase.png',
+                          'parameters_c.png', 'state_rates_theta.png', 'state_rates_vr.png'}
 
-        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
-                              tolerance=4.0E-3)
-
-
-class TestExampleTwoBurnOrbitRaiseMPI(TestExampleTwoBurnOrbitRaise):
-    N_PROCS = 3
+        self.assertSetEqual(expected_files, set(os.listdir('plots')))
 
 
 if __name__ == '__main__':  # pragma: no cover

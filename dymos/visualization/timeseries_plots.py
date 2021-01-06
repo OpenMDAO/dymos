@@ -53,6 +53,7 @@ def _get_phases_node_in_problem_metadata(node, path=""):
 def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
                           last_solution_case, last_simulation_case, plot_dir_path):
     # get ready to plot
+    backend_save = plt.get_backend()
     plt.switch_backend('Agg')
     # use a colormap with 20 values
     cm = plt.cm.get_cmap('tab20')
@@ -131,11 +132,13 @@ def _mpl_timeseries_plots(varnames, time_units, var_units, phase_names, phases_n
         plot_file_path = os.path.join(plot_dir_path, f'{var_name.replace(":","_")}.png')
         plt.savefig(plot_file_path)
 
+    plt.switch_backend(backend_save)
+
 
 def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases_node_path,
                             last_solution_case, last_simulation_case, plot_dir_path, num_cols=2,
-                            bg_fill_color='#282828', grid_line_color='#666666'):
-    from bokeh.io import output_notebook, output_file, show
+                            bg_fill_color='#282828', grid_line_color='#666666', open_browser=False):
+    from bokeh.io import output_notebook, output_file, save, show
     from bokeh.layouts import gridplot, column, row, grid, layout
     from bokeh.models import Legend, LegendItem
     from bokeh.plotting import figure
@@ -144,7 +147,7 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
     if dymos_options['notebook_mode']:
         output_notebook()
     else:
-        output_file(os.path.join(plot_dir_path, 'plots.html')) # f'{var_name.replace(":", "_")}.png')
+        output_file(os.path.join(plot_dir_path, 'plots.html'))
 
     # Prune the edges from the color map
     cmap = bp.turbo(len(phase_names) + 2)[1:-1]
@@ -232,10 +235,17 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
     for fig_component in [dum_fig.grid, dum_fig.ygrid, dum_fig.xaxis, dum_fig.yaxis]:
         fig_component.visible = False
 
-    # The glyphs referred by the legend need to be present in the figure that holds the legend, so we must add them to the figure renderers
-    # dum_fig.renderers += [renderer for renderer in sol_plots.values()]
-    sol_legend_items = [(phase_name + ' solution', [dum_fig.circle([0], [0], size=5, color=colors[phase_name], tags=['sol:' + phase_name])]) for phase_name in phase_names]
-    sim_legend_items = [(phase_name + ' simulation', [dum_fig.line([0], [0], line_dash='solid', line_width=0.5, color=colors[phase_name], tags=['sim:' + phase_name])]) for phase_name in phase_names]
+    # The glyphs referred by the legend need to be present in the figure that holds the legend,
+    # so we must add them to the figure renderers.
+    sol_legend_items = [(phase_name + ' solution', [dum_fig.circle([0], [0],
+                                                                   size=5,
+                                                                   color=colors[phase_name],
+                                                                   tags=['sol:' + phase_name])]) for phase_name in phase_names]
+    sim_legend_items = [(phase_name + ' simulation', [dum_fig.line([0], [0],
+                                                                   line_dash='solid',
+                                                                   line_width=0.5,
+                                                                   color=colors[phase_name],
+                                                                   tags=['sim:' + phase_name])]) for phase_name in phase_names]
     legend_items = [j for i in zip(sol_legend_items, sim_legend_items) for j in i]
 
     # # set the figure range outside of the range of all glyphs
@@ -252,7 +262,11 @@ def _bokeh_timeseries_plots(varnames, time_units, var_units, phase_names, phases
     plots = gridplot([[gd, column(dum_fig, sizing_mode='stretch_height')]],
                      toolbar_location=None,
                      sizing_mode='scale_both')
-    show(plots)
+
+    if dymos_options['notebook_mode'] or open_browser:
+        show(plots)
+    else:
+        save(plots)
 
 
 def timeseries_plots(solution_recorder_filename, simulation_record_file=None, plot_dir="plots"):
