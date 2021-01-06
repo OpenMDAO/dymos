@@ -212,7 +212,7 @@ Dymos has been used to demonstrate the coupling of flight dynamics and subsystem
 NASA's X-57 "Maxwell" is using Dymos for mission planning to maximize data collection while abiding the limits of battery storage capacity and subsystem temperatures [@Schnulo2018a; @Schnulo2019a].
 Other authors have used Dymos to perform studies of aircraft acoustics [@Ingraham2020a] and the the design of supersonic aircraft with thermal fuel management systems [@Jasa2018a].
 
-## Example usage of Dymos
+## Optimal-control example use case for Dymos
 
 As a simple use-case of Dymos, consider the classic brachistochrone optimal control problem.
 In this problem, we seek the shape of a frictionless wire strung between two points of different heights such that a bead sliding along the wire moves from the first point to the second point in minimum time.
@@ -253,9 +253,10 @@ class BrachistochroneEOM(om.ExplicitComponent):
         # These all have diagonal partial-derivative jacobians
         ar = np.arange(self.options['num_nodes'])
 
-        self.declare_partials(of='vdot', wrt='theta', rows=ar, cols=ar)
-        self.declare_partials(of='xdot', wrt='*', rows=ar, cols=ar)
-        self.declare_partials(of='ydot', wrt='*', rows=ar, cols=ar)
+        # use openmdao to compute the partial derivatives using complex-step 
+        # with a partial coloring algorithm for improved performance
+        self.declare_partials(of='*', wrt='*', method='cs')
+        self.declare_coloring(wrt='*', method='cs', show_summary=True)
 
     def compute(self, inputs, outputs):
         v, theta = inputs.values()
@@ -264,24 +265,6 @@ class BrachistochroneEOM(om.ExplicitComponent):
         outputs['xdot'] = v * np.sin(theta)
         outputs['ydot'] = -v * np.cos(theta)
 
-    def compute_partials(self, inputs, jacobian):
-        v, theta = inputs.values()
-
-        cos_theta = np.cos(theta)
-        sin_theta = np.sin(theta)
-
-        jacobian['vdot', 'theta'] = -9.80665 * sin_theta
-
-        jacobian['xdot', 'v'] = sin_theta
-        jacobian['xdot', 'theta'] = v * cos_theta
-
-        jacobian['ydot', 'v'] = -cos_theta
-        jacobian['ydot', 'theta'] = v * sin_theta
-```
-
-Having defined the ODE, we can now use Dymos to find the optimal time-history of the angle between the nadir and the wire (theta).
-
-```python
 
 p = om.Problem(model=om.Group())
 
@@ -290,8 +273,9 @@ traj = dm.Trajectory()
 p.model.add_subsystem('traj', subsys=traj)
 
 # Define a Dymos Phase object with GaussLobatto Transcription
+tx = dm.GaussLobatto(num_segments=20, order=3)
 phase = dm.Phase(ode_class=BrachistochroneEOM,
-                 transcription=dm.GaussLobatto(num_segments=10, order=3))
+                 transcription=tx)
 traj.add_phase(name='phase0', phase=phase)
 
 # Set the time options
@@ -316,12 +300,14 @@ phase.add_objective('time', loc='final')
 # Set the driver.
 p.driver = om.ScipyOptimizeDriver()
 
-# Allow OpenMDAO to automatically determine our sparsity pattern.
-# Doing so can significant speed up the execution of dymos.
+# Allow OpenMDAO to automatically determine 
+#     total derivative sparsity pattern.
+# This works in conjunction with partial derivative 
+#     coloring to give a large speedup
 p.driver.declare_coloring()
 
 # Setup the problem
-p.setup()
+p.setup(force_alloc_complex=True)
 
 # Now that the OpenMDAO problem is setup, we can guess the
 # values of time, states, and controls.
@@ -332,25 +318,18 @@ p.set_val('traj.phase0.t_duration', 2.0)
 p.set_val('traj.phase0.states:x',
           phase.interpolate(ys=[0, 10], nodes='state_input'),
           units='m')
-
 p.set_val('traj.phase0.states:y',
           phase.interpolate(ys=[10, 5], nodes='state_input'),
           units='m')
-
 p.set_val('traj.phase0.states:v',
           phase.interpolate(ys=[0, 5], nodes='state_input'),
           units='m/s')
+# constant initial guess for control 
+p.set_val('traj.phase0.controls:theta', 90, units='deg')
 
-p.set_val('traj.phase0.controls:theta',
-          phase.interpolate(ys=[90, 90], nodes='control_input'),
-          units='deg')
-
-# Run the driver to solve the problem
-p.run_driver()
-
-# Check the validity of our results by using
-# scipy.integrate.solve_ivp to integrate the solution.
-sim_out = traj.simulate()
+# Run the driver to solve the problem and generate default plots of 
+# state and control values vs time
+dm.run_problem(p, make_plots=True, simulate=True)
 ```
 
 Plotting the resulting state and controls gives the following:
