@@ -29,10 +29,10 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = 'SNOPT'
         p.driver.opt_settings['iSumm'] = 6
-        p.driver.opt_settings['Verify level'] = 3
-        p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
-        p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
-        p.driver.opt_settings['Major iterations limit'] = 50
+        # p.driver.opt_settings['Verify level'] = 3
+        p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-5
+        p.driver.opt_settings['Major optimality tolerance'] = 1.0E-5
+        p.driver.opt_settings['Major iterations limit'] = 500
         p.driver.opt_settings['Minor iterations limit'] = 100000
         p.driver.declare_coloring()
 
@@ -135,7 +135,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p3.add_boundary_constraint('v', loc='final', equals=0, ref=100, linear=True)
 
         # Minimize range at the end of the phase
-        # p3.add_objective('r', loc='final', ref=100.0)
+        p3.add_objective('r', loc='final', ref=1.0)
 
 
         # Fourth Phase - Rotate for single engine takeoff
@@ -168,7 +168,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         p4.add_timeseries_output('*')
 
-        p4.add_boundary_constraint('F_r', loc='final', equals=0, ref=1000)
+        p4.add_boundary_constraint('F_r', loc='final', equals=0, ref=100000)
         # p4.add_boundary_constraint('alpha', loc='final', equals=10, units='deg')
 
         # p4.add_path_constraint('alpha_rate', lower=0, upper=3, units='deg/s')
@@ -186,7 +186,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         #
         # Set the options on the optimization variables
         #
-        p5.set_time_options(fix_initial=False, duration_bounds=(0.1, 100), duration_ref=1.0)
+        p5.set_time_options(fix_initial=False, duration_bounds=(1, 100), duration_ref=1.0)
 
         p5.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0,
                      rate_source='r_dot')
@@ -203,14 +203,17 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p5.add_parameter('T', val=27000, opt=False, units='lbf')
         p5.add_parameter('m', val=174200, opt=False, units='lbm')
 
-        p5.add_polynomial_control('alpha', order=1, opt=True, units='deg', lower=0, upper=15, ref=10)
+        p5.add_control('alpha', opt=True, units='deg', lower=-10, upper=15, ref=10)
 
         p5.add_timeseries_output('*')
 
         p5.add_boundary_constraint('h', loc='final', equals=35, ref=35)
+        p5.add_boundary_constraint('gam', loc='final', equals=5, ref=5, units='deg')
+        p5.add_path_constraint('gam', lower=0, upper=5, ref=5, units='deg')
+
         p5.add_boundary_constraint('v_over_v_stall', loc='final', equals=1.2, ref=1.2)
 
-        p5.add_objective('r', loc='final', ref=1000.0)
+        # p5.add_objective('time', loc='final', ref=100.0)
 
         p.model.linear_solver = om.DirectSolver()
         
@@ -225,8 +228,9 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         traj.link_phases(['brake_release_to_v1', 'rto'], vars=['time', 'r', 'v', 'alpha'])
 
         # # Less common "final value of r must be the match at ends of two phases".
-        # traj.add_linkage_constraint(phase_a='rto', var_a='r', loc_a='final',
-        #                             phase_b='climb', var_b='r', loc_b='final')
+        traj.add_linkage_constraint(phase_a='rto', var_a='r', loc_a='final',
+                                    phase_b='climb', var_b='r', loc_b='final',
+                                    ref=1000)
 
         #
         # Setup the problem and set the initial guess
@@ -247,8 +251,8 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.v1_to_vr.t_initial', 35)
         p.set_val('traj.v1_to_vr.t_duration', 35)
 
-        p.set_val('traj.v1_to_vr.states:r', p1.interpolate(ys=[2500, 300.0], nodes='state_input'))
-        p.set_val('traj.v1_to_vr.states:v', p1.interpolate(ys=[100, 110.0], nodes='state_input'))
+        p.set_val('traj.v1_to_vr.states:r', p2.interpolate(ys=[2500, 300.0], nodes='state_input'))
+        p.set_val('traj.v1_to_vr.states:v', p2.interpolate(ys=[100, 110.0], nodes='state_input'))
 
         p.set_val('traj.v1_to_vr.parameters:alpha', 0.0, units='deg')
 
@@ -259,8 +263,8 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.rto.t_initial', 35)
         p.set_val('traj.rto.t_duration', 1)
 
-        p.set_val('traj.rto.states:r', p1.interpolate(ys=[2500, 5000.0], nodes='state_input'))
-        p.set_val('traj.rto.states:v', p1.interpolate(ys=[110, 0.0], nodes='state_input'))
+        p.set_val('traj.rto.states:r', p3.interpolate(ys=[2500, 5000.0], nodes='state_input'))
+        p.set_val('traj.rto.states:v', p3.interpolate(ys=[110, 0.0], nodes='state_input'))
 
         p.set_val('traj.rto.parameters:alpha', 0.0, units='deg')
         p.set_val('traj.rto.parameters:h', 0.0)
@@ -272,8 +276,8 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         p.set_val('traj.rotate.t_initial', 35)
         p.set_val('traj.rotate.t_duration', 35)
 
-        p.set_val('traj.rotate.states:r', p1.interpolate(ys=[5000, 5500.0], nodes='state_input'))
-        p.set_val('traj.rotate.states:v', p1.interpolate(ys=[160, 170.0], nodes='state_input'))
+        p.set_val('traj.rotate.states:r', p4.interpolate(ys=[5000, 5500.0], nodes='state_input'))
+        p.set_val('traj.rotate.states:v', p4.interpolate(ys=[160, 170.0], nodes='state_input'))
 
         p.set_val('traj.rotate.polynomial_controls:alpha', 0.0, units='deg')
 
@@ -281,55 +285,55 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         #
 
-        p.set_val('traj.climb.t_initial', 50)
+        p.set_val('traj.climb.t_initial', 30)
         p.set_val('traj.climb.t_duration', 20)
 
-        p.set_val('traj.climb.states:r', p1.interpolate(ys=[5000, 5500.0], nodes='state_input'), units='ft')
-        p.set_val('traj.climb.states:v', p1.interpolate(ys=[160, 170.0], nodes='state_input'), units='kn')
-        p.set_val('traj.climb.states:h', p1.interpolate(ys=[0, 35.0], nodes='state_input'), units='ft')
-        p.set_val('traj.climb.states:gam', p1.interpolate(ys=[0, 5.0], nodes='state_input'), units='deg')
+        p.set_val('traj.climb.states:r', p5.interpolate(ys=[5000, 5500.0], nodes='state_input'), units='ft')
+        p.set_val('traj.climb.states:v', p5.interpolate(ys=[160, 170.0], nodes='state_input'), units='kn')
+        p.set_val('traj.climb.states:h', p5.interpolate(ys=[0, 35.0], nodes='state_input'), units='ft')
+        p.set_val('traj.climb.states:gam', p5.interpolate(ys=[0, 5.0], nodes='state_input'), units='deg')
 
-        p.set_val('traj.climb.polynomial_controls:alpha', 10.0, units='deg')
+        p.set_val('traj.climb.controls:alpha', 5.0, units='deg')
 
         p.set_val('traj.climb.parameters:T', 27000.0, units='lbf')
 
         #
         # Solve for the optimal trajectory
         #
-        p.run_driver()
+        dm.run_problem(p, run_driver=True, simulate=True, make_plots=True) #, restart='dymos_simulation.db')
 
         #
         # Get the explicitly simulated solution and plot the results
         #
-        exp_out = traj.simulate()
+        # exp_out = traj.simulate()
 
-
-        fig, axes = plt.subplots(3, 1)
-
-        for phase_name in ['brake_release_to_v1', 'v1_to_vr', 'rotate', 'rto', 'climb']:
-
-            axes[0].plot(p.get_val(f'traj.{phase_name}.timeseries.time'),
-                         p.get_val(f'traj.{phase_name}.timeseries.states:r', units='ft'), 'o')
-
-            axes[0].plot(exp_out.get_val(f'traj.{phase_name}.timeseries.time'),
-                         exp_out.get_val(f'traj.{phase_name}.timeseries.states:r', units='ft'), '-')
-
-            axes[1].plot(p.get_val(f'traj.{phase_name}.timeseries.time'),
-                         p.get_val(f'traj.{phase_name}.timeseries.states:v', units='kn'), 'o')
-
-            axes[1].plot(exp_out.get_val(f'traj.{phase_name}.timeseries.time'),
-                         exp_out.get_val(f'traj.{phase_name}.timeseries.states:v', units='kn'), '-')
-
-            try:
-                axes[2].plot(p.get_val(f'traj.{phase_name}.timeseries.time'),
-                             p.get_val(f'traj.{phase_name}.timeseries.F_r', units='N'), 'o')
-
-                axes[2].plot(exp_out.get_val(f'traj.{phase_name}.timeseries.time'),
-                             exp_out.get_val(f'traj.{phase_name}.timeseries.F_r', units='N'), '-')
-            except KeyError:
-                pass
-
-        plt.show()
+        #
+        # fig, axes = plt.subplots(3, 1)
+        #
+        # for phase_name in ['brake_release_to_v1', 'v1_to_vr', 'rotate', 'rto']: #, 'climb']:
+        #
+        #     axes[0].plot(p.get_val(f'traj.{phase_name}.timeseries.time'),
+        #                  p.get_val(f'traj.{phase_name}.timeseries.states:r', units='ft'), 'o')
+        #
+        #     axes[0].plot(exp_out.get_val(f'traj.{phase_name}.timeseries.time'),
+        #                  exp_out.get_val(f'traj.{phase_name}.timeseries.states:r', units='ft'), '-')
+        #
+        #     axes[1].plot(p.get_val(f'traj.{phase_name}.timeseries.time'),
+        #                  p.get_val(f'traj.{phase_name}.timeseries.states:v', units='kn'), 'o')
+        #
+        #     axes[1].plot(exp_out.get_val(f'traj.{phase_name}.timeseries.time'),
+        #                  exp_out.get_val(f'traj.{phase_name}.timeseries.states:v', units='kn'), '-')
+        #
+        #     try:
+        #         axes[2].plot(p.get_val(f'traj.{phase_name}.timeseries.time'),
+        #                      p.get_val(f'traj.{phase_name}.timeseries.F_r', units='N'), 'o')
+        #
+        #         axes[2].plot(exp_out.get_val(f'traj.{phase_name}.timeseries.time'),
+        #                      exp_out.get_val(f'traj.{phase_name}.timeseries.F_r', units='N'), '-')
+        #     except KeyError:
+        #         pass
+        #
+        # plt.show()
 
 
 if __name__ == '__main__':  # pragma: no cover

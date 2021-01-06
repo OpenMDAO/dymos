@@ -45,6 +45,14 @@ class TakeoffODE(om.Group):
                            promotes_inputs=['m', 'v', 'gam', 'alpha', 'L', 'D', 'T'],
                            promotes_outputs=['h_dot', 'r_dot', 'v_dot', 'gam_dot'])
 
+        # Add an ExecComp to compute weight here, since the input variable is mass
+        self.add_subsystem('weight_comp',
+                           subsys=om.ExecComp('W = 9.80665 * m', has_diag_partials=True,
+                                              W={'units': 'N', 'shape': (nn,)},
+                                              m={'units': 'kg', 'shape': (nn,)}),
+                           promotes_inputs=['m'],
+                           promotes_outputs=['W'])
+
         self.add_subsystem(name='stall_speed_comp',
                            subsys=StallSpeedComp(num_nodes=nn),
                            promotes_inputs=['v', 'W', 'rho', 'CL_max', 'S'],
