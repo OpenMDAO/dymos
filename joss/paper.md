@@ -218,6 +218,7 @@ As a simple use-case of Dymos, consider the classic brachistochrone optimal cont
 In this problem, we seek the shape of a frictionless wire strung between two points of different heights such that a bead sliding along the wire moves from the first point to the second point in minimum time.
 To find the solution in Dymos, we first define the ordinary differential equations that govern the motion of the bead.
 
+\small
 ```python
 import numpy as np
 import openmdao.api as om
@@ -236,16 +237,12 @@ class BrachistochroneEOM(om.ExplicitComponent):
         # Inputs
         self.add_input('v', val=np.zeros(nn), units='m/s',
                        desc='velocity')
-
         self.add_input('theta', val=np.zeros(nn), units='rad',
                        desc='angle of wire')
-
         self.add_output('xdot', val=np.zeros(nn), units='m/s',
                         desc='velocity component in x')
-
         self.add_output('ydot', val=np.zeros(nn), units='m/s',
                         desc='velocity component in y')
-
         self.add_output('vdot', val=np.zeros(nn), units='m/s**2',
                         desc='acceleration magnitude')
 
@@ -253,7 +250,7 @@ class BrachistochroneEOM(om.ExplicitComponent):
         # These all have diagonal partial-derivative jacobians
         ar = np.arange(self.options['num_nodes'])
 
-        # use openmdao to compute the partial derivatives using complex-step 
+        # Ask OpenMDAO to compute the partial derivatives using complex-step 
         # with a partial coloring algorithm for improved performance
         self.declare_partials(of='*', wrt='*', method='cs')
         self.declare_coloring(wrt='*', method='cs', show_summary=True)
@@ -265,23 +262,21 @@ class BrachistochroneEOM(om.ExplicitComponent):
         outputs['xdot'] = v * np.sin(theta)
         outputs['ydot'] = -v * np.cos(theta)
 
-
 p = om.Problem(model=om.Group())
 
 # Define a Trajectory object
-traj = dm.Trajectory()
-p.model.add_subsystem('traj', subsys=traj)
+p.model.add_subsystem('traj', dm.Trajectory())
 
 # Define a Dymos Phase object with GaussLobatto Transcription
 tx = dm.GaussLobatto(num_segments=20, order=3)
 phase = dm.Phase(ode_class=BrachistochroneEOM,
                  transcription=tx)
+
 traj.add_phase(name='phase0', phase=phase)
 
 # Set the time options
 phase.set_time_options(fix_initial=True,
                        duration_bounds=(0.5, 10.0))
-
 # Set the state options
 phase.add_state('x', rate_source='xdot',
                 fix_initial=True, fix_final=True)
@@ -289,11 +284,9 @@ phase.add_state('y', rate_source='ydot',
                 fix_initial=True, fix_final=True)
 phase.add_state('v', rate_source='vdot',
                 fix_initial=True, fix_final=False)
-
 # Define theta as a control.
 phase.add_control(name='theta', units='rad',
                   lower=0, upper=np.pi)
-
 # Minimize final time.
 phase.add_objective('time', loc='final')
 
@@ -331,9 +324,9 @@ p.set_val('traj.phase0.controls:theta', 90, units='deg')
 # state and control values vs time
 dm.run_problem(p, make_plots=True, simulate=True)
 ```
+\normalsize
 
 Plotting the resulting state and controls gives the following:
-
 ![Brachistochrone Solution](brach_plots.png)
 
 # Acknowledgements
