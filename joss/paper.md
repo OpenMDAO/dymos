@@ -329,7 +329,7 @@ y = p.get_val('traj.phase0.timeseries.states:y', units='m')
 ax.plot(x,y, marker='o')
 ax.set_xlabel('x (m)')
 ax.set_ylabel('y (m)')
-plt.show()
+fig.savefig('brachistochone_yx.png', bbox_inches='tight')
 ```
 \normalsize
 
@@ -342,7 +342,7 @@ The build in plotting utility in Dymos will plot all relevant quantities vs time
 
 The more traditional way to view the brachistochrone solution is to view the actual shape of the wire (i.e. y vs x)
 
-![Brachistochrone Solution](brachistochrone_yx.png)
+![Brachistochrone Solution: y as a function of x](brachistochrone_yx.png)
 
 
 ## Coupled co-design example: Designing a cannonball
@@ -570,11 +570,38 @@ if __name__ == "__main__":
               descent.interpolate(ys=[0, -45], nodes='state_input'), units='deg')
 
     dm.run_problem(p, simulate=True, make_plots=True)
+
+    fig, ax = plt.subplots()
+    x0 = p.get_val('traj.ascent.timeseries.states:r', units='m')
+    y0 = p.get_val('traj.ascent.timeseries.states:h', units='m')
+    x1 = p.get_val('traj.descent.timeseries.states:r', units='m')
+    y1 = p.get_val('traj.descent.timeseries.states:h', units='m')
+    ax.plot(x0,y0, marker='o', label='ascent')
+    ax.plot(x1,y1, marker='o', label='descent')
+    ax.legend(loc='best')
+    ax.set_xlabel('range (m)')
+    ax.set_ylabel('height (m)')
+    fig.savefig('cannonball_hr.png', bbox_inches='tight')
 ```
 \normalsize
+
+The built in plotting in Dymos will give time histories of all the time varying quantities. 
+For example, these are the time histories for the range and height: 
+
+![Cannonball Solution: height vs time](cannonball_states_h.png)
+
+![Cannonball Solution: range vs time](cannonball_states_r.png)
+
+A more natural way to view the solution is to consider height vs range: 
+
+![Cannonball Solution: height vs time](cannonball_hr.png)
+
+The parabolic trajectory is slightly skewed due to the effect of air resistance slowing down the cannonball so it is moving slower during the descent than the ascent. 
+
 
 # Acknowledgements
 
 Dymos was developed with funding from NASA's Transformational Tools and Technologies ($T^3$) Project.
 
 # References
+
