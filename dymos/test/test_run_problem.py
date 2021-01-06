@@ -12,6 +12,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
+from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import BrachistochroneVectorStatesODE
 from openmdao.utils.general_utils import set_pyoptsparse_opt
 _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 
@@ -202,6 +203,49 @@ class TestRunProblem(unittest.TestCase):
         cr = om.CaseReader('dymos_solution.db')
         case = cr.get_case('final')
         assert_almost_equal(case.outputs['traj.phase0.timeseries.time'].max(), 1.8016, decimal=4)
+
+    def test_run_brachistochrone_vector_states_problem(self):
+        p = om.Problem(model=om.Group())
+        p.driver = om.pyOptSparseDriver()
+        p.driver.declare_coloring()
+        p.driver.options['optimizer'] = 'SLSQP'
+
+        phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
+                         transcription=dm.Radau(num_segments=1, order=3))
+
+        p.model.add_subsystem('phase0', phase)
+
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.add_state('pos', fix_initial=True, fix_final=[True, False])
+        phase.add_state('v', fix_initial=True, fix_final=False)
+
+        phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
+
+        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
+
+        phase.add_boundary_constraint('pos', loc='final', equals=5, indices=[1])
+
+        # Minimize time at the end of the phase
+        phase.add_objective('time', loc='final', scaler=10)
+
+        p.model.linear_solver = om.DirectSolver()
+        p.setup(check=True, force_alloc_complex=True)
+
+        p['phase0.t_initial'] = 0.0
+        p['phase0.t_duration'] = 2.0
+
+        pos0 = [0, 10]
+        posf = [10, 5]
+
+        p['phase0.states:pos'] = phase.interpolate(ys=[pos0, posf], nodes='state_input')
+        p['phase0.states:v'] = phase.interpolate(ys=[0, 9.9], nodes='state_input')
+        p['phase0.controls:theta'] = phase.interpolate(ys=[5, 100], nodes='control_input')
+        p['phase0.parameters:g'] = 9.80665
+
+        dm.run_problem(p, refine_iteration_limit=5)
+
+        assert_near_equal(p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
 
     def test_run_brachistochrone_problem_with_simulate(self):
         p = om.Problem(model=om.Group())
