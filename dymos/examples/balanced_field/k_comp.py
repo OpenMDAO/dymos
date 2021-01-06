@@ -31,4 +31,4 @@ class KComp(om.ExplicitComponent):
         b = span / 2.0
 
         K_nom = 1.0 / (np.pi * AR * e)
-        outputs['K'] = K_nom * 33 * ((h_w - h) / b)**1.5 / (1.0 + 33 * ((h_w - h) / b)**1.5)
+        outputs['K'] = K_nom * 33 * ((h + h_w) / b)**1.5 / (1.0 + 33 * ((h + h_w) / b)**1.5)
