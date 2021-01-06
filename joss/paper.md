@@ -576,8 +576,9 @@ if __name__ == "__main__":
     y0 = p.get_val('traj.ascent.timeseries.states:h', units='m')
     x1 = p.get_val('traj.descent.timeseries.states:r', units='m')
     y1 = p.get_val('traj.descent.timeseries.states:h', units='m')
-    ax.plot(x0,y0, marker='o', label='ascent')
-    ax.plot(x1,y1, marker='o', label='descent')
+    tab20 = plt.cm.get_cmap('tab20').colors
+    ax.plot(x0,y0, marker='o', label='ascent', color=tab20[0])
+    ax.plot(x1,y1, marker='o', label='descent', color=tab20[1])
     ax.legend(loc='best')
     ax.set_xlabel('range (m)')
     ax.set_ylabel('height (m)')
