@@ -224,12 +224,6 @@ which makes this a pure optimal-control problem.
 
 \small
 ```python
-import numpy as np
-import openmdao.api as om
-import dymos as dm
-import matplotlib.pyplot as plt
-
-
 # First define a system which computes the equations of motion
 class BrachistochroneEOM(om.ExplicitComponent):
     def initialize(self):
@@ -269,10 +263,10 @@ class BrachistochroneEOM(om.ExplicitComponent):
 p = om.Problem(model=om.Group())
 
 # Define a Trajectory object
-p.model.add_subsystem('traj', dm.Trajectory())
+traj = p.model.add_subsystem('traj', dm.Trajectory())
 
 # Define a Dymos Phase object with GaussLobatto Transcription
-tx = dm.GaussLobatto(num_segments=20, order=3)
+tx = dm.GaussLobatto(num_segments=10, order=3)
 phase = dm.Phase(ode_class=BrachistochroneEOM,
                  transcription=tx)
 
@@ -327,11 +321,28 @@ p.set_val('traj.phase0.controls:theta', 90, units='deg')
 # Run the driver to solve the problem and generate default plots of 
 # state and control values vs time
 dm.run_problem(p, make_plots=True, simulate=True)
+
+# Additional custom plot of y vs x to show the actual wire shape
+fig, ax = plt.subplots()
+x = p.get_val('traj.phase0.timeseries.states:x', units='m')
+y = p.get_val('traj.phase0.timeseries.states:y', units='m')
+ax.plot(x,y, marker='o')
+ax.set_xlabel('x (m)')
+ax.set_ylabel('y (m)')
+plt.show()
 ```
 \normalsize
 
-Plotting the resulting state and controls gives the following:
-![Brachistochrone Solution](brach_plots.png)
+The build in plotting utility in Dymos will plot all relevant quantities vs time. 
+
+![Brachistochrone Solution: y state time history](brachistochrone_states_y.png)
+
+![Brachistochrone Solution: x state time history](brachistochrone_states_x.png)
+
+
+The more traditional way to view the brachistochrone solution is to view the actual shape of the wire (i.e. y vs x)
+
+![Brachistochrone Solution](brachistochrone_yx.png)
 
 
 ## Coupled co-design example: Designing a cannonball
@@ -369,11 +380,15 @@ class CannonballSize(om.ExplicitComponent):
     """
 
     def setup(self):
-        self.add_input(name='radius', val=1.0, desc='cannonball radius', units='m')
-        self.add_input(name='density', val=7870., desc='cannonball density', units='kg/m**3')
+        self.add_input(name='radius', val=1.0, 
+                       desc='cannonball radius', units='m')
+        self.add_input(name='density', val=7870., 
+                       desc='cannonball density', units='kg/m**3')
 
-        self.add_output(name='mass', shape=(1,), desc='cannonball mass', units='kg')
-        self.add_output(name='area', shape=(1,), desc='aerodynamic reference area', units='m**2')
+        self.add_output(name='mass', shape=(1,), 
+                       desc='cannonball mass', units='kg')
+        self.add_output(name='area', shape=(1,), 
+                       desc='aerodynamic reference area', units='m**2')
 
         self.declare_partials(of='*', wrt='*', method='cs')
 
@@ -450,7 +465,8 @@ if __name__ == "__main__":
     p = om.Problem()
 
     static_calcs = p.model.add_subsystem('static_calcs', CannonballSize())
-    static_calcs.add_design_var('radius', lower=0.01, upper=0.10, ref0=0.01, ref=0.10)
+    static_calcs.add_design_var('radius', lower=0.01, upper=0.10, 
+                                ref0=0.01, ref=0.10)
 
     p.model.connect('static_calcs.mass', 'traj.parameters:mass')
     p.model.connect('static_calcs.area', 'traj.parameters:area')
