@@ -464,6 +464,10 @@ if __name__ == "__main__":
 
     p = om.Problem()
 
+    ###################################
+    # Co-design part of the model, 
+    # static analysis outside of Dymos
+    ###################################
     static_calcs = p.model.add_subsystem('static_calcs', CannonballSize())
     static_calcs.add_design_var('radius', lower=0.01, upper=0.10, 
                                 ref0=0.01, ref=0.10)
