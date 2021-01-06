@@ -151,11 +151,6 @@ class TestConnectControlToParameter(unittest.TestCase):
 
         dm.run_problem(p, simulate=True)
 
-        # p.list_problem_vars(print_arrays=True)
-        print('foo', p.get_val('traj.descent.parameters:CD'))
-        print('foo', p.get_val('traj.parameters:m'))
-        print('foo', p.get_val('traj.parameters:S'))
-
         assert_near_equal(p.get_val('traj.descent.states:r')[-1], 3183.25, tolerance=1.0E-2)
         assert_near_equal(p.get_val('traj.ascent.timeseries.controls:CD')[-1],
                           p.get_val('traj.descent.timeseries.parameters:CD')[0])
