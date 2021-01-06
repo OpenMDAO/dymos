@@ -1,3 +1,4 @@
+import importlib
 import os
 import shutil
 import unittest
@@ -12,6 +13,8 @@ _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
 import dymos as dm
 from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 from openmdao.utils.testing_utils import use_tempdirs
+
+bokeh_available = importlib.util.find_spec('bokeh') is not None
 
 
 def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=False,
@@ -275,6 +278,7 @@ class TestExampleTwoBurnOrbitRaise(unittest.TestCase):
         if os.path.isdir('plots'):
             shutil.rmtree('plots')
 
+    @unittest.skipIf(not bokeh_available, 'bokeh unavailable')
     def test_bokeh_plots(self):
         dm.options['plots'] = 'bokeh'
 
