@@ -351,10 +351,3 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
                               last_solution_case, last_simulation_case, plot_dir_path)
     else:
         raise ValueError(f'Unknown plotting option: {dymos_options["plots"]}')
-
-
-if __name__ == '__main__':
-    dymos_options['plots'] = 'bokeh'
-    os.chdir('/Users/rfalck/Projects/dymos.git/dymos/examples/finite_burn_orbit_raise/test')
-    timeseries_plots('dymos_solution.db', simulation_record_file='dymos_simulation.db',
-                     plot_dir='plots')
