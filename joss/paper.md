@@ -333,11 +333,10 @@ fig.savefig('brachistochone_yx.png', bbox_inches='tight')
 ```
 \normalsize
 
-The build in plotting utility in Dymos will plot all relevant quantities vs time. 
+The built-in plotting utility in Dymos will plot all relevant quantities vs time.
 
-![Brachistochrone Solution: y state time history](brachistochrone_states_y.png){width=70%}
-
-![Brachistochrone Solution: x state time history](brachistochrone_states_x.png){width=70%}
+![Brachistochrone Solution: y state time history](brachistochrone_states_y.png){width=45%}
+![Brachistochrone Solution: x state time history](brachistochrone_states_x.png){width=45%}
 
 
 The more traditional way to view the brachistochrone solution is to view the actual shape of the wire (i.e. y vs x)
@@ -362,7 +361,6 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 import openmdao.api as om
-from openmdao.components.interp_util.interp import InterpND
 
 import dymos as dm
 from dymos.models.atmosphere.atmos_1976 import USatm1976Data
@@ -506,7 +504,7 @@ if __name__ == "__main__":
     ascent.add_parameter('area', units='m**2', dynamic=False)
 
     # Limit the initial muzzle energy to create a well posed problem 
-    #     with respect to cannonball size and initial velocity
+    # with respect to cannonball size and initial velocity
     ascent.add_boundary_constraint('ke', loc='initial', units='J',
                                    upper=400000, lower=0, ref=100000)
 
@@ -593,9 +591,8 @@ if __name__ == "__main__":
 The built in plotting in Dymos will give time histories of all the time varying quantities. 
 For example, these are the time histories for the range and height: 
 
-![Cannonball Solution: height vs time](cannonball_states_h.png){width=70%}
-
-![Cannonball Solution: range vs time](cannonball_states_r.png){width=70%}
+![Cannonball Solution: height vs time](cannonball_states_h.png){width=45%}
+![Cannonball Solution: range vs time](cannonball_states_r.png){width=45%}
 
 A more natural way to view the solution is to consider height vs range: 
 
