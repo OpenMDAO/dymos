@@ -84,8 +84,8 @@ class TestPseudospectralBase(unittest.TestCase):
         p = make_problem(transcription=GaussLobatto, num_segments=10, order=3, compressed=True)
         p.run_model()
 
-        self.assertEqual(p.model.traj.phases.phase.timeseries.get_var_meta('states:x', 'units'),
-                         None)
+        io_meta = p.model.traj.phases.phase.timeseries.get_io_metadata(iotypes=('output'), get_remote=True)
+        self.assertEqual(io_meta['states:x']['units'], None)
 
 
 if __name__ == '__main__':  # pragma: no cover
