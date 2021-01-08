@@ -188,7 +188,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
     traj = make_traj(transcription=transcription, transcription_order=transcription_order,
                      compressed=compressed, connected=connected, param_mode=param_mode)
-    p.model.add_subsystem('traj', subsys=traj)
+    p.model.add_subsystem('orbit_transfer', subsys=traj)
 
     # Finish Problem Setup
 
@@ -200,87 +200,75 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
     p.setup(check=True)
 
     # Set Initial Guesses
-    p.set_val('traj.parameters:c', value=1.5, units='DU/TU')
+    p.set_val('orbit_transfer.parameters:c', value=1.5, units='DU/TU')
 
-    burn1 = p.model.traj.phases.burn1
-    burn2 = p.model.traj.phases.burn2
-    coast = p.model.traj.phases.coast
+    burn1 = p.model.orbit_transfer.phases.burn1
+    burn2 = p.model.orbit_transfer.phases.burn2
+    coast = p.model.orbit_transfer.phases.coast
 
-    if burn1 in p.model.traj.phases._subsystems_myproc:
-        p.set_val('traj.burn1.t_initial', value=0.0)
-        p.set_val('traj.burn1.t_duration', value=2.25)
-        p.set_val('traj.burn1.states:r', value=burn1.interpolate(ys=[1, 1.5],
-                                                                 nodes='state_input'))
-        p.set_val('traj.burn1.states:theta', value=burn1.interpolate(ys=[0, 1.7],
-                  nodes='state_input'))
-        p.set_val('traj.burn1.states:vr', value=burn1.interpolate(ys=[0, 0],
-                                                                  nodes='state_input'))
-        p.set_val('traj.burn1.states:vt', value=burn1.interpolate(ys=[1, 1],
-                                                                  nodes='state_input'))
-        p.set_val('traj.burn1.states:accel', value=burn1.interpolate(ys=[0.1, 0],
-                  nodes='state_input'))
-        p.set_val('traj.burn1.states:deltav', value=burn1.interpolate(ys=[0, 0.1],
-                  nodes='state_input'))
-        p.set_val('traj.burn1.controls:u1',
-                  value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
+    if burn1 in p.model.orbit_transfer.phases._subsystems_myproc:
+        p.set_val('orbit_transfer.burn1.t_initial', value=0.0)
+        p.set_val('orbit_transfer.burn1.t_duration', value=2.25)
+        p.set_val('orbit_transfer.burn1.states:r', value=burn1.interpolate(ys=[1, 1.5], nodes='state_input'))
+        p.set_val('orbit_transfer.burn1.states:theta', value=burn1.interpolate(ys=[0, 1.7], nodes='state_input'))
+        p.set_val('orbit_transfer.burn1.states:vr', value=burn1.interpolate(ys=[0, 0], nodes='state_input'))
+        p.set_val('orbit_transfer.burn1.states:vt', value=burn1.interpolate(ys=[1, 1], nodes='state_input'))
+        p.set_val('orbit_transfer.burn1.states:accel', value=burn1.interpolate(ys=[0.1, 0], nodes='state_input'))
+        p.set_val('orbit_transfer.burn1.states:deltav', value=burn1.interpolate(ys=[0, 0.1], nodes='state_input'))
+        p.set_val('orbit_transfer.burn1.controls:u1', value=burn1.interpolate(ys=[-3.5, 13.0], nodes='control_input'))
 
-    if coast in p.model.traj.phases._subsystems_myproc:
-        p.set_val('traj.coast.t_initial', value=2.25)
-        p.set_val('traj.coast.t_duration', value=3.0)
+    if coast in p.model.orbit_transfer.phases._subsystems_myproc:
+        p.set_val('orbit_transfer.coast.t_initial', value=2.25)
+        p.set_val('orbit_transfer.coast.t_duration', value=3.0)
 
-        p.set_val('traj.coast.states:r', value=coast.interpolate(ys=[1.3, 1.5],
+        p.set_val('orbit_transfer.coast.states:r', value=coast.interpolate(ys=[1.3, 1.5],
                   nodes='state_input'))
-        p.set_val('traj.coast.states:theta',
+        p.set_val('orbit_transfer.coast.states:theta',
                   value=coast.interpolate(ys=[2.1767, 1.7], nodes='state_input'))
 
-        p.set_val('traj.coast.states:vr', value=coast.interpolate(ys=[0.3285, 0],
+        p.set_val('orbit_transfer.coast.states:vr', value=coast.interpolate(ys=[0.3285, 0],
                   nodes='state_input'))
-        p.set_val('traj.coast.states:vt', value=coast.interpolate(ys=[0.97, 1],
+        p.set_val('orbit_transfer.coast.states:vt', value=coast.interpolate(ys=[0.97, 1],
                   nodes='state_input'))
-        p.set_val('traj.coast.states:accel', value=coast.interpolate(ys=[0, 0],
+        p.set_val('orbit_transfer.coast.states:accel', value=coast.interpolate(ys=[0, 0],
                   nodes='state_input'))
 
-    if burn2 in p.model.traj.phases._subsystems_myproc:
+    if burn2 in p.model.orbit_transfer.phases._subsystems_myproc:
         if connected:
-            p.set_val('traj.burn2.t_initial', value=7.0)
-            p.set_val('traj.burn2.t_duration', value=-1.75)
+            p.set_val('orbit_transfer.burn2.t_initial', value=7.0)
+            p.set_val('orbit_transfer.burn2.t_duration', value=-1.75)
 
-            p.set_val('traj.burn2.states:r', value=burn2.interpolate(ys=[r_target, 1],
-                      nodes='state_input'))
-            p.set_val('traj.burn2.states:theta', value=burn2.interpolate(ys=[4.0, 0.0],
-                      nodes='state_input'))
-            p.set_val('traj.burn2.states:vr', value=burn2.interpolate(ys=[0, 0],
-                                                                      nodes='state_input'))
-            p.set_val('traj.burn2.states:vt',
-                      value=burn2.interpolate(ys=[np.sqrt(1 / r_target), 1],
-                                              nodes='state_input'))
-            p.set_val('traj.burn2.states:deltav',
+            p.set_val('orbit_transfer.burn2.states:r', value=burn2.interpolate(ys=[r_target, 1], nodes='state_input'))
+            p.set_val('orbit_transfer.burn2.states:theta', value=burn2.interpolate(ys=[4.0, 0.0], nodes='state_input'))
+            p.set_val('orbit_transfer.burn2.states:vr', value=burn2.interpolate(ys=[0, 0], nodes='state_input'))
+            p.set_val('orbit_transfer.burn2.states:vt',
+                      value=burn2.interpolate(ys=[np.sqrt(1 / r_target), 1], nodes='state_input'))
+            p.set_val('orbit_transfer.burn2.states:deltav',
                       value=burn2.interpolate(ys=[0.2, 0.1], nodes='state_input'))
-            p.set_val('traj.burn2.states:accel', value=burn2.interpolate(ys=[0., 0.1],
+            p.set_val('orbit_transfer.burn2.states:accel', value=burn2.interpolate(ys=[0., 0.1],
                       nodes='state_input'))
 
         else:
-            p.set_val('traj.burn2.t_initial', value=5.25)
-            p.set_val('traj.burn2.t_duration', value=1.75)
+            p.set_val('orbit_transfer.burn2.t_initial', value=5.25)
+            p.set_val('orbit_transfer.burn2.t_duration', value=1.75)
 
-            p.set_val('traj.burn2.states:r', value=burn2.interpolate(ys=[1, r_target],
+            p.set_val('orbit_transfer.burn2.states:r', value=burn2.interpolate(ys=[1, r_target],
                       nodes='state_input'))
-            p.set_val('traj.burn2.states:theta', value=burn2.interpolate(ys=[0, 4.0],
+            p.set_val('orbit_transfer.burn2.states:theta', value=burn2.interpolate(ys=[0, 4.0],
                       nodes='state_input'))
-            p.set_val('traj.burn2.states:vr', value=burn2.interpolate(ys=[0, 0],
-                                                                      nodes='state_input'))
-            p.set_val('traj.burn2.states:vt',
+            p.set_val('orbit_transfer.burn2.states:vr', value=burn2.interpolate(ys=[0, 0], nodes='state_input'))
+            p.set_val('orbit_transfer.burn2.states:vt',
                       value=burn2.interpolate(ys=[1, np.sqrt(1 / r_target)],
                                               nodes='state_input'))
-            p.set_val('traj.burn2.states:deltav',
+            p.set_val('orbit_transfer.burn2.states:deltav',
                       value=burn2.interpolate(ys=[0.1, 0.2], nodes='state_input'))
-            p.set_val('traj.burn2.states:accel', value=burn2.interpolate(ys=[0.1, 0],
+            p.set_val('orbit_transfer.burn2.states:accel', value=burn2.interpolate(ys=[0.1, 0],
                       nodes='state_input'))
 
-        p.set_val('traj.burn2.controls:u1', value=burn2.interpolate(ys=[0, 0],
+        p.set_val('orbit_transfer.burn2.controls:u1', value=burn2.interpolate(ys=[0, 0],
                   nodes='control_input'))
 
-    p.run_driver()
+    dm.run_problem(p, simulate=True)
 
     return p
 
@@ -298,8 +286,8 @@ class TestTrajectoryParameters(unittest.TestCase):
                                          compressed=False, optimizer=optimizer,
                                          show_output=False, param_mode='param_sequence')
 
-        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+        if p.model.orbit_transfer.phases.burn2 in p.model.orbit_transfer.phases._subsystems_myproc:
+            assert_near_equal(p.get_val('orbit_transfer.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
 
     def test_param_explicit_connections_to_sequence_missing_phase(self):
@@ -312,8 +300,8 @@ class TestTrajectoryParameters(unittest.TestCase):
                                          show_output=False,
                                          param_mode='param_sequence_missing_phase')
 
-        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+        if p.model.orbit_transfer.phases.burn2 in p.model.orbit_transfer.phases._subsystems_myproc:
+            assert_near_equal(p.get_val('orbit_transfer.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
 
     def test_input_parameter_deprecated(self):
@@ -325,8 +313,8 @@ class TestTrajectoryParameters(unittest.TestCase):
                                          show_output=False,
                                          param_mode='param_sequence_missing_phase_deprecated')
 
-        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+        if p.model.orbit_transfer.phases.burn2 in p.model.orbit_transfer.phases._subsystems_myproc:
+            assert_near_equal(p.get_val('orbit_transfer.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
 
     def test_param_no_targets(self):
@@ -339,8 +327,8 @@ class TestTrajectoryParameters(unittest.TestCase):
                                          show_output=False,
                                          param_mode='param_no_targets')
 
-        if p.model.traj.phases.burn2 in p.model.traj.phases._subsystems_myproc:
-            assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
+        if p.model.orbit_transfer.phases.burn2 in p.model.orbit_transfer.phases._subsystems_myproc:
+            assert_near_equal(p.get_val('orbit_transfer.burn2.states:deltav')[-1], 0.3995,
                               tolerance=2.0E-3)
 
 
