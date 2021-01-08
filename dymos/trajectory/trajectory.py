@@ -973,14 +973,14 @@ class Trajectory(om.Group):
         # Assign trajectory parameter values
         param_names = [key for key in self.parameter_options.keys()]
         for name in param_names:
-            prom_path = f'traj.parameters:{name}'
+            prom_path = f'{self.name}.parameters:{name}'
             src = self.get_source(prom_path)
 
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
             val = self._abs_get_val(src, False, None, 'nonlinear', 'output', False, from_root=True)
-            prob_path = f'traj.parameters:{name}'
-            sim_prob[prob_path][...] = val
+            sim_prob_prom_path = f'{traj_name}.parameters:{name}'
+            sim_prob[sim_prob_prom_path][...] = val
 
         for phase_name, phs in sim_traj._phases.items():
             skip_params = set(param_names)
