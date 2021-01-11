@@ -4,28 +4,6 @@ import openmdao.api as om
 
 class BrachistochroneVectorStatesODE(om.ExplicitComponent):
 
-    #
-    # The following dictionaries provide a way of 'tagging' the Brachistochrone ODE with
-    # information about states and parameters that can be accessed from Phase.
-    #
-    # In this case these are class attributes, but the choice of whether or not to tie
-    # this information to the ODE itself (and how to do so) is entirely up to the user.
-    #
-    # In a dynamic ODE model these might be instance attributes whose values vary depending on
-    # the arguments to the instantiation.
-    #
-    states = {'pos': {'rate_source': 'pos_dot',
-                      'units': 'm',
-                      'shape': (2,)},
-              'v': {'rate_source': 'vdot',
-                    'targets': 'v',
-                    'units': 'm/s'}}
-
-    parameters = {'theta': {'targets': 'theta',
-                            'units': 'rad'},
-                  'g': {'targets': 'g',
-                        'units': 'm/s**2'}}
-
     def initialize(self):
         self.options.declare('num_nodes', types=int)
 
@@ -39,9 +17,11 @@ class BrachistochroneVectorStatesODE(om.ExplicitComponent):
 
         self.add_input('theta', val=np.zeros(nn), desc='angle of wire', units='rad')
 
-        self.add_output('pos_dot', val=np.zeros((nn, 2)), desc='velocity components', units='m/s')
+        self.add_output('pos_dot', val=np.zeros((nn, 2)), desc='velocity components', units='m/s',
+                        tags=['state_rate_source:pos'])
 
-        self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2')
+        self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2',
+                        tags=['state_rate_source:v', 'state_units:m/s'])
 
         self.add_output('check', val=np.zeros(nn), desc='check solution: v/sin(theta) = constant',
                         units='m/s')

@@ -63,11 +63,24 @@ def dymos_cmd(argv=None):
     parser.add_argument('-l', '--refine_limit', default=0,
                         help='The number of passes through the grid refinement algorithm'
                              ' to use. (default: 0)')
+    parser.add_argument('-o', '--solution_record_file', default='dymos_solution.db',
+                        help='Set the name of the case recorder file for solution results. '
+                        '(default: dymos_solution.db)')
+    parser.add_argument('-i', '--simulation_record_file', default='dymos_simulation.db',
+                        help='Set the name of the case recorder file for simulation results. '
+                        '(default: dymos_simulation.db)')
+    parser.add_argument('-p', '--make_plots', action='store_true',
+                        help='If given, automatically generate plots of all timeseries outputs.')
+    parser.add_argument('-e', '--plot_dir', default='plots',
+                        help='Set the name of the directory to store the timeseries plots. '
+                        '(default: plots)')
+
     args = parser.parse_args(argv)  # sys.argv is used if argv parameter is None
 
-    if args.solution == 'dymos_solution.db':  # make sure the loaded db is not being overwritten by the new db
-        db_copy = 'old_dymos_solution.db'
-        os.rename('dymos_solution.db', db_copy)
+    # make sure the loaded db is not being overwritten by the new db
+    if args.solution == args.solution_record_file:
+        db_copy = 'old_' + args.solution
+        os.rename(args.solution, db_copy)
         args.solution = db_copy
 
     opts = {
@@ -75,7 +88,11 @@ def dymos_cmd(argv=None):
         'restart': args.solution,
         'simulate': args.simulate,
         'no_solve': args.no_solve,
-        'reset_grid': args.reset_grid
+        'reset_grid': args.reset_grid,
+        'solution_record_file': args.solution_record_file,
+        'simulation_record_file': args.simulation_record_file,
+        'make_plots': args.make_plots,
+        'plot_dir': args.plot_dir,
     }
 
     class DymosHooks:
@@ -85,8 +102,10 @@ def dymos_cmd(argv=None):
 
         Attributes
         ----------
-        _hooks_enabled : bool
-            When True, the associated hooks will be allowed to run.
+        _pre_hooks_enabled : bool
+            When True, the associated pre final_setup hooks will be allowed to run.
+        _post_hooks_enabled : bool
+            When True, the associated post final_setup hooks will be allowed to run.
         """
 
         def __init__(self):
@@ -98,7 +117,8 @@ def dymos_cmd(argv=None):
                 return
             self._pre_hooks_enabled = False
 
-            modify_problem(prob, restart=opts['restart'])
+            modify_problem(prob, restart=opts['restart'],
+                           solution_record_file=opts['solution_record_file'])
             self._post_hooks_enabled = True
 
         def _post_final_setup(self, prob):
@@ -108,7 +128,13 @@ def dymos_cmd(argv=None):
 
             refine_iterations = opts.get('refine_iteration_limit')
             run_problem(prob, refine_iteration_limit=refine_iterations,
-                        run_driver=not opts['no_solve'], simulate=opts['simulate'])
+                        run_driver=not opts['no_solve'],
+                        simulate=opts['simulate'],
+                        make_plots=opts['make_plots'],
+                        solution_record_file=opts['solution_record_file'],
+                        simulation_record_file=opts['simulation_record_file'],
+                        plot_dir=opts['plot_dir']
+                        )
 
     dymos_hooks = DymosHooks()
 
@@ -120,7 +146,8 @@ def dymos_cmd(argv=None):
 
     globals_dict = _simple_exec(args.script, user_args)  # run the script
 
-    if not sys.argv[0].endswith('dymos'):  # suppress printing return value when running from command line
+    # suppress printing return value when running from command line
+    if not sys.argv[0].endswith('dymos'):
         return globals_dict  # return globals for possible checking in unit tests
 
 

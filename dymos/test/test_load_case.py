@@ -24,15 +24,9 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=Fal
 
     phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-    phase.add_state('x', fix_initial=True, fix_final=not isinstance(trans, RungeKutta),
-                    rate_source=BrachistochroneODE.states['x']['rate_source'],
-                    units=BrachistochroneODE.states['x']['units'])
-    phase.add_state('y', fix_initial=True, fix_final=not isinstance(trans, RungeKutta),
-                    rate_source=BrachistochroneODE.states['y']['rate_source'],
-                    units=BrachistochroneODE.states['y']['units'])
-    phase.add_state('v', fix_initial=True,
-                    rate_source=BrachistochroneODE.states['v']['rate_source'],
-                    units=BrachistochroneODE.states['v']['units'])
+    phase.add_state('x', fix_initial=True, fix_final=not isinstance(trans, RungeKutta))
+    phase.add_state('y', fix_initial=True, fix_final=not isinstance(trans, RungeKutta))
+    phase.add_state('v', fix_initial=True)
 
     if not polynomial_control:
         phase.add_control('theta', units='deg',

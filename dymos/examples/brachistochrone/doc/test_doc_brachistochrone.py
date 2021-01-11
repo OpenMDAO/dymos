@@ -80,14 +80,11 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('x', fix_initial=True, fix_final=True)
 
-        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('y', fix_initial=True, fix_final=True)
 
-        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
@@ -165,17 +162,11 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        units=BrachistochroneODE.states['x']['units'],
-                        fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('x', fix_initial=True, fix_final=True)
 
-        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        units=BrachistochroneODE.states['y']['units'],
-                        fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('y', fix_initial=True, fix_final=True)
 
-        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        units=BrachistochroneODE.states['v']['units'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
@@ -255,17 +246,11 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        units=BrachistochroneODE.states['x']['units'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('x', fix_initial=True, fix_final=False)
 
-        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        units=BrachistochroneODE.states['y']['units'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('y', fix_initial=True, fix_final=False)
 
-        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        units=BrachistochroneODE.states['v']['units'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
@@ -352,17 +337,9 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        units=BrachistochroneODE.states['x']['units'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
-
-        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        units=BrachistochroneODE.states['y']['units'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
-
-        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        units=BrachistochroneODE.states['v']['units'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('x', fix_initial=True, fix_final=False)
+        phase.add_state('y', fix_initial=True, fix_final=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_polynomial_control('theta', order=1,
                                      units='deg', lower=0.01, upper=179.9)
@@ -420,7 +397,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_brachistochrone_for_docs_coloring_demo(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -454,17 +431,11 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        units=BrachistochroneODE.states['x']['units'],
-                        fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('x', fix_initial=True, fix_final=True)
 
-        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        units=BrachistochroneODE.states['y']['units'],
-                        fix_initial=True, fix_final=True, solve_segments=False)
+        phase.add_state('y', fix_initial=True, fix_final=True)
 
-        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        units=BrachistochroneODE.states['v']['units'],
-                        fix_initial=True, fix_final=False, solve_segments=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)
@@ -515,7 +486,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
-    @unittest.skipIf(optimizer is not 'IPOPT', 'IPOPT not available')
+    @unittest.skipIf(optimizer != 'IPOPT', 'IPOPT not available')
     def test_brachistochrone_for_docs_coloring_demo_solve_segments(self):
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
@@ -530,7 +501,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         p = om.Problem(model=om.Group())
         _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
         p.driver = om.pyOptSparseDriver(optimizer=optimizer)
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 4
         # p.driver.declare_coloring()
 
         #
@@ -544,24 +515,18 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         phase = traj.add_phase('phase0',
                                dm.Phase(ode_class=BrachistochroneODE,
                                         transcription=dm.Radau(num_segments=100,
-                                                               solve_segments=True)))
+                                                               solve_segments='forward')))
 
         #
         # Set the variables
         #
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.add_state('x', rate_source=BrachistochroneODE.states['x']['rate_source'],
-                        units=BrachistochroneODE.states['x']['units'],
-                        fix_initial=True)
+        phase.add_state('x', fix_initial=True)
 
-        phase.add_state('y', rate_source=BrachistochroneODE.states['y']['rate_source'],
-                        units=BrachistochroneODE.states['y']['units'],
-                        fix_initial=True)
+        phase.add_state('y', fix_initial=True)
 
-        phase.add_state('v', rate_source=BrachistochroneODE.states['v']['rate_source'],
-                        units=BrachistochroneODE.states['v']['units'],
-                        fix_initial=True)
+        phase.add_state('v', fix_initial=True)
 
         phase.add_control('theta', continuity=True, rate_continuity=True,
                           units='deg', lower=0.01, upper=179.9)

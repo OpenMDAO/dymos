@@ -66,9 +66,6 @@ SNOPT_summary.out
 # fortran
 fort.6
 
-# openmdao
-**/visualization
-
 # JOSS
 /joss/apa.csl
 /joss/joss-logo.png

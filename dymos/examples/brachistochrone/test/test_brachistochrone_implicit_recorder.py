@@ -3,6 +3,7 @@ import unittest
 from openmdao.utils.testing_utils import use_tempdirs
 
 
+@use_tempdirs
 class TestBrachistochroneRecordingExample(unittest.TestCase):
 
     @classmethod
@@ -11,7 +12,6 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-    @use_tempdirs
     def test_brachistochrone_recording(self):
         import matplotlib
         matplotlib.use('Agg')
@@ -29,12 +29,9 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(0, 0), duration_bounds=(.5, 10))
 
-        phase.add_state('x', fix_initial=True, fix_final=True,
-                        rate_source=BrachistochroneODE.states['x']['rate_source'])
-        phase.add_state('y', fix_initial=True, fix_final=True,
-                        rate_source=BrachistochroneODE.states['y']['rate_source'])
-        phase.add_state('v', fix_initial=True,
-                        rate_source=BrachistochroneODE.states['v']['rate_source'])
+        phase.add_state('x', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True)
 
         phase.add_control('theta', units='deg',
                           rate_continuity=False, lower=0.01, upper=179.9)

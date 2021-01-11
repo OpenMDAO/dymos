@@ -72,3 +72,38 @@ index=1) }}" }}
 ```
 
 Here `alt_text` is the text displayed when cursor is over the image, and `index` is the index of the plot figure from the test (default is 1, this index starts at 1).
+
+## Running Tests
+
+Dymos tests can be run with any test runner such as [nosetests](https://nose.readthedocs.io/en/latest/) or [pytest](https://docs.pytest.org/en/stable/).
+However, due to some MPI-specific tests in our examples, we prefer our [testflo](https://github.com/OpenMDAO/testflo) package.
+The testflo utility can be installed using
+
+```
+python -m pip install testflo
+```
+
+Testflo can be invoked from the top-level Dymos directory with:
+
+```
+testflo .
+```
+
+With pyoptsparse correctly installed and things working correctly, the tests should conclude after several minutes with a message like the following:
+The lack of MPI capability or pyoptsparse will cause additional tests to be skipped.
+
+```
+The following tests were skipped:
+test_command_line.py:TestCommandLine.test_ex_brachistochrone_reset_grid
+
+
+OK
+
+
+Passed:  450
+Failed:  0
+Skipped: 1
+
+Ran 451 tests using 2 processes
+```
+

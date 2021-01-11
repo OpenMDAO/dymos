@@ -1,3 +1,27 @@
+@article{Martins2013,
+  author = {Martins, Joaquim R. R. A. and Lambe, Andrew B.},
+  doi = {10.2514/1.J051895},
+  journal = {AIAA Journal},
+  month = sep,
+  number = {9},
+  pages = {2049--2075},
+  title = {Multidisciplinary Design Optimization: A Survey of Architectures},
+  volume = {51},
+  year = {2013}
+}
+
+@inproceedings{gray2014derivatives,
+Author = {Justin S. Gray and Tristan A. Hearn and Kenneth T. Moore and John Hwang and Joaquim Martins and Andrew Ning},
+Booktitle = "{15th AIAA/ISSMO Multidisciplinary Analysis and Optimization Conference}",
+Doi = {doi:10.2514/6.2014-2042},
+Month = {2014/07/08},
+Publisher = {American Institute of Aeronautics and Astronautics},
+Title = "{Automatic Evaluation of Multidisciplinary Derivatives Using a Graph-Based Problem Formulation in OpenMDAO}",
+Url = {http://dx.doi.org/10.2514/6.2014-2042},
+Year = {2014},
+pdf = {http://openmdao.org/pubs/Gray_Hearn_Moore_EtAl-_2014_-Multidisciplinary_Derivatives.pdf}
+}
+
 @article{Gray2019a,
     Author = {Justin S. Gray and John T. Hwang
               and Joaquim R. R. A. Martins
@@ -329,4 +353,35 @@ year = {2019}
   author={Allison, J},
   year={2004},
   publisher={A master’s thesis submitted in partial fulfillment of the requirements for~…}
+}
+
+@article {hwang2018b,
+author = {Hwang, John T. and Martins, Joaquim R.R.A.},
+title = {A Computational Architecture for Coupling Heterogeneous Numerical Models and Computing Coupled Derivatives},
+year = {2018},
+issue_date = {August 2018},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {44},
+number = {4},
+issn = {0098-3500},
+url = {https://doi.org/10.1145/3182393},
+doi = {10.1145/3182393},
+abstract = {One of the challenges in computational modeling is coupling models to solve multidisciplinary problems. Flow-based computational frameworks alleviate part of the challenge through a modular approach, where data flows from component to component. However, existing flow-based frameworks are inefficient when coupled derivatives are needed for optimization. To address this, we develop the modular analysis and unified derivatives (MAUD) architecture. MAUD formulates the multidisciplinary model as a nonlinear system of equations, which leads to a linear equation that unifies all methods for computing derivatives. This enables flow-based frameworks that use the MAUD architecture to provide a common interface for the chain rule, adjoint method, coupled adjoint method, and hybrid methods; MAUD automatically uses the appropriate method for the problem. A hierarchical, matrix-free approach enables modern solution techniques such as Newton--Krylov solvers to be used within this monolithic formulation without computational overhead. Two demonstration problems are solved using a Python implementation of MAUD: a nanosatellite optimization with more than 2 million unknowns and 25,000 design variables, and an aircraft optimization involving over 6,000 design variables and 23,000 constraints. MAUD is now implemented in the open source framework OpenMDAO, which has been used to solve aircraft, satellite, wind turbine, and turbofan engine design problems.},
+journal = {ACM Trans. Math. Softw.},
+month = jun,
+articleno = {37},
+numpages = {39},
+keywords = {engineering design, adjoint methods, high-performance computing, Parallel computing, complex systems, Python, multiphysics simulation, PDE-constrained optimization, optimization, multidisciplinary design optimization, derivative computation}
+}
+
+@inbook{falck2019,
+author = {Robert D. Falck and Justin S. Gray},
+title = {Optimal Control within the Context of Multidisciplinary Design, Analysis, and Optimization},
+booktitle = {AIAA Scitech 2019 Forum},
+chapter = {},
+pages = {},
+doi = {10.2514/6.2019-0976},
+URL = {https://arc.aiaa.org/doi/abs/10.2514/6.2019-0976},
+eprint = {https://arc.aiaa.org/doi/pdf/10.2514/6.2019-0976}
 }

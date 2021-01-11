@@ -177,11 +177,9 @@ class GaussLobatto(PseudospectralBase):
     def configure_ode(self, phase):
         super(GaussLobatto, self).configure_ode(phase)
 
-        num_input_nodes = self.grid_data.subset_num_nodes['state_input']
         map_input_indices_to_disc = self.grid_data.input_maps['state_input_to_disc']
 
         for name, options in phase.state_options.items():
-            size = np.prod(options['shape'])
 
             src_idxs = om.slicer[map_input_indices_to_disc, ...]
 
@@ -303,9 +301,6 @@ class GaussLobatto(PseudospectralBase):
 
     def configure_path_constraints(self, phase):
         super(GaussLobatto, self).configure_path_constraints(phase)
-
-        time_units = phase.time_options['units']
-        path_comp = phase._get_subsystem('path_constraints')
 
         for var, options in phase._path_constraints.items():
             con_name = options['constraint_name']
@@ -559,7 +554,6 @@ class GaussLobatto(PseudospectralBase):
         except RuntimeError:
             raise ValueError('state \'{0}\' in phase \'{1}\' was not given a '
                              'rate_source'.format(state_name, phase.name))
-        shape = phase.state_options[state_name]['shape']
         var_type = phase.classify_var(var)
 
         # Determine the path to the variable

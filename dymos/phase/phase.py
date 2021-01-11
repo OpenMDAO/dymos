@@ -242,6 +242,11 @@ class Phase(om.Group):
             If True, then the initial value for this state comes from an externally connected
             source.
         """
+        if name not in self.state_options:
+            # This state option will be picked up automatically from tags.
+            self.state_options[name] = StateOptionsDictionary()
+            self.state_options[name]['name'] = name
+
         if units is not _unspecified:
             self.state_options[name]['units'] = units
 
@@ -1645,6 +1650,7 @@ class Phase(om.Group):
         if self.parameter_options:
             transcription.configure_parameters(self)
 
+        transcription.configure_state_discovery(self)
         transcription.configure_states(self)
         transcription.configure_ode(self)
         transcription.configure_defects(self)

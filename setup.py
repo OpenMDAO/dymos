@@ -14,7 +14,6 @@ optional_dependencies = {
     ],
     'test': [
         'pep8',
-        'parameterized',
         'testflo>=1.3.6',
         'matplotlib'
     ]
@@ -29,7 +28,7 @@ optional_dependencies['all'] = sorted([
 
 
 setup(name='dymos',
-    version='0.16.2-dev',
+    version='0.17.1-dev',
     description='Open-Source Optimization of Dynamic Multidisciplinary Systems',
     long_description='''
 Dymos is a framework for the simulation and optimization of dynamical systems within the OpenMDAO Multidisciplinary Analysis and Optimization environment.

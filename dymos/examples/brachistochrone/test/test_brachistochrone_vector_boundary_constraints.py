@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
@@ -14,6 +15,7 @@ from dymos.examples.brachistochrone.brachistochrone_vector_states_ode \
 SHOW_PLOTS = True
 
 
+@use_tempdirs
 class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
     def test_brachistochrone_vector_boundary_constraints_radau_no_indices(self):
@@ -30,12 +32,8 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('pos',
-                        rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        fix_initial=True, fix_final=False)
-        phase.add_state('v',
-                        rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('pos', fix_initial=True, fix_final=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg',
                           rate_continuity=False, lower=0.01, upper=179.9)
@@ -122,12 +120,8 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('pos',
-                        rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        fix_initial=True, fix_final=False)
-        phase.add_state('v',
-                        rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('pos', fix_initial=True, fix_final=False)
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
         phase.add_control('theta', units='deg',
                           rate_continuity=False, lower=0.01, upper=179.9)
@@ -214,18 +208,12 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
-        phase.add_state('pos',
-                        rate_source=BrachistochroneVectorStatesODE.states['pos']['rate_source'],
-                        fix_initial=True, fix_final=[True, False])
-        phase.add_state('v',
-                        rate_source=BrachistochroneVectorStatesODE.states['v']['rate_source'],
-                        fix_initial=True, fix_final=False)
+        phase.add_state('pos', fix_initial=True, fix_final=[True, False])
+        phase.add_state('v', fix_initial=True, fix_final=False)
 
-        phase.add_control('theta', units='deg',
-                          rate_continuity=False, lower=0.01, upper=179.9)
+        phase.add_control('theta', units='deg', rate_continuity=False, lower=0.01, upper=179.9)
 
-        phase.add_parameter('g',
-                            units='m/s**2', opt=False, val=9.80665)
+        phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
         phase.add_boundary_constraint('pos', loc='final', equals=5, indices=[1])
 
@@ -250,46 +238,46 @@ class TestBrachistochroneVectorBoundaryConstraints(unittest.TestCase):
 
         assert_near_equal(p.get_val('phase0.time')[-1], 1.8016, tolerance=1.0E-3)
 
-        # Plot results
-        if SHOW_PLOTS:
-            p.run_driver()
-            exp_out = phase.simulate(times_per_seg=20)
-
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
-
-            x_imp = p.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_imp = p.get_val('phase0.timeseries.states:pos')[:, 1]
-
-            x_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 0]
-            y_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 1]
-
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('x (m)')
-            ax.set_ylabel('y (m)')
-            ax.grid(True)
-            ax.legend(loc='upper right')
-
-            fig, ax = plt.subplots()
-            fig.suptitle('Brachistochrone Solution')
-
-            x_imp = p.get_val('phase0.timeseries.time')
-            y_imp = p.get_val('phase0.timeseries.control_rates:theta_rate2')
-
-            x_exp = exp_out.get_val('phase0.timeseries.time')
-            y_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate2')
-
-            ax.plot(x_imp, y_imp, 'ro', label='implicit')
-            ax.plot(x_exp, y_exp, 'b-', label='explicit')
-
-            ax.set_xlabel('time (s)')
-            ax.set_ylabel('theta rate2 (rad/s**2)')
-            ax.grid(True)
-            ax.legend(loc='lower right')
-
-            plt.show()
+        # # Plot results
+        # if SHOW_PLOTS:
+        #     p.run_driver()
+        #     exp_out = phase.simulate(times_per_seg=20)
+        #
+        #     fig, ax = plt.subplots()
+        #     fig.suptitle('Brachistochrone Solution')
+        #
+        #     x_imp = p.get_val('phase0.timeseries.states:pos')[:, 0]
+        #     y_imp = p.get_val('phase0.timeseries.states:pos')[:, 1]
+        #
+        #     x_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 0]
+        #     y_exp = exp_out.get_val('phase0.timeseries.states:pos')[:, 1]
+        #
+        #     ax.plot(x_imp, y_imp, 'ro', label='implicit')
+        #     ax.plot(x_exp, y_exp, 'b-', label='explicit')
+        #
+        #     ax.set_xlabel('x (m)')
+        #     ax.set_ylabel('y (m)')
+        #     ax.grid(True)
+        #     ax.legend(loc='upper right')
+        #
+        #     fig, ax = plt.subplots()
+        #     fig.suptitle('Brachistochrone Solution')
+        #
+        #     x_imp = p.get_val('phase0.timeseries.time')
+        #     y_imp = p.get_val('phase0.timeseries.control_rates:theta_rate2')
+        #
+        #     x_exp = exp_out.get_val('phase0.timeseries.time')
+        #     y_exp = exp_out.get_val('phase0.timeseries.control_rates:theta_rate2')
+        #
+        #     ax.plot(x_imp, y_imp, 'ro', label='implicit')
+        #     ax.plot(x_exp, y_exp, 'b-', label='explicit')
+        #
+        #     ax.set_xlabel('time (s)')
+        #     ax.set_ylabel('theta rate2 (rad/s**2)')
+        #     ax.grid(True)
+        #     ax.legend(loc='lower right')
+        #
+        #     plt.show()
 
         return p
 

@@ -40,6 +40,7 @@ markdown_extensions:
 
 nav:
     - 'Home': 'index.md'
+    - 'Installation': 'installation.md'
     - 'Getting Started':
         - 'getting_started/collocation.md'
         - 'getting_started/optimal_control.md'
@@ -75,6 +76,7 @@ nav:
         - 'Trajectories':
             - 'features/trajectories/trajectories.md'
         - 'features/exploiting_sparsity.md'
+        - 'features/plotting.md'
     - 'Frequently Asked Questions':
         - 'faq/add_ode_output_to_timeseries.md'
         - 'faq/connect_scalar_parameters_to_ode.md'
@@ -89,8 +91,9 @@ nav:
         - 'api/trajectory_api.md'
     - 'Command Line Interface':
         - 'command_line/command_line.md'
-    - 'Release Notes':
+    - 'Whats New':
         - 'release_notes/version_0.16.0.md'
+        - 'release_notes/version_0.17.0.md'
     - 'Contributing':
         - 'contributing/contributing.md'
 

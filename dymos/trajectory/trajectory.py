@@ -550,7 +550,7 @@ class Trajectory(om.Group):
                     shapes[i], units[i] = get_source_metadata(phases[i]._get_subsystem(rhs_source),
                                                               vars[i], user_units=units[i],
                                                               user_shape=_unspecified)
-                except ValueError as e:
+                except ValueError:
                     raise ValueError(f'{info_str}: Unable to find variable \'{vars[i]}\' in '
                                      f'phase \'{phases[i].pathname}\' or its ODE.')
 
@@ -737,6 +737,7 @@ class Trajectory(om.Group):
         phase_a : str
             The first phase in the linkage constraint.
         phase_b : str
+            The second phase in the linkage constraint.
         var_a : str
             The linked variable from the first phase in the linkage constraint.
         var_b : str
@@ -816,8 +817,7 @@ class Trajectory(om.Group):
 
     def link_phases(self, phases, vars=None, locs=('final', 'initial'), connected=False):
         """
-        Specifies that phases in the given sequence are to be assume continuity of the given
-        variables.
+        Specify that phases in the given sequence are to be assume continuity of the given variables.
 
         This method caches the phase linkages, and may be called multiple times to express more
         complex behavior (branching phases, phases only continuous in some variables, etc).
@@ -835,21 +835,19 @@ class Trajectory(om.Group):
         vars : sequence of str
             The variables in the phases to be linked, or '*'.  Providing '*' will time and all
             states.  Linking control values or rates requires them to be listed explicitly.
-        locs : tuple of str.
+        locs : tuple of str
             A two-element tuple of the two-character location specification.  For every pair in
             phases, the location specification refers to which location in the first phase is
             connected to which location in the second phase.  If the user wishes to specify
             different locations for different phase pairings, those phase pairings must be made
             in separate calls to link_phases.
-        units : int, str, dict of {str: str or None}, or None
-            The units of the linkage residual.  If an integer (default), then automatically
-            determine the units of each variable in the linkage if possible.  Those that cannot
-            be determined to be a time, state, control, design parameter, or control rate will
-            be assumed to have units None.  If given as a dict, it should map the name of each
-            variable in vars to the appropriate units.
         connected : bool
             Set to True to directly connect the phases being linked. Otherwise, create constraints
             for the optimizer to solve.
+
+        See Also
+        --------
+        add_linkage_constraint : Explicitly add a single phase linkage constraint.
 
         Examples
         --------
@@ -882,14 +880,15 @@ class Trajectory(om.Group):
 
         Phase linkages assume that, for each pair, the state/control values at the end ('final')
         of the first phase are linked to the state/control values at the start of the second phase
-        ('initial').  The user can override this behavior, but
-        they must specify a pair of location strings for each pair given in `phases`.  For instance,
-        in the following example phases 'a' and 'b' have the same initial time and state, but
-        phase 'c' follows phase 'b'.  Note since there are three phases provided, there are two
-        linkages and thus two pairs of location specifiers given.
+        ('initial').
+
+        The user can override this behavior, but they must specify a pair of location strings for
+        each pair given in `phases`.  For instance, in the following example phases 'a' and 'b'
+        have the same initial time and state, but phase 'c' follows phase 'b'.  Note since there
+        are three phases provided, there are two linkages and thus two pairs of location
+        specifiers given.
 
         >>> t.link_phases(['a', 'b', 'c'], locs=[('initial', 'initial'), ('final', 'initial')])
-
         """
         num_links = len(phases) - 1
 
@@ -974,14 +973,14 @@ class Trajectory(om.Group):
         # Assign trajectory parameter values
         param_names = [key for key in self.parameter_options.keys()]
         for name in param_names:
-            prom_path = f'traj.parameters:{name}'
+            prom_path = f'{self.name}.parameters:{name}'
             src = self.get_source(prom_path)
 
             # We use this private function to grab the correctly sized variable from the
             # auto_ivc source.
             val = self._abs_get_val(src, False, None, 'nonlinear', 'output', False, from_root=True)
-            prob_path = f'traj.parameters:{name}'
-            sim_prob[prob_path][...] = val
+            sim_prob_prom_path = f'{traj_name}.parameters:{name}'
+            sim_prob[sim_prob_prom_path][...] = val
 
         for phase_name, phs in sim_traj._phases.items():
             skip_params = set(param_names)

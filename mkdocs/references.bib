@@ -37,9 +37,7 @@ year = {2016}
 abstract = {The method of collocation and nonlinear programming has been used recently to solve a number of optimal control problems. In this method polynomials are commonly used to represent the state variable time histories over subintervals of the total time of interest. These polynomials correspond to a family of modified-Gaussian quadrature rules known as the Gauss-Lobatto rules. Presently, relatively low-order rules from the Gauss-Lobatto family, such as the trapezoid and Simpson`s rule, are used to construct collocation solution schemes. In this work higher-order Gauss-Lobatto quadrature rules are formulated using collocation point selection based on a particular family of Jacobi polynomials. The advantage of using a quadrature rule of higher order is that the approximation using the higher degree polynomial may be more accurate, due to finite precision arithmetic, than a formulation based on a lower degree polynomial. In addition, the number of subintervals and, therefore, the number of nonlinear programming parameters needed to solve a problem accurately may be significantly reduced from that required if the conventional trapezoidal or Simpson`s quadrature schemes are used. An optimal trajectory maximizing final energy for a low-thrust spacecraft is used to demonstrate the benefits of using the higher-order schemes. (28 References).},
 author = {Herman, A L and Conway, B A},
 doi = {10.2514/3.21662},
-file = {:Users/rfalck/Projects/pointer.git/references/Herman Conway 1996.pdf:pdf},
 isbn = {0731-5090},
-issn = {0731-5090},
 journal = {{\{}AIAA{\}} Journal of Guidance, Control, and Dynamics},
 number = {3},
 pages = {522--529},
@@ -68,12 +66,24 @@ url = {https://doi.org/10.2514/6.2018-1646},
 year = {2018}
 }
 
-@article {hwang:2018b,
-	title = {A computational architecture for coupling heterogeneous numerical models and computing coupled derivatives},
-	journal = {ACM TOMS},
-	year = {2018},
-	note = {<p>(In press)</p>},
-	author = {John T. Hwang and Joaquim R. R. A. Martins}
+@article {hwang2018b,
+author = {Hwang, John T. and Martins, Joaquim R.R.A.},
+title = {A Computational Architecture for Coupling Heterogeneous Numerical Models and Computing Coupled Derivatives},
+year = {2018},
+issue_date = {August 2018},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {44},
+number = {4},
+issn = {0098-3500},
+url = {https://doi.org/10.1145/3182393},
+doi = {10.1145/3182393},
+abstract = {One of the challenges in computational modeling is coupling models to solve multidisciplinary problems. Flow-based computational frameworks alleviate part of the challenge through a modular approach, where data flows from component to component. However, existing flow-based frameworks are inefficient when coupled derivatives are needed for optimization. To address this, we develop the modular analysis and unified derivatives (MAUD) architecture. MAUD formulates the multidisciplinary model as a nonlinear system of equations, which leads to a linear equation that unifies all methods for computing derivatives. This enables flow-based frameworks that use the MAUD architecture to provide a common interface for the chain rule, adjoint method, coupled adjoint method, and hybrid methods; MAUD automatically uses the appropriate method for the problem. A hierarchical, matrix-free approach enables modern solution techniques such as Newton--Krylov solvers to be used within this monolithic formulation without computational overhead. Two demonstration problems are solved using a Python implementation of MAUD: a nanosatellite optimization with more than 2 million unknowns and 25,000 design variables, and an aircraft optimization involving over 6,000 design variables and 23,000 constraints. MAUD is now implemented in the open source framework OpenMDAO, which has been used to solve aircraft, satellite, wind turbine, and turbofan engine design problems.},
+journal = {ACM Trans. Math. Softw.},
+month = jun,
+articleno = {37},
+numpages = {39},
+keywords = {engineering design, adjoint methods, high-performance computing, Parallel computing, complex systems, Python, multiphysics simulation, PDE-constrained optimization, optimization, multidisciplinary design optimization, derivative computation}
 }
 
 @article{Martins2013,
@@ -497,4 +507,23 @@ eprint = {https://epubs.siam.org/doi/pdf/10.1137/1.9780898718577}
   pages={4081--4106},
   year={2015},
   publisher={Elsevier}
+}
+
+@Article{Andersson2018,
+  Author = {Joel A E Andersson and Joris Gillis and Greg Horn
+            and James B Rawlings and Moritz Diehl},
+  Title = {{CasADi} -- {A} software framework for nonlinear optimization
+           and optimal control},
+  Journal = {Mathematical Programming Computation},
+  volume={11},
+  pages={1--36},
+  Year = {2019},
+}
+
+@inproceedings{gray2019coloring,
+  title={Using Graph Coloring To Compute Total Derivatives More Efficiently in OpenMDAO},
+  author={Gray, Justin S and Hearn, Tristan A and Naylor, Bret A},
+  booktitle={AIAA Aviation 2019 Forum},
+  pages={3108},
+  year={2019}
 }

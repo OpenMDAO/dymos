@@ -29,7 +29,8 @@ class RungeKutta(TranscriptionBase):
 
         msg = 'The RungeKutta transcription is deprecated and will be removed in Dymos v1.0.0.\n' \
               'For equivalent behavior, users should switch to ' \
-              'GaussLobatto(order=3, solve_segments=True)'
+              'GaussLobatto(order=3, solve_segments=\'forward\') or ' \
+              'GaussLobatto(order=3, solve_segments=\'backward\')'
         warn_deprecation(msg)
 
     def initialize(self):

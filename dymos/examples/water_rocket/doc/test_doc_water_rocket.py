@@ -28,7 +28,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=False)
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 4
         p.driver.opt_settings['max_iter'] = 1000
         p.driver.declare_coloring()
 
@@ -71,7 +71,7 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=False)
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 4
         p.driver.opt_settings['max_iter'] = 1000
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.declare_coloring(tol=1.0E-12)
