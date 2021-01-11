@@ -7,7 +7,7 @@ from openmdao.utils.general_utils import warn_deprecation
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp, PseudospectralTimeseriesOutputComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
-from ...utils.misc import CoerceDesvar, get_rate_units
+from ...utils.misc import CoerceDesvar, get_rate_units, get_source_metadata
 from ...utils.constants import INF_BOUND
 from ...utils.indexing import get_src_indices_by_row
 
@@ -167,7 +167,7 @@ class PseudospectralBase(TranscriptionBase):
                         lb[-1] = options['final_bounds'][0]
                         ub[-1] = options['final_bounds'][-1]
 
-                    phase.add_design_var(name='states:{0}'.format(name),
+                    phase.add_design_var(name=f'states:{name}',
                                          lower=lb,
                                          upper=ub,
                                          scaler=coerce_desvar_option('scaler'),
@@ -471,17 +471,18 @@ class PseudospectralBase(TranscriptionBase):
             shape = control_shape
             units = control_rate_units
             linear = False
-            constraint_path = 'polynomial_control_rates:{0}'.format(var)
+            constraint_path = f'polynomial_control_rates:{var}'
         else:
             # Failed to find variable, assume it is in the RHS
             if self.grid_data.transcription == 'gauss-lobatto':
-                constraint_path = 'rhs_disc.{0}'.format(var)
+                constraint_path = f'rhs_disc.{var}'
             elif self.grid_data.transcription == 'radau-ps':
-                constraint_path = 'rhs_all.{0}'.format(var)
+                constraint_path = f'rhs_all.{var}'
             else:
                 raise ValueError('Invalid transcription')
-            shape = None
-            units = None
+
+            ode = phase._get_subsystem(constraint_path.split('.')[0])
+            shape, units = get_source_metadata(ode, var, user_units=None, user_shape=None)
             linear = False
 
         return constraint_path, shape, units, linear
