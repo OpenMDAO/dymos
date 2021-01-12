@@ -233,7 +233,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
                                            'value of "h" in ascent to final value of "h" in '
                                            'descent.  Values on both sides of the linkage are fixed.')
 
-    def test_link_fixed_states_final_to_final(self):
+    def test_link_fixed_states_initial_to_initial(self):
         """ Test that linking phases with states that are fixed at the linkage point raises an exception. """
 
         import openmdao.api as om
