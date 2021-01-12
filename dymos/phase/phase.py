@@ -2053,13 +2053,13 @@ class Phase(om.Group):
             if input_initial:
                 res = False
             else:
-                res = fix_initial or np.diff(initial_bounds) == 0.0
+                res = fix_initial and (initial_bounds == (None, None) or np.diff(initial_bounds)) == 0.0
         elif loc == 'final':
             if input_initial or input_duration:
                 return False
             else:
-                initial_fixed = fix_initial or np.diff(initial_bounds) == 0
-                duration_fixed = fix_duration or np.diff(duration_bounds) == 0
+                initial_fixed = fix_initial and (initial_bounds == (None, None) or np.diff(initial_bounds)) == 0
+                duration_fixed = fix_duration and (duration_bounds == (None, None) or np.diff(duration_bounds)) == 0
                 res = initial_fixed and duration_fixed
         else:
             raise ValueError(f'Unknown value for argument "loc": must be either "initial" or '

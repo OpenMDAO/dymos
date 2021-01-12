@@ -458,7 +458,6 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
                                            'value of "time" in ascent to initial value of "time" in '
                                            'descent.  Values on both sides of the linkage are fixed.')
 
-
     def test_link_bounded_times_final_to_initial(self):
         """ Test that linking phases with times that are fixed at the linkage point raises an exception. """
 
@@ -569,6 +568,7 @@ class TestTwoPhaseCannonballODEOutputLinkage(unittest.TestCase):
         self.assertEqual(str(e.exception), 'Invalid linkage in Trajectory traj: Cannot link final '
                                            'value of "time" in ascent to initial value of "time" in '
                                            'descent.  Values on both sides of the linkage are fixed.')
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()
