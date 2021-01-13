@@ -474,14 +474,7 @@ class PseudospectralBase(TranscriptionBase):
             constraint_path = f'polynomial_control_rates:{var}'
         else:
             # Failed to find variable, assume it is in the RHS
-            if self.grid_data.transcription == 'gauss-lobatto':
-                constraint_path = f'rhs_disc.{var}'
-            elif self.grid_data.transcription == 'radau-ps':
-                constraint_path = f'rhs_all.{var}'
-            else:
-                raise ValueError('Invalid transcription')
-
-            ode = phase._get_subsystem(constraint_path.split('.')[0])
+            ode = phase._get_subsystem(self._rhs_source)
             shape, units = get_source_metadata(ode, var, user_units=None, user_shape=None)
             linear = False
 

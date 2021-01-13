@@ -3,7 +3,6 @@ from collections.abc import Sequence
 import numpy as np
 
 import openmdao.api as om
-from openmdao.core.constants import _UNDEFINED
 
 from .common import BoundaryConstraintComp, ControlGroup, PolynomialControlGroup, PathConstraintComp
 from ..phase.options import StateOptionsDictionary
@@ -510,7 +509,7 @@ class TranscriptionBase(object):
                 con_shape = (np.prod(shape),)
 
             if con_shape in {None, _unspecified}:
-                con_options['shape'] = (1,) if len(shape) == 1 else shape[1:]
+                con_options['shape'] = (1, ) if len(shape) == 1 else shape[1:]
             else:
                 con_options['shape'] = con_shape
 
@@ -659,11 +658,19 @@ class TranscriptionBase(object):
 
             else:
                 # Failed to find variable, assume it is in the ODE
+                ode = phase._get_subsystem(self._rhs_source)
+
+                shape, units = get_source_metadata(ode, src=var,
+                                                   user_units=options['units'],
+                                                   user_shape=options['shape'])
+
                 constraint_kwargs['linear'] = False
-                constraint_kwargs['shape'] = options.get('shape', None)
-                if constraint_kwargs['shape'] is None:
-                    options['shape'] = (1,)
-                    constraint_kwargs['shape'] = (1,)
+                constraint_kwargs['shape'] = shape
+                constraint_kwargs['units'] = units
+
+            # Propagate the introspected shape back into the options dict.
+            # Some transcriptions use this later.
+            options['shape'] = constraint_kwargs['shape']
 
             constraint_kwargs.pop('constraint_name', None)
             phase._get_subsystem('path_constraints')._add_path_constraint_configure(con_name, **constraint_kwargs)
@@ -739,48 +746,14 @@ class TranscriptionBase(object):
                                   'get_parameter_connections.'.format(self.__class__.__name__))
 
     def check_config(self, phase, logger):
+        """
+        Print warnings associated with the Phase if check is enabled during setup.
 
-        for var, options in phase._path_constraints.items():
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
-
-            if var_type == 'ode':
-                # Failed to find variable, assume it is in the ODE
-                if options['shape'] is None:
-                    logger.warning('Unable to infer shape of path constraint \'{0}\' in '
-                                   'phase \'{1}\'. Scalar assumed.  If this ODE output is '
-                                   'is not scalar, connection errors will '
-                                   'result.'.format(var, phase.name))
-
-        for var, options in phase._initial_boundary_constraints.items():
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
-
-            if var_type == 'ode':
-                # Failed to find variable, assume it is in the ODE
-                if options['shape'] is None:
-                    logger.warning('Unable to infer shape of boundary constraint \'{0}\' in '
-                                   'phase \'{1}\'. Scalar assumed.  If this ODE output is '
-                                   'is not scalar, connection errors will '
-                                   'result.'.format(var, phase.name))
-
-        for var, options in phase._final_boundary_constraints.items():
-            # Determine the path to the variable which we will be constraining
-            # This is more complicated for path constraints since, for instance,
-            # a single state variable has two sources which must be connected to
-            # the path component.
-            var_type = phase.classify_var(var)
-
-            if var_type == 'ode':
-                # Failed to find variable, assume it is in the ODE
-                if options['shape'] is None:
-                    logger.warning('Unable to infer shape of boundary constraint \'{0}\' in '
-                                   'phase \'{1}\'. Scalar assumed.  If this ODE output is '
-                                   'is not scalar, connection errors will '
-                                   'result.'.format(var, phase.name))
+        Parameters
+        ----------
+        logger
+            The logger object to which warnings and errors will be sent.
+        """
+        # Note: currently nothing to do, but some inherited future transcription might need some
+        # post-configure error checking.
+        pass

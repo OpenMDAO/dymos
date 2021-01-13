@@ -32,7 +32,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        phase.add_path_constraint('theta_rate', lower=0, upper=100, units='deg/s')
+        phase.add_path_constraint('theta_rate', lower=0, upper=100)
 
         p.model.linear_solver = om.DirectSolver()
 
@@ -80,7 +80,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        phase.add_path_constraint('theta_rate2', lower=-200, upper=200, units='rad/s**2')
+        phase.add_path_constraint('theta_rate2', lower=-200, upper=200)
 
         p.model.linear_solver = om.DirectSolver()
         p.model.options['assembled_jac_type'] = 'csc'
@@ -130,7 +130,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        phase.add_path_constraint('theta_rate', lower=0, upper=100, units='deg/s')
+        phase.add_path_constraint('theta_rate', lower=0, upper=100)
 
         p.model.linear_solver = om.DirectSolver()
 
@@ -180,7 +180,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
 
-        phase.add_path_constraint('theta_rate2', lower=-200, upper=200, units='rad/s**2')
+        phase.add_path_constraint('theta_rate2', lower=-200, upper=200)
 
         p.model.linear_solver = om.DirectSolver()
         p.model.options['assembled_jac_type'] = 'csc'
@@ -200,3 +200,7 @@ class TestBrachistochronePathConstraints(unittest.TestCase):
 
         # Test the results
         assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
+
+
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()
