@@ -296,8 +296,8 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_boundary_constraint('theta', loc='initial', units='deg', lower=0, upper=1.0)
-        phase.add_boundary_constraint('theta', loc='final', units='deg', lower=100, upper=105.)
+        phase.add_boundary_constraint('theta', loc='initial', lower=0, upper=1.0)
+        phase.add_boundary_constraint('theta', loc='final', lower=100, upper=105.)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -384,8 +384,8 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_boundary_constraint('theta', loc='initial', units='deg', lower=0, upper=1.0)
-        phase.add_boundary_constraint('theta', loc='final', units='deg', lower=100, upper=105.)
+        phase.add_boundary_constraint('theta', loc='initial', lower=0, upper=1.0)
+        phase.add_boundary_constraint('theta', loc='final', lower=100, upper=105.)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -471,8 +471,8 @@ class TestBrachistochronePolynomialControlBoundaryConstrained(unittest.TestCase)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_boundary_constraint('theta', loc='initial', units='deg', lower=0, upper=1.0)
-        phase.add_boundary_constraint('theta', loc='final', units='deg', lower=50, upper=105.)
+        phase.add_boundary_constraint('theta', loc='initial', lower=0, upper=1.0)
+        phase.add_boundary_constraint('theta', loc='final', lower=50, upper=105.)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -564,7 +564,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_path_constraint('theta', units='deg', lower=0, upper=120)
+        phase.add_path_constraint('theta', lower=0, upper=120)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -650,7 +650,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_path_constraint('theta', units='deg', lower=1, upper=120)
+        phase.add_path_constraint('theta', lower=1, upper=120)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -736,7 +736,7 @@ class TestBrachistochronePolynomialControlPathConstrained(unittest.TestCase):
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_path_constraint('theta', units='deg', lower=0, upper=120)
+        phase.add_path_constraint('theta', lower=0, upper=120)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -830,7 +830,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_path_constraint('theta_rate', units='deg/s', lower=0, upper=120)
+        phase.add_path_constraint('theta_rate', lower=0, upper=120)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -918,7 +918,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_path_constraint('theta_rate', units='deg/s', lower=0, upper=120)
+        phase.add_path_constraint('theta_rate', lower=0, upper=120)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -1006,7 +1006,7 @@ class TestBrachistochronePolynomialControlRatePathConstrained(unittest.TestCase)
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_path_constraint('theta_rate', units='deg/s', lower=0, upper=120)
+        phase.add_path_constraint('theta_rate', lower=0, upper=120)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)
@@ -1100,7 +1100,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_path_constraint('theta_rate2', units='deg/s**2', lower=-0.01, upper=0.01)
+        phase.add_path_constraint('theta_rate2', lower=-0.01, upper=0.01)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -1188,7 +1188,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_path_constraint('theta_rate2', units='deg/s**2', lower=-0.01, upper=0.01)
+        phase.add_path_constraint('theta_rate2', lower=-0.01, upper=0.01)
 
         # Minimize time at the end of the phase
         phase.add_objective('time', loc='final', scaler=10)
@@ -1274,7 +1274,7 @@ class TestBrachistochronePolynomialControlRate2PathConstrained(unittest.TestCase
 
         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
-        phase.add_path_constraint('theta_rate2', units='deg/s**2', lower=-0.01, upper=0.01)
+        phase.add_path_constraint('theta_rate2', lower=-0.01, upper=0.01)
 
         phase.add_boundary_constraint('x', loc='final', equals=10)
         phase.add_boundary_constraint('y', loc='final', equals=5)

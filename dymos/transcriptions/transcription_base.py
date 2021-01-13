@@ -450,21 +450,11 @@ class TranscriptionBase(object):
         for var, options in bc_dict.items():
             con_name = options['constraint_name']
 
-            # Constraint options are a copy of options with constraint_name key removed.
-            con_options = options.copy()
-            con_options.pop('constraint_name')
-
-            src, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
-
-            con_units = options.get('units', None)
-
-            shape = options['shape'] if shape is None else shape
-            if shape is None:
-                shape = (1,)
+            _, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
 
             if options['indices'] is not None:
-                # Indices are provided, make sure lower/upper/equals are compatible.
-                con_shape = (len(options['indices']),)
+                # Sliced shape.
+                con_shape = (len(options['indices']), )
                 # Indices provided, make sure lower/upper/equals have shape of the indices.
                 if options['lower'] and not np.isscalar(options['lower']) and \
                         np.asarray(options['lower']).shape != con_shape:
@@ -484,7 +474,7 @@ class TranscriptionBase(object):
                                      'compatible the provided indices. Provide them as a '
                                      'flat array with the same size as indices.'.format(var))
 
-            elif 'lower' in options or 'upper' in options or 'equals' in options:
+            else:
                 # Indices not provided, make sure lower/upper/equals have shape of source.
                 if 'lower' in options and options['lower'] is not None and \
                         not np.isscalar(options['lower']) and np.asarray(options['lower']).shape != shape:
@@ -506,13 +496,16 @@ class TranscriptionBase(object):
                                      'compatible with its shape, and no indices were '
                                      'provided. Expected a shape of {1} but given shape '
                                      'is {2}'.format(var, shape, np.asarray(options['equals']).shape))
-                con_shape = (np.prod(shape),)
 
-            if con_shape in {None, _unspecified}:
-                con_options['shape'] = (1, ) if len(shape) == 1 else shape[1:]
-            else:
-                con_options['shape'] = con_shape
+            # Constraint options are a copy of options with constraint_name key removed.
+            con_options = options.copy()
+            con_options.pop('constraint_name')
 
+            # By now, all possible constraint target shapes should have been introspected.
+            con_options['shape'] = options['shape'] = shape
+
+            # If user overrides the introspected unit, then change the unit on the add_constraint call.
+            con_units = options['units']
             con_options['units'] = units if con_units is None else con_units
             con_options['linear'] = linear
 
@@ -525,10 +518,6 @@ class TranscriptionBase(object):
             con_name = options['constraint_name']
 
             src, shape, units, linear = self._get_boundary_constraint_src(var, loc, phase)
-
-            shape = options['shape'] if shape is None else shape
-            if shape is None:
-                shape = (1,)
 
             size = np.prod(shape)
 
@@ -657,7 +646,7 @@ class TranscriptionBase(object):
                     if con_units is None else con_units
 
             else:
-                # Failed to find variable, assume it is in the ODE
+                # Failed to find variable, assume it is in the ODE. This requires introspection.
                 ode = phase._get_subsystem(self._rhs_source)
 
                 shape, units = get_source_metadata(ode, src=var,

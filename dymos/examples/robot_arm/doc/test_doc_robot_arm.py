@@ -54,9 +54,9 @@ class TestRobotArm(unittest.TestCase):
         phase.add_control('u2', opt=True, lower=-1, upper=1, scaler=0.1, units='m**3*rad/s**2',
                           continuity=False, rate_continuity=False)
 
-        phase.add_path_constraint('u0', lower=-1, upper=1, scaler=0.1, units='m**2/s**2')
-        phase.add_path_constraint('u1', lower=-1, upper=1, scaler=0.1, units='m**3*rad/s**2')
-        phase.add_path_constraint('u2', lower=-1, upper=1, scaler=0.1, units='m**3*rad/s**2')
+        phase.add_path_constraint('u0', lower=-1, upper=1, scaler=0.1)
+        phase.add_path_constraint('u1', lower=-1, upper=1, scaler=0.1)
+        phase.add_path_constraint('u2', lower=-1, upper=1, scaler=0.1)
 
         phase.add_objective('time', ref=0.1)
 
