@@ -2,6 +2,7 @@ import openmdao.utils.hooks as hooks
 import argparse
 import sys
 import os
+from openmdao.utils.general_utils import warn_deprecation
 from dymos.run_problem import modify_problem, run_problem
 from unittest.mock import patch
 
@@ -37,6 +38,15 @@ def _simple_exec(script_name, user_args):
 
 
 def dymos_cmd(argv=None):
+    """
+    The Dymos command line script.
+    """
+    msg = """
+    The Dymos command-line interface is deprecated and will be removed in dymos 1.0.0.
+    This functionality is available by using the run_problem function from a python script instead.
+    """
+    warn_deprecation(msg)
+
     # pre-parse sys.argv to split between before and after '--'
     alt_args = argv if argv else sys.argv
     if '--' in alt_args:
