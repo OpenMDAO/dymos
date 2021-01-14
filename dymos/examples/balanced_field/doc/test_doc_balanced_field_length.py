@@ -185,7 +185,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         # liftoff until v2 (1.2 * v_stall) at 35 ft
         #
 
-        p5 = dm.Phase(ode_class=TakeoffODE, transcription=dm.Radau(num_segments=20))
+        p5 = dm.Phase(ode_class=TakeoffODE, transcription=dm.Radau(num_segments=15))
 
         traj.add_phase('climb', p5)
 
